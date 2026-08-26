@@ -128,3 +128,11 @@ jobs:
             git pull --rebase origin main
             git push origin HEAD:main
           fi
+
+  deploy:
+    needs: refresh
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pages.yml
