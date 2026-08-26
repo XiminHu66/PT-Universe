@@ -1,0 +1,56 @@
+name: Refresh 3C Scout data
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - apps/3c-scout/scripts/**
+      - apps/3c-scout/tests/**
+      - .github/workflows/refresh-3c.yml
+  schedule:
+    # Preserve the original 15:15 UTC schedule: 07:15 PST / 08:15 PDT.
+    - cron: "15 15 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pt-universe-3c-data
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out PT Universe
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Test feed parser
+        working-directory: apps/3c-scout
+        run: python -m unittest discover -s tests -v
+
+      - name: Fetch product feeds
+        working-directory: apps/3c-scout
+        run: python scripts/fetch_products.py
+
+      - name: Commit refreshed 3C data to PT Universe
+        run: |
+          git config user.name "pt-universe-3c-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/3c-scout/data/products.json
+          if git diff --cached --quiet; then
+            echo "No 3C data changes"
+          else
+            git commit -m "data(3c): refresh product feed"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
