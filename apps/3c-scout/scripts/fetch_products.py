@@ -28,7 +28,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "data" / "products.json"
 NOW = datetime.now(timezone.utc)
-USER_AGENT = "3C-Scout/1.0 (+https://github.com/XiminHu66/3C-scout)"
+USER_AGENT = "3C-Scout/1.0 (+https://github.com/XiminHu66/PT-Universe/tree/main/apps/3c-scout)"
 
 SOURCES = [
     # Deal sources
