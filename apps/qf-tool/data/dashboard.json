@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-26T15:01:42-07:00",
+  "updatedAt": "2026-08-26T15:05:57-07:00",
   "marketMode": "顶部震荡 · 等待更好赔率",
   "quotes": [
     {
@@ -99,14 +99,6 @@
       "url": "https://debloat.dev/"
     },
     {
-      "title": "Ask HN: What is one simple thing LLMs are insanely bad at?",
-      "source": "Hacker News 需求信号",
-      "score": 89,
-      "signal": "32 points · 82 comments；关键词：looking for",
-      "angle": "先验证重复痛点，再用轻量网页、数据报告或自动化工具切入。",
-      "url": "https://news.ycombinator.com/item?id=49443820"
-    },
-    {
       "title": "Launch HN: Risklytics (YC S26) – Insurance brokerage for frontier tech companies",
       "source": "Hacker News 需求信号",
       "score": 84,
@@ -129,6 +121,14 @@
       "signal": "6 points · 13 comments；关键词：alternative",
       "angle": "先验证重复痛点，再用轻量网页、数据报告或自动化工具切入。",
       "url": "https://news.ycombinator.com/item?id=49420048"
+    },
+    {
+      "title": "Show HN: Build your own theme park",
+      "source": "Hacker News 需求信号",
+      "score": 77,
+      "signal": "15 points · 3 comments；关键词：looking for",
+      "angle": "先验证重复痛点，再用轻量网页、数据报告或自动化工具切入。",
+      "url": "https://www.magicpatterns.com/theme-park"
     },
     {
       "title": "Ask HN: Where else do you spend time on the internet other than HN?",
