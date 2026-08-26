@@ -17,7 +17,7 @@ from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA_PATH = ROOT / "data" / "dashboard.json"
-USER_AGENT = "QF-Tool/1.0 contact: https://github.com/XiminHu66/QF-tool"
+USER_AGENT = "QF-Tool/1.0 contact: https://github.com/XiminHu66/PT-Universe/tree/main/apps/qf-tool"
 
 
 def fetch_text(url: str, timeout: int = 18) -> str:
