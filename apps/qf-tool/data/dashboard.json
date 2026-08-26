@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-26T14:55:38-07:00",
+  "updatedAt": "2026-08-26T15:01:42-07:00",
   "marketMode": "顶部震荡 · 等待更好赔率",
   "quotes": [
     {
@@ -102,9 +102,17 @@
       "title": "Ask HN: What is one simple thing LLMs are insanely bad at?",
       "source": "Hacker News 需求信号",
       "score": 89,
-      "signal": "32 points · 81 comments；关键词：looking for",
+      "signal": "32 points · 82 comments；关键词：looking for",
       "angle": "先验证重复痛点，再用轻量网页、数据报告或自动化工具切入。",
       "url": "https://news.ycombinator.com/item?id=49443820"
+    },
+    {
+      "title": "Launch HN: Risklytics (YC S26) – Insurance brokerage for frontier tech companies",
+      "source": "Hacker News 需求信号",
+      "score": 84,
+      "signal": "24 points · 17 comments；关键词：looking for",
+      "angle": "先验证重复痛点，再用轻量网页、数据报告或自动化工具切入。",
+      "url": "https://www.risklytics.ai/"
     },
     {
       "title": "Show HN: Frugal Tokens – explore costs and usage across coding agents",
@@ -113,14 +121,6 @@
       "signal": "37 points · 10 comments；关键词：too expensive",
       "angle": "先验证重复痛点，再用轻量网页、数据报告或自动化工具切入。",
       "url": "https://demo.frugaltokens.com/"
-    },
-    {
-      "title": "Launch HN: Risklytics (YC S26) – Insurance brokerage for frontier tech companies",
-      "source": "Hacker News 需求信号",
-      "score": 83,
-      "signal": "24 points · 16 comments；关键词：looking for",
-      "angle": "先验证重复痛点，再用轻量网页、数据报告或自动化工具切入。",
-      "url": "https://www.risklytics.ai/"
     },
     {
       "title": "You Don't Need AI to Generate Code",
