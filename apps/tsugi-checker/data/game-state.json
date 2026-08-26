@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-26T21:55:54Z",
+  "generated_at": "2026-08-26T22:01:40Z",
   "seen": {
     "b242f954157ba1ca": {
       "first_seen": "2026-08-14",
@@ -1521,7 +1521,7 @@
     },
     "1819bace318bdb15": {
       "first_seen": "2026-08-14",
-      "last_seen": "2026-08-25",
+      "last_seen": "2026-08-27",
       "title": "花掉马斯克的金钱",
       "source": "taptap_cn_new"
     },
@@ -1665,7 +1665,7 @@
     },
     "823e16a7853a4008": {
       "first_seen": "2026-08-17",
-      "last_seen": "2026-08-25",
+      "last_seen": "2026-08-27",
       "title": "我的家长",
       "source": "taptap_cn_new"
     },
@@ -1677,7 +1677,7 @@
     },
     "a984b6d0d8ecd146": {
       "first_seen": "2026-08-17",
-      "last_seen": "2026-08-25",
+      "last_seen": "2026-08-27",
       "title": "小画家模拟2",
       "source": "taptap_cn_new"
     },
@@ -1713,7 +1713,7 @@
     },
     "ef79f46a3a1f26fb": {
       "first_seen": "2026-08-20",
-      "last_seen": "2026-08-25",
+      "last_seen": "2026-08-27",
       "title": "诡秘之主",
       "source": "taptap_cn_new"
     },
@@ -1755,7 +1755,7 @@
     },
     "c06b518090734250": {
       "first_seen": "2026-08-22",
-      "last_seen": "2026-08-25",
+      "last_seen": "2026-08-27",
       "title": "菜鸡梦想家",
       "source": "taptap_cn_new"
     },
@@ -1803,7 +1803,7 @@
     },
     "796508e7c2e8b01b": {
       "first_seen": "2026-08-25",
-      "last_seen": "2026-08-25",
+      "last_seen": "2026-08-27",
       "title": "大侠闯天下",
       "source": "taptap_cn_new"
     },
@@ -1815,7 +1815,7 @@
     },
     "9e9a4b6409f26717": {
       "first_seen": "2026-08-25",
-      "last_seen": "2026-08-25",
+      "last_seen": "2026-08-27",
       "title": "七宗罪与七美德测试",
       "source": "taptap_cn_new"
     },
@@ -1848,6 +1848,12 @@
       "last_seen": "2026-08-27",
       "title": "伊莫截图",
       "source": "taptap_cn_upcoming"
+    },
+    "58d9df650f4fb9de": {
+      "first_seen": "2026-08-27",
+      "last_seen": "2026-08-27",
+      "title": "诡世：你的星座决定你的异能",
+      "source": "taptap_cn_new"
     }
   }
 }
