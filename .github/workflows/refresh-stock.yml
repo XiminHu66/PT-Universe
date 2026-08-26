@@ -1,0 +1,73 @@
+name: Refresh Stock data
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Data refresh mode
+        required: true
+        default: full
+        type: choice
+        options:
+          - full
+          - quotes
+  push:
+    branches: [main]
+    paths:
+      - apps/stock-alert/scripts/**
+      - apps/stock-alert/requirements.txt
+      - .github/workflows/refresh-stock.yml
+  schedule:
+    # Hourly during regular US market hours, offset from :00 to reduce queue delay.
+    - cron: "41 9-15 * * 1-5"
+      timezone: "America/New_York"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pt-universe-stock-data
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out PT Universe
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: apps/stock-alert/requirements.txt
+
+      - name: Install full market dependencies
+        if: github.event_name != 'workflow_dispatch' || inputs.mode == 'full'
+        run: python -m pip install -r apps/stock-alert/requirements.txt
+
+      - name: Fetch market history, news and options
+        if: github.event_name != 'workflow_dispatch' || inputs.mode == 'full'
+        working-directory: apps/stock-alert
+        run: python scripts/fetch_market.py
+
+      - name: Fetch lightweight quotes
+        working-directory: apps/stock-alert
+        run: python scripts/fetch_quotes.py
+
+      - name: Commit refreshed Stock data to PT Universe
+        run: |
+          git config user.name "pt-universe-stock-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/stock-alert/data/market.json apps/stock-alert/data/quotes.json
+          if git diff --cached --quiet; then
+            echo "No Stock data changes"
+          else
+            git commit -m "data(stock): refresh market snapshot"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
