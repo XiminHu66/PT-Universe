@@ -1,0 +1,51 @@
+name: Refresh QF data
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - apps/qf-tool/scripts/**
+      - .github/workflows/refresh-qf.yml
+  schedule:
+    - cron: "0 8 * * *"
+      timezone: "America/Los_Angeles"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pt-universe-qf-data
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out PT Universe
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Refresh public dashboard data
+        working-directory: apps/qf-tool
+        run: python scripts/update_data.py
+
+      - name: Commit refreshed QF data to PT Universe
+        run: |
+          git config user.name "pt-universe-qf-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/qf-tool/data/dashboard.json
+          if git diff --cached --quiet; then
+            echo "No QF data changes"
+          else
+            git commit -m "data(qf): refresh dashboard"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
