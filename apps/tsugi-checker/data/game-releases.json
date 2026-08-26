@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-26T22:01:40Z",
+  "generated_at": "2026-08-26T22:06:11Z",
   "date_jst": "2026-08-27",
   "window": {
     "past_days": 7,
@@ -1555,15 +1555,15 @@
           "独立",
           "模拟"
         ],
-        "review_count": 30,
+        "review_count": 31,
         "review_positive": 28,
-        "review_negative": 2,
-        "review_positive_percent": 93,
+        "review_negative": 3,
+        "review_positive_percent": 90,
         "review_score_desc": "好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 28.34,
+        "heat_score": 28.6,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1684,10 +1684,10 @@
           "抢先体验"
         ],
         "review_count": 20,
-        "review_positive": 14,
-        "review_negative": 6,
-        "review_positive_percent": 70,
-        "review_score_desc": "多半好评",
+        "review_positive": 13,
+        "review_negative": 7,
+        "review_positive_percent": 65,
+        "review_score_desc": "褒贬不一",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
@@ -1724,15 +1724,15 @@
           "模拟",
           "策略"
         ],
-        "review_count": 51,
-        "review_positive": 48,
+        "review_count": 53,
+        "review_positive": 50,
         "review_negative": 3,
         "review_positive_percent": 94,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 32.6,
+        "heat_score": 32.92,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -2477,7 +2477,7 @@
         "store": "Steam",
         "title": "Divinum",
         "url": "https://store.steampowered.com/app/1148130/Divinum/",
-        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1148130/8600d51953a9f23a61e54a642ecf8f947c6c73d4/capsule_231x87.jpg?t=1787772161",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1148130/8600d51953a9f23a61e54a642ecf8f947c6c73d4/capsule_231x87.jpg?t=1787781871",
         "platforms": [
           "PC"
         ],
@@ -6058,25 +6058,25 @@
       "label": "App Store 日本 · 新着精选",
       "ok": true,
       "count": 8,
-      "checked_at": "2026-08-26T22:01:40Z"
+      "checked_at": "2026-08-26T22:06:11Z"
     },
     "googleplay": {
       "label": "Google Play 日本 · 新規リリース精选",
       "ok": true,
       "count": 6,
-      "checked_at": "2026-08-26T22:01:40Z"
+      "checked_at": "2026-08-26T22:06:11Z"
     },
     "taptap_cn_new": {
       "label": "TapTap 中国 · 新品榜",
       "ok": true,
       "count": 8,
-      "checked_at": "2026-08-26T22:01:40Z"
+      "checked_at": "2026-08-26T22:06:11Z"
     },
     "taptap_cn_upcoming": {
       "label": "TapTap 中国 · 即将首发",
       "ok": true,
       "count": 2,
-      "checked_at": "2026-08-26T22:01:40Z"
+      "checked_at": "2026-08-26T22:06:11Z"
     },
     "steam_popular_new": {
       "label": "Steam · Popular New Releases",
@@ -6084,7 +6084,7 @@
       "count": 32,
       "raw_count": 50,
       "dom_count": 50,
-      "checked_at": "2026-08-26T22:01:40Z"
+      "checked_at": "2026-08-26T22:06:11Z"
     },
     "steam_popular_upcoming": {
       "label": "Steam · Popular Upcoming",
@@ -6092,14 +6092,14 @@
       "count": 49,
       "raw_count": 49,
       "dom_count": 50,
-      "checked_at": "2026-08-26T22:01:40Z"
+      "checked_at": "2026-08-26T22:06:11Z"
     },
     "famitsu": {
       "label": "Famitsu 日本游戏发行日",
       "ok": true,
       "count": 133,
-      "checked_at": "2026-08-26T22:01:40Z"
+      "checked_at": "2026-08-26T22:06:11Z"
     }
   },
-  "metadata_enriched_at": "2026-08-26T22:03:30Z"
+  "metadata_enriched_at": "2026-08-26T22:08:04Z"
 }
