@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f4f1ea" />
+    <meta
+      name="description"
+      content="3C Scout：自动聚合中英文新品、好 Deal 与潜力发现，聚焦数码、桌面、音频、游戏、厨房和生活好物。"
+    />
+    <title>3C Scout · 新品与好价雷达</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="3C Scout 首页">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 48 48" role="img">
+              <path d="M8 25.5 24 7l16 18.5-16 15L8 25.5Z" />
+              <circle cx="24" cy="24" r="5" />
+            </svg>
+          </span>
+          <span>
+            <strong>3C SCOUT</strong>
+            <small>GEAR &amp; DEAL RADAR</small>
+          </span>
+        </a>
+        <div class="top-actions">
+          <span class="freshness" id="freshness"><i></i> 正在读取今日数据</span>
+          <button class="icon-button" id="themeToggle" type="button" aria-label="切换深色模式" title="切换主题">
+            <span aria-hidden="true">◐</span>
+          </button>
+        </div>
+      </header>
+
+      <main>
+        <section class="intro" aria-labelledby="pageTitle">
+          <div>
+            <p class="eyebrow">YOUR PERSONAL PRODUCT INTELLIGENCE</p>
+            <h1 id="pageTitle">少刷信息流，<br /><em>只看值得买。</em></h1>
+          </div>
+          <div class="intro-copy">
+            <p>自动扫过中英文来源，集中发现新鲜硬件、桌面小物、音频与游戏设备、厨房和生活好物。</p>
+            <div class="metric-row" aria-label="今日数据概览">
+              <div><b id="totalCount">—</b><span>条精选</span></div>
+              <div><b id="sourceCount">—</b><span>个来源</span></div>
+              <div><b id="dealPeak">—</b><span>最高折扣</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="radar" aria-label="商品信息流">
+          <div class="stream-tabs" role="tablist" aria-label="信息流类型">
+            <button class="stream-tab active" type="button" role="tab" aria-selected="true" data-stream="new">
+              <span>01</span> 新商品
+            </button>
+            <button class="stream-tab" type="button" role="tab" aria-selected="false" data-stream="deals">
+              <span>02</span> 好 Deal
+            </button>
+            <button class="stream-tab" type="button" role="tab" aria-selected="false" data-stream="discover">
+              <span>03</span> 发现
+            </button>
+          </div>
+
+          <div class="control-panel">
+            <label class="search-box">
+              <span aria-hidden="true">⌕</span>
+              <input id="searchInput" type="search" placeholder="搜索商品、品牌或来源" autocomplete="off" />
+              <kbd>/</kbd>
+            </label>
+            <label class="select-wrap">
+              <span class="sr-only">排序</span>
+              <select id="sortSelect">
+                <option value="score">为你推荐</option>
+                <option value="newest">最新发布</option>
+                <option value="discount">折扣最高</option>
+                <option value="price-low">价格从低到高</option>
+              </select>
+            </label>
+            <button class="compact-button" id="languageToggle" type="button" data-language="all">中 / EN</button>
+          </div>
+
+          <div class="category-strip" id="categoryStrip" aria-label="商品分类"></div>
+
+          <div class="results-head">
+            <p><span id="resultsCount">0</span> ITEMS FOUND</p>
+            <p id="streamNote">更偏向发现刚发布、刚上市和设计新鲜的商品</p>
+          </div>
+
+          <div class="product-grid" id="productGrid" aria-live="polite"></div>
+          <div class="empty-state" id="emptyState" hidden>
+            <span>⌁</span>
+            <h2>这组雷达暂时没有信号</h2>
+            <p>试试清空搜索或切换分类。自动抓取会在每天早晨补充新内容。</p>
+            <button type="button" id="resetFilters">清空筛选</button>
+          </div>
+        </section>
+
+        <section class="source-panel" aria-labelledby="sourceTitle">
+          <div>
+            <p class="eyebrow">SOURCE HEALTH</p>
+            <h2 id="sourceTitle">今日来源状态</h2>
+          </div>
+          <div class="source-list" id="sourceList"></div>
+        </section>
+      </main>
+
+      <footer>
+        <p>3C SCOUT / BUILT FOR XIMIN</p>
+        <p>价格与库存可能变化，请以商家页面为准。本站仅聚合标题、摘要与原始链接。</p>
+      </footer>
+    </div>
+
+    <template id="productTemplate">
+      <article class="product-card">
+        <div class="card-media">
+          <img class="product-image" alt="" loading="lazy" referrerpolicy="no-referrer" />
+          <div class="media-fallback" aria-hidden="true"><span></span></div>
+          <span class="category-badge"></span>
+        </div>
+        <div class="card-body">
+          <div class="card-meta"><span class="source-name"></span><time></time></div>
+          <h2 class="product-title"></h2>
+          <p class="summary"></p>
+          <div class="price-row">
+            <div class="prices"><strong class="current-price"></strong><s class="original-price"></s></div>
+            <span class="discount-badge"></span>
+          </div>
+          <details>
+            <summary>基础信息 <span>＋</span></summary>
+            <div class="detail-content"></div>
+          </details>
+          <div class="card-actions">
+            <a class="primary-link" target="_blank" rel="noopener noreferrer">查看商品 <span>↗</span></a>
+            <a class="source-link" target="_blank" rel="noopener noreferrer">原始来源</a>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <script src="app.js" defer></script>
+  
+<!-- PT-UNIVERSE-BACKLINK -->
+<style>
+#ptu-home-link{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));z-index:2147483646;display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 11px;border:1px solid rgba(255,255,255,.2);border-radius:999px;background:rgba(8,12,22,.72);box-shadow:0 8px 24px rgba(0,0,0,.18);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#fff!important;font:600 11px/1 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;text-decoration:none!important;opacity:.62;transition:opacity .18s,transform .18s}
+#ptu-home-link:hover,#ptu-home-link:focus-visible{opacity:1;transform:translateY(-1px);outline:none}
+#ptu-home-link i{width:6px;height:6px;border-radius:50%;background:#7c73ff;box-shadow:0 0 0 3px rgba(124,115,255,.2)}
+@media(max-width:760px){#ptu-home-link{bottom:calc(76px + env(safe-area-inset-bottom));left:max(10px,env(safe-area-inset-left));height:31px;padding:0 9px;font-size:10px}}
+</style>
+<a id="ptu-home-link" href="../../" aria-label="返回 PT Universe"><i></i><span>← PT Universe</span></a>
+</body>
+</html>

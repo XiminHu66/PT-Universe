@@ -1,0 +1,147 @@
+{
+  "updatedAt": "2026-08-26T09:21:23-07:00",
+  "marketMode": "顶部震荡 · 等待更好赔率",
+  "quotes": [
+    {
+      "symbol": "NVDA",
+      "price": 181.24,
+      "change": 1.7,
+      "target": 225
+    },
+    {
+      "symbol": "AMD",
+      "price": 169.7,
+      "change": -0.8,
+      "target": 215
+    },
+    {
+      "symbol": "AVGO",
+      "price": 356.42,
+      "change": 0.9,
+      "target": 410
+    },
+    {
+      "symbol": "SMH",
+      "price": 372.18,
+      "change": 0.4,
+      "target": 430
+    },
+    {
+      "symbol": "QQQ",
+      "price": 618.33,
+      "change": 0.2,
+      "target": 690
+    }
+  ],
+  "deals": [
+    {
+      "title": "Milwaukee M12 6\" 12V Brushless Pruning Chainsaw w/ 2x 5Ah Batteries & Charger $199 + Free S&H",
+      "price": "$199",
+      "originalPrice": "购买前核价",
+      "discount": 0,
+      "source": "Slickdeals",
+      "url": "https://slickdeals.net/f/19928046-milwaukee-m12-fuel-6-brushless-cordless-pruning-hatchet-mini-chainsaw-w-2x-5-0ah-batteries-charger-199-free-shipping?utm_source=rss&utm_content=fp&utm_medium=RSS2",
+      "note": "社区热度收录；购买前请核对历史价格、库存和退货条件。"
+    },
+    {
+      "title": "DJI Osmo Pocket 4 3-Axis Gimbal 4K Vlog Camera Creator Combo $476.90 + Free Shipping",
+      "price": "$476.90",
+      "originalPrice": "购买前核价",
+      "discount": 0,
+      "source": "Slickdeals",
+      "url": "https://slickdeals.net/f/19911936-dji-osmo-pocket-4-3-axis-gimbal-4k-vlog-camera-creator-combo-484-free-shipping?utm_source=rss&utm_content=fp&utm_medium=RSS2",
+      "note": "社区热度收录；购买前请核对历史价格、库存和退货条件。"
+    },
+    {
+      "title": "TNELTUEB 6-Speed 21V 765 CFM Cordless Leaf Blower w/ 2x 4Ah Batteries & Charger $36 + Free S&H",
+      "price": "$36",
+      "originalPrice": "购买前核价",
+      "discount": 0,
+      "source": "Slickdeals",
+      "url": "https://slickdeals.net/f/19902453-tneltueb-6-speed-21v-765-cfm-cordless-leaf-blower-w-2x-4ah-batteries-charger-36-free-s-h?utm_source=rss&utm_content=fp&utm_medium=RSS2",
+      "note": "社区热度收录；购买前请核对历史价格、库存和退货条件。"
+    },
+    {
+      "title": "3-in-1 Vilcome USB-C to 4K@60Hz HDMI Adapter w/ USB 3.0 & 100W PD Charging $5",
+      "price": "$5",
+      "originalPrice": "购买前核价",
+      "discount": 0,
+      "source": "Slickdeals",
+      "url": "https://slickdeals.net/f/19927338-3-in-1-vilcome-usb-c-to-4k-60hz-hdmi-adapter-w-usb-3-0-100w-pd-charging-black-4-99-free-shipping-w-prime-or-on-35?utm_source=rss&utm_content=fp&utm_medium=RSS2",
+      "note": "社区热度收录；购买前请核对历史价格、库存和退货条件。"
+    },
+    {
+      "title": "32″ Samsung Odyssey G5 G50F QHD 1440p 180Hz Gaming Monitor $199 + Free S/H",
+      "price": "$199",
+      "originalPrice": "购买前核价",
+      "discount": 0,
+      "source": "Slickdeals",
+      "url": "https://slickdeals.net/f/19925121-199-32-samsung-odyssey-g5-g50f-qhd-resolution-gaming-monitor-180hz-fast-ips-ls32fg502enxza-at-amazon?utm_source=rss&utm_content=fp&utm_medium=RSS2",
+      "note": "社区热度收录；购买前请核对历史价格、库存和退货条件。"
+    },
+    {
+      "title": "ARPHA 5-in-1 Wi-Fi Smart Deadbolt Lock w/ Camera, Fingerprint & Keypad $65 + Free S&H",
+      "price": "$65",
+      "originalPrice": "购买前核价",
+      "discount": 0,
+      "source": "Slickdeals",
+      "url": "https://slickdeals.net/f/19889538-arpha-5-in-1-wifi-smart-deadbolt-lock-w-camera-fingerprint-keypad-bronze-64-99-free-shipping?utm_source=rss&utm_content=fp&utm_medium=RSS2",
+      "note": "社区热度收录；购买前请核对历史价格、库存和退货条件。"
+    }
+  ],
+  "opportunities": [
+    {
+      "title": "A website for debloated open source alternatives",
+      "source": "Hacker News 需求信号",
+      "score": 95,
+      "signal": "407 points · 128 comments；关键词：alternative",
+      "angle": "先验证重复痛点，再用轻量网页、数据报告或自动化工具切入。",
+      "url": "https://debloat.dev/"
+    },
+    {
+      "title": "Show HN: TeXbrain, a LaTeX editor that runs pdfTeX in the browser via WASM",
+      "source": "Hacker News 需求信号",
+      "score": 91,
+      "signal": "110 points · 26 comments；关键词：looking for",
+      "angle": "先验证重复痛点，再用轻量网页、数据报告或自动化工具切入。",
+      "url": "https://github.com/swimmingbrain/texbrain"
+    },
+    {
+      "title": "Ask HN: What is one simple thing LLMs are insanely bad at?",
+      "source": "Hacker News 需求信号",
+      "score": 89,
+      "signal": "30 points · 77 comments；关键词：looking for",
+      "angle": "先验证重复痛点，再用轻量网页、数据报告或自动化工具切入。",
+      "url": "https://news.ycombinator.com/item?id=49443820"
+    },
+    {
+      "title": "Show HN: Frugal Tokens – explore costs and usage across coding agents",
+      "source": "Hacker News 需求信号",
+      "score": 84,
+      "signal": "37 points · 10 comments；关键词：too expensive",
+      "angle": "先验证重复痛点，再用轻量网页、数据报告或自动化工具切入。",
+      "url": "https://demo.frugaltokens.com/"
+    },
+    {
+      "title": "You Don't Need AI to Generate Code",
+      "source": "Hacker News 需求信号",
+      "score": 78,
+      "signal": "6 points · 13 comments；关键词：alternative",
+      "angle": "先验证重复痛点，再用轻量网页、数据报告或自动化工具切入。",
+      "url": "https://news.ycombinator.com/item?id=49420048"
+    },
+    {
+      "title": "Ask HN: Why is the USA loosing against China economically?",
+      "source": "Hacker News 需求信号",
+      "score": 75,
+      "signal": "6 points · 4 comments；关键词：looking for",
+      "angle": "先验证重复痛点，再用轻量网页、数据报告或自动化工具切入。",
+      "url": "https://news.ycombinator.com/item?id=49439656"
+    }
+  ],
+  "macro": {
+    "fedFunds": 4.33,
+    "treasury10y": 4.18,
+    "inflation": 3.5
+  }
+}

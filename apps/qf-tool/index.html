@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="个人投资、省钱与副业机会决策工作台">
+  <title>QF Tool</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="workspace">
+    <aside class="sidebar">
+      <div class="brand"><b>QF</b><div><strong>QF Tool</strong><span>Quant × Frugal</span></div></div>
+      <nav aria-label="主要功能">
+        <button class="nav-btn active" data-tab="today"><span>✦</span>今日</button>
+        <button class="nav-btn" data-tab="invest"><span>↗</span>投资</button>
+        <button class="nav-btn" data-tab="rewards"><span>◇</span>奖励</button>
+        <button class="nav-btn" data-tab="deals"><span>▣</span>Deal</button>
+        <button class="nav-btn" data-tab="earn"><span>◎</span>增收</button>
+        <button class="nav-btn" data-tab="journal"><span>▤</span>日志</button>
+      </nav>
+      <p class="privacy"><i></i>私人数据仅保存在此设备</p>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div><small>PERSONAL MONEY OS</small><h1>今天最值得做什么？</h1></div>
+        <div class="header-actions"><span id="updated">等待数据</span><button id="theme" class="icon-btn" aria-label="切换主题">☀</button><button id="refresh">↻ 刷新数据</button></div>
+      </header>
+
+      <section id="today" class="tab active">
+        <article class="signal"><div><span>市场状态</span><h2 id="marketMode">读取中…</h2><p>当前优先：提升安全边际，避免为短期热度追价。</p></div><div class="risk"><b>72</b><span>风险温度</span></div></article>
+        <div class="metrics">
+          <article><span>观察标的</span><b id="quoteCount">—</b><small>安全边际动态计算</small></article>
+          <article><span>可用奖励</span><b>$438</b><small>本地手动记录</small></article>
+          <article><span>今日好价</span><b id="dealCount">—</b><small>兴趣关键词过滤</small></article>
+          <article><span>副业信号</span><b id="oppCount">—</b><small>需求与维护成本评分</small></article>
+        </div>
+        <div class="split">
+          <article class="panel"><div class="section-title"><div><small>MARKET WATCH</small><h2>安全边际观察</h2></div><p>目标价使用你的研究假设。</p></div><div id="quoteList" class="rows"></div></article>
+          <article class="panel"><div class="section-title"><div><small>NEXT ACTION</small><h2>今日行动清单</h2></div></div><div class="checklist"><label><input type="checkbox"> 检查 NVDA / AMD 是否进入 30% 年化上行区间</label><label><input type="checkbox"> 确认本月信用卡抵扣是否使用</label><label><input type="checkbox"> 只处理评分 80+ 的副业机会</label><label><input type="checkbox"> 把新交易理由写入决策日志</label></div></article>
+        </div>
+        <div id="macro" class="macro"></div>
+      </section>
+
+      <section id="invest" class="tab">
+        <div class="page-title"><small>INVEST</small><h2>安全边际与定投</h2><p>未来一年有 30%–40% 上行空间，才属于更好的买点。</p></div>
+        <div class="split calculators">
+          <article class="panel"><h3>↗ 目标价回报计算器</h3><div class="form-grid"><label>当前价格<input id="currentPrice" value="181.24" inputmode="decimal"></label><label>目标价格<input id="targetPrice" value="240" inputmode="decimal"></label><label>目标期限（月）<input id="months" value="12" inputmode="numeric"></label><label>计划投入<input id="capital" value="10000" inputmode="decimal"></label></div><div class="results"><div><span>绝对空间</span><b id="upside">—</b></div><div><span>年化回报</span><b id="annualized">—</b></div><div><span>潜在利润</span><b id="profit">—</b></div><div><span>判断</span><b id="verdict">—</b></div></div></article>
+          <article class="panel"><h3>＄ DCA 计划器</h3><div class="form-grid"><label>每月投入<input id="dcaMonthly" value="1200" inputmode="decimal"></label><label>投入月数<input id="dcaMonths" value="6" inputmode="numeric"></label><label>预期年回报<input id="expectedReturn" value="12" inputmode="decimal"></label></div><div class="dca-bar"><i id="dcaBar"></i><span id="dcaLabel">6 个月计划</span></div><div class="results two"><div><span>总投入</span><b id="dcaInvested">—</b></div><div><span>预计期末</span><b id="dcaValue">—</b></div></div></article>
+        </div>
+        <article class="panel watch"><div class="section-title"><div><small>WATCHLIST</small><h2>核心观察清单</h2></div><p>行情用于决策辅助，不代表自动交易建议。</p></div><div id="watchList" class="rows"></div></article>
+      </section>
+
+      <section id="rewards" class="tab">
+        <div class="page-title"><small>SAVE · REWARDS</small><h2>信用卡奖励路由</h2><p>首版使用本地规则，下一版可替换成你的真实持卡组合。</p></div>
+        <div class="credit-cards"><article><i></i><span>Amex Gold</span><b>4×</b><p>餐饮 / 超市</p><small>已用权益 $278 · 年费 $325</small></article><article><i></i><span>Chase Freedom Flex</span><b>5%</b><p>季度类别</p><small>已用权益 $96 · 无年费</small></article><article><i></i><span>BofA Customized Cash</span><b>3%</b><p>网购</p><small>已用权益 $64 · 无年费</small></article></div>
+        <div class="split"><article class="panel"><div class="section-title"><div><small>SPEND ROUTER</small><h2>这笔消费刷哪张？</h2></div></div><div class="routing"><div><span>餐厅 / 外卖</span><b>Amex Gold</b><em>4× MR</em></div><div><span>Amazon / 网购</span><b>BofA Customized Cash</b><em>3%</em></div><div><span>当季奖励类别</span><b>Chase Freedom Flex</b><em>5%</em></div><div><span>其他消费</span><b>2% Cashback Card</b><em>2%</em></div></div></article><article class="panel roi"><div class="section-title"><div><small>ANNUAL ROI</small><h2>卡片净收益</h2></div></div><span>预计年度净收益</span><b>$613</b><small>权益与奖励 $938 − 年费 $325</small><div><i></i></div><p>当前权益回收率 74%。</p></article></div>
+      </section>
+
+      <section id="deals" class="tab">
+        <div class="page-title"><small>SAVE · DEALS</small><h2>好价与愿望清单</h2><p>优先展示 3C、桌面、极客和家居相关商品。</p></div>
+        <div id="dealGrid" class="deal-grid"></div>
+        <article class="panel wishlist"><div class="section-title"><div><small>PRICE WATCH</small><h2>我的价格愿望单</h2></div><p>仅存储在当前浏览器。</p></div><div class="inline-form"><input id="wishName" placeholder="商品名称或关键词"><input id="wishTarget" placeholder="目标价，例如 $199"><button id="addWish">＋ 加入</button></div><div id="wishList" class="local-list"></div></article>
+      </section>
+
+      <section id="earn" class="tab">
+        <div class="page-title"><small>EARN</small><h2>副业机会雷达</h2><p>综合需求重复度、付费意愿、竞争和维护成本评分。</p></div><div id="opportunities" class="opportunities"></div><article class="panel callout"><b>＄</b><div><h3>首选变现顺序</h3><p>Deal Affiliate → 信用卡优化器 → 付费机会周报 → 投资计算器高级版。先验证重复使用，再投入后端和付费数据源。</p></div></article>
+      </section>
+
+      <section id="journal" class="tab">
+        <div class="page-title"><small>REVIEW</small><h2>投资决策日志</h2><p>记录理由、目标和失效条件，避免事后重写记忆。</p></div>
+        <div class="journal-layout"><article class="panel journal-form"><div class="form-grid"><label>股票 / ETF<input id="asset" placeholder="NVDA"></label><label>动作<input id="action" value="观察"></label><label>目标价<input id="jTarget" placeholder="$225"></label><label>失效 / 止损<input id="jStop" placeholder="$155 或基本面条件"></label></div><label>核心理由<textarea id="thesis" placeholder="为什么现在值得观察或操作？什么情况说明判断错了？"></textarea></label><button id="saveJournal">＋ 保存决策</button></article><div id="journalList" class="journal-list"></div></div>
+      </section>
+    </main>
+  </div>
+  <script src="./app.js"></script>
+
+<!-- PT-UNIVERSE-BACKLINK -->
+<style>
+#ptu-home-link{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));z-index:2147483646;display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 11px;border:1px solid rgba(255,255,255,.2);border-radius:999px;background:rgba(8,12,22,.72);box-shadow:0 8px 24px rgba(0,0,0,.18);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#fff!important;font:600 11px/1 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;text-decoration:none!important;opacity:.62;transition:opacity .18s,transform .18s}
+#ptu-home-link:hover,#ptu-home-link:focus-visible{opacity:1;transform:translateY(-1px);outline:none}
+#ptu-home-link i{width:6px;height:6px;border-radius:50%;background:#7c73ff;box-shadow:0 0 0 3px rgba(124,115,255,.2)}
+@media(max-width:760px){#ptu-home-link{bottom:calc(76px + env(safe-area-inset-bottom));left:max(10px,env(safe-area-inset-left));height:31px;padding:0 9px;font-size:10px}}
+</style>
+<a id="ptu-home-link" href="../../" aria-label="返回 PT Universe"><i></i><span>← PT Universe</span></a>
+</body>
+</html>

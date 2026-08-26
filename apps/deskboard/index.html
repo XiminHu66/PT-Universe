@@ -1,0 +1,1225 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#090b10" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="DeskBoard" />
+<link rel="manifest" href="./manifest.webmanifest" />
+<link rel="apple-touch-icon" href="./icon-180.png" />
+<script type="module" src="https://widgets.tradingview-widget.com/w/en/tv-single-ticker.js"></script>
+<title>DeskBoard v9.5 · iPad Dashboard</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#090b10;--card:#121722;--card-2:#0f141e;--card-3:#171d29;
+  --line:#252d3b;--text:#f2f5f8;--muted:#8e9aaa;--soft:#c8d0da;
+  --blue:#6ca8ff;--green:#49d17d;--red:#ff6474;--amber:#ffcc66;
+  --panel:#0f131b;--panel2:#0e131b;--chip:#151b26;--chipActive:#263a59;
+  --head:rgba(13,17,25,.90);--shadow:0 8px 30px rgba(0,0,0,.16);
+  --radius:18px;
+  --custom-bg:none;--bg-opacity:0;--bg-blur:0px;--glass-alpha:100%;--bg-pos-x:50%;--bg-pos-y:50%;
+  --top-h:118px;--tape-h:48px;--nav-h:62px;--market-fr:56fr;--news-fr:44fr;
+}
+html[data-theme="light"]{
+  color-scheme:light;
+  --bg:#eef2f7;--card:#ffffff;--card-2:#f7f9fc;--card-3:#edf2f8;
+  --line:#d7dee8;--text:#18202a;--muted:#687587;--soft:#4f5b69;
+  --blue:#2169d8;--green:#198754;--red:#d94352;--amber:#ad6b00;
+  --panel:#fbfcfe;--panel2:#f8fafc;--chip:#eef3f8;--chipActive:#d8e8ff;
+  --head:rgba(250,252,255,.93);--shadow:0 8px 30px rgba(66,79,96,.10);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;background:var(--bg);color:var(--text);overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Noto Sans SC","Segoe UI",sans-serif;position:relative}
+body::before{display:none}
+body::after{content:"";position:fixed;inset:0;z-index:0;background:color-mix(in srgb,var(--bg) 18%,transparent);pointer-events:none}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+.custom-bg-layer{position:fixed;inset:-18px;z-index:0;background-repeat:no-repeat;background-size:cover;background-position:50% 50%;opacity:0;filter:blur(0);transform:scale(1.04);pointer-events:none;transition:background-position .08s linear,opacity .12s ease,filter .12s ease}
+.dashboard{
+  position:relative;z-index:1;width:100vw;height:100dvh;
+  padding:max(12px,env(safe-area-inset-top)) 12px max(10px,env(safe-area-inset-bottom));
+  display:grid;gap:9px;
+  grid-template-rows:var(--top-h) var(--tape-h) minmax(0,var(--market-fr)) minmax(0,var(--news-fr)) var(--nav-h);
+}
+.card{background:linear-gradient(180deg,color-mix(in srgb,var(--card) var(--glass-alpha),transparent),color-mix(in srgb,var(--card-2) var(--glass-alpha),transparent));backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;min-width:0;min-height:0;box-shadow:var(--shadow)}
+.top{display:grid;grid-template-columns:.92fr 1.35fr;gap:9px;min-height:0}
+.clock{padding:10px 16px;display:flex;flex-direction:column;justify-content:center;position:relative}
+.clock-photo{position:absolute;right:7px;top:7px;bottom:7px;width:48%;border-radius:13px;background-repeat:no-repeat;background-size:cover;background-position:50% 50%;opacity:0;display:none;pointer-events:none;z-index:0;transition:background-position .08s linear,opacity .12s ease;-webkit-mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.72) 28%,#000 55%);mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.72) 28%,#000 55%)}
+.clock-photo.show{display:block}
+#time,#date{position:relative;z-index:1}
+#time{font-size:42px;font-weight:760;line-height:.95;letter-spacing:-2px;font-variant-numeric:tabular-nums}
+#date{font-size:13px;color:var(--muted);margin-top:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:30%}
+.theme-quick{font-size:18px;padding:0}
+
+.weather{padding:8px 13px;display:grid;grid-template-rows:auto 1fr;gap:5px}
+.weather-current{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:0}
+.wx-main{display:flex;align-items:center;gap:10px;min-width:0}
+#wxIcon{font-size:34px;line-height:1}
+#wxTemp{font-size:34px;font-weight:780;line-height:1;font-variant-numeric:tabular-nums}
+#wxPlace{font-size:11px;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:155px}
+#wxExtra{font-size:11px;line-height:1.32;text-align:right;color:var(--soft);white-space:nowrap}
+.forecast-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;min-height:0}
+.forecast-item{display:grid;grid-template-columns:auto auto;grid-template-areas:"time icon" "temp rain";align-items:center;justify-content:space-between;padding:4px 6px;border:1px solid var(--line);border-radius:9px;background:color-mix(in srgb,var(--card-3) 72%,transparent);font-variant-numeric:tabular-nums}
+.fc-time{grid-area:time;font-size:10px;color:var(--muted);font-weight:650}.fc-icon{grid-area:icon;font-size:16px;line-height:1}.fc-temp{grid-area:temp;font-size:11.5px;font-weight:760}.fc-rain{grid-area:rain;font-size:9px;color:var(--blue)}
+.tape{position:relative;min-height:0}
+.tvhost{width:100%;height:100%;min-width:0;min-height:0}
+.tvhost>.tradingview-widget-container,.tvhost .tradingview-widget-container__widget{width:100%!important;height:100%!important}
+.section{position:relative;display:flex;flex-direction:column;min-height:0}
+.section-head{height:42px;flex:0 0 42px;padding:0 13px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--head) var(--glass-alpha),transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.section-title{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:800;letter-spacing:.10em;color:var(--text)}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px color-mix(in srgb,var(--green) 12%,transparent)}
+.section-sub{font-size:11px;color:var(--muted);letter-spacing:0}
+.market-body{flex:1;display:grid;gap:1px;background:var(--line);min-height:0;overflow:hidden}
+.market-cell{background:color-mix(in srgb,var(--panel) var(--glass-alpha),transparent);min-width:0;min-height:0;position:relative;overflow:hidden;--tv-widget-background-color:transparent;--tv-widget-positive-color:#18b77a;--tv-widget-negative-color:#f0445e}
+.market-cell tv-single-ticker{display:block;width:100%;height:100%;min-width:0;min-height:0}
+.market-empty{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;background:color-mix(in srgb,var(--panel) var(--glass-alpha),transparent)}
+.news-head-left{display:flex;align-items:center;gap:11px;min-width:0}
+.switcher{display:flex;gap:4px;background:var(--panel2);padding:3px;border:1px solid var(--line);border-radius:10px}
+.switcher button{border:0;background:transparent;padding:5px 9px;border-radius:7px;font-size:11px;color:var(--muted)}
+.switcher button.active{background:var(--chipActive);color:var(--text)}
+#lastUpdate{font-size:10px;color:var(--muted);white-space:nowrap}
+.news-stage{position:relative;flex:1;min-height:0;background:color-mix(in srgb,var(--panel2) var(--glass-alpha),transparent)}
+.news-pane{position:absolute;inset:0;transition:opacity .16s ease;min-height:0}
+.news-pane.hidden{opacity:0;pointer-events:none;z-index:0}
+.news-pane.active{opacity:1;pointer-events:auto;z-index:2}
+#pulsePane,#rssPane{display:flex;flex-direction:column}
+.pulse-filters{height:36px;flex:0 0 36px;display:flex;align-items:center;gap:6px;padding:5px 10px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--panel2) 90%,transparent)}
+.pulse-filter{border:1px solid var(--line);background:var(--chip);color:var(--muted);border-radius:999px;padding:5px 11px;font-size:11px;font-weight:700;white-space:nowrap}
+.pulse-filter.active{background:var(--chipActive);color:var(--text);border-color:color-mix(in srgb,var(--blue) 50%,var(--line))}
+.pulse-filter-note{margin-left:auto;font-size:10px;color:var(--muted);white-space:nowrap}
+.pulse-list{flex:1;overflow:auto;overscroll-behavior:contain;padding:3px 9px 10px;scrollbar-width:none}
+.pulse-list::-webkit-scrollbar{display:none}
+.pulse-item{display:grid;grid-template-columns:5px minmax(0,1fr) auto;gap:9px;align-items:stretch;padding:12px 7px;border-bottom:1px solid color-mix(in srgb,var(--line) 72%,transparent);text-decoration:none;color:inherit}
+.pulse-bar{border-radius:999px;background:var(--blue);opacity:.8}
+.pulse-item.world .pulse-bar{background:#a66fda}.pulse-item.finance .pulse-bar{background:var(--green)}
+.pulse-title{font-size:16px;line-height:1.40;font-weight:690;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pulse-meta{font-size:11px;color:var(--muted);margin-top:6px;display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.pulse-arrow{font-size:18px;color:var(--muted);display:flex;align-items:center}
+.pulse-item.important .pulse-bar{background:var(--red);box-shadow:0 0 0 2px color-mix(in srgb,var(--red) 12%,transparent)}
+.pulse-item.very-important .pulse-bar{background:#ff3b30;box-shadow:0 0 10px color-mix(in srgb,#ff3b30 35%,transparent)}
+.live-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border-radius:999px;background:color-mix(in srgb,var(--green) 13%,transparent);color:var(--green);font-weight:700}
+.live-badge::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor;box-shadow:0 0 0 3px color-mix(in srgb,var(--green) 10%,transparent)}
+.live-fallback{color:var(--amber)}
+
+.calendar-note{position:absolute;right:9px;bottom:7px;z-index:4;font-size:9px;color:var(--muted);background:color-mix(in srgb,var(--card) 82%,transparent);padding:3px 6px;border-radius:6px;pointer-events:none}
+#rssPane{display:flex;flex-direction:column}
+.filters{flex:0 0 38px;display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.filter{border:1px solid var(--line);background:var(--chip);color:var(--muted);border-radius:999px;padding:5px 10px;font-size:11px;white-space:nowrap}
+.filter.active{background:var(--chipActive);border-color:color-mix(in srgb,var(--blue) 55%,var(--line));color:var(--text)}
+.news-list{flex:1;overflow:auto;overscroll-behavior:contain;padding:2px 8px 8px;scrollbar-width:none}
+.news-list::-webkit-scrollbar{display:none}
+.news-item{display:grid;grid-template-columns:1fr auto;gap:10px;padding:10px 8px;border-bottom:1px solid color-mix(in srgb,var(--line) 72%,transparent);text-decoration:none;color:inherit}
+.news-item:last-child{border-bottom:0}
+.news-title{font-size:14px;line-height:1.42;font-weight:630;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.news-meta{display:flex;align-items:center;gap:7px;margin-top:5px;font-size:10px;color:var(--muted)}
+.source{padding:2px 6px;border-radius:6px;background:var(--card-3);color:var(--soft);max-width:115px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cat-finance{color:var(--blue)}.cat-world{color:#a66fda}.cat-tech{color:#1ea98d}.cat-game{color:#d97706}
+.openmark{color:var(--muted);font-size:14px;align-self:center}
+.loading,.empty{height:100%;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);font-size:12px;padding:24px;line-height:1.65}
+.nav{
+  display:grid;
+  grid-template-columns:auto repeat(4,minmax(0,1fr)) 46px 46px 46px 46px;
+  gap:7px;min-height:0;align-items:stretch;
+}
+.nav-title{
+  display:flex;align-items:center;justify-content:center;padding:0 12px;
+  border:1px solid var(--line);border-radius:16px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--card-3) 72%,var(--card)),var(--card-2));
+  color:var(--muted);font-size:11px;font-weight:780;letter-spacing:.08em;white-space:nowrap;
+}
+.nav a,.nav button{
+  border:1px solid var(--line);background:var(--card);border-radius:16px;text-decoration:none;color:var(--text);
+  display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px;font-weight:740;min-width:0;padding:0 9px;
+  box-shadow:0 3px 12px color-mix(in srgb,#000 7%,transparent);transition:transform .12s ease,filter .12s ease,border-color .12s ease;
+}
+.nav a:active,.nav button:active{transform:scale(.978);filter:brightness(.98)}
+.nav-icon{
+  width:28px;height:28px;border-radius:9px;display:grid;place-items:center;flex:0 0 28px;
+  background:color-mix(in srgb,var(--card-3) 78%,transparent);font-size:15px;font-weight:800;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 72%,transparent);
+}
+.nav .gpt{background:linear-gradient(180deg,color-mix(in srgb,#10a37f 19%,var(--card)),var(--card-2));border-color:color-mix(in srgb,#10a37f 45%,var(--line))}
+.nav .twitter{background:linear-gradient(180deg,color-mix(in srgb,#627cff 16%,var(--card)),var(--card-2));border-color:color-mix(in srgb,#627cff 39%,var(--line))}
+.nav .feedly{background:linear-gradient(180deg,color-mix(in srgb,#2bb24c 20%,var(--card)),var(--card-2));border-color:color-mix(in srgb,#2bb24c 43%,var(--line))}
+.nav .fidelity{background:linear-gradient(180deg,color-mix(in srgb,#18864b 19%,var(--card)),var(--card-2));border-color:color-mix(in srgb,#18864b 42%,var(--line))}
+.nav .iconbtn{font-size:18px;padding:0;background:linear-gradient(180deg,var(--card),var(--card-2))}
+.nav .theme-quick{background:linear-gradient(180deg,color-mix(in srgb,#8a73ff 14%,var(--card)),var(--card-2));border-color:color-mix(in srgb,#8a73ff 34%,var(--line))}
+.nav-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.more-wrap{position:relative;display:flex;min-width:0}.more-wrap>button{width:100%}
+.more-pop{position:absolute;right:0;bottom:calc(100% + 8px);width:min(330px,80vw);max-height:46vh;background:color-mix(in srgb,var(--panel) 96%,transparent);border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 46px rgba(0,0,0,.22);padding:8px;display:none;z-index:120;overflow:auto;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.more-pop.show{display:block}.more-pop-title{display:flex;align-items:center;justify-content:space-between;padding:4px 6px 8px;color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.08em}.more-pop-list{display:grid;gap:6px}
+.more-link{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:9px!important;min-height:42px;padding:7px 9px!important;border-radius:12px!important;background:var(--card-2)!important;box-shadow:none!important}
+.more-link .more-icon{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;background:var(--card-3);font-size:14px;flex:0 0 28px}.more-copy{min-width:0;display:flex;flex-direction:column;align-items:flex-start}.more-name{font-size:12px;font-weight:780;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:230px}.more-host{font-size:9px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:230px;margin-top:1px}.more-empty{padding:14px 8px;text-align:center;color:var(--muted);font-size:11px}.more-manage{width:100%;margin-top:7px;min-height:36px!important;font-size:11px!important;border-radius:11px!important;background:var(--chip)!important;box-shadow:none!important}
+.links-manager{display:grid;gap:8px;margin-top:10px}.link-row{display:grid;grid-template-columns:50px minmax(100px,.7fr) minmax(190px,1.5fr) 34px 34px 34px;gap:6px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:12px;background:var(--card-2)}
+@media (max-width:760px){.link-row{grid-template-columns:42px 1fr 1.4fr 32px 32px 32px}.more-pop{width:min(320px,86vw)}}
+
+/* settings */
+.backdrop{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.46);backdrop-filter:blur(5px);display:none;align-items:flex-end;justify-content:center;padding:max(8px,env(safe-area-inset-top)) 8px max(8px,env(safe-area-inset-bottom))}
+.backdrop.show{display:flex}
+.sheet{width:min(820px,100%);height:min(86dvh,920px);background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:0 20px 70px rgba(0,0,0,.34);display:flex;flex-direction:column;overflow:hidden}
+.sheet-head{height:58px;flex:0 0 58px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid var(--line)}
+.sheet-title{font-weight:780;font-size:17px}
+.closebtn{width:34px;height:34px;border-radius:11px;border:1px solid var(--line);background:var(--card-3)}
+.tabs{display:flex;gap:6px;padding:10px 12px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{border:1px solid var(--line);background:var(--chip);color:var(--muted);border-radius:10px;padding:7px 11px;font-size:12px;white-space:nowrap}
+.tabs button.active{background:var(--chipActive);color:var(--text);border-color:color-mix(in srgb,var(--blue) 45%,var(--line))}
+.settings-body{flex:1;overflow:auto;padding:12px;scrollbar-width:none}
+.settings-body::-webkit-scrollbar{display:none}
+.setting-pane{display:none}.setting-pane.active{display:block}
+.help{color:var(--muted);font-size:11px;line-height:1.55;margin:2px 2px 10px}
+.manager-list{display:flex;flex-direction:column;gap:8px}
+.manage-row{display:grid;grid-template-columns:40px minmax(90px,.65fr) minmax(160px,1.55fr) 76px;gap:7px;align-items:center;border:1px solid var(--line);border-radius:13px;background:var(--card-2);padding:8px}
+.manage-row.rssrow{grid-template-columns:34px minmax(88px,.58fr) minmax(170px,1.42fr) 84px 74px}
+.order{display:flex;gap:3px}
+.mini{height:30px;border:1px solid var(--line);background:var(--card-3);border-radius:8px;padding:0 7px;font-size:11px}
+.icon-mini{width:28px;padding:0}
+.field{height:34px;border:1px solid var(--line);background:var(--panel);border-radius:9px;padding:0 9px;font-size:12px;min-width:0;width:100%}
+.row-actions{display:flex;gap:4px;justify-content:flex-end}
+.danger{color:var(--red)}
+.settings-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}
+.action{height:36px;border:1px solid var(--line);background:var(--card-3);border-radius:10px;padding:0 12px;font-size:12px}
+.action.primary{background:var(--chipActive);border-color:color-mix(in srgb,var(--blue) 50%,var(--line));font-weight:700}
+.addbox{margin-top:14px;padding:11px;border:1px dashed var(--line);border-radius:14px;background:color-mix(in srgb,var(--card-2) 74%,transparent)}
+.addtitle{font-size:12px;font-weight:750;margin-bottom:9px}
+.addgrid{display:grid;grid-template-columns:1fr 120px 1fr auto;gap:7px}
+.rssadd{grid-template-columns:.75fr 1.6fr 105px auto}
+.preset-wrap{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.preset{border:1px solid var(--line);background:var(--chip);border-radius:999px;padding:5px 9px;font-size:11px;color:var(--muted)}
+.status-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px;background:var(--muted)}
+.status-dot.ok{background:var(--green)}.status-dot.bad{background:var(--red)}.status-dot.wait{background:var(--amber)}
+.display-card{border:1px solid var(--line);border-radius:14px;background:var(--card-2);padding:13px;margin-bottom:10px}
+.display-title{font-size:13px;font-weight:750;margin-bottom:9px}
+.choice{display:flex;gap:7px;flex-wrap:wrap}
+.choice button{border:1px solid var(--line);background:var(--chip);border-radius:10px;padding:8px 13px;font-size:12px;color:var(--muted)}
+.choice button.active{background:var(--chipActive);color:var(--text);border-color:color-mix(in srgb,var(--blue) 50%,var(--line))}
+.backup-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.filelabel{height:36px;border:1px solid var(--line);background:var(--card-3);border-radius:10px;padding:0 12px;font-size:12px;display:flex;align-items:center;justify-content:center}
+.layout-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.layout-control{border:1px solid var(--line);background:var(--card-2);border-radius:13px;padding:11px}
+.layout-label{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;font-weight:700;margin-bottom:8px}
+.layout-value{font-size:11px;color:var(--blue);font-variant-numeric:tabular-nums}
+.layout-control input[type=range]{width:100%;accent-color:var(--blue)}
+.layout-control select{width:100%}
+.data-note{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.data-note>div{border:1px solid var(--line);background:var(--card-2);border-radius:12px;padding:10px}
+.data-note b{display:block;font-size:12px;margin-bottom:4px}.data-note span{font-size:11px;color:var(--muted);line-height:1.5}
+
+.custom-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.custom-card{border:1px solid var(--line);border-radius:14px;background:var(--card-2);padding:12px}
+.custom-card.wide{grid-column:1/-1}
+.custom-preview{height:110px;border:1px solid var(--line);border-radius:11px;background:var(--panel);display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--muted);font-size:11px;margin:8px 0;position:relative;background-repeat:no-repeat;background-size:cover;background-position:50% 50%}
+.custom-preview.has-image::before,.custom-preview.has-image::after{content:"";position:absolute;pointer-events:none;background:color-mix(in srgb,var(--text) 52%,transparent);opacity:.55}.custom-preview.has-image::before{width:1px;height:28px;left:50%;top:calc(50% - 14px)}.custom-preview.has-image::after{height:1px;width:28px;top:50%;left:calc(50% - 14px)}
+.custom-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin-top:8px}
+.custom-row input[type=range]{width:100%;accent-color:var(--blue)}
+.custom-row .layout-value{min-width:48px;text-align:right}
+.custom-url{display:grid;grid-template-columns:1fr auto;gap:7px;margin-top:8px}
+@media(max-width:700px){.custom-grid{grid-template-columns:1fr}.custom-card.wide{grid-column:auto}}
+
+.toast{position:fixed;z-index:1200;left:50%;bottom:calc(76px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:#111923;color:#fff;border:1px solid rgba(255,255,255,.13);padding:9px 13px;border-radius:12px;font-size:12px;opacity:0;pointer-events:none;transition:.2s}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media (orientation:landscape){
+  .dashboard{grid-template-rows:var(--top-h) var(--tape-h) minmax(0,1fr) var(--nav-h);grid-template-columns:minmax(0,var(--market-fr)) minmax(0,var(--news-fr));grid-template-areas:"top top" "tape tape" "market news" "nav nav"}
+  .top{grid-area:top}.tape{grid-area:tape}.market{grid-area:market}.news{grid-area:news}.nav{grid-area:nav}
+  #time{font-size:40px}
+}
+@media (max-height:900px){
+  .dashboard{gap:7px}
+  .section-head{height:38px;flex-basis:38px}.filters{flex-basis:34px}.news-item{padding:7px 7px}.news-title{font-size:12px}.nav a,.nav button{border-radius:14px}
+  #time{font-size:36px}
+}
+@media (max-width:900px){
+  .nav{grid-template-columns:auto repeat(4,minmax(0,1fr)) 42px 42px 42px 42px;gap:5px}
+  .nav-title{padding:0 8px;font-size:10px}.nav a{gap:5px;padding:0 5px}.nav-icon{width:24px;height:24px;flex-basis:24px;font-size:13px}
+}
+@media (max-width:700px){.layout-grid,.data-note{grid-template-columns:1fr}}
+@media (max-width:700px){
+  .manage-row,.manage-row.rssrow{grid-template-columns:1fr;gap:6px}
+  .order{order:5}.row-actions{justify-content:flex-start}.addgrid,.rssadd{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div id="customBgLayer" class="custom-bg-layer" aria-hidden="true"></div>
+<main class="dashboard">
+  <section class="top">
+    <div class="card clock">
+      <div id="clockPhoto" class="clock-photo" aria-hidden="true"></div>
+      <div id="time">--:--</div>
+      <div id="date">----</div>
+    </div>
+    <div class="card weather">
+      <div class="weather-current">
+        <div class="wx-main">
+          <div id="wxIcon">◌</div>
+          <div><div id="wxTemp">--°C</div><div id="wxPlace">正在定位…</div></div>
+        </div>
+        <div id="wxExtra">天气载入中</div>
+      </div>
+      <div id="forecastStrip" class="forecast-strip"><div class="loading" style="padding:0;font-size:10px;grid-column:1/-1">载入未来天气…</div></div>
+    </div>
+  </section>
+
+  <section class="card tape"><div id="tickerHost" class="tvhost"></div></section>
+
+  <section class="card section market">
+    <header class="section-head">
+      <div class="section-title"><span class="pulse"></span>MARKET <span id="watchCount" class="section-sub"></span></div>
+      <div class="section-sub">⚙ 可编辑 Watchlist</div>
+    </header>
+    <div id="marketBody" class="market-body"></div>
+  </section>
+
+  <section class="card section news">
+    <header class="section-head">
+      <div class="news-head-left">
+        <div class="section-title">INFO</div>
+        <div class="switcher">
+          <button id="pulseTab" class="active" onclick="switchInfo('pulse')">⚡ 快讯</button>
+          <button id="calendarTab" onclick="switchInfo('calendar')">📅 日历</button>
+          <button id="rssTab" onclick="switchInfo('rss')">📰 RSS</button>
+        </div>
+      </div>
+      <div id="lastUpdate">--:--</div>
+    </header>
+    <div class="news-stage">
+      <div id="pulsePane" class="news-pane active">
+        <div class="pulse-filters">
+          <button id="pulseAllFilter" class="pulse-filter active" onclick="setPulseFilter('all')">全部</button>
+          <button id="pulseImportantFilter" class="pulse-filter" onclick="setPulseFilter('important')">🔴 重要</button>
+          <span class="pulse-filter-note">按 7×24 原始重要度标记</span>
+        </div>
+        <div id="pulseList" class="pulse-list"><div class="loading">正在连接 7×24 实时快讯…</div></div>
+      </div>
+      <div id="calendarPane" class="news-pane hidden">
+        <div id="calendarHost" class="tvhost"></div>
+        <div class="calendar-note">重点宏观事件 · USD / CNY / JPY / EUR</div>
+      </div>
+      <div id="rssPane" class="news-pane hidden">
+        <div class="filters">
+          <button class="filter active" data-cat="all">全部</button>
+          <button class="filter" data-cat="finance">财经</button>
+          <button class="filter" data-cat="world">时事</button>
+          <button class="filter" data-cat="tech">科技</button>
+          <button class="filter" data-cat="game">游戏</button>
+        </div>
+        <div id="newsList" class="news-list"><div class="loading">正在聚合中文 RSS…</div></div>
+      </div>
+    </div>
+  </section>
+
+  <nav class="nav" aria-label="常用链接">
+    <div class="nav-title">常用链接</div>
+    <a class="gpt" href="https://chatgpt.com/" target="_blank" rel="noopener"><span class="nav-icon">✦</span><span class="nav-label">ChatGPT</span></a>
+    <a class="twitter" href="https://x.com/home" target="_blank" rel="noopener"><span class="nav-icon">𝕏</span><span class="nav-label">Twitter</span></a>
+    <a class="feedly" href="https://feedly.com/i/my" target="_blank" rel="noopener"><span class="nav-icon">▤</span><span class="nav-label">Feedly</span></a>
+    <a class="fidelity" href="https://www.fidelity.com/" target="_blank" rel="noopener"><span class="nav-icon">↗</span><span class="nav-label">Fidelity</span></a>
+    <div class="more-wrap">
+      <button class="iconbtn" aria-label="更多常用链接" title="更多常用链接" onclick="toggleMoreLinks(event)">⋯</button>
+      <div id="moreLinksPop" class="more-pop">
+        <div class="more-pop-title"><span>更多链接</span><span id="moreLinksCount"></span></div>
+        <div id="moreLinksList" class="more-pop-list"></div>
+        <button class="more-manage" onclick="openLinksSettings()">＋ 管理 / 添加网站</button>
+      </div>
+    </div>
+    <button id="themeQuick" class="iconbtn theme-quick" aria-label="切换明暗主题" title="切换明暗主题">◐</button>
+    <button class="iconbtn" aria-label="设置" title="设置" onclick="openSettings()">⚙</button>
+    <button class="iconbtn refresh" aria-label="刷新" title="刷新" onclick="manualRefresh()">↻</button>
+  </nav>
+</main>
+
+<div id="settingsBackdrop" class="backdrop" role="dialog" aria-modal="true">
+  <section class="sheet">
+    <header class="sheet-head">
+      <div class="sheet-title">DeskBoard 设置</div>
+      <button class="closebtn" onclick="closeSettings()">✕</button>
+    </header>
+    <div class="tabs">
+      <button class="settings-tab active" data-pane="stocks" onclick="showSettingsPane('stocks')">股票</button>
+      <button class="settings-tab" data-pane="rss" onclick="showSettingsPane('rss')">RSS</button>
+      <button class="settings-tab" data-pane="layout" onclick="showSettingsPane('layout')">布局</button>
+      <button class="settings-tab" data-pane="custom" onclick="showSettingsPane('custom')">个性化</button>
+      <button class="settings-tab" data-pane="links" onclick="showSettingsPane('links')">链接</button>
+      <button class="settings-tab" data-pane="display" onclick="showSettingsPane('display')">显示与备份</button>
+    </div>
+    <div class="settings-body">
+      <div id="pane-stocks" class="setting-pane active">
+        <div class="help">可以直接搜索代码 / 名称加入，也可修改 TradingView Symbol、调整顺序或移除标的。已修正 <b>SMH → NASDAQ:SMH</b>，并将 <b>SPX → TVC:SPX</b>；旧配置会自动迁移。</div>
+        <div id="stockManager" class="manager-list"></div>
+        <div class="settings-actions">
+          <button class="action primary" onclick="saveStockEdits()">保存 Watchlist</button>
+          <button class="action" onclick="resetStocks()">恢复默认股票</button>
+        </div>
+        <div class="addbox">
+          <div class="addtitle">搜索 / 加入股票</div>
+          <div class="stock-search">
+            <div class="searchline">
+              <input id="stockSearchInput" class="field" placeholder="输入代码或名称，如 SMH / Nvidia / 半导体" autocomplete="off" />
+              <button class="action primary" onclick="runStockSearch(true)">搜索</button>
+            </div>
+            <div id="stockSearchResults" class="search-results"></div>
+            <div class="search-hint">输入时会即时搜索内置美股 / ETF / 指数（已加入 DIA、NKE 等常用标的）；点“搜索”会尝试联网补充。若联网搜索被 Safari/CORS 阻止，代码型输入仍会给出交易所候选，不会变成空结果。</div>
+          </div>
+          <details class="manual-toggle">
+            <summary>高级：手动输入 TradingView Symbol</summary>
+            <div class="addgrid">
+              <input id="newStockTicker" class="field" placeholder="代码，如 AMD" />
+              <select id="newStockMarket" class="field">
+                <option value="NASDAQ">NASDAQ</option><option value="NYSE">NYSE</option>
+                <option value="AMEX">AMEX</option><option value="TVC">TVC</option>
+                <option value="CBOE">CBOE</option><option value="COINBASE">COINBASE</option>
+              </select>
+              <input id="newStockLabel" class="field" placeholder="显示名称，可留空" />
+              <button class="action primary" onclick="addStock()">加入</button>
+            </div>
+          </details>
+          <div class="preset-wrap">
+            <button class="preset" onclick="quickAddStock('CBOE:VIX','VIX')">+ VIX</button>
+            <button class="preset" onclick="quickAddStock('TVC:US10Y','US10Y')">+ 美债10Y</button>
+            <button class="preset" onclick="quickAddStock('TVC:DXY','DXY')">+ 美元指数</button>
+            <button class="preset" onclick="quickAddStock('AMEX:SPY','SPY')">+ SPY</button>
+            <button class="preset" onclick="quickAddStock('AMEX:IWM','IWM')">+ IWM</button>
+            <button class="preset" onclick="quickAddStock('NASDAQ:SOXX','SOXX')">+ SOXX</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="pane-rss" class="setting-pane">
+        <div class="help">RSS 来源可修改、排序、删除或新增。右侧圆点会显示本次抓取状态：绿色成功、红色失败、黄色等待。新增后会立即重新抓取。</div>
+        <div id="rssManager" class="manager-list"></div>
+        <div class="settings-actions">
+          <button class="action primary" onclick="saveRSSEdits()">保存 RSS</button>
+          <button class="action" onclick="resetRSS()">恢复默认 RSS</button>
+        </div>
+        <div class="addbox">
+          <div class="addtitle">加入新 RSS</div>
+          <div class="addgrid rssadd">
+            <input id="newFeedName" class="field" placeholder="来源名称" />
+            <input id="newFeedUrl" class="field" placeholder="https://.../feed.xml" />
+            <select id="newFeedCat" class="field"><option value="finance">财经</option><option value="world">时事</option><option value="tech">科技</option><option value="game">游戏</option></select>
+            <button class="action primary" onclick="addFeed()">加入</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="pane-layout" class="setting-pane">
+        <div class="help">调整后会立即预览并自动保存。横屏时“股票 / 信息比例”控制左右宽度；竖屏时控制上下高度。股票区会根据标的数量自动分列，13 支股票不再触发旧组件的内部滚动条。</div>
+        <div class="layout-grid">
+          <div class="layout-control"><div class="layout-label"><span>顶部时间 / 天气</span><span id="topHeightValue" class="layout-value"></span></div><input id="topHeightRange" type="range" min="94" max="170" step="2" oninput="setLayoutValue('top',this.value)"></div>
+          <div class="layout-control"><div class="layout-label"><span>顶部行情条</span><span id="tapeHeightValue" class="layout-value"></span></div><input id="tapeHeightRange" type="range" min="36" max="76" step="2" oninput="setLayoutValue('tape',this.value)"></div>
+          <div class="layout-control"><div class="layout-label"><span>股票 / 信息比例</span><span id="splitValue" class="layout-value"></span></div><input id="splitRange" type="range" min="30" max="75" step="1" oninput="setLayoutValue('split',this.value)"></div>
+          <div class="layout-control"><div class="layout-label"><span>底部导航</span><span id="navHeightValue" class="layout-value"></span></div><input id="navHeightRange" type="range" min="46" max="86" step="2" oninput="setLayoutValue('nav',this.value)"></div>
+          <div class="layout-control"><div class="layout-label"><span>股票分列</span><span id="colsValue" class="layout-value"></span></div><select id="marketColsSelect" class="field" onchange="setLayoutValue('cols',this.value)"><option value="0">自动（推荐）</option><option value="1">1 列</option><option value="2">2 列</option><option value="3">3 列</option><option value="4">4 列</option></select></div>
+          <div class="layout-control"><div class="layout-label"><span>重置布局</span><span class="layout-value">默认</span></div><button class="action" style="width:100%" onclick="resetLayout()">恢复默认尺寸</button></div>
+        </div>
+        <div class="data-note">
+          <div><b>股票 / TradingView</b><span>页面打开时由 TradingView 组件自动持续更新，不是每 15 分钟轮询。是否真正实时取决于具体交易所的数据级别。</span></div>
+          <div><b>RSS / 天气</b><span>7×24 快讯每 20 秒检查；RSS 每 10 分钟、天气每 30 分钟自动刷新；右下角 ↻ 可立即刷新全部外部信息。</span></div>
+        </div>
+      </div>
+
+
+      <div id="pane-links" class="setting-pane">
+        <div class="help">这里的链接会显示在底部“⋯”菜单，不会额外占用主界面宽度。名称、网址、Emoji 图标和顺序都可以修改。</div>
+        <div id="linksManager" class="links-manager"></div>
+        <div class="addbox">
+          <div class="addtitle">加入新网站</div>
+          <div class="addgrid" style="grid-template-columns:70px minmax(110px,.7fr) minmax(190px,1.5fr) auto">
+            <input id="newLinkEmoji" class="field" value="🔗" maxlength="4" placeholder="图标">
+            <input id="newLinkName" class="field" placeholder="名称">
+            <input id="newLinkUrl" class="field" type="url" placeholder="https://example.com/">
+            <button class="action primary" onclick="addExtraLink()">加入</button>
+          </div>
+        </div>
+        <div class="settings-actions">
+          <button class="action primary" onclick="saveExtraLinks()">保存链接</button>
+          <button class="action" onclick="resetExtraLinks()">恢复默认</button>
+        </div>
+      </div>
+
+      <div id="pane-custom" class="setting-pane">
+        <div class="help">默认保持当前 DeskBoard 外观不变。这里的图片和参数只保存在当前 iPad 浏览器，不会上传到 GitHub。上传图片会先在本机压缩，避免占用过多存储空间。</div>
+        <div class="custom-grid">
+          <div class="custom-card">
+            <div class="display-title">Dashboard 背景图</div>
+            <div id="bgPreview" class="custom-preview">未设置背景图</div>
+            <div class="settings-actions" style="margin-top:0">
+              <label class="filelabel">上传背景图<input id="backgroundFile" type="file" accept="image/*" hidden onchange="handleBackgroundUpload(event)"></label>
+              <button class="action" onclick="clearBackgroundImage()">移除</button>
+            </div>
+            <div class="custom-url"><input id="backgroundUrl" class="field" placeholder="或粘贴图片 URL"><button class="action" onclick="applyBackgroundUrl()">使用 URL</button></div>
+            <div class="custom-row"><div>背景可见度</div><span id="bgOpacityValue" class="layout-value"></span></div>
+            <input id="bgOpacityRange" type="range" min="0" max="85" step="1" oninput="setAppearanceValue('bgOpacity',this.value)">
+            <div class="custom-row"><div>背景模糊</div><span id="bgBlurValue" class="layout-value"></span></div>
+            <input id="bgBlurRange" type="range" min="0" max="18" step="1" oninput="setAppearanceValue('bgBlur',this.value)">
+            <div class="custom-row"><div>背景焦点 · 左右</div><span id="bgPosXValue" class="layout-value"></span></div>
+            <input id="bgPosXRange" type="range" min="0" max="100" step="1" oninput="setAppearanceValue('bgPosX',this.value)">
+            <div class="custom-row"><div>背景焦点 · 上下</div><span id="bgPosYValue" class="layout-value"></span></div>
+            <input id="bgPosYRange" type="range" min="0" max="100" step="1" oninput="setAppearanceValue('bgPosY',this.value)">
+            <div class="help" style="margin:6px 0 0">0% = 左 / 上，50% = 居中，100% = 右 / 下。用于选择图片哪一部分作为视觉中心。</div>
+            <div class="custom-row"><div>卡片透明度</div><span id="glassValue" class="layout-value"></span></div>
+            <input id="glassRange" type="range" min="76" max="100" step="1" oninput="setAppearanceValue('glass',this.value)">
+          </div>
+
+          <div class="custom-card">
+            <div class="display-title">时间卡收藏图片</div>
+            <div id="photoPreview" class="custom-preview">未设置收藏图片</div>
+            <div class="settings-actions" style="margin-top:0">
+              <label class="filelabel">上传图片<input id="clockPhotoFile" type="file" accept="image/*" hidden onchange="handleClockPhotoUpload(event)"></label>
+              <button class="action" onclick="clearClockPhoto()">移除</button>
+            </div>
+            <div class="custom-row"><label><input id="clockPhotoShow" type="checkbox" onchange="setAppearanceValue('clockPhotoShow',this.checked)"> 显示在时间卡右侧</label><span></span></div>
+            <div class="custom-row"><div>图片透明度</div><span id="photoOpacityValue" class="layout-value"></span></div>
+            <input id="photoOpacityRange" type="range" min="20" max="100" step="1" oninput="setAppearanceValue('clockPhotoOpacity',this.value)">
+            <div class="custom-row"><div>图片焦点 · 左右</div><span id="photoPosXValue" class="layout-value"></span></div>
+            <input id="photoPosXRange" type="range" min="0" max="100" step="1" oninput="setAppearanceValue('clockPhotoPosX',this.value)">
+            <div class="custom-row"><div>图片焦点 · 上下</div><span id="photoPosYValue" class="layout-value"></span></div>
+            <input id="photoPosYRange" type="range" min="0" max="100" step="1" oninput="setAppearanceValue('clockPhotoPosY',this.value)">
+            <div class="custom-row"><div>填充方式</div><select id="clockPhotoFit" class="field" style="width:120px" onchange="setAppearanceValue('clockPhotoFit',this.value)"><option value="cover">裁切铺满</option><option value="contain">完整显示</option></select></div>
+            <div class="help" style="margin:6px 0 0">使用“裁切铺满”时，焦点滑杆会直接移动实际裁切区域；预览中央十字表示当前卡片中心。拖动滑杆时页面和预览都会实时更新。</div>
+          </div>
+
+          <div class="custom-card wide">
+            <div class="display-title">恢复默认外观</div>
+            <div class="help">只重置背景和收藏图片，不会影响主题、股票、RSS 或布局设置。</div>
+            <button class="action" onclick="resetAppearance()">恢复默认个性化设置</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="pane-display" class="setting-pane">
+        <div class="display-card">
+          <div class="display-title">主题模式</div>
+          <div class="choice">
+            <button data-theme-choice="auto" onclick="setThemeMode('auto')">自动（日出/日落）</button>
+            <button data-theme-choice="light" onclick="setThemeMode('light')">☀️ 白天</button>
+            <button data-theme-choice="dark" onclick="setThemeMode('dark')">🌙 夜晚</button>
+          </div>
+          <div class="help" style="margin-top:9px">自动模式优先使用天气数据中的当地日出/日落时间；在天气未加载时使用 07:00–19:00 作为临时判断。</div>
+        </div>
+
+        <div class="display-card">
+          <div class="display-title">配置备份</div>
+          <div class="help">股票、RSS、主题、布局和个性化图片都保存在当前 iPad 浏览器。导出 JSON 可在清理 Safari 数据或换设备后恢复；如果包含图片，导出的文件会明显更大。</div>
+          <div class="backup-grid">
+            <button class="action" onclick="exportConfig()">导出配置 JSON</button>
+            <label class="filelabel">导入配置 JSON<input id="importFile" type="file" accept=".json,application/json" hidden onchange="importConfigFile(event)"></label>
+          </div>
+        </div>
+
+        <div class="display-card">
+          <div class="display-title">我保留 / 新增的辅助信息</div>
+          <div class="help" style="margin:0">
+            • 时间卡片同时显示纽约时间，盯美股时不需要换算时区。<br>
+            • 股票由 TradingView 组件保持自动更新；7×24 快讯每 20 秒检查，RSS 每 10 分钟、天气每 30 分钟自动刷新。<br>
+            • 实时快讯：华尔街见闻 7×24 优先，20 秒轮询；跨域失败时自动回退备用代理 / RSS。<br>            • RSS 成功源数量与更新时间：快速判断是不是某个订阅源失效。<br>
+            • RSS 源健康状态：在设置页逐个显示成功/失败。<br>
+            • 顶部横幅使用 IWM、TLT、HYG、UUP、GLD、USO、FXY 展示风险偏好、利率、信用、美元、黄金、原油和日元环境，避免和 Watchlist 重复。<br>
+            • 暂时不加入“开盘/休市”判断、个人持仓、日历和系统电量：交易所节假日会让纯前端判断失真，而后三者需要额外权限或服务，会让这个低维护 Dashboard 变复杂。
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+<div id="toast" class="toast"></div>
+
+<script>
+window.addEventListener("error",e=>console.error("DeskBoard runtime error:",e.error||e.message));
+window.addEventListener("unhandledrejection",e=>console.error("DeskBoard promise error:",e.reason));
+
+const time=document.getElementById("time"),date=document.getElementById("date"),
+wxTemp=document.getElementById("wxTemp"),wxPlace=document.getElementById("wxPlace"),wxExtra=document.getElementById("wxExtra"),
+marketBody=document.getElementById("marketBody"),newsList=document.getElementById("newsList"),pulseList=document.getElementById("pulseList"),lastUpdate=document.getElementById("lastUpdate"),
+pulsePane=document.getElementById("pulsePane"),calendarPane=document.getElementById("calendarPane"),rssPane=document.getElementById("rssPane"),pulseTab=document.getElementById("pulseTab"),calendarTab=document.getElementById("calendarTab"),rssTab=document.getElementById("rssTab"),
+settingsBackdrop=document.getElementById("settingsBackdrop"),stockManager=document.getElementById("stockManager"),rssManager=document.getElementById("rssManager"),
+newStockTicker=document.getElementById("newStockTicker"),newStockMarket=document.getElementById("newStockMarket"),newStockLabel=document.getElementById("newStockLabel"),
+stockSearchInput=document.getElementById("stockSearchInput"),stockSearchResults=document.getElementById("stockSearchResults"),
+newFeedName=document.getElementById("newFeedName"),newFeedUrl=document.getElementById("newFeedUrl"),newFeedCat=document.getElementById("newFeedCat"),
+clockPhoto=document.getElementById("clockPhoto"),customBgLayer=document.getElementById("customBgLayer"),pulseAllFilter=document.getElementById("pulseAllFilter"),pulseImportantFilter=document.getElementById("pulseImportantFilter"),moreLinksPop=document.getElementById("moreLinksPop"),moreLinksList=document.getElementById("moreLinksList"),moreLinksCount=document.getElementById("moreLinksCount");
+
+const DEFAULT_STOCKS = [
+  {symbol:"TVC:SPX",label:"SPX"},{symbol:"NASDAQ:QQQ",label:"QQQ"},
+  {symbol:"NASDAQ:AAPL",label:"AAPL"},{symbol:"NASDAQ:SMH",label:"SMH"},
+  {symbol:"NASDAQ:NVDA",label:"NVDA"},{symbol:"COINBASE:BTCUSD",label:"BTCUSD"},
+  {symbol:"NASDAQ:INTC",label:"INTC"},{symbol:"NYSE:UNH",label:"UNH"},
+  {symbol:"NASDAQ:HOOD",label:"HOOD"},{symbol:"NYSE:NOW",label:"NOW"},
+  {symbol:"NYSE:VST",label:"VST"},{symbol:"NASDAQ:MRVL",label:"MRVL"}
+
+];
+const SYMBOL_MIGRATIONS={"AMEX:SMH":"NASDAQ:SMH","SP:SPX":"TVC:SPX"};
+const SYMBOL_CATALOG=[
+  ["TVC:SPX","SPX","S&P 500 Index","标普 指数 benchmark"],
+  ["AMEX:SPY","SPY","SPDR S&P 500 ETF Trust","标普 ETF index"],
+  ["AMEX:DIA","DIA","SPDR Dow Jones Industrial Average ETF Trust","道琼斯 Dow Jones ETF index"],
+  ["NASDAQ:QQQ","QQQ","Invesco QQQ Trust","nasdaq 纳指 科技 ETF"],
+  ["AMEX:IWM","IWM","iShares Russell 2000 ETF","小盘股 Russell ETF"],
+  ["NASDAQ:SMH","SMH","VanEck Semiconductor ETF","半导体 芯片 semiconductor ETF"],
+  ["NASDAQ:SOXX","SOXX","iShares Semiconductor ETF","半导体 芯片 semiconductor ETF"],
+  ["AMEX:XSD","XSD","SPDR S&P Semiconductor ETF","半导体 芯片 semiconductor ETF"],
+  ["NASDAQ:NVDA","NVDA","NVIDIA Corporation","英伟达 GPU AI semiconductor"],
+  ["NASDAQ:AMD","AMD","Advanced Micro Devices","超威 GPU CPU semiconductor"],
+  ["NASDAQ:AVGO","AVGO","Broadcom Inc.","博通 semiconductor AI networking"],
+  ["NASDAQ:INTC","INTC","Intel Corporation","英特尔 CPU semiconductor"],
+  ["NASDAQ:MRVL","MRVL","Marvell Technology","semiconductor networking AI"],
+  ["NASDAQ:MU","MU","Micron Technology","美光 memory semiconductor"],
+  ["NASDAQ:QCOM","QCOM","Qualcomm Incorporated","高通 semiconductor mobile"],
+  ["NASDAQ:AMAT","AMAT","Applied Materials","半导体设备 semiconductor equipment"],
+  ["NASDAQ:LRCX","LRCX","Lam Research","半导体设备 semiconductor equipment"],
+  ["NASDAQ:KLAC","KLAC","KLA Corporation","半导体设备 semiconductor equipment"],
+  ["NYSE:TSM","TSM","Taiwan Semiconductor Manufacturing","台积电 semiconductor foundry"],
+  ["NASDAQ:ASML","ASML","ASML Holding N.V.","光刻机 semiconductor equipment"],
+  ["NASDAQ:AAPL","AAPL","Apple Inc.","苹果 technology"],
+  ["NASDAQ:MSFT","MSFT","Microsoft Corporation","微软 cloud AI technology"],
+  ["NASDAQ:GOOGL","GOOGL","Alphabet Inc. Class A","谷歌 AI internet"],
+  ["NASDAQ:GOOG","GOOG","Alphabet Inc. Class C","谷歌 AI internet"],
+  ["NASDAQ:AMZN","AMZN","Amazon.com Inc.","亚马逊 cloud ecommerce"],
+  ["NASDAQ:META","META","Meta Platforms Inc.","AI internet social"],
+  ["NASDAQ:TSLA","TSLA","Tesla Inc.","特斯拉 EV auto"],
+  ["NASDAQ:PLTR","PLTR","Palantir Technologies","AI software data"],
+  ["NYSE:ORCL","ORCL","Oracle Corporation","cloud software AI"],
+  ["NYSE:CRM","CRM","Salesforce Inc.","software cloud"],
+  ["NYSE:NOW","NOW","ServiceNow Inc.","software cloud"],
+  ["NYSE:DELL","DELL","Dell Technologies","AI server hardware"],
+  ["NYSE:ANET","ANET","Arista Networks","networking AI infrastructure"],
+  ["NYSE:VST","VST","Vistra Corp.","power electricity AI datacenter"],
+  ["NASDAQ:HOOD","HOOD","Robinhood Markets","broker fintech"],
+  ["NASDAQ:COIN","COIN","Coinbase Global","crypto exchange"],
+  ["NYSE:UNH","UNH","UnitedHealth Group","healthcare insurance"],
+  ["NYSE:JPM","JPM","JPMorgan Chase","bank finance"],
+  ["NYSE:BRK.B","BRK.B","Berkshire Hathaway Class B","berkshire finance"],
+  ["NYSE:WMT","WMT","Walmart Inc.","retail consumer"],
+  ["NYSE:NKE","NKE","Nike, Inc.","耐克 apparel consumer discretionary"],
+  ["NYSE:MCD","MCD","McDonald's Corporation","consumer restaurant"],
+  ["NYSE:KO","KO","Coca-Cola Company","consumer staples"],
+  ["NYSE:V","V","Visa Inc.","payments finance"],
+  ["NYSE:MA","MA","Mastercard Incorporated","payments finance"],
+  ["NASDAQ:COST","COST","Costco Wholesale","retail consumer"],
+  ["NYSE:DIS","DIS","Walt Disney","media entertainment"],
+  ["NASDAQ:NFLX","NFLX","Netflix Inc.","streaming media"],
+  ["NYSE:UBER","UBER","Uber Technologies","mobility technology"],
+  ["NASDAQ:ADBE","ADBE","Adobe Inc.","software creative AI"],
+  ["NASDAQ:CSCO","CSCO","Cisco Systems","networking technology"],
+  ["NASDAQ:ARM","ARM","Arm Holdings","semiconductor CPU"],
+  ["NYSE:IBM","IBM","IBM","enterprise AI technology"],
+  ["AMEX:XLK","XLK","Technology Select Sector SPDR Fund","科技 ETF technology"],
+  ["AMEX:XLF","XLF","Financial Select Sector SPDR Fund","金融 ETF finance"],
+  ["AMEX:XLE","XLE","Energy Select Sector SPDR Fund","能源 ETF energy"],
+  ["AMEX:XLV","XLV","Health Care Select Sector SPDR Fund","医疗 ETF healthcare"],
+  ["AMEX:ARKK","ARKK","ARK Innovation ETF","growth innovation ETF"],
+  ["NASDAQ:TQQQ","TQQQ","ProShares UltraPro QQQ","3x leveraged QQQ"],
+  ["NASDAQ:SQQQ","SQQQ","ProShares UltraPro Short QQQ","inverse 3x QQQ"],
+  ["AMEX:UPRO","UPRO","ProShares UltraPro S&P500","3x leveraged SP500"],
+  ["AMEX:SOXL","SOXL","Direxion Daily Semiconductor Bull 3X","半导体 3x leveraged"],
+  ["AMEX:SOXS","SOXS","Direxion Daily Semiconductor Bear 3X","半导体 inverse 3x"],
+  ["CBOE:VIX","VIX","CBOE Volatility Index","恐慌指数 volatility"],
+  ["TVC:US10Y","US10Y","United States 10 Year Government Bond Yield","美债 10年 yield rates"],
+  ["TVC:DXY","DXY","U.S. Dollar Currency Index","美元指数 dollar"],
+  ["COINBASE:BTCUSD","BTCUSD","Bitcoin / U.S. Dollar","bitcoin 比特币 crypto"],
+  ["COINBASE:ETHUSD","ETHUSD","Ethereum / U.S. Dollar","ethereum 以太坊 crypto"]
+].map(([symbol,label,name,tags])=>({symbol,label,name,tags}));
+const DEFAULT_FEEDS = [
+  {name:"华尔街见闻",url:"https://dedicated.wallstreetcn.com/rss.xml",cat:"finance"},
+  {name:"巴哈姆特 GNN",url:"http://gnn.gamer.com.tw/rss.xml",cat:"game"},
+  {name:"少数派",url:"http://sspai.me/feed",cat:"tech"},
+  {name:"T客邦",url:"http://feeds.feedburner.com/techbang",cat:"tech"},
+  {name:"联合早报·国际",url:"https://plink.anyfeeder.com/zaobao/realtime/world",cat:"world"},
+  {name:"法国国际广播电台 RFI",url:"http://www.chinese.rfi.fr/last_24h/rss",cat:"world"}
+];
+const KEYS={stocks:"deskboard_stocks_v3",feeds:"deskboard_feeds_v3",theme:"deskboard_theme_v3",layout:"deskboard_layout_v6",appearance:"deskboard_appearance_v1",pulseFilter:"deskboard_pulse_filter_v1",rssCache:"deskboard_rss_cache_v8",liveCache:"deskboard_live_cache_v2",extraLinks:"deskboard_extra_links_v1"};
+const DEFAULT_LAYOUT={top:118,tape:48,nav:62,split:56,cols:0};
+const DEFAULT_APPEARANCE={bgImage:"",bgOpacity:0,bgBlur:0,bgPosX:50,bgPosY:50,glass:100,clockPhoto:"",clockPhotoShow:false,clockPhotoFit:"cover",clockPhotoOpacity:88,clockPhotoPosX:50,clockPhotoPosY:50};
+const CONFIG={fallbackWeather:{lat:47.6769,lon:-122.2060,label:"Kirkland"},rssRefreshMinutes:10,liveRefreshSeconds:20};
+const MACRO_TAPE=[
+  {proName:"AMEX:IWM",title:"小盘 IWM"},
+  {proName:"NASDAQ:TLT",title:"长债 TLT"},
+  {proName:"AMEX:HYG",title:"信用 HYG"},
+  {proName:"AMEX:UUP",title:"美元 UUP"},
+  {proName:"AMEX:GLD",title:"黄金 GLD"},
+  {proName:"AMEX:USO",title:"原油 USO"},
+  {proName:"AMEX:FXY",title:"日元 FXY"}
+];
+let stocks=loadStored(KEYS.stocks,DEFAULT_STOCKS);
+(function migrateStoredSymbols(){
+  let changed=false;
+  stocks=stocks.map(x=>{const next=SYMBOL_MIGRATIONS[x.symbol];if(next){changed=true;return {...x,symbol:next}}return x});
+  const seen=new Set();stocks=stocks.filter(x=>{if(seen.has(x.symbol)){changed=true;return false}seen.add(x.symbol);return true});
+  if(changed)saveStored(KEYS.stocks,stocks);
+})();
+let feeds=loadStored(KEYS.feeds,DEFAULT_FEEDS);
+let layout=loadObject(KEYS.layout,DEFAULT_LAYOUT);
+let appearance=loadObject(KEYS.appearance,DEFAULT_APPEARANCE);
+let themeMode=localStorage.getItem(KEYS.theme)||"auto";
+let resolvedTheme="dark";
+let sunrise=null,sunset=null;
+let allNews=[],activeCategory="all",feedStatus={},liveNews=[],liveSourceState="loading",liveStampText="LIVE --:--",rssStampText="RSS --:--",infoMode="pulse",pulseFilter=localStorage.getItem(KEYS.pulseFilter)||"all";
+const DEFAULT_EXTRA_LINKS=[
+  {emoji:"📚",name:"追更",url:"../tsugi-checker/"},
+  {emoji:"🍜",name:"吃什么",url:"../meal-orbit/"}
+];
+let extraLinks=loadJSON(KEYS.extraLinks,DEFAULT_EXTRA_LINKS);
+if(!Array.isArray(extraLinks))extraLinks=clone(DEFAULT_EXTRA_LINKS);
+let extraLinksDraft=clone(extraLinks);
+let stockDraft=[],feedDraft=[];
+const FEED_TIMEOUT_MS=12000,CACHE_MS=10*60*1000;
+
+function clone(x){return JSON.parse(JSON.stringify(x))}
+function loadJSON(key,fallback){
+  try{
+    const raw=localStorage.getItem(key);
+    if(raw===null)return clone(fallback);
+    const v=JSON.parse(raw);
+    return v===null||v===undefined?clone(fallback):v;
+  }catch(e){return clone(fallback)}
+}
+function saveJSON(key,v){
+  try{localStorage.setItem(key,JSON.stringify(v));return true}
+  catch(e){console.warn("DeskBoard localStorage save failed:",key,e);return false}
+}
+function loadStored(key,fallback){try{const v=JSON.parse(localStorage.getItem(key)||"null");return Array.isArray(v)&&v.length?v:clone(fallback)}catch(e){return clone(fallback)}}
+function loadObject(key,fallback){try{const v=JSON.parse(localStorage.getItem(key)||"null");return v&&typeof v==="object"&&!Array.isArray(v)?{...fallback,...v}:{...fallback}}catch(e){return {...fallback}}}
+function saveStored(key,v){localStorage.setItem(key,JSON.stringify(v))}
+function toast(msg){const el=document.getElementById("toast");el.textContent=msg;el.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove("show"),1800)}
+function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function escapeAttr(s){return escapeHtml(s||"#")}
+
+/* personalization */
+function cssUrl(v){return v?`url("${String(v).replace(/\\/g,"\\\\").replace(/"/g,'\\"')}")`:'none'}
+function pct(v,fallback=50){
+  const n=Number(v);
+  return Number.isFinite(n)?Math.max(0,Math.min(100,n)):fallback;
+}
+function applyAppearance(){
+  const root=document.documentElement;
+  const bgX=pct(appearance.bgPosX),bgY=pct(appearance.bgPosY);
+  const photoX=pct(appearance.clockPhotoPosX),photoY=pct(appearance.clockPhotoPosY);
+  root.style.setProperty('--glass-alpha',`${Math.max(76,Math.min(100,Number(appearance.glass)||100))}%`);
+
+  if(customBgLayer){
+    customBgLayer.style.backgroundImage=appearance.bgImage?cssUrl(appearance.bgImage):'none';
+    customBgLayer.style.backgroundPosition=`${bgX}% ${bgY}%`;
+    customBgLayer.style.opacity=String(Math.max(0,Math.min(85,Number(appearance.bgOpacity)||0))/100);
+    customBgLayer.style.filter=`blur(${Math.max(0,Math.min(18,Number(appearance.bgBlur)||0))}px)`;
+  }
+
+  if(clockPhoto){
+    clockPhoto.style.backgroundImage=appearance.clockPhoto?cssUrl(appearance.clockPhoto):'none';
+    clockPhoto.classList.toggle('show',!!appearance.clockPhoto&&!!appearance.clockPhotoShow);
+    clockPhoto.style.backgroundSize=appearance.clockPhotoFit==='contain'?'contain':'cover';
+    clockPhoto.style.backgroundPosition=`${photoX}% ${photoY}%`;
+    clockPhoto.style.opacity=(Math.max(20,Math.min(100,Number(appearance.clockPhotoOpacity)||88))/100);
+  }
+  const vals={
+    bgOpacityValue:`${appearance.bgOpacity||0}%`,bgBlurValue:`${appearance.bgBlur||0}px`,
+    bgPosXValue:`${pct(appearance.bgPosX)}%`,bgPosYValue:`${pct(appearance.bgPosY)}%`,
+    glassValue:`${appearance.glass||100}%`,photoOpacityValue:`${appearance.clockPhotoOpacity||88}%`,
+    photoPosXValue:`${pct(appearance.clockPhotoPosX)}%`,photoPosYValue:`${pct(appearance.clockPhotoPosY)}%`
+  };
+  Object.entries(vals).forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.textContent=v});
+  const inputs={
+    bgOpacityRange:appearance.bgOpacity,bgBlurRange:appearance.bgBlur,bgPosXRange:pct(appearance.bgPosX),bgPosYRange:pct(appearance.bgPosY),
+    glassRange:appearance.glass,photoOpacityRange:appearance.clockPhotoOpacity,
+    photoPosXRange:pct(appearance.clockPhotoPosX),photoPosYRange:pct(appearance.clockPhotoPosY)
+  };
+  Object.entries(inputs).forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.value=v});
+  const cb=document.getElementById('clockPhotoShow');if(cb)cb.checked=!!appearance.clockPhotoShow;
+  const fit=document.getElementById('clockPhotoFit');if(fit)fit.value=appearance.clockPhotoFit||'cover';
+  renderAppearancePreviews();
+}
+function setAppearanceValue(k,v){
+  if(['bgOpacity','bgBlur','bgPosX','bgPosY','glass','clockPhotoOpacity','clockPhotoPosX','clockPhotoPosY'].includes(k))v=Number(v);
+  appearance[k]=v;saveStored(KEYS.appearance,appearance);applyAppearance();
+}
+function renderAppearancePreviews(){
+  const bp=document.getElementById('bgPreview'),pp=document.getElementById('photoPreview');
+  if(bp){
+    const has=!!appearance.bgImage;
+    bp.textContent=has?'':'未设置背景图';
+    bp.classList.toggle('has-image',has);
+    bp.style.backgroundImage=has?cssUrl(appearance.bgImage):'none';
+    bp.style.backgroundSize='cover';
+    bp.style.backgroundPosition=`${pct(appearance.bgPosX)}% ${pct(appearance.bgPosY)}%`;
+  }
+  if(pp){
+    const has=!!appearance.clockPhoto;
+    pp.textContent=has?'':'未设置收藏图片';
+    pp.classList.toggle('has-image',has);
+    pp.style.backgroundImage=has?cssUrl(appearance.clockPhoto):'none';
+    pp.style.backgroundSize=appearance.clockPhotoFit==='contain'?'contain':'cover';
+    pp.style.backgroundPosition=`${pct(appearance.clockPhotoPosX)}% ${pct(appearance.clockPhotoPosY)}%`;
+  }
+}
+function compressImageFile(file,maxW,maxH,quality=.84){return new Promise((resolve,reject)=>{
+  if(!file?.type?.startsWith('image/'))return reject(new Error('not image'));
+  const reader=new FileReader();reader.onerror=reject;reader.onload=()=>{const img=new Image();img.onerror=reject;img.onload=()=>{
+    let w=img.naturalWidth,h=img.naturalHeight,scale=Math.min(1,maxW/w,maxH/h);w=Math.max(1,Math.round(w*scale));h=Math.max(1,Math.round(h*scale));
+    const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d');ctx.drawImage(img,0,0,w,h);
+    try{resolve(c.toDataURL('image/jpeg',quality))}catch(e){reject(e)}
+  };img.src=reader.result};reader.readAsDataURL(file)
+})}
+async function handleBackgroundUpload(ev){const f=ev.target.files?.[0];if(!f)return;try{appearance.bgImage=await compressImageFile(f,1920,1400,.82);appearance.bgPosX=50;appearance.bgPosY=50;if(!appearance.bgOpacity)appearance.bgOpacity=32;if(appearance.glass===100)appearance.glass=94;saveStored(KEYS.appearance,appearance);applyAppearance();toast('背景图已保存在本机')}catch(e){toast('图片处理失败或文件过大')}ev.target.value=''}
+async function handleClockPhotoUpload(ev){const f=ev.target.files?.[0];if(!f)return;try{appearance.clockPhoto=await compressImageFile(f,1000,700,.86);appearance.clockPhotoShow=true;appearance.clockPhotoPosX=50;appearance.clockPhotoPosY=50;saveStored(KEYS.appearance,appearance);applyAppearance();toast('收藏图片已加入时间卡')}catch(e){toast('图片处理失败或文件过大')}ev.target.value=''}
+function clearBackgroundImage(){appearance.bgImage='';appearance.bgOpacity=0;saveStored(KEYS.appearance,appearance);applyAppearance();toast('背景图已移除')}
+function clearClockPhoto(){appearance.clockPhoto='';appearance.clockPhotoShow=false;saveStored(KEYS.appearance,appearance);applyAppearance();toast('收藏图片已移除')}
+function applyBackgroundUrl(){const e=document.getElementById('backgroundUrl'),u=e?.value.trim();if(!u)return toast('请输入图片 URL');if(!/^https?:\/\//i.test(u))return toast('请输入 http/https 图片 URL');appearance.bgImage=u;if(!appearance.bgOpacity)appearance.bgOpacity=32;if(appearance.glass===100)appearance.glass=94;saveStored(KEYS.appearance,appearance);applyAppearance();toast('已应用背景 URL')}
+function resetAppearance(){appearance={...DEFAULT_APPEARANCE};saveStored(KEYS.appearance,appearance);applyAppearance();toast('个性化外观已恢复默认')}
+applyAppearance();
+
+/* time */
+function updateClock(){
+  const d=new Date();
+  time.textContent=d.toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit",hour12:false});
+  const localDate=d.toLocaleDateString("zh-CN",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+  const nyTime=new Intl.DateTimeFormat("zh-CN",{timeZone:"America/New_York",hour:"2-digit",minute:"2-digit",hour12:false}).format(d);
+  date.textContent=`${localDate} · 纽约 ${nyTime}`;
+}
+updateClock();setInterval(updateClock,1000);
+
+/* theme: auto follows local sunrise/sunset when available */
+function autoTheme(){
+  const now=new Date();
+  if(sunrise&&sunset){
+    const sr=new Date(sunrise),ss=new Date(sunset);
+    if(!isNaN(sr)&&!isNaN(ss)) return now>=sr&&now<ss?"light":"dark";
+  }
+  const h=now.getHours();return (h>=7&&h<19)?"light":"dark";
+}
+function resolveTheme(){return themeMode==="auto"?autoTheme():themeMode}
+function applyTheme(rerenderTV=true){
+  const next=resolveTheme(),changed=next!==resolvedTheme;
+  resolvedTheme=next;
+  document.documentElement.dataset.theme=next;
+  document.querySelector('meta[name="theme-color"]').setAttribute("content",next==="dark"?"#090b10":"#eef2f7");
+  document.getElementById("themeQuick").textContent=themeMode==="auto"?"◐":(next==="dark"?"☀":"☾");
+  document.getElementById("themeQuick").title=themeMode==="auto"?`自动主题：当前${next==="dark"?"夜间":"白天"}`:`点击切换到${next==="dark"?"白天":"夜晚"}模式`;
+  document.querySelectorAll("[data-theme-choice]").forEach(b=>b.classList.toggle("active",b.dataset.themeChoice===themeMode));
+  if(rerenderTV && changed) renderTradingView();
+}
+function setThemeMode(mode){
+  themeMode=mode;localStorage.setItem(KEYS.theme,mode);applyTheme(true);toast(mode==="auto"?"已启用自动日夜模式":mode==="light"?"已切换白天模式":"已切换夜晚模式");
+}
+document.getElementById("themeQuick").addEventListener("click",()=>setThemeMode(resolvedTheme==="dark"?"light":"dark"));
+applyTheme(false);setInterval(()=>{if(themeMode==="auto")applyTheme(true)},5*60*1000);
+
+/* layout */
+function applyLayout(renderMarket=true){
+  layout.top=Math.max(94,Math.min(170,Number(layout.top)||118));layout.tape=Math.max(36,Math.min(76,Number(layout.tape)||48));layout.nav=Math.max(46,Math.min(86,Number(layout.nav)||62));layout.split=Math.max(30,Math.min(75,Number(layout.split)||56));layout.cols=Math.max(0,Math.min(4,Number(layout.cols)||0));
+  const root=document.documentElement.style;root.setProperty("--top-h",`${layout.top}px`);root.setProperty("--tape-h",`${layout.tape}px`);root.setProperty("--nav-h",`${layout.nav}px`);root.setProperty("--market-fr",`${layout.split}fr`);root.setProperty("--news-fr",`${100-layout.split}fr`);
+  const pairs=[["topHeightRange",layout.top],["tapeHeightRange",layout.tape],["navHeightRange",layout.nav],["splitRange",layout.split],["marketColsSelect",layout.cols]];pairs.forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.value=String(v)});
+  const vals={topHeightValue:`${layout.top}px`,tapeHeightValue:`${layout.tape}px`,navHeightValue:`${layout.nav}px`,splitValue:`股票 ${layout.split}% · 信息 ${100-layout.split}%`};Object.entries(vals).forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.textContent=v});
+  saveStored(KEYS.layout,layout);if(renderMarket)renderMarketGrid();
+}
+function setLayoutValue(k,v){layout[k]=Number(v);applyLayout(k==="cols");}
+function resetLayout(){layout={...DEFAULT_LAYOUT};applyLayout(true);toast("布局已恢复默认")};
+applyLayout(false);
+
+/* weather */
+const wxIcon=code=>{if(code===0)return"☀️";if([1,2].includes(code))return"🌤️";if(code===3)return"☁️";if([45,48].includes(code))return"🌫️";if(code>=51&&code<=67)return"🌧️";if(code>=71&&code<=77)return"🌨️";if(code>=80&&code<=82)return"🌦️";if(code>=95)return"⛈️";return"🌤️"};
+function dayLabel(dateStr,index){
+  if(index===1)return"明天";
+  const d=new Date(dateStr+"T12:00:00");
+  return d.toLocaleDateString("zh-CN",{weekday:"short"});
+}
+function renderForecast(daily){
+  const host=document.getElementById("forecastStrip");if(!host||!daily?.time?.length)return;
+  const ids=[1,2,3,4].filter(i=>i<daily.time.length);
+  host.innerHTML=ids.map(i=>{
+    const rain=Math.round(daily.precipitation_probability_max?.[i]??0),hi=Math.round(daily.temperature_2m_max?.[i]??0),lo=Math.round(daily.temperature_2m_min?.[i]??0),code=daily.weather_code?.[i];
+    return `<div class="forecast-item"><span class="fc-time">${dayLabel(daily.time[i],i)}</span><span class="fc-icon">${wxIcon(code)}</span><span class="fc-temp">${hi}° / ${lo}°</span><span class="fc-rain">${rain}%</span></div>`
+  }).join("");
+}
+function aqiMeta(v){
+  const n=Math.round(Number(v));
+  if(!Number.isFinite(n))return {text:"AQI --",color:"var(--muted)"};
+  if(n<=50)return {text:`AQI ${n} 优`,color:"var(--green)"};
+  if(n<=100)return {text:`AQI ${n} 良`,color:"#d89a18"};
+  if(n<=150)return {text:`AQI ${n} 敏感人群注意`,color:"#e87822"};
+  if(n<=200)return {text:`AQI ${n} 不健康`,color:"var(--red)"};
+  if(n<=300)return {text:`AQI ${n} 很不健康`,color:"#8d56c7"};
+  return {text:`AQI ${n} 危险`,color:"#7b1f32"};
+}
+async function loadWeather(lat,lon,label){
+  try{
+    const weatherUrl=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&temperature_unit=celsius&timezone=auto&forecast_days=5`;
+    const aqiUrl=`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi&timezone=auto`;
+    const [wr,ar]=await Promise.all([
+      fetch(weatherUrl,{cache:"no-store"}),
+      fetch(aqiUrl,{cache:"no-store"}).catch(()=>null)
+    ]);
+    if(!wr.ok)throw new Error("weather");
+    const j=await wr.json(),c=j.current,d=j.daily;
+    let aqi=null;
+    if(ar&&ar.ok){try{const aj=await ar.json();aqi=aj?.current?.us_aqi}catch(e){}}
+    const humidity=Math.round(Number(c.relative_humidity_2m));
+    const aq=aqiMeta(aqi);
+    wxIconEl.textContent=wxIcon(c.weather_code);wxTemp.textContent=Math.round(c.temperature_2m)+"°C";wxPlace.textContent=label||"当前位置";
+    wxExtra.innerHTML=`体感 ${Math.round(c.apparent_temperature)}°C<br>湿度 ${Number.isFinite(humidity)?humidity+"%":"--"} · <span style="color:${aq.color};font-weight:760">${aq.text}</span><br>今日 ${Math.round(d.temperature_2m_max[0])}° / ${Math.round(d.temperature_2m_min[0])}°`;
+    renderForecast(d);sunrise=d.sunrise?.[0]||null; sunset=d.sunset?.[0]||null;
+    if(themeMode==="auto")applyTheme(true);
+  }catch(e){wxPlace.textContent="天气暂不可用";wxExtra.textContent="点右下角刷新重试"}
+}
+const wxIconEl=document.getElementById("wxIcon");
+function startWeather(){
+  const f=CONFIG.fallbackWeather;
+  return new Promise(resolve=>{
+    if(navigator.geolocation&&window.isSecureContext){
+      navigator.geolocation.getCurrentPosition(
+        p=>loadWeather(p.coords.latitude,p.coords.longitude,"当前位置").finally(resolve),
+        ()=>loadWeather(f.lat,f.lon,f.label).finally(resolve),
+        {enableHighAccuracy:false,timeout:5000,maximumAge:1800000}
+      )
+    }else loadWeather(f.lat,f.lon,f.label).finally(resolve)
+  });
+}
+startWeather();setInterval(()=>startWeather(),30*60*1000);
+
+/* dynamic TradingView */
+function tvMount(hostId,src,cfg){
+  const host=document.getElementById(hostId);if(!host)return;
+  host.innerHTML="";
+  const wrap=document.createElement("div");wrap.className="tradingview-widget-container";wrap.style.cssText="height:100%;width:100%";
+  const widget=document.createElement("div");widget.className="tradingview-widget-container__widget";widget.style.cssText="height:100%;width:100%";
+  const script=document.createElement("script");script.type="text/javascript";script.src=src;script.async=true;script.textContent=JSON.stringify(cfg);
+  wrap.append(widget,script);host.appendChild(wrap);
+}
+function resolvedMarketCols(){
+  const forced=Number(layout.cols)||0;if(forced>0)return Math.max(forced,Math.ceil(stocks.length/8));
+  return Math.min(4,Math.max(1,Math.ceil(stocks.length/6)));
+}
+function renderMarketGrid(){
+  if(!marketBody)return;marketBody.innerHTML="";
+  if(!stocks.length){marketBody.innerHTML='<div class="market-empty">Watchlist 为空</div>';return}
+  const cols=resolvedMarketCols(),rows=Math.ceil(stocks.length/cols);
+  marketBody.style.gridTemplateColumns=`repeat(${cols},minmax(0,1fr))`;
+  marketBody.style.gridTemplateRows=`repeat(${rows},minmax(0,1fr))`;
+  stocks.forEach(x=>{
+    const cell=document.createElement("div");cell.className="market-cell";
+    const el=document.createElement("tv-single-ticker");el.setAttribute("symbol",x.symbol);
+    el.setAttribute("title",x.label||x.symbol.split(":").pop());
+    cell.appendChild(el);marketBody.appendChild(cell);
+  });
+  const cv=document.getElementById("colsValue");if(cv)cv.textContent=layout.cols?`${layout.cols} 列（必要时扩展）`:`自动 ${cols} 列`;
+}
+
+function renderTradingView(){
+  if(!stocks.length)stocks=clone(DEFAULT_STOCKS);
+  document.getElementById("watchCount").textContent=`${stocks.length} WATCHLIST`;
+  const theme=resolvedTheme;
+  tvMount("tickerHost","https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js",{
+    symbols:MACRO_TAPE,showSymbolLogo:true,isTransparent:true,displayMode:"adaptive",colorTheme:theme,locale:"zh_CN"
+  });
+  renderMarketGrid();
+  tvMount("calendarHost","https://s3.tradingview.com/external-embedding/embed-widget-events.js",{
+    colorTheme:theme,isTransparent:true,width:"100%",height:"100%",locale:"zh_CN",importanceFilter:"0,1",currencyFilter:"USD,CNY,JPY,EUR"
+  });
+}
+renderTradingView();
+
+/* RSS */
+function cleanText(s=""){const d=document.createElement("div");d.innerHTML=s;return(d.textContent||"").replace(/\s+/g," ").trim()}
+function toDate(v){if(!v)return new Date(0);if(typeof v==="number")return new Date(v<1e12?v*1000:v);const n=Number(v);if(Number.isFinite(n)&&n>1e9)return new Date(n<1e12?n*1000:n);const d=new Date(v.replace?.(" ","T")||v);return isNaN(d)?new Date(0):d}
+function relativeTime(date){const ms=Date.now()-date.getTime();if(!Number.isFinite(ms)||date.getTime()===0)return"";const m=Math.max(0,Math.floor(ms/60000));if(m<1)return"刚刚";if(m<60)return`${m} 分钟前`;const h=Math.floor(m/60);if(h<24)return`${h} 小时前`;const d=Math.floor(h/24);return d<7?`${d} 天前`:date.toLocaleDateString("zh-CN",{month:"numeric",day:"numeric"})}
+function normalizeRSS2JSON(j,feed){if(!j||j.status!=="ok")throw new Error(j?.message||feed.name);return(j.items||[]).map(x=>({title:cleanText(x.title),link:x.link||x.guid||feed.url,date:toDate(x.pubDate),source:feed.name,cat:feed.cat})).filter(x=>x.title)}
+function fetchWithTimeout(url,ms=FEED_TIMEOUT_MS){const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),ms);return fetch(url,{cache:"no-store",signal:ctl.signal}).finally(()=>clearTimeout(timer))}
+function fetchRSSJsonp(feed){return new Promise((resolve,reject)=>{const cb=`__db_${Date.now()}_${Math.random().toString(36).slice(2)}`,script=document.createElement("script"),timer=setTimeout(()=>finish(new Error("timeout")),FEED_TIMEOUT_MS);function cleanup(){clearTimeout(timer);delete window[cb];script.remove()}function finish(err,data){cleanup();err?reject(err):resolve(data)}window[cb]=data=>{try{finish(null,normalizeRSS2JSON(data,feed))}catch(e){finish(e)}};script.onerror=()=>finish(new Error("jsonp"));script.src=`https://api.rss2json.com/v1/api.json?callback=${cb}&rss_url=${encodeURIComponent(feed.url)}`;document.head.appendChild(script)})}
+async function fetchRSS(feed){const endpoint=`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}`;try{const r=await fetchWithTimeout(endpoint);if(!r.ok)throw new Error(`HTTP ${r.status}`);return normalizeRSS2JSON(await r.json(),feed)}catch(e){return fetchRSSJsonp(feed)}}
+function dedupeSort(items){const seen=new Set(),out=[];items.sort((a,b)=>b.date-a.date);for(const x of items){const k=x.title.replace(/[\s，。！？、：；,.!?;:]/g,"").slice(0,42);if(!seen.has(k)){seen.add(k);out.push(x)}}return out.slice(0,120)}
+function catLabel(c){return{finance:"财经",world:"时事",tech:"科技",game:"游戏"}[c]||"资讯"}
+function renderNews(){const el=newsList,items=activeCategory==="all"?allNews:allNews.filter(x=>x.cat===activeCategory);if(!items.length){el.innerHTML='<div class="empty">这个分类暂时没有可显示的条目。</div>';return}el.innerHTML=items.slice(0,44).map(x=>`<a class="news-item" href="${escapeAttr(x.link)}" target="_blank" rel="noopener"><div><div class="news-title">${escapeHtml(x.title)}</div><div class="news-meta"><span class="source">${escapeHtml(x.source)}</span><span class="cat-${x.cat}">${catLabel(x.cat)}</span><span>${relativeTime(x.date)}</span></div></div><div class="openmark">›</div></a>`).join("")}
+function renderPulse(){
+  if(!pulseList)return;
+  const importantCount=liveNews.filter(x=>x.score>=2).length;
+  if(pulseAllFilter){pulseAllFilter.classList.toggle("active",pulseFilter==="all");pulseAllFilter.textContent=`全部 ${liveNews.length||""}`.trim()}
+  if(pulseImportantFilter){pulseImportantFilter.classList.toggle("active",pulseFilter==="important");pulseImportantFilter.textContent=`🔴 重要 ${importantCount||""}`.trim()}
+  if(liveNews.length){
+    const shown=(pulseFilter==="important"?liveNews.filter(x=>x.score>=2):liveNews);
+    if(!shown.length){pulseList.innerHTML='<div class="empty">目前这批 7×24 快讯里没有带「重要」标记的条目。<br>切回「全部」可以查看完整实时流。</div>';return}
+    pulseList.innerHTML=shown.map(x=>`<a class="pulse-item ${x.score>=3?'very-important':x.score>=2?'important':''}" href="${escapeAttr(x.link)}" target="_blank" rel="noopener"><span class="pulse-bar"></span><div><div class="pulse-title">${escapeHtml(x.title)}</div><div class="pulse-meta"><span class="source">华尔街见闻 7×24</span>${x.score>=2?'<span style="color:var(--red);font-weight:750">重要</span>':''}<span>${relativeTime(x.date)}</span><span>${x.clock||''}</span></div></div><span class="pulse-arrow">›</span></a>`).join("");return;
+  }
+  if(pulseFilter==="important"){pulseList.innerHTML='<div class="empty">当前 7×24 实时源不可达。<br>「重要」筛选只使用原始快讯的重要标记，不会用关键词自行猜测。<br>可切换「全部」查看 RSS 备用流。</div>';return}
+  const priority=allNews.filter(x=>x.cat==="finance"||x.cat==="world").sort((a,b)=>b.date-a.date).slice(0,28);
+  if(!priority.length){pulseList.innerHTML='<div class="empty">实时快讯暂时无法连接。<br>可切换到「日历」或「RSS」。</div>';return}
+  pulseList.innerHTML=priority.map(x=>`<a class="pulse-item ${x.cat}" href="${escapeAttr(x.link)}" target="_blank" rel="noopener"><span class="pulse-bar"></span><div><div class="pulse-title">${escapeHtml(x.title)}</div><div class="pulse-meta"><span class="source">${escapeHtml(x.source)}</span><span class="live-fallback">RSS 备用</span><span>${relativeTime(x.date)}</span></div></div><span class="pulse-arrow">›</span></a>`).join("");
+}
+function setPulseFilter(mode){pulseFilter=mode==="important"?"important":"all";localStorage.setItem(KEYS.pulseFilter,pulseFilter);renderPulse()}
+function updateFilterCounts(){const labels={all:"全部",finance:"财经",world:"时事",tech:"科技",game:"游戏"};document.querySelectorAll(".filter").forEach(b=>{const c=b.dataset.cat,n=c==="all"?allNews.length:allNews.filter(x=>x.cat===c).length;b.textContent=`${labels[c]} ${n}`})}
+function stampTime(t){return new Date(t).toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit",hour12:false})}
+function refreshInfoStamp(){lastUpdate.textContent=infoMode==="pulse"?liveStampText:infoMode==="rss"?rssStampText:"经济日历"}
+function updateStamp(t,note="RSS"){rssStampText=`${note} ${stampTime(t)}`;refreshInfoStamp()}
+async function loadNews(force=false){
+  let cached=null;try{cached=JSON.parse(localStorage.getItem(KEYS.rssCache)||"null")}catch(e){}
+  if(!force&&cached&&Date.now()-cached.saved<CACHE_MS&&Array.isArray(cached.items)){
+    allNews=cached.items.map(x=>({...x,date:new Date(x.date)}));renderNews();renderPulse();updateFilterCounts();updateStamp(cached.saved,`${cached.ok||0}/${feeds.length} 源`);return
+  }
+  if(!allNews.length)newsList.innerHTML='<div class="loading">正在读取 RSS…</div>';
+  feeds.forEach(f=>feedStatus[f.url]="wait");renderRSSManager();
+  const results=await Promise.allSettled(feeds.map(fetchRSS));
+  let okCount=0;
+  results.forEach((r,i)=>{feedStatus[feeds[i].url]=r.status==="fulfilled"?"ok":"bad";if(r.status==="fulfilled")okCount++});
+  renderRSSManager();
+  const fresh=dedupeSort(results.filter(r=>r.status==="fulfilled").flatMap(r=>r.value));
+  if(fresh.length){
+    allNews=fresh;try{localStorage.setItem(KEYS.rssCache,JSON.stringify({saved:Date.now(),ok:okCount,items:fresh.map(x=>({...x,date:x.date.toISOString()}))}))}catch(e){}
+    renderNews();renderPulse();updateFilterCounts();updateStamp(Date.now(),`${okCount}/${feeds.length} 源`);
+  }else if(cached?.items?.length){
+    allNews=cached.items.map(x=>({...x,date:new Date(x.date)}));renderNews();renderPulse();updateFilterCounts();updateStamp(cached.saved,"缓存");
+  }else{
+    newsList.innerHTML='<div class="empty">RSS 目前没有成功返回。<br>请点 ↻ 重试，快讯页仍会优先尝试 7×24 实时源。</div>';lastUpdate.textContent="RSS 离线";updateFilterCounts()
+  }
+}
+
+const LIVE_API_LIMIT=100;
+const LIVE_HISTORY_HOURS=24;
+const LIVE_HISTORY_MAX=200;
+const LIVE_API=`https://api-one.wallstcn.com/apiv1/content/lives?channel=global-channel&client=pc&limit=${LIVE_API_LIMIT}&first_page=true`;
+function normalizeLivePayload(j){
+  const items=j?.data?.items;if(!Array.isArray(items))throw new Error("live schema");
+  return items.map(x=>{
+    const title=cleanText(x.content_text||x.content||x.title||"");
+    const ts=Number(x.display_time)||0,date=new Date(ts*1000);
+    return {id:String(x.id||""),title,link:x.uri||`https://wallstreetcn.com/livenews/${x.id||""}`,date,score:Number(x.score)||1,clock:date.getTime()?new Intl.DateTimeFormat("zh-CN",{timeZone:"Asia/Shanghai",hour:"2-digit",minute:"2-digit",hour12:false}).format(date):""}
+  }).filter(x=>x.title&&x.date.getTime()).sort((a,b)=>b.date-a.date);
+}
+function readLiveHistory(){
+  try{
+    const c=JSON.parse(localStorage.getItem(KEYS.liveCache)||"null");
+    if(!c?.items?.length)return [];
+    return c.items.map(x=>({...x,date:new Date(x.date)})).filter(x=>x.date.getTime());
+  }catch(e){return []}
+}
+function mergeLiveHistory(fresh,history=liveNews){
+  const cutoff=Date.now()-LIVE_HISTORY_HOURS*60*60*1000;
+  const seen=new Set(),out=[];
+  for(const x of [...fresh,...history].sort((a,b)=>b.date-a.date)){
+    if(!x?.date?.getTime?.()||x.date.getTime()<cutoff)continue;
+    const key=x.id?`id:${x.id}`:`t:${x.date.getTime()}:${x.title}`;
+    if(seen.has(key))continue;
+    seen.add(key);out.push(x);
+    if(out.length>=LIVE_HISTORY_MAX)break;
+  }
+  return out;
+}
+function saveLiveHistory(items){
+  try{localStorage.setItem(KEYS.liveCache,JSON.stringify({saved:Date.now(),items:items.map(x=>({...x,date:x.date.toISOString()}))}))}catch(e){}
+}
+async function fetchLiveDirect(){
+  const r=await fetchWithTimeout(LIVE_API,7000);if(!r.ok)throw new Error(`live HTTP ${r.status}`);return normalizeLivePayload(await r.json());
+}
+async function fetchLiveProxy(){
+  const u=`https://api.allorigins.win/raw?url=${encodeURIComponent(LIVE_API)}`;
+  const r=await fetchWithTimeout(u,9000);if(!r.ok)throw new Error(`proxy HTTP ${r.status}`);return normalizeLivePayload(JSON.parse(await r.text()));
+}
+async function loadLive(force=false){
+  const cached=readLiveHistory();
+  if(!liveNews.length&&cached.length)liveNews=cached;
+  try{
+    const fresh=await fetchLiveDirect();if(!fresh.length)throw new Error("empty live");
+    liveNews=mergeLiveHistory(fresh,cached);saveLiveHistory(liveNews);
+    liveSourceState="direct";liveStampText=`LIVE · ${fresh.length}条/批 · 20s · ${stampTime(Date.now())}`;
+  }catch(e1){
+    try{
+      const fresh=await fetchLiveProxy();if(!fresh.length)throw new Error("empty proxy");
+      liveNews=mergeLiveHistory(fresh,cached);saveLiveHistory(liveNews);
+      liveSourceState="proxy";liveStampText=`LIVE 代理 · ${fresh.length}条/批 · ${stampTime(Date.now())}`;
+    }catch(e2){
+      if(cached.length){liveNews=mergeLiveHistory([],cached);liveSourceState="cache";liveStampText=`快讯缓存 · ${liveNews.length}条 · ${stampTime(Date.now())}`}
+      else{liveNews=[];liveSourceState="rss";liveStampText=`实时源不可达 · RSS备用`}
+    }
+  }
+  renderPulse();refreshInfoStamp();
+}
+document.querySelectorAll(".filter").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".filter").forEach(x=>x.classList.remove("active"));b.classList.add("active");activeCategory=b.dataset.cat;renderNews()}));
+function switchInfo(mode){
+  infoMode=mode;
+  const panes={pulse:pulsePane,calendar:calendarPane,rss:rssPane},tabs={pulse:pulseTab,calendar:calendarTab,rss:rssTab};
+  Object.entries(panes).forEach(([k,p])=>p.className="news-pane "+(k===mode?"active":"hidden"));Object.entries(tabs).forEach(([k,b])=>b.classList.toggle("active",k===mode));
+  if(mode==="pulse")renderPulse();if(mode==="rss")renderNews();refreshInfoStamp();
+}
+renderPulse();loadNews();loadLive(true);setInterval(()=>loadNews(true),CONFIG.rssRefreshMinutes*60*1000);setInterval(()=>{if(!document.hidden)loadLive(true)},CONFIG.liveRefreshSeconds*1000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)loadLive(true)});
+async function manualRefresh(){const btn=document.querySelector(".refresh");btn.textContent="⋯";try{await Promise.all([loadNews(true),loadLive(true),startWeather()])}finally{setTimeout(()=>btn.textContent="↻",400)}}
+
+/* extra links */
+function normalizeExtraUrl(url){let u=String(url||"").trim();if(!u)return "";if(!/^https?:\/\//i.test(u))u="https://"+u;try{const x=new URL(u);return /^https?:$/.test(x.protocol)?x.href:""}catch(e){return ""}}
+function hostLabel(url){try{return new URL(url).hostname.replace(/^www\./,"")}catch(e){return url}}
+function renderMoreLinks(){
+  if(!moreLinksList)return;moreLinksList.innerHTML="";if(moreLinksCount)moreLinksCount.textContent=`${extraLinks.length} 项`;
+  if(!extraLinks.length){moreLinksList.innerHTML='<div class="more-empty">还没有额外链接</div>';return}
+  extraLinks.forEach(x=>{const a=document.createElement("a");a.className="more-link";a.href=x.url;a.target="_blank";a.rel="noopener";a.innerHTML=`<span class="more-icon">${escapeHtml(x.emoji||"🔗")}</span><span class="more-copy"><span class="more-name">${escapeHtml(x.name||hostLabel(x.url))}</span><span class="more-host">${escapeHtml(hostLabel(x.url))}</span></span>`;a.onclick=()=>moreLinksPop?.classList.remove("show");moreLinksList.appendChild(a)})
+}
+function toggleMoreLinks(ev){ev?.stopPropagation();if(!moreLinksPop)return;const show=!moreLinksPop.classList.contains("show");if(show){renderMoreLinks();moreLinksPop.classList.add("show")}else moreLinksPop.classList.remove("show")}
+document.addEventListener("click",e=>{if(moreLinksPop?.classList.contains("show")&&!e.target.closest(".more-wrap"))moreLinksPop.classList.remove("show")});
+function openLinksSettings(){moreLinksPop?.classList.remove("show");openSettings();showSettingsPane("links")}
+function renderLinksManager(){
+  const host=document.getElementById("linksManager");if(!host)return;host.innerHTML="";
+  if(!extraLinksDraft.length){host.innerHTML='<div class="help">还没有额外链接。</div>';return}
+  extraLinksDraft.forEach((x,i)=>{const row=document.createElement("div");row.className="link-row";row.innerHTML=`<input class="field" value="${escapeAttr(x.emoji||"🔗")}" maxlength="4" oninput="extraLinksDraft[${i}].emoji=this.value"><input class="field" value="${escapeAttr(x.name||"")}" placeholder="名称" oninput="extraLinksDraft[${i}].name=this.value"><input class="field" value="${escapeAttr(x.url||"")}" placeholder="https://..." oninput="extraLinksDraft[${i}].url=this.value"><button class="mini" onclick="moveExtraLink(${i},-1)">↑</button><button class="mini" onclick="moveExtraLink(${i},1)">↓</button><button class="mini danger" onclick="deleteExtraLink(${i})">×</button>`;host.appendChild(row)})
+}
+function moveExtraLink(i,d){const j=i+d;if(j<0||j>=extraLinksDraft.length)return;[extraLinksDraft[i],extraLinksDraft[j]]=[extraLinksDraft[j],extraLinksDraft[i]];renderLinksManager()}
+function deleteExtraLink(i){extraLinksDraft.splice(i,1);renderLinksManager()}
+function addExtraLink(){const em=document.getElementById("newLinkEmoji"),nm=document.getElementById("newLinkName"),ur=document.getElementById("newLinkUrl");const url=normalizeExtraUrl(ur?.value||"");if(!url){toast("请输入有效网址");return}extraLinksDraft.push({emoji:(em?.value||"🔗").trim()||"🔗",name:(nm?.value||"").trim()||hostLabel(url),url});if(nm)nm.value="";if(ur)ur.value="";if(em)em.value="🔗";renderLinksManager()}
+function saveExtraLinks(){extraLinks=extraLinksDraft.map(x=>{const url=normalizeExtraUrl(x.url);return url?{emoji:String(x.emoji||"🔗").trim()||"🔗",name:String(x.name||"").trim()||hostLabel(url),url}:null}).filter(Boolean);extraLinksDraft=clone(extraLinks);saveJSON(KEYS.extraLinks,extraLinks);renderLinksManager();renderMoreLinks();toast("常用链接已保存")}
+function resetExtraLinks(){extraLinksDraft=clone(DEFAULT_EXTRA_LINKS);renderLinksManager()}
+renderMoreLinks();
+
+/* settings shell */
+function openSettings(){stockDraft=clone(stocks);feedDraft=clone(feeds);extraLinksDraft=clone(extraLinks);renderStockManager();renderRSSManager();renderLinksManager();if(stockSearchInput){stockSearchInput.value="";renderStockSearchResults([],"输入股票代码、公司名或关键词即可搜索。")}applyTheme(false);applyLayout(false);applyAppearance();settingsBackdrop.classList.add("show")}
+function closeSettings(){settingsBackdrop.classList.remove("show")}
+settingsBackdrop.addEventListener("click",e=>{if(e.target===settingsBackdrop)closeSettings()});
+function showSettingsPane(name){document.querySelectorAll(".settings-tab").forEach(b=>b.classList.toggle("active",b.dataset.pane===name));document.querySelectorAll(".setting-pane").forEach(p=>p.classList.toggle("active",p.id===`pane-${name}`))}
+function move(arr,i,dir){const j=i+dir;if(j<0||j>=arr.length)return;[arr[i],arr[j]]=[arr[j],arr[i]]}
+function catOptions(selected){return[["finance","财经"],["world","时事"],["tech","科技"],["game","游戏"]].map(([v,t])=>`<option value="${v}" ${v===selected?"selected":""}>${t}</option>`).join("")}
+
+/* stock manager */
+function renderStockManager(){
+  stockManager.innerHTML=stockDraft.map((x,i)=>`<div class="manage-row">
+    <div class="order"><button class="mini icon-mini" onclick="moveStock(${i},-1)">↑</button><button class="mini icon-mini" onclick="moveStock(${i},1)">↓</button></div>
+    <input class="field stock-label" data-i="${i}" value="${escapeAttr(x.label)}" placeholder="名称">
+    <input class="field stock-symbol" data-i="${i}" value="${escapeAttr(x.symbol)}" placeholder="NASDAQ:AMD">
+    <div class="row-actions"><button class="mini danger" onclick="removeStock(${i})">移除</button></div>
+  </div>`).join("")||'<div class="empty" style="height:90px">Watchlist 为空</div>';
+}
+function syncStockInputs(){document.querySelectorAll(".stock-label").forEach(x=>stockDraft[+x.dataset.i].label=x.value.trim());document.querySelectorAll(".stock-symbol").forEach(x=>stockDraft[+x.dataset.i].symbol=x.value.trim().toUpperCase())}
+function moveStock(i,d){syncStockInputs();move(stockDraft,i,d);renderStockManager()}
+function removeStock(i){syncStockInputs();stockDraft.splice(i,1);renderStockManager()}
+function saveStockEdits(){
+  syncStockInputs();stockDraft=stockDraft.filter(x=>x.symbol).map(x=>({symbol:x.symbol.toUpperCase(),label:x.label||x.symbol.split(":").pop()}));
+  if(!stockDraft.length){toast("至少保留一个标的");return}
+  stocks=clone(stockDraft);saveStored(KEYS.stocks,stocks);renderTradingView();toast("Watchlist 已保存")
+}
+function resetStocks(){stockDraft=clone(DEFAULT_STOCKS);renderStockManager();toast("已载入默认股票，点保存生效")}
+function addStock(){
+  syncStockInputs();let raw=newStockTicker.value.trim().toUpperCase();if(!raw)return toast("请输入股票代码");
+  const exact=SYMBOL_CATALOG.find(x=>x.label.toUpperCase()===raw||x.symbol.toUpperCase()===raw);
+  let symbol=raw.includes(":")?raw:(exact?.symbol||`${newStockMarket.value}:${raw}`),label=newStockLabel.value.trim()||exact?.label||raw.split(":").pop();
+  if(stockDraft.some(x=>x.symbol===symbol))return toast("这个标的已经存在");
+  stockDraft.push({symbol,label});newStockTicker.value="";newStockLabel.value="";renderStockManager();toast("已加入草稿，点保存生效")
+}
+function quickAddStock(symbol,label){syncStockInputs();if(stockDraft.some(x=>x.symbol===symbol))return toast("已经在 Watchlist");stockDraft.push({symbol,label});renderStockManager();toast(`${label} 已加入草稿`)}
+
+/* stock search: local first, optional Yahoo web search second */
+function scoreStock(item,q){
+  q=q.trim().toLowerCase();if(!q)return 0;
+  const ticker=item.label.toLowerCase(),symbol=item.symbol.toLowerCase(),name=(item.name||"").toLowerCase(),tags=(item.tags||"").toLowerCase();
+  if(ticker===q)return 120;if(symbol===q||symbol.endsWith(":"+q))return 115;
+  let s=0;if(ticker.startsWith(q))s=Math.max(s,100);if(name.startsWith(q))s=Math.max(s,85);
+  if(ticker.includes(q))s=Math.max(s,75);if(name.includes(q))s=Math.max(s,60);if(tags.includes(q))s=Math.max(s,45);
+  return s;
+}
+function tickerGuesses(q){
+  const raw=q.trim().toUpperCase();if(!/^[A-Z][A-Z0-9.\-]{0,7}$/.test(raw))return [];
+  if(SYMBOL_CATALOG.some(x=>x.label===raw||x.symbol===raw))return [];
+  return ["NASDAQ","NYSE","AMEX"].map(ex=>({symbol:`${ex}:${raw}`,label:raw,name:`${ex} 候选（请按交易所选择）`,tags:"ticker candidate",guess:true}));
+}
+function localStockSearch(q){
+  const exact=SYMBOL_CATALOG.map(x=>({...x,_score:scoreStock(x,q)})).filter(x=>x._score>0).sort((a,b)=>b._score-a._score||a.label.localeCompare(b.label)).slice(0,10);
+  return dedupeSearch([...exact,...tickerGuesses(q)]);
+}
+function tvFromYahoo(q){
+  const raw=(q.symbol||"").toUpperCase();if(!raw)return null;
+  const special={"^GSPC":"TVC:SPX","^VIX":"CBOE:VIX","BTC-USD":"COINBASE:BTCUSD","ETH-USD":"COINBASE:ETHUSD"};
+  if(special[raw])return special[raw];
+  const ex=(q.exchange||q.exchDisp||"").toUpperCase();
+  const map={NMS:"NASDAQ",NGM:"NASDAQ",NCM:"NASDAQ",NMQ:"NASDAQ",NAS:"NASDAQ",NASDAQ:"NASDAQ",NYQ:"NYSE",NYSE:"NYSE",ASE:"AMEX",PCX:"AMEX",AMEX:"AMEX"};
+  const tvex=map[ex];if(!tvex||raw.startsWith("^"))return null;return `${tvex}:${raw}`;
+}
+async function yahooStockSearch(q){
+  const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),3500);
+  try{
+    const u=`https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(q)}&quotesCount=10&newsCount=0&enableFuzzyQuery=true`;
+    const r=await fetch(u,{signal:ctl.signal,cache:"no-store",mode:"cors"});if(!r.ok)throw new Error("search");
+    const j=await r.json();return (j.quotes||[]).map(x=>{const symbol=tvFromYahoo(x);if(!symbol)return null;return {symbol,label:(x.symbol||symbol.split(":").pop()).replace(/-USD$/,"USD"),name:x.longname||x.shortname||x.symbol||symbol,tags:`${x.quoteType||""} ${x.exchDisp||x.exchange||""}`,remote:true}}).filter(Boolean)
+  }finally{clearTimeout(tm)}
+}
+function dedupeSearch(items){const m=new Map();for(const x of items){if(!m.has(x.symbol))m.set(x.symbol,x)}return [...m.values()].slice(0,12)}
+function renderStockSearchResults(items,note=""){
+  if(!stockSearchResults)return;
+  if(!items.length){stockSearchResults.innerHTML=`<div class="search-hint">${note||"没有找到匹配项。可以展开下方“高级”手动输入 TradingView Symbol。"}</div>`;return}
+  stockSearchResults.innerHTML=items.map((x,i)=>`<div class="search-result"><div><div class="sr-symbol">${escapeHtml(x.label)} <span class="sr-meta">${escapeHtml(x.symbol)}</span></div><div class="sr-name">${escapeHtml(x.name||"")}</div></div><button class="mini" onclick="addSearchResult(${i})">加入</button></div>`).join("")+(note?`<div class="search-hint">${escapeHtml(note)}</div>`:"");
+  window._stockSearchResults=items;
+}
+function addSearchResult(i){const x=window._stockSearchResults?.[i];if(!x)return;quickAddStock(x.symbol,x.label)}
+async function runStockSearch(useWeb=false){
+  const q=stockSearchInput?.value.trim()||"";if(!q){renderStockSearchResults([],"输入股票代码、公司名或关键词即可搜索。");return}
+  let results=localStockSearch(q),note="本地常用标的";renderStockSearchResults(results,note);
+  if(useWeb){
+    if(stockSearchResults)stockSearchResults.insertAdjacentHTML("beforeend",'<div class="search-hint" id="webSearchHint">正在尝试联网补充结果…</div>');
+    try{const remote=await yahooStockSearch(q);results=dedupeSearch([...results,...remote]);note=remote.length?"已合并联网搜索结果":"联网未返回更多结果"}
+    catch(e){note="联网搜索不可用，已保留本地搜索结果"}
+    renderStockSearchResults(results,note)
+  }
+}
+if(stockSearchInput){
+  let st;stockSearchInput.addEventListener("input",()=>{clearTimeout(st);st=setTimeout(()=>runStockSearch(false),180)});
+  stockSearchInput.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();runStockSearch(true)}});
+}
+
+/* RSS manager */
+function renderRSSManager(){
+  if(!document.getElementById("rssManager"))return;
+  rssManager.innerHTML=feedDraft.map((x,i)=>{const s=feedStatus[x.url]||"wait";return`<div class="manage-row rssrow">
+    <div class="order"><span class="status-dot ${s}" title="${s}"></span><button class="mini icon-mini" onclick="moveFeed(${i},-1)">↑</button><button class="mini icon-mini" onclick="moveFeed(${i},1)">↓</button></div>
+    <input class="field feed-name" data-i="${i}" value="${escapeAttr(x.name)}" placeholder="来源名称">
+    <input class="field feed-url" data-i="${i}" value="${escapeAttr(x.url)}" placeholder="https://...">
+    <select class="field feed-cat" data-i="${i}">${catOptions(x.cat)}</select>
+    <div class="row-actions"><button class="mini danger" onclick="removeFeed(${i})">移除</button></div>
+  </div>`}).join("")||'<div class="empty" style="height:90px">RSS 列表为空</div>';
+}
+function syncFeedInputs(){
+  document.querySelectorAll(".feed-name").forEach(x=>feedDraft[+x.dataset.i].name=x.value.trim());
+  document.querySelectorAll(".feed-url").forEach(x=>feedDraft[+x.dataset.i].url=x.value.trim());
+  document.querySelectorAll(".feed-cat").forEach(x=>feedDraft[+x.dataset.i].cat=x.value);
+}
+function moveFeed(i,d){syncFeedInputs();move(feedDraft,i,d);renderRSSManager()}
+function removeFeed(i){syncFeedInputs();feedDraft.splice(i,1);renderRSSManager()}
+function saveRSSEdits(){
+  syncFeedInputs();feedDraft=feedDraft.filter(x=>x.url&&/^https?:\/\//i.test(x.url)).map(x=>({name:x.name||x.url, url:x.url, cat:x.cat||"world"}));
+  if(!feedDraft.length){toast("至少保留一个 RSS");return}
+  feeds=clone(feedDraft);saveStored(KEYS.feeds,feeds);localStorage.removeItem(KEYS.rssCache);feedStatus={};loadNews(true);toast("RSS 已保存并重新载入")
+}
+function resetRSS(){feedDraft=clone(DEFAULT_FEEDS);renderRSSManager();toast("已载入默认 RSS，点保存生效")}
+function addFeed(){
+  syncFeedInputs();const name=newFeedName.value.trim(),url=newFeedUrl.value.trim(),cat=newFeedCat.value;
+  if(!/^https?:\/\//i.test(url))return toast("请输入完整 http/https RSS 地址");
+  if(feedDraft.some(x=>x.url===url))return toast("这个 RSS 已经存在");
+  feedDraft.push({name:name||url,url,cat});newFeedName.value="";newFeedUrl.value="";renderRSSManager();toast("已加入草稿，点保存生效")
+}
+
+/* backup */
+function exportConfig(){
+  const data={version:9.5,exportedAt:new Date().toISOString(),stocks,feeds,themeMode,layout,appearance,pulseFilter,extraLinks};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`deskboard-config-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)
+}
+async function importConfigFile(ev){
+  const f=ev.target.files?.[0];if(!f)return;
+  try{
+    const j=JSON.parse(await f.text());
+    if(Array.isArray(j.stocks)&&j.stocks.length){stocks=j.stocks;saveStored(KEYS.stocks,stocks)}
+    if(Array.isArray(j.feeds)&&j.feeds.length){feeds=j.feeds;saveStored(KEYS.feeds,feeds)}
+    if(["auto","light","dark"].includes(j.themeMode)){themeMode=j.themeMode;localStorage.setItem(KEYS.theme,themeMode)}
+    if(j.layout&&typeof j.layout==="object"){layout={...DEFAULT_LAYOUT,...j.layout};saveStored(KEYS.layout,layout)}
+    if(j.appearance&&typeof j.appearance==="object"){appearance={...DEFAULT_APPEARANCE,...j.appearance};saveStored(KEYS.appearance,appearance)}
+    if(["all","important"].includes(j.pulseFilter)){pulseFilter=j.pulseFilter;localStorage.setItem(KEYS.pulseFilter,pulseFilter)}
+    if(Array.isArray(j.extraLinks)){extraLinks=j.extraLinks;saveJSON(KEYS.extraLinks,extraLinks)}
+    localStorage.removeItem(KEYS.rssCache);stockDraft=clone(stocks);feedDraft=clone(feeds);extraLinksDraft=clone(extraLinks);renderStockManager();renderRSSManager();renderLinksManager();renderMoreLinks();applyLayout(true);applyTheme(true);applyAppearance();renderPulse();loadNews(true);toast("配置已导入")
+  }catch(e){toast("配置文件无法读取")}
+  ev.target.value=""
+}
+</script>
+
+<!-- PT-UNIVERSE-BACKLINK -->
+<style>
+#ptu-home-link{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));z-index:2147483646;display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 11px;border:1px solid rgba(255,255,255,.2);border-radius:999px;background:rgba(8,12,22,.72);box-shadow:0 8px 24px rgba(0,0,0,.18);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#fff!important;font:600 11px/1 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;text-decoration:none!important;opacity:.62;transition:opacity .18s,transform .18s}
+#ptu-home-link:hover,#ptu-home-link:focus-visible{opacity:1;transform:translateY(-1px);outline:none}
+#ptu-home-link i{width:6px;height:6px;border-radius:50%;background:#7c73ff;box-shadow:0 0 0 3px rgba(124,115,255,.2)}
+@media(max-width:760px){#ptu-home-link{bottom:calc(76px + env(safe-area-inset-bottom));left:max(10px,env(safe-area-inset-left));height:31px;padding:0 9px;font-size:10px}}
+</style>
+<a id="ptu-home-link" href="../../" aria-label="返回 PT Universe"><i></i><span>← PT Universe</span></a>
+</body>
+</html>

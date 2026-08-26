@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#090b10" />
+  <title>Tsugi · ACG 追踪中心</title>
+  <meta name="description" content="部署在 GitHub Pages 的小说、漫画、音乐、游戏与中文 ACG 新闻追踪中心" />
+  <script>
+    (()=>{const saved=localStorage.getItem('tsugi-theme');const theme=saved||((window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark');document.documentElement.dataset.theme=theme;})();
+  </script>
+  <style>
+    .library-history-head{margin-top:34px;padding-top:26px;border-top:1px solid var(--line)}
+    .library-new{background:rgba(143,125,255,.24)!important;border-color:rgba(143,125,255,.4)!important;color:#e9e4ff!important}
+    .book-open{display:inline-flex;align-items:center;justify-content:center;width:max-content;max-width:100%;height:32px;padding:0 11px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);color:#eef2f8;font-size:11px;font-weight:800;backdrop-filter:blur(10px)}
+    .book-card:hover .book-open{background:rgba(255,255,255,.14)}
+    .site-update-card .site-meta:last-child{justify-content:space-between;gap:10px}
+    .site-update-card .site-meta:last-child span:last-child{font-weight:700;color:var(--text-soft)}
+    [data-theme="light"] .library-new{background:rgba(112,91,244,.13)!important;border-color:rgba(112,91,244,.25)!important;color:#6253d7!important}
+    [data-theme="light"] .book-open{background:rgba(255,255,255,.72);color:#3f4857;border-color:rgba(20,28,40,.10)}
+    @media(max-width:700px){.library-history-head{margin-top:26px}.library-history-head .toolbar{width:100%}}
+    /* v9: make the actual update stream the first content users see. */
+    #updates>.hero-row{display:none}
+    #updates>.modern-feed-head{margin-top:2px}
+    .site-update-card .site-meta:last-child>span:first-child::before{content:"最后更新 · ";color:var(--faint);font-weight:650}
+    .site-update-card .site-meta:last-child>span:first-child:empty::before{content:"最后更新 · 未解析";color:var(--faint);font-weight:650}
+
+    /* v9.1: subtle global data timestamp under the page subtitle. */
+    .page-updated-at{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      width:max-content;
+      margin-top:7px;
+      color:var(--faint);
+      font-size:10px;
+      line-height:1.2;
+      font-weight:650;
+      letter-spacing:.01em;
+      opacity:.82;
+      font-variant-numeric:tabular-nums;
+    }
+    .page-updated-at::before{
+      content:"";
+      width:5px;
+      height:5px;
+      flex:0 0 auto;
+      border-radius:50%;
+      background:var(--accent);
+      box-shadow:0 0 0 3px rgba(62,210,167,.08);
+      opacity:.8;
+    }
+    [data-theme="light"] .page-updated-at{opacity:.72}
+
+  </style>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="v5.css" />
+  <link rel="stylesheet" href="games.css" />
+  <link rel="stylesheet" href="ui-settings.css" />
+  <link rel="alternate" type="application/atom+xml" title="Tsugi Updates" href="data/feed.xml" />
+</head>
+<body>
+  <div class="bg-orb orb-a"></div>
+  <div class="bg-orb orb-b"></div>
+  <div class="bg-grid"></div>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">継</div>
+        <div class="brand-copy">
+          <strong>Tsugi</strong>
+          <span>Reader Hub</span>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <p class="nav-label">LIBRARY</p>
+        <nav id="nav" class="nav-list">
+          <button class="nav-item active" data-tab="updates">
+            <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5v-15Z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20"/><path d="M8 7h8M8 11h6"/></svg></span>
+            <span class="nav-copy"><span>更新流</span><small>Daily feed</small></span>
+            <em id="updateCount">0</em>
+          </button>
+          <button class="nav-item" data-tab="library">
+            <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="7" height="16" rx="1.5"/><rect x="14" y="4" width="7" height="16" rx="1.5"/><path d="M6.5 8h0M17.5 8h0"/></svg></span>
+            <span class="nav-copy"><span>我的书架</span><small>Cover shelf</small></span>
+            <em id="libraryCount">0</em>
+          </button>
+          <button class="nav-item" data-tab="music">
+            <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l10-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg></span>
+            <span class="nav-copy"><span>音乐追踪</span><small>Japan music</small></span>
+            <em id="musicCount">0</em>
+          </button>
+          <button class="nav-item" data-tab="games">
+            <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8h10a5 5 0 0 1 4.7 6.7l-1 2.7a2 2 0 0 1-3.3.8L15.2 16H8.8l-2.2 2.2a2 2 0 0 1-3.3-.8l-1-2.7A5 5 0 0 1 7 8Z"/><path d="M8 11v4M6 13h4"/><circle cx="16" cy="12" r=".7"/><circle cx="18" cy="14" r=".7"/></svg></span>
+            <span class="nav-copy"><span>游戏追踪</span><small>Daily releases</small></span>
+            <em id="gameCount">0</em>
+          </button>
+          <button class="nav-item" data-tab="news">
+            <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/><path d="M7 8h6M7 12h10M7 16h7"/></svg></span>
+            <span class="nav-copy"><span>ACG 新闻</span><small>News desk</small></span>
+            <em id="newsCount">0</em>
+          </button>
+          <button class="nav-item" data-tab="sources">
+            <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="18" cy="18" r="2"/><path d="m8 11 8-4M8 13l8 4"/></svg></span>
+            <span class="nav-copy"><span>来源状态</span><small>Source health</small></span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="sidebar-section sidebar-system">
+        <p class="nav-label">SYSTEM</p>
+        <nav class="nav-list">
+          <button class="nav-item" data-tab="settings">
+            <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21H9.6v-.1A1.7 1.7 0 0 0 8.5 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.1 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H2.3V9.6h.1A1.7 1.7 0 0 0 4.1 8.5a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 8.5 4.1a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V2.3h4v.1A1.7 1.7 0 0 0 15 4.1a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 8.5a1.7 1.7 0 0 0 .6 1 1.7 1.7 0 0 0 1.1.4h.1v4h-.1A1.7 1.7 0 0 0 19.4 15Z"/></svg></span>
+            <span class="nav-copy"><span>设置说明</span><small>Config guide</small></span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="sync-card">
+          <div class="sync-top">
+            <span class="sync-dot"><i id="syncDot"></i><span id="syncText">读取数据中…</span></span>
+            <span class="tiny-label">AUTO</span>
+          </div>
+          <p>GitHub Actions 自动同步</p>
+          <a class="rss-link" href="data/feed.xml"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11a8 8 0 0 1 8 8M5 5a14 14 0 0 1 14 14"/><circle cx="5" cy="19" r="1"/></svg> Atom 更新订阅</a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="title-wrap">
+          <p class="eyebrow">TSUGI / ACG TRACKING HUB</p>
+          <h1 id="pageTitle">更新流</h1>
+          <p class="page-subtitle" id="pageSubtitle">汇总各小说 / 漫画来源最新更新，并解析最新章节与话数。</p>
+        </div>
+        <div class="top-actions">
+          <label class="search-wrap">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+            <input id="search" placeholder="搜索作品、章节或来源" />
+          </label>
+          <button id="sourceRefreshBtn" class="source-refresh-btn" title="手动触发一次 GitHub Actions 订阅源刷新" aria-label="刷新订阅源">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5"/><path d="M4 18v-5h5"/><path d="M18.6 9A7 7 0 0 0 6.2 6.2L4 8M20 16l-2.2 1.8A7 7 0 0 1 5.4 15"/></svg>
+            <span>刷新订阅源</span>
+          </button>
+          <button id="themeBtn" class="icon-btn theme-btn" title="切换明暗主题" aria-label="切换明暗主题">
+            <svg class="moon-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.2A8 8 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z"/></svg>
+            <svg class="sun-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.41M17.66 6.34l1.41-1.41"/></svg>
+          </button>
+          <button id="refreshBtn" class="icon-btn" title="重新读取已生成的数据" aria-label="重新读取数据">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5"/><path d="M4 18v-5h5"/><path d="M18.6 9A7 7 0 0 0 6.2 6.2L4 8M20 16l-2.2 1.8A7 7 0 0 1 5.4 15"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <section id="updates" class="tab active">
+        <div class="hero-row">
+          <article class="stat-card stat-primary">
+            <div class="stat-top"><span>本次抓取</span><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/></svg></div></div>
+            <strong id="todayUpdates">0</strong>
+            <small>各来源最新更新条目</small>
+          </article>
+          <article class="stat-card compact">
+            <div class="stat-top"><span>小说更新</span><span class="mini-dot novel-dot"></span></div>
+            <strong id="novelCount">0</strong>
+            <small>最新小说 / 轻小说条目</small>
+          </article>
+          <article class="stat-card compact">
+            <div class="stat-top"><span>漫画更新</span><span class="mini-dot manga-dot"></span></div>
+            <strong id="mangaCount">0</strong>
+            <small>最新漫画话数 / 章节</small>
+          </article>
+          <article class="stat-card compact sync-stat">
+            <div class="stat-top"><span>上次同步</span><span class="pulse"></span></div>
+            <strong class="time-stat" id="lastSync">—</strong>
+            <small>每日自动抓取一次</small>
+          </article>
+        </div>
+
+        <div class="feed-head modern-feed-head site-feed-head">
+          <div>
+            <p class="section-kicker">LATEST / DISCOVER</p>
+            <h2>更新流</h2>
+            <p>直接汇总漫画柜、BiliNovel / Linovelib、拷贝漫画等来源的最新更新，并尽量解析具体章节 / 话数。</p>
+          </div>
+          <div class="chips" id="siteFilterChips">
+            <button class="chip active" data-site-filter="all">全部</button>
+            <button class="chip" data-site-filter="novel">小说</button>
+            <button class="chip" data-site-filter="manga">漫画</button>
+          </div>
+        </div>
+        <div id="siteSourceBar" class="source-filter-bar"></div>
+        <div id="siteUpdatesGrid" class="site-updates-grid"></div>
+      </section>
+
+      <section id="library" class="tab">
+        <div class="section-head library-head">
+          <div>
+            <p class="section-kicker">MY SUBSCRIPTIONS</p>
+            <h2>我的书架</h2>
+            <p>这里仅显示你订阅的作品；每张卡片会显示当前最新章节 / 话数、最近检查时间与是否刚更新。</p>
+          </div>
+        </div>
+        <div id="libraryGrid" class="library-grid"></div>
+
+        <div class="feed-head modern-feed-head library-history-head">
+          <div>
+            <p class="section-kicker">SUBSCRIPTION HISTORY</p>
+            <h2>订阅更新记录</h2>
+            <p>当订阅作品相较上次检查出现新章节 / 新话时，会记录在这里。</p>
+          </div>
+          <div class="toolbar">
+            <div class="chips" id="filterChips">
+              <button class="chip active" data-filter="all">全部</button>
+              <button class="chip" data-filter="novel">小说</button>
+              <button class="chip" data-filter="manga">漫画</button>
+              <button class="chip" data-filter="unread">未读</button>
+            </div>
+            <button id="markAllRead" class="text-btn">全部已读</button>
+          </div>
+        </div>
+        <div id="libraryUpdatesList" class="updates-list"></div>
+      </section>
+
+      <section id="music" class="tab">
+        <div class="section-head music-head">
+          <div>
+            <p class="section-kicker">JAPAN MUSIC TRACKER</p>
+            <h2>音乐追踪</h2>
+            <p>查看 Billboard JAPAN Hot 100 周榜、近一周新曲，并关注艺人后检查最近新曲。</p>
+          </div>
+        </div>
+
+        <div class="music-stats">
+          <article class="music-stat"><span>周榜</span><strong id="musicChartCount">0</strong><small>Billboard JAPAN Hot 100</small></article>
+          <article class="music-stat"><span>近一周新曲</span><strong id="musicReleaseCount">0</strong><small>Apple Music Japan / Billboard fallback</small></article>
+          <article class="music-stat"><span>关注艺人</span><strong id="followedArtistCount">0</strong><small>保存在当前浏览器</small></article>
+        </div>
+
+        <div class="music-switch" id="musicSwitch">
+          <button class="music-switch-btn active" data-music-view="chart">日本周榜</button>
+          <button class="music-switch-btn" data-music-view="new">近一周新曲</button>
+          <button class="music-switch-btn" data-music-view="artists">艺人追踪</button>
+        </div>
+
+        <div id="musicChartPane" class="music-pane active">
+          <div class="music-pane-head"><div><h3>Billboard JAPAN Hot 100</h3><p id="musicChartDate">每周更新</p></div></div>
+          <div id="musicChartList" class="music-chart-list"></div>
+        </div>
+
+        <div id="musicNewPane" class="music-pane">
+          <div class="music-pane-head"><div><h3>近一周新曲</h3><p>优先读取 Apple Music Japan「ベストニューソング」；若页面结构变化则自动回退到 Billboard JAPAN 本周新进榜。</p></div></div>
+          <div id="musicNewGrid" class="music-new-grid"></div>
+        </div>
+
+        <div id="musicArtistsPane" class="music-pane">
+          <div class="artist-search-panel">
+            <div>
+              <p class="section-kicker">FOLLOW ARTIST</p>
+              <h3>关注艺人</h3>
+              <p>可以从周榜 / 新曲直接关注，也可以手动搜索艺人。关注列表只保存在当前浏览器。</p>
+            </div>
+            <div class="artist-search-row">
+              <input id="artistSearchInput" placeholder="搜索日本艺人，例如 Ado / 米津玄師" />
+              <button id="artistSearchBtn" class="primary-btn">搜索</button>
+            </div>
+            <div id="artistSearchResults" class="artist-search-results"></div>
+          </div>
+          <div class="music-pane-head followed-head"><div><h3>我关注的艺人</h3><p>使用 Apple iTunes Lookup 获取艺人最近歌曲；发现新 track 时显示 NEW。</p></div><button id="refreshArtistsBtn" class="text-btn">刷新艺人</button></div>
+          <div id="followedArtistsGrid" class="followed-artists-grid"></div>
+        </div>
+      </section>
+
+
+      <section id="games" class="tab">
+        <div class="section-head game-head">
+          <div>
+            <p class="section-kicker">DAILY GAME RELEASE TRACKER</p>
+            <h2>游戏追踪</h2>
+            <p>参考 Steam / Opera GX 的发售日历形式，展示过去 7 天与未来 90 天的发行时间线。PC 仅保留 Steam 热门新作与热门即将发售作品。</p>
+          </div>
+          <span class="game-date-pill" id="gameDate">日本时间</span>
+        </div>
+
+        <div class="game-stats">
+          <article class="game-stat"><span>过去 7 天</span><strong id="gamePastCount">0</strong><small>已发行 / 商店新发现</small></article>
+          <article class="game-stat"><span>今天</span><strong id="gameTodayCount">0</strong><small>日本时间当天发行</small></article>
+          <article class="game-stat"><span>即将发售</span><strong id="gameUpcomingCount">0</strong><small>未来 90 天已公布日期</small></article>
+        </div>
+
+        <div class="game-switch" id="gameSwitch">
+          <button class="game-switch-btn active" data-game-view="mobile">手游</button>
+          <button class="game-switch-btn" data-game-view="pc">PC</button>
+          <button class="game-switch-btn" data-game-view="console">主机</button>
+        </div>
+
+        <div id="gameMobilePane" class="game-pane active">
+          <div class="game-pane-head"><div><h3>手游 · 最近 7 天</h3><p>App Store 日本“新着游戏”与 Google Play 日本“新規リリース”。商店没有可靠未来发行日，因此手游以 Tsugi 首次发现日形成最近 7 天时间线。</p></div></div>
+          <div id="gameMobileGrid" class="game-grid"></div>
+        </div>
+        <div id="gamePcPane" class="game-pane">
+          <div class="game-pane-head"><div><h3>PC 热门发售时间线</h3><p>只使用 Steam 官方 Popular New Releases 与 Popular Upcoming，过滤大量低关注度、低讨论度的普通新上架作品。</p></div></div>
+          <div id="gamePcGrid" class="game-grid"></div>
+        </div>
+        <div id="gameConsolePane" class="game-pane">
+          <div class="game-pane-head"><div><h3>主机发售时间线</h3><p>按日本发行日汇总 Nintendo Switch / Switch 2、PlayStation 与 Xbox，覆盖过去 7 天到未来 90 天。</p></div></div>
+          <div id="gameConsoleGrid" class="game-grid"></div>
+        </div>
+      </section>
+
+      <section id="news" class="tab">
+        <div class="section-head news-head">
+          <div>
+            <p class="section-kicker">ACG NEWS DESK</p>
+            <h2>ACG 新闻</h2>
+            <p>仅聚合简体中文 / 繁体中文 ACG 新闻，随每日抓取一起更新。</p>
+          </div>
+          <div class="chips" id="newsFilterChips">
+            <button class="chip active" data-news-filter="all">全部</button>
+          </div>
+        </div>
+        <div id="newsHero" class="news-hero"></div>
+        <div id="newsGrid" class="news-grid"></div>
+      </section>
+
+      <section id="sources" class="tab">
+        <div class="section-head">
+          <div><p class="section-kicker">HEALTH CHECK</p><h2>来源状态</h2><p>最近一次 GitHub Actions 的抓取结果与成功率。</p></div>
+        </div>
+        <div id="sourceStatus" class="source-grid"></div>
+      </section>
+
+      <section id="settings" class="tab">
+        <div class="section-head">
+          <div><p class="section-kicker">CONFIGURATION</p><h2>设置说明</h2><p>保持前端简单，把作品管理和抓取逻辑留在仓库配置里。</p></div>
+        </div>
+        <div class="settings-grid">
+          <article class="panel">
+            <span class="panel-number">01</span><span class="panel-kicker">ADD TITLE</span>
+            <h3>添加追更作品</h3>
+            <p>更新流里的作品可以直接点击“加入书架”，作为本机订阅保存到浏览器。若需要 GitHub Actions 对某一本作品进行独立深度检查，仍可把它加入 <code>config/library.json</code>。</p>
+            <pre><code>{
+  "id": "my-title",
+  "type": "novel",
+  "source": "bilinovel",
+  "title": "作品名",
+  "url": "https://…",
+  "enabled": true
+}</code></pre>
+          </article>
+          <article class="panel">
+            <span class="panel-number">02</span><span class="panel-kicker">SOURCES</span>
+            <h3>内置来源</h3>
+            <div class="source-tags"><span>BiliNovel</span><span>Linovelib</span><span>Wenku8</span><span>Manhuagui</span><span>CopyManga</span><span>Generic</span></div>
+            <p>适配器只读取公开页面的元数据和章节列表，不处理账号、付费章节、验证码或反爬绕过。</p>
+          </article>
+          <article class="panel">
+            <span class="panel-number">03</span><span class="panel-kicker">DELIVERY</span>
+            <h3>每日更新流</h3>
+            <p>工作流每天运行并把新章节写入 <code>data/feed.json</code> 与 <code>data/feed.xml</code>。Atom 地址可直接加入 Feedly、FreshRSS、Reeder 等阅读器。</p>
+          </article>
+          <article class="panel">
+            <span class="panel-number">04</span><span class="panel-kicker">LOCAL FOLLOW & THEME</span>
+            <h3>公开内容与主题</h3>
+            <p>站点更新与 ACG 新闻源配置在 <code>config/content.json</code>。一键加入书架、关注艺人、明暗主题和已读状态均保存在当前浏览器 LocalStorage；云端订阅仍由 <code>library.json</code> 驱动。</p>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+  <div id="tsugiToast" class="tsugi-toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+  <script src="games.js"></script>
+  <script src="ui-settings.js"></script>
+  <script>
+    (()=>{
+      const OWNER='XiminHu66';
+      const REPO='tsugi-checker';
+      const WORKFLOW='update-feed.yml';
+      const REF='main';
+      const TOKEN_KEY='tsugi-actions-token-session';
+      const actionsUrl=`https://github.com/${OWNER}/${REPO}/actions/workflows/${WORKFLOW}`;
+      const dispatchUrl=`https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${WORKFLOW}/dispatches`;
+      const btn=document.getElementById('sourceRefreshBtn');
+      const toast=document.getElementById('tsugiToast');
+      let toastTimer=null;
+
+      function notify(message,kind=''){
+        if(!toast)return;
+        clearTimeout(toastTimer);
+        toast.textContent=message;
+        toast.className=`tsugi-toast show ${kind}`;
+        toastTimer=setTimeout(()=>toast.className='tsugi-toast',5200);
+      }
+      function setBusy(busy){
+        if(!btn)return;
+        btn.disabled=busy;
+        btn.dataset.state=busy?'running':'';
+        const label=btn.querySelector('span');
+        if(label)label.textContent=busy?'正在触发…':'刷新订阅源';
+      }
+      async function pollForFreshData(before){
+        for(let i=0;i<24;i++){
+          await new Promise(r=>setTimeout(r,12500));
+          try{
+            const r=await fetch(`data/site-updates.json?v=${Date.now()}`,{cache:'no-store'});
+            const j=await r.json();
+            if(j.generated_at && j.generated_at!==before){
+              notify('订阅源刷新完成，页面数据已自动重新载入。','ok');
+              if(typeof load==='function')await load();
+              return;
+            }
+          }catch{}
+        }
+        notify('Action 已触发，但暂未检测到新数据。可稍后点击右侧圆形刷新按钮重新读取。');
+      }
+      async function dispatch(token){
+        const response=await fetch(dispatchUrl,{
+          method:'POST',
+          headers:{
+            'Accept':'application/vnd.github+json',
+            'Authorization':`Bearer ${token}`,
+            'X-GitHub-Api-Version':'2026-03-10',
+            'Content-Type':'application/json'
+          },
+          body:JSON.stringify({ref:REF})
+        });
+        if(![200,204].includes(response.status)){
+          let detail='';
+          try{detail=(await response.json()).message||''}catch{}
+          const err=new Error(detail||`GitHub API ${response.status}`);
+          err.status=response.status;
+          throw err;
+        }
+      }
+      btn?.addEventListener('click',async()=>{
+        let token=sessionStorage.getItem(TOKEN_KEY)||'';
+        if(!token){
+          token=(prompt('直接从 Tsugi 触发 GitHub Actions 需要一个仅授予此仓库 Actions: Read and write 的 fine-grained GitHub token。\n\nToken 只保存在当前浏览器标签页的 sessionStorage，关闭标签页后清除，不会写入仓库。\n\n粘贴 token 后点击确定；留空则打开 GitHub Actions 页面手动运行。')||'').trim();
+          if(!token){
+            window.open(actionsUrl,'_blank','noopener');
+            notify('已打开 GitHub Actions。点击 “Run workflow” 即可手动刷新全部订阅源。');
+            return;
+          }
+          sessionStorage.setItem(TOKEN_KEY,token);
+        }
+        let before='';
+        try{
+          const current=await fetch(`data/site-updates.json?v=${Date.now()}`,{cache:'no-store'}).then(r=>r.json());
+          before=current.generated_at||'';
+        }catch{}
+        setBusy(true);
+        try{
+          await dispatch(token);
+          notify('已触发订阅源刷新。GitHub Actions 正在运行，完成后本页会自动检测新数据。','ok');
+          setBusy(false);
+          pollForFreshData(before);
+        }catch(err){
+          setBusy(false);
+          if(err.status===401||err.status===403)sessionStorage.removeItem(TOKEN_KEY);
+          notify(`无法直接触发：${err.message}。已打开 GitHub Actions 作为备用。`,'err');
+          window.open(actionsUrl,'_blank','noopener');
+        }
+      });
+    })();
+  </script>
+
+  <script>
+    // Small, non-blocking timestamp for the actual reading update feed.
+    (() => {
+      const host = document.querySelector('.title-wrap');
+      const subtitle = document.getElementById('pageSubtitle');
+      if (!host || !subtitle) return;
+
+      let el = document.getElementById('pageUpdatedAt');
+      if (!el) {
+        el = document.createElement('span');
+        el.id = 'pageUpdatedAt';
+        el.className = 'page-updated-at';
+        el.textContent = '最后同步 · 读取中';
+        subtitle.insertAdjacentElement('afterend', el);
+      }
+
+      const shortFmt = new Intl.DateTimeFormat('zh-CN', {
+        month:'2-digit', day:'2-digit',
+        hour:'2-digit', minute:'2-digit',
+        hour12:false
+      });
+      const fullFmt = new Intl.DateTimeFormat('zh-CN', {
+        year:'numeric', month:'2-digit', day:'2-digit',
+        hour:'2-digit', minute:'2-digit', second:'2-digit',
+        hour12:false, timeZoneName:'short'
+      });
+
+      fetch(`data/site-updates.json?v=${Date.now()}`, {cache:'no-store'})
+        .then(r => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.json();
+        })
+        .then(data => {
+          const raw = data?.generated_at;
+          const d = raw ? new Date(raw) : null;
+          if (!d || Number.isNaN(+d)) {
+            el.textContent = '最后同步 · 尚无记录';
+            return;
+          }
+          el.textContent = `最后同步 · ${shortFmt.format(d)}`;
+          el.title = `阅读更新流最后完成抓取：${fullFmt.format(d)}`;
+        })
+        .catch(() => {
+          el.textContent = '最后同步 · 暂不可用';
+        });
+    })();
+  </script>
+
+
+<!-- PT-UNIVERSE-BACKLINK -->
+<style>
+#ptu-home-link{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));z-index:2147483646;display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 11px;border:1px solid rgba(255,255,255,.2);border-radius:999px;background:rgba(8,12,22,.72);box-shadow:0 8px 24px rgba(0,0,0,.18);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#fff!important;font:600 11px/1 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;text-decoration:none!important;opacity:.62;transition:opacity .18s,transform .18s}
+#ptu-home-link:hover,#ptu-home-link:focus-visible{opacity:1;transform:translateY(-1px);outline:none}
+#ptu-home-link i{width:6px;height:6px;border-radius:50%;background:#7c73ff;box-shadow:0 0 0 3px rgba(124,115,255,.2)}
+@media(max-width:760px){#ptu-home-link{bottom:calc(76px + env(safe-area-inset-bottom));left:max(10px,env(safe-area-inset-left));height:31px;padding:0 9px;font-size:10px}}
+</style>
+<a id="ptu-home-link" href="../../" aria-label="返回 PT Universe"><i></i><span>← PT Universe</span></a>
+</body>
+</html>

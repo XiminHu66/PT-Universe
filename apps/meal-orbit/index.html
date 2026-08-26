@@ -1,0 +1,1262 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f6f3ec" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="format-detection" content="telephone=no" />
+  <title>今天吃什么 · Food Orbit</title>
+  <meta name="description" content="吃什么转盘、餐厅发现雷达与中餐食谱聚合页。纯静态，可部署在 GitHub Pages。" />
+  <style>
+    :root {
+      --bg: #f6f3ec;
+      --panel: rgba(255,255,255,.78);
+      --panel-solid: #fffdf8;
+      --text: #20231f;
+      --muted: #71766e;
+      --line: rgba(32,35,31,.10);
+      --accent: #e7613b;
+      --accent-2: #f2b84b;
+      --green: #5d8d61;
+      --shadow: 0 20px 55px rgba(42,35,25,.10);
+      --radius: 24px;
+      --radius-sm: 15px;
+      --wheel-size: min(72vw, 360px);
+    }
+    [data-theme="dark"] {
+      --bg: #171915;
+      --panel: rgba(34,37,31,.82);
+      --panel-solid: #22251f;
+      --text: #f3f0e9;
+      --muted: #a7aea1;
+      --line: rgba(255,255,255,.09);
+      --accent: #ff7a50;
+      --accent-2: #e9ae42;
+      --green: #7aa77d;
+      --shadow: 0 22px 60px rgba(0,0,0,.24);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% -10%, rgba(231,97,59,.16), transparent 30%),
+        radial-gradient(circle at 95% 8%, rgba(242,184,75,.14), transparent 28%),
+        var(--bg);
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      transition: background .25s ease, color .25s ease;
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; }
+    .shell { width: min(1180px, calc(100% - 28px)); margin: 0 auto 54px; }
+    header {
+      position: sticky; top: 0; z-index: 30;
+      padding: 16px 0 10px;
+      backdrop-filter: blur(18px);
+      background: linear-gradient(to bottom, color-mix(in srgb, var(--bg) 88%, transparent), color-mix(in srgb, var(--bg) 62%, transparent), transparent);
+    }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { display:flex; align-items:center; gap:11px; font-weight: 820; letter-spacing: -.03em; }
+    .logo {
+      width: 40px; height: 40px; border-radius: 14px; display:grid; place-items:center;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white;
+      box-shadow: 0 8px 24px rgba(231,97,59,.22); font-size: 19px;
+    }
+    .brand small { display:block; font-size: 11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:700; margin-top:2px; }
+    .header-actions { display:flex; gap:8px; }
+    .icon-btn, .btn {
+      border: 1px solid var(--line); background: var(--panel); color: var(--text);
+      border-radius: 14px; min-height: 42px; padding: 0 14px; display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      box-shadow: 0 5px 20px rgba(30,30,20,.04); transition: .18s ease;
+    }
+    .icon-btn { width:42px; padding:0; }
+    .btn:hover, .icon-btn:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); }
+    .btn.primary { background: var(--text); color: var(--bg); border-color: transparent; font-weight: 750; }
+    .btn.accent { background: var(--accent); color:white; border-color:transparent; font-weight:760; }
+    .btn.ghost { background: transparent; box-shadow:none; }
+    .hero { padding: 46px 0 22px; display:grid; grid-template-columns: 1.15fr .85fr; gap: 24px; align-items:end; }
+    .eyebrow { color:var(--accent); font-size:13px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }
+    h1 { font-size: clamp(42px, 6vw, 82px); line-height:.96; margin: 10px 0 18px; letter-spacing:-.065em; font-weight: 880; }
+    .hero p { margin:0; color:var(--muted); max-width:700px; font-size:16px; line-height:1.75; }
+    .today-card { background:var(--panel); border:1px solid var(--line); box-shadow:var(--shadow); border-radius:var(--radius); padding:20px; }
+    .today-card .date { color:var(--muted); font-size:13px; }
+    .today-card .big { font-size:25px; font-weight:850; margin:7px 0 3px; letter-spacing:-.04em; }
+    .today-card .sub { font-size:13px; color:var(--muted); }
+    .nav-tabs { display:flex; gap:8px; margin: 18px 0 18px; overflow:auto; padding-bottom:2px; scrollbar-width:none; }
+    .nav-tabs::-webkit-scrollbar { display:none; }
+    .nav-tab { border:1px solid var(--line); background:var(--panel); color:var(--muted); border-radius:999px; padding:10px 15px; white-space:nowrap; font-weight:700; }
+    .nav-tab.active { background:var(--text); color:var(--bg); }
+    .section { display:none; animation:fade .22s ease; }
+    .section.active { display:block; }
+    @keyframes fade { from{opacity:.3; transform:translateY(4px)} to{opacity:1; transform:none} }
+    .grid { display:grid; gap:16px; }
+    .grid.two { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .grid.three { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .card { background:var(--panel); border:1px solid var(--line); box-shadow:var(--shadow); border-radius:var(--radius); padding:20px; }
+    .card.flat { box-shadow:none; }
+    .section-head { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin: 8px 2px 16px; }
+    .section-head h2 { margin:0; font-size:28px; letter-spacing:-.045em; }
+    .section-head p { margin:5px 0 0; color:var(--muted); font-size:13px; }
+
+    /* Wheel */
+    .wheel-layout { display:grid; grid-template-columns: minmax(360px,.9fr) minmax(320px,1.1fr); gap:20px; align-items:stretch; }
+    .wheel-card { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:530px; overflow:hidden; position:relative; }
+    .wheel-wrap { position:relative; width:var(--wheel-size); height:var(--wheel-size); display:grid; place-items:center; margin-top:8px; }
+    #wheel { width:100%; height:100%; border-radius:50%; filter: drop-shadow(0 18px 32px rgba(50,34,15,.12)); transition: transform 4.7s cubic-bezier(.13,.73,.11,1); }
+    .wheel-center { position:absolute; width:78px; height:78px; border-radius:50%; background:var(--panel-solid); border:1px solid var(--line); display:grid; place-items:center; font-size:24px; box-shadow:0 8px 22px rgba(0,0,0,.11); z-index:3; }
+    .pointer { position:absolute; top:-9px; left:50%; transform:translateX(-50%); z-index:4; width:0; height:0; border-left:16px solid transparent; border-right:16px solid transparent; border-top:31px solid var(--text); filter:drop-shadow(0 5px 4px rgba(0,0,0,.12)); }
+    .wheel-result { min-height:58px; margin-top:18px; text-align:center; }
+    .wheel-result strong { font-size:24px; letter-spacing:-.03em; display:block; }
+    .wheel-result span { color:var(--muted); font-size:13px; }
+    .control-block + .control-block { margin-top:18px; }
+    .label-row { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:9px; }
+    .label-row label { font-weight:800; font-size:14px; }
+    .hint { color:var(--muted); font-size:12px; }
+    .segmented { display:flex; gap:6px; background:color-mix(in srgb, var(--text) 5%, transparent); padding:5px; border-radius:14px; }
+    .segmented button { flex:1; border:0; background:transparent; color:var(--muted); padding:9px 8px; border-radius:10px; font-weight:700; }
+    .segmented button.active { background:var(--panel-solid); color:var(--text); box-shadow:0 3px 10px rgba(0,0,0,.06); }
+    .chips { display:flex; flex-wrap:wrap; gap:8px; }
+    .chip { display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line); background:var(--panel-solid); border-radius:999px; padding:8px 10px; font-size:13px; }
+    .chip button { border:0; background:transparent; color:var(--muted); padding:0; line-height:1; }
+    .input-row { display:flex; gap:8px; }
+    input[type="text"], input[type="password"], input[type="number"], select {
+      width:100%; border:1px solid var(--line); background:var(--panel-solid); color:var(--text); border-radius:13px; padding:11px 12px; outline:none;
+    }
+    input:focus, select:focus { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 13%, transparent); }
+
+    /* Places */
+    .toolbar { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+    .filter-btn { border:1px solid var(--line); background:var(--panel); color:var(--muted); border-radius:999px; padding:9px 12px; font-weight:700; }
+    .filter-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+    .status-banner { display:flex; align-items:flex-start; gap:10px; padding:13px 14px; border:1px dashed var(--line); border-radius:15px; color:var(--muted); font-size:13px; line-height:1.55; margin-bottom:14px; }
+    .place-grid, .recipe-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+    .place-card, .recipe-card { background:var(--panel); border:1px solid var(--line); border-radius:20px; overflow:hidden; transition:.18s ease; min-width:0; }
+    .place-card:hover, .recipe-card:hover { transform:translateY(-2px); box-shadow:var(--shadow); }
+    .place-photo, .recipe-photo { height:154px; background:linear-gradient(135deg, rgba(231,97,59,.20), rgba(242,184,75,.24)); overflow:hidden; position:relative; }
+    .place-photo img, .recipe-photo img { width:100%; height:100%; object-fit:cover; display:block; }
+    .place-photo .emoji, .recipe-photo .emoji { position:absolute; inset:0; display:grid; place-items:center; font-size:48px; }
+    .card-body { padding:15px; }
+    .card-title-row { display:flex; align-items:start; justify-content:space-between; gap:10px; }
+    .card-title { margin:0; font-size:17px; font-weight:840; letter-spacing:-.025em; overflow-wrap:anywhere; }
+    .rating { color:#b57900; white-space:nowrap; font-size:13px; font-weight:800; }
+    [data-theme="dark"] .rating { color:#f0c25c; }
+    .meta { color:var(--muted); font-size:12px; line-height:1.6; margin-top:7px; min-height:19px; }
+    .tag-row { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+    .tag { font-size:11px; font-weight:750; padding:5px 8px; border-radius:999px; background:color-mix(in srgb, var(--green) 13%, transparent); color:var(--green); }
+    .tag.orange { background:color-mix(in srgb, var(--accent) 12%, transparent); color:var(--accent); }
+    .card-actions { display:flex; gap:8px; margin-top:13px; }
+    .card-actions .btn { min-height:36px; padding:0 11px; border-radius:11px; font-size:12px; flex:1; text-decoration:none; }
+    .empty { grid-column:1/-1; padding:46px 20px; text-align:center; border:1px dashed var(--line); border-radius:20px; color:var(--muted); }
+    .empty .bigemoji { font-size:38px; margin-bottom:8px; }
+
+    /* Recipes */
+    .recipe-card { cursor:pointer; }
+    .recipe-card .recipe-photo { height:180px; }
+    .recipe-desc { color:var(--muted); font-size:12px; line-height:1.65; margin-top:8px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; min-height:58px; }
+    .heart { width:34px; height:34px; border-radius:50%; border:1px solid var(--line); background:var(--panel-solid); display:grid; place-items:center; flex:none; }
+    .heart.saved { color:#e15052; }
+    .skeleton { position:relative; overflow:hidden; background:color-mix(in srgb, var(--text) 6%, transparent); }
+    .skeleton::after { content:""; position:absolute; inset:0; transform:translateX(-100%); background:linear-gradient(90deg, transparent, rgba(255,255,255,.3), transparent); animation:shimmer 1.4s infinite; }
+    @keyframes shimmer { 100% { transform:translateX(100%); } }
+
+    /* Dialogs */
+    dialog { width:min(760px, calc(100% - 24px)); max-height:88vh; border:1px solid var(--line); border-radius:24px; background:var(--panel-solid); color:var(--text); padding:0; box-shadow:0 30px 100px rgba(0,0,0,.28); }
+    dialog::backdrop { background:rgba(10,12,9,.45); backdrop-filter:blur(5px); }
+    .dialog-head { position:sticky; top:0; z-index:2; display:flex; justify-content:space-between; align-items:center; gap:12px; padding:17px 20px; border-bottom:1px solid var(--line); background:color-mix(in srgb, var(--panel-solid) 94%, transparent); backdrop-filter:blur(14px); }
+    .dialog-head h3 { margin:0; font-size:20px; letter-spacing:-.03em; }
+    .dialog-body { padding:20px; }
+    .dialog-body h1,.dialog-body h2,.dialog-body h3 { letter-spacing:-.03em; }
+    .dialog-body h1 { font-size:29px; line-height:1.15; margin:10px 0 18px; }
+    .dialog-body h2 { margin-top:27px; font-size:20px; }
+    .dialog-body p, .dialog-body li { line-height:1.75; }
+    .dialog-body img { max-width:100%; border-radius:16px; }
+    .dialog-body a { color:var(--accent); }
+    .dialog-body blockquote { margin:16px 0; padding:10px 14px; border-left:3px solid var(--accent); background:color-mix(in srgb, var(--accent) 7%, transparent); border-radius:0 10px 10px 0; }
+    .settings-grid { display:grid; grid-template-columns:1fr 1fr; gap:13px; }
+    .settings-item.full { grid-column:1/-1; }
+    .settings-item label { display:block; font-weight:800; font-size:13px; margin-bottom:7px; }
+    .settings-item p { color:var(--muted); font-size:12px; line-height:1.55; margin:6px 0 0; }
+    .footer { color:var(--muted); font-size:12px; line-height:1.7; text-align:center; padding:26px 0 0; }
+    .toast { position:fixed; z-index:100; left:50%; bottom:22px; transform:translate(-50%,20px); opacity:0; pointer-events:none; background:var(--text); color:var(--bg); padding:11px 15px; border-radius:999px; font-size:13px; font-weight:750; transition:.22s ease; box-shadow:0 10px 40px rgba(0,0,0,.25); }
+    .toast.show { opacity:1; transform:translate(-50%,0); }
+
+    @media (max-width: 900px) {
+      .hero { grid-template-columns:1fr; padding-top:28px; }
+      .hero .today-card { display:none; }
+      .wheel-layout { grid-template-columns:1fr; }
+      .radar-top { grid-template-columns:1fr; }
+      .radar-columns { grid-template-columns:1fr; }
+      .wheel-card { min-height:470px; }
+      .place-grid, .recipe-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .grid.three { grid-template-columns:1fr 1fr; }
+    }
+    @media (max-width: 620px) {
+      .shell { width:min(100% - 18px, 1180px); }
+      header { padding-top:10px; }
+      .brand span.name { display:none; }
+      h1 { font-size:51px; }
+      .hero { padding-bottom:8px; }
+      .card { padding:15px; border-radius:19px; }
+      .place-grid, .recipe-grid, .grid.two, .grid.three { grid-template-columns:1fr; }
+      .place-photo { height:182px; }
+      .wheel-card { min-height:440px; }
+      :root { --wheel-size: min(86vw, 340px); }
+      .section-head { align-items:start; }
+      .section-head h2 { font-size:24px; }
+      .settings-grid { grid-template-columns:1fr; }
+      .settings-item.full { grid-column:auto; }
+      .dialog-body { padding:16px; }
+    }
+
+
+    /* ===== v2 compact app-shell layout ===== */
+    body { height:100vh; overflow:hidden; display:grid; grid-template-columns:248px minmax(0,1fr); }
+    .sidebar {
+      height:100vh; min-height:0; padding:20px 16px 16px; border-right:1px solid var(--line);
+      background:color-mix(in srgb, var(--panel-solid) 82%, transparent); backdrop-filter:blur(22px);
+      display:flex; flex-direction:column; gap:18px; position:relative; z-index:40;
+    }
+    .sidebar .brand { padding:2px 6px 8px; }
+    .sidebar-today { padding:15px; border:1px solid var(--line); background:var(--panel); border-radius:18px; }
+    .sidebar-today .date { color:var(--muted); font-size:12px; }
+    .sidebar-today .big { font-size:18px; font-weight:850; line-height:1.25; margin:6px 0; letter-spacing:-.03em; }
+    .sidebar-today .sub { color:var(--muted); font-size:11px; line-height:1.5; }
+    .nav-tabs { display:flex; flex-direction:column; gap:7px; margin:0; overflow:visible; }
+    .nav-tab { width:100%; border:0; border-radius:13px; background:transparent; text-align:left; padding:11px 12px; color:var(--muted); }
+    .nav-tab:hover { background:color-mix(in srgb, var(--text) 5%, transparent); color:var(--text); }
+    .nav-tab.active { background:var(--text); color:var(--bg); box-shadow:0 8px 20px rgba(0,0,0,.08); }
+    .sidebar-spacer { flex:1; min-height:10px; }
+    .sidebar-source { padding:12px 13px; border-radius:15px; background:color-mix(in srgb, var(--green) 8%, transparent); color:var(--muted); font-size:11px; line-height:1.55; }
+    .sidebar-source strong { display:block; color:var(--text); font-size:12px; margin-bottom:3px; }
+    .sidebar-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .sidebar-actions .icon-btn { width:auto; }
+    .workspace { min-width:0; height:100vh; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
+    .workspace-top { flex:none; min-height:72px; padding:15px 28px 12px; display:flex; align-items:center; justify-content:space-between; gap:16px; border-bottom:1px solid var(--line); background:color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter:blur(18px); }
+    .workspace-title { display:flex; align-items:baseline; gap:10px; }
+    .workspace-title strong { font-size:22px; letter-spacing:-.04em; }
+    .workspace-title span { color:var(--accent); font-weight:800; font-size:11px; letter-spacing:.12em; text-transform:uppercase; }
+    .workspace-note { color:var(--muted); font-size:12px; white-space:nowrap; }
+    .section { display:none; padding:20px 28px 30px; min-height:0; overflow:auto; }
+    .section.active { display:block; flex:1; }
+    .section-head { margin-top:0; }
+    .section-head h2 { font-size:26px; }
+    .wheel-layout { grid-template-columns:minmax(330px,.86fr) minmax(340px,1.14fr); gap:16px; }
+    .wheel-card { min-height:430px; }
+    :root { --wheel-size:min(31vw, 310px); }
+    .card { padding:18px; }
+    .place-grid, .recipe-grid { grid-template-columns:repeat(3,minmax(220px,1fr)); }
+    .place-photo { height:128px; }
+    .recipe-card .recipe-photo { height:145px; }
+    .source-lab, .live-feed-strip { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; margin:0 0 14px; }
+    .source-link { text-decoration:none; min-width:0; padding:12px 13px; border:1px solid var(--line); border-radius:15px; background:var(--panel); transition:.18s ease; }
+    .source-link:hover { transform:translateY(-1px); border-color:color-mix(in srgb, var(--accent) 30%, var(--line)); }
+    .source-link strong { display:block; font-size:13px; margin-bottom:3px; }
+    .source-link span { display:block; color:var(--muted); font-size:11px; line-height:1.45; }
+    .source-link.live strong::after { content:' LIVE'; margin-left:5px; color:var(--accent); font-size:9px; letter-spacing:.08em; }
+    .source-caption { color:var(--muted); font-size:11px; margin:-4px 0 11px 2px; }
+    .card-actions { flex-wrap:wrap; }
+    .card-actions .btn { flex:1 1 30%; white-space:nowrap; }
+    .footer { display:none; }
+    .provider-pill { display:inline-flex; align-items:center; gap:6px; border-radius:999px; border:1px solid var(--line); padding:5px 8px; color:var(--muted); font-size:10px; font-weight:750; }
+
+
+    /* Restaurant Radar: discovery-first, no restaurant API required */
+    .radar-top { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(250px,.65fr); gap:12px; margin-bottom:14px; }
+    .radar-location, .radar-lucky { border:1px solid var(--line); border-radius:20px; background:var(--panel); padding:16px; min-width:0; }
+    .radar-kicker { color:var(--muted); font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; margin-bottom:5px; }
+    .radar-area { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+    .radar-area strong { font-size:21px; letter-spacing:-.03em; }
+    .radar-area .provider-pill { color:var(--green); }
+    .radar-location .input-row input { min-width:120px; }
+    .radar-meta { color:var(--muted); font-size:11px; line-height:1.5; margin-top:8px; }
+    .radar-lucky { display:flex; flex-direction:column; justify-content:space-between; gap:12px; }
+    .radar-lucky strong { font-size:17px; }
+    .radar-lucky p { color:var(--muted); font-size:12px; line-height:1.55; margin:5px 0 0; }
+    .radar-columns { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; min-height:0; }
+    .radar-panel { border:1px solid var(--line); border-radius:22px; background:var(--panel); padding:16px; min-width:0; display:flex; flex-direction:column; min-height:0; }
+    .radar-panel-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:10px; }
+    .radar-panel-head h3 { margin:0; font-size:18px; letter-spacing:-.025em; }
+    .radar-panel-head p { margin:4px 0 0; color:var(--muted); font-size:11px; line-height:1.45; }
+    .radar-source-list { display:grid; gap:8px; overflow:auto; padding-right:2px; }
+    .radar-source {
+      display:grid; grid-template-columns:42px minmax(0,1fr) auto; align-items:center; gap:10px;
+      text-decoration:none; padding:10px; border:1px solid var(--line); border-radius:16px;
+      background:color-mix(in srgb, var(--panel-solid) 72%, transparent); transition:.16s ease;
+    }
+    .radar-source:hover { transform:translateY(-1px); border-color:color-mix(in srgb, var(--accent) 30%, var(--line)); }
+    .radar-source .source-icon { width:42px; height:42px; border-radius:13px; display:grid; place-items:center; background:var(--bg); font-size:19px; }
+    .radar-source b { display:block; font-size:13px; margin-bottom:2px; }
+    .radar-source small { display:block; color:var(--muted); font-size:10.5px; line-height:1.38; }
+    .radar-source .go { color:var(--muted); font-size:16px; }
+    .radar-source .live-badge { display:inline-flex; margin-left:6px; padding:2px 5px; border-radius:999px; font-size:8px; letter-spacing:.06em; color:var(--accent); border:1px solid color-mix(in srgb,var(--accent) 25%,var(--line)); vertical-align:2px; }
+    .radar-savebar { margin-top:14px; border:1px dashed color-mix(in srgb,var(--green) 35%,var(--line)); border-radius:18px; padding:12px; display:grid; grid-template-columns:auto minmax(120px,1fr) 130px auto; gap:8px; align-items:center; }
+    .radar-savebar .save-label { font-size:12px; font-weight:800; white-space:nowrap; }
+    .radar-savebar input { width:100%; }
+    .radar-note { color:var(--muted); font-size:10.5px; line-height:1.45; margin-top:8px; }
+
+    @media (max-width: 1080px) {
+      body { grid-template-columns:210px minmax(0,1fr); }
+      .sidebar { padding-left:12px; padding-right:12px; }
+      .place-grid, .recipe-grid { grid-template-columns:repeat(2,minmax(220px,1fr)); }
+      .source-lab, .live-feed-strip { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .wheel-layout { grid-template-columns:1fr; }
+      .wheel-card { min-height:400px; }
+      :root { --wheel-size:min(42vw,300px); }
+    }
+    @media (max-width: 760px) {
+      body { height:auto; min-height:100vh; overflow:auto; display:block; padding-bottom:72px; }
+      .sidebar { position:sticky; top:0; width:100%; height:62px; min-height:62px; padding:9px 10px; display:flex; flex-direction:row; align-items:center; gap:8px; border-right:0; border-bottom:1px solid var(--line); }
+      .sidebar .brand { padding:0; flex:none; }
+      .sidebar .brand .name, .sidebar-today, .sidebar-source, .sidebar-spacer { display:none; }
+      .nav-tabs { flex:1; flex-direction:row; overflow:auto; gap:5px; }
+      .nav-tab { width:auto; flex:none; text-align:center; padding:9px 10px; white-space:nowrap; font-size:12px; }
+      .sidebar-actions { display:flex; flex:none; }
+      .sidebar-actions .icon-btn { width:38px; min-height:38px; }
+      .workspace { height:auto; min-height:calc(100vh - 62px); overflow:visible; }
+      .workspace-top { min-height:58px; padding:11px 14px; }
+      .workspace-note { display:none; }
+      .section { overflow:visible; padding:14px 10px 24px; }
+      .section.active { display:block; }
+      .wheel-layout, .place-grid, .recipe-grid, .source-lab, .live-feed-strip, .radar-columns, .radar-top { grid-template-columns:1fr; }
+      .radar-savebar { grid-template-columns:1fr; }
+      .radar-savebar .save-label { white-space:normal; }
+      :root { --wheel-size:min(82vw,320px); }
+      .wheel-card { min-height:430px; }
+    }
+
+
+    /* ===== v4 phone-first responsive polish ===== */
+    @media (max-width: 760px) {
+      :root {
+        --mobile-nav-h: 68px;
+        --mobile-top-h: 58px;
+        --wheel-size: min(calc(100vw - 58px), 326px);
+      }
+
+      html, body { width:100%; max-width:100%; overflow-x:hidden; }
+      html { background:var(--bg); }
+      body {
+        min-height:100dvh;
+        padding:0 0 calc(var(--mobile-nav-h) + env(safe-area-inset-bottom));
+        overscroll-behavior-y:contain;
+        -webkit-tap-highlight-color:transparent;
+      }
+
+      /* Bottom app navigation */
+      .sidebar {
+        position:fixed;
+        inset:auto 0 0 0;
+        width:100%;
+        height:calc(var(--mobile-nav-h) + env(safe-area-inset-bottom));
+        min-height:0;
+        padding:7px max(8px, env(safe-area-inset-right)) env(safe-area-inset-bottom) max(8px, env(safe-area-inset-left));
+        border:0;
+        border-top:1px solid var(--line);
+        background:color-mix(in srgb, var(--panel-solid) 92%, transparent);
+        backdrop-filter:blur(24px) saturate(1.25);
+        -webkit-backdrop-filter:blur(24px) saturate(1.25);
+        box-shadow:0 -10px 32px rgba(20,20,14,.08);
+        z-index:80;
+        display:block;
+      }
+      .sidebar .brand, .sidebar-today, .sidebar-source, .sidebar-spacer { display:none !important; }
+      .nav-tabs {
+        width:100%; height:100%;
+        margin:0; padding:0;
+        display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:3px;
+        overflow:visible;
+      }
+      .nav-tab {
+        width:100%; min-width:0; min-height:52px;
+        padding:6px 2px;
+        border-radius:13px;
+        display:flex; align-items:center; justify-content:center;
+        text-align:center; white-space:nowrap;
+        font-size:11.5px; line-height:1.2; font-weight:760;
+        letter-spacing:-.02em;
+        touch-action:manipulation;
+      }
+      .nav-tab.active { box-shadow:none; }
+
+      /* Theme/settings live in the phone top bar */
+      .sidebar-actions {
+        position:fixed;
+        top:calc(10px + env(safe-area-inset-top));
+        right:max(10px, env(safe-area-inset-right));
+        z-index:91;
+        display:flex;
+        gap:6px;
+      }
+      .sidebar-actions .icon-btn {
+        width:38px; height:38px; min-height:38px;
+        padding:0;
+        border-radius:12px;
+        background:color-mix(in srgb, var(--panel-solid) 90%, transparent);
+        backdrop-filter:blur(16px);
+        -webkit-backdrop-filter:blur(16px);
+      }
+
+      .workspace { width:100%; min-width:0; min-height:100dvh; height:auto; overflow:visible; }
+      .workspace-top {
+        position:sticky; top:0; z-index:70;
+        min-height:calc(var(--mobile-top-h) + env(safe-area-inset-top));
+        padding:calc(11px + env(safe-area-inset-top)) 96px 10px max(14px, env(safe-area-inset-left));
+        background:color-mix(in srgb, var(--bg) 90%, transparent);
+        backdrop-filter:blur(20px) saturate(1.15);
+        -webkit-backdrop-filter:blur(20px) saturate(1.15);
+      }
+      .workspace-title { gap:7px; min-width:0; }
+      .workspace-title span { display:none; }
+      .workspace-title strong { font-size:20px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      .workspace-note { display:none; }
+
+      .section {
+        width:100%; min-width:0;
+        padding:14px max(10px, env(safe-area-inset-right)) 26px max(10px, env(safe-area-inset-left));
+        overflow:visible;
+      }
+      .section-head {
+        margin:0 2px 13px;
+        align-items:flex-start;
+        flex-wrap:wrap;
+        gap:10px;
+      }
+      .section-head > div { min-width:0; flex:1 1 210px; }
+      .section-head h2 { font-size:24px; }
+      .section-head p { font-size:12px; line-height:1.55; }
+      .section-head > .btn { flex:none; min-height:40px; }
+
+      /* Touch sizing and no iOS input zoom */
+      button, .btn, .icon-btn, .filter-btn, .nav-tab, .heart { touch-action:manipulation; }
+      input[type="text"], input[type="password"], input[type="number"], select { font-size:16px; min-height:44px; }
+      .btn { min-height:44px; }
+      .filter-btn { min-height:40px; }
+
+      /* Wheel */
+      .wheel-layout { display:grid; grid-template-columns:1fr; gap:12px; }
+      .wheel-card {
+        min-height:0;
+        padding:16px 14px 18px;
+        justify-content:flex-start;
+      }
+      .wheel-wrap { margin-top:2px; }
+      .wheel-center { width:66px; height:66px; font-size:21px; }
+      .pointer { top:-7px; border-left-width:13px; border-right-width:13px; border-top-width:26px; }
+      .wheel-result { min-height:48px; margin-top:12px; }
+      .wheel-result strong { font-size:21px; }
+      #spinBtn { width:min(240px, 78%); min-height:46px; margin-top:6px !important; }
+      .card { padding:15px; border-radius:20px; box-shadow:0 12px 34px rgba(42,35,25,.07); }
+      .control-block + .control-block { margin-top:16px; }
+      .segmented { gap:4px; padding:4px; overflow:hidden; }
+      .segmented button { min-width:0; padding:9px 4px; font-size:12px; }
+      .chips { gap:7px; }
+      .chip { padding:8px 9px; }
+
+      /* Restaurant radar */
+      .radar-top, .radar-columns { grid-template-columns:1fr; gap:11px; }
+      .radar-location, .radar-lucky, .radar-panel { border-radius:19px; padding:14px; }
+      .radar-area strong { font-size:19px; }
+      .radar-location .input-row { align-items:stretch; }
+      .radar-location .input-row .btn { white-space:nowrap; }
+      .radar-source-list { overflow:visible; }
+      .radar-source {
+        grid-template-columns:40px minmax(0,1fr) 18px;
+        min-height:66px;
+        padding:10px;
+      }
+      .radar-source .source-icon { width:40px; height:40px; }
+      .radar-source b { font-size:13px; }
+      .radar-source small { font-size:10.5px; }
+      .radar-savebar { grid-template-columns:1fr; padding:12px; }
+      .radar-savebar .btn { width:100%; }
+
+      /* Recipe mobile: feeds swipe horizontally, recipe cards stay readable */
+      .toolbar {
+        margin:0 -10px 12px;
+        padding:0 10px 2px;
+        overflow-x:auto; flex-wrap:nowrap;
+        scrollbar-width:none;
+        scroll-snap-type:x proximity;
+      }
+      .toolbar::-webkit-scrollbar, .live-feed-strip::-webkit-scrollbar { display:none; }
+      .toolbar .filter-btn { flex:none; scroll-snap-align:start; white-space:nowrap; }
+      .live-feed-strip {
+        display:grid;
+        grid-auto-flow:column;
+        grid-auto-columns:minmax(238px, 78vw);
+        grid-template-columns:none;
+        gap:9px;
+        margin:0 -10px 13px;
+        padding:0 10px 3px;
+        overflow-x:auto;
+        scroll-snap-type:x mandatory;
+        scrollbar-width:none;
+      }
+      .source-link { scroll-snap-align:start; min-height:74px; }
+      .recipe-grid, .place-grid { grid-template-columns:1fr; gap:11px; }
+      .recipe-card { display:grid; grid-template-columns:112px minmax(0,1fr); min-height:126px; }
+      .recipe-card .recipe-photo { height:100%; min-height:126px; }
+      .recipe-card .card-body { padding:12px; }
+      .recipe-card .card-title { font-size:15px; }
+      .recipe-desc { -webkit-line-clamp:2; min-height:auto; margin-top:5px; }
+      .recipe-card .tag-row { margin-top:7px; }
+
+      /* Saved lists */
+      .grid.two, .grid.three { grid-template-columns:1fr; gap:11px; }
+
+      /* Dialogs become phone bottom sheets */
+      dialog {
+        position:fixed;
+        inset:auto 0 0 0;
+        width:100%; max-width:none;
+        max-height:min(90dvh, 820px);
+        margin:0;
+        border-left:0; border-right:0; border-bottom:0;
+        border-radius:24px 24px 0 0;
+        padding-bottom:env(safe-area-inset-bottom);
+      }
+      .dialog-head { padding:14px 15px; }
+      .dialog-body { padding:15px; overflow-wrap:anywhere; }
+      .dialog-body h1 { font-size:25px; }
+      .settings-grid { grid-template-columns:1fr; }
+      .settings-item.full { grid-column:auto; }
+
+      .toast {
+        bottom:calc(var(--mobile-nav-h) + env(safe-area-inset-bottom) + 12px);
+        max-width:calc(100vw - 28px);
+        text-align:center;
+      }
+    }
+
+    @media (max-width: 430px) {
+      :root { --wheel-size:min(calc(100vw - 52px), 302px); }
+      .workspace-top { padding-left:12px; }
+      .section { padding-left:8px; padding-right:8px; }
+      .section-head { margin-left:4px; margin-right:4px; }
+      .card { padding:13px; }
+      .radar-location .input-row { flex-direction:column; }
+      .radar-location .input-row .btn { width:100%; }
+      .input-row #customInput + .btn { flex:none; }
+      .recipe-card { grid-template-columns:96px minmax(0,1fr); }
+      .recipe-card .recipe-photo { min-height:120px; }
+      .nav-tab { font-size:11px; }
+    }
+
+    @media (max-width: 350px) {
+      :root { --wheel-size:266px; }
+      .nav-tab { font-size:10.5px; letter-spacing:-.04em; }
+      .segmented button { font-size:11px; }
+      .workspace-title strong { font-size:18px; }
+    }
+
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">筷</div>
+      <span class="name">今天吃什么<small>FOOD ORBIT</small></span>
+    </div>
+
+    <div class="sidebar-today">
+      <div class="date" id="dateText"></div>
+      <div class="big" id="todayMood">今天适合吃点热乎的</div>
+      <div class="sub" id="locationSummary">餐厅雷达 · 正在识别地区</div>
+    </div>
+
+    <nav class="nav-tabs" aria-label="页面分区">
+      <button class="nav-tab active" data-section="decide">🎯 今天吃啥</button>
+      <button class="nav-tab" data-section="nearby">🔎 餐厅雷达</button>
+      <button class="nav-tab" data-section="recipes">🍳 今日食谱</button>
+      <button class="nav-tab" data-section="saved">♡ 我的收藏</button>
+    </nav>
+
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-source"><strong>数据策略</strong>餐厅：实时搜索/编辑精选 · 菜谱：HowToCook + 社区实时入口</div>
+    <div class="sidebar-actions">
+      <button class="icon-btn" id="themeBtn" aria-label="切换主题" title="切换主题">◐</button>
+      <button class="icon-btn" id="settingsBtn" aria-label="设置" title="设置">⚙</button>
+    </div>
+  </aside>
+
+  <main class="workspace">
+    <div class="workspace-top">
+      <div class="workspace-title"><span>Food Orbit</span><strong id="workspaceTitle">今天吃啥</strong></div>
+      <div class="workspace-note">一页完成决定 · 探店 · 找菜谱</div>
+    </div>
+
+    <section class="section active" id="section-decide">
+      <div class="wheel-layout">
+        <div class="card wheel-card">
+          <div class="wheel-wrap">
+            <div class="pointer"></div>
+            <canvas id="wheel" width="720" height="720"></canvas>
+            <div class="wheel-center">🥢</div>
+          </div>
+          <div class="wheel-result" id="wheelResult"><span>按一下，交给命运</span></div>
+          <button class="btn accent" id="spinBtn" style="min-width:180px; margin-top:12px;">开始转盘</button>
+        </div>
+
+        <div class="card">
+          <div class="section-head" style="margin-top:0;">
+            <div><h2>转盘内容</h2><p>可以使用“想吃”餐厅，也可以完全自定义。</p></div>
+          </div>
+
+          <div class="control-block">
+            <div class="label-row"><label>默认来源</label><span class="hint">自动保存</span></div>
+            <div class="segmented" id="wheelMode">
+              <button data-mode="category" class="active">附近餐类</button>
+              <button data-mode="restaurant">想吃餐厅</button>
+              <button data-mode="custom">仅自定义</button>
+            </div>
+          </div>
+
+          <div class="control-block">
+            <div class="label-row"><label>当前选项</label><span class="hint" id="wheelCount"></span></div>
+            <div class="chips" id="wheelChips"></div>
+          </div>
+
+          <div class="control-block">
+            <div class="label-row"><label for="customInput">添加自己的选项</label><span class="hint">例如：麻辣烫、Costco 热狗</span></div>
+            <div class="input-row">
+              <input id="customInput" type="text" placeholder="输入想吃的东西" maxlength="28" />
+              <button class="btn primary" id="addCustomBtn">添加</button>
+            </div>
+          </div>
+
+          <div class="control-block">
+            <div class="status-banner" style="margin:0;">
+              <span>💡</span>
+              <div>在“餐厅雷达”发现店后，把店名快速加入“想吃”；餐厅模式转盘会优先使用这些收藏。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="section-nearby">
+      <div class="section-head">
+        <div><h2>餐厅雷达</h2><p>不再抓一份不完整的附近餐厅数据库，直接去最擅长“新店”和“高分”的实时来源。</p></div>
+        <button class="btn primary" id="radarLocateBtn">◎ 精确定位</button>
+      </div>
+
+      <div class="radar-top">
+        <div class="radar-location">
+          <div class="radar-kicker">探索区域</div>
+          <div class="radar-area">
+            <strong id="radarAreaText">自动识别中…</strong>
+            <span class="provider-pill" id="radarLocationBadge">免 Key</span>
+          </div>
+          <div class="input-row">
+            <input id="radarAreaInput" type="text" placeholder="例如 Seattle, WA / Bellevue, WA" maxlength="80" />
+            <button class="btn" id="applyRadarAreaBtn">切换地区</button>
+          </div>
+          <div class="radar-meta" id="radarMeta">先用 IP 粗略识别城市；点击“精确定位”后只用坐标生成附近检索，不需要 Google Places API。</div>
+        </div>
+
+        <div class="radar-lucky">
+          <div>
+            <div class="radar-kicker">懒人模式</div>
+            <strong>🎲 随便找一家没吃过的</strong>
+            <p>随机选择“新店 / 高分 / 中文探店”中的一个来源和一个菜系，直接打开结果。</p>
+          </div>
+          <button class="btn accent" id="randomRestaurantBtn">随机探店 ↗</button>
+        </div>
+      </div>
+
+      <div class="radar-columns">
+        <div class="radar-panel">
+          <div class="radar-panel-head">
+            <div><h3>🆕 新店雷达</h3><p>优先看最近开业、正在变热、编辑刚加入榜单的店。</p></div>
+            <span class="provider-pill">LIVE</span>
+          </div>
+          <div class="radar-source-list" id="newRadarSources"></div>
+        </div>
+
+        <div class="radar-panel">
+          <div class="radar-panel-head">
+            <div><h3>⭐ 高分精选</h3><p>平台评分 + 编辑精选并行，避免只看单一星级排名。</p></div>
+            <span class="provider-pill">CURATED</span>
+          </div>
+          <div class="radar-source-list" id="topRadarSources"></div>
+        </div>
+      </div>
+
+      <div class="radar-savebar">
+        <div class="save-label">发现一家想吃的？</div>
+        <input id="radarSaveName" type="text" placeholder="餐厅名" maxlength="70" />
+        <input id="radarSaveCuisine" type="text" placeholder="类型（可选）" maxlength="24" />
+        <button class="btn primary" id="radarSaveBtn">＋ 加入想吃</button>
+      </div>
+      <div class="radar-note">手机端链接会优先唤起已安装的对应 App；无法唤起时再回到网页。Google Maps 搜索本身不需要 API Key；Yelp / Eater / The Infatuation / 小红书均打开其最新结果或编辑榜单。本站只保存你手动加入“想吃”的餐厅名。</div>
+    </section>
+
+    <section class="section" id="section-recipes">
+      <div class="section-head">
+        <div><h2>今天做什么</h2><p>稳定菜谱库负责“能直接做”，社区入口负责“今天大家在做什么”。</p></div>
+        <button class="btn" id="refreshRecipesBtn">↻ 换一批</button>
+      </div>
+      <div class="toolbar">
+        <button class="filter-btn active" data-recipe-filter="daily">今日推荐</button>
+        <button class="filter-btn" data-recipe-filter="quick">快手菜</button>
+        <button class="filter-btn" data-recipe-filter="meat">肉食</button>
+        <button class="filter-btn" data-recipe-filter="veg">素菜</button>
+        <button class="filter-btn" data-recipe-filter="staple">主食</button>
+      </div>
+      <div class="live-feed-strip">
+        <a class="source-link live" href="https://www.xiachufang.com/explore/classic/" data-smart-link="1" data-web-url="https://www.xiachufang.com/explore/classic/" target="_blank" rel="noopener"><strong>下厨房 · 本周热门 ↗</strong><span>社区热度流，内容会持续变化。</span></a>
+        <a class="source-link live" href="https://www.xiachufang.com/explore/monthhonor/" data-smart-link="1" data-web-url="https://www.xiachufang.com/explore/monthhonor/" target="_blank" rel="noopener"><strong>下厨房 · 月度最佳 ↗</strong><span>近期高质量菜谱榜单。</span></a>
+        <a class="source-link live" href="https://icook.tw/recipes/latest" data-smart-link="1" data-web-url="https://icook.tw/recipes/latest" target="_blank" rel="noopener"><strong>爱料理 · 最新食谱 ↗</strong><span>按发布时间滚动的新食谱。</span></a>
+        <a class="source-link live" href="https://icook.tw/recipes/popular" data-smart-link="1" data-web-url="https://icook.tw/recipes/popular" target="_blank" rel="noopener"><strong>爱料理 · 即时人气 ↗</strong><span>实时人气排行，中文繁体。</span></a>
+      </div>
+      <div class="status-banner" id="recipeStatus"><span>🍳</span><div>正在读取 HowToCook 菜谱索引… 首次加载后会缓存 24 小时。</div></div>
+      <div class="recipe-grid" id="recipeGrid"></div>
+    </section>
+
+    <section class="section" id="section-saved">
+      <div class="section-head">
+        <div><h2>我的收藏</h2><p>所有数据只保存在当前浏览器 localStorage，不需要账号。</p></div>
+      </div>
+      <div class="grid two">
+        <div class="card flat">
+          <div class="label-row"><label>♡ 收藏食谱</label><span class="hint" id="savedRecipeCount"></span></div>
+          <div id="savedRecipeList"></div>
+        </div>
+        <div class="card flat">
+          <div class="label-row"><label>☆ 想吃餐厅</label><span class="hint" id="savedPlaceCount"></span></div>
+          <div id="savedPlaceList"></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">餐厅发现：Google Maps / Yelp / Eater / The Infatuation / 小红书 · 食谱：Anduin2017/HowToCook · 收藏只存浏览器。</div>
+  </main>
+
+  <dialog id="settingsDialog">
+    <div class="dialog-head"><h3>设置</h3><button class="icon-btn" data-close-dialog="settingsDialog">×</button></div>
+    <div class="dialog-body">
+      <div class="settings-grid">
+        <div class="settings-item full">
+          <label for="settingsAreaInput">默认探店地区</label>
+          <input id="settingsAreaInput" type="text" placeholder="留空则自动识别，例如 Seattle, WA" />
+          <p>只用于生成 Yelp / Eater / The Infatuation / 小红书的地区检索。Google Maps 在你允许定位后会优先使用浏览器坐标。</p>
+        </div>
+        <div class="settings-item full">
+          <button class="btn accent" id="saveSettingsBtn" style="width:100%;">保存设置</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="recipeDialog">
+    <div class="dialog-head"><h3 id="recipeDialogTitle">菜谱</h3><button class="icon-btn" data-close-dialog="recipeDialog">×</button></div>
+    <div class="dialog-body" id="recipeDialogBody"></div>
+  </dialog>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // =============================
+    // Food Orbit - single-file app
+    // =============================
+    const $ = (s, root=document) => root.querySelector(s);
+    const $$ = (s, root=document) => [...root.querySelectorAll(s)];
+    const store = {
+      get(key, fallback) { try { const v = localStorage.getItem(key); return v == null ? fallback : JSON.parse(v); } catch { return fallback; } },
+      set(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+    };
+
+    const DEFAULT_CATEGORIES = ['中餐','日料','韩餐','泰餐','越南粉','披萨','汉堡','墨西哥菜','烧烤','火锅','面食','快餐'];
+    const CUISINE_MAP = {
+      chinese_restaurant:'中餐', japanese_restaurant:'日料', sushi_restaurant:'寿司', ramen_restaurant:'拉面',
+      korean_restaurant:'韩餐', thai_restaurant:'泰餐', vietnamese_restaurant:'越南菜', indian_restaurant:'印度菜',
+      mexican_restaurant:'墨西哥菜', italian_restaurant:'意大利菜', pizza_restaurant:'披萨', hamburger_restaurant:'汉堡',
+      seafood_restaurant:'海鲜', barbecue_restaurant:'烧烤', steak_house:'牛排', hot_pot_restaurant:'火锅',
+      fast_food_restaurant:'快餐', breakfast_restaurant:'早午餐', brunch_restaurant:'早午餐', cafe:'咖啡/轻食',
+      bakery:'烘焙', sandwich_shop:'三明治', noodle_shop:'面食', restaurant:'餐厅'
+    };
+    const OSM_CUISINE_MAP = {
+      chinese:'中餐', japanese:'日料', sushi:'寿司', ramen:'拉面', korean:'韩餐', thai:'泰餐', vietnamese:'越南菜',
+      indian:'印度菜', mexican:'墨西哥菜', italian:'意大利菜', pizza:'披萨', burger:'汉堡', seafood:'海鲜',
+      barbecue:'烧烤', steak_house:'牛排', hot_pot:'火锅', coffee_shop:'咖啡', bakery:'烘焙', sandwich:'三明治', noodles:'面食'
+    };
+
+    const state = {
+      coords: null,
+      places: [],
+      placeFilter: 'recommend',
+      placeProvider: 'none',
+      wheelMode: store.get('wheelMode','category'),
+      customWheel: store.get('customWheel',['火锅','拉面']),
+      savedPlaces: store.get('savedPlaces',[]),
+      savedRecipes: store.get('savedRecipes',[]),
+      recipeTree: [],
+      recipes: [],
+      recipeFilter: 'daily',
+      recipeBatch: 0,
+      spinning: false,
+      googleLoadedKey: null
+    };
+
+    const settings = {
+      discoveryArea: store.get('discoveryArea','')
+    };
+
+    function showToast(text) {
+      const t = $('#toast'); t.textContent = text; t.classList.add('show');
+      clearTimeout(showToast.timer); showToast.timer = setTimeout(()=>t.classList.remove('show'), 1800);
+    }
+    function escapeHtml(s='') { return String(s).replace(/[&<>'"]/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;' }[c])); }
+    function formatDistance(m) { return m < 1000 ? `${Math.round(m)} m` : `${(m/1000).toFixed(1)} km`; }
+    function distanceMeters(a,b) {
+      const R=6371000, p1=a.lat*Math.PI/180, p2=b.lat*Math.PI/180, dp=(b.lat-a.lat)*Math.PI/180, dl=(b.lng-a.lng)*Math.PI/180;
+      const x=Math.sin(dp/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;
+      return 2*R*Math.asin(Math.sqrt(x));
+    }
+    function simpleHash(str) { let h=2166136261; for(const ch of str){h^=ch.charCodeAt(0); h=Math.imul(h,16777619);} return h>>>0; }
+    function seededShuffle(arr, seed) {
+      const out=[...arr]; let x=seed||1;
+      const rand=()=>{ x=(x*1664525+1013904223)>>>0; return x/4294967296; };
+      for(let i=out.length-1;i>0;i--){const j=Math.floor(rand()*(i+1)); [out[i],out[j]]=[out[j],out[i]];} return out;
+    }
+
+    // Theme + navigation
+    const initialTheme = store.get('theme', matchMedia('(prefers-color-scheme: dark)').matches ? 'dark':'light');
+    document.documentElement.dataset.theme = initialTheme;
+    $('#themeBtn').onclick = () => {
+      const next = document.documentElement.dataset.theme === 'dark' ? 'light':'dark';
+      document.documentElement.dataset.theme=next; store.set('theme',next); drawWheel();
+    };
+    $$('.nav-tab').forEach(btn=>btn.onclick=()=>{
+      $$('.nav-tab').forEach(x=>x.classList.toggle('active',x===btn));
+      $$('.section').forEach(x=>x.classList.remove('active'));
+      $(`#section-${btn.dataset.section}`).classList.add('active');
+      const labels={decide:'今天吃啥',nearby:'餐厅雷达',recipes:'今日食谱',saved:'我的收藏'};
+      $('#workspaceTitle').textContent=labels[btn.dataset.section]||'Food Orbit';
+      if(btn.dataset.section==='saved') renderSaved();
+    });
+    const now = new Date();
+    $('#dateText').textContent = new Intl.DateTimeFormat('zh-CN',{month:'long',day:'numeric',weekday:'long'}).format(now);
+    const moods=['今天适合吃点热乎的','今天就别做饭了','今天可以试一家新的','今天需要一点碳水','今天值得吃顿好的'];
+    $('#todayMood').textContent = moods[now.getDate()%moods.length];
+
+    // Settings
+    $('#settingsBtn').onclick=()=>{
+      $('#settingsAreaInput').value=settings.discoveryArea || '';
+      $('#settingsDialog').showModal();
+    };
+    $$('[data-close-dialog]').forEach(b=>b.onclick=()=>document.getElementById(b.dataset.closeDialog).close());
+    $('#saveSettingsBtn').onclick=()=>{
+      settings.discoveryArea=$('#settingsAreaInput').value.trim();
+      store.set('discoveryArea',settings.discoveryArea);
+      $('#settingsDialog').close();
+      if(settings.discoveryArea) {
+        state.locationLabel=settings.discoveryArea;
+        state.locationSource='manual';
+        $('#radarAreaInput').value=settings.discoveryArea;
+      } else {
+        state.locationLabel='';
+        state.locationSource='auto';
+        resolveArea(null,null,'ip');
+      }
+      renderRestaurantRadar();
+      showToast('设置已保存');
+    };
+
+    // Wheel
+    const wheelCanvas=$('#wheel'), ctx=wheelCanvas.getContext('2d');
+    const palette=['#E76A47','#EFB84A','#6D936A','#4E7E86','#936B77','#DA8E59','#7C765A','#B05B51','#5C8068','#D8A544','#7289A8','#9D7257'];
+    function getWheelItems(){
+      const custom=state.customWheel;
+      if(state.wheelMode==='custom') return custom.length?custom:['添加一个选项'];
+      if(state.wheelMode==='restaurant') {
+        const preferred=state.savedPlaces.map(x=>x.name);
+        const names=[...new Set([...preferred,...state.places.slice(0,10).map(x=>x.name),...custom])].filter(Boolean);
+        return names.length>=2?names:[...custom,'附近餐厅 A','附近餐厅 B'].slice(0,10);
+      }
+      const categories=[...new Set(state.places.map(p=>p.cuisine).filter(x=>x&&x!=='餐厅'))];
+      const items=[...new Set([...(categories.length?categories:DEFAULT_CATEGORIES.slice(0,8)),...custom])];
+      return items.slice(0,12);
+    }
+    function drawWheel(){
+      const items=getWheelItems(), d=wheelCanvas.width, c=d/2, r=c-8, slice=Math.PI*2/items.length;
+      ctx.clearRect(0,0,d,d); ctx.save(); ctx.translate(c,c);
+      items.forEach((item,i)=>{
+        ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,r,i*slice,(i+1)*slice); ctx.closePath(); ctx.fillStyle=palette[i%palette.length]; ctx.fill();
+        ctx.save(); ctx.rotate(i*slice+slice/2); ctx.translate(r*.64,0); ctx.rotate(Math.PI/2);
+        ctx.fillStyle='#fff'; ctx.font=`700 ${items.length>9?24:29}px ui-sans-serif, sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
+        const label=item.length>7?item.slice(0,7)+'…':item; ctx.fillText(label,0,0); ctx.restore();
+      });
+      ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.strokeStyle='rgba(255,255,255,.6)'; ctx.lineWidth=8; ctx.stroke(); ctx.restore();
+      renderWheelChips();
+    }
+    function renderWheelChips(){
+      const items=getWheelItems(); $('#wheelCount').textContent=`${items.length} 项`;
+      $('#wheelChips').innerHTML=items.map(x=>`<span class="chip">${escapeHtml(x)}${state.customWheel.includes(x)?`<button title="删除自定义项" data-remove-custom="${escapeHtml(x)}">×</button>`:''}</span>`).join('');
+      $$('[data-remove-custom]').forEach(b=>b.onclick=()=>{state.customWheel=state.customWheel.filter(x=>x!==b.dataset.removeCustom); store.set('customWheel',state.customWheel); drawWheel();});
+    }
+    $('#wheelMode').querySelectorAll('button').forEach(b=>{
+      b.classList.toggle('active',b.dataset.mode===state.wheelMode);
+      b.onclick=()=>{state.wheelMode=b.dataset.mode; store.set('wheelMode',state.wheelMode); $$('#wheelMode button').forEach(x=>x.classList.toggle('active',x===b)); drawWheel();};
+    });
+    function addCustom(){
+      const v=$('#customInput').value.trim(); if(!v)return; if(!state.customWheel.includes(v)) state.customWheel.push(v);
+      state.customWheel=state.customWheel.slice(-18); store.set('customWheel',state.customWheel); $('#customInput').value=''; drawWheel(); showToast('已加入转盘');
+    }
+    $('#addCustomBtn').onclick=addCustom; $('#customInput').addEventListener('keydown',e=>{if(e.key==='Enter')addCustom()});
+    let wheelRotation=0;
+    $('#spinBtn').onclick=()=>{
+      if(state.spinning)return; const items=getWheelItems(); if(items.length<2){showToast('至少需要两个选项'); return;}
+      state.spinning=true; $('#spinBtn').disabled=true; $('#wheelResult').innerHTML='<span>命运正在思考…</span>';
+      const selected=Math.floor(Math.random()*items.length), slice=360/items.length;
+      // Pointer at 12 o'clock; canvas segment 0 starts at 3 o'clock.
+      const target=270-(selected+.5)*slice;
+      const currentMod=((wheelRotation%360)+360)%360;
+      let delta=((target-currentMod)+360)%360 + 360*6;
+      wheelRotation+=delta; wheelCanvas.style.transform=`rotate(${wheelRotation}deg)`;
+      setTimeout(()=>{
+        $('#wheelResult').innerHTML=`<strong>${escapeHtml(items[selected])}</strong><span>就它了，别再纠结</span>`;
+        state.spinning=false; $('#spinBtn').disabled=false;
+      },4800);
+    };
+
+    // Restaurant Radar — discovery-first, no restaurant database/API
+    state.locationLabel = settings.discoveryArea || '';
+    state.locationSource = settings.discoveryArea ? 'manual' : 'auto';
+
+    const RADAR_CUISINES = ['中餐','日料','韩餐','泰餐','越南菜','拉面','火锅','烧烤','披萨','早午餐','咖啡','甜品'];
+    const isSeattleMetro = area => /seattle|bellevue|bothell|kirkland|redmond|shoreline|lynnwood|edmonds|renton|西雅图|贝尔维尤/i.test(area || '');
+
+    function googleMapsSearch(query) {
+      const loc = state.coords ? `${state.coords.lat.toFixed(5)},${state.coords.lng.toFixed(5)}` : (state.locationLabel || settings.discoveryArea || 'near me');
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${query} near ${loc}`)}`;
+    }
+    function googleWebSearch(query) {
+      return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+    }
+    function yelpSearch(desc, sort='') {
+      const area = state.locationLabel || settings.discoveryArea || '';
+      const p = new URLSearchParams({find_desc:desc});
+      if(area) p.set('find_loc',area);
+      if(sort) p.set('sortby',sort);
+      return `https://www.yelp.com/search?${p.toString()}`;
+    }
+    function xhsSearch(query) {
+      return `https://www.xiaohongshu.com/search_result?keyword=${encodeURIComponent(query)}`;
+    }
+    function xhsAppSearch(query) {
+      return `xhsdiscover://search/result?keyword=${encodeURIComponent(query)}`;
+    }
+
+    const isMobileDevice = () => /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
+    function smartNavigate(webUrl, appUrl='') {
+      if(!webUrl) return;
+      if(!isMobileDevice()) {
+        window.open(webUrl,'_blank','noopener');
+        return;
+      }
+      // On mobile, normal HTTPS navigation is intentionally same-tab: this lets
+      // iOS Universal Links / Android App Links hand the URL to the installed app.
+      if(!appUrl) {
+        window.location.href=webUrl;
+        return;
+      }
+      // Explicit app scheme (currently used for Xiaohongshu). If the app does not
+      // take focus, fall back to the original web page after a short delay.
+      let timer=null;
+      const cleanup=()=>{
+        if(timer) clearTimeout(timer);
+        document.removeEventListener('visibilitychange',onVisibility);
+        window.removeEventListener('pagehide',cleanup);
+      };
+      const onVisibility=()=>{ if(document.hidden) cleanup(); };
+      document.addEventListener('visibilitychange',onVisibility);
+      window.addEventListener('pagehide',cleanup,{once:true});
+      timer=setTimeout(()=>{
+        cleanup();
+        if(!document.hidden) window.location.href=webUrl;
+      },1100);
+      window.location.href=appUrl;
+    }
+    function sourceRow(icon,title,desc,url,badge='',appUrl='') {
+      return `<a class="radar-source" href="${escapeHtml(url)}" data-smart-link="1" data-web-url="${escapeHtml(url)}"${appUrl?` data-app-url="${escapeHtml(appUrl)}"`:''} target="_blank" rel="noopener">
+        <span class="source-icon">${icon}</span>
+        <span><b>${escapeHtml(title)}${badge?`<i class="live-badge">${escapeHtml(badge)}</i>`:''}</b><small>${escapeHtml(desc)}</small></span>
+        <span class="go">↗</span>
+      </a>`;
+    }
+    function sourceLinks() {
+      const area = state.locationLabel || settings.discoveryArea || '你所在城市';
+      const areaQ = area || 'near me';
+      const seattle = isSeattleMetro(area);
+      const eaterNew = seattle
+        ? 'https://seattle.eater.com/maps/best-new-restaurants-seattle-heatmap'
+        : googleWebSearch(`site:eater.com "${areaQ}" "best new restaurants" OR "heatmap"`);
+      const eaterBest = seattle
+        ? 'https://seattle.eater.com/maps/best-restaurants-seattle-38'
+        : googleWebSearch(`site:eater.com "${areaQ}" "best restaurants" "38"`);
+      const infNew = seattle
+        ? 'https://www.theinfatuation.com/seattle/guides/best-new-seattle-restaurants-hit-list'
+        : googleWebSearch(`site:theinfatuation.com "${areaQ}" "new restaurant openings" OR "hit list"`);
+      const infBest = seattle
+        ? 'https://www.theinfatuation.com/seattle/guides/best-restaurants-seattle'
+        : googleWebSearch(`site:theinfatuation.com "${areaQ}" "best restaurants"`);
+
+      return {
+        new: [
+          ['🗺️','Google Maps · 新餐厅','直接调用 Maps 的实时地点搜索；无需 Places API Key。',googleMapsSearch('new restaurants'),'实时'],
+          ['🔥','Yelp · Hot & New','用 Yelp 的新店/热门搜索发现刚开或最近变热的餐厅。',yelpSearch('Hot and New Restaurants'),'实时'],
+          ['🧭','The Infatuation · Hit List','编辑挑选近期真正值得试的新店，比纯评分更适合“发现”。',infNew,'编辑'],
+          ['🌶️','Eater · Heatmap','持续更新的城市新店热力榜，偏向最近几个月的新开/重做餐厅。',eaterNew,'编辑'],
+          ['📕','小红书 · 新店探店','搜索本地中文探店、新店试吃和菜单实拍。',xhsSearch(`${areaQ} 新店 餐厅 探店`),'中文',xhsAppSearch(`${areaQ} 新店 餐厅 探店`)]
+        ],
+        top: [
+          ['⭐','Google Maps · 高分餐厅','打开本地实时结果，再直接使用 Google 的评分/评论量筛选。',googleMapsSearch('top rated restaurants'),'实时'],
+          ['Y','Yelp · Top Rated','按 Yelp 口碑查看当地高评分餐厅，适合北美本地店。',yelpSearch('Restaurants','rating'),'评分'],
+          ['🏆','The Infatuation · Best','编辑评分体系筛出的城市强店，减少“高星但很普通”的噪音。',infBest,'编辑'],
+          ['38','Eater · Essential','经典长期榜单，适合找已经证明稳定性的本地代表餐厅。',eaterBest,'编辑'],
+          ['📕','小红书 · 高分推荐','补充中文用户视角、菜品实拍和近期探店反馈。',xhsSearch(`${areaQ} 高分 餐厅 推荐`),'中文',xhsAppSearch(`${areaQ} 高分 餐厅 推荐`)]
+        ]
+      };
+    }
+    function renderRestaurantRadar() {
+      const area = state.locationLabel || settings.discoveryArea || '正在自动识别…';
+      const areaText=$('#radarAreaText'), areaInput=$('#radarAreaInput'), badge=$('#radarLocationBadge');
+      if(areaText) areaText.textContent=area;
+      if(areaInput && !areaInput.matches(':focus') && !areaInput.value) areaInput.value=(settings.discoveryArea || state.locationLabel || '');
+      if(badge) badge.textContent=state.locationSource==='gps'?'GPS + 免 Key':state.locationSource==='ip'?'自动识别 · 免 Key':state.locationSource==='manual'?'手动地区':'免 Key';
+      const links=sourceLinks();
+      $('#newRadarSources').innerHTML=links.new.map(x=>sourceRow(...x)).join('');
+      $('#topRadarSources').innerHTML=links.top.map(x=>sourceRow(...x)).join('');
+      $('#locationSummary').textContent = state.locationLabel ? `${state.locationLabel} · 餐厅雷达已就绪` : '餐厅雷达 · 自动识别地区';
+    }
+    async function resolveArea(lat=null,lng=null,source='ip') {
+      try {
+        const p=new URLSearchParams({localityLanguage:'en'});
+        if(lat!=null&&lng!=null){p.set('latitude',lat);p.set('longitude',lng);}
+        const r=await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?${p.toString()}`);
+        if(!r.ok) throw new Error(`HTTP ${r.status}`);
+        const d=await r.json();
+        const city=d.city || d.locality || d.principalSubdivision || '';
+        const region=d.principalSubdivisionCode ? d.principalSubdivisionCode.split('-').pop() : d.principalSubdivision || '';
+        const country=d.countryCode || '';
+        const parts=[city,region,country==='US'?'':country].filter(Boolean);
+        if(parts.length) {
+          state.locationLabel=[...new Set(parts)].join(', ');
+          state.locationSource=source;
+          if(!settings.discoveryArea && $('#radarAreaInput')) $('#radarAreaInput').value=state.locationLabel;
+        }
+      } catch(e) { console.warn('Location label lookup failed',e); }
+      renderRestaurantRadar();
+    }
+
+    $('#applyRadarAreaBtn').onclick=()=>{
+      const v=$('#radarAreaInput').value.trim();
+      if(!v){ showToast('请输入城市或地区'); return; }
+      settings.discoveryArea=v; store.set('discoveryArea',v);
+      state.locationLabel=v; state.locationSource='manual'; state.coords=null;
+      renderRestaurantRadar(); showToast('探店地区已切换');
+    };
+    $('#radarAreaInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('#applyRadarAreaBtn').click();});
+
+    $('#radarLocateBtn').onclick=()=>{
+      if(!navigator.geolocation){showToast('浏览器不支持定位'); return;}
+      $('#radarMeta').textContent='正在读取当前位置…';
+      navigator.geolocation.getCurrentPosition(pos=>{
+        state.coords={lat:pos.coords.latitude,lng:pos.coords.longitude};
+        $('#radarMeta').textContent='已使用浏览器 GPS；坐标只用于生成本次 Google Maps 附近检索，并转换成城市名。';
+        resolveArea(state.coords.lat,state.coords.lng,'gps');
+      },err=>{
+        $('#radarMeta').textContent='精确定位未开启，继续使用城市/IP 粗略位置；餐厅雷达仍可正常使用。';
+        showToast('未获得精确定位');
+        renderRestaurantRadar();
+      },{enableHighAccuracy:false,timeout:10000,maximumAge:300000});
+    };
+
+    $('#randomRestaurantBtn').onclick=()=>{
+      const cuisine=RADAR_CUISINES[Math.floor(Math.random()*RADAR_CUISINES.length)];
+      const mode=Math.random();
+      let url,label;
+      if(mode<.4){url=googleMapsSearch(`new ${cuisine} restaurant`);label=`新店 · ${cuisine}`;}
+      else if(mode<.8){url=googleMapsSearch(`top rated ${cuisine} restaurant`);label=`高分 · ${cuisine}`;}
+      else {url=xhsSearch(`${state.locationLabel||'附近'} ${cuisine} 探店 推荐`);label=`中文探店 · ${cuisine}`;}
+      showToast(`随机到：${label}`);
+      smartNavigate(url, mode>=.8 ? xhsAppSearch(`${state.locationLabel||'附近'} ${cuisine} 探店 推荐`) : '');
+    };
+
+    function saveRadarPlace(){
+      const name=$('#radarSaveName').value.trim();
+      const cuisine=$('#radarSaveCuisine').value.trim() || '餐厅';
+      if(!name){showToast('先输入餐厅名'); return;}
+      const id=`manual-${simpleHash(name.toLowerCase())}`;
+      const area=state.locationLabel||settings.discoveryArea||'';
+      const mapsUrl=`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([name,area].filter(Boolean).join(' '))}`;
+      const item={id,name,cuisine,address:area,mapsUrl,manual:true};
+      state.savedPlaces=state.savedPlaces.filter(x=>x.id!==id);
+      state.savedPlaces.unshift(item);
+      store.set('savedPlaces',state.savedPlaces);
+      $('#radarSaveName').value=''; $('#radarSaveCuisine').value='';
+      renderSaved(); drawWheel(); showToast('已加入想吃和餐厅转盘');
+    }
+    $('#radarSaveBtn').onclick=saveRadarPlace;
+    $('#radarSaveName').addEventListener('keydown',e=>{if(e.key==='Enter')saveRadarPlace();});
+
+    renderRestaurantRadar();
+    if(!settings.discoveryArea) resolveArea(null,null,'ip');
+
+    // Recipes from Anduin2017/HowToCook
+    const TREE_URL='https://api.github.com/repos/Anduin2017/HowToCook/git/trees/master?recursive=1';
+    const RAW_BASE='https://raw.githubusercontent.com/Anduin2017/HowToCook/master/';
+    const GH_BASE='https://github.com/Anduin2017/HowToCook/blob/master/';
+    function encodePath(path){return path.split('/').map(encodeURIComponent).join('/');}
+    async function initRecipes(force=false){
+      renderRecipeSkeletons();
+      try {
+        const cached=store.get('recipeTreeCache',null), fresh=cached && Date.now()-cached.time<86400000;
+        if(fresh&&!force) state.recipeTree=cached.paths;
+        else {
+          const r=await fetch(TREE_URL,{headers:{Accept:'application/vnd.github+json'}}); if(!r.ok)throw new Error(`GitHub API ${r.status}`);
+          const data=await r.json();
+          state.recipeTree=(data.tree||[]).filter(x=>x.type==='blob'&&x.path.startsWith('dishes/')&&x.path.endsWith('.md')&&!/README|template|CONTRIBUT/i.test(x.path)).map(x=>x.path);
+          store.set('recipeTreeCache',{time:Date.now(),paths:state.recipeTree});
+        }
+        await loadRecipeBatch();
+      } catch(e){
+        console.warn(e); $('#recipeStatus').innerHTML=`<span>⚠</span><div>在线菜谱索引加载失败，先显示内置示例。错误：${escapeHtml(e.message)}</div>`;
+        state.recipes=fallbackRecipes(); renderRecipes();
+      }
+    }
+    function recipeFilterPath(path,filter){
+      if(filter==='daily')return true;
+      const s=path.toLowerCase();
+      if(filter==='quick')return /简单|快手|炒|蒸蛋|凉拌|煎/.test(path);
+      if(filter==='meat')return /肉|鸡|鸭|牛|羊|鱼|虾|排骨|猪|蛋/.test(path);
+      if(filter==='veg')return /素|菜|豆腐|茄|瓜|菇|笋|土豆|藕|白菜|青椒|番茄/.test(path);
+      if(filter==='staple')return /饭|面|粉|饼|粥|馒头|包子|水饺|炒饭/.test(path);
+      return true;
+    }
+    async function loadRecipeBatch(){
+      const pool=state.recipeTree.filter(p=>recipeFilterPath(p,state.recipeFilter));
+      const dateKey=new Date().toISOString().slice(0,10);
+      const seed=simpleHash(dateKey+state.recipeFilter+state.recipeBatch);
+      const picks=seededShuffle(pool,seed).slice(0,9);
+      $('#recipeStatus').innerHTML=`<span>🍳</span><div>正在准备 ${picks.length} 份菜谱…</div>`;
+      state.recipes=(await Promise.all(picks.map(loadRecipeCard))).filter(Boolean);
+      $('#recipeStatus').innerHTML=`<span>✓</span><div><b>HowToCook 稳定菜谱库</b> · 当前索引 ${state.recipeTree.length} 篇 · 今日抽取 ${state.recipes.length} 篇。项目 2026 年仍在维护；上方 LIVE 卡片用于补充社区实时趋势。</div>`;
+      renderRecipes();
+    }
+    async function loadRecipeCard(path){
+      try{
+        const r=await fetch(RAW_BASE+encodePath(path)); if(!r.ok)throw new Error(r.status); const md=await r.text();
+        const title=(md.match(/^#\s+(.+)$/m)?.[1]||path.split('/').pop().replace(/\.md$/,'')).replace(/的做法$/,'');
+        const imageMatch=md.match(/!\[[^\]]*\]\(([^)]+)\)/);
+        let image=imageMatch?.[1]||'';
+        if(image && !/^https?:\/\//.test(image)){ const dir=path.split('/').slice(0,-1).join('/'); image=RAW_BASE+encodePath(dir+'/'+image.replace(/^\.\//,'')); }
+        const plain=md.replace(/!\[[^\]]*\]\([^)]+\)/g,'').replace(/\[[^\]]+\]\([^)]+\)/g,'').replace(/^#{1,6}\s+/gm,'').replace(/[*_`>#-]/g,' ').replace(/\s+/g,' ').trim();
+        const desc=plain.slice(title.length).trim().slice(0,150);
+        return {id:path,path,title,image,desc,md,source:GH_BASE+encodePath(path)};
+      }catch(e){console.warn('recipe fail',path,e); return null;}
+    }
+    function fallbackRecipes(){
+      return [
+        {id:'fallback-1',title:'番茄炒蛋',desc:'酸甜家常、准备快，最适合“不知道做什么”的时候。',image:'',md:'# 番茄炒蛋\n\n## 原料\n- 番茄\n- 鸡蛋\n- 盐、糖\n\n## 做法\n1. 鸡蛋打散炒熟盛出。\n2. 番茄炒出汁，加盐和少量糖。\n3. 倒回鸡蛋翻炒均匀。',source:'https://github.com/Anduin2017/HowToCook'},
+        {id:'fallback-2',title:'青椒肉丝',desc:'下饭、快手，适合工作日晚餐。',image:'',md:'# 青椒肉丝\n\n## 原料\n- 猪里脊\n- 青椒\n- 生抽、淀粉\n\n## 做法\n1. 肉丝腌制。\n2. 大火滑炒肉丝。\n3. 加青椒快速翻炒调味。',source:'https://github.com/Anduin2017/HowToCook'},
+        {id:'fallback-3',title:'葱油拌面',desc:'十几分钟完成，碳水满足感很高。',image:'',md:'# 葱油拌面\n\n## 原料\n- 面条\n- 小葱\n- 生抽、老抽、糖\n\n## 做法\n1. 小火炸葱油。\n2. 加调味汁煮开。\n3. 面条煮熟后拌匀。',source:'https://github.com/Anduin2017/HowToCook'}
+      ];
+    }
+    function renderRecipeSkeletons(){
+      $('#recipeGrid').innerHTML=Array.from({length:6},()=>`<div class="recipe-card"><div class="recipe-photo skeleton"></div><div class="card-body"><div class="skeleton" style="height:21px;border-radius:8px"></div><div class="skeleton" style="height:45px;border-radius:8px;margin-top:10px"></div></div></div>`).join('');
+    }
+    function renderRecipes(){
+      const grid=$('#recipeGrid');
+      if(!state.recipes.length){grid.innerHTML='<div class="empty"><div class="bigemoji">🥬</div>这一类暂时没有抽到菜谱，换一批试试。</div>';return;}
+      grid.innerHTML=state.recipes.map(r=>{
+        const saved=state.savedRecipes.some(x=>x.id===r.id);
+        return `<article class="recipe-card" data-open-recipe="${escapeHtml(r.id)}">
+          <div class="recipe-photo">${r.image?`<img src="${escapeHtml(r.image)}" loading="lazy" alt="" onerror="this.remove()">`:`<div class="emoji">🥘</div>`}</div>
+          <div class="card-body">
+            <div class="card-title-row"><h3 class="card-title">${escapeHtml(r.title)}</h3><button class="heart ${saved?'saved':''}" data-save-recipe="${escapeHtml(r.id)}" title="收藏">${saved?'♥':'♡'}</button></div>
+            <div class="recipe-desc">${escapeHtml(r.desc||'点击查看完整做法、食材和步骤。')}</div>
+            <div class="tag-row"><span class="tag">中餐</span><span class="tag orange">今日推荐</span></div>
+          </div>
+        </article>`;
+      }).join('');
+      $$('[data-save-recipe]').forEach(b=>b.onclick=e=>{e.stopPropagation();toggleRecipeSave(b.dataset.saveRecipe);});
+      $$('[data-open-recipe]').forEach(c=>c.onclick=()=>openRecipe(c.dataset.openRecipe));
+    }
+    function toggleRecipeSave(id){
+      const exists=state.savedRecipes.some(x=>x.id===id);
+      if(exists) state.savedRecipes=state.savedRecipes.filter(x=>x.id!==id);
+      else { const r=state.recipes.find(x=>x.id===id); if(r) state.savedRecipes.unshift({id:r.id,title:r.title,path:r.path||'',source:r.source||'',image:r.image||'',desc:r.desc||'',md:r.md||''}); }
+      store.set('savedRecipes',state.savedRecipes); renderRecipes(); renderSaved(); showToast(exists?'已取消收藏':'已收藏菜谱');
+    }
+    function mdToHtml(md=''){
+      const lines=md.split(/\r?\n/); let html='', inUl=false, inOl=false;
+      const inline=s=>escapeHtml(s).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+      const closeLists=()=>{if(inUl){html+='</ul>';inUl=false;} if(inOl){html+='</ol>';inOl=false;}};
+      for(const raw of lines){const line=raw.trim(); if(!line){closeLists();continue;}
+        const img=line.match(/^!\[([^\]]*)\]\(([^)]+)\)/); if(img){closeLists(); let src=img[2]; html+=`<img src="${escapeHtml(src)}" alt="${escapeHtml(img[1])}" loading="lazy">`; continue;}
+        const h=line.match(/^(#{1,4})\s+(.+)/); if(h){closeLists(); const n=Math.min(4,h[1].length); html+=`<h${n}>${inline(h[2])}</h${n}>`;continue;}
+        const ul=line.match(/^[-*]\s+(.+)/); if(ul){if(inOl){html+='</ol>';inOl=false;} if(!inUl){html+='<ul>';inUl=true;} html+=`<li>${inline(ul[1])}</li>`;continue;}
+        const ol=line.match(/^\d+[.)]\s+(.+)/); if(ol){if(inUl){html+='</ul>';inUl=false;} if(!inOl){html+='<ol>';inOl=true;} html+=`<li>${inline(ol[1])}</li>`;continue;}
+        if(line.startsWith('>')){closeLists(); html+=`<blockquote>${inline(line.replace(/^>\s?/,''))}</blockquote>`;continue;}
+        closeLists(); html+=`<p>${inline(line)}</p>`;
+      }
+      closeLists(); return html;
+    }
+    async function openRecipe(id){
+      let r=state.recipes.find(x=>x.id===id)||state.savedRecipes.find(x=>x.id===id); if(!r)return;
+      $('#recipeDialogTitle').textContent=r.title; $('#recipeDialogBody').innerHTML='<div class="skeleton" style="height:240px;border-radius:18px"></div>'; $('#recipeDialog').showModal();
+      if(!r.md && r.path){ const full=await loadRecipeCard(r.path); if(full) r={...r,...full}; }
+      let md=r.md||`# ${r.title}\n\n${r.desc||''}`;
+      // Rewrite relative image links for HowToCook.
+      if(r.path){ const dir=r.path.split('/').slice(0,-1).join('/'); md=md.replace(/!\[([^\]]*)\]\((?!https?:\/\/)([^)]+)\)/g,(_,alt,src)=>`![${alt}](${RAW_BASE+encodePath(dir+'/'+src.replace(/^\.\//,''))})`); }
+      $('#recipeDialogBody').innerHTML=mdToHtml(md)+`<p style="margin-top:28px"><a class="btn" href="${escapeHtml(r.source||'https://github.com/Anduin2017/HowToCook')}" target="_blank" rel="noopener">查看原始菜谱 ↗</a></p>`;
+    }
+    $('#refreshRecipesBtn').onclick=()=>{state.recipeBatch++;renderRecipeSkeletons();loadRecipeBatch();};
+    $$('.filter-btn[data-recipe-filter]').forEach(b=>b.onclick=()=>{
+      state.recipeFilter=b.dataset.recipeFilter; state.recipeBatch=0; $$('.filter-btn[data-recipe-filter]').forEach(x=>x.classList.toggle('active',x===b)); renderRecipeSkeletons(); loadRecipeBatch();
+    });
+
+    // Saved view
+    function renderSaved(){
+      $('#savedRecipeCount').textContent=`${state.savedRecipes.length} 个`;
+      $('#savedPlaceCount').textContent=`${state.savedPlaces.length} 家`;
+      $('#savedRecipeList').innerHTML=state.savedRecipes.length?state.savedRecipes.map(r=>`<div class="chip" style="margin:4px 4px 4px 0"><button data-open-saved-recipe="${escapeHtml(r.id)}" style="color:inherit">${escapeHtml(r.title)}</button><button data-remove-saved-recipe="${escapeHtml(r.id)}">×</button></div>`).join(''):'<div class="meta">还没有收藏食谱。</div>';
+      $('#savedPlaceList').innerHTML=state.savedPlaces.length?state.savedPlaces.map(p=>`<div class="chip" style="margin:4px 4px 4px 0"><a href="${escapeHtml(p.mapsUrl)}" data-smart-link="1" data-web-url="${escapeHtml(p.mapsUrl)}" target="_blank" rel="noopener" style="text-decoration:none">${escapeHtml(p.name)}</a><button data-remove-saved-place="${escapeHtml(p.id)}">×</button></div>`).join(''):'<div class="meta">还没有加入“想吃”的餐厅。</div>';
+      $$('[data-open-saved-recipe]').forEach(b=>b.onclick=()=>openRecipe(b.dataset.openSavedRecipe));
+      $$('[data-remove-saved-recipe]').forEach(b=>b.onclick=()=>{state.savedRecipes=state.savedRecipes.filter(x=>x.id!==b.dataset.removeSavedRecipe);store.set('savedRecipes',state.savedRecipes);renderSaved();renderRecipes();});
+      $$('[data-remove-saved-place]').forEach(b=>b.onclick=()=>{state.savedPlaces=state.savedPlaces.filter(x=>x.id!==b.dataset.removeSavedPlace);store.set('savedPlaces',state.savedPlaces);renderSaved();renderRestaurantRadar();drawWheel();});
+    }
+
+    // Dialog close on backdrop click
+    $$('dialog').forEach(d=>d.addEventListener('click',e=>{const r=d.getBoundingClientRect(); if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close();}));
+
+    drawWheel(); renderSaved(); initRecipes();
+      // ---------- Mobile smart external links ----------
+    document.addEventListener('click',e=>{
+      const a=e.target.closest('a[data-smart-link]');
+      if(!a || !isMobileDevice()) return;
+      e.preventDefault();
+      const webUrl=a.dataset.webUrl || a.href;
+      const appUrl=a.dataset.appUrl || '';
+      smartNavigate(webUrl,appUrl);
+    });
+
+</script>
+
+<!-- PT-UNIVERSE-BACKLINK -->
+<style>
+#ptu-home-link{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));z-index:2147483646;display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 11px;border:1px solid rgba(255,255,255,.2);border-radius:999px;background:rgba(8,12,22,.72);box-shadow:0 8px 24px rgba(0,0,0,.18);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#fff!important;font:600 11px/1 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;text-decoration:none!important;opacity:.62;transition:opacity .18s,transform .18s}
+#ptu-home-link:hover,#ptu-home-link:focus-visible{opacity:1;transform:translateY(-1px);outline:none}
+#ptu-home-link i{width:6px;height:6px;border-radius:50%;background:#7c73ff;box-shadow:0 0 0 3px rgba(124,115,255,.2)}
+@media(max-width:760px){#ptu-home-link{bottom:calc(76px + env(safe-area-inset-bottom));left:max(10px,env(safe-area-inset-left));height:31px;padding:0 9px;font-size:10px}}
+</style>
+<a id="ptu-home-link" href="../../" aria-label="返回 PT Universe"><i></i><span>← PT Universe</span></a>
+</body>
+</html>

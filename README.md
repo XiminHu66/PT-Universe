@@ -14,7 +14,18 @@ Live site: https://ximinhu66.github.io/PT-Universe/
 - Food Orbit — meal wheel, restaurant discovery and Chinese recipes
 - Tsugi — manga, novels, Japanese music, game releases and ACG news
 
-PT Universe is a local-first shell. Favorites, recent apps, quick notes, countdown and theme are stored in the browser. Existing repositories remain the data and automation sources, so their GitHub Actions and browser-local settings continue to work without duplication.
+PT Universe is a local-first monorepo. Favorites, recent apps, quick notes, countdown and theme are stored in the browser. All seven tools are vendored below `apps/`, so navigation and static assets stay inside this repository and do not depend on the original Pages sites.
+
+```text
+apps/
+  daily-nexus/
+  deskboard/
+  stock-alert/
+  qf-tool/
+  3c-scout/
+  meal-orbit/
+  tsugi-checker/
+```
 
 ## Add another tool
 
