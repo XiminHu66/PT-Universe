@@ -1,6 +1,28 @@
 {
-  "generated_at": "2026-08-26T16:35:35Z",
+  "generated_at": "2026-08-26T21:55:54Z",
   "items": [
+    {
+      "id": "686e1a37ab2c40ec",
+      "source": "gnn",
+      "source_label": "巴哈姆特 GNN",
+      "category": "繁中 ACG",
+      "title": "Xbox 推出實體光碟遊戲轉數位版遊戲授權功能 支援 XPA 跨平台遊玩和雲端遊玩",
+      "url": "https://gnn.gamer.com.tw/detail.php?sn=310503",
+      "summary": "Xbox 宣布，將推出實體光碟遊戲轉數位版遊戲授權功能，將數位版遊戲的優勢帶到實體光碟上，讓玩家能夠更靈活地存取和暢玩 Xbox 生態系統中支援的遊戲。 Xbox Insider 會員可於 8 月 31 日開始測試。 Xbox 下一代業務副總裁傑森‧羅納德（Jas....",
+      "image": null,
+      "published_at": "2026-08-26T17:02:16Z"
+    },
+    {
+      "id": "af4e6fc48e83947d",
+      "source": "gnn",
+      "source_label": "巴哈姆特 GNN",
+      "category": "繁中 ACG",
+      "title": "【GC 26】《女神異聞錄 4 Revival》公開故事宣傳影片 一窺八十稻羽的街道與個性豐富的角色",
+      "url": "https://gnn.gamer.com.tw/detail.php?sn=310502",
+      "summary": "ATLUS 製作，SEGA 世雅預定於 2027 年 2 月 18 日（四）推出的重製版角色扮演遊戲《女神異聞錄 4 Revival》（Xbox Series X|S / Windows / PS5 / Steam），配合 gamescom 活動公開了故事宣傳影片。 「....",
+      "image": null,
+      "published_at": "2026-08-26T16:40:20Z"
+    },
     {
       "id": "b2e6a73714a28060",
       "source": "gcores",
@@ -275,28 +297,6 @@
       "summary": "由 Mgame 開發、掘夢網代理的橫向 2D 卷軸 MMORPG《搞鬼 M》今（26）日推出上市後首次改版，正式開放第六個職業「軍士」以及全新成長系統「脫胎換骨」。軍士手持長槍與盾牌，擁有優異的生存能力與強悍的近戰壓制力，是能夠屹立於戰場最前線的堅實存在。而完成二轉並達到 80 等的玩家，則可透過「脫胎換骨」獲得....",
       "image": null,
       "published_at": "2026-08-26T10:24:28Z"
-    },
-    {
-      "id": "6ba760dd5a547b6b",
-      "source": "gnn",
-      "source_label": "巴哈姆特 GNN",
-      "category": "繁中 ACG",
-      "title": "合作拆彈遊戲《炸彈香蕉大作戰》正式版完整特色公開 新增讓盲猴忙不過來的模組",
-      "url": "https://gnn.gamer.com.tw/detail.php?sn=310479",
-      "summary": "土耳其獨立遊戲團隊 Lefto Studio 宣布，旗下合作拆彈新作《炸彈香蕉大作戰（暫譯，原名：BOMBANANA!）》Demo 遊玩人數已突破 600 萬，開發團隊公開了正式版中包含的所有遊戲特色，包含三種遊戲模式和 14 個新的謎題，其中 3 種是為了讓盲猴忙不過來而設計的特別模組。 ....",
-      "image": null,
-      "published_at": "2026-08-26T10:18:52Z"
-    },
-    {
-      "id": "b0dca5b19cd5e98b",
-      "source": "gnn",
-      "source_label": "巴哈姆特 GNN",
-      "category": "繁中 ACG",
-      "title": "《美男戰國◆穿越時空之戀—永緣—》今日正式上市 公開《美男系列》製作人十周年感謝影片",
-      "url": "https://gnn.gamer.com.tw/detail.php?sn=310478",
-      "summary": "「iSWEETY 艾思維特」今（26）日宣布，女性向戀愛遊戲《美男戰國◆穿越時空之戀—永緣—》（以下簡稱《美男戰國—永緣—》）正式於 App Store、Google Play 雙平台上市。 為慶祝正式開服以及《美....",
-      "image": null,
-      "published_at": "2026-08-26T10:18:42Z"
     },
     {
       "id": "7349ef13a22afd17",
@@ -799,25 +799,25 @@
       "label": "巴哈姆特 GNN",
       "ok": true,
       "count": 24,
-      "checked_at": "2026-08-26T16:35:35Z"
+      "checked_at": "2026-08-26T21:55:54Z"
     },
     "gcores": {
       "label": "机核 GCORES",
       "ok": true,
       "count": 20,
-      "checked_at": "2026-08-26T16:35:35Z"
+      "checked_at": "2026-08-26T21:55:54Z"
     },
     "yystv": {
       "label": "游研社",
       "ok": true,
       "count": 12,
-      "checked_at": "2026-08-26T16:35:35Z"
+      "checked_at": "2026-08-26T21:55:54Z"
     },
     "gamelook": {
       "label": "GameLook 游戏大观",
       "ok": true,
       "count": 24,
-      "checked_at": "2026-08-26T16:35:35Z"
+      "checked_at": "2026-08-26T21:55:54Z"
     }
   }
 }
