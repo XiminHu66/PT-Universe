@@ -52,8 +52,27 @@ jobs:
 
   deploy:
     needs: refresh
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     permissions:
       contents: read
       pages: write
       id-token: write
-    uses: ./.github/workflows/pages.yml
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - name: Deploy the latest PT Universe
+        id: deployment
+        uses: actions/deploy-pages@v4
