@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#080c16">
+  <meta name="description" content="Ximin 的个人工具宇宙：看板、理财、购物、饮食与 ACG 追踪统一入口。">
+  <title>PT Universe · Personal Tools OS</title>
+  <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="glow g1"></div><div class="glow g2"></div>
+  <div class="shell">
+    <aside id="sidebar">
+      <a class="brand" href="#/home"><span class="logo"><i></i><i></i><b></b></span><span><strong>PT Universe</strong><small>PERSONAL TOOLS OS</small></span></a>
+      <nav id="primaryNav"></nav>
+      <div class="side-foot">
+        <button class="nav-item" id="settingsButton"><span>⌁</span>系统与来源</button>
+        <a class="status" href="https://github.com/XiminHu66/PT-Universe" target="_blank" rel="noopener"><i></i><span><b>7 个模块已接入</b><small>GitHub Pages · Local-first</small></span></a>
+      </div>
+    </aside>
+    <div class="workspace">
+      <header>
+        <div class="title-wrap"><button class="icon-btn mobile" id="menuButton">☰</button><div><span class="eyebrow" id="pageEyebrow">COMMAND CENTER</span><h1 id="pageTitle">今日总览</h1></div></div>
+        <div class="header-actions"><button class="search-btn" id="searchButton"><span>⌕</span><span>搜索工具或功能</span><kbd>Ctrl K</kbd></button><button class="icon-btn" id="themeButton" aria-label="切换主题">◐</button></div>
+      </header>
+      <main>
+        <section id="homeView">
+          <div class="today-strip">
+            <div class="time-card"><span id="todayDate"></span><strong id="todayTime">--:--</strong><small id="todayGreeting"></small></div>
+            <div class="stat-card"><span>工具宇宙</span><strong>7</strong><small>个现有项目统一接入</small></div>
+            <div class="count-card"><span>下一个倒计时</span><strong id="countdownValue">未设置</strong><small id="countdownLabel">点击设置一个重要日期</small><button id="countdownEdit">设置</button></div>
+          </div>
+          <div class="section-head"><div><span class="eyebrow">LAUNCH PAD</span><h2 id="collectionTitle">快速启动</h2></div><button class="text-btn" id="showAllButton">查看全部工具</button></div>
+          <div class="app-grid" id="favoriteGrid"></div>
+          <div class="dashboard-grid">
+            <section class="panel"><div class="panel-head"><div><span class="eyebrow">QUICK CAPTURE</span><h2>今日备忘</h2></div><small id="noteState">自动保存在本机</small></div><textarea id="quickNote" rows="7" placeholder="先把现在不想忘的事情放在这里……"></textarea></section>
+            <section class="panel"><div class="panel-head"><div><span class="eyebrow">RECENT ORBITS</span><h2>最近使用</h2></div></div><div id="recentList" class="recent-list"></div></section>
+          </div>
+          <div class="section-head all-head" id="allToolsHeading"><div><span class="eyebrow">ALL SYSTEMS</span><h2>全部工具</h2></div><small>原项目继续独立更新，入口集中在这里</small></div>
+          <div id="allApps" class="category-sections"></div>
+        </section>
+        <section id="frameView" class="frame-view" hidden>
+          <div class="frame-bar"><button class="back-btn" id="backButton">← 返回总览</button><div class="frame-id"><span id="frameIcon"></span><div><strong id="frameTitle"></strong><small id="frameMeta"></small></div></div><div class="frame-actions"><button class="icon-btn" id="favoriteButton">☆</button><button class="tool-btn" id="reloadButton">↻ 刷新</button><a class="tool-btn" id="sourceButton" target="_blank" rel="noopener">源码 ↗</a><a class="tool-btn primary" id="externalButton" target="_blank" rel="noopener">新窗口 ↗</a></div></div>
+          <div class="frame-stage"><div class="loading" id="frameLoading"><i></i><p>正在接入模块…</p></div><iframe id="toolFrame" title="工具模块" allow="clipboard-read; clipboard-write; autoplay; fullscreen; geolocation"></iframe></div>
+        </section>
+      </main>
+    </div>
+  </div>
+  <nav class="mobile-nav" id="mobileNav"></nav><div class="scrim" id="scrim"></div>
+  <dialog id="commandDialog" class="command-dialog"><form method="dialog"><div class="command-input"><span>⌕</span><input id="commandInput" autocomplete="off" placeholder="搜索应用、功能或关键词…"><button value="cancel">Esc</button></div><div id="commandResults" class="command-results"></div><footer>↑↓ 选择　 Enter 打开　 ☆ 收藏</footer></form></dialog>
+  <dialog id="settingsDialog" class="sheet-dialog"><div class="sheet"><div class="sheet-head"><div><span class="eyebrow">SYSTEM MAP</span><h2>系统与来源</h2></div><button class="icon-btn" id="settingsClose">×</button></div><p>PT Universe 负责统一导航、搜索和本机偏好；各原项目仍是数据与自动任务的来源，升级不会覆盖现有配置。</p><div id="sourceList" class="source-list"></div><div class="sheet-actions"><button class="danger" id="resetLocal">重置 PT Universe 本机数据</button><a href="https://github.com/XiminHu66/PT-Universe" target="_blank" rel="noopener">查看仓库 ↗</a></div></div></dialog>
+  <dialog id="countdownDialog" class="count-dialog"><form method="dialog" id="countdownForm"><div class="sheet-head"><div><span class="eyebrow">COUNTDOWN</span><h2>设置倒计时</h2></div><button value="cancel" class="icon-btn">×</button></div><label>名称<input id="countdownName" maxlength="30" placeholder="例如：旅行、申请节点"></label><label>日期<input id="countdownDate" type="date" required></label><div class="dialog-actions"><button value="clear" class="text-btn">清除</button><button value="save" class="save-btn">保存倒计时</button></div></form></dialog>
+  <script src="app.js"></script>
+</body>
+</html>
