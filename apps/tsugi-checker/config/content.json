@@ -94,6 +94,12 @@
     "recent_song_source": "Apple Music Japan Best New Songs",
     "recent_song_url": "https://music.apple.com/jp/new",
     "recent_song_limit": 30,
+    "ricecake_source": "RICECAKE J-Pop Weekly Chart",
+    "ricecake_channel_id": "UCmmwCqIMqdOfYDk2SVR-AEQ",
+    "ricecake_feed_url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCmmwCqIMqdOfYDk2SVR-AEQ",
+    "ricecake_playlist_url": "https://www.youtube.com/playlist?list=PLGLjAyW5PPGROnKbzlHCL4bfWAXeex_b6",
+    "ricecake_days": 38,
+    "ricecake_limit": 5,
     "enabled": true
   },
   "games": {

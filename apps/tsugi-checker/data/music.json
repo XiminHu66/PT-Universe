@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-27T17:26:58Z",
+  "generated_at": "2026-08-27T18:46:21Z",
   "chart_date": "2026/08/26",
   "weekly_chart": [
     {
@@ -449,20 +449,84 @@
       "source_label": "Billboard JAPAN · 本周新进榜"
     }
   ],
+  "ricecake_charts": [
+    {
+      "id": "OAqV4zU5yj0",
+      "title": "[TOP 50] J-Pop Chart - August 2026 (Week 4)",
+      "published_at": "2026-08-23T15:00:06+00:00",
+      "period": "August 2026 · Week 4",
+      "thumbnail": "https://i4.ytimg.com/vi/OAqV4zU5yj0/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=OAqV4zU5yj0",
+      "playlist_url": "https://www.youtube.com/playlist?list=PLGLjAyW5PPGROnKbzlHCL4bfWAXeex_b6",
+      "source": "ricecake_youtube",
+      "source_label": "RICECAKE · J-Pop Weekly Chart"
+    },
+    {
+      "id": "V6Z3Fv1CzsQ",
+      "title": "[TOP 50] J-Pop Chart - August 2026 (Week 3)",
+      "published_at": "2026-08-16T15:00:06+00:00",
+      "period": "August 2026 · Week 3",
+      "thumbnail": "https://i3.ytimg.com/vi/V6Z3Fv1CzsQ/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=V6Z3Fv1CzsQ",
+      "playlist_url": "https://www.youtube.com/playlist?list=PLGLjAyW5PPGROnKbzlHCL4bfWAXeex_b6",
+      "source": "ricecake_youtube",
+      "source_label": "RICECAKE · J-Pop Weekly Chart"
+    },
+    {
+      "id": "TdZRMKHovJY",
+      "title": "[TOP 50] J-Pop Chart - August 2026 (Week 2)",
+      "published_at": "2026-08-09T15:00:06+00:00",
+      "period": "August 2026 · Week 2",
+      "thumbnail": "https://i1.ytimg.com/vi/TdZRMKHovJY/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=TdZRMKHovJY",
+      "playlist_url": "https://www.youtube.com/playlist?list=PLGLjAyW5PPGROnKbzlHCL4bfWAXeex_b6",
+      "source": "ricecake_youtube",
+      "source_label": "RICECAKE · J-Pop Weekly Chart"
+    },
+    {
+      "id": "mR-eXJIdpYA",
+      "title": "[TOP 50] J-Pop Chart - August 2026 (Week 1)",
+      "published_at": "2026-08-02T15:00:06+00:00",
+      "period": "August 2026 · Week 1",
+      "thumbnail": "https://i2.ytimg.com/vi/mR-eXJIdpYA/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=mR-eXJIdpYA",
+      "playlist_url": "https://www.youtube.com/playlist?list=PLGLjAyW5PPGROnKbzlHCL4bfWAXeex_b6",
+      "source": "ricecake_youtube",
+      "source_label": "RICECAKE · J-Pop Weekly Chart"
+    },
+    {
+      "id": "dl06gcLTF0s",
+      "title": "[TOP 50] J-Pop Chart - July 2026 (Week 4)",
+      "published_at": "2026-07-26T15:00:06+00:00",
+      "period": "July 2026 · Week 4",
+      "thumbnail": "https://i1.ytimg.com/vi/dl06gcLTF0s/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=dl06gcLTF0s",
+      "playlist_url": "https://www.youtube.com/playlist?list=PLGLjAyW5PPGROnKbzlHCL4bfWAXeex_b6",
+      "source": "ricecake_youtube",
+      "source_label": "RICECAKE · J-Pop Weekly Chart"
+    }
+  ],
   "sources": {
     "billboard_japan": {
       "label": "Billboard JAPAN Hot 100",
       "ok": true,
       "count": 30,
-      "checked_at": "2026-08-27T17:26:58Z"
+      "checked_at": "2026-08-27T18:46:21Z"
     },
     "apple_music_weekly_new": {
       "label": "Apple Music Japan · 本周新曲",
       "ok": true,
       "count": 4,
-      "checked_at": "2026-08-27T17:26:58Z",
+      "checked_at": "2026-08-27T18:46:21Z",
       "fallback": "Billboard JAPAN Hot 100 本周新进榜",
       "error": "RuntimeError: Apple Music Best New Songs heading not found"
+    },
+    "ricecake_youtube": {
+      "label": "RICECAKE · J-Pop Weekly Chart",
+      "ok": true,
+      "count": 5,
+      "checked_at": "2026-08-27T18:46:21Z",
+      "endpoint": "https://www.youtube.com/feeds/videos.xml?channel_id=UCmmwCqIMqdOfYDk2SVR-AEQ"
     }
   }
 }

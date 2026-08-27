@@ -3,13 +3,18 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from datetime import datetime, timedelta, timezone
 from urllib.parse import quote_plus, urljoin
 
+import feedparser
 import requests
 from bs4 import BeautifulSoup
 
 BILLBOARD_URL = "https://www.billboard-japan.com/charts/detail?a=hot100"
 APPLE_NEW_URL = "https://music.apple.com/jp/new"
+RICECAKE_CHANNEL_ID = "UCmmwCqIMqdOfYDk2SVR-AEQ"
+RICECAKE_FEED_URL = f"https://www.youtube.com/feeds/videos.xml?channel_id={RICECAKE_CHANNEL_ID}"
+RICECAKE_PLAYLIST_URL = "https://www.youtube.com/playlist?list=PLGLjAyW5PPGROnKbzlHCL4bfWAXeex_b6"
 
 
 def _get(url, ua, timeout=30):
@@ -213,10 +218,51 @@ def chart_debut_fallback(weekly, limit=30):
     return out
 
 
+def fetch_ricecake_monthly_charts(ua, limit=5, days=38):
+    """Return RICECAKE's recent weekly J-Pop chart videos from YouTube's public RSS feed."""
+    r = _get(RICECAKE_FEED_URL, ua)
+    feed = feedparser.parse(r.content)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=max(28, int(days)))
+    rows = []
+    for entry in feed.entries:
+        title = clean(entry.get("title"))
+        if not re.search(r"\bJ-?Pop\s+(?:Songs\s+)?Chart\b", title, re.I):
+            continue
+        published = clean(entry.get("published") or entry.get("updated"))
+        try:
+            published_dt = datetime.fromisoformat(published.replace("Z", "+00:00"))
+        except Exception:
+            published_dt = None
+        if published_dt and published_dt < cutoff:
+            continue
+        video_id = clean(entry.get("yt_videoid"))
+        link = clean(entry.get("link")) or (f"https://www.youtube.com/watch?v={video_id}" if video_id else RICECAKE_PLAYLIST_URL)
+        thumbnails = entry.get("media_thumbnail") or []
+        thumbnail = clean(thumbnails[0].get("url")) if thumbnails else ""
+        week_m = re.search(r"([A-Za-z]+\s+20\d{2})\s*\(Week\s*(\d+)\)", title, re.I)
+        rows.append({
+            "id": video_id or hashlib.sha1(link.encode("utf-8")).hexdigest()[:16],
+            "title": title,
+            "published_at": published,
+            "period": f"{week_m.group(1)} · Week {week_m.group(2)}" if week_m else "近月周榜",
+            "thumbnail": thumbnail,
+            "url": link,
+            "playlist_url": RICECAKE_PLAYLIST_URL,
+            "source": "ricecake_youtube",
+            "source_label": "RICECAKE · J-Pop Weekly Chart",
+        })
+        if len(rows) >= int(limit):
+            break
+    if not rows:
+        raise RuntimeError("RICECAKE public YouTube feed returned no recent J-Pop chart videos")
+    return rows
+
+
 def refresh_music(content_cfg, generated, out_path, ua):
     cfg = content_cfg.get("music") or {}
     weekly = []
     recent_songs = []
+    ricecake_charts = []
     statuses = {}
     chart_date = ""
 
@@ -261,6 +307,30 @@ def refresh_music(content_cfg, generated, out_path, ua):
         }
         print(f"MUSIC WARN apple_music_weekly_new: {e}; fallback={len(recent_songs)}")
 
+    try:
+        ricecake_charts = fetch_ricecake_monthly_charts(
+            ua,
+            cfg.get("ricecake_limit", 5),
+            cfg.get("ricecake_days", 38),
+        )
+        statuses["ricecake_youtube"] = {
+            "label": "RICECAKE · J-Pop Weekly Chart",
+            "ok": True,
+            "count": len(ricecake_charts),
+            "checked_at": generated,
+            "endpoint": RICECAKE_FEED_URL,
+        }
+        print(f"MUSIC ricecake_youtube: {len(ricecake_charts)} items")
+    except Exception as e:
+        statuses["ricecake_youtube"] = {
+            "label": "RICECAKE · J-Pop Weekly Chart",
+            "ok": False,
+            "count": 0,
+            "checked_at": generated,
+            "error": f"{type(e).__name__}: {e}",
+        }
+        print(f"MUSIC ERR ricecake_youtube: {e}")
+
     out_path.write_text(
         json.dumps(
             {
@@ -270,6 +340,7 @@ def refresh_music(content_cfg, generated, out_path, ua):
                 # Keep the old key for front-end/backward compatibility; semantics are now recent songs.
                 "new_releases": recent_songs,
                 "recent_songs": recent_songs,
+                "ricecake_charts": ricecake_charts,
                 "sources": statuses,
             },
             ensure_ascii=False,
