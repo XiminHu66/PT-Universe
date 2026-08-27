@@ -1,4 +1,5 @@
 const DATA_URL='data/feed.json';
+const DEFAULT_PROXY_URL='https://rss-orbit-proxy.summer07-nanjolno.workers.dev';
 const CATEGORIES={finance:{name:'财经',icon:'↗',color:'#dd8a35'},world:{name:'时事',icon:'◎',color:'#5b8fd7'},tech:{name:'科技',icon:'◇',color:'#7b72d8'},game:{name:'游戏',icon:'✦',color:'#cf6f85'},other:{name:'其他',icon:'○',color:'#7c8b83'}};
 const KEYS={read:'pt.rss.read',saved:'pt.rss.saved',hidden:'pt.rss.hidden',theme:'pt.rss.theme',custom:'pt.rss.custom',customItems:'pt.rss.customItems',readerRatio:'pt.rss.readerRatio',proxyUrl:'pt.rss.proxyUrl'};
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
@@ -10,7 +11,7 @@ let view='all',category=null,feed=null,quickFilter='all',query='',sortDesc=true,
 
 function esc(v=''){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function safeUrl(v='',base=location.href){try{const u=new URL(v,base);return ['http:','https:'].includes(u.protocol)?u.href:''}catch{return ''}}
-function proxyBase(){const raw=String(store.get(KEYS.proxyUrl,'')||'').trim();if(!raw)return '';const url=safeUrl(raw);return url?url.replace(/\/+$/,''):''}
+function proxyBase(){const raw=String(store.get(KEYS.proxyUrl,DEFAULT_PROXY_URL)||'').trim();if(!raw)return '';const url=safeUrl(raw);return url?url.replace(/\/+$/,''):''}
 function proxyImage(url,width=480){try{const u=new URL(url);const target=`${u.host}${u.pathname}${u.search}`;return `https://images.weserv.nl/?url=${encodeURIComponent(target)}&w=${width}&output=webp&il` }catch{return ''}}
 function hideBrokenImage(img){img.hidden=true;if(img.classList.contains('article-image'))img.closest('.article-card')?.classList.add('no-image');img.removeAttribute('src')}
 function wireImage(img,width){
