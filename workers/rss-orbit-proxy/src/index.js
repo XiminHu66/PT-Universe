@@ -4,6 +4,13 @@ const ALLOWED_ORIGINS = new Set([
   "http://127.0.0.1:4173",
 ]);
 
+const PACIFIC_TIME_ZONE = "America/Los_Angeles";
+const ACTIVE_HOURS = new Set([0, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]);
+const FEED_KEY_PREFIX = "feed:";
+const STATUS_KEY = "status";
+const MAX_FEED_BYTES = 5 * 1024 * 1024;
+const FETCH_BATCH_SIZE = 6;
+
 export const FEEDS = Object.freeze({
   wallstreetcn: "https://dedicated.wallstreetcn.com/rss.xml",
   ftchinese: "https://www.ftchinese.com/rss/feed",
@@ -48,14 +55,124 @@ function originAllowed(request) {
   return !origin || ALLOWED_ORIGINS.has(origin);
 }
 
-function responseWithCors(request, response, cacheState, headOnly = false) {
-  const headers = new Headers(response.headers);
-  Object.entries(corsHeaders(request)).forEach(([key, value]) => headers.set(key, value));
-  headers.set("Content-Type", headers.get("Content-Type") || "application/rss+xml; charset=utf-8");
-  headers.set("Cache-Control", "public, max-age=120, s-maxage=300");
+function feedResponse(request, body, metadata, cacheState, status = 200, headOnly = false) {
+  const headers = new Headers(corsHeaders(request));
+  headers.set("Content-Type", metadata?.contentType || "application/rss+xml; charset=utf-8");
+  headers.set("Cache-Control", cacheState === "REFRESH" ? "no-store" : "public, max-age=120, s-maxage=300");
   headers.set("X-Content-Type-Options", "nosniff");
   headers.set("X-RSS-Cache", cacheState);
-  return new Response(headOnly ? null : response.body, { status: response.status, headers });
+  if (metadata?.fetchedAt) headers.set("X-RSS-Fetched-At", metadata.fetchedAt);
+  return new Response(headOnly ? null : body, { status, headers });
+}
+
+function pacificHour(timestamp) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: PACIFIC_TIME_ZONE,
+    hour: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(timestamp));
+  return Number(parts.find(part => part.type === "hour")?.value);
+}
+
+export function shouldRunScheduledRefresh(timestamp) {
+  return ACTIVE_HOURS.has(pacificHour(timestamp));
+}
+
+async function fetchUpstream(url) {
+  return fetch(url, {
+    headers: {
+      Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml, */*",
+      "User-Agent": "PT-Universe-RSS-Proxy/2.0 (+https://github.com/XiminHu66/PT-Universe)",
+    },
+    signal: AbortSignal.timeout(18000),
+    cf: { cacheEverything: false },
+  });
+}
+
+async function readTextBounded(response) {
+  const declaredSize = Number(response.headers.get("Content-Length") || 0);
+  if (declaredSize > MAX_FEED_BYTES) throw new Error("feed_too_large");
+  if (!response.body) throw new Error("empty_feed");
+
+  const reader = response.body.getReader();
+  const chunks = [];
+  let size = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > MAX_FEED_BYTES) {
+      await reader.cancel();
+      throw new Error("feed_too_large");
+    }
+    chunks.push(value);
+  }
+
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return { text: new TextDecoder().decode(bytes), size };
+}
+
+function looksLikeFeed(text) {
+  const opening = text.slice(0, 2048).toLowerCase();
+  return opening.includes("<rss") || opening.includes("<feed") || opening.includes("<rdf:rdf");
+}
+
+async function readCachedFeed(env, feedId) {
+  if (!env.RSS_CACHE) return null;
+  const result = await env.RSS_CACHE.getWithMetadata(`${FEED_KEY_PREFIX}${feedId}`, { type: "text" });
+  return result?.value ? result : null;
+}
+
+async function fetchAndStoreFeed(env, feedId, upstreamUrl, fetchedAt) {
+  const response = await fetchUpstream(upstreamUrl);
+  if (!response.ok) throw new Error(`upstream_${response.status}`);
+  const { text, size } = await readTextBounded(response);
+  if (!text.trim() || !looksLikeFeed(text)) throw new Error("invalid_feed");
+  const contentType = response.headers.get("Content-Type") || "application/rss+xml; charset=utf-8";
+  await env.RSS_CACHE.put(`${FEED_KEY_PREFIX}${feedId}`, text, {
+    metadata: { fetchedAt, contentType, source: upstreamUrl, bytes: size },
+  });
+  return { feedId, ok: true, bytes: size };
+}
+
+export async function refreshAllFeeds(env, fetchedAt = new Date().toISOString()) {
+  if (!env.RSS_CACHE) throw new Error("RSS_CACHE binding is required");
+  const entries = Object.entries(FEEDS);
+  const results = [];
+
+  for (let index = 0; index < entries.length; index += FETCH_BATCH_SIZE) {
+    const batch = entries.slice(index, index + FETCH_BATCH_SIZE);
+    const settled = await Promise.all(batch.map(async ([feedId, upstreamUrl]) => {
+      try {
+        return await fetchAndStoreFeed(env, feedId, upstreamUrl, fetchedAt);
+      } catch (error) {
+        return { feedId, ok: false, error: String(error?.message || error).slice(0, 120) };
+      }
+    }));
+    results.push(...settled);
+  }
+
+  const status = {
+    last_refresh: fetchedAt,
+    ok: results.filter(result => result.ok).length,
+    failed: results.filter(result => !result.ok).map(result => result.feedId),
+    source_count: entries.length,
+    timezone: PACIFIC_TIME_ZONE,
+    schedule: "hourly at 08:00-23:00 and 00:00 Pacific",
+  };
+  await env.RSS_CACHE.put(STATUS_KEY, JSON.stringify(status));
+  console.log(JSON.stringify({ event: "rss_refresh", ...status }));
+  return status;
+}
+
+async function statusPayload(env) {
+  if (!env.RSS_CACHE) return null;
+  return env.RSS_CACHE.get(STATUS_KEY, { type: "json" });
 }
 
 export default {
@@ -73,7 +190,17 @@ export default {
       return json(request, { ok: false, error: "origin_not_allowed" }, 403);
     }
     if (url.pathname === "/" || url.pathname === "/health") {
-      return json(request, { ok: true, service: "rss-orbit-proxy", feeds: Object.keys(FEEDS).length });
+      const status = await statusPayload(env);
+      return json(request, {
+        ok: true,
+        service: "rss-orbit-proxy",
+        backend: "cloudflare-kv",
+        feeds: Object.keys(FEEDS).length,
+        timezone: PACIFIC_TIME_ZONE,
+        schedule: "08:00-23:00 and 00:00 hourly",
+        last_refresh: status?.last_refresh || null,
+        last_result: status ? { ok: status.ok, failed: status.failed } : null,
+      });
     }
 
     const match = url.pathname.match(/^\/feed\/([a-z0-9-]+)$/i);
@@ -83,32 +210,46 @@ export default {
       return json(request, { ok: false, error: "feed_not_allowed" }, 404);
     }
 
-    const cache = caches.default;
-    const cacheKey = new Request(`${url.origin}/feed/${feedId}`, { method: "GET" });
     const forceRefresh = url.searchParams.get("refresh") === "1";
     if (!forceRefresh) {
-      const cached = await cache.match(cacheKey);
-      if (cached) return responseWithCors(request, cached, "HIT", method === "HEAD");
+      const cached = await readCachedFeed(env, feedId);
+      if (cached) return feedResponse(request, cached.value, cached.metadata, "KV", 200, method === "HEAD");
     }
 
     try {
-      const upstream = await fetch(upstreamUrl, {
-        headers: {
-          Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml, */*",
-          "User-Agent": "PT-Universe-RSS-Proxy/1.0 (+https://github.com/XiminHu66/PT-Universe)",
-        },
-        signal: AbortSignal.timeout(18000),
-        cf: { cacheEverything: false },
-      });
-      if (!upstream.ok) {
-        return json(request, { ok: false, error: "upstream_error", status: upstream.status }, 502);
+      const upstream = await fetchUpstream(upstreamUrl);
+      if (!upstream.ok) throw new Error(`upstream_${upstream.status}`);
+      const metadata = {
+        contentType: upstream.headers.get("Content-Type") || "application/rss+xml; charset=utf-8",
+        fetchedAt: new Date().toISOString(),
+      };
+
+      if (!forceRefresh && env.RSS_CACHE) {
+        const { text, size } = await readTextBounded(upstream);
+        if (!text.trim() || !looksLikeFeed(text)) throw new Error("invalid_feed");
+        metadata.bytes = size;
+        ctx.waitUntil(env.RSS_CACHE.put(`${FEED_KEY_PREFIX}${feedId}`, text, { metadata }));
+        return feedResponse(request, text, metadata, "MISS", 200, method === "HEAD");
       }
 
-      const normalized = responseWithCors(request, upstream, forceRefresh ? "REFRESH" : "MISS");
-      ctx.waitUntil(cache.put(cacheKey, normalized.clone()));
-      return method === "HEAD" ? responseWithCors(request, normalized, forceRefresh ? "REFRESH" : "MISS", true) : normalized;
+      return feedResponse(request, upstream.body, metadata, "REFRESH", 200, method === "HEAD");
     } catch (error) {
-      return json(request, { ok: false, error: "upstream_unavailable", detail: String(error?.message || error).slice(0, 160) }, 504);
+      const cached = await readCachedFeed(env, feedId);
+      if (cached) return feedResponse(request, cached.value, cached.metadata, "STALE", 200, method === "HEAD");
+      return json(request, {
+        ok: false,
+        error: "upstream_unavailable",
+        detail: String(error?.message || error).slice(0, 160),
+      }, 504);
     }
+  },
+
+  async scheduled(controller, env) {
+    const scheduledAt = new Date(controller.scheduledTime).toISOString();
+    if (!shouldRunScheduledRefresh(controller.scheduledTime)) {
+      console.log(JSON.stringify({ event: "rss_refresh_skipped", scheduled_at: scheduledAt, timezone: PACIFIC_TIME_ZONE }));
+      return;
+    }
+    await refreshAllFeeds(env, scheduledAt);
   },
 };

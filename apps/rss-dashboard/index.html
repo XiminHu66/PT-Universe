@@ -115,7 +115,7 @@
         <button type="button" data-pane="about">工作方式</button>
       </div>
       <section class="dialog-pane active" id="pane-sources">
-        <p class="dialog-note">默认中文源每 4 小时聚合；内置 Cloudflare Worker 让顶部刷新按钮可以即时读取全部 RSS。</p>
+        <p class="dialog-note">默认中文源在美西时间 08:00–24:00 每小时由 Cloudflare 聚合；顶部刷新按钮仍可随时即时读取全部 RSS。</p>
         <div class="proxy-config">
           <div><strong>实时刷新代理</strong><small id="proxyStatus">正在读取默认 Cloudflare Worker</small></div>
           <label><span>Worker 地址</span><input id="proxyUrlInput" type="url" inputmode="url" placeholder="https://rss-orbit-proxy.xxx.workers.dev"></label>
@@ -130,7 +130,7 @@
             <label class="url-field">RSS 地址<input id="newFeedUrl" type="url" placeholder="https://example.com/feed.xml"></label>
             <button type="button" id="addFeedButton">添加并尝试读取</button>
           </div>
-          <small>本机订阅使用网站直连或公共代理读取；默认源使用仓库缓存，更稳定。</small>
+          <small>本机订阅使用网站直连或公共代理读取；默认源使用 Cloudflare KV 缓存，更稳定。</small>
         </div>
       </section>
       <section class="dialog-pane" id="pane-opml">
@@ -148,8 +148,8 @@
         <p class="dialog-note preference-note">窄屏和手机端仍会使用全屏速读，不受此比例影响。</p>
       </section>
       <section class="dialog-pane about-pane" id="pane-about">
-        <div class="about-card"><span>01</span><div><h3>定时聚合</h3><p>GitHub Action 每天 08:00 起每 4 小时抓取一次默认 RSS，并把结果保存在当前仓库。</p></div></div>
-        <div class="about-card"><span>02</span><div><h3>手动实时刷新</h3><p>点击顶部刷新按钮会通过 Cloudflare Worker 即时读取全部 RSS；失败来源自动保留仓库缓存。</p></div></div>
+        <div class="about-card"><span>01</span><div><h3>定时聚合</h3><p>Cloudflare 每天按美西时间 08:00–23:00 每小时抓取，并在 00:00 完成最后一次抓取；夜间进入休眠。</p></div></div>
+        <div class="about-card"><span>02</span><div><h3>手动实时刷新</h3><p>点击顶部刷新按钮会通过 Cloudflare Worker 即时读取全部 RSS；失败来源自动保留 KV 缓存。</p></div></div>
         <div class="about-card"><span>03</span><div><h3>本地优先</h3><p>已读、收藏、隐藏来源、主题、面板比例和本机订阅只存于浏览器，不需要账号。</p></div></div>
         <div class="about-card"><span>04</span><div><h3>原文阅读</h3><p>Dashboard 只整理标题与摘要，完整内容始终从原网站打开。</p></div></div>
       </section>
