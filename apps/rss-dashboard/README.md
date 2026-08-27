@@ -1,0 +1,20 @@
+# RSS Orbit
+
+A local-first RSS dashboard inside PT Universe. It provides Feedly-style inbox, today, unread and read-later views without an account.
+
+## Data model
+
+- Default feeds are configured in `config/feeds.json`.
+- `scripts/fetch_feeds.py` fetches and normalizes the feeds into `data/feed.json`.
+- `.github/workflows/refresh-rss.yml` refreshes the cache every 30 minutes and redeploys GitHub Pages.
+- Read state, saved articles, hidden sources, theme and browser-added feeds are stored in `localStorage`.
+- OPML import/export supports migration from Feedly and other readers.
+
+## Run the fetcher
+
+```bash
+python -m pip install -r requirements.txt
+python scripts/fetch_feeds.py
+```
+
+The UI is static and can be opened from the PT Universe deployment at `/apps/rss-dashboard/`.

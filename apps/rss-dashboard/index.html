@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f4f7f4">
+  <meta name="description" content="PT Universe 的本地优先中文 RSS 阅读器。">
+  <title>RSS Orbit · 你的信息收件箱</title>
+  <link rel="stylesheet" href="styles.css?v=20260827-1">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand-row">
+        <button class="mobile-close" id="mobileClose" aria-label="关闭菜单">×</button>
+        <a class="brand" href="./" aria-label="RSS Orbit 首页">
+          <span class="brand-mark">◉</span>
+          <span><strong>RSS ORBIT</strong><small>PERSONAL READER</small></span>
+        </a>
+      </div>
+
+      <nav class="main-nav" aria-label="阅读视图">
+        <button class="nav-item active" data-view="all"><span>⌂</span><b>全部文章</b><em id="allCount">0</em></button>
+        <button class="nav-item" data-view="today"><span>◷</span><b>今日更新</b><em id="todayCount">0</em></button>
+        <button class="nav-item" data-view="unread"><span>●</span><b>未读</b><em id="unreadCount">0</em></button>
+        <button class="nav-item" data-view="saved"><span>★</span><b>稍后读</b><em id="savedCount">0</em></button>
+      </nav>
+
+      <div class="side-section">
+        <div class="side-title"><span>分类</span><button id="manageButton" aria-label="管理订阅">＋</button></div>
+        <div id="categoryNav" class="feed-nav"></div>
+      </div>
+      <div class="side-section feeds-section">
+        <div class="side-title"><span>订阅源</span><small id="sourceCount">0</small></div>
+        <div id="feedNav" class="feed-nav"></div>
+      </div>
+      <footer class="side-footer">
+        <button id="settingsButton"><span>⚙</span> 订阅与数据</button>
+        <div class="sync-line"><i id="syncDot"></i><span id="syncText">正在读取缓存…</span></div>
+      </footer>
+    </aside>
+
+    <div class="scrim" id="scrim"></div>
+
+    <main class="workspace">
+      <header class="topbar">
+        <div class="top-title">
+          <button class="mobile-menu" id="mobileMenu" aria-label="打开菜单">☰</button>
+          <div><span id="eyebrow">INBOX</span><h1 id="viewTitle">全部文章</h1></div>
+        </div>
+        <div class="top-actions">
+          <label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="搜索标题、摘要或来源" autocomplete="off"><kbd>/</kbd></label>
+          <button class="icon-button" id="refreshButton" aria-label="刷新数据" title="刷新数据">↻</button>
+          <button class="icon-button" id="themeButton" aria-label="切换主题" title="切换主题">◐</button>
+        </div>
+      </header>
+
+      <section class="toolbar" aria-label="文章工具栏">
+        <div class="filter-group" id="quickFilters">
+          <button class="filter-pill active" data-filter="all">全部</button>
+          <button class="filter-pill" data-filter="unread">仅未读</button>
+          <button class="filter-pill" data-filter="image">有配图</button>
+          <button class="filter-pill" data-filter="saved">已收藏</button>
+        </div>
+        <div class="toolbar-actions">
+          <button id="sortButton" title="切换排序">最新优先 ↓</button>
+          <button id="markAllButton">全部标为已读</button>
+        </div>
+      </section>
+
+      <div class="content-grid" id="contentGrid">
+        <section class="article-column" aria-live="polite">
+          <div class="summary-strip">
+            <div><strong id="resultCount">0</strong><span>篇文章</span></div>
+            <p id="summaryText">从你的中文信息源整理而来</p>
+          </div>
+          <div id="articleList" class="article-list"></div>
+          <button id="loadMoreButton" class="load-more" hidden>继续加载</button>
+        </section>
+
+        <aside class="reader-panel" id="readerPanel" aria-label="文章预览">
+          <div id="readerEmpty" class="reader-empty">
+            <span>◌</span><h2>选择一篇文章</h2><p>在这里快速浏览摘要，再决定是否打开原文。</p>
+            <div class="shortcut-card"><b>快捷键</b><small><kbd>J</kbd>/<kbd>K</kbd> 切换　<kbd>O</kbd> 打开　<kbd>S</kbd> 收藏</small></div>
+          </div>
+          <article id="readerArticle" hidden>
+            <div class="reader-head">
+              <div class="reader-source"><span id="readerSourceIcon"></span><div><strong id="readerSource"></strong><small id="readerMeta"></small></div></div>
+              <button id="readerClose" aria-label="关闭预览">×</button>
+            </div>
+            <img id="readerImage" alt="" hidden>
+            <div class="reader-body">
+              <div class="reader-category" id="readerCategory"></div>
+              <h2 id="readerTitle"></h2>
+              <p id="readerSummary"></p>
+            </div>
+            <div class="reader-actions">
+              <button id="readerSave">☆ 稍后读</button>
+              <button id="readerUnread">标为未读</button>
+              <a id="readerOpen" target="_blank" rel="noopener">阅读原文 ↗</a>
+            </div>
+          </article>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="manageDialog" class="manage-dialog">
+    <form method="dialog" class="dialog-shell">
+      <header><div><span>LIBRARY</span><h2>订阅与数据</h2></div><button value="cancel" aria-label="关闭">×</button></header>
+      <div class="dialog-tabs">
+        <button type="button" class="active" data-pane="sources">订阅源</button>
+        <button type="button" data-pane="opml">导入与备份</button>
+        <button type="button" data-pane="about">工作方式</button>
+      </div>
+      <section class="dialog-pane active" id="pane-sources">
+        <p class="dialog-note">默认中文源由 PT Universe 定时抓取；关闭某个来源只影响当前浏览器。</p>
+        <div id="sourceManager" class="source-manager"></div>
+        <div class="add-source">
+          <h3>添加本机订阅</h3>
+          <div class="form-grid">
+            <label>名称<input id="newFeedName" placeholder="例如：我的博客"></label>
+            <label>分类<select id="newFeedCategory"><option value="finance">财经</option><option value="world">时事</option><option value="tech" selected>科技</option><option value="game">游戏</option><option value="other">其他</option></select></label>
+            <label class="url-field">RSS 地址<input id="newFeedUrl" type="url" placeholder="https://example.com/feed.xml"></label>
+            <button type="button" id="addFeedButton">添加并尝试读取</button>
+          </div>
+          <small>本机订阅使用网站直连或公共代理读取；默认源使用仓库缓存，更稳定。</small>
+        </div>
+      </section>
+      <section class="dialog-pane" id="pane-opml">
+        <div class="opml-grid">
+          <div><span>⇩</span><h3>从 Feedly 迁移</h3><p>在 Feedly 导出 OPML 后，可一次导入全部订阅。导入内容仅保存在当前浏览器。</p><label class="file-button">选择 OPML 文件<input id="opmlInput" type="file" accept=".opml,.xml,text/xml" hidden></label></div>
+          <div><span>⇧</span><h3>导出订阅</h3><p>把默认启用源和本机订阅导出为标准 OPML，随时可以迁移到其他阅读器。</p><button type="button" id="exportButton">导出 OPML</button></div>
+          <div><span>↺</span><h3>清理阅读状态</h3><p>只清除已读和稍后读记录，不会删除订阅源。</p><button type="button" class="danger" id="resetStateButton">清除阅读状态</button></div>
+        </div>
+      </section>
+      <section class="dialog-pane about-pane" id="pane-about">
+        <div class="about-card"><span>01</span><div><h3>定时聚合</h3><p>GitHub Action 每 30 分钟抓取一次默认 RSS，并把结果保存在当前仓库。</p></div></div>
+        <div class="about-card"><span>02</span><div><h3>本地优先</h3><p>已读、收藏、隐藏来源、主题和本机订阅只存于浏览器，不需要账号。</p></div></div>
+        <div class="about-card"><span>03</span><div><h3>原文阅读</h3><p>Dashboard 只整理标题与摘要，完整内容始终从原网站打开。</p></div></div>
+      </section>
+    </form>
+  </dialog>
+
+  <div id="toast" role="status"></div>
+  <a id="ptu-home-link" href="../../" aria-label="返回 PT Universe"><i aria-hidden="true">‹</i><span>PT Universe</span></a>
+  <script src="app.js?v=20260827-1"></script>
+</body>
+</html>
