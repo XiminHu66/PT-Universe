@@ -1,6 +1,17 @@
 {
-  "generated_at": "2026-08-27T19:28:13Z",
+  "generated_at": "2026-08-27T20:40:59Z",
   "items": [
+    {
+      "id": "fec3f5cd5205c92a",
+      "source": "gcores",
+      "source_label": "机核 GCORES",
+      "category": "中文游戏文化",
+      "title": "“分量十足的一瞥”：《GTA6》全新加长版预告正式公布",
+      "url": "https://www.gcores.com/articles/218919",
+      "summary": "《GTA6》全新加长版预告“分量十足的一瞥”正式公布。本次官方推出分量十足的一瞥，让玩家见证锐意革新的 GTA 系列的下一步演化。 <内嵌内容，请前往机核查看>",
+      "image": "https://image.gcores.com/4372f1db80c78ada4065f3ace6382ca2-800-450.webp?x-oss-process=image/resize,limit_1,m_fill,w_626,h_292/quality,q_90",
+      "published_at": "2026-08-27T19:37:33Z"
+    },
     {
       "id": "2bac7353106ba04e",
       "source": "gnn",
@@ -552,17 +563,6 @@
       "published_at": "2026-08-27T01:20:00Z"
     },
     {
-      "id": "bedfa5f079725920",
-      "source": "gcores",
-      "source_label": "机核 GCORES",
-      "category": "中文游戏文化",
-      "title": "Raw Fury 公布全新合作类高尔夫平台跳跃游戏《拜拜邦妮》",
-      "url": "https://www.gcores.com/articles/218813",
-      "summary": "在斯德哥尔摩的未来游戏展（Future Games Show）上，瑞典独立游戏发行商 Raw Fury 集中公布了多款新作，展示了旗下备受期待的储备产品阵容。 Raw Fury 正式揭晓新作《拜拜邦妮》，这款手工打造的合作冒险游戏由 Brainwash Gang 工作室开发。 《拜拜邦妮》是一款手工质感十足的物理冒险游戏，巧妙融合了精准平台跳跃与高尔夫式击球机制。在这个诡谲而忧伤的后末日世界里，你将化身为那颗“球”——操控一具巨型骷髅，在蜿蜒的关卡中辗转腾挪。游戏支持最多4人",
-      "image": "https://image.gcores.com/5db539de806ae2a760393d80a3580943-1920-1080.jpg?x-oss-process=image/resize,limit_1,m_fill,w_626,h_292/quality,q_90",
-      "published_at": "2026-08-27T01:00:00Z"
-    },
-    {
       "id": "f25b136ebe812869",
       "source": "gamelook",
       "source_label": "GameLook 游戏大观",
@@ -799,25 +799,25 @@
       "label": "巴哈姆特 GNN",
       "ok": true,
       "count": 24,
-      "checked_at": "2026-08-27T19:28:13Z"
+      "checked_at": "2026-08-27T20:40:59Z"
     },
     "gcores": {
       "label": "机核 GCORES",
       "ok": true,
       "count": 20,
-      "checked_at": "2026-08-27T19:28:13Z"
+      "checked_at": "2026-08-27T20:40:59Z"
     },
     "yystv": {
       "label": "游研社",
       "ok": true,
       "count": 12,
-      "checked_at": "2026-08-27T19:28:13Z"
+      "checked_at": "2026-08-27T20:40:59Z"
     },
     "gamelook": {
       "label": "GameLook 游戏大观",
       "ok": true,
       "count": 24,
-      "checked_at": "2026-08-27T19:28:13Z"
+      "checked_at": "2026-08-27T20:40:59Z"
     }
   }
 }

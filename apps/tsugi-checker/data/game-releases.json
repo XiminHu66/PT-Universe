@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-27T19:28:13Z",
+  "generated_at": "2026-08-27T20:40:59Z",
   "date_jst": "2026-08-28",
   "window": {
     "past_days": 7,
@@ -218,8 +218,8 @@
         "days_from_today": -3,
         "is_today": false,
         "timeline_status": "past",
-        "rating": 4.16667,
-        "rating_count": 6,
+        "rating": 4.5,
+        "rating_count": 2,
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
@@ -340,6 +340,87 @@
         ],
         "heat_level": "medium",
         "heat_score": 67.0
+      },
+      {
+        "id": "44e7af2dac98a236",
+        "category": "mobile",
+        "source": "taptap_cn_upcoming",
+        "source_label": "TapTap 中国 · 即将首发",
+        "store": "TapTap",
+        "title": "塔塔冒险队截图",
+        "url": "https://www.taptap.cn/app/866257",
+        "cover": "https://img-tc.tapimg.com/market/images/7306cd0ea31558368e1bc85e3e3a20e7.jpg/_tap_banner.jpg",
+        "platforms": [
+          "移动端"
+        ],
+        "release_date": "2026-09-03",
+        "release_text": "09/03 首发",
+        "region": "CN",
+        "featured": true,
+        "rating": 6.8,
+        "popularity_label": "TapTap 即将上线",
+        "first_seen": "2026-08-28",
+        "days_from_today": 6,
+        "is_today": false,
+        "timeline_status": "upcoming",
+        "heat_label": "",
+        "heat_labels": [],
+        "heat_level": "none",
+        "heat_score": 0.0
+      },
+      {
+        "id": "f5e69dfb07d52235",
+        "category": "mobile",
+        "source": "taptap_cn_upcoming",
+        "source_label": "TapTap 中国 · 即将首发",
+        "store": "TapTap",
+        "title": "魔幻砖域截图",
+        "url": "https://www.taptap.cn/app/862677",
+        "cover": "https://img-tc.tapimg.com/market/images/216600d83a1985910d71b5355f8e1592.png/_tap_banner.jpg",
+        "platforms": [
+          "移动端"
+        ],
+        "release_date": "2026-09-04",
+        "release_text": "09/04 首发",
+        "region": "CN",
+        "featured": true,
+        "rating": null,
+        "popularity_label": "TapTap 即将上线",
+        "first_seen": "2026-08-14",
+        "days_from_today": 7,
+        "is_today": false,
+        "timeline_status": "upcoming",
+        "heat_label": "",
+        "heat_labels": [],
+        "heat_level": "none",
+        "heat_score": 0.0
+      },
+      {
+        "id": "950459e24c6ec28c",
+        "category": "mobile",
+        "source": "taptap_cn_upcoming",
+        "source_label": "TapTap 中国 · 即将首发",
+        "store": "TapTap",
+        "title": "王者万象棋截图",
+        "url": "https://www.taptap.cn/app/243110",
+        "cover": "https://img-tc.tapimg.com/market/images/be4927cfa83ea1a84f19465017174781.jpg/_tap_banner.jpg",
+        "platforms": [
+          "移动端"
+        ],
+        "release_date": "2026-09-09",
+        "release_text": "09/09 首发",
+        "region": "CN",
+        "featured": true,
+        "rating": 7.7,
+        "popularity_label": "TapTap 即将上线",
+        "first_seen": "2026-08-28",
+        "days_from_today": 12,
+        "is_today": false,
+        "timeline_status": "upcoming",
+        "heat_label": "",
+        "heat_labels": [],
+        "heat_level": "none",
+        "heat_score": 0.0
       }
     ],
     "pc": [
@@ -351,7 +432,7 @@
         "store": "Steam",
         "title": "CICADAMATA\"",
         "url": "https://store.steampowered.com/app/3817250/CICADAMATA/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3817250/381867c88c95fce5b8e8c8202fb3e02e562954fd/capsule_231x87.jpg?t=1787331646",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3817250/381867c88c95fce5b8e8c8202fb3e02e562954fd/capsule_231x87.jpg?t=1787331646",
         "platforms": [
           "PC"
         ],
@@ -372,8 +453,8 @@
           "动作",
           "独立"
         ],
-        "review_count": 1047,
-        "review_positive": 1019,
+        "review_count": 1049,
+        "review_positive": 1021,
         "review_negative": 28,
         "review_positive_percent": 97,
         "review_score_desc": "好评如潮",
@@ -382,7 +463,7 @@
           "有讨论度"
         ],
         "heat_level": "medium",
-        "heat_score": 57.39,
+        "heat_score": 57.4,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -394,7 +475,7 @@
         "store": "Steam",
         "title": "VHOLUME",
         "url": "https://store.steampowered.com/app/4131730/VHOLUME/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4131730/1eae8c678a24821f505ff8ab4f150697672ce092/capsule_231x87.jpg?t=1787478152",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4131730/1eae8c678a24821f505ff8ab4f150697672ce092/capsule_231x87.jpg?t=1787478152",
         "platforms": [
           "PC"
         ],
@@ -417,8 +498,8 @@
           "休闲",
           "独立"
         ],
-        "review_count": 1629,
-        "review_positive": 1587,
+        "review_count": 1636,
+        "review_positive": 1594,
         "review_negative": 42,
         "review_positive_percent": 97,
         "review_score_desc": "好评如潮",
@@ -427,7 +508,7 @@
           "有讨论度"
         ],
         "heat_level": "medium",
-        "heat_score": 61.03,
+        "heat_score": 61.07,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -439,7 +520,7 @@
         "store": "Steam",
         "title": "Bar After Bar",
         "url": "https://store.steampowered.com/app/4596010/Bar_After_Bar/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4596010/0cb8fb5f5404e46cda413592827582f0c8a1b9d7/capsule_231x87.jpg?t=1787735298",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4596010/0cb8fb5f5404e46cda413592827582f0c8a1b9d7/capsule_231x87.jpg?t=1787735298",
         "platforms": [
           "PC"
         ],
@@ -461,15 +542,15 @@
           "休闲",
           "独立"
         ],
-        "review_count": 104,
+        "review_count": 105,
         "review_positive": 86,
-        "review_negative": 18,
-        "review_positive_percent": 83,
+        "review_negative": 19,
+        "review_positive_percent": 82,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 38.4,
+        "heat_score": 38.48,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -481,7 +562,7 @@
         "store": "Steam",
         "title": "Combolands: Roguelike Citybuilder",
         "url": "https://store.steampowered.com/app/4075620/Combolands_Roguelike_Citybuilder/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4075620/5f264ff8c29a1a5f848ffc2997482a618ecafd8d/capsule_231x87.jpg?t=1787743588",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4075620/5f264ff8c29a1a5f848ffc2997482a618ecafd8d/capsule_231x87.jpg?t=1787743588",
         "platforms": [
           "PC"
         ],
@@ -502,15 +583,15 @@
           "独立",
           "策略"
         ],
-        "review_count": 352,
-        "review_positive": 340,
+        "review_count": 354,
+        "review_positive": 342,
         "review_negative": 12,
         "review_positive_percent": 97,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 48.41,
+        "heat_score": 48.45,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -522,7 +603,7 @@
         "store": "Steam",
         "title": "Eslabong",
         "url": "https://store.steampowered.com/app/4560660/Eslabong/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4560660/88ca34319729efd5e702eb73ec1ed3042f09b7ef/capsule_231x87.jpg?t=1787711770",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4560660/88ca34319729efd5e702eb73ec1ed3042f09b7ef/capsule_231x87.jpg?t=1787711770",
         "platforms": [
           "PC"
         ],
@@ -546,15 +627,15 @@
           "策略",
           "抢先体验"
         ],
-        "review_count": 304,
-        "review_positive": 284,
-        "review_negative": 20,
+        "review_count": 309,
+        "review_positive": 288,
+        "review_negative": 21,
         "review_positive_percent": 93,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 47.2,
+        "heat_score": 47.34,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -566,7 +647,7 @@
         "store": "Steam",
         "title": "FEED THE AI",
         "url": "https://store.steampowered.com/app/4486870/FEED_THE_AI/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4486870/a43c8fc4ca7aad2b8e03b6a37bc6cabe40949adb/capsule_231x87.jpg?t=1787847652",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4486870/a43c8fc4ca7aad2b8e03b6a37bc6cabe40949adb/capsule_231x87.jpg?t=1787847652",
         "platforms": [
           "PC"
         ],
@@ -588,15 +669,15 @@
           "模拟",
           "策略"
         ],
-        "review_count": 268,
-        "review_positive": 249,
+        "review_count": 270,
+        "review_positive": 251,
         "review_negative": 19,
         "review_positive_percent": 93,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 46.17,
+        "heat_score": 46.23,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -608,7 +689,7 @@
         "store": "Steam",
         "title": "Iron Blight",
         "url": "https://store.steampowered.com/app/4001350/Iron_Blight/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4001350/fc37df5876d07c5d63dc77aa3a97d875aa6b706d/capsule_231x87.jpg?t=1787587259",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4001350/fc37df5876d07c5d63dc77aa3a97d875aa6b706d/capsule_231x87.jpg?t=1787587259",
         "platforms": [
           "PC"
         ],
@@ -629,15 +710,15 @@
           "动作",
           "独立"
         ],
-        "review_count": 257,
-        "review_positive": 233,
+        "review_count": 258,
+        "review_positive": 234,
         "review_negative": 24,
         "review_positive_percent": 91,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 45.82,
+        "heat_score": 45.85,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -649,7 +730,7 @@
         "store": "Steam",
         "title": "Money for Girls: Amortized",
         "url": "https://store.steampowered.com/app/4833450/Money_for_Girls_Amortized/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4833450/87e3dec9f91181b927c00a5aa73e804d0426c240/capsule_231x87.jpg?t=1787590854",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4833450/87e3dec9f91181b927c00a5aa73e804d0426c240/capsule_231x87.jpg?t=1787590854",
         "platforms": [
           "PC"
         ],
@@ -670,15 +751,15 @@
           "独立",
           "角色扮演"
         ],
-        "review_count": 230,
-        "review_positive": 227,
+        "review_count": 233,
+        "review_positive": 230,
         "review_negative": 3,
         "review_positive_percent": 99,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 44.91,
+        "heat_score": 45.02,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -690,7 +771,7 @@
         "store": "Steam",
         "title": "Shelve the Potions!",
         "url": "https://store.steampowered.com/app/4928820/Shelve_the_Potions/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4928820/d53a8b194791e4db0cc05e8d8990bf4dcdac1f34/capsule_231x87_alt_assets_1.jpg?t=1787651432",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4928820/d53a8b194791e4db0cc05e8d8990bf4dcdac1f34/capsule_231x87_alt_assets_1.jpg?t=1787651432",
         "platforms": [
           "PC"
         ],
@@ -712,15 +793,15 @@
           "独立",
           "模拟"
         ],
-        "review_count": 163,
-        "review_positive": 141,
+        "review_count": 164,
+        "review_positive": 142,
         "review_negative": 22,
         "review_positive_percent": 87,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 42.08,
+        "heat_score": 42.13,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -732,7 +813,7 @@
         "store": "Steam",
         "title": "Ultrapool",
         "url": "https://store.steampowered.com/app/4195110/Ultrapool/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4195110/134bf8acbbdc7b63f644e363de353ddc948ebfbb/capsule_231x87.jpg?t=1787572553",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4195110/134bf8acbbdc7b63f644e363de353ddc948ebfbb/capsule_231x87.jpg?t=1787572553",
         "platforms": [
           "PC"
         ],
@@ -755,15 +836,15 @@
           "体育",
           "策略"
         ],
-        "review_count": 93,
-        "review_positive": 81,
+        "review_count": 94,
+        "review_positive": 82,
         "review_negative": 12,
         "review_positive_percent": 87,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 37.49,
+        "heat_score": 37.58,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -775,7 +856,7 @@
         "store": "Steam",
         "title": "Aliens: Fireteam Elite 2",
         "url": "https://store.steampowered.com/app/3448650/Aliens_Fireteam_Elite_2/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3448650/ca75b2be4cfcfbbb74518f8bf963f09bbc111bf5/capsule_231x87.jpg?t=1787772466",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3448650/ca75b2be4cfcfbbb74518f8bf963f09bbc111bf5/capsule_231x87.jpg?t=1787772466",
         "platforms": [
           "PC"
         ],
@@ -795,9 +876,9 @@
         "tags": [
           "动作"
         ],
-        "review_count": 2057,
-        "review_positive": 1263,
-        "review_negative": 794,
+        "review_count": 2070,
+        "review_positive": 1269,
+        "review_negative": 801,
         "review_positive_percent": 61,
         "review_score_desc": "褒贬不一",
         "heat_label": "有讨论度",
@@ -805,7 +886,7 @@
           "有讨论度"
         ],
         "heat_level": "medium",
-        "heat_score": 62.96,
+        "heat_score": 63.01,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -817,7 +898,7 @@
         "store": "Steam",
         "title": "Blood Dungeon",
         "url": "https://store.steampowered.com/app/2431080/Blood_Dungeon/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2431080/dc74858eaedfd7e54d15033f0fcfe55fdaf5226d/capsule_231x87.jpg?t=1787700409",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2431080/dc74858eaedfd7e54d15033f0fcfe55fdaf5226d/capsule_231x87.jpg?t=1787700409",
         "platforms": [
           "PC"
         ],
@@ -858,7 +939,7 @@
         "store": "Steam",
         "title": "Microsoft Flight Simulator (2020) 40th Anniversary Edition",
         "url": "https://store.steampowered.com/app/1250410/Microsoft_Flight_Simulator_2020_40th_Anniversary_Edition/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1250410/capsule_231x87.jpg?t=1787671433",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1250410/capsule_231x87.jpg?t=1787671433",
         "platforms": [
           "PC"
         ],
@@ -878,8 +959,8 @@
         "tags": [
           "模拟"
         ],
-        "review_count": 72743,
-        "review_positive": 57211,
+        "review_count": 72744,
+        "review_positive": 57212,
         "review_negative": 15532,
         "review_positive_percent": 79,
         "review_score_desc": "多半好评",
@@ -901,7 +982,7 @@
         "store": "Steam",
         "title": "Sludgineers",
         "url": "https://store.steampowered.com/app/4073860/Sludgineers/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4073860/6cb8376da45b5b8ff39a649f81e0f02d4e035340/capsule_231x87.jpg?t=1787856382",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4073860/6cb8376da45b5b8ff39a649f81e0f02d4e035340/capsule_231x87.jpg?t=1787856382",
         "platforms": [
           "PC"
         ],
@@ -924,15 +1005,15 @@
           "休闲",
           "模拟"
         ],
-        "review_count": 498,
-        "review_positive": 411,
-        "review_negative": 87,
-        "review_positive_percent": 83,
+        "review_count": 510,
+        "review_positive": 420,
+        "review_negative": 90,
+        "review_positive_percent": 82,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 51.26,
+        "heat_score": 51.46,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -944,7 +1025,7 @@
         "store": "Steam",
         "title": "Click the Button",
         "url": "https://store.steampowered.com/app/3946950/Click_the_Button/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3946950/322299ee17e59eafc395a1b9d023612bd7a17f87/capsule_231x87.jpg?t=1787768674",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3946950/322299ee17e59eafc395a1b9d023612bd7a17f87/capsule_231x87.jpg?t=1787768674",
         "platforms": [
           "PC"
         ],
@@ -966,9 +1047,9 @@
           "独立",
           "模拟"
         ],
-        "review_count": 1066,
-        "review_positive": 1001,
-        "review_negative": 65,
+        "review_count": 1088,
+        "review_positive": 1024,
+        "review_negative": 64,
         "review_positive_percent": 94,
         "review_score_desc": "特别好评",
         "heat_label": "有讨论度",
@@ -976,7 +1057,7 @@
           "有讨论度"
         ],
         "heat_level": "medium",
-        "heat_score": 57.54,
+        "heat_score": 57.7,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -988,7 +1069,7 @@
         "store": "Steam",
         "title": "Fatal Claw",
         "url": "https://store.steampowered.com/app/2827750/Fatal_Claw/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2827750/51e25c8198055dda1e23f3df4deb6b80cc38ca2d/capsule_231x87.jpg?t=1787727739",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2827750/51e25c8198055dda1e23f3df4deb6b80cc38ca2d/capsule_231x87.jpg?t=1787727739",
         "platforms": [
           "PC"
         ],
@@ -1030,7 +1111,7 @@
         "store": "Steam",
         "title": "Fell & Sell",
         "url": "https://store.steampowered.com/app/4627110/Fell__Sell/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4627110/58f86a9cf3bf33495e3f603079a4096e785509a1/capsule_231x87.jpg?t=1787851439",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4627110/58f86a9cf3bf33495e3f603079a4096e785509a1/capsule_231x87.jpg?t=1787851439",
         "platforms": [
           "PC"
         ],
@@ -1053,15 +1134,15 @@
           "角色扮演",
           "模拟"
         ],
-        "review_count": 293,
-        "review_positive": 221,
-        "review_negative": 72,
+        "review_count": 302,
+        "review_positive": 227,
+        "review_negative": 75,
         "review_positive_percent": 75,
         "review_score_desc": "多半好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 46.9,
+        "heat_score": 47.15,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1073,7 +1154,7 @@
         "store": "Steam",
         "title": "Folk Emerging",
         "url": "https://store.steampowered.com/app/2275300/Folk_Emerging/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2275300/af1081275f2b3477e656d093be7eed3905028d6b/capsule_231x87.jpg?t=1787762385",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2275300/af1081275f2b3477e656d093be7eed3905028d6b/capsule_231x87.jpg?t=1787762385",
         "platforms": [
           "PC"
         ],
@@ -1116,7 +1197,7 @@
         "store": "Steam",
         "title": "Lou's Lagoon",
         "url": "https://store.steampowered.com/app/2100020/Lous_Lagoon/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2100020/11b350eff342fcdeca2d49031643997a90ac92c1/capsule_231x87.jpg?t=1787839211",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2100020/11b350eff342fcdeca2d49031643997a90ac92c1/capsule_231x87.jpg?t=1787839211",
         "platforms": [
           "PC"
         ],
@@ -1138,15 +1219,15 @@
           "冒险",
           "模拟"
         ],
-        "review_count": 24,
-        "review_positive": 19,
+        "review_count": 28,
+        "review_positive": 23,
         "review_negative": 5,
-        "review_positive_percent": 79,
-        "review_score_desc": "多半好评",
+        "review_positive_percent": 82,
+        "review_score_desc": "好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 26.56,
+        "heat_score": 27.79,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1158,7 +1239,7 @@
         "store": "Steam",
         "title": "Night Rolls Cozy Store",
         "url": "https://store.steampowered.com/app/965190/Night_Rolls_Cozy_Store/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/965190/fb02972ec48664758214fea4f4530402fcac7c82/capsule_231x87.jpg?t=1787758601",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/965190/fb02972ec48664758214fea4f4530402fcac7c82/capsule_231x87.jpg?t=1787758601",
         "platforms": [
           "PC"
         ],
@@ -1180,15 +1261,15 @@
           "独立",
           "模拟"
         ],
-        "review_count": 80,
-        "review_positive": 69,
+        "review_count": 81,
+        "review_positive": 70,
         "review_negative": 11,
         "review_positive_percent": 86,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 36.26,
+        "heat_score": 36.36,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1200,7 +1281,7 @@
         "store": "Steam",
         "title": "Shadow Dungeon",
         "url": "https://store.steampowered.com/app/4423580/Shadow_Dungeon/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4423580/733613c22fca72b0399ed6147890e71587828e3b/capsule_231x87.jpg?t=1787744876",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4423580/733613c22fca72b0399ed6147890e71587828e3b/capsule_231x87.jpg?t=1787744876",
         "platforms": [
           "PC"
         ],
@@ -1222,15 +1303,15 @@
           "冒险",
           "角色扮演"
         ],
-        "review_count": 438,
-        "review_positive": 368,
-        "review_negative": 70,
+        "review_count": 445,
+        "review_positive": 374,
+        "review_negative": 71,
         "review_positive_percent": 84,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 50.21,
+        "heat_score": 50.34,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1242,7 +1323,7 @@
         "store": "Steam",
         "title": "States of Power",
         "url": "https://store.steampowered.com/app/3126500/States_of_Power/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3126500/f8eb761b8ec088a2d0e0b5c59a7448edc7cb4a04/capsule_231x87.jpg?t=1787766749",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3126500/f8eb761b8ec088a2d0e0b5c59a7448edc7cb4a04/capsule_231x87.jpg?t=1787766749",
         "platforms": [
           "PC"
         ],
@@ -1263,15 +1344,15 @@
           "模拟",
           "策略"
         ],
-        "review_count": 110,
-        "review_positive": 98,
+        "review_count": 113,
+        "review_positive": 101,
         "review_negative": 12,
         "review_positive_percent": 89,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 38.86,
+        "heat_score": 39.08,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1283,7 +1364,7 @@
         "store": "Steam",
         "title": "CAPTAIN TSUBASA 2: WORLD FIGHTERS",
         "url": "https://store.steampowered.com/app/2172910/CAPTAIN_TSUBASA_2_WORLD_FIGHTERS/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2172910/ec22e9816bf3c0cdffa04a10a40cd362284f6f46/capsule_231x87.jpg?t=1786012449",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2172910/ec22e9816bf3c0cdffa04a10a40cd362284f6f46/capsule_231x87.jpg?t=1786012449",
         "platforms": [
           "PC"
         ],
@@ -1322,7 +1403,7 @@
         "store": "Steam",
         "title": "Gawr Gura: Quest for Bread",
         "url": "https://store.steampowered.com/app/2054520/Gawr_Gura_Quest_for_Bread/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2054520/b6791e11619f0040d61f76d2e66ef6f3c534aa1d/capsule_231x87.jpg?t=1787845878",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2054520/b6791e11619f0040d61f76d2e66ef6f3c534aa1d/capsule_231x87.jpg?t=1787845878",
         "platforms": [
           "PC"
         ],
@@ -1344,15 +1425,15 @@
           "冒险",
           "独立"
         ],
-        "review_count": 16,
-        "review_positive": 16,
+        "review_count": 20,
+        "review_positive": 20,
         "review_negative": 0,
         "review_positive_percent": 100,
         "review_score_desc": "好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 23.38,
+        "heat_score": 25.12,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1364,7 +1445,7 @@
         "store": "Steam",
         "title": "METAL GEAR SOLID 4: Guns of the Patriots - Master Collection Version",
         "url": "https://store.steampowered.com/app/2492670/METAL_GEAR_SOLID_4_Guns_of_the_Patriots__Master_Collection_Version/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2492670/3b47bbb2415a3b5d76316b2cf9c4063e8f03759a/capsule_231x87.jpg?t=1787835863",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2492670/3b47bbb2415a3b5d76316b2cf9c4063e8f03759a/capsule_231x87.jpg?t=1787835863",
         "platforms": [
           "PC"
         ],
@@ -1385,9 +1466,9 @@
           "动作",
           "冒险"
         ],
-        "review_count": 357,
-        "review_positive": 331,
-        "review_negative": 26,
+        "review_count": 411,
+        "review_positive": 382,
+        "review_negative": 29,
         "review_positive_percent": 93,
         "review_score_desc": "特别好评",
         "heat_label": "知名发行商",
@@ -1395,7 +1476,7 @@
           "知名发行商"
         ],
         "heat_level": "medium",
-        "heat_score": 66.52,
+        "heat_score": 67.68,
         "notable_publisher": true,
         "notable_publisher_name": "KONAMI"
       },
@@ -1407,7 +1488,7 @@
         "store": "Steam",
         "title": "METAL GEAR SOLID: MASTER COLLECTION Vol.2",
         "url": "https://store.steampowered.com/app/3859630/METAL_GEAR_SOLID_MASTER_COLLECTION_Vol2/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3859630/a535e2d0ad9f9483ca1c01b68d4df708e4e673f8/capsule_231x87.jpg?t=1787837610",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3859630/a535e2d0ad9f9483ca1c01b68d4df708e4e673f8/capsule_231x87.jpg?t=1787837610",
         "platforms": [
           "PC"
         ],
@@ -1450,7 +1531,7 @@
         "store": "Steam",
         "title": "Resonance: A Plague Tale Legacy",
         "url": "https://store.steampowered.com/app/2713000/Resonance_A_Plague_Tale_Legacy/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2713000/0d06636f2a2c3dcf0b473c91212f36a0b3e2e1a8/capsule_231x87.jpg?t=1787849814",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2713000/0d06636f2a2c3dcf0b473c91212f36a0b3e2e1a8/capsule_231x87.jpg?t=1787849814",
         "platforms": [
           "PC"
         ],
@@ -1471,9 +1552,9 @@
           "动作",
           "冒险"
         ],
-        "review_count": 105,
-        "review_positive": 98,
-        "review_negative": 7,
+        "review_count": 149,
+        "review_positive": 139,
+        "review_negative": 10,
         "review_positive_percent": 93,
         "review_score_desc": "特别好评",
         "heat_label": "知名发行商",
@@ -1481,53 +1562,9 @@
           "知名发行商"
         ],
         "heat_level": "medium",
-        "heat_score": 56.48,
+        "heat_score": 59.35,
         "notable_publisher": true,
         "notable_publisher_name": "Focus Entertainment"
-      },
-      {
-        "id": "steam-steam_popular_new-3977290",
-        "category": "pc",
-        "source": "steam_popular_new",
-        "source_label": "Steam · Popular New Releases",
-        "store": "Steam",
-        "title": "Rewind 99",
-        "url": "https://store.steampowered.com/app/3977290/Rewind_99/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3977290/6a295866d12d9368d2b16568ae9b9c9a8c02df8f/capsule_231x87.jpg?t=1787854501",
-        "platforms": [
-          "PC"
-        ],
-        "release_date": "2026-08-27",
-        "release_text": "Aug 27, 2026",
-        "featured": true,
-        "popularity_label": "Steam 热门",
-        "steam_appid": "3977290",
-        "title_en": "Rewind 99",
-        "title_zh": "Rewind 99",
-        "developers": [
-          "Gunmetal Games",
-          "Real Fake Games"
-        ],
-        "publishers": [
-          "Gunmetal Games"
-        ],
-        "tags": [
-          "动作",
-          "休闲",
-          "独立",
-          "模拟"
-        ],
-        "review_count": 478,
-        "review_positive": 367,
-        "review_negative": 111,
-        "review_positive_percent": 77,
-        "review_score_desc": "多半好评",
-        "heat_label": "",
-        "heat_labels": [],
-        "heat_level": "none",
-        "heat_score": 50.93,
-        "notable_publisher": false,
-        "notable_publisher_name": ""
       },
       {
         "id": "steam-steam_popular_new-2824880",
@@ -1537,7 +1574,7 @@
         "store": "Steam",
         "title": "SHRIMP GAME: OVERKRILL",
         "url": "https://store.steampowered.com/app/2824880/SHRIMP_GAME_OVERKRILL/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2824880/c2926043fd11f5c3bd974ddf14fedaa3efbd9156/capsule_231x87.jpg?t=1787839421",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2824880/c2926043fd11f5c3bd974ddf14fedaa3efbd9156/capsule_231x87.jpg?t=1787839421",
         "platforms": [
           "PC"
         ],
@@ -1580,7 +1617,7 @@
         "store": "Steam",
         "title": "Sigma World Online",
         "url": "https://store.steampowered.com/app/1690980/Sigma_World_Online/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1690980/capsule_231x87.jpg?t=1787708797",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1690980/capsule_231x87.jpg?t=1787708797",
         "platforms": [
           "PC"
         ],
@@ -1619,7 +1656,7 @@
         "store": "Steam",
         "title": "STAR WARS Zero Company™",
         "url": "https://store.steampowered.com/app/2075800/STAR_WARS_Zero_Company/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2075800/56484e8832119b4b37b3fa3a6a5ec23209cd835c/capsule_231x87.jpg?t=1787848803",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2075800/56484e8832119b4b37b3fa3a6a5ec23209cd835c/capsule_231x87.jpg?t=1787848803",
         "platforms": [
           "PC"
         ],
@@ -1643,19 +1680,62 @@
           "体育",
           "策略"
         ],
-        "review_count": 949,
-        "review_positive": 591,
-        "review_negative": 358,
-        "review_positive_percent": 62,
+        "review_count": 1291,
+        "review_positive": 858,
+        "review_negative": 433,
+        "review_positive_percent": 66,
         "review_score_desc": "褒贬不一",
-        "heat_label": "知名发行商",
+        "heat_label": "有讨论度",
         "heat_labels": [
+          "有讨论度",
           "知名发行商"
         ],
         "heat_level": "medium",
-        "heat_score": 74.58,
+        "heat_score": 77.11,
         "notable_publisher": true,
         "notable_publisher_name": "Electronic Arts"
+      },
+      {
+        "id": "steam-steam_popular_new-4406280",
+        "category": "pc",
+        "source": "steam_popular_new",
+        "source_label": "Steam · Popular New Releases",
+        "store": "Steam",
+        "title": "the cabin game",
+        "url": "https://store.steampowered.com/app/4406280/the_cabin_game/",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4406280/b3f435f29345cfc7a6353c4ca2b35cee7331bd87/capsule_231x87.jpg?t=1787842454",
+        "platforms": [
+          "PC"
+        ],
+        "release_date": "2026-08-27",
+        "release_text": "Aug 27, 2026",
+        "featured": true,
+        "popularity_label": "Steam 热门",
+        "steam_appid": "4406280",
+        "title_en": "the cabin game",
+        "title_zh": "the cabin game",
+        "developers": [
+          "Twisted Corridor👻"
+        ],
+        "publishers": [
+          "Twisted Corridor👻"
+        ],
+        "tags": [
+          "动作",
+          "独立",
+          "抢先体验"
+        ],
+        "review_count": 14,
+        "review_positive": 14,
+        "review_negative": 0,
+        "review_positive_percent": 100,
+        "review_score_desc": "好评",
+        "heat_label": "",
+        "heat_labels": [],
+        "heat_level": "none",
+        "heat_score": 22.35,
+        "notable_publisher": false,
+        "notable_publisher_name": ""
       },
       {
         "id": "steam-steam_popular_upcoming-1530850",
@@ -1665,7 +1745,7 @@
         "store": "Steam",
         "title": "A Little Age",
         "url": "https://store.steampowered.com/app/1530850/A_Little_Age/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1530850/f2e5418f40605d5b40b56a0a57571fc51a140227/capsule_231x87.jpg?t=1786047205",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1530850/f2e5418f40605d5b40b56a0a57571fc51a140227/capsule_231x87.jpg?t=1786047205",
         "platforms": [
           "PC"
         ],
@@ -1705,7 +1785,7 @@
         "store": "Steam",
         "title": "Alice's Gaze",
         "url": "https://store.steampowered.com/app/4529120/Alices_Gaze/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4529120/5ec8aced8e9a5a9a280617a87abdd61587f6820b/capsule_231x87.jpg?t=1787760585",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4529120/5ec8aced8e9a5a9a280617a87abdd61587f6820b/capsule_231x87.jpg?t=1787760585",
         "platforms": [
           "PC"
         ],
@@ -1746,7 +1826,7 @@
         "store": "Steam",
         "title": "Allumeria",
         "url": "https://store.steampowered.com/app/3516590/Allumeria/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3516590/91cb3941e17bd7e54fc77b64b37e019c8ae0181c/capsule_231x87.jpg?t=1787482458",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3516590/91cb3941e17bd7e54fc77b64b37e019c8ae0181c/capsule_231x87.jpg?t=1787482458",
         "platforms": [
           "PC"
         ],
@@ -1784,7 +1864,7 @@
         "store": "Steam",
         "title": "Backrooms Protocol",
         "url": "https://store.steampowered.com/app/4287480/Backrooms_Protocol/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4287480/d6dbcb3f93a1a04038df9a8eefcc079cd171807e/capsule_231x87.jpg?t=1787037654",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4287480/d6dbcb3f93a1a04038df9a8eefcc079cd171807e/capsule_231x87.jpg?t=1787037654",
         "platforms": [
           "PC"
         ],
@@ -1822,7 +1902,7 @@
         "store": "Steam",
         "title": "Board Game Society",
         "url": "https://store.steampowered.com/app/3037040/Board_Game_Society/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3037040/6d1f9d279eb9cd3235effaf5f530ed48ffd6ba23/capsule_231x87.jpg?t=1787834315",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3037040/6d1f9d279eb9cd3235effaf5f530ed48ffd6ba23/capsule_231x87.jpg?t=1787834315",
         "platforms": [
           "PC"
         ],
@@ -1861,7 +1941,7 @@
         "store": "Steam",
         "title": "Construction Company",
         "url": "https://store.steampowered.com/app/4838360/Construction_Company/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4838360/ceb9399a7b68ef3b0544304397c367e83a52cd34/capsule_231x87.jpg?t=1787702523",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4838360/ceb9399a7b68ef3b0544304397c367e83a52cd34/capsule_231x87.jpg?t=1787702523",
         "platforms": [
           "PC"
         ],
@@ -1899,7 +1979,7 @@
         "store": "Steam",
         "title": "Divinum",
         "url": "https://store.steampowered.com/app/1148130/Divinum/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1148130/8600d51953a9f23a61e54a642ecf8f947c6c73d4/capsule_231x87.jpg?t=1787840819",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1148130/8600d51953a9f23a61e54a642ecf8f947c6c73d4/capsule_231x87.jpg?t=1787840819",
         "platforms": [
           "PC"
         ],
@@ -1939,7 +2019,7 @@
         "store": "Steam",
         "title": "Inferno Protocol",
         "url": "https://store.steampowered.com/app/3908940/Inferno_Protocol/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3908940/82e9a433a0320f70eb6e6a898a68f59001c73147/capsule_231x87.jpg?t=1787516786",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3908940/82e9a433a0320f70eb6e6a898a68f59001c73147/capsule_231x87.jpg?t=1787516786",
         "platforms": [
           "PC"
         ],
@@ -1979,7 +2059,7 @@
         "store": "Steam",
         "title": "Last Breath 最后的气息",
         "url": "https://store.steampowered.com/app/4298500/Last_Breath/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4298500/a2a57ce23126be66c18c59cfb93a3b553ca26bc3/capsule_231x87.jpg?t=1787546709",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4298500/a2a57ce23126be66c18c59cfb93a3b553ca26bc3/capsule_231x87.jpg?t=1787546709",
         "platforms": [
           "PC"
         ],
@@ -2019,7 +2099,7 @@
         "store": "Steam",
         "title": "Malignant Survivors 2",
         "url": "https://store.steampowered.com/app/3647190/Malignant_Survivors_2/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3647190/017601ee04c7fdc937610b8b09683c7439fc5f4b/capsule_231x87.jpg?t=1787754273",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3647190/017601ee04c7fdc937610b8b09683c7439fc5f4b/capsule_231x87.jpg?t=1787754273",
         "platforms": [
           "PC"
         ],
@@ -2059,7 +2139,7 @@
         "store": "Steam",
         "title": "Megastore: Tidy Up Together",
         "url": "https://store.steampowered.com/app/5027520/Megastore_Tidy_Up_Together/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/5027520/ff888190498a6463aae34c01821d053fb6c026fe/capsule_231x87.jpg?t=1787759061",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/5027520/ff888190498a6463aae34c01821d053fb6c026fe/capsule_231x87.jpg?t=1787759061",
         "platforms": [
           "PC"
         ],
@@ -2098,7 +2178,7 @@
         "store": "Steam",
         "title": "Package chaos",
         "url": "https://store.steampowered.com/app/4996190/Package_chaos/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4996190/95a6827e8bbcef51757b96e6795cfdda563dc441/capsule_231x87.jpg?t=1787315810",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4996190/95a6827e8bbcef51757b96e6795cfdda563dc441/capsule_231x87.jpg?t=1787315810",
         "platforms": [
           "PC"
         ],
@@ -2136,7 +2216,7 @@
         "store": "Steam",
         "title": "Resort Island Simulator",
         "url": "https://store.steampowered.com/app/3613960/Resort_Island_Simulator/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3613960/3d9f87afb0e66b7d8dff08da2365043b58c4419c/capsule_231x87.jpg?t=1787154926",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3613960/3d9f87afb0e66b7d8dff08da2365043b58c4419c/capsule_231x87.jpg?t=1787154926",
         "platforms": [
           "PC"
         ],
@@ -2177,7 +2257,7 @@
         "store": "Steam",
         "title": "The Too-Cute Girl Who Moved in Next Door",
         "url": "https://store.steampowered.com/app/4483210/The_TooCute_Girl_Who_Moved_in_Next_Door/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4483210/216ef5d7c4128e665b37490788cafd817d308337/capsule_231x87.jpg?t=1787731590",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4483210/216ef5d7c4128e665b37490788cafd817d308337/capsule_231x87.jpg?t=1787731590",
         "platforms": [
           "PC"
         ],
@@ -2215,7 +2295,7 @@
         "store": "Steam",
         "title": "Too Many Toys!",
         "url": "https://store.steampowered.com/app/5028390/Too_Many_Toys/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/5028390/0eb2aec6357d5b2cddb61a43e679b3fbddd355b3/capsule_231x87.jpg?t=1787756340",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/5028390/0eb2aec6357d5b2cddb61a43e679b3fbddd355b3/capsule_231x87.jpg?t=1787756340",
         "platforms": [
           "PC"
         ],
@@ -2255,7 +2335,7 @@
         "store": "Steam",
         "title": "Ventreville: A Cure for Sorrow",
         "url": "https://store.steampowered.com/app/2992580/Ventreville_A_Cure_for_Sorrow/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2992580/7d02779616d4432729703ab5a0a2cf771c7d1da4/capsule_231x87.jpg?t=1787727749",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2992580/7d02779616d4432729703ab5a0a2cf771c7d1da4/capsule_231x87.jpg?t=1787727749",
         "platforms": [
           "PC"
         ],
@@ -2293,7 +2373,7 @@
         "store": "Steam",
         "title": "Void Cargo: Equilibrium",
         "url": "https://store.steampowered.com/app/4319290/Void_Cargo_Equilibrium/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4319290/0b941f1a1a8c1644e239248b1aa66a08ff142bdf/capsule_231x87.jpg?t=1787744211",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4319290/0b941f1a1a8c1644e239248b1aa66a08ff142bdf/capsule_231x87.jpg?t=1787744211",
         "platforms": [
           "PC"
         ],
@@ -2333,7 +2413,7 @@
         "store": "Steam",
         "title": "WakuWaku Park",
         "url": "https://store.steampowered.com/app/3850800/WakuWaku_Park/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3850800/692fe24f578f2e3487cc37ebf54a600514f522f8/capsule_231x87.jpg?t=1787644782",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3850800/692fe24f578f2e3487cc37ebf54a600514f522f8/capsule_231x87.jpg?t=1787644782",
         "platforms": [
           "PC"
         ],
@@ -2371,7 +2451,7 @@
         "store": "Steam",
         "title": "Breathedge 2",
         "url": "https://store.steampowered.com/app/2412960/Breathedge_2/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2412960/cefe019bbfe451516fb65d6efa180910715bd72e/capsule_231x87.jpg?t=1787833971",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2412960/cefe019bbfe451516fb65d6efa180910715bd72e/capsule_231x87.jpg?t=1787833971",
         "platforms": [
           "PC"
         ],
@@ -2411,7 +2491,7 @@
         "store": "Steam",
         "title": "Serious Sam: Shatterverse",
         "url": "https://store.steampowered.com/app/2067210/Serious_Sam_Shatterverse/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2067210/73245bd44a42f694aaa91a64ca17d417fc650304/capsule_231x87.jpg?t=1787672286",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2067210/73245bd44a42f694aaa91a64ca17d417fc650304/capsule_231x87.jpg?t=1787672286",
         "platforms": [
           "PC"
         ],
@@ -2450,7 +2530,7 @@
         "store": "Steam",
         "title": "Sucker for Love: Crush Landing",
         "url": "https://store.steampowered.com/app/3848900/Sucker_for_Love_Crush_Landing/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3848900/025bc09995462dd016897c5566eb1b2230d9f76a/capsule_231x87.jpg?t=1787828166",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3848900/025bc09995462dd016897c5566eb1b2230d9f76a/capsule_231x87.jpg?t=1787828166",
         "platforms": [
           "PC"
         ],
@@ -2489,7 +2569,7 @@
         "store": "Steam",
         "title": "The Girl in the Window",
         "url": "https://store.steampowered.com/app/4700560/The_Girl_in_the_Window/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4700560/de8ccff45bb7c84b034dde6fa23a3578936df8a5/capsule_231x87.jpg?t=1784047478",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4700560/de8ccff45bb7c84b034dde6fa23a3578936df8a5/capsule_231x87.jpg?t=1784047478",
         "platforms": [
           "PC"
         ],
@@ -2528,7 +2608,7 @@
         "store": "Steam",
         "title": "ZENONIA 1",
         "url": "https://store.steampowered.com/app/4538960/ZENONIA_1/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4538960/ee739aba1a55941cb64d61b70d1571cf2d5996fd/capsule_231x87.jpg?t=1787834607",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4538960/ee739aba1a55941cb64d61b70d1571cf2d5996fd/capsule_231x87.jpg?t=1787834607",
         "platforms": [
           "PC"
         ],
@@ -2568,7 +2648,7 @@
         "store": "Steam",
         "title": "Crimson Moon",
         "url": "https://store.steampowered.com/app/4317690/Crimson_Moon/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4317690/3449fabc6e795e20f0bb7a7a656add8e68f211f8/capsule_231x87.jpg?t=1787689904",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4317690/3449fabc6e795e20f0bb7a7a656add8e68f211f8/capsule_231x87.jpg?t=1787689904",
         "platforms": [
           "PC"
         ],
@@ -2607,7 +2687,7 @@
         "store": "Steam",
         "title": "Not Quite Dead: Open World Survival",
         "url": "https://store.steampowered.com/app/4609770/Not_Quite_Dead_Open_World_Survival/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4609770/c35d308780521417a76bc17f26352a7fc98d7c8f/capsule_231x87.jpg?t=1787796845",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4609770/c35d308780521417a76bc17f26352a7fc98d7c8f/capsule_231x87.jpg?t=1787796845",
         "platforms": [
           "PC"
         ],
@@ -2648,7 +2728,7 @@
         "store": "Steam",
         "title": "The Death Game Report",
         "url": "https://store.steampowered.com/app/5044770/The_Death_Game_Report/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/5044770/fdf7b0e64120e666b77adbbe823e29a6b4f9d078/capsule_231x87.jpg?t=1787545052",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/5044770/fdf7b0e64120e666b77adbbe823e29a6b4f9d078/capsule_231x87.jpg?t=1787545052",
         "platforms": [
           "PC"
         ],
@@ -2687,7 +2767,7 @@
         "store": "Steam",
         "title": "WheelMates",
         "url": "https://store.steampowered.com/app/3905450/WheelMates/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3905450/24f780d796d4a7c96a7868bbc4fc669393194c1e/capsule_231x87.jpg?t=1787766387",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3905450/24f780d796d4a7c96a7868bbc4fc669393194c1e/capsule_231x87.jpg?t=1787766387",
         "platforms": [
           "PC"
         ],
@@ -2726,7 +2806,7 @@
         "store": "Steam",
         "title": "BOMBANANA!",
         "url": "https://store.steampowered.com/app/4656000/BOMBANANA/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4656000/4b28cb7e3572e7ab0ffcd6a53030b1a719ff3fff/capsule_231x87.jpg?t=1787520792",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4656000/4b28cb7e3572e7ab0ffcd6a53030b1a719ff3fff/capsule_231x87.jpg?t=1787520792",
         "platforms": [
           "PC"
         ],
@@ -2764,7 +2844,7 @@
         "store": "Steam",
         "title": "The Blood of Dawnwalker",
         "url": "https://store.steampowered.com/app/3751260/The_Blood_of_Dawnwalker/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3751260/512cea7b8d6470681fc081ab933290bf14a8f956/capsule_231x87.jpg?t=1787847868",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3751260/512cea7b8d6470681fc081ab933290bf14a8f956/capsule_231x87.jpg?t=1787847868",
         "platforms": [
           "PC"
         ],
@@ -2804,7 +2884,7 @@
         "store": "Steam",
         "title": "Friendly Steps",
         "url": "https://store.steampowered.com/app/4279630/Friendly_Steps/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4279630/0b0f706ad4d04235339d4679461f427e832799e9/capsule_231x87.jpg?t=1787618841",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4279630/0b0f706ad4d04235339d4679461f427e832799e9/capsule_231x87.jpg?t=1787618841",
         "platforms": [
           "PC"
         ],
@@ -2845,7 +2925,7 @@
         "store": "Steam",
         "title": "SpeedRunners 2: King of Speed",
         "url": "https://store.steampowered.com/app/3183760/SpeedRunners_2_King_of_Speed/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3183760/d8f5be4918f9195a7ddda2d96b370e0845b13a2a/capsule_231x87.jpg?t=1787664513",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3183760/d8f5be4918f9195a7ddda2d96b370e0845b13a2a/capsule_231x87.jpg?t=1787664513",
         "platforms": [
           "PC"
         ],
@@ -2886,7 +2966,7 @@
         "store": "Steam",
         "title": "Dungeon Settlers",
         "url": "https://store.steampowered.com/app/2798330/Dungeon_Settlers/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2798330/a142dd72485c214b0fe0e6f2d631e73113450220/capsule_231x87.jpg?t=1787469601",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2798330/a142dd72485c214b0fe0e6f2d631e73113450220/capsule_231x87.jpg?t=1787469601",
         "platforms": [
           "PC"
         ],
@@ -2926,7 +3006,7 @@
         "store": "Steam",
         "title": "NBA 2K27",
         "url": "https://store.steampowered.com/app/4356430/NBA_2K27/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4356430/92d7aa92bafdd80d200ef25467a3680cf525836a/capsule_231x87.jpg?t=1787855111",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4356430/92d7aa92bafdd80d200ef25467a3680cf525836a/capsule_231x87.jpg?t=1787855111",
         "platforms": [
           "PC"
         ],
@@ -2964,7 +3044,7 @@
         "store": "Steam",
         "title": "Onimusha: Way of the Sword",
         "url": "https://store.steampowered.com/app/2638890/Onimusha_Way_of_the_Sword/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2638890/4aa8bcfcb20173a0250f03ee15473abece15f6b0/capsule_231x87.jpg?t=1784162334",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2638890/4aa8bcfcb20173a0250f03ee15473abece15f6b0/capsule_231x87.jpg?t=1784162334",
         "platforms": [
           "PC"
         ],
@@ -3004,7 +3084,7 @@
         "store": "Steam",
         "title": "Scavland",
         "url": "https://store.steampowered.com/app/3373500/Scavland/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3373500/6d23da229ee7ee724b42e0b6b5fb1629ae029721/capsule_231x87.jpg?t=1787238572",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3373500/6d23da229ee7ee724b42e0b6b5fb1629ae029721/capsule_231x87.jpg?t=1787238572",
         "platforms": [
           "PC"
         ],
@@ -3046,7 +3126,7 @@
         "store": "Steam",
         "title": "Tiny Eden",
         "url": "https://store.steampowered.com/app/3375110/Tiny_Eden/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3375110/9bf390fc40a97b866e5544617630516737f15821/capsule_231x87.jpg?t=1787857923",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3375110/9bf390fc40a97b866e5544617630516737f15821/capsule_231x87.jpg?t=1787861059",
         "platforms": [
           "PC"
         ],
@@ -3085,7 +3165,7 @@
         "store": "Steam",
         "title": "Halloween: The Game",
         "url": "https://store.steampowered.com/app/3219630/Halloween_The_Game/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3219630/e0507a9d9a1fed306c87b3576f608b852658dd1a/capsule_231x87.jpg?t=1787175927",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3219630/e0507a9d9a1fed306c87b3576f608b852658dd1a/capsule_231x87.jpg?t=1787861414",
         "platforms": [
           "PC"
         ],
@@ -3123,7 +3203,7 @@
         "store": "Steam",
         "title": "WARDOGS",
         "url": "https://store.steampowered.com/app/1867240/WARDOGS/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1867240/11d3bb7607c5568c61108fe70e7c670b4940269e/capsule_231x87.jpg?t=1787571659",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1867240/11d3bb7607c5568c61108fe70e7c670b4940269e/capsule_231x87.jpg?t=1787571659",
         "platforms": [
           "PC"
         ],
@@ -3165,7 +3245,7 @@
         "store": "Steam",
         "title": "Welcome to Elderfield",
         "url": "https://store.steampowered.com/app/3195440/Welcome_to_Elderfield/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3195440/87679730eaad41a36418de1c4f0e3738b4c8d541/capsule_231x87.jpg?t=1787844353",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3195440/87679730eaad41a36418de1c4f0e3738b4c8d541/capsule_231x87.jpg?t=1787844353",
         "platforms": [
           "PC"
         ],
@@ -3207,7 +3287,7 @@
         "store": "Steam",
         "title": "Aniimo",
         "url": "https://store.steampowered.com/app/4126040/Aniimo/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4126040/9cd26f736939c12a37f54cd3a49a9c08a318ec03/capsule_231x87.jpg?t=1787825897",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4126040/9cd26f736939c12a37f54cd3a49a9c08a318ec03/capsule_231x87.jpg?t=1787825897",
         "platforms": [
           "PC"
         ],
@@ -3249,7 +3329,7 @@
         "store": "Steam",
         "title": "Graveyard Keeper 2",
         "url": "https://store.steampowered.com/app/4358690/Graveyard_Keeper_2/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4358690/c74bedb07502eb35eedcb3990e44c9593875a1ef/capsule_231x87.jpg?t=1787779426",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4358690/c74bedb07502eb35eedcb3990e44c9593875a1ef/capsule_231x87.jpg?t=1787779426",
         "platforms": [
           "PC"
         ],
@@ -3289,7 +3369,7 @@
         "store": "Steam",
         "title": "CONTROL Resonant",
         "url": "https://store.steampowered.com/app/3669870/CONTROL_Resonant/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3669870/867a73afa5f21c28aaa14e9b0a4d895c540d4a0c/capsule_231x87.jpg?t=1787683983",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3669870/867a73afa5f21c28aaa14e9b0a4d895c540d4a0c/capsule_231x87.jpg?t=1787683983",
         "platforms": [
           "PC"
         ],
@@ -3328,7 +3408,7 @@
         "store": "Steam",
         "title": "SILENT HILL: Townfall",
         "url": "https://store.steampowered.com/app/1636440/SILENT_HILL_Townfall/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1636440/f0dfc016ffde1f3001a60e106bc0c2063fefd695/capsule_231x87.jpg?t=1787716129",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1636440/f0dfc016ffde1f3001a60e106bc0c2063fefd695/capsule_231x87.jpg?t=1787716129",
         "platforms": [
           "PC"
         ],
@@ -3368,7 +3448,7 @@
         "store": "Steam",
         "title": "Nivalis Nights",
         "url": "https://store.steampowered.com/app/1488490/Nivalis_Nights/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1488490/7e483ece1117906b11bd6959a16e1f77f5a6e4d5/capsule_231x87.jpg?t=1786355242",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1488490/7e483ece1117906b11bd6959a16e1f77f5a6e4d5/capsule_231x87.jpg?t=1786355242",
         "platforms": [
           "PC"
         ],
@@ -3408,7 +3488,7 @@
         "store": "Steam",
         "title": "AION 2",
         "url": "https://store.steampowered.com/app/3393110/AION_2/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3393110/242e64994be906369974093269d88fb40065b10a/capsule_231x87.jpg?t=1787753455",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3393110/242e64994be906369974093269d88fb40065b10a/capsule_231x87.jpg?t=1787753455",
         "platforms": [
           "PC"
         ],
@@ -3434,7 +3514,7 @@
         "store": "Steam",
         "title": "Call of Duty®: Modern Warfare® 4",
         "url": "https://store.steampowered.com/app/4435490/Call_of_Duty_Modern_Warfare_4/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4435490/50d218e79ead2650bc6b7360995cc8dd3fbe2c29/capsule_231x87.jpg?t=1787790415",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4435490/50d218e79ead2650bc6b7360995cc8dd3fbe2c29/capsule_231x87.jpg?t=1787790415",
         "platforms": [
           "PC"
         ],
@@ -3475,7 +3555,7 @@
         "store": "Steam",
         "title": "Phantom Blade Zero",
         "url": "https://store.steampowered.com/app/4115450/Phantom_Blade_Zero/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4115450/aef06490c9a4ad912142fe3b766ee08a2b38ef80/capsule_231x87.jpg?t=1787142639",
+        "cover": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4115450/aef06490c9a4ad912142fe3b766ee08a2b38ef80/capsule_231x87.jpg?t=1787142639",
         "platforms": [
           "PC"
         ],
@@ -5969,26 +6049,25 @@
       "label": "App Store 日本 · 新着精选",
       "ok": true,
       "count": 8,
-      "checked_at": "2026-08-27T19:28:13Z"
+      "checked_at": "2026-08-27T20:40:59Z"
     },
     "googleplay": {
       "label": "Google Play 日本 · 新規リリース精选",
       "ok": true,
       "count": 6,
-      "checked_at": "2026-08-27T19:28:13Z"
+      "checked_at": "2026-08-27T20:40:59Z"
     },
     "taptap_cn_new": {
       "label": "TapTap 中国 · 新品榜",
       "ok": true,
       "count": 8,
-      "checked_at": "2026-08-27T19:28:13Z"
+      "checked_at": "2026-08-27T20:40:59Z"
     },
     "taptap_cn_upcoming": {
       "label": "TapTap 中国 · 即将首发",
-      "ok": false,
-      "count": 0,
-      "checked_at": "2026-08-27T19:28:13Z",
-      "error": "RuntimeError: No items parsed"
+      "ok": true,
+      "count": 3,
+      "checked_at": "2026-08-27T20:40:59Z"
     },
     "steam_popular_new": {
       "label": "Steam · Popular New Releases",
@@ -5996,7 +6075,7 @@
       "count": 29,
       "raw_count": 50,
       "dom_count": 50,
-      "checked_at": "2026-08-27T19:28:13Z"
+      "checked_at": "2026-08-27T20:40:59Z"
     },
     "steam_popular_upcoming": {
       "label": "Steam · Popular Upcoming",
@@ -6004,14 +6083,14 @@
       "count": 49,
       "raw_count": 49,
       "dom_count": 50,
-      "checked_at": "2026-08-27T19:28:13Z"
+      "checked_at": "2026-08-27T20:40:59Z"
     },
     "famitsu": {
       "label": "Famitsu 日本游戏发行日",
       "ok": true,
       "count": 136,
-      "checked_at": "2026-08-27T19:28:13Z"
+      "checked_at": "2026-08-27T20:40:59Z"
     }
   },
-  "metadata_enriched_at": "2026-08-27T19:30:13Z"
+  "metadata_enriched_at": "2026-08-27T20:43:07Z"
 }
