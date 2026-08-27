@@ -6,7 +6,7 @@ A local-first RSS dashboard inside PT Universe. It provides Feedly-style inbox, 
 
 - Default feeds are configured in `config/feeds.json`.
 - `scripts/fetch_feeds.py` fetches and normalizes the feeds into `data/feed.json`.
-- `.github/workflows/refresh-rss.yml` refreshes the cache every 30 minutes and redeploys GitHub Pages.
+- `.github/workflows/refresh-rss.yml` refreshes the cache every four hours from 08:00 Pacific Time and redeploys GitHub Pages.
 - Read state, saved articles, hidden sources, theme and browser-added feeds are stored in `localStorage`.
 - OPML import/export supports migration from Feedly and other readers.
 

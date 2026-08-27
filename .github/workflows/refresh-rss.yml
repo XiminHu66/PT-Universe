@@ -10,8 +10,9 @@ on:
       - apps/rss-dashboard/requirements.txt
       - .github/workflows/refresh-rss.yml
   schedule:
-    # Staggered from the other PT Universe data jobs.
-    - cron: "7,37 * * * *"
+    # GitHub cron is UTC-only. These paired probes cover a true four-hour cadence
+    # anchored at 08:00 Pacific Time in both PST and PDT; the gate skips extras.
+    - cron: "7 0,3,4,7,8,11,12,15,16,19,20,23 * * *"
 
 permissions:
   contents: write
@@ -24,13 +25,31 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     timeout-minutes: 12
+    outputs:
+      scrape: ${{ steps.mode.outputs.scrape }}
     steps:
       - name: Check out PT Universe
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      - name: Decide whether this probe should refresh
+        id: mode
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" != "schedule" ]]; then
+            echo "scrape=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          LOCAL_HOUR="$(TZ=America/Los_Angeles date +%H)"
+          case "$LOCAL_HOUR" in
+            00|04|08|12|16|20) echo "scrape=true" >> "$GITHUB_OUTPUT" ;;
+            *)           echo "scrape=false" >> "$GITHUB_OUTPUT" ;;
+          esac
+
       - name: Set up Python
+        if: steps.mode.outputs.scrape == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -38,13 +57,16 @@ jobs:
           cache-dependency-path: apps/rss-dashboard/requirements.txt
 
       - name: Install feed dependencies
+        if: steps.mode.outputs.scrape == 'true'
         run: python -m pip install -r apps/rss-dashboard/requirements.txt
 
       - name: Refresh RSS cache
+        if: steps.mode.outputs.scrape == 'true'
         working-directory: apps/rss-dashboard
         run: python scripts/fetch_feeds.py
 
       - name: Commit refreshed RSS data
+        if: steps.mode.outputs.scrape == 'true'
         run: |
           git config user.name "pt-universe-rss-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -59,6 +81,7 @@ jobs:
 
   deploy:
     needs: refresh
+    if: needs.refresh.outputs.scrape == 'true'
     runs-on: ubuntu-latest
     concurrency:
       group: pages
