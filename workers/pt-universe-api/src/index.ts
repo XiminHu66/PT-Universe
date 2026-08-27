@@ -196,20 +196,19 @@ async function scrapeGames(browser:Browser,old:any,sources:Record<string,Json>){
   }finally{await closeFast(page)}
   return {mobile,consoleRows};
 }
-async function refreshGames(env:Env,sharedBrowser?:Browser){
-  const old=await previous<any>(env,'game-releases.json',{items:{mobile:[],pc:[],console:[]},sources:{}});let pc:any[]=[];const sources:Record<string,Json>={...(old.sources||{})};
-  for(const [sort,label] of [['Released_DESC','new'],['Released_ASC','upcoming']]){try{const u=`https://store.steampowered.com/search/results/?query&start=0&count=100&sort_by=${sort}&category1=998&infinite=1&json=1`;const r=await timedFetch(u,{headers:{'user-agent':'Mozilla/5.0'}},20_000);const j=await r.json<any>();const rows=parseSteam(j.results_html||'');pc.push(...rows);sources[`steam_${label}`]={label:`Steam ${label}`,ok:true,count:rows.length}}catch(e){sources[`steam_${label}`]={label:`Steam ${label}`,ok:false,count:0,error:String(e)}}}
-  pc=[...new Map(pc.map(x=>[x.id,x])).values()];if(pc.length)pc=pc.map((x:any)=>{const prior=(old.items?.pc||[]).find((y:any)=>y.steam_appid===x.appid||String(y.url||'').includes(`/app/${x.appid}/`));return {...prior,...x,id:prior?.id||x.id,category:'pc',source:'steam_popular',source_label:'Steam',store:'Steam',platforms:['PC'],release_date:isoDate(x.release_date),release_text:x.release_date,steam_appid:x.appid}});else pc=old.items?.pc||[];
-  const browserData=sharedBrowser?await scrapeGames(sharedBrowser,old,sources):await withBrowser(env,b=>scrapeGames(b,old,sources));
-  const value={...old,date_jst:new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Tokyo'}),generated_at:now(),items:{mobile:browserData.mobile.length?browserData.mobile:(old.items?.mobile||[]),pc,console:browserData.consoleRows},sources};
-  await putData(env,'game-releases.json',value);return {pc:pc.length,mobile:value.items.mobile.length,console:value.items.console.length,sources};
+async function refreshGames(env:Env){
+  const old=await previous<any>(env,'game-releases.json',{items:{mobile:[],pc:[],console:[]},sources:{}}),items={mobile:old.items?.mobile||[],pc:old.items?.pc||[],console:old.items?.console||[]};
+  const sources:Record<string,Json>={...(old.sources||{}),snapshot:{label:'游戏快照（QF 暂缓）',ok:true,count:items.mobile.length+items.pc.length+items.console.length,fallback:true}};
+  const value={...old,date_jst:new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Tokyo'}),generated_at:now(),items,sources};
+  await putData(env,'game-releases.json',value);return {pc:items.pc.length,mobile:items.mobile.length,console:items.console.length,sources};
 }
 
 async function runRefresh(env:Env,scope:RefreshScope){
   const result:Json={};
   if(scope==='all'){
     result.news=await refreshNews(env);
-    await withBrowser(env,async browser=>{result.sites=await refreshSites(env,browser);result.music=await refreshMusic(env,browser);result.games=await refreshGames(env,browser)});
+    await withBrowser(env,async browser=>{result.sites=await refreshSites(env,browser);result.music=await refreshMusic(env,browser)});
+    result.games=await refreshGames(env);
   }else if(scope==='news')result.news=await refreshNews(env);
   else if(scope==='sites')result.sites=await refreshSites(env);
   else if(scope==='music')result.music=await refreshMusic(env);
