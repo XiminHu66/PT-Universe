@@ -10,12 +10,10 @@ on:
       - apps/tsugi-checker/requirements.txt
       - .github/workflows/refresh-tsugi.yml
   schedule:
-    # Backup probe; if GitHub delays it past 09:00, it performs the refresh.
-    - cron: "17 8 * * *"
-      timezone: "America/Los_Angeles"
-    # Primary daily refresh.
-    - cron: "17 9 * * *"
-      timezone: "America/Los_Angeles"
+    # GitHub cron is UTC-only. At 16:17 UTC this is 09:17 PDT / 08:17 PST.
+    - cron: "17 16 * * *"
+    # At 17:17 UTC this is 10:17 PDT / 09:17 PST; the freshness check prevents duplicates.
+    - cron: "17 17 * * *"
 
 permissions:
   contents: write
@@ -125,7 +123,9 @@ jobs:
             echo "No Tsugi data changes"
           else
             git commit -m "data(tsugi): refresh feeds"
-            git pull --rebase origin main
+            # Scheduled/rerun jobs may start from an older branch snapshot.
+            # During rebase, prefer this run's freshly generated data on conflicts.
+            git pull --rebase -X theirs origin main
             git push origin HEAD:main
           fi
 
