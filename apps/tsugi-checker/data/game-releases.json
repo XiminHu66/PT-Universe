@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-27T17:26:58Z",
+  "generated_at": "2026-08-27T18:54:53Z",
   "date_jst": "2026-08-28",
   "window": {
     "past_days": 7,
@@ -9,60 +9,6 @@
   },
   "items": {
     "mobile": [
-      {
-        "id": "ab663802432b92da",
-        "category": "mobile",
-        "source": "appstore",
-        "source_label": "App Store 日本 · 新着精选",
-        "store": "iOS / iPadOS",
-        "title": "Dawnfolk",
-        "url": "https://apps.apple.com/jp/app/dawnfolk/id6759442443",
-        "cover": "",
-        "platforms": [
-          "iOS"
-        ],
-        "release_date": "",
-        "region": "JP",
-        "featured": true,
-        "popularity_label": "日本新着精选",
-        "first_seen": "2026-08-22",
-        "days_from_today": -6,
-        "is_today": false,
-        "timeline_status": "past",
-        "rating": 3,
-        "rating_count": 1,
-        "heat_label": "",
-        "heat_labels": [],
-        "heat_level": "none",
-        "heat_score": 0.0
-      },
-      {
-        "id": "9d2b16c410f7f5da",
-        "category": "mobile",
-        "source": "appstore",
-        "source_label": "App Store 日本 · 新着精选",
-        "store": "iOS / iPadOS",
-        "title": "Slots & Daggers",
-        "url": "https://apps.apple.com/jp/app/slots-daggers/id6762803589",
-        "cover": "",
-        "platforms": [
-          "iOS"
-        ],
-        "release_date": "",
-        "region": "JP",
-        "featured": true,
-        "popularity_label": "日本新着精选",
-        "first_seen": "2026-08-22",
-        "days_from_today": -6,
-        "is_today": false,
-        "timeline_status": "past",
-        "rating": 4.74561,
-        "rating_count": 114,
-        "heat_label": "",
-        "heat_labels": [],
-        "heat_level": "none",
-        "heat_score": 0.0
-      },
       {
         "id": "0988a896aabcc6db",
         "category": "mobile",
@@ -114,14 +60,14 @@
         "heat_score": 0.0
       },
       {
-        "id": "26095c6147b12822",
+        "id": "c06b518090734250",
         "category": "mobile",
         "source": "taptap_cn_new",
         "source_label": "TapTap 中国 · 新品榜",
         "store": "TapTap",
         "title": "菜鸡梦想家",
-        "url": "https://www.taptap.cn/app/378464?os=android",
-        "cover": "https://img-tc.tapimg.com/market/images/db050dcbc3fdaee8c8e862699345950f.png/_tap_appicon_s.jpg",
+        "url": "https://www.taptap.cn/app/378464",
+        "cover": "https://img-tc.tapimg.com/market/images/20b515daf2449422c68d543aa483f6cd.jpg/_tap_appicon_s.jpg",
         "platforms": [
           "移动端"
         ],
@@ -129,10 +75,10 @@
         "region": "CN",
         "featured": true,
         "popularity_rank": 8,
-        "rating": 7.3,
+        "rating": 8.0,
         "popularity_label": "TapTap 新品榜 #8",
-        "first_seen": "2026-08-24",
-        "days_from_today": -4,
+        "first_seen": "2026-08-22",
+        "days_from_today": -6,
         "is_today": false,
         "timeline_status": "past",
         "heat_label": "新品榜 #8",
@@ -143,126 +89,14 @@
         "heat_score": 64.0
       },
       {
-        "id": "88f9c00e2b74a321",
-        "category": "mobile",
-        "source": "taptap_cn_new",
-        "source_label": "TapTap 中国 · 新品榜",
-        "store": "TapTap",
-        "title": "诡秘之主",
-        "url": "https://www.taptap.cn/app/281223?os=android",
-        "cover": "https://img-tc.tapimg.com/market/images/db050dcbc3fdaee8c8e862699345950f.png/_tap_appicon_s.jpg",
-        "platforms": [
-          "移动端"
-        ],
-        "release_date": "",
-        "region": "CN",
-        "featured": true,
-        "popularity_rank": 1,
-        "rating": 7.3,
-        "popularity_label": "TapTap 新品榜 #1",
-        "first_seen": "2026-08-24",
-        "days_from_today": -4,
-        "is_today": false,
-        "timeline_status": "past",
-        "heat_label": "高热 TOP1",
-        "heat_labels": [
-          "高热 TOP1"
-        ],
-        "heat_level": "high",
-        "heat_score": 94.0
-      },
-      {
-        "id": "fa84240ce7f15147",
-        "category": "mobile",
-        "source": "appstore",
-        "source_label": "App Store 日本 · 新着精选",
-        "store": "iOS / iPadOS",
-        "title": "Discounty : ドタバタスーパー物語",
-        "url": "https://apps.apple.com/jp/app/discounty-%E3%83%89%E3%82%BF%E3%83%90%E3%82%BF%E3%82%B9%E3%83%BC%E3%83%91%E3%83%BC%E7%89%A9%E8%AA%9E/id6753793150",
-        "cover": "",
-        "platforms": [
-          "iOS"
-        ],
-        "release_date": "",
-        "region": "JP",
-        "featured": true,
-        "popularity_label": "日本新着精选",
-        "first_seen": "2026-08-25",
-        "days_from_today": -3,
-        "is_today": false,
-        "timeline_status": "past",
-        "rating": 4.5,
-        "rating_count": 4,
-        "heat_label": "",
-        "heat_labels": [],
-        "heat_level": "none",
-        "heat_score": 0.0
-      },
-      {
-        "id": "fa6cbc4a81e4abca",
-        "category": "mobile",
-        "source": "appstore",
-        "source_label": "App Store 日本 · 新着精选",
-        "store": "iOS / iPadOS",
-        "title": "Dogpile",
-        "url": "https://apps.apple.com/jp/app/dogpile/id6759942819",
-        "cover": "",
-        "platforms": [
-          "iOS"
-        ],
-        "release_date": "",
-        "region": "JP",
-        "featured": true,
-        "popularity_label": "日本新着精选",
-        "first_seen": "2026-08-25",
-        "days_from_today": -3,
-        "is_today": false,
-        "timeline_status": "past",
-        "rating": 4.16667,
-        "rating_count": 6,
-        "heat_label": "",
-        "heat_labels": [],
-        "heat_level": "none",
-        "heat_score": 0.0
-      },
-      {
-        "id": "1ed0e416afce17f3",
-        "category": "mobile",
-        "source": "taptap_cn_new",
-        "source_label": "TapTap 中国 · 新品榜",
-        "store": "TapTap",
-        "title": "大侠闯天下",
-        "url": "https://www.taptap.cn/app/852992?os=android",
-        "cover": "https://img-tc.tapimg.com/market/images/db050dcbc3fdaee8c8e862699345950f.png/_tap_appicon_s.jpg",
-        "platforms": [
-          "移动端"
-        ],
-        "release_date": "",
-        "region": "CN",
-        "featured": true,
-        "popularity_rank": 2,
-        "rating": 7.3,
-        "popularity_label": "TapTap 新品榜 #2",
-        "first_seen": "2026-08-26",
-        "days_from_today": -2,
-        "is_today": false,
-        "timeline_status": "past",
-        "heat_label": "高热 TOP2",
-        "heat_labels": [
-          "高热 TOP2"
-        ],
-        "heat_level": "high",
-        "heat_score": 93.0
-      },
-      {
-        "id": "7b5103c64be9282e",
+        "id": "9e9a4b6409f26717",
         "category": "mobile",
         "source": "taptap_cn_new",
         "source_label": "TapTap 中国 · 新品榜",
         "store": "TapTap",
         "title": "七宗罪与七美德测试",
-        "url": "https://www.taptap.cn/app/913692?os=android",
-        "cover": "https://img-tc.tapimg.com/market/images/db050dcbc3fdaee8c8e862699345950f.png/_tap_appicon_s.jpg",
+        "url": "https://www.taptap.cn/app/913692",
+        "cover": "https://img-tc.tapimg.com/market/images/FgFvAqSa--4bjF0iVrvRpKjmn5bi.png/_tap_appicon_s.jpg",
         "platforms": [
           "移动端"
         ],
@@ -270,10 +104,10 @@
         "region": "CN",
         "featured": true,
         "popularity_rank": 6,
-        "rating": 7.3,
+        "rating": 6.0,
         "popularity_label": "TapTap 新品榜 #6",
-        "first_seen": "2026-08-27",
-        "days_from_today": -1,
+        "first_seen": "2026-08-25",
+        "days_from_today": -3,
         "is_today": false,
         "timeline_status": "past",
         "heat_label": "新品榜 #6",
@@ -284,14 +118,44 @@
         "heat_score": 66.0
       },
       {
-        "id": "43a6ae2411d4f195",
+        "id": "796508e7c2e8b01b",
+        "category": "mobile",
+        "source": "taptap_cn_new",
+        "source_label": "TapTap 中国 · 新品榜",
+        "store": "TapTap",
+        "title": "大侠闯天下",
+        "url": "https://www.taptap.cn/app/852992",
+        "cover": "https://img-tc.tapimg.com/market/images/a85b2bc1e701c251a81c363bb46c30aa.jpg/_tap_appicon_s.jpg",
+        "platforms": [
+          "移动端"
+        ],
+        "release_date": "",
+        "region": "CN",
+        "featured": true,
+        "popularity_rank": 2,
+        "rating": 8.6,
+        "popularity_label": "TapTap 新品榜 #2",
+        "first_seen": "2026-08-25",
+        "days_from_today": -3,
+        "is_today": false,
+        "timeline_status": "past",
+        "heat_label": "高热 TOP2",
+        "heat_labels": [
+          "高热 TOP2",
+          "高口碑 8.6"
+        ],
+        "heat_level": "high",
+        "heat_score": 105.0
+      },
+      {
+        "id": "ea022417a06b930c",
         "category": "mobile",
         "source": "taptap_cn_new",
         "source_label": "TapTap 中国 · 新品榜",
         "store": "TapTap",
         "title": "别饿着！点外卖模拟器",
-        "url": "https://www.taptap.cn/app/915977?os=android",
-        "cover": "https://img-tc.tapimg.com/market/images/db050dcbc3fdaee8c8e862699345950f.png/_tap_appicon_s.jpg",
+        "url": "https://www.taptap.cn/app/915977",
+        "cover": "https://img-tc.tapimg.com/market/images/9182cb6c79e29965040f4a2384f1637a.jpg/_tap_appicon_s.jpg",
         "platforms": [
           "移动端"
         ],
@@ -299,7 +163,7 @@
         "region": "CN",
         "featured": true,
         "popularity_rank": 7,
-        "rating": 7.3,
+        "rating": 7.0,
         "popularity_label": "TapTap 新品榜 #7",
         "first_seen": "2026-08-28",
         "days_from_today": 0,
@@ -313,14 +177,14 @@
         "heat_score": 65.0
       },
       {
-        "id": "a8d407571a86e430",
+        "id": "7b5b32076b241eef",
         "category": "mobile",
         "source": "taptap_cn_new",
         "source_label": "TapTap 中国 · 新品榜",
         "store": "TapTap",
         "title": "缠重山3窃天局",
-        "url": "https://www.taptap.cn/app/807411?os=android",
-        "cover": "https://img-tc.tapimg.com/market/images/db050dcbc3fdaee8c8e862699345950f.png/_tap_appicon_s.jpg",
+        "url": "https://www.taptap.cn/app/807411",
+        "cover": "https://img-tc.tapimg.com/market/images/427fc7a04ed31d9d22a85acb15d244e4.png/_tap_appicon_s.jpg",
         "platforms": [
           "移动端"
         ],
@@ -328,7 +192,7 @@
         "region": "CN",
         "featured": true,
         "popularity_rank": 5,
-        "rating": 7.3,
+        "rating": 5.0,
         "popularity_label": "TapTap 新品榜 #5",
         "first_seen": "2026-08-28",
         "days_from_today": 0,
@@ -453,9 +317,9 @@
           "动作",
           "独立"
         ],
-        "review_count": 1040,
-        "review_positive": 1013,
-        "review_negative": 27,
+        "review_count": 1044,
+        "review_positive": 1016,
+        "review_negative": 28,
         "review_positive_percent": 97,
         "review_score_desc": "好评如潮",
         "heat_label": "有讨论度",
@@ -463,7 +327,7 @@
           "有讨论度"
         ],
         "heat_level": "medium",
-        "heat_score": 57.33,
+        "heat_score": 57.36,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -498,9 +362,9 @@
           "休闲",
           "独立"
         ],
-        "review_count": 1617,
-        "review_positive": 1576,
-        "review_negative": 41,
+        "review_count": 1625,
+        "review_positive": 1583,
+        "review_negative": 42,
         "review_positive_percent": 97,
         "review_score_desc": "好评如潮",
         "heat_label": "有讨论度",
@@ -508,7 +372,7 @@
           "有讨论度"
         ],
         "heat_level": "medium",
-        "heat_score": 60.97,
+        "heat_score": 61.01,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -583,15 +447,15 @@
           "独立",
           "策略"
         ],
-        "review_count": 346,
-        "review_positive": 334,
+        "review_count": 349,
+        "review_positive": 337,
         "review_negative": 12,
         "review_positive_percent": 97,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 48.27,
+        "heat_score": 48.34,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -627,15 +491,15 @@
           "策略",
           "抢先体验"
         ],
-        "review_count": 297,
-        "review_positive": 278,
-        "review_negative": 19,
-        "review_positive_percent": 94,
+        "review_count": 300,
+        "review_positive": 280,
+        "review_negative": 20,
+        "review_positive_percent": 93,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 47.01,
+        "heat_score": 47.09,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -669,15 +533,15 @@
           "模拟",
           "策略"
         ],
-        "review_count": 264,
-        "review_positive": 245,
+        "review_count": 267,
+        "review_positive": 248,
         "review_negative": 19,
         "review_positive_percent": 93,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 46.04,
+        "heat_score": 46.13,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -710,15 +574,15 @@
           "动作",
           "独立"
         ],
-        "review_count": 254,
-        "review_positive": 229,
+        "review_count": 255,
+        "review_positive": 230,
         "review_negative": 25,
         "review_positive_percent": 90,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 45.72,
+        "heat_score": 45.76,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -751,15 +615,15 @@
           "独立",
           "角色扮演"
         ],
-        "review_count": 228,
-        "review_positive": 225,
+        "review_count": 230,
+        "review_positive": 227,
         "review_negative": 3,
         "review_positive_percent": 99,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 44.84,
+        "heat_score": 44.91,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -793,15 +657,15 @@
           "独立",
           "模拟"
         ],
-        "review_count": 160,
-        "review_positive": 138,
+        "review_count": 162,
+        "review_positive": 140,
         "review_negative": 22,
         "review_positive_percent": 86,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 41.93,
+        "heat_score": 42.03,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -876,9 +740,9 @@
         "tags": [
           "动作"
         ],
-        "review_count": 2027,
-        "review_positive": 1244,
-        "review_negative": 783,
+        "review_count": 2057,
+        "review_positive": 1263,
+        "review_negative": 794,
         "review_positive_percent": 61,
         "review_score_desc": "褒贬不一",
         "heat_label": "有讨论度",
@@ -886,7 +750,7 @@
           "有讨论度"
         ],
         "heat_level": "medium",
-        "heat_score": 62.83,
+        "heat_score": 62.96,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -919,15 +783,15 @@
           "动作",
           "独立"
         ],
-        "review_count": 181,
-        "review_positive": 173,
+        "review_count": 182,
+        "review_positive": 174,
         "review_negative": 8,
         "review_positive_percent": 96,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 42.94,
+        "heat_score": 42.99,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -959,9 +823,9 @@
         "tags": [
           "模拟"
         ],
-        "review_count": 72739,
-        "review_positive": 57208,
-        "review_negative": 15531,
+        "review_count": 72743,
+        "review_positive": 57211,
+        "review_negative": 15532,
         "review_positive_percent": 79,
         "review_score_desc": "多半好评",
         "heat_label": "高讨论",
@@ -982,7 +846,7 @@
         "store": "Steam",
         "title": "Sludgineers",
         "url": "https://store.steampowered.com/app/4073860/Sludgineers/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4073860/6cb8376da45b5b8ff39a649f81e0f02d4e035340/capsule_231x87.jpg?t=1787778959",
+        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4073860/6cb8376da45b5b8ff39a649f81e0f02d4e035340/capsule_231x87.jpg?t=1787856382",
         "platforms": [
           "PC"
         ],
@@ -1005,15 +869,15 @@
           "休闲",
           "模拟"
         ],
-        "review_count": 485,
-        "review_positive": 399,
-        "review_negative": 86,
+        "review_count": 493,
+        "review_positive": 406,
+        "review_negative": 87,
         "review_positive_percent": 82,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 51.05,
+        "heat_score": 51.18,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1047,58 +911,17 @@
           "独立",
           "模拟"
         ],
-        "review_count": 999,
-        "review_positive": 942,
-        "review_negative": 57,
+        "review_count": 1033,
+        "review_positive": 973,
+        "review_negative": 60,
         "review_positive_percent": 94,
         "review_score_desc": "特别好评",
-        "heat_label": "",
-        "heat_labels": [],
-        "heat_level": "none",
-        "heat_score": 57.0,
-        "notable_publisher": false,
-        "notable_publisher_name": ""
-      },
-      {
-        "id": "steam-steam_popular_new-4251370",
-        "category": "pc",
-        "source": "steam_popular_new",
-        "source_label": "Steam · Popular New Releases",
-        "store": "Steam",
-        "title": "D.E.C.A.Y.",
-        "url": "https://store.steampowered.com/app/4251370/DECAY/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4251370/3ff0e642007fe36eb18c82fe460a8af9513dc817/capsule_231x87.jpg?t=1787763679",
-        "platforms": [
-          "PC"
+        "heat_label": "有讨论度",
+        "heat_labels": [
+          "有讨论度"
         ],
-        "release_date": "2026-08-26",
-        "release_text": "Aug 26, 2026",
-        "featured": true,
-        "popularity_label": "Steam 热门",
-        "steam_appid": "4251370",
-        "title_en": "D.E.C.A.Y.",
-        "title_zh": "D.E.C.A.Y.",
-        "developers": [
-          "AGaming+"
-        ],
-        "publishers": [
-          "AGaming+"
-        ],
-        "tags": [
-          "动作",
-          "独立",
-          "角色扮演",
-          "抢先体验"
-        ],
-        "review_count": 20,
-        "review_positive": 18,
-        "review_negative": 2,
-        "review_positive_percent": 90,
-        "review_score_desc": "好评",
-        "heat_label": "",
-        "heat_labels": [],
-        "heat_level": "none",
-        "heat_score": 25.12,
+        "heat_level": "medium",
+        "heat_score": 57.28,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1175,15 +998,15 @@
           "角色扮演",
           "模拟"
         ],
-        "review_count": 262,
-        "review_positive": 199,
-        "review_negative": 63,
-        "review_positive_percent": 76,
+        "review_count": 293,
+        "review_positive": 221,
+        "review_negative": 72,
+        "review_positive_percent": 75,
         "review_score_desc": "多半好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 45.98,
+        "heat_score": 46.9,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1218,15 +1041,15 @@
           "模拟",
           "策略"
         ],
-        "review_count": 24,
-        "review_positive": 22,
+        "review_count": 26,
+        "review_positive": 24,
         "review_negative": 2,
         "review_positive_percent": 92,
         "review_score_desc": "好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 26.56,
+        "heat_score": 27.2,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1260,15 +1083,15 @@
           "冒险",
           "模拟"
         ],
-        "review_count": 21,
-        "review_positive": 17,
+        "review_count": 23,
+        "review_positive": 19,
         "review_negative": 4,
-        "review_positive_percent": 81,
+        "review_positive_percent": 83,
         "review_score_desc": "好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 25.51,
+        "heat_score": 26.22,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1302,15 +1125,15 @@
           "独立",
           "模拟"
         ],
-        "review_count": 78,
-        "review_positive": 67,
+        "review_count": 80,
+        "review_positive": 69,
         "review_negative": 11,
         "review_positive_percent": 86,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 36.05,
+        "heat_score": 36.26,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1344,15 +1167,15 @@
           "冒险",
           "角色扮演"
         ],
-        "review_count": 423,
-        "review_positive": 357,
-        "review_negative": 66,
+        "review_count": 438,
+        "review_positive": 368,
+        "review_negative": 70,
         "review_positive_percent": 84,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 49.92,
+        "heat_score": 50.21,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1385,15 +1208,15 @@
           "模拟",
           "策略"
         ],
-        "review_count": 103,
-        "review_positive": 92,
+        "review_count": 105,
+        "review_positive": 94,
         "review_negative": 11,
-        "review_positive_percent": 89,
+        "review_positive_percent": 90,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 38.32,
+        "heat_score": 38.48,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1437,6 +1260,48 @@
         "notable_publisher_name": "Bandai Namco Entertainment Inc."
       },
       {
+        "id": "steam-steam_popular_new-2054520",
+        "category": "pc",
+        "source": "steam_popular_new",
+        "source_label": "Steam · Popular New Releases",
+        "store": "Steam",
+        "title": "Gawr Gura: Quest for Bread",
+        "url": "https://store.steampowered.com/app/2054520/Gawr_Gura_Quest_for_Bread/",
+        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2054520/b6791e11619f0040d61f76d2e66ef6f3c534aa1d/capsule_231x87.jpg?t=1787845878",
+        "platforms": [
+          "PC"
+        ],
+        "release_date": "2026-08-27",
+        "release_text": "Aug 27, 2026",
+        "featured": true,
+        "popularity_label": "Steam 热门",
+        "steam_appid": "2054520",
+        "title_en": "Gawr Gura: Quest for Bread",
+        "title_zh": "Gawr Gura: Quest for Bread",
+        "developers": [
+          "Kenny Park"
+        ],
+        "publishers": [
+          "holo Indie"
+        ],
+        "tags": [
+          "动作",
+          "冒险",
+          "独立"
+        ],
+        "review_count": 12,
+        "review_positive": 12,
+        "review_negative": 0,
+        "review_positive_percent": 100,
+        "review_score_desc": "好评",
+        "heat_label": "",
+        "heat_labels": [],
+        "heat_level": "none",
+        "heat_score": 21.16,
+        "notable_publisher": false,
+        "notable_publisher_name": ""
+      },
+      {
         "id": "steam-steam_popular_new-2492670",
         "category": "pc",
         "source": "steam_popular_new",
@@ -1465,17 +1330,17 @@
           "动作",
           "冒险"
         ],
-        "review_count": 264,
-        "review_positive": 240,
-        "review_negative": 24,
-        "review_positive_percent": 91,
+        "review_count": 330,
+        "review_positive": 304,
+        "review_negative": 26,
+        "review_positive_percent": 92,
         "review_score_desc": "特别好评",
         "heat_label": "知名发行商",
         "heat_labels": [
           "知名发行商"
         ],
         "heat_level": "medium",
-        "heat_score": 64.04,
+        "heat_score": 65.88,
         "notable_publisher": true,
         "notable_publisher_name": "KONAMI"
       },
@@ -1508,17 +1373,17 @@
           "动作",
           "冒险"
         ],
-        "review_count": 19,
-        "review_positive": 11,
-        "review_negative": 8,
-        "review_positive_percent": 58,
+        "review_count": 21,
+        "review_positive": 12,
+        "review_negative": 9,
+        "review_positive_percent": 57,
         "review_score_desc": "褒贬不一",
         "heat_label": "知名发行商",
         "heat_labels": [
           "知名发行商"
         ],
         "heat_level": "medium",
-        "heat_score": 42.72,
+        "heat_score": 43.51,
         "notable_publisher": true,
         "notable_publisher_name": "KONAMI"
       },
@@ -1551,19 +1416,63 @@
           "动作",
           "冒险"
         ],
-        "review_count": 22,
-        "review_positive": 20,
-        "review_negative": 2,
-        "review_positive_percent": 91,
-        "review_score_desc": "好评",
+        "review_count": 93,
+        "review_positive": 88,
+        "review_negative": 5,
+        "review_positive_percent": 95,
+        "review_score_desc": "特别好评",
         "heat_label": "知名发行商",
         "heat_labels": [
           "知名发行商"
         ],
         "heat_level": "medium",
-        "heat_score": 43.87,
+        "heat_score": 55.49,
         "notable_publisher": true,
         "notable_publisher_name": "Focus Entertainment"
+      },
+      {
+        "id": "steam-steam_popular_new-3977290",
+        "category": "pc",
+        "source": "steam_popular_new",
+        "source_label": "Steam · Popular New Releases",
+        "store": "Steam",
+        "title": "Rewind 99",
+        "url": "https://store.steampowered.com/app/3977290/Rewind_99/",
+        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3977290/6a295866d12d9368d2b16568ae9b9c9a8c02df8f/capsule_231x87.jpg?t=1787854501",
+        "platforms": [
+          "PC"
+        ],
+        "release_date": "2026-08-27",
+        "release_text": "Aug 27, 2026",
+        "featured": true,
+        "popularity_label": "Steam 热门",
+        "steam_appid": "3977290",
+        "title_en": "Rewind 99",
+        "title_zh": "Rewind 99",
+        "developers": [
+          "Gunmetal Games",
+          "Real Fake Games"
+        ],
+        "publishers": [
+          "Gunmetal Games"
+        ],
+        "tags": [
+          "动作",
+          "休闲",
+          "独立",
+          "模拟"
+        ],
+        "review_count": 477,
+        "review_positive": 367,
+        "review_negative": 110,
+        "review_positive_percent": 77,
+        "review_score_desc": "多半好评",
+        "heat_label": "",
+        "heat_labels": [],
+        "heat_level": "none",
+        "heat_score": 50.91,
+        "notable_publisher": false,
+        "notable_publisher_name": ""
       },
       {
         "id": "steam-steam_popular_new-2824880",
@@ -1596,15 +1505,15 @@
           "独立",
           "角色扮演"
         ],
-        "review_count": 15,
-        "review_positive": 15,
-        "review_negative": 0,
-        "review_positive_percent": 100,
+        "review_count": 19,
+        "review_positive": 18,
+        "review_negative": 1,
+        "review_positive_percent": 95,
         "review_score_desc": "好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 22.88,
+        "heat_score": 24.72,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1679,17 +1588,17 @@
           "体育",
           "策略"
         ],
-        "review_count": 445,
-        "review_positive": 257,
-        "review_negative": 188,
-        "review_positive_percent": 58,
+        "review_count": 804,
+        "review_positive": 486,
+        "review_negative": 318,
+        "review_positive_percent": 60,
         "review_score_desc": "褒贬不一",
         "heat_label": "知名发行商",
         "heat_labels": [
           "知名发行商"
         ],
         "heat_level": "medium",
-        "heat_score": 68.34,
+        "heat_score": 73.21,
         "notable_publisher": true,
         "notable_publisher_name": "Electronic Arts"
       },
@@ -2962,7 +2871,7 @@
         "store": "Steam",
         "title": "NBA 2K27",
         "url": "https://store.steampowered.com/app/4356430/NBA_2K27/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4356430/92d7aa92bafdd80d200ef25467a3680cf525836a/capsule_231x87.jpg?t=1787761691",
+        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4356430/92d7aa92bafdd80d200ef25467a3680cf525836a/capsule_231x87.jpg?t=1787855111",
         "platforms": [
           "PC"
         ],
@@ -3082,7 +2991,7 @@
         "store": "Steam",
         "title": "Tiny Eden",
         "url": "https://store.steampowered.com/app/3375110/Tiny_Eden/",
-        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3375110/df36b68be40556d016a3b76f76c7d9b93c36c421/capsule_231x87.jpg?t=1787832994",
+        "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3375110/9bf390fc40a97b866e5544617630516737f15821/capsule_231x87.jpg?t=1787856473",
         "platforms": [
           "PC"
         ],
@@ -4878,16 +4787,16 @@
         "timeline_status": "upcoming"
       },
       {
-        "id": "8630815113c58849",
+        "id": "c4b7f2711b4e43f5",
         "category": "console",
         "source": "famitsu",
         "source_label": "Famitsu 日本游戏发行日",
         "store": "发行日历",
-        "title": "真・三國無双2 with 猛将伝 Remastered （ダウンロード版）",
-        "url": "https://www.famitsu.com/game/title/69026/page/1",
+        "title": "真・三國無双2 with 猛将伝 Remastered （PS Store ダウンロード版）",
+        "url": "https://www.famitsu.com/game/title/69023/page/1",
         "cover": "",
         "platforms": [
-          "XSX"
+          "PS5"
         ],
         "release_date": "2026-10-01",
         "release_text": "2026年10月1日（木）発売",
@@ -4914,16 +4823,16 @@
         "timeline_status": "upcoming"
       },
       {
-        "id": "bbda9ab3b0216c9f",
+        "id": "3e9ca39efb1626ef",
         "category": "console",
         "source": "famitsu",
         "source_label": "Famitsu 日本游戏发行日",
         "store": "发行日历",
-        "title": "ACE COMBAT 8: WINGS OF THEVE （ダウンロード版）",
-        "url": "https://www.famitsu.com/game/title/69238/page/1",
+        "title": "ACE COMBAT 8: WINGS OF THEVE （PS Store ダウンロード版）",
+        "url": "https://www.famitsu.com/game/title/69237/page/1",
         "cover": "",
         "platforms": [
-          "XSX"
+          "PS5"
         ],
         "release_date": "2026-10-02",
         "release_text": "2026年10月2日（金）発売",
@@ -5112,16 +5021,16 @@
         "timeline_status": "upcoming"
       },
       {
-        "id": "a897d8a17ce5740f",
+        "id": "fd1ca45360238034",
         "category": "console",
         "source": "famitsu",
         "source_label": "Famitsu 日本游戏发行日",
         "store": "发行日历",
         "title": "デイヴ・ザ・ダイバー COMPLETE EDITION",
-        "url": "https://www.famitsu.com/game/title/70129/page/1",
+        "url": "https://www.famitsu.com/game/title/51508/page/1",
         "cover": "",
         "platforms": [
-          "SWITCH2"
+          "SWITCH"
         ],
         "release_date": "2026-10-08",
         "release_text": "2026年10月8日（木）発売",
@@ -5221,16 +5130,16 @@
         "timeline_status": "upcoming"
       },
       {
-        "id": "98f263da33c20522",
+        "id": "93b9fa7a92b539c4",
         "category": "console",
         "source": "famitsu",
         "source_label": "Famitsu 日本游戏发行日",
         "store": "发行日历",
         "title": "ドラゴンズ ドグマ 2：ダークアリズン",
-        "url": "https://www.famitsu.com/game/title/72184/page/1",
+        "url": "https://www.famitsu.com/game/title/46942/page/1",
         "cover": "",
         "platforms": [
-          "SWITCH2"
+          "PS5"
         ],
         "release_date": "2026-10-09",
         "release_text": "2026年10月9日（金）発売",
@@ -6003,35 +5912,36 @@
   "sources": {
     "appstore": {
       "label": "App Store 日本 · 新着精选",
-      "ok": true,
-      "count": 8,
-      "checked_at": "2026-08-27T17:26:58Z"
+      "ok": false,
+      "count": 0,
+      "checked_at": "2026-08-27T18:54:53Z",
+      "error": "HTTPError: 429 Client Error: Too Many Requests for url: https://apps.apple.com/jp/iphone/room/1435822938"
     },
     "googleplay": {
       "label": "Google Play 日本 · 新規リリース精选",
       "ok": true,
       "count": 6,
-      "checked_at": "2026-08-27T17:26:58Z"
+      "checked_at": "2026-08-27T18:54:53Z"
     },
     "taptap_cn_new": {
       "label": "TapTap 中国 · 新品榜",
       "ok": true,
       "count": 8,
-      "checked_at": "2026-08-27T17:26:58Z"
+      "checked_at": "2026-08-27T18:54:53Z"
     },
     "taptap_cn_upcoming": {
       "label": "TapTap 中国 · 即将首发",
       "ok": true,
       "count": 3,
-      "checked_at": "2026-08-27T17:26:58Z"
+      "checked_at": "2026-08-27T18:54:53Z"
     },
     "steam_popular_new": {
       "label": "Steam · Popular New Releases",
       "ok": true,
-      "count": 28,
+      "count": 29,
       "raw_count": 50,
       "dom_count": 50,
-      "checked_at": "2026-08-27T17:26:58Z"
+      "checked_at": "2026-08-27T18:54:53Z"
     },
     "steam_popular_upcoming": {
       "label": "Steam · Popular Upcoming",
@@ -6039,14 +5949,14 @@
       "count": 49,
       "raw_count": 49,
       "dom_count": 50,
-      "checked_at": "2026-08-27T17:26:58Z"
+      "checked_at": "2026-08-27T18:54:53Z"
     },
     "famitsu": {
       "label": "Famitsu 日本游戏发行日",
       "ok": true,
       "count": 136,
-      "checked_at": "2026-08-27T17:26:58Z"
+      "checked_at": "2026-08-27T18:54:53Z"
     }
   },
-  "metadata_enriched_at": "2026-08-27T17:29:05Z"
+  "metadata_enriched_at": "2026-08-27T18:56:50Z"
 }

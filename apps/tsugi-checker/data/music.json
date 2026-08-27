@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-27T18:46:21Z",
+  "generated_at": "2026-08-27T18:54:53Z",
   "chart_date": "2026/08/26",
   "weekly_chart": [
     {
@@ -511,13 +511,13 @@
       "label": "Billboard JAPAN Hot 100",
       "ok": true,
       "count": 30,
-      "checked_at": "2026-08-27T18:46:21Z"
+      "checked_at": "2026-08-27T18:54:53Z"
     },
     "apple_music_weekly_new": {
       "label": "Apple Music Japan · 本周新曲",
       "ok": true,
       "count": 4,
-      "checked_at": "2026-08-27T18:46:21Z",
+      "checked_at": "2026-08-27T18:54:53Z",
       "fallback": "Billboard JAPAN Hot 100 本周新进榜",
       "error": "RuntimeError: Apple Music Best New Songs heading not found"
     },
@@ -525,7 +525,7 @@
       "label": "RICECAKE · J-Pop Weekly Chart",
       "ok": true,
       "count": 5,
-      "checked_at": "2026-08-27T18:46:21Z",
+      "checked_at": "2026-08-27T18:54:53Z",
       "endpoint": "https://www.youtube.com/feeds/videos.xml?channel_id=UCmmwCqIMqdOfYDk2SVR-AEQ"
     }
   }

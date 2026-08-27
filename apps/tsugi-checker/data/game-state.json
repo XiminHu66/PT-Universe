@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-27T17:26:58Z",
+  "generated_at": "2026-08-27T18:54:53Z",
   "seen": {
     "b242f954157ba1ca": {
       "first_seen": "2026-08-14",
@@ -1665,7 +1665,7 @@
     },
     "823e16a7853a4008": {
       "first_seen": "2026-08-17",
-      "last_seen": "2026-08-27",
+      "last_seen": "2026-08-28",
       "title": "我的家长",
       "source": "taptap_cn_new"
     },
@@ -1677,7 +1677,7 @@
     },
     "a984b6d0d8ecd146": {
       "first_seen": "2026-08-17",
-      "last_seen": "2026-08-27",
+      "last_seen": "2026-08-28",
       "title": "小画家模拟2",
       "source": "taptap_cn_new"
     },
@@ -1713,7 +1713,7 @@
     },
     "ef79f46a3a1f26fb": {
       "first_seen": "2026-08-20",
-      "last_seen": "2026-08-27",
+      "last_seen": "2026-08-28",
       "title": "诡秘之主",
       "source": "taptap_cn_new"
     },
@@ -1755,7 +1755,7 @@
     },
     "c06b518090734250": {
       "first_seen": "2026-08-22",
-      "last_seen": "2026-08-27",
+      "last_seen": "2026-08-28",
       "title": "菜鸡梦想家",
       "source": "taptap_cn_new"
     },
@@ -1803,7 +1803,7 @@
     },
     "796508e7c2e8b01b": {
       "first_seen": "2026-08-25",
-      "last_seen": "2026-08-27",
+      "last_seen": "2026-08-28",
       "title": "大侠闯天下",
       "source": "taptap_cn_new"
     },
@@ -1815,7 +1815,7 @@
     },
     "9e9a4b6409f26717": {
       "first_seen": "2026-08-25",
-      "last_seen": "2026-08-27",
+      "last_seen": "2026-08-28",
       "title": "七宗罪与七美德测试",
       "source": "taptap_cn_new"
     },
@@ -1878,6 +1878,18 @@
       "last_seen": "2026-08-28",
       "title": "王者万象棋截图",
       "source": "taptap_cn_upcoming"
+    },
+    "7b5b32076b241eef": {
+      "first_seen": "2026-08-28",
+      "last_seen": "2026-08-28",
+      "title": "缠重山3窃天局",
+      "source": "taptap_cn_new"
+    },
+    "ea022417a06b930c": {
+      "first_seen": "2026-08-28",
+      "last_seen": "2026-08-28",
+      "title": "别饿着！点外卖模拟器",
+      "source": "taptap_cn_new"
     }
   }
 }
