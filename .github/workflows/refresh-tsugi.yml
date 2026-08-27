@@ -1,19 +1,10 @@
-name: Refresh Tsugi data
+name: Refresh Tsugi data (manual fallback)
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - apps/tsugi-checker/config/**
-      - apps/tsugi-checker/scraper/**
-      - apps/tsugi-checker/requirements.txt
-      - .github/workflows/refresh-tsugi.yml
-  schedule:
-    # GitHub cron is UTC-only. At 16:17 UTC this is 09:17 PDT / 08:17 PST.
-    - cron: "17 16 * * *"
-    # At 17:17 UTC this is 10:17 PDT / 09:17 PST; the freshness check prevents duplicates.
-    - cron: "17 17 * * *"
+
+# Daily and in-app refreshes now run in workers/pt-universe-api on Cloudflare.
+# This workflow remains dispatch-only as a portable emergency fallback.
 
 permissions:
   contents: write

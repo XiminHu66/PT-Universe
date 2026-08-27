@@ -519,6 +519,7 @@
     @media(max-width:1050px){.nexus-grid,.countdown-columns{grid-template-columns:1fr}.countdown-form,.maintenance-form{grid-template-columns:repeat(2,minmax(0,1fr))}.countdown-form .nexus-form-actions{grid-column:1/-1}.traffic-view-layout{display:block;position:relative}.route-live-drawer{position:absolute;z-index:30;inset:0 0 0 auto;width:min(560px,100%);transform:translateX(102%);border-left:1px solid var(--line);background:var(--panel)}.traffic-view-layout.live-open .route-live-drawer{transform:none}.route-live-shell{min-width:0}}
     @media(max-width:740px){.nexus-workspace{padding:12px}.nexus-pagehead{align-items:stretch;flex-direction:column}.nexus-pagehead .pillbtn{align-self:flex-start}.nexus-stat-row,.countdown-stats{grid-template-columns:1fr 1fr}.nexus-grid{display:block}.nexus-grid>.nexus-panel{margin-bottom:12px}.countdown-form,.maintenance-form{grid-template-columns:1fr}.countdown-form .nexus-form-actions{grid-column:auto}.nexus-panel{padding:14px}.route-eta{font-size:23px}.countdown-value{font-size:17px}}
   </style>
+  <link rel="stylesheet" href="../../pt-bridge.css?v=20260827-1">
 </head>
 <body>
 <div id="themeBg"></div><div class="bgShade"></div>
@@ -2001,7 +2002,7 @@ async function loadNews(force=false){
 const LIVE_API_LIMIT=100;
 const LIVE_HISTORY_HOURS=24;
 const LIVE_HISTORY_MAX=200;
-const LIVE_API=`https://api-one.wallstcn.com/apiv1/content/lives?channel=global-channel&client=pc&limit=${LIVE_API_LIMIT}&first_page=true`;
+const LIVE_API=`https://pt-universe-api.summer07-nanjolno.workers.dev/api/live/wallstreet`;
 function normalizeLivePayload(j){
   const items=j?.data?.items;if(!Array.isArray(items))throw new Error("live schema");
   return items.map(x=>{
@@ -2067,7 +2068,7 @@ function switchInfo(mode){
 }
 renderPulse();loadNews();loadLive(true);setInterval(()=>{if(window.__NEXUS_ACTIVE__!==false)loadNews(true)},CONFIG.rssRefreshMinutes*60*1000);setInterval(()=>{if(window.__NEXUS_ACTIVE__!==false&&!document.hidden)loadLive(true)},CONFIG.liveRefreshSeconds*1000);
 document.addEventListener("visibilitychange",()=>{if(window.__NEXUS_ACTIVE__!==false&&!document.hidden)loadLive(true)});
-async function manualRefresh(){const btn=document.querySelector(".refresh");btn.textContent="⋯";try{await Promise.all([loadNews(true),loadLive(true),loadFearGreed(true)])}finally{setTimeout(()=>btn.textContent="↻",400)}}
+async function manualRefresh(){const btn=document.querySelector(".refresh");btn.textContent="⋯";try{const jobs=[loadNews(true),loadLive(true),loadFearGreed(true),loadWeather()];if(document.querySelector('#view-traffic.active'))jobs.push(refreshAllRoutes());await Promise.allSettled(jobs)}finally{setTimeout(()=>btn.textContent="↻",400)}}
 
 /* extra links */
 function normalizeExtraUrl(url){let u=String(url||"").trim();if(!u)return "";if(!/^https?:\/\//i.test(u))u="https://"+u;try{const x=new URL(u);return /^https?:$/.test(x.protocol)?x.href:""}catch(e){return ""}}
@@ -2541,6 +2542,7 @@ function switchNexusView(view){
 }
 
 // ---------- Traffic dashboard ----------
+const PTU_CLOUD_API="https://pt-universe-api.summer07-nanjolno.workers.dev";
 const nexusUid=()=>globalThis.crypto?.randomUUID?.()||`dn-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 function nexusNotify(message){
   let el=document.getElementById("nexusNotice");
@@ -2581,7 +2583,7 @@ async function geocodeRoutePoint(route,key,value){
   if(direct)return direct;
   const cached=route[key];
   if(cached&&Number.isFinite(cached.lat)&&Number.isFinite(cached.lon))return cached;
-  const url=`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=zh-CN&q=${encodeURIComponent(value)}`;
+  const url=`${PTU_CLOUD_API}/api/geocode?q=${encodeURIComponent(value)}`;
   const response=await fetchWithTimeout(url);
   if(!response.ok)throw new Error(`地点解析失败（${response.status}）`);
   const rows=await response.json();
@@ -2599,8 +2601,7 @@ async function requestRouteEta(origin,destination){
     if(!route)throw new Error("实时路况没有返回可用路线");
     return {seconds:route.duration,distance:route.distance,typical:route.duration_typical||0,provider:"Mapbox 实时路况",live:true};
   }
-  const coords=`${origin.lon},${origin.lat};${destination.lon},${destination.lat}`;
-  const response=await fetchWithTimeout(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=false&alternatives=false&steps=false`);
+  const response=await fetchWithTimeout(`${PTU_CLOUD_API}/api/route?from=${origin.lon},${origin.lat}&to=${destination.lon},${destination.lat}`);
   if(!response.ok)throw new Error(`路网估算失败（${response.status}）`);
   const data=await response.json(),route=data.routes?.[0];
   if(!route)throw new Error("没有找到可驾车路线");
@@ -3411,7 +3412,7 @@ async function loadWeather(coords=null){
     let g=coords||state.weatherGeo||await geocode(state.city),lat=g.latitude??g.lat,lon=g.longitude??g.lon;
     $("#weatherPlace").textContent=g.name||state.city;
     const tempUnit=state.weatherUnit==="C"?"celsius":"fahrenheit";
-    const weatherUrl=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max,sunrise,sunset&temperature_unit=${tempUnit}&wind_speed_unit=mph&timezone=auto&forecast_days=4`;
+    const weatherUrl=`${PTU_CLOUD_API}/api/weather?lat=${lat}&lon=${lon}&unit=${tempUnit}`;
     const airUrl=`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi,pm2_5&timezone=auto`;
     const [wr,ar]=await Promise.all([fetch(weatherUrl),fetch(airUrl)]);
     if(!wr.ok)throw new Error(`weather HTTP ${wr.status}`);
@@ -3443,8 +3444,8 @@ function addTask(){const v=$("#taskInput").value.trim();if(!v)return;state.tasks
 /* ---------- Upcoming · 精选发售与事件 ---------- */
 const UPCOMING_CACHE_MS=60*60*1000;
 const TSUGI_BASE="../tsugi-checker/";
-const TSUGI_GAMES_URL=`${TSUGI_BASE}/data/game-releases.json`;
-const TSUGI_MUSIC_URL=`${TSUGI_BASE}/data/music.json`;
+const TSUGI_GAMES_URL=`${PTU_CLOUD_API}/api/data/game-releases.json`;
+const TSUGI_MUSIC_URL=`${PTU_CLOUD_API}/api/data/music.json`;
 const TSUGI_ARTIST_KEY="tsugi-followed-artists-v1";
 const NEXUS_ARTIST_KEY="nexus-followed-artists-v1";
 const TSUGI_PAGE_URL=`${TSUGI_BASE}/`;
@@ -4139,5 +4140,7 @@ function openModal(sel){$(sel).classList.add('open')}function closeModals(){$$('
 @media(max-width:760px){#ptu-home-link{bottom:calc(76px + env(safe-area-inset-bottom));width:23px;height:28px;border-radius:0 9px 9px 0;opacity:.2}#ptu-home-link i{flex-basis:23px;width:23px;height:28px;font-size:20px}}
 </style>
 <a id="ptu-home-link" href="../../" aria-label="返回 PT Universe"><i aria-hidden="true">‹</i><span>PT Universe</span></a>
+<script src="../../pt-sync.js?v=20260827-1"></script>
+<script src="../../pt-bridge.js?v=20260827-1"></script>
 </body>
 </html>

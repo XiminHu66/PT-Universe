@@ -16,7 +16,12 @@ const fmt=d=>{if(!d)return '—';const x=new Date(d);if(Number.isNaN(+x))return 
 const relativeTime=d=>{if(!d)return '';const x=new Date(d);if(Number.isNaN(+x))return '';const sec=Math.max(0,(Date.now()-x)/1000);if(sec<3600)return `${Math.max(1,Math.floor(sec/60))} 分钟前`;if(sec<86400)return `${Math.floor(sec/3600)} 小时前`;if(sec<86400*7)return `${Math.floor(sec/86400)} 天前`;return new Intl.DateTimeFormat('zh-CN',{month:'numeric',day:'numeric'}).format(x)};
 function loadLocalArray(key){try{const x=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(x)?x:[]}catch{return []}}
 function saveLocalArray(key,value){localStorage.setItem(key,JSON.stringify(value))}
-async function loadJSON(url,fallback){try{const r=await fetch(`${url}?v=${Date.now()}`,{cache:'no-store'});if(!r.ok)throw 0;return await r.json()}catch{return fallback}}
+const PT_API='https://pt-universe-api.summer07-nanjolno.workers.dev';
+async function loadJSON(url,fallback){
+  const targets=url.startsWith('data/')?[`${PT_API}/api/data/${url.slice(5)}`,url]:[url];
+  for(const target of targets){try{const r=await fetch(`${target}?v=${Date.now()}`,{cache:'no-store'});if(!r.ok)throw 0;return await r.json()}catch{}}
+  return fallback;
+}
 function normalizeUrl(raw){try{const u=new URL(raw,location.href);u.hash='';u.search='';return u.href.replace(/\/$/,'')}catch{return String(raw||'').replace(/[?#].*$/,'').replace(/\/$/,'')}}
 function workKey(x){return `${x.source||''}|${normalizeUrl(x.url||'')}`}
 function updateToken(x){return `${x.latest_url||''}|${x.latest||x.latest_chapter||''}|${x.chapter_count||''}`}

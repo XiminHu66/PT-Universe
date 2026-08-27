@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "pt-universe-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-27",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "observability": { "enabled": true, "head_sampling_rate": 1 },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "pt-universe-db", "database_id": "86805c79-d903-46cd-b0e2-c079c1a7fc1a" }
+  ],
+  "kv_namespaces": [
+    { "binding": "PT_UNIVERSE_DATA", "id": "e5fb48d6d06146a1af1da219f1dde818" }
+  ],
+  "queues": {
+    "producers": [{ "binding": "REFRESH_QUEUE", "queue": "pt-universe-refresh" }],
+    "consumers": [{ "queue": "pt-universe-refresh", "max_batch_size": 1, "max_batch_timeout": 5, "max_retries": 2 }]
+  },
+  "browser": { "binding": "BROWSER" },
+  "triggers": { "crons": ["17 16 * * *", "17 17 * * *"] }
+}

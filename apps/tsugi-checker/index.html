@@ -58,6 +58,7 @@
   <link rel="stylesheet" href="games.css" />
   <link rel="stylesheet" href="ui-settings.css" />
   <link rel="alternate" type="application/atom+xml" title="Tsugi Updates" href="data/feed.xml" />
+  <link rel="stylesheet" href="../../pt-bridge.css?v=20260827-1">
 </head>
 <body>
   <div class="bg-orb orb-a"></div>
@@ -125,7 +126,7 @@
             <span class="sync-dot"><i id="syncDot"></i><span id="syncText">读取数据中…</span></span>
             <span class="tiny-label">AUTO</span>
           </div>
-          <p>GitHub Actions 自动同步</p>
+          <p>Cloudflare 每日自动同步</p>
           <a class="rss-link" href="data/feed.xml"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11a8 8 0 0 1 8 8M5 5a14 14 0 0 1 14 14"/><circle cx="5" cy="19" r="1"/></svg> Atom 更新订阅</a>
         </div>
       </div>
@@ -143,7 +144,7 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
             <input id="search" placeholder="搜索作品、章节或来源" />
           </label>
-          <button id="sourceRefreshBtn" class="source-refresh-btn" title="手动触发一次 GitHub Actions 订阅源刷新" aria-label="刷新订阅源">
+          <button id="sourceRefreshBtn" class="source-refresh-btn" title="通过 Cloudflare 手动刷新订阅源" aria-label="刷新订阅源">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5"/><path d="M4 18v-5h5"/><path d="M18.6 9A7 7 0 0 0 6.2 6.2L4 8M20 16l-2.2 1.8A7 7 0 0 1 5.4 15"/></svg>
             <span>刷新订阅源</span>
           </button>
@@ -336,7 +337,7 @@
 
       <section id="sources" class="tab">
         <div class="section-head">
-          <div><p class="section-kicker">HEALTH CHECK</p><h2>来源状态</h2><p>最近一次 GitHub Actions 的抓取结果与成功率。</p></div>
+          <div><p class="section-kicker">HEALTH CHECK</p><h2>来源状态</h2><p>最近一次 Cloudflare 刷新的抓取结果与成功率。</p></div>
         </div>
         <div id="sourceStatus" class="source-grid"></div>
       </section>
@@ -349,7 +350,7 @@
           <article class="panel">
             <span class="panel-number">01</span><span class="panel-kicker">ADD TITLE</span>
             <h3>添加追更作品</h3>
-            <p>更新流里的作品可以直接点击“加入书架”，作为本机订阅保存到浏览器。若需要 GitHub Actions 对某一本作品进行独立深度检查，仍可把它加入 <code>config/library.json</code>。</p>
+            <p>更新流里的作品可以直接点击“加入书架”，并通过加密跨设备同步。<code>config/library.json</code> 与手动 GitHub workflow 仅保留为应急兼容方案。</p>
             <pre><code>{
   "id": "my-title",
   "type": "novel",
@@ -368,7 +369,7 @@
           <article class="panel">
             <span class="panel-number">03</span><span class="panel-kicker">DELIVERY</span>
             <h3>每日更新流</h3>
-            <p>工作流每天运行并把新章节写入 <code>data/feed.json</code> 与 <code>data/feed.xml</code>。Atom 地址可直接加入 Feedly、FreshRSS、Reeder 等阅读器。</p>
+            <p>Cloudflare 每天运行并把公共聚合结果写入 KV；现有 <code>data/feed.json</code> 与 Atom 地址继续作为静态兼容与最后成功数据。</p>
           </article>
           <article class="panel">
             <span class="panel-number">04</span><span class="panel-kicker">LOCAL FOLLOW & THEME</span>
@@ -385,13 +386,7 @@
   <script src="ui-settings.js"></script>
   <script>
     (()=>{
-      const OWNER='XiminHu66';
-      const REPO='PT-Universe';
-      const WORKFLOW='refresh-tsugi.yml';
-      const REF='main';
-      const TOKEN_KEY='tsugi-actions-token-session';
-      const actionsUrl=`https://github.com/${OWNER}/${REPO}/actions/workflows/${WORKFLOW}`;
-      const dispatchUrl=`https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${WORKFLOW}/dispatches`;
+      const API='https://pt-universe-api.summer07-nanjolno.workers.dev';
       const btn=document.getElementById('sourceRefreshBtn');
       const toast=document.getElementById('tsugiToast');
       let toastTimer=null;
@@ -410,67 +405,33 @@
         const label=btn.querySelector('span');
         if(label)label.textContent=busy?'正在触发…':'刷新订阅源';
       }
-      async function pollForFreshData(before){
-        for(let i=0;i<24;i++){
-          await new Promise(r=>setTimeout(r,12500));
+      async function pollForFreshData(requestId){
+        for(let i=0;i<45;i++){
+          await new Promise(r=>setTimeout(r,8000));
           try{
-            const r=await fetch(`data/site-updates.json?v=${Date.now()}`,{cache:'no-store'});
+            const r=await fetch(`${API}/api/refresh/status/${requestId}`,{cache:'no-store'});
             const j=await r.json();
-            if(j.generated_at && j.generated_at!==before){
-              notify('订阅源刷新完成，页面数据已自动重新载入。','ok');
+            if(j.status==='success'){
+              notify('Cloudflare 刷新完成，页面数据已自动重新载入。','ok');
               if(typeof load==='function')await load();
+              setBusy(false);
               return;
             }
+            if(j.status==='failed')throw new Error(j.error||'刷新失败');
           }catch{}
         }
-        notify('Action 已触发，但暂未检测到新数据。可稍后点击右侧圆形刷新按钮重新读取。');
-      }
-      async function dispatch(token){
-        const response=await fetch(dispatchUrl,{
-          method:'POST',
-          headers:{
-            'Accept':'application/vnd.github+json',
-            'Authorization':`Bearer ${token}`,
-            'X-GitHub-Api-Version':'2026-03-10',
-            'Content-Type':'application/json'
-          },
-          body:JSON.stringify({ref:REF})
-        });
-        if(![200,204].includes(response.status)){
-          let detail='';
-          try{detail=(await response.json()).message||''}catch{}
-          const err=new Error(detail||`GitHub API ${response.status}`);
-          err.status=response.status;
-          throw err;
-        }
+        setBusy(false);notify('刷新仍在后台运行，可稍后点击右侧圆形按钮重新读取。');
       }
       btn?.addEventListener('click',async()=>{
-        let token=sessionStorage.getItem(TOKEN_KEY)||'';
-        if(!token){
-          token=(prompt('直接从 Tsugi 触发 GitHub Actions 需要一个仅授予此仓库 Actions: Read and write 的 fine-grained GitHub token。\n\nToken 只保存在当前浏览器标签页的 sessionStorage，关闭标签页后清除，不会写入仓库。\n\n粘贴 token 后点击确定；留空则打开 GitHub Actions 页面手动运行。')||'').trim();
-          if(!token){
-            window.open(actionsUrl,'_blank','noopener');
-            notify('已打开 GitHub Actions。点击 “Run workflow” 即可手动刷新全部订阅源。');
-            return;
-          }
-          sessionStorage.setItem(TOKEN_KEY,token);
-        }
-        let before='';
-        try{
-          const current=await fetch(`data/site-updates.json?v=${Date.now()}`,{cache:'no-store'}).then(r=>r.json());
-          before=current.generated_at||'';
-        }catch{}
         setBusy(true);
         try{
-          await dispatch(token);
-          notify('已触发订阅源刷新。GitHub Actions 正在运行，完成后本页会自动检测新数据。','ok');
-          setBusy(false);
-          pollForFreshData(before);
+          const response=await fetch(`${API}/api/refresh/all`,{method:'POST'}),result=await response.json();
+          if(!response.ok)throw new Error(result.error||`Cloudflare API ${response.status}`);
+          notify('Cloudflare 已接收刷新任务，完成后会自动重新载入。','ok');
+          pollForFreshData(result.requestId);
         }catch(err){
           setBusy(false);
-          if(err.status===401||err.status===403)sessionStorage.removeItem(TOKEN_KEY);
-          notify(`无法直接触发：${err.message}。已打开 GitHub Actions 作为备用。`,'err');
-          window.open(actionsUrl,'_blank','noopener');
+          notify(`无法触发刷新：${err.message}`,'err');
         }
       });
     })();
@@ -538,5 +499,7 @@
 @media(max-width:760px){#ptu-home-link{bottom:calc(76px + env(safe-area-inset-bottom));width:23px;height:28px;border-radius:0 9px 9px 0;opacity:.2}#ptu-home-link i{flex-basis:23px;width:23px;height:28px;font-size:20px}}
 </style>
 <a id="ptu-home-link" href="../../" aria-label="返回 PT Universe"><i aria-hidden="true">‹</i><span>PT Universe</span></a>
+<script src="../../pt-sync.js?v=20260827-1"></script>
+<script src="../../pt-bridge.js?v=20260827-1"></script>
 </body>
 </html>
