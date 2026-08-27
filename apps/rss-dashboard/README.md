@@ -10,7 +10,7 @@ A local-first RSS dashboard inside PT Universe. It provides Feedly-style inbox, 
 - The dashboard reads the KV-backed allowlisted Worker in `workers/rss-orbit-proxy` on startup. The bundled `data/feed.json` is only an emergency seed; GitHub Actions no longer fetch RSS data.
 - The toolbar refresh button bypasses KV for a complete live refresh at any time, including during the overnight scheduled-rest window.
 - Read state, saved articles, hidden sources, theme and browser-added feeds are stored in `localStorage`.
-- The desktop quick-reader width is adjustable and stored locally as a workspace ratio.
+- Interface font scale (90%–140%) and desktop quick-reader width (up to 72% on wide screens) are adjustable and stored locally.
 - OPML import/export supports migration from Feedly and other readers.
 
 ## Run the fetcher
