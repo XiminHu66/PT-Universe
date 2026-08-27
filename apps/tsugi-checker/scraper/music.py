@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import time
 from urllib.parse import quote_plus, urljoin
 
 import requests
@@ -269,6 +270,88 @@ def fetch_youtube_japan_recent_chart(ua, limit=30, max_weeks=8):
     return rows, chart_date
 
 
+def _music_match_key(value):
+    return re.sub(r"[\W_]+", "", clean(value).casefold(), flags=re.UNICODE)
+
+
+def _large_itunes_artwork(url):
+    return re.sub(r"/\d+x\d+bb\.", "/300x300bb.", clean(url))
+
+
+def fetch_itunes_artwork(title, artist, ua):
+    query = clean(f"{title} {artist}")
+    url = (
+        "https://itunes.apple.com/search"
+        f"?term={quote_plus(query)}&country=jp&media=music&entity=song&limit=5&lang=ja_jp"
+    )
+    data = _get(url, ua, timeout=20).json()
+    target_title = _music_match_key(title)
+    target_artist = _music_match_key(artist)
+    best = None
+    best_score = 0
+    for result in data.get("results") or []:
+        result_title = _music_match_key(result.get("trackName"))
+        result_artist = _music_match_key(result.get("artistName"))
+        score = 0
+        if result_title == target_title:
+            score += 8
+        elif target_title and result_title and (target_title in result_title or result_title in target_title):
+            score += 5
+        if result_artist == target_artist:
+            score += 4
+        elif target_artist and result_artist and (target_artist in result_artist or result_artist in target_artist):
+            score += 2
+        if score > best_score:
+            best, best_score = result, score
+    if not best or best_score < 5:
+        return None
+    artwork = _large_itunes_artwork(best.get("artworkUrl100") or best.get("artworkUrl60"))
+    if not artwork:
+        return None
+    return {"artwork": artwork, "apple_music_url": clean(best.get("trackViewUrl"))}
+
+
+def enrich_recent_chart_artwork(rows, weekly, previous_rows, ua, lookup_limit=12):
+    """Reuse known covers first, then gently query Apple's no-token search API."""
+    weekly_by_pair = {
+        (_music_match_key(row.get("title")), _music_match_key(row.get("artist"))): row
+        for row in weekly
+    }
+    weekly_by_title = {_music_match_key(row.get("title")): row for row in weekly}
+    previous_by_id = {clean(row.get("id")): row for row in previous_rows if row.get("id")}
+    unresolved = []
+    for row in rows:
+        pair = (_music_match_key(row.get("title")), _music_match_key(row.get("artist")))
+        previous = previous_by_id.get(clean(row.get("id"))) or {}
+        known = weekly_by_pair.get(pair) or weekly_by_title.get(pair[0]) or previous
+        if known and known.get("artwork"):
+            row["artwork"] = known["artwork"]
+            row["artwork_checked"] = True
+            if known.get("apple_music_url"):
+                row["apple_music_url"] = known["apple_music_url"]
+        elif previous.get("artwork_checked"):
+            row["artwork"] = ""
+            row["artwork_checked"] = True
+        else:
+            row["artwork"] = ""
+            row["artwork_checked"] = False
+            unresolved.append(row)
+
+    targets = unresolved[:max(0, int(lookup_limit))]
+    for index, row in enumerate(targets):
+        try:
+            match = fetch_itunes_artwork(row.get("title"), row.get("artist"), ua)
+            if match:
+                row.update(match)
+        except Exception as error:
+            print(f"MUSIC WARN artwork {row.get('artist')} - {row.get('title')}: {error}")
+        row["artwork_checked"] = True
+        if index < len(targets) - 1:
+            # Apple's public Search API documents an approximate 20 calls/minute limit.
+            time.sleep(3.1)
+    return rows
+
+
 def refresh_music(content_cfg, generated, out_path, ua):
     cfg = content_cfg.get("music") or {}
     weekly = []
@@ -276,6 +359,10 @@ def refresh_music(content_cfg, generated, out_path, ua):
     recent_chart = []
     statuses = {}
     chart_date = ""
+    try:
+        previous_music = json.loads(out_path.read_text("utf-8")) if out_path.exists() else {}
+    except Exception:
+        previous_music = {}
 
     try:
         weekly, chart_date = fetch_billboard_hot100(ua, cfg.get("weekly_limit", 30))
@@ -324,10 +411,18 @@ def refresh_music(content_cfg, generated, out_path, ua):
             cfg.get("recent_chart_limit", 30),
             cfg.get("recent_chart_max_weeks", 8),
         )
+        recent_chart = enrich_recent_chart_artwork(
+            recent_chart,
+            weekly,
+            previous_music.get("recent_chart") or [],
+            ua,
+            cfg.get("recent_chart_cover_lookup_limit", 12),
+        )
         statuses["youtube_japan_recent"] = {
             "label": "YouTube Japan · 近期热门榜",
             "ok": True,
             "count": len(recent_chart),
+            "cover_count": sum(bool(row.get("artwork")) for row in recent_chart),
             "checked_at": generated,
             "chart_date": recent_chart_date,
             "endpoint": YOUTUBE_JAPAN_WEEKLY_URL,

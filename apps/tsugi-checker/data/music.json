@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-27T19:28:13Z",
+  "generated_at": "2026-08-27T20:19:41.410013Z",
   "chart_date": "2026/08/26",
   "weekly_chart": [
     {
@@ -464,7 +464,10 @@
       "url": "https://www.youtube.com/results?search_query=EBiDAN+Ebisu+Gakuen+Boys+Club+-+Yes%21+%E6%9D%B1%E4%BA%AC+%28feat.+SUPER+DRAGON%2C+Sakurashimeji%2C+ONE+N%27+ONLY%2C+BUDDiiS%2C+ICEx+%26+Lienel%29",
       "youtube_music_url": "https://music.youtube.com/search?q=Yes%21+%E6%9D%B1%E4%BA%AC+%28feat.+SUPER+DRAGON%2C+Sakurashimeji%2C+ONE+N%27+ONLY%2C+BUDDiiS%2C+ICEx+%26+Lienel%29+EBiDAN+Ebisu+Gakuen+Boys+Club",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/a4/db/f8/a4dbf830-ec1e-e5af-723a-2ef5e4dac674/4580789774065.png/300x300bb.jpg",
+      "apple_music_url": "https://music.apple.com/jp/album/yes-%E6%9D%B1%E4%BA%AC-feat-super-dragon-sakurashimeji-one-n-only-buddiis/6782749976?i=6782749979&uo=4",
+      "artwork_checked": true
     },
     {
       "id": "9108c5d525365d33",
@@ -480,7 +483,9 @@
       "url": "https://www.youtube.com/results?search_query=Mrs.+GREEN+APPLE+-+Brand+New",
       "youtube_music_url": "https://music.youtube.com/search?q=Brand+New+Mrs.+GREEN+APPLE",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "https://www.billboard-japan.com/scale/rankinfo/00000284/202x_image284167.jpg",
+      "artwork_checked": true
     },
     {
       "id": "8f85a52ba825b561",
@@ -496,7 +501,10 @@
       "url": "https://www.youtube.com/results?search_query=Wasureranneyo+-+%E3%81%AA%E3%82%93%E3%82%82%E3%81%AD%E3%81%88",
       "youtube_music_url": "https://music.youtube.com/search?q=%E3%81%AA%E3%82%93%E3%82%82%E3%81%AD%E3%81%88+Wasureranneyo",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/6e/28/00/6e280007-5f1f-388e-4041-e593d43d1297/4988021077361.png/300x300bb.jpg",
+      "apple_music_url": "https://music.apple.com/jp/album/%E3%81%AA%E3%82%93%E3%82%82%E3%81%AD%E3%81%88/6781198667?i=6781198668&uo=4",
+      "artwork_checked": true
     },
     {
       "id": "6f229b12181e0e1e",
@@ -512,7 +520,9 @@
       "url": "https://www.youtube.com/results?search_query=T.M.+Revolution+-+HOT+LIMIT",
       "youtube_music_url": "https://music.youtube.com/search?q=HOT+LIMIT+T.M.+Revolution",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "https://www.billboard-japan.com/scale/jackets/00000054/202x_P2_G4343228W.JPG",
+      "artwork_checked": true
     },
     {
       "id": "e75baabd4221c388",
@@ -528,7 +538,10 @@
       "url": "https://www.youtube.com/results?search_query=KomeAnime+-+%E3%82%A8%E3%82%A2%E3%83%AD%E3%83%94%E3%82%AF%E3%83%AB%E3%82%B9",
       "youtube_music_url": "https://music.youtube.com/search?q=%E3%82%A8%E3%82%A2%E3%83%AD%E3%83%94%E3%82%AF%E3%83%AB%E3%82%B9+KomeAnime",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/33/4d/77/334d77b7-4255-10f2-c456-cacf4486cf2c/4550755814095_cover.jpg/300x300bb.jpg",
+      "apple_music_url": "https://music.apple.com/jp/album/%E3%82%A8%E3%82%A2%E3%83%AD%E3%83%94%E3%82%AF%E3%83%AB%E3%82%B9/1895373327?i=6763556755&uo=4",
+      "artwork_checked": true
     },
     {
       "id": "4c1b916d4b337120",
@@ -544,7 +557,10 @@
       "url": "https://www.youtube.com/results?search_query=M%21LK+-+%E7%BD%AA%E3%81%A8%E7%BD%B0%E3%81%A8%E9%9B%A8%E3%81%A8%E3%82%AD%E3%82%B9",
       "youtube_music_url": "https://music.youtube.com/search?q=%E7%BD%AA%E3%81%A8%E7%BD%B0%E3%81%A8%E9%9B%A8%E3%81%A8%E3%82%AD%E3%82%B9+M%21LK",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/bd/11/7d/bd117d15-042d-c606-6e45-2bc5a14a96d4/VEATP-45813.jpg/300x300bb.jpg",
+      "apple_music_url": "https://music.apple.com/jp/album/%E7%BD%AA%E3%81%A8%E7%BD%B0%E3%81%A8%E9%9B%A8%E3%81%A8%E3%82%AD%E3%82%B9-%E4%BD%90%E9%87%8E%E5%8B%87%E6%96%97-%E5%90%89%E7%94%B0%E4%BB%81%E4%BA%BA/6793456209?i=6793456212&uo=4",
+      "artwork_checked": true
     },
     {
       "id": "9a33690be9bd9e06",
@@ -560,7 +576,9 @@
       "url": "https://www.youtube.com/results?search_query=Snow+Man+-+%E3%82%B0%E3%83%83%E3%82%BF%E3%82%A4%E3%83%A0",
       "youtube_music_url": "https://music.youtube.com/search?q=%E3%82%B0%E3%83%83%E3%82%BF%E3%82%A4%E3%83%A0+Snow+Man",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "https://www.billboard-japan.com/scale/rankinfo/00000283/202x_image283116.jpg",
+      "artwork_checked": true
     },
     {
       "id": "f49ff66076c15705",
@@ -576,7 +594,9 @@
       "url": "https://www.youtube.com/results?search_query=M%21LK+-+You%21Joy%21Parade%21",
       "youtube_music_url": "https://music.youtube.com/search?q=You%21Joy%21Parade%21+M%21LK",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "https://www.billboard-japan.com/scale/rankinfo/00000284/202x_image284170.jpg",
+      "artwork_checked": true
     },
     {
       "id": "e8aa6a96df07de89",
@@ -592,7 +612,9 @@
       "url": "https://www.youtube.com/results?search_query=SixTONES+-+%E3%83%9E%E3%82%A4%E3%82%AA%E3%83%B3%E3%83%AA%E3%83%BC",
       "youtube_music_url": "https://music.youtube.com/search?q=%E3%83%9E%E3%82%A4%E3%82%AA%E3%83%B3%E3%83%AA%E3%83%BC+SixTONES",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "https://www.billboard-japan.com/scale/rankinfo/00000283/202x_image283120.jpg",
+      "artwork_checked": true
     },
     {
       "id": "ae7cc515e154eed1",
@@ -608,7 +630,10 @@
       "url": "https://www.youtube.com/results?search_query=ATEEZ+-+BAD",
       "youtube_music_url": "https://music.youtube.com/search?q=BAD+ATEEZ",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/84/f5/fb/84f5fb23-0194-b302-15f7-e768c9029a28/26UMGIM64142.rgb.jpg/300x300bb.jpg",
+      "apple_music_url": "https://music.apple.com/jp/album/bad/6778272101?i=6778272103&uo=4",
+      "artwork_checked": true
     },
     {
       "id": "fe8730867ef7c640",
@@ -624,7 +649,9 @@
       "url": "https://www.youtube.com/results?search_query=%E6%98%9F%E9%87%8E%E6%BA%90+Gen+Hoshino+-+%E5%A5%BD%E3%81%8D",
       "youtube_music_url": "https://music.youtube.com/search?q=%E5%A5%BD%E3%81%8D+%E6%98%9F%E9%87%8E%E6%BA%90+Gen+Hoshino",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "https://www.billboard-japan.com/scale/rankinfo/00000285/202x_image285984.jpg",
+      "artwork_checked": true
     },
     {
       "id": "2647654d000cc7b9",
@@ -640,7 +667,10 @@
       "url": "https://www.youtube.com/results?search_query=Minori+Suzuki+-+%E5%B3%B6%E3%81%AE%E3%81%86%E3%81%9F+%28%E3%82%BB%E3%82%A4%E3%83%AC%E3%83%BC%E3%83%B3ver.%29",
       "youtube_music_url": "https://music.youtube.com/search?q=%E5%B3%B6%E3%81%AE%E3%81%86%E3%81%9F+%28%E3%82%BB%E3%82%A4%E3%83%AC%E3%83%BC%E3%83%B3ver.%29+Minori+Suzuki",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/24/76/29/24762904-117f-098f-79f7-f9d5f451fec9/4550758739203_cover.jpg/300x300bb.jpg",
+      "apple_music_url": "https://music.apple.com/jp/album/%E5%B3%B6%E3%81%AE%E3%81%86%E3%81%9F-%E3%82%BB%E3%82%A4%E3%83%AC%E3%83%BC%E3%83%B3ver/6792290933?i=6792291237&uo=4",
+      "artwork_checked": true
     },
     {
       "id": "b930c646862ab592",
@@ -656,7 +686,10 @@
       "url": "https://www.youtube.com/results?search_query=M%21LK+-+%E3%81%97%E3%81%8A%E3%81%96%E3%81%8D%E3%82%8F%E3%82%93%E3%81%A0%E3%83%BC%E3%82%89%E3%82%93%E3%81%A9",
       "youtube_music_url": "https://music.youtube.com/search?q=%E3%81%97%E3%81%8A%E3%81%96%E3%81%8D%E3%82%8F%E3%82%93%E3%81%A0%E3%83%BC%E3%82%89%E3%82%93%E3%81%A9+M%21LK",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/47/a2/b5/47a2b519-07b0-161f-985c-54a283fb1854/VEATP-45700.jpg/300x300bb.jpg",
+      "apple_music_url": "https://music.apple.com/jp/album/%E3%81%97%E3%81%8A%E3%81%96%E3%81%8D%E3%82%8F%E3%82%93%E3%81%A0%E3%83%BC%E3%82%89%E3%82%93%E3%81%A9-%E5%A1%A9%EF%A8%91%E5%A4%AA%E6%99%BA/6783573170?i=6783573176&uo=4",
+      "artwork_checked": true
     },
     {
       "id": "edcced51ae5adbb4",
@@ -672,7 +705,10 @@
       "url": "https://www.youtube.com/results?search_query=iLiFE%21+-+%E3%82%A2%E3%82%A4%E3%83%89%E3%83%AB%E3%83%A9%E3%82%A4%E3%83%95%E3%83%A1%E3%82%AC%E3%83%91%E3%83%83%E3%82%AF",
       "youtube_music_url": "https://music.youtube.com/search?q=%E3%82%A2%E3%82%A4%E3%83%89%E3%83%AB%E3%83%A9%E3%82%A4%E3%83%95%E3%83%A1%E3%82%AC%E3%83%91%E3%83%83%E3%82%AF+iLiFE%21",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/39/ab/10/39ab1037-2d02-2d84-b3ca-0482debc43a1/4573696130451.jpg/300x300bb.jpg",
+      "apple_music_url": "https://music.apple.com/jp/album/%E3%82%A2%E3%82%A4%E3%83%89%E3%83%AB%E3%83%A9%E3%82%A4%E3%83%95%E3%83%A1%E3%82%AC%E3%83%91%E3%83%83%E3%82%AF/6802937865?i=6802937866&uo=4",
+      "artwork_checked": true
     },
     {
       "id": "04013e67fe584425",
@@ -688,7 +724,9 @@
       "url": "https://www.youtube.com/results?search_query=Ado+-+%E3%83%A2%E3%83%B3%E3%82%B9%E3%83%88%E3%83%AD",
       "youtube_music_url": "https://music.youtube.com/search?q=%E3%83%A2%E3%83%B3%E3%82%B9%E3%83%88%E3%83%AD+Ado",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "https://www.billboard-japan.com/scale/rankinfo/00000286/202x_image286846.jpg",
+      "artwork_checked": true
     },
     {
       "id": "59b0219e55e256b6",
@@ -704,7 +742,10 @@
       "url": "https://www.youtube.com/results?search_query=ILLIT+-+I+Got+Your+Back",
       "youtube_music_url": "https://music.youtube.com/search?q=I+Got+Your+Back+ILLIT",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/a2/07/0e/a2070e8c-686c-26a9-2c8c-dfbd7586f7c4/26UMGIM79032.rgb.jpg/300x300bb.jpg",
+      "apple_music_url": "https://music.apple.com/jp/album/i-got-your-back/6792947885?i=6792947886&uo=4",
+      "artwork_checked": true
     },
     {
       "id": "45757e31aeef9746",
@@ -720,7 +761,9 @@
       "url": "https://www.youtube.com/results?search_query=Kenshi+Yonezu+-+%E5%A4%9C%E9%B7%B9",
       "youtube_music_url": "https://music.youtube.com/search?q=%E5%A4%9C%E9%B7%B9+Kenshi+Yonezu",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "https://www.billboard-japan.com/scale/rankinfo/00000284/202x_image284169.jpg",
+      "artwork_checked": true
     },
     {
       "id": "0a32862d6a88c07e",
@@ -736,7 +779,9 @@
       "url": "https://www.youtube.com/results?search_query=BE%3AFIRST+-+Missing",
       "youtube_music_url": "https://music.youtube.com/search?q=Missing+BE%3AFIRST",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "https://www.billboard-japan.com/scale/jackets/00000166/202x_P2_H1357574W.JPG",
+      "artwork_checked": true
     },
     {
       "id": "010e59c4d9a62cf2",
@@ -752,7 +797,10 @@
       "url": "https://www.youtube.com/results?search_query=Ari+Ozawa+-+%E3%81%86%E3%81%95%E3%81%8E%E3%83%A9%E3%83%83%E3%83%97+%28%E3%83%AA%E3%82%BA%E3%83%A0%E6%84%9F%E3%81%AE%E3%81%82%E3%82%8B%E8%80%85%E3%81%9F%E3%81%A1ver.%29",
       "youtube_music_url": "https://music.youtube.com/search?q=%E3%81%86%E3%81%95%E3%81%8E%E3%83%A9%E3%83%83%E3%83%97+%28%E3%83%AA%E3%82%BA%E3%83%A0%E6%84%9F%E3%81%AE%E3%81%82%E3%82%8B%E8%80%85%E3%81%9F%E3%81%A1ver.%29+Ari+Ozawa",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/a8/1b/6d/a81b6d69-21ea-6bfa-c56e-4473246db5fe/4550758740391_cover.jpg/300x300bb.jpg",
+      "apple_music_url": "https://music.apple.com/jp/album/%E3%81%86%E3%81%95%E3%81%8E%E3%83%A9%E3%83%83%E3%83%97-%E3%83%AA%E3%82%BA%E3%83%A0%E6%84%9F%E3%81%AE%E3%81%82%E3%82%8B%E8%80%85%E3%81%9F%E3%81%A1ver/6792293464?i=6792293577&uo=4",
+      "artwork_checked": true
     },
     {
       "id": "3cdce31b5f945722",
@@ -768,7 +816,9 @@
       "url": "https://www.youtube.com/results?search_query=King+Gnu+-+GO+GHOST",
       "youtube_music_url": "https://music.youtube.com/search?q=GO+GHOST+King+Gnu",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "https://www.billboard-japan.com/scale/rankinfo/00000285/202x_image285974.jpg",
+      "artwork_checked": true
     },
     {
       "id": "e73b927fedc4687e",
@@ -784,7 +834,9 @@
       "url": "https://www.youtube.com/results?search_query=monet+-+%E5%88%86%E3%81%8B%E3%81%A3%E3%81%A1%E3%82%83%E3%81%84%E3%81%AA%E3%81%84%E3%81%AD+%28feat.+Hanakuma+Chifuyu%29",
       "youtube_music_url": "https://music.youtube.com/search?q=%E5%88%86%E3%81%8B%E3%81%A3%E3%81%A1%E3%82%83%E3%81%84%E3%81%AA%E3%81%84%E3%81%AD+%28feat.+Hanakuma+Chifuyu%29+monet",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "",
+      "artwork_checked": true
     },
     {
       "id": "29c608ddc189b601",
@@ -800,7 +852,10 @@
       "url": "https://www.youtube.com/results?search_query=Chotokkyu+-+%E3%82%AC%E3%83%81%E5%A4%A2%E4%B8%AD%EF%BC%81",
       "youtube_music_url": "https://music.youtube.com/search?q=%E3%82%AC%E3%83%81%E5%A4%A2%E4%B8%AD%EF%BC%81+Chotokkyu",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/5d/f7/ec/5df7ec34-6bca-ff99-c906-57136bf93577/26UMGIM40239.rgb.jpg/300x300bb.jpg",
+      "apple_music_url": "https://music.apple.com/jp/album/%E3%82%AC%E3%83%81%E5%A4%A2%E4%B8%AD/1891923968?i=1891924257&uo=4",
+      "artwork_checked": true
     },
     {
       "id": "986ab22d3d363816",
@@ -816,7 +871,9 @@
       "url": "https://www.youtube.com/results?search_query=M%21LK+-+%E3%83%81%E3%83%A9%E3%83%81LOVE+%28Live%29",
       "youtube_music_url": "https://music.youtube.com/search?q=%E3%83%81%E3%83%A9%E3%83%81LOVE+%28Live%29+M%21LK",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "",
+      "artwork_checked": false
     },
     {
       "id": "629ea110e8e8c612",
@@ -832,7 +889,9 @@
       "url": "https://www.youtube.com/results?search_query=TAKARA+-+Time+is+money",
       "youtube_music_url": "https://music.youtube.com/search?q=Time+is+money+TAKARA",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "",
+      "artwork_checked": false
     },
     {
       "id": "ba7f39163dfe3e3e",
@@ -848,7 +907,9 @@
       "url": "https://www.youtube.com/results?search_query=Spitz+-+%E8%A6%8B%E7%9F%A5%E3%82%89%E3%81%AC%E7%B3%B8",
       "youtube_music_url": "https://music.youtube.com/search?q=%E8%A6%8B%E7%9F%A5%E3%82%89%E3%81%AC%E7%B3%B8+Spitz",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "https://www.billboard-japan.com/scale/rankinfo/00000286/202x_image286843.jpg",
+      "artwork_checked": true
     },
     {
       "id": "abd97e3e4fac1972",
@@ -864,7 +925,9 @@
       "url": "https://www.youtube.com/results?search_query=KO1KEYZ+-+KO1KEYZ",
       "youtube_music_url": "https://music.youtube.com/search?q=KO1KEYZ+KO1KEYZ",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "https://www.billboard-japan.com/scale/jackets/00000167/202x_P2_G3937905W.JPG",
+      "artwork_checked": true
     },
     {
       "id": "010e59c4d9a62cf2",
@@ -880,7 +943,9 @@
       "url": "https://www.youtube.com/results?search_query=Ari+Ozawa+-+%E3%81%86%E3%81%95%E3%81%8E%E3%83%A9%E3%83%83%E3%83%97+%28%E3%83%AA%E3%82%BA%E3%83%A0%E6%84%9F%E3%81%AE%E3%81%82%E3%82%8B%E8%80%85%E3%81%9F%E3%81%A1ver.%29",
       "youtube_music_url": "https://music.youtube.com/search?q=%E3%81%86%E3%81%95%E3%81%8E%E3%83%A9%E3%83%83%E3%83%97+%28%E3%83%AA%E3%82%BA%E3%83%A0%E6%84%9F%E3%81%AE%E3%81%82%E3%82%8B%E8%80%85%E3%81%9F%E3%81%A1ver.%29+Ari+Ozawa",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "",
+      "artwork_checked": false
     },
     {
       "id": "83af692c1a58d197",
@@ -896,7 +961,9 @@
       "url": "https://www.youtube.com/results?search_query=M.Sasuke+-+GG+EZ",
       "youtube_music_url": "https://music.youtube.com/search?q=GG+EZ+M.Sasuke",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "",
+      "artwork_checked": false
     },
     {
       "id": "19111f6be760cc79",
@@ -912,7 +979,9 @@
       "url": "https://www.youtube.com/results?search_query=Hachiware%28CV%3ATanaka+Makoto%29+-+%E3%81%8F%E3%81%A4%E3%81%9A%E3%82%8C",
       "youtube_music_url": "https://music.youtube.com/search?q=%E3%81%8F%E3%81%A4%E3%81%9A%E3%82%8C+Hachiware%28CV%3ATanaka+Makoto%29",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "",
+      "artwork_checked": false
     },
     {
       "id": "76dc81055878bd73",
@@ -928,7 +997,9 @@
       "url": "https://www.youtube.com/results?search_query=Stray+Kids+-+This+%26+That",
       "youtube_music_url": "https://music.youtube.com/search?q=This+%26+That+Stray+Kids",
       "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内"
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "",
+      "artwork_checked": false
     }
   ],
   "sources": {
@@ -936,13 +1007,13 @@
       "label": "Billboard JAPAN Hot 100",
       "ok": true,
       "count": 30,
-      "checked_at": "2026-08-27T19:28:13Z"
+      "checked_at": "2026-08-27T20:19:41.410013Z"
     },
     "apple_music_weekly_new": {
       "label": "Apple Music Japan · 本周新曲",
       "ok": true,
       "count": 4,
-      "checked_at": "2026-08-27T19:28:13Z",
+      "checked_at": "2026-08-27T20:19:41.410013Z",
       "fallback": "Billboard JAPAN Hot 100 本周新进榜",
       "error": "RuntimeError: Apple Music Best New Songs heading not found"
     },
@@ -950,7 +1021,8 @@
       "label": "YouTube Japan · 近期热门榜",
       "ok": true,
       "count": 30,
-      "checked_at": "2026-08-27T19:28:13Z",
+      "cover_count": 23,
+      "checked_at": "2026-08-27T20:19:41.410013Z",
       "chart_date": "2026/08/20",
       "endpoint": "https://kworb.net/youtube/insights/jp.html"
     }

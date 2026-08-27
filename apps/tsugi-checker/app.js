@@ -3,7 +3,7 @@ const LOCAL_UPDATES_KEY='tsugi-local-updates-v1';
 const ARTIST_FOLLOWS_KEY='tsugi-followed-artists-v1';
 const state={
   feed:null,library:null,site:null,news:null,content:null,music:null,games:null,
-  filter:'all',siteFilter:'all',siteSource:'all',newsFilter:'all',query:'',musicView:'chart',gameView:'mobile',
+  filter:'all',siteFilter:'all',siteSource:'all',newsFilter:'all',query:'',musicView:'recent',gameView:'mobile',
   read:new Set(JSON.parse(localStorage.getItem('tsugi-read')||'[]')),
   localLibrary:loadLocalArray(LOCAL_LIBRARY_KEY),
   localUpdates:loadLocalArray(LOCAL_UPDATES_KEY),

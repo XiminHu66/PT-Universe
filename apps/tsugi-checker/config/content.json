@@ -98,6 +98,7 @@
     "recent_chart_url": "https://kworb.net/youtube/insights/jp.html",
     "recent_chart_max_weeks": 8,
     "recent_chart_limit": 30,
+    "recent_chart_cover_lookup_limit": 12,
     "enabled": true
   },
   "games": {

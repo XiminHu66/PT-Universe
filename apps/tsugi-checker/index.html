@@ -231,32 +231,32 @@
           <div>
             <p class="section-kicker">JAPAN MUSIC TRACKER</p>
             <h2>音乐追踪</h2>
-            <p>查看 Billboard JAPAN Hot 100、YouTube Japan 近期歌曲榜、近一周新曲，并追踪关注艺人。</p>
+            <p>优先查看 YouTube Japan 近期歌曲榜，再查看 Billboard JAPAN Hot 100、近一周新曲并追踪关注艺人。</p>
           </div>
         </div>
 
         <div class="music-stats">
-          <article class="music-stat"><span>周榜</span><strong id="musicChartCount">0</strong><small>Billboard JAPAN Hot 100</small></article>
           <article class="music-stat"><span>近期热榜</span><strong id="musicRecentChartCount">0</strong><small>YouTube Japan · 仅保留上榜 8 周内</small></article>
+          <article class="music-stat"><span>日本周榜</span><strong id="musicChartCount">0</strong><small>Billboard JAPAN Hot 100</small></article>
           <article class="music-stat"><span>近一周新曲</span><strong id="musicReleaseCount">0</strong><small>Apple Music Japan / Billboard fallback</small></article>
           <article class="music-stat"><span>关注艺人</span><strong id="followedArtistCount">0</strong><small>保存在当前浏览器</small></article>
         </div>
 
         <div class="music-switch" id="musicSwitch">
-          <button class="music-switch-btn active" data-music-view="chart">日本周榜</button>
-          <button class="music-switch-btn" data-music-view="recent">近期热门榜</button>
+          <button class="music-switch-btn active" data-music-view="recent">近期热门榜</button>
+          <button class="music-switch-btn" data-music-view="chart">日本周榜</button>
           <button class="music-switch-btn" data-music-view="new">近一周新曲</button>
           <button class="music-switch-btn" data-music-view="artists">艺人追踪</button>
         </div>
 
-        <div id="musicChartPane" class="music-pane active">
-          <div class="music-pane-head"><div><h3>Billboard JAPAN Hot 100</h3><p id="musicChartDate">每周更新</p></div></div>
-          <div id="musicChartList" class="music-chart-list"></div>
-        </div>
-
-        <div id="musicRecentPane" class="music-pane">
+        <div id="musicRecentPane" class="music-pane active">
           <div class="music-pane-head"><div><h3>YouTube Japan · 近期热门歌曲榜</h3><p>按 YouTube Japan 周榜排名整理，只保留上榜不超过 8 周的歌曲；显示名次、升降、周数与播放量。</p></div><a class="text-btn" href="https://kworb.net/youtube/insights/jp.html" target="_blank" rel="noopener">查看数据源 ↗</a></div>
           <div id="musicRecentChartList" class="music-chart-list"></div>
+        </div>
+
+        <div id="musicChartPane" class="music-pane">
+          <div class="music-pane-head"><div><h3>Billboard JAPAN Hot 100</h3><p id="musicChartDate">每周更新</p></div></div>
+          <div id="musicChartList" class="music-chart-list"></div>
         </div>
 
         <div id="musicNewPane" class="music-pane">
@@ -380,7 +380,7 @@
     </main>
   </div>
   <div id="tsugiToast" class="tsugi-toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20260827-recentchart1"></script>
+  <script src="app.js?v=20260827-coversdrawer1"></script>
   <script src="games.js"></script>
   <script src="ui-settings.js"></script>
   <script>
