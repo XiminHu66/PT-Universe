@@ -1554,7 +1554,7 @@ let appearance=loadObject(KEYS.appearance,DEFAULT_APPEARANCE);
 let themeMode=localStorage.getItem(KEYS.theme)||"auto";
 let resolvedTheme="dark";
 let sunrise=null,sunset=null;
-let allNews=[],activeCategory="all",feedStatus={},liveNews=[],liveSourceState="loading",liveStampText="LIVE --:--",rssStampText="RSS --:--",infoMode="pulse",pulseFilter=localStorage.getItem(KEYS.pulseFilter)||"all";
+let allNews=[],activeCategory="all",feedStatus={},liveNews=[],liveSourceState="loading",liveStampText="LIVE --:--",rssStampText="RSS --:--",infoMode="pulse",lastManualSyncAt=0,pulseFilter=localStorage.getItem(KEYS.pulseFilter)||"all";
 const DEFAULT_EXTRA_LINKS=[
   {emoji:"📚",name:"追更",url:"../tsugi-checker/"},
   {emoji:"🍜",name:"吃什么",url:"../meal-orbit/"}
@@ -1877,7 +1877,7 @@ function renderPulse(){
 function setPulseFilter(mode){pulseFilter=mode==="important"?"important":"all";localStorage.setItem(KEYS.pulseFilter,pulseFilter);renderPulse()}
 function updateFilterCounts(){const labels={all:"全部",finance:"财经",world:"时事",tech:"科技",game:"游戏"};document.querySelectorAll(".filter").forEach(b=>{const c=b.dataset.cat,n=c==="all"?allNews.length:allNews.filter(x=>x.cat===c).length;b.textContent=`${labels[c]} ${n}`})}
 function stampTime(t){return new Date(t).toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit",hour12:false})}
-function refreshInfoStamp(){lastUpdate.textContent=infoMode==="pulse"?liveStampText:infoMode==="rss"?rssStampText:"经济日历"}
+function refreshInfoStamp(){const status=infoMode==="pulse"?liveStampText:infoMode==="rss"?rssStampText:"经济日历";lastUpdate.textContent=lastManualSyncAt?`${status} · 同步 ${stampTime(lastManualSyncAt)}`:status}
 function updateStamp(t,note="RSS"){rssStampText=`${note} ${stampTime(t)}`;refreshInfoStamp()}
 async function loadNews(force=false){
   let cached=null;try{cached=JSON.parse(localStorage.getItem(KEYS.rssCache)||"null")}catch(e){}
@@ -1970,7 +1970,7 @@ function switchInfo(mode){
 }
 renderPulse();loadNews();loadLive(true);setInterval(()=>{if(window.__NEXUS_ACTIVE__!==false)loadNews(true)},CONFIG.rssRefreshMinutes*60*1000);setInterval(()=>{if(window.__NEXUS_ACTIVE__!==false&&!document.hidden)loadLive(true)},CONFIG.liveRefreshSeconds*1000);
 document.addEventListener("visibilitychange",()=>{if(window.__NEXUS_ACTIVE__!==false&&!document.hidden)loadLive(true)});
-async function manualRefresh(){const btn=document.querySelector(".refresh");btn.textContent="⋯";try{await Promise.all([loadNews(true),loadLive(true),loadFearGreed(true)])}finally{setTimeout(()=>btn.textContent="↻",400)}}
+async function manualRefresh(){const btn=document.querySelector(".refresh");btn.textContent="⋯";lastManualSyncAt=Date.now();refreshInfoStamp();try{await Promise.all([loadNews(true),loadLive(true),loadFearGreed(true)])}finally{lastManualSyncAt=Date.now();refreshInfoStamp();setTimeout(()=>btn.textContent="↻",400)}}
 
 /* extra links */
 function normalizeExtraUrl(url){let u=String(url||"").trim();if(!u)return "";if(!/^https?:\/\//i.test(u))u="https://"+u;try{const x=new URL(u);return /^https?:$/.test(x.protocol)?x.href:""}catch(e){return ""}}
