@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated_at": "2026-08-27T18:17:16.981175Z",
+  "generated_at": "2026-08-27T18:46:47.157925Z",
   "stats": {
     "source_count": 12,
     "healthy_count": 12,
@@ -142,6 +142,30 @@
     }
   ],
   "items": [
+    {
+      "id": "66b98571e05009d7a647649e",
+      "source_id": "rthk",
+      "source": "香港电台即时新闻",
+      "category": "world",
+      "title": "未來兩三小時廣泛地區可能受大雨影響 天文台提醒市民提高警覺",
+      "summary": "天文台發出特別天氣提示，指未來兩三小時香港廣泛地區可能受大雨影響，市民應提高警覺。 編輯：許敬軒",
+      "link": "https://news.rthk.hk/rthk/ch/component/k2/1867845-20260828.htm",
+      "image": "",
+      "author": "",
+      "published_at": "2026-08-27T18:37:01Z"
+    },
+    {
+      "id": "9abd0452edccf8b828a5bfa6",
+      "source_id": "rfi-cn",
+      "source": "法国国际广播电台",
+      "category": "world",
+      "title": "中国江西省长叶建春任上落马",
+      "summary": "61岁的中共江西省委副书记、省长叶建春因涉嫌严重违纪违法，收到中纪委国家监委的纪律审查和监察调查。",
+      "link": "https://www.rfi.fr/cn/%E4%B8%AD%E5%9B%BD/20260827-%E4%B8%AD%E5%9B%BD%E6%B1%9F%E8%A5%BF%E7%9C%81%E9%95%BF%E5%8F%B6%E5%BB%BA%E6%98%A5%E4%BB%BB%E4%B8%8A%E8%90%BD%E9%A9%AC",
+      "image": "https://s.rfi.fr/media/display/fcbd725e-a243-11f1-821f-005056a90284/w:1024/p:16x9/Ye-Jianchun.jpg",
+      "author": "古莉",
+      "published_at": "2026-08-27T18:21:15Z"
+    },
     {
       "id": "205faff36c8bcc0c65c110a7",
       "source_id": "rthk",
@@ -285,6 +309,18 @@
       "image": "https://image.gcores.com/cfb5c69d860d8be8b5f1263541a9fc24-460-215.jpg?x-oss-process=image/resize,limit_1,m_fill,w_626,h_292/quality,q_90",
       "author": "YT17",
       "published_at": "2026-08-27T16:01:00Z"
+    },
+    {
+      "id": "a2f5e4fe351d81cc885b53e2",
+      "source_id": "solidot",
+      "source": "Solidot",
+      "category": "tech",
+      "title": "一名微软工程师一个月的 AI 支出高达 2.8 万美元",
+      "summary": "在长时间鼓励之后，本月初微软开始要求员工限制 AI 使用。执行副总裁 Jay Parikh 在一封发给微软员工的邮件中要求工程师专注于业务成果，而非最大化 AI token 的使用量，为了“从 token 投资中获得更大的价值”，微软将比 Anthropic 模型更便宜的 OpenAI GPT-5.6 设为内部使用的默认模型。根据一份微软员工自愿提交的 AI 使用费账单：Customer and Partner Solutions 部门的一名员工在 28 天内的 AI 支出高达 2.8 万美元；多名员工支出超过 1 万美元；中位数约为每 28 天 300 美元，少数部门的 AI 支出仅仅为几十美元；CoreAI 部门的 AI 支出中位数最高为 975 美元。",
+      "link": "https://www.solidot.org/story?sid=85216",
+      "image": "",
+      "author": "",
+      "published_at": "2026-08-27T16:00:29Z"
     },
     {
       "id": "017c841fa69bbd77cb0bf8ce",
@@ -1931,18 +1967,6 @@
       "published_at": "2026-08-27T09:07:35Z"
     },
     {
-      "id": "7c295ba8c0930ddb1cca39d5",
-      "source_id": "rthk",
-      "source": "香港电台即时新闻",
-      "category": "world",
-      "title": "觀塘apm打鬥事件 警方落案控告三女子「在公眾地方打鬥」罪",
-      "summary": "觀塘apm商場昨午發生打鬥事件，警方落案控告三名被捕女子「在公眾地方打鬥」罪，其中68歲女子被控多一項「普通襲擊」罪，案件下周四在觀塘裁判法院提堂。 事發在昨日下午4時許，34歲姓吳女子報案稱被人襲擊，警員到場，經初步調查，相信三名女子因瑣事爭執，報案人的68歲母親懷疑以手襲擊一名5歲內地女童，導致她臉部紅腫；68歲女子被控在「公眾地方打鬥」及「普通襲擊」罪。 受害5歲女童的母親，即34歲姓徐女子以及姓吳的報案女子，均被控「公眾地方打鬥」罪。 三名被捕人士及受害女童昨日均清醒送聯合醫院治理。 編輯：黃佩珊",
-      "link": "https://news.rthk.hk/rthk/ch/component/k2/1867789-20260827.htm",
-      "image": "",
-      "author": "",
-      "published_at": "2026-08-27T09:00:21Z"
-    },
-    {
       "id": "2ca85ca4454b3c1e087a70ab",
       "source_id": "gcores",
       "source": "机核 GCORES",
@@ -2999,18 +3023,6 @@
       "published_at": "2026-08-26T16:00:40Z"
     },
     {
-      "id": "94f19795f90881db8a791bbc",
-      "source_id": "rfi-cn",
-      "source": "法国国际广播电台",
-      "category": "world",
-      "title": "中国加入印度搜寻海难失踪的“海洋赢家号”22名船员",
-      "summary": "印度海岸警卫队宣布：中国参与新德里发起的搜救行动，以寻找8月22日在印度东海岸外海沉没的一艘商船上的22名船员。",
-      "link": "https://www.rfi.fr/cn/%E5%9B%BD%E9%99%85/20260826-%E4%B8%AD%E5%9B%BD%E5%8A%A0%E5%85%A5%E5%8D%B0%E5%BA%A6%E6%90%9C%E5%AF%BB%E6%B5%B7%E9%9A%BE%E5%A4%B1%E8%B8%AA%E7%9A%84-%E6%B5%B7%E6%B4%8B%E8%B5%A2%E5%AE%B6%E5%8F%B7-22%E5%90%8D%E8%88%B9%E5%91%98",
-      "image": "https://s.rfi.fr/media/display/ec6a6084-a166-11f1-938b-005056a90284/w:1024/p:16x9/2026-08-25T141722Z-1946997628-RC2Q5NAW5WU7-RTRMADP-3-INDIA-SHIPPING-SINKING.jpg",
-      "author": "古莉",
-      "published_at": "2026-08-26T16:00:09Z"
-    },
-    {
       "id": "13ca01e2a0ed11386993517b",
       "source_id": "ftchinese",
       "source": "FT中文网",
@@ -3369,18 +3381,6 @@
       "image": "https://ichef.bbci.co.uk/ace/ws/240/cpsprodpb/b5da/live/34a325e0-a093-11f1-91dc-4919512f173f.jpg",
       "author": "",
       "published_at": "2026-08-26T06:12:27Z"
-    },
-    {
-      "id": "ba57383c8b2d6a0444679339",
-      "source_id": "solidot",
-      "source": "Solidot",
-      "category": "tech",
-      "title": "亚马逊以内存短缺为由大幅上涨自有品硬件产品价格",
-      "summary": "亚马逊以内存短缺为由大幅上涨了自有品硬件产品的价格。受到影响的产品包括 Fire TV、Echo、Kindle 和 Eero，以最廉价的智能音箱 Echo Dot 为例，其价格从 49.99 美元涨至 79.99 美元。亚马逊在一份声明中称，“消费电子行业面临内存和存储组件成本的大幅上涨。在长期承担这些成本上涨后，我们最近对产品线进行了价格调整。”亚马逊的涨价再次证明如今不是购买硬件产品的好时机，苹果刚刚宣布的新款 Mac Mini 就大幅提高了起售价。",
-      "link": "https://www.solidot.org/story?sid=85196",
-      "image": "",
-      "author": "",
-      "published_at": "2026-08-26T05:47:11Z"
     },
     {
       "id": "e116c817373dc20592653c6b",
