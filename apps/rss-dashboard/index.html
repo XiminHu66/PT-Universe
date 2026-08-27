@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f4f7f4">
   <meta name="description" content="PT Universe 的本地优先中文 RSS 阅读器。">
   <title>RSS Orbit · 你的信息收件箱</title>
-  <link rel="stylesheet" href="styles.css?v=20260827-3">
+  <link rel="stylesheet" href="styles.css?v=20260827-4">
 </head>
 <body>
   <div class="app-shell">
@@ -27,7 +27,7 @@
       </nav>
 
       <div class="side-section">
-        <div class="side-title"><span>分类</span><button id="manageButton" aria-label="管理订阅">＋</button></div>
+        <div class="side-title category-title"><span>分类</span><button id="manageButton" aria-label="管理分类与订阅" title="管理分类与订阅"><span aria-hidden="true">+</span></button></div>
         <div id="categoryNav" class="feed-nav"></div>
       </div>
       <div class="side-section feeds-section">
@@ -111,10 +111,11 @@
       <div class="dialog-tabs">
         <button type="button" class="active" data-pane="sources">订阅源</button>
         <button type="button" data-pane="opml">导入与备份</button>
+        <button type="button" data-pane="appearance">界面</button>
         <button type="button" data-pane="about">工作方式</button>
       </div>
       <section class="dialog-pane active" id="pane-sources">
-        <p class="dialog-note">默认中文源由 PT Universe 定时抓取；关闭某个来源只影响当前浏览器。</p>
+        <p class="dialog-note">默认中文源每 4 小时聚合；顶部刷新按钮也可由当前浏览器直接读取 RSS，不需要等待 Action。</p>
         <div id="sourceManager" class="source-manager"></div>
         <div class="add-source">
           <h3>添加本机订阅</h3>
@@ -134,16 +135,24 @@
           <div><span>↺</span><h3>清理阅读状态</h3><p>只清除已读和稍后读记录，不会删除订阅源。</p><button type="button" class="danger" id="resetStateButton">清除阅读状态</button></div>
         </div>
       </section>
+      <section class="dialog-pane" id="pane-appearance">
+        <div class="preference-card">
+          <div class="preference-copy"><strong>右侧速读宽度</strong><p>调整桌面端文章列表与速读面板的宽度比例。</p></div>
+          <div class="range-control"><input id="readerWidthInput" type="range" min="32" max="50" step="1" value="42" aria-label="右侧速读宽度"><output id="readerWidthOutput" for="readerWidthInput">42%</output></div>
+        </div>
+        <p class="dialog-note preference-note">窄屏和手机端仍会使用全屏速读，不受此比例影响。</p>
+      </section>
       <section class="dialog-pane about-pane" id="pane-about">
         <div class="about-card"><span>01</span><div><h3>定时聚合</h3><p>GitHub Action 每天 08:00 起每 4 小时抓取一次默认 RSS，并把结果保存在当前仓库。</p></div></div>
-        <div class="about-card"><span>02</span><div><h3>本地优先</h3><p>已读、收藏、隐藏来源、主题和本机订阅只存于浏览器，不需要账号。</p></div></div>
-        <div class="about-card"><span>03</span><div><h3>原文阅读</h3><p>Dashboard 只整理标题与摘要，完整内容始终从原网站打开。</p></div></div>
+        <div class="about-card"><span>02</span><div><h3>手动实时刷新</h3><p>点击顶部刷新按钮会从浏览器直接读取各 RSS 源；无法直连的来源自动保留仓库缓存。</p></div></div>
+        <div class="about-card"><span>03</span><div><h3>本地优先</h3><p>已读、收藏、隐藏来源、主题、面板比例和本机订阅只存于浏览器，不需要账号。</p></div></div>
+        <div class="about-card"><span>04</span><div><h3>原文阅读</h3><p>Dashboard 只整理标题与摘要，完整内容始终从原网站打开。</p></div></div>
       </section>
     </form>
   </dialog>
 
   <div id="toast" role="status"></div>
   <a id="ptu-home-link" href="../../" aria-label="返回 PT Universe"><i aria-hidden="true">‹</i><span>PT Universe</span></a>
-  <script src="app.js?v=20260827-3"></script>
+  <script src="app.js?v=20260827-4"></script>
 </body>
 </html>
