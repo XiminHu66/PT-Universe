@@ -11,7 +11,7 @@ let view='all',category=null,feed=null,quickFilter='all',query='',sortDesc=true,
 function esc(v=''){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function safeUrl(v=''){try{const u=new URL(v,location.href);return ['http:','https:'].includes(u.protocol)?u.href:''}catch{return ''}}
 function proxyImage(url,width=480){try{const u=new URL(url);const target=`${u.host}${u.pathname}${u.search}`;return `https://images.weserv.nl/?url=${encodeURIComponent(target)}&w=${width}&output=webp&il` }catch{return ''}}
-function hideBrokenImage(img){if(img.classList.contains('article-image'))img.closest('.article-card')?.classList.add('no-image');else img.hidden=true;img.removeAttribute('src')}
+function hideBrokenImage(img){img.hidden=true;if(img.classList.contains('article-image'))img.closest('.article-card')?.classList.add('no-image');img.removeAttribute('src')}
 function wireImage(img,width){
   const original=safeUrl(img.dataset.original||img.getAttribute('src'));if(!original){hideBrokenImage(img);return}
   let triedProxy=false;
