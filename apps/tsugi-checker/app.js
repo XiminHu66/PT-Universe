@@ -32,7 +32,7 @@ function imageHTML({cover,type,className='cover',placeholderClass='cover cover-p
 function enabledSourceIds(kind){return new Set((state.content?.[kind]||[]).filter(x=>x.enabled!==false).map(x=>x.id))}
 function sourceLabel(id,kind){const row=(state.content?.[kind]||[]).find(x=>x.id===id);return row?.label||id}
 
-async function load({manual=false}={}){
+async function load(){
   $('#syncText').textContent='正在同步…';$('#syncDot').classList.remove('ok');
   const [feed,library,site,news,content,music,games]=await Promise.all([
     loadJSON('data/feed.json',{generated_at:null,updates:[],sources:{},items:{}}),
@@ -48,9 +48,6 @@ async function load({manual=false}={}){
   renderAll();
   $('#syncDot').classList.add('ok');
   $('#syncText').textContent=(feed.generated_at||site.generated_at||news.generated_at||music.generated_at||games.generated_at)?'数据已加载':'尚未同步';
-  if(manual&&typeof window.tsugiMarkManualReload==='function'){
-    window.tsugiMarkManualReload(new Date(),site.generated_at||feed.generated_at||news.generated_at||music.generated_at||games.generated_at);
-  }
 }
 
 function remoteLibraryKeys(){
@@ -246,6 +243,6 @@ $$('.chip[data-site-filter]').forEach(b=>b.onclick=()=>{$$('.chip[data-site-filt
 $$('[data-game-view]').forEach(b=>b.onclick=()=>{state.gameView=b.dataset.gameView;$$('[data-game-view]').forEach(x=>x.classList.toggle('active',x===b));$$('.game-pane').forEach(x=>x.classList.remove('active'));$(`#game${state.gameView==='mobile'?'Mobile':state.gameView==='pc'?'Pc':'Console'}Pane`).classList.add('active')});
 $$('[data-music-view]').forEach(b=>b.onclick=()=>{state.musicView=b.dataset.musicView;$$('[data-music-view]').forEach(x=>x.classList.toggle('active',x===b));$$('.music-pane').forEach(x=>x.classList.remove('active'));$(`#music${state.musicView==='chart'?'Chart':state.musicView==='new'?'New':'Artists'}Pane`).classList.add('active');if(state.musicView==='artists')renderFollowedArtists()});
 $('#search').addEventListener('input',e=>{state.query=e.target.value.trim();renderSiteUpdates();renderLibrary();renderLibraryUpdates();renderNews();renderMusic();renderGames()});
-$('#refreshBtn').onclick=()=>load({manual:true});$('#themeBtn').onclick=()=>applyTheme(document.documentElement.dataset.theme==='light'?'dark':'light');$('#markAllRead').onclick=()=>{[...(state.feed?.updates||[]),...state.localUpdates].forEach(x=>state.read.add(x.id));saveRead();renderLibraryUpdates()};
+$('#refreshBtn').onclick=load;$('#themeBtn').onclick=()=>applyTheme(document.documentElement.dataset.theme==='light'?'dark':'light');$('#markAllRead').onclick=()=>{[...(state.feed?.updates||[]),...state.localUpdates].forEach(x=>state.read.add(x.id));saveRead();renderLibraryUpdates()};
 $('#artistSearchBtn').onclick=runArtistSearch;$('#artistSearchInput').addEventListener('keydown',e=>{if(e.key==='Enter')runArtistSearch()});$('#refreshArtistsBtn').onclick=renderFollowedArtists;
 applyTheme(document.documentElement.dataset.theme||'dark');load();
