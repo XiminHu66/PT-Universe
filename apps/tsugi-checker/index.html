@@ -373,7 +373,7 @@
     </main>
   </div>
   <div id="tsugiToast" class="tsugi-toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20260827-syncfix1"></script>
+  <script src="app.js?v=20260827-syncfix2"></script>
   <script src="games.js"></script>
   <script src="ui-settings.js"></script>
   <script>
@@ -496,7 +496,10 @@
         hour12:false, timeZoneName:'short'
       });
 
+      let latestDataTimestamp = null;
+
       function showDataTimestamp(raw) {
+        latestDataTimestamp = raw || null;
         const d = raw ? new Date(raw) : null;
         if (!d || Number.isNaN(+d)) {
           el.textContent = '最后同步 · 尚无记录';
@@ -527,6 +530,23 @@
           el.textContent = '最后同步 · 暂不可用';
           el.title = '';
         });
+
+      const reloadBtn = document.getElementById('refreshBtn');
+      const syncText = document.getElementById('syncText');
+      reloadBtn?.addEventListener('click', () => {
+        const startedAt = Date.now();
+        const waitForReload = () => {
+          const status = syncText?.textContent || '';
+          if (status === '正在同步…' && Date.now() - startedAt < 20000) {
+            setTimeout(waitForReload, 100);
+            return;
+          }
+          if (status === '数据已加载') {
+            window.tsugiMarkManualReload(new Date(), latestDataTimestamp);
+          }
+        };
+        setTimeout(waitForReload, 0);
+      });
     })();
   </script>
 
