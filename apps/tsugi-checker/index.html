@@ -496,23 +496,36 @@
         hour12:false, timeZoneName:'short'
       });
 
+      function showDataTimestamp(raw) {
+        const d = raw ? new Date(raw) : null;
+        if (!d || Number.isNaN(+d)) {
+          el.textContent = '最后同步 · 尚无记录';
+          el.title = '';
+          return;
+        }
+        el.textContent = `最后同步 · ${shortFmt.format(d)}`;
+        el.title = `阅读更新流最后完成抓取：${fullFmt.format(d)}`;
+      }
+
+      window.tsugiMarkManualReload = (loadedAt = new Date(), dataRaw = null) => {
+        const loaded = new Date(loadedAt);
+        if (Number.isNaN(+loaded)) return;
+        el.textContent = `最后同步 · ${shortFmt.format(loaded)}`;
+        const dataTime = dataRaw ? new Date(dataRaw) : null;
+        el.title = !dataTime || Number.isNaN(+dataTime)
+          ? `本页重新读取：${fullFmt.format(loaded)}`
+          : `本页重新读取：${fullFmt.format(loaded)}；数据最后抓取：${fullFmt.format(dataTime)}`;
+      };
+
       fetch(`data/site-updates.json?v=${Date.now()}`, {cache:'no-store'})
         .then(r => {
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
           return r.json();
         })
-        .then(data => {
-          const raw = data?.generated_at;
-          const d = raw ? new Date(raw) : null;
-          if (!d || Number.isNaN(+d)) {
-            el.textContent = '最后同步 · 尚无记录';
-            return;
-          }
-          el.textContent = `最后同步 · ${shortFmt.format(d)}`;
-          el.title = `阅读更新流最后完成抓取：${fullFmt.format(d)}`;
-        })
+        .then(data => showDataTimestamp(data?.generated_at))
         .catch(() => {
           el.textContent = '最后同步 · 暂不可用';
+          el.title = '';
         });
     })();
   </script>
