@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-27T19:23:25.771988Z",
+  "generated_at": "2026-08-27T19:28:13Z",
   "chart_date": "2026/08/26",
   "weekly_chart": [
     {
@@ -936,13 +936,13 @@
       "label": "Billboard JAPAN Hot 100",
       "ok": true,
       "count": 30,
-      "checked_at": "2026-08-27T19:23:25.771988Z"
+      "checked_at": "2026-08-27T19:28:13Z"
     },
     "apple_music_weekly_new": {
       "label": "Apple Music Japan · 本周新曲",
       "ok": true,
       "count": 4,
-      "checked_at": "2026-08-27T19:23:25.771988Z",
+      "checked_at": "2026-08-27T19:28:13Z",
       "fallback": "Billboard JAPAN Hot 100 本周新进榜",
       "error": "RuntimeError: Apple Music Best New Songs heading not found"
     },
@@ -950,7 +950,7 @@
       "label": "YouTube Japan · 近期热门榜",
       "ok": true,
       "count": 30,
-      "checked_at": "2026-08-27T19:23:25.771988Z",
+      "checked_at": "2026-08-27T19:28:13Z",
       "chart_date": "2026/08/20",
       "endpoint": "https://kworb.net/youtube/insights/jp.html"
     }

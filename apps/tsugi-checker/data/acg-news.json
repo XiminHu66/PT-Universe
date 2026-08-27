@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-27T18:54:53Z",
+  "generated_at": "2026-08-27T19:28:13Z",
   "items": [
     {
       "id": "2bac7353106ba04e",
@@ -799,25 +799,25 @@
       "label": "巴哈姆特 GNN",
       "ok": true,
       "count": 24,
-      "checked_at": "2026-08-27T18:54:53Z"
+      "checked_at": "2026-08-27T19:28:13Z"
     },
     "gcores": {
       "label": "机核 GCORES",
       "ok": true,
       "count": 20,
-      "checked_at": "2026-08-27T18:54:53Z"
+      "checked_at": "2026-08-27T19:28:13Z"
     },
     "yystv": {
       "label": "游研社",
       "ok": true,
       "count": 12,
-      "checked_at": "2026-08-27T18:54:53Z"
+      "checked_at": "2026-08-27T19:28:13Z"
     },
     "gamelook": {
       "label": "GameLook 游戏大观",
       "ok": true,
       "count": 24,
-      "checked_at": "2026-08-27T18:54:53Z"
+      "checked_at": "2026-08-27T19:28:13Z"
     }
   }
 }
