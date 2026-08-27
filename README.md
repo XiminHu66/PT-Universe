@@ -8,7 +8,7 @@ Live site: https://ximinhu66.github.io/PT-Universe/
 
 - Daily Nexus — calendar, notes, discovery, music, focus and micro tools
 - DeskBoard — stocks, weather, breaking news, RSS and quick links
-- RSS Orbit — Chinese-first RSS inbox, unread state, read later and OPML migration
+- RSS Orbit — Chinese-first RSS inbox, unread state, read later and OPML migration; refreshed every four hours from 08:00 PT
 - Stock Alert — market data, options activity, technical model and alerts
 - QF Tool — investing, rewards, deals, side-income and decision journal
 - 3C Scout — Chinese-first product, deal and discovery feeds
