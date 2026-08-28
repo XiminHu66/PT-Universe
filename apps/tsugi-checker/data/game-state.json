@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-27T20:40:59Z",
+  "generated_at": "2026-08-28T01:39:49Z",
   "seen": {
     "b242f954157ba1ca": {
       "first_seen": "2026-08-14",
@@ -1889,6 +1889,30 @@
       "first_seen": "2026-08-28",
       "last_seen": "2026-08-28",
       "title": "别饿着！点外卖模拟器",
+      "source": "taptap_cn_new"
+    },
+    "178c6e2fd672518d": {
+      "first_seen": "2026-08-28",
+      "last_seen": "2026-08-28",
+      "title": "ガイダス・ワン",
+      "source": "appstore"
+    },
+    "28724fbd3b190e2c": {
+      "first_seen": "2026-08-28",
+      "last_seen": "2026-08-28",
+      "title": "オートにしてたら死んだ",
+      "source": "appstore"
+    },
+    "f546943f45c9533c": {
+      "first_seen": "2026-08-28",
+      "last_seen": "2026-08-28",
+      "title": "Legends of Amberland - RPG",
+      "source": "appstore"
+    },
+    "71af1874b901f778": {
+      "first_seen": "2026-08-28",
+      "last_seen": "2026-08-28",
+      "title": "格斗对决",
       "source": "taptap_cn_new"
     }
   }
