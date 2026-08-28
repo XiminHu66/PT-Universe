@@ -2,6 +2,16 @@ name: Refresh Tsugi games
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/refresh-tsugi-games.yml
+      - apps/tsugi-checker/config/content.json
+      - apps/tsugi-checker/requirements.txt
+      - apps/tsugi-checker/scraper/games.py
+      - apps/tsugi-checker/scraper/steam_pc.py
+      - apps/tsugi-checker/scraper/game_enrich.py
+      - apps/tsugi-checker/scraper/run_games.py
   schedule:
     # Daily at 08:00 Pacific; GitHub applies PST/PDT automatically.
     - cron: "0 8 * * *"
