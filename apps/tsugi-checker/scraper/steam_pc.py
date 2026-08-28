@@ -207,8 +207,19 @@ def main() -> None:
         ("steam_popular_upcoming", "Steam · Popular Upcoming", "popularcomingsoon", "Released_ASC", 80),
     ]
 
+    baseline_pc = list((payload.get("items") or {}).get("pc") or [])
     pc_rows: list[dict] = []
     sources = payload.setdefault("sources", {})
+
+    def previous_rows(source_id: str) -> list[dict]:
+        rows = []
+        for row in baseline_pc:
+            if row.get("source") != source_id:
+                continue
+            release = as_date(row.get("release_date") or "")
+            if release is None or start <= release <= end:
+                rows.append(dict(row))
+        return rows
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
@@ -232,14 +243,16 @@ def main() -> None:
                     d = as_date(row.get("release_date") or "")
                     if d and start <= d <= end:
                         filtered.append(row)
-                pc_rows.extend(filtered)
+                fallback = previous_rows(source_id) if not raw_rows else []
+                pc_rows.extend(filtered or fallback)
                 sources[source_id] = {
                     "label": label,
                     "ok": bool(raw_rows),
-                    "count": len(filtered),
+                    "count": len(filtered or fallback),
                     "raw_count": len(raw_rows),
                     "dom_count": dom_count,
                     "checked_at": payload.get("generated_at"),
+                    "fallback": bool(fallback),
                 }
                 if not raw_rows:
                     sources[source_id]["error"] = f"Steam page produced no parseable dated rows ({note})"
@@ -248,15 +261,18 @@ def main() -> None:
                     f"({len(raw_rows)} parsed, dom={dom_count}, {note})"
                 )
             except Exception as e:
+                fallback = previous_rows(source_id)
+                pc_rows.extend(fallback)
                 sources[source_id] = {
                     "label": label,
                     "ok": False,
-                    "count": 0,
+                    "count": len(fallback),
                     "raw_count": 0,
                     "checked_at": payload.get("generated_at"),
+                    "fallback": bool(fallback),
                     "error": f"{type(e).__name__}: {e}",
                 }
-                print(f"STEAMPC ERR {source_id}: {type(e).__name__}: {e}")
+                print(f"STEAMPC ERR {source_id}: {type(e).__name__}: {e}; preserved {len(fallback)} last-good items")
 
         context.close()
         browser.close()

@@ -8,6 +8,7 @@ const DATA_FILES=['site-updates.json','acg-news.json','music.json','game-release
 const BROWSER_DATA_FILES=new Set(['site-updates.json','music.json']);
 const WATCHDOG_DATA_FILES=new Set(['site-updates.json','acg-news.json','music.json']);
 const FALLBACK_AFTER_MS=20*3600_000;
+const GAME_SYNC_AFTER_MS=30*3600_000;
 const RAW='https://raw.githubusercontent.com/XiminHu66/PT-Universe/main/apps/tsugi-checker/data/';
 const allowedOrigins=new Set(['https://ximinhu66.github.io','http://localhost:8000','http://127.0.0.1:8000']);
 const jsonHeaders={'content-type':'application/json; charset=utf-8','cache-control':'no-store'};
@@ -31,7 +32,8 @@ function timingSafe(a:string,b:string){if(a.length!==b.length)return false;let d
 
 async function getData(env:Env,name:string){
   const entry=await env.PT_UNIVERSE_DATA.getWithMetadata<{updatedAt?:string}>(`data/${name}`),cached=entry.value;
-  const updatedAt=Date.parse(entry.metadata?.updatedAt||''),stale=WATCHDOG_DATA_FILES.has(name)&&(!Number.isFinite(updatedAt)||Date.now()-updatedAt>FALLBACK_AFTER_MS);
+  const updatedAt=Date.parse(entry.metadata?.updatedAt||''),age=Date.now()-updatedAt;
+  const stale=(WATCHDOG_DATA_FILES.has(name)&&(!Number.isFinite(updatedAt)||age>FALLBACK_AFTER_MS))||(name==='game-releases.json'&&(!Number.isFinite(updatedAt)||age>GAME_SYNC_AFTER_MS));
   if(cached&&!stale)return cached;
   try{
     const response=await timedFetch(RAW+name,{headers:{'user-agent':'PT-Universe/1.0','accept':'application/json'}},12_000);
@@ -39,7 +41,10 @@ async function getData(env:Env,name:string){
       const remote=await response.text();
       if(!cached)return remote;
       const cachedGenerated=Date.parse(safeJson<{generated_at?:string}>(cached,{}).generated_at||''),remoteGenerated=Date.parse(safeJson<{generated_at?:string}>(remote,{}).generated_at||'');
-      if(Number.isFinite(remoteGenerated)&&(!Number.isFinite(cachedGenerated)||remoteGenerated>cachedGenerated))return remote;
+      if(Number.isFinite(remoteGenerated)&&(!Number.isFinite(cachedGenerated)||remoteGenerated>cachedGenerated)){
+        await env.PT_UNIVERSE_DATA.put(`data/${name}`,remote,{metadata:{updatedAt:new Date(remoteGenerated).toISOString()}});
+        return remote;
+      }
     }
   }catch(e){console.warn('github_fallback_failed',{name,error:String(e)})}
   if(cached)return cached;
@@ -190,29 +195,23 @@ async function refreshMusic(env:Env,sharedBrowser?:Browser){
   if(!result.recent_chart?.length&&!result.weekly_chart?.length)throw new Error('音乐榜单抓取失败');await putData(env,'music.json',result);return {recent:result.recent_chart.length,weekly:result.weekly_chart.length,sources:result.sources};
 }
 
-function parseSteam(html:string){
-  return [...html.matchAll(/<a[^>]+data-ds-appid="(\d+)"[\s\S]*?<span class="title">([\s\S]*?)<\/span>[\s\S]*?<div class="col search_released responsive_secondrow">([\s\S]*?)<\/div>/gi)].map(m=>({id:`steam-${m[1]}`,appid:m[1],title:text(m[2]),release_date:text(m[3]),platform:'PC',source:'Steam',url:`https://store.steampowered.com/app/${m[1]}/`}));
-}
-function isoDate(raw:string){const parsed=Date.parse(raw);return Number.isNaN(parsed)?'':new Date(parsed).toISOString().slice(0,10)}
-async function scrapeGames(browser:Browser,old:any,sources:Record<string,Json>){
-  const page=tunePage(await browser.newPage()),mobile:any[]=[];let consoleRows:any[]=[];
-  const mobileSources=[
-    {id:'appstore',label:'App Store 日本 · 新着精选',store:'iOS / iPadOS',region:'JP',url:'https://apps.apple.com/jp/iphone/room/1435822938',patterns:['/jp/app/'],platforms:['iOS']},
-    {id:'googleplay',label:'Google Play 日本 · 新作ゲーム',store:'Google Play',region:'JP',url:'https://play.google.com/store/apps/collection/promotion_3000791_new_releases_games?hl=ja&gl=jp',patterns:['/store/apps/details'],platforms:['Android']},
-    {id:'taptap_cn_new',label:'TapTap 中国 · 新游',store:'TapTap',region:'CN',url:'https://www.taptap.cn/top/download/new',patterns:['/app/'],platforms:['Android','iOS']},
-    {id:'taptap_cn_upcoming',label:'TapTap 中国 · 预约',store:'TapTap',region:'CN',url:'https://www.taptap.cn/upcoming',patterns:['/app/'],platforms:['Android','iOS']}
-  ];
-  try{
-    for(const source of mobileSources){try{await page.goto(source.url,{waitUntil:'domcontentloaded',timeout:20_000});const rows=await page.locator('a[href]').evaluateAll((els,args)=>{const seen=new Set<string>();return els.map((el:any)=>({title:(el.getAttribute('aria-label')||el.querySelector('[title]')?.getAttribute('title')||el.textContent||'').trim(),url:el.href,cover:el.querySelector('img')?.src||''})).filter((x:any)=>x.title&&args.patterns.some((p:string)=>x.url.includes(p))&&!seen.has(x.url)&&seen.add(x.url)).slice(0,16)},{patterns:source.patterns});const prior=(old.items?.mobile||[]).filter((x:any)=>x.source===source.id);const normalized=rows.map((x:any,index:number)=>{const match=prior.find((y:any)=>y.url===x.url);return {...match,id:match?.id||`${source.id}-${index}-${btoa(x.url).slice(-12)}`,category:'mobile',source:source.id,source_label:source.label,store:source.store,title:text(x.title),url:x.url,cover:x.cover||match?.cover||'',platforms:source.platforms,release_date:match?.release_date||'',region:source.region,featured:true,popularity_label:source.id.includes('upcoming')?'预约榜':'新着精选',first_seen:match?.first_seen||new Date().toISOString().slice(0,10)}});mobile.push(...(normalized.length?normalized:prior));sources[source.id]={label:source.label,ok:normalized.length>0,count:normalized.length||prior.length,fallback:!normalized.length}}catch(e){const prior=(old.items?.mobile||[]).filter((x:any)=>x.source===source.id);mobile.push(...prior);sources[source.id]={label:source.label,ok:false,count:prior.length,error:String(e),fallback:true}}}
-    try{await page.goto('https://www.famitsu.com/schedule',{waitUntil:'domcontentloaded',timeout:20_000});const rows=await page.locator('a[href]').evaluateAll(els=>{const seen=new Set<string>();return els.map((el:any)=>{const box=el.closest('li,article,section,div'),context=(box?.textContent||el.textContent||'').replace(/\s+/g,' ').trim(),match=context.match(/(20\d{2})年(\d{1,2})月(\d{1,2})日/);return {title:(el.textContent||el.getAttribute('title')||'').trim(),url:el.href,cover:el.querySelector('img')?.src||'',date:match?`${match[1]}-${String(match[2]).padStart(2,'0')}-${String(match[3]).padStart(2,'0')}`:'',context}}).filter((x:any)=>x.title&&x.url.includes('/game/title/')&&!seen.has(x.url)&&seen.add(x.url)).slice(0,200)});const prior=old.items?.console||[];consoleRows=rows.filter((x:any)=>x.date).map((x:any,index:number)=>{const match=prior.find((y:any)=>y.url===x.url),platforms=['Switch 2','Switch','PS5','PS4','Xbox Series X|S'].filter(p=>x.context.includes(p));return {...match,id:match?.id||`famitsu-${index}-${btoa(x.url).slice(-12)}`,category:'console',source:'famitsu',source_label:'Famitsu 日本游戏发行日',store:'发行日历',title:text(x.title),url:x.url,cover:x.cover||match?.cover||'',platforms:platforms.length?platforms:(match?.platforms||[]),release_date:x.date,release_text:`${x.date} 発売`}});if(consoleRows.length<12)consoleRows=prior;sources.famitsu={label:'Famitsu 日本游戏发行日',ok:rows.length>=12,count:consoleRows.length,fallback:rows.length<12}}catch(e){consoleRows=old.items?.console||[];sources.famitsu={label:'Famitsu 日本游戏发行日',ok:false,count:consoleRows.length,error:String(e),fallback:true}}
-  }finally{await closeFast(page)}
-  return {mobile,consoleRows};
-}
 async function refreshGames(env:Env){
-  const old=await previous<any>(env,'game-releases.json',{items:{mobile:[],pc:[],console:[]},sources:{}}),items={mobile:old.items?.mobile||[],pc:old.items?.pc||[],console:old.items?.console||[]};
-  const sources:Record<string,Json>={...(old.sources||{}),snapshot:{label:'游戏快照（QF 暂缓）',ok:true,count:items.mobile.length+items.pc.length+items.console.length,fallback:true}};
-  const value={...old,date_jst:new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Tokyo'}),generated_at:now(),items,sources};
-  await putData(env,'game-releases.json',value);return {pc:items.pc.length,mobile:items.mobile.length,console:items.console.length,sources};
+  const cachedRaw=await env.PT_UNIVERSE_DATA.get('data/game-releases.json');
+  const cached=safeJson<any>(cachedRaw,{items:{mobile:[],pc:[],console:[]},sources:{}});
+  let current=cached,imported=false,remoteError='';
+  try{
+    const response=await timedFetch(`${RAW}game-releases.json?refresh=${Date.now()}`,{headers:{'user-agent':'PT-Universe/1.0','accept':'application/json','cache-control':'no-cache'}},15_000);
+    if(!response.ok)throw new Error(`GitHub raw ${response.status}`);
+    const remote=await response.json<any>(),items=remote.items||{},total=['mobile','pc','console'].reduce((sum,key)=>sum+(Array.isArray(items[key])?items[key].length:0),0);
+    if(!remote.generated_at||!total)throw new Error('GitHub 游戏快照无效或为空');
+    const remoteGenerated=Date.parse(remote.generated_at),cachedGenerated=Date.parse(cached.generated_at||'');
+    if(Number.isFinite(remoteGenerated)&&(!Number.isFinite(cachedGenerated)||remoteGenerated>cachedGenerated)){
+      current=remote;await putData(env,'game-releases.json',remote);imported=true;
+    }
+  }catch(e){remoteError=String(e);console.warn('game_snapshot_import_failed',{error:remoteError})}
+  const items=current.items||{},counts={mobile:(items.mobile||[]).length,pc:(items.pc||[]).length,console:(items.console||[]).length};
+  if(!counts.mobile&&!counts.pc&&!counts.console)throw new Error(remoteError||'游戏快照不可用');
+  return {...counts,generatedAt:current.generated_at||null,imported,pipeline:'Tsugi 游戏独立每日任务 · 08:00 America/Los_Angeles',qf:'paused',remoteError:remoteError||undefined};
 }
 
 async function runRefresh(env:Env,scope:RefreshScope){

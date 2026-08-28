@@ -43,6 +43,7 @@ data/
 
 scraper/
   main.py
+  run_games.py
   sources.py
   aggregators.py
   music.py
@@ -50,22 +51,24 @@ scraper/
   steam_pc.py
   game_enrich.py
 
-.github/workflows/update-feed.yml
+.github/workflows/refresh-tsugi.yml
+.github/workflows/refresh-tsugi-games.yml
 ```
 
 ## 调度
 
-`.github/workflows/update-feed.yml`：
+刷新任务已经拆分：
 
-- 每天 **09:17 America/Los_Angeles** 完整刷新；
-- Actions 页面手动 `Run workflow` 完整刷新；
-- commit message 含 `[refresh]` 时完整刷新；
-- 普通 push 只部署，不重复爬取。
+- Cloudflare 每日刷新漫画 / 小说、音乐与新闻，`.github/workflows/refresh-tsugi.yml` 只在数据过期时兜底；
+- `.github/workflows/refresh-tsugi-games.yml` 每天 **08:00 America/Los_Angeles** 独立刷新游戏，自动适配 PST / PDT；
+- 游戏任务写回 GitHub JSON、部署静态备用数据，并通知 Cloudflare 导入新快照；
+- QF 是另一项目，暂停状态不影响 Tsugi 游戏更新。
 
 PC 的稳定抓取链是：
 
 ```text
-main.py
+run_games.py
+→ games.py
 → steam_pc.py
 → game_enrich.py
 → data/game-releases.json

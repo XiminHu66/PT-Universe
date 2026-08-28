@@ -1,5 +1,5 @@
 from __future__ import annotations
-import json, os, sys, time, hashlib, re
+import argparse, json, os, sys, time, hashlib, re
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse, urljoin
@@ -177,7 +177,7 @@ def refresh_news(content_cfg, generated):
         seen.add(key); dedup.append(row)
     NEWS_FEED.write_text(json.dumps({'generated_at':generated,'items':dedup[:72],'sources':statuses},ensure_ascii=False,indent=2)+'\n','utf-8')
 
-def main():
+def main(*, include_games=True):
     cfg=load(CONFIG,{'items':[]}); content_cfg=load(CONTENT,{'site_updates':[],'news':[]}); state=load(STATE,{'items':{}}); oldfeed=load(FEED,{'updates':[]})
     generated=now(); updates=list(oldfeed.get('updates',[])); item_out={}; sources={}
     enabled=[x for x in cfg.get('items',[]) if x.get('enabled',True)]
@@ -213,6 +213,11 @@ def main():
     refresh_site_updates(content_cfg,generated)
     refresh_news(content_cfg,generated)
     refresh_music(content_cfg,generated,MUSIC_FEED,UA)
-    refresh_games(content_cfg,generated,GAME_FEED,GAME_STATE,UA)
+    if include_games:
+        refresh_games(content_cfg,generated,GAME_FEED,GAME_STATE,UA)
 
-if __name__=='__main__': main()
+if __name__=='__main__':
+    parser=argparse.ArgumentParser(description='Refresh Tsugi feeds')
+    parser.add_argument('--skip-games',action='store_true',help='leave the independently scheduled game feed unchanged')
+    args=parser.parse_args()
+    main(include_games=not args.skip_games)

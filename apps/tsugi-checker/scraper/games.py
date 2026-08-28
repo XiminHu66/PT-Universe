@@ -595,6 +595,21 @@ def _decorate_timeline(row, today: date):
     return row
 
 
+def _previous_source_rows(payload: dict, source_id: str, start: date, end: date):
+    """Keep last-good rows for one source when today's upstream fetch fails."""
+    rows = []
+    for category_rows in (payload.get("items") or {}).values():
+        if not isinstance(category_rows, list):
+            continue
+        for row in category_rows:
+            if not isinstance(row, dict) or row.get("source") != source_id:
+                continue
+            effective = _as_date(row.get("release_date") or row.get("first_seen") or "")
+            if effective is None or start <= effective <= end:
+                rows.append(dict(row))
+    return rows
+
+
 def refresh_games(content_cfg: dict, generated: str, output_path: Path, state_path: Path, ua: str):
     cfg = content_cfg.get("games", {}) or {}
     today = datetime.now(timezone.utc).astimezone(JST).date()
@@ -603,6 +618,11 @@ def refresh_games(content_cfg: dict, generated: str, output_path: Path, state_pa
     future_days = int(cfg.get("future_days", 90))
     past_start = today - timedelta(days=past_days)
     future_end = today + timedelta(days=future_days)
+
+    try:
+        old_payload = json.loads(output_path.read_text("utf-8"))
+    except Exception:
+        old_payload = {"items": {"mobile": [], "pc": [], "console": []}, "sources": {}}
 
     try:
         old_state = json.loads(state_path.read_text("utf-8"))
@@ -644,11 +664,13 @@ def refresh_games(content_cfg: dict, generated: str, output_path: Path, state_pa
                     "title": row["title"],
                     "source": sid,
                 }
-            statuses[sid] = {"label": label, "ok": True, "count": len(found), "checked_at": generated}
+            statuses[sid] = {"label": label, "ok": True, "count": len(found), "checked_at": generated, "fallback": False}
             print(f"GAMES {sid}: {len(found)} items")
         except Exception as e:
-            statuses[sid] = {"label": label, "ok": False, "count": 0, "checked_at": generated, "error": f"{type(e).__name__}: {e}"}
-            print(f"GAMES ERR {sid}: {e}")
+            fallback = _previous_source_rows(old_payload, sid, past_start, future_end)
+            rows.extend(fallback)
+            statuses[sid] = {"label": label, "ok": False, "count": len(fallback), "checked_at": generated, "fallback": bool(fallback), "error": f"{type(e).__name__}: {e}"}
+            print(f"GAMES ERR {sid}: {e}; preserved {len(fallback)} last-good items")
 
     # Steam: use storefront curated JSON sets + appdetails for exact dates.
     steam_specs = [
@@ -674,13 +696,16 @@ def refresh_games(content_cfg: dict, generated: str, output_path: Path, state_pa
                 "count": len(filtered),
                 "raw_count": raw_count,
                 "checked_at": generated,
+                "fallback": False,
             }
             if not raw_count:
                 statuses[sid]["error"] = "No items parsed"
             print(f"GAMES {sid}: {len(filtered)} timeline items ({raw_count} raw)")
         except Exception as e:
-            statuses[sid] = {"label": label, "ok": False, "count": 0, "raw_count": 0, "checked_at": generated, "error": f"{type(e).__name__}: {e}"}
-            print(f"GAMES ERR {sid}: {e}")
+            fallback = _previous_source_rows(old_payload, sid, past_start, future_end)
+            rows.extend(fallback)
+            statuses[sid] = {"label": label, "ok": False, "count": len(fallback), "raw_count": 0, "checked_at": generated, "fallback": bool(fallback), "error": f"{type(e).__name__}: {e}"}
+            print(f"GAMES ERR {sid}: {e}; preserved {len(fallback)} last-good items")
 
     # Console: Famitsu supplies exact dates and already works reliably in this repo.
     famitsu_cfg = source_cfg.get("famitsu", {})
@@ -688,13 +713,15 @@ def refresh_games(content_cfg: dict, generated: str, output_path: Path, state_pa
         try:
             found = fetch_famitsu_console_window(famitsu_cfg, ua, past_start, future_end)
             rows.extend(found)
-            statuses["famitsu"] = {"label": "Famitsu 日本游戏发行日", "ok": bool(found), "count": len(found), "checked_at": generated}
+            statuses["famitsu"] = {"label": "Famitsu 日本游戏发行日", "ok": bool(found), "count": len(found), "checked_at": generated, "fallback": False}
             if not found:
                 statuses["famitsu"]["error"] = "No items parsed"
             print(f"GAMES famitsu: {len(found)} timeline items")
         except Exception as e:
-            statuses["famitsu"] = {"label": "Famitsu 日本游戏发行日", "ok": False, "count": 0, "checked_at": generated, "error": f"{type(e).__name__}: {e}"}
-            print(f"GAMES ERR famitsu: {e}")
+            fallback = _previous_source_rows(old_payload, "famitsu", past_start, future_end)
+            rows.extend(fallback)
+            statuses["famitsu"] = {"label": "Famitsu 日本游戏发行日", "ok": False, "count": len(fallback), "checked_at": generated, "fallback": bool(fallback), "error": f"{type(e).__name__}: {e}"}
+            print(f"GAMES ERR famitsu: {e}; preserved {len(fallback)} last-good items")
 
     decorated = [_decorate_timeline(x, today) for x in dedupe(rows)]
     mobile = []

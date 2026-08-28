@@ -1,15 +1,9 @@
-name: Refresh QF data
+name: Refresh QF data (paused)
 
 on:
+  # QF is intentionally paused. Keep only an explicit manual entry point so its
+  # code and historical data remain available without consuming scheduled runs.
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - apps/qf-tool/scripts/**
-      - .github/workflows/refresh-qf.yml
-  schedule:
-    - cron: "0 8 * * *"
-      timezone: "America/Los_Angeles"
 
 permissions:
   contents: write
