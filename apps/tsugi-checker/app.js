@@ -19,6 +19,11 @@ function saveLocalArray(key,value){localStorage.setItem(key,JSON.stringify(value
 const PT_API='https://pt-universe-api.summer07-nanjolno.workers.dev';
 async function loadJSON(url,fallback){
   const targets=url.startsWith('data/')?[`${PT_API}/api/data/${url.slice(5)}`,url]:[url];
+  if(url==='data/game-releases.json'){
+    const snapshots=(await Promise.all(targets.map(async target=>{try{const r=await fetch(`${target}?v=${Date.now()}`,{cache:'no-store'});if(!r.ok)throw 0;return await r.json()}catch{return null}}))).filter(Boolean);
+    if(snapshots.length)return snapshots.sort((a,b)=>Date.parse(b.generated_at||'')-Date.parse(a.generated_at||''))[0];
+    return fallback;
+  }
   for(const target of targets){try{const r=await fetch(`${target}?v=${Date.now()}`,{cache:'no-store'});if(!r.ok)throw 0;return await r.json()}catch{}}
   return fallback;
 }
