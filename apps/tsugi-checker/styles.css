@@ -77,17 +77,8 @@ code,pre{font-family:"SFMono-Regular",Consolas,monospace}
 .rss-link svg{width:16px;height:16px}
 
 .main{padding:34px 34px 90px;min-width:0}
-.topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:28px}
-.title-wrap{min-width:0}
-.eyebrow{margin:0 0 10px;font-size:10px;font-weight:800;letter-spacing:.18em;color:var(--faint)}
-.topbar h1{margin:0;font-size:clamp(34px,4vw,48px);line-height:1.02;letter-spacing:-.06em}
-.page-subtitle{margin:10px 0 0;max-width:680px;color:var(--muted);font-size:15px;line-height:1.7}
+.topbar{display:flex;align-items:center;justify-content:flex-end;gap:16px;margin-bottom:10px}
 .top-actions{display:flex;align-items:center;gap:12px;flex-shrink:0}
-.refresh-action-group{display:flex;flex-direction:column;align-items:center;gap:6px;align-self:flex-start}
-.refresh-budget-indicator{max-width:180px;color:var(--muted);font-size:10px;font-weight:700;line-height:1.2;text-align:center;white-space:nowrap;transition:color .2s ease}
-.refresh-budget-indicator[data-state="ok"]{color:var(--green)}
-.refresh-budget-indicator[data-state="low"]{color:#d6a94f}
-.refresh-budget-indicator[data-state="empty"]{color:#dc7d7d}
 .search-wrap{width:360px;height:54px;padding:0 16px;border-radius:18px;border:1px solid var(--line);background:var(--glass);display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-md)}
 .search-wrap svg{width:18px;height:18px;color:var(--faint)}
 .search-wrap input{width:100%;border:0;outline:0;background:transparent;color:var(--text);font-size:14px}
@@ -206,7 +197,6 @@ code,pre{font-family:"SFMono-Regular",Consolas,monospace}
   .main{padding:28px 22px 90px}
   .topbar{flex-direction:column;align-items:stretch}
   .top-actions{justify-content:space-between}
-  .refresh-action-group{flex:0 0 auto}
   .search-wrap{flex:1;width:auto}
   .settings-grid{grid-template-columns:1fr}
 }
@@ -235,8 +225,6 @@ code,pre{font-family:"SFMono-Regular",Consolas,monospace}
 @media (max-width:560px){
   .main{padding:22px 16px 98px}
   .eyebrow{margin-bottom:8px}
-  .topbar h1{font-size:30px}
-  .page-subtitle{display:none}
   .hero-row{gap:10px}
   .stat-card{min-height:124px;padding:16px}
   .stat-card strong{font-size:32px}

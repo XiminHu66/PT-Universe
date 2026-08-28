@@ -25,36 +25,9 @@
     .site-update-card .site-meta:last-child>span:first-child::before{content:"最后更新 · ";color:var(--faint);font-weight:650}
     .site-update-card .site-meta:last-child>span:first-child:empty::before{content:"最后更新 · 未解析";color:var(--faint);font-weight:650}
 
-    /* v9.1: subtle global data timestamp under the page subtitle. */
-    .page-updated-at{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      width:max-content;
-      margin-top:7px;
-      color:var(--faint);
-      font-size:10px;
-      line-height:1.2;
-      font-weight:650;
-      letter-spacing:.01em;
-      opacity:.82;
-      font-variant-numeric:tabular-nums;
-    }
-    .page-updated-at::before{
-      content:"";
-      width:5px;
-      height:5px;
-      flex:0 0 auto;
-      border-radius:50%;
-      background:var(--accent);
-      box-shadow:0 0 0 3px rgba(62,210,167,.08);
-      opacity:.8;
-    }
-    [data-theme="light"] .page-updated-at{opacity:.72}
-
   </style>
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="v5.css" />
+  <link rel="stylesheet" href="styles.css?v=20260828-headerfix1" />
+  <link rel="stylesheet" href="v5.css?v=20260828-headerfix1" />
   <link rel="stylesheet" href="games.css" />
   <link rel="stylesheet" href="ui-settings.css" />
   <link rel="alternate" type="application/atom+xml" title="Tsugi Updates" href="data/feed.xml" />
@@ -128,25 +101,19 @@
     </aside>
 
     <main class="main">
-      <header class="topbar">
-        <div class="title-wrap">
-          <p class="eyebrow">TSUGI / ACG TRACKING HUB</p>
-          <h1 id="pageTitle">更新流</h1>
-          <p class="page-subtitle" id="pageSubtitle">汇总各小说 / 漫画来源最新更新，并解析最新章节与话数。</p>
-          <span id="pageUpdatedAt" class="page-updated-at">最后同步 · 读取中</span>
-        </div>
+      <header class="topbar" aria-label="页面工具">
         <div class="top-actions">
           <label class="search-wrap">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
             <input id="search" placeholder="搜索作品、章节或来源" />
           </label>
-          <div class="refresh-action-group">
-            <button id="sourceRefreshBtn" class="source-refresh-btn" title="通过 Cloudflare 刷新追更、音乐与游戏数据" aria-label="刷新全部数据">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5"/><path d="M4 18v-5h5"/><path d="M18.6 9A7 7 0 0 0 6.2 6.2L4 8M20 16l-2.2 1.8A7 7 0 0 1 5.4 15"/></svg>
-              <span>刷新全部数据</span>
-            </button>
-            <span id="refreshBudgetIndicator" class="refresh-budget-indicator" data-state="loading">安全余量内 · 计算中</span>
-          </div>
+          <button id="sourceRefreshBtn" class="source-refresh-btn" title="通过 Cloudflare 刷新追更、音乐与游戏数据" aria-label="刷新全部数据">
+            <span class="refresh-button-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5"/><path d="M4 18v-5h5"/><path d="M18.6 9A7 7 0 0 0 6.2 6.2L4 8M20 16l-2.2 1.8A7 7 0 0 1 5.4 15"/></svg></span>
+            <span class="refresh-button-copy">
+              <strong class="refresh-button-label">刷新数据</strong>
+              <small id="refreshBudgetIndicator" class="refresh-budget-indicator" data-state="loading">余量计算中</small>
+            </span>
+          </button>
           <button id="themeBtn" class="icon-btn theme-btn" title="切换明暗主题" aria-label="切换明暗主题">
             <svg class="moon-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.2A8 8 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z"/></svg>
             <svg class="sun-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.41M17.66 6.34l1.41-1.41"/></svg>
@@ -362,7 +329,7 @@
     </main>
   </div>
   <div id="tsugiToast" class="tsugi-toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20260828-metadata1"></script>
+  <script src="app.js?v=20260828-headerfix1"></script>
   <script src="games.js?v=20260828-metadata1"></script>
   <script src="ui-settings.js?v=20260828-metadata1"></script>
   <script>
@@ -384,15 +351,17 @@
         if(!btn)return;
         btn.disabled=busy;
         btn.dataset.state=busy?'running':'';
-        const label=btn.querySelector('span');
-        if(label)label.textContent=busy?'正在刷新…':'刷新全部数据';
+        const label=btn.querySelector('.refresh-button-label');
+        if(label)label.textContent=busy?'刷新中…':'刷新数据';
       }
       function showBudget(budget,{running=false}={}){
         if(!budgetIndicator||!budget)return;
         const remaining=Math.max(0,Number(budget.remainingRefreshes)||0);
-        budgetIndicator.textContent=running?`刷新中 · 完成后预计 ${remaining} 次`:`安全余量内 · 预计还可刷新 ${remaining} 次`;
+        budgetIndicator.textContent=running?`完成后约 ${remaining} 次`:`今日约 ${remaining} 次`;
         budgetIndicator.dataset.state=remaining===0?'empty':remaining<=1?'low':'ok';
-        budgetIndicator.title=`按最近完整刷新约 ${Math.round((budget.estimatedFullRefreshMs||0)/1000)} 秒估算；保留 Cloudflare 免费额度的 ${budget.reservePercent||50}%。UTC ${new Date(budget.resetsAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} 重置。`;
+        const detail=`按最近完整刷新约 ${Math.round((budget.estimatedFullRefreshMs||0)/1000)} 秒估算；保留 Cloudflare 免费额度的 ${budget.reservePercent||50}%。UTC ${new Date(budget.resetsAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} 重置。`;
+        budgetIndicator.title=detail;
+        btn.title=`刷新追更、音乐与游戏数据。${detail}`;
       }
       async function updateBudget(options={}){
         try{
@@ -400,13 +369,13 @@
           if(!response.ok)throw new Error(`API ${response.status}`);
           const budget=await response.json();showBudget(budget,options);return budget;
         }catch{
-          if(budgetIndicator){budgetIndicator.textContent='刷新余量 · 暂时无法读取';budgetIndicator.dataset.state='loading'}
+          if(budgetIndicator){budgetIndicator.textContent='余量暂不可用';budgetIndicator.dataset.state='loading'}
           return null;
         }
       }
       function currentSyncText(){
-        const value=document.getElementById('pageUpdatedAt')?.textContent?.trim();
-        return value&&value!=='最后同步 · 读取中'?value:'最近一次成功数据';
+        const value=document.getElementById('syncText')?.textContent?.trim();
+        return value&&value!=='读取数据中…'?value:'最近一次成功数据';
       }
       function remainingText(iso){
         const until=Date.parse(iso||'');
