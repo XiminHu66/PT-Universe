@@ -1,12 +1,12 @@
 import { launch, type Browser, type Page } from '@cloudflare/playwright';
 
-type RefreshScope='all'|'news'|'sites'|'music'|'games';
+type RefreshScope='all'|'sites'|'music'|'games';
 type RefreshMessage={requestId:string;scope:RefreshScope;source:'manual'|'scheduled';limitKeys?:string[]};
 type Json=Record<string,unknown>;
 
-const DATA_FILES=['site-updates.json','acg-news.json','music.json','game-releases.json','feed.json','state.json','game-state.json'];
+const DATA_FILES=['site-updates.json','music.json','game-releases.json','feed.json','state.json','game-state.json'];
 const BROWSER_DATA_FILES=new Set(['site-updates.json','music.json']);
-const WATCHDOG_DATA_FILES=new Set(['site-updates.json','acg-news.json','music.json']);
+const WATCHDOG_DATA_FILES=new Set(['site-updates.json','music.json']);
 const FALLBACK_AFTER_MS=20*3600_000;
 const GAME_SYNC_AFTER_MS=30*3600_000;
 const RAW='https://raw.githubusercontent.com/XiminHu66/PT-Universe/main/apps/tsugi-checker/data/';
@@ -52,6 +52,7 @@ async function getData(env:Env,name:string){
 }
 async function putData(env:Env,name:string,value:unknown){await env.PT_UNIVERSE_DATA.put(`data/${name}`,JSON.stringify(value),{metadata:{updatedAt:now()}})}
 async function previous<T>(env:Env,name:string,fallback:T):Promise<T>{return safeJson(await getData(env,name).catch(()=>null),fallback)}
+async function repositorySnapshot<T>(name:string,fallback:T):Promise<T>{try{const response=await timedFetch(`${RAW}${name}?snapshot=${Date.now()}`,{headers:{'user-agent':'PT-Universe/1.0','accept':'application/json','cache-control':'no-cache'}},12_000);if(!response.ok)throw new Error(`GitHub raw ${response.status}`);return await response.json<T>()}catch(e){console.warn('repository_snapshot_failed',{name,error:String(e)});return fallback}}
 
 async function authenticate(request:Request,env:Env,id:string){
   const token=(request.headers.get('authorization')||'').replace(/^Bearer\s+/i,'');
@@ -158,15 +159,54 @@ async function withBrowser<T>(env:Env,fn:(browser:Browser)=>Promise<T>){
   if(!browser)throw lastError;
   try{return await fn(browser)}finally{await closeFast(browser)}
 }
+function normalizedUrl(value:unknown){try{const url=new URL(String(value||''));url.hash='';url.search='';return url.href.replace(/\/$/,'')}catch{return String(value||'').replace(/[?#].*$/,'').replace(/\/$/,'')}}
+function normalizedLabel(value:unknown){return text(value).normalize('NFKC').toLowerCase().replace(/[\s\W_]+/gu,'')}
+function siteItemKey(item:any){return `${item?.source||''}|${normalizedUrl(item?.url||item?.latest_url)||normalizedLabel(item?.title)}`}
+function hasChapter(value:unknown){const cleaned=text(value);return Boolean(cleaned&&!/^(?:最新更新|更新|latest)$/i.test(cleaned))}
+function hasUpdateTime(value:unknown){const cleaned=text(value);return Boolean(cleaned&&!/cloudflare|实时抓取|刚刚抓取/i.test(cleaned))}
+function newerStamp(...values:unknown[]){return values.map(x=>text(x)).filter(Boolean).sort((a,b)=>(Date.parse(b)||0)-(Date.parse(a)||0))[0]||''}
+function mergeSiteItem(current:any,history:any){
+  const currentChapter=hasChapter(current?.latest),latest=currentChapter?current.latest:(hasChapter(history?.latest)?history.latest:(current?.latest||history?.latest||''));
+  return {...history,...current,latest,
+    cover:current?.cover||history?.cover||'',
+    latest_url:(currentChapter&&current?.latest_url?current.latest_url:'')||history?.latest_url||current?.latest_url||current?.url||history?.url||'',
+    updated_text:hasUpdateTime(current?.updated_text)?current.updated_text:(hasUpdateTime(history?.updated_text)?history.updated_text:''),
+    chapter_count:current?.chapter_count??history?.chapter_count??null,
+    fetched_at:newerStamp(current?.fetched_at,history?.fetched_at)
+  };
+}
+function siteItemTime(item:any){const raw=hasUpdateTime(item?.updated_text)?item.updated_text:(item?.updated_at||item?.changed_at||'');const parsed=Date.parse(raw||'');return Number.isFinite(parsed)?1e15+parsed:(Date.parse(item?.fetched_at||'')||0)}
+function mergeSiteRows(current:any[],history:any[],limit:number){
+  const rows=new Map<string,any>();
+  current.forEach((row,index)=>{const item={...row,order:row.order??index};rows.set(siteItemKey(item),item)});
+  history.forEach((row,index)=>{const key=siteItemKey(row);if(!key)return;rows.set(key,rows.has(key)?mergeSiteItem(rows.get(key),row):{...row,order:current.length+index})});
+  return [...rows.values()].sort((a,b)=>siteItemTime(b)-siteItemTime(a)||(Number(a.order)||0)-(Number(b.order)||0)).slice(0,limit);
+}
 async function scrapeLinks(browser:Browser,url:string,source:string,label:string,type:string,limit:number,patterns:string[]){
   const page=tunePage(await browser.newPage());try{
     await page.goto(url,{waitUntil:'domcontentloaded',timeout:20_000});
-    const rows=await page.locator('a[href]').evaluateAll((els,args)=>els.map((el:any)=>({title:(el.textContent||el.getAttribute('title')||'').trim(),url:el.href,cover:el.querySelector('img')?.src||''})).filter((x:any)=>x.title&&args.patterns.some((p:string)=>x.url.includes(p))).slice(0,args.limit),{patterns,limit});
-    return rows.map((x:any,index:number)=>({id:`${source}-${btoa(unescape(encodeURIComponent(x.url))).slice(-24)}`,type,source,source_label:label,title:text(x.title),latest:'',updated_text:'Cloudflare 实时抓取',url:x.url,cover:x.cover,latest_url:x.url,chapter_count:null,fetched_at:now(),order:index}));
+    const rows=await page.locator('a[href]').evaluateAll((els,args)=>{
+      const seen=new Set<string>();
+      return els.map((el:any)=>{
+        const url=el.href||'',container=el.closest('li,article,tr,.book,.item,.card')||el.parentElement||el;
+        const img=container.querySelector('img'),heading=el.querySelector('h1,h2,h3,h4,.title,.name,strong,b')||container.querySelector('h1,h2,h3,h4,.title,.name');
+        let title=(heading?.textContent||img?.getAttribute('alt')||img?.getAttribute('title')||el.getAttribute('title')||el.textContent||'').replace(/\s+/g,' ').trim();
+        if(title.length>100)title=title.split(/[。！？|｜]/)[0].trim().slice(0,100);
+        const context=(container.textContent||'').replace(/\s+/g,' ').trim();
+        const chapter=context.match(/(?:更新至|最新(?:章节|话|話|卷)?|最后更新|最後更新)[：:\s]*([^|｜。！？]{1,48}|第\s*[0-9一二三四五六七八九十百千万零〇两.\-]+\s*[章话話回卷节節])/i);
+        const date=context.match(/20\d{2}[-/.年]\d{1,2}[-/.月]\d{1,2}(?:日)?(?:\s+\d{1,2}:\d{2})?/);
+        const cover=img?.getAttribute('data-src')||img?.getAttribute('data-original')||img?.getAttribute('data-lazy-src')||img?.src||'';
+        return {title,url,cover,latest:chapter?.[1]?.trim()||'',updated_text:date?.[0]||''};
+      }).filter((x:any)=>x.title&&args.patterns.some((p:string)=>x.url.includes(p))&&!seen.has(x.url)&&Boolean(seen.add(x.url))).slice(0,args.limit);
+    },{patterns,limit});
+    const fetchedAt=now();
+    return rows.map((x:any,index:number)=>({id:`${source}-${btoa(unescape(encodeURIComponent(x.url))).slice(-24)}`,type,source,source_label:label,title:text(x.title),latest:text(x.latest),updated_text:text(x.updated_text),url:x.url,cover:x.cover,latest_url:'',chapter_count:null,fetched_at:fetchedAt,order:index}));
   }finally{await closeFast(page)}
 }
 async function refreshSites(env:Env,sharedBrowser?:Browser){
-  const old=await previous<any>(env,'site-updates.json',{items:[]});
+  const cached=await previous<any>(env,'site-updates.json',{items:[],sources:{}});
+  const repository=await repositorySnapshot<any>('site-updates.json',{items:[],sources:{}});
+  const history=[...(cached.items||[]),...(repository.items||[])];
   const scrape=async(browser:Browser)=>{
     const sources=[
       {id:'manhuagui',label:'漫画柜',type:'manga',url:'https://m.manhuagui.com/update/',limit:60,patterns:['/comic/']},
@@ -174,22 +214,45 @@ async function refreshSites(env:Env,sharedBrowser?:Browser){
       {id:'copymanga',label:'拷贝漫画 · CopyManga',type:'manga',url:'https://www.mangacopy.com/',limit:48,patterns:['/comic/','/h5/details/comic/']}
     ];
     const items:any[]=[],states:Record<string,Json>={};
-    for(const s of sources){try{let rows=await scrapeLinks(browser,s.url,s.id,s.label,s.type,s.limit,s.patterns);if(!rows.length)rows=(old.items||[]).filter((x:any)=>x.source===s.id).slice(0,s.limit);items.push(...rows);states[s.id]={label:s.label,ok:rows.length>0,count:rows.length}}catch(e){const fallback=(old.items||[]).filter((x:any)=>x.source===s.id).slice(0,s.limit);items.push(...fallback);states[s.id]={label:s.label,ok:false,count:fallback.length,error:String(e),fallback:true}}}
-    return {generated_at:now(),items,sources:states};
+    for(const s of sources){
+      const prior=history.filter((x:any)=>x.source===s.id);
+      try{const fresh=await scrapeLinks(browser,s.url,s.id,s.label,s.type,s.limit,s.patterns);if(!fresh.length)throw new Error('来源未返回作品');const rows=mergeSiteRows(fresh,prior,s.limit);items.push(...rows);states[s.id]={label:s.label,ok:true,count:rows.length,chapterCount:rows.filter((x:any)=>hasChapter(x.latest)).length,coverCount:rows.filter((x:any)=>x.cover).length}}
+      catch(e){const fallback=mergeSiteRows([],prior,s.limit);items.push(...fallback);states[s.id]={label:s.label,ok:false,count:fallback.length,error:String(e),fallback:true}}
+    }
+    const deduped=mergeSiteRows(items,[],400);
+    return {generated_at:now(),items:deduped,sources:states};
   };
   const result=sharedBrowser?await scrape(sharedBrowser):await withBrowser(env,scrape);
   if(!result.items.length)throw new Error('全部漫画/小说源失败');await putData(env,'site-updates.json',result);return {count:result.items.length,sources:result.sources};
 }
 
-async function lookupCover(title:string){try{const r=await timedFetch(`https://itunes.apple.com/search?term=${encodeURIComponent(title)}&country=JP&media=music&limit=1`,{headers:{'user-agent':'PT-Universe/1.0','accept':'application/json'}},6_000);const j=await r.json<any>();return j.results?.[0]?.artworkUrl100?.replace('100x100','300x300')||''}catch{return ''}}
+function musicKey(item:any){return `${normalizedLabel(item?.title)}|${normalizedLabel(item?.artist)}`}
+function mergeSongs(current:any[],histories:any[][]){
+  const known=new Map<string,any>();
+  histories.slice().reverse().forEach(rows=>(rows||[]).forEach(row=>{const key=musicKey(row),prior=known.get(key)||{};known.set(key,{...prior,...row,artwork:row.artwork||prior.artwork||'',apple_music_url:row.apple_music_url||prior.apple_music_url||''})}));
+  return (current||[]).map(row=>{const old=known.get(musicKey(row))||{};return {...old,...row,artwork:row.artwork||old.artwork||'',apple_music_url:row.apple_music_url||old.apple_music_url||''}});
+}
+function mergeMusicHistory(primary:any,secondary:any){
+  const current=primary&&typeof primary==='object'?primary:{},old=secondary&&typeof secondary==='object'?secondary:{};
+  const list=(key:string)=>{const rows=Array.isArray(current[key])&&current[key].length?current[key]:(old[key]||[]);return mergeSongs(rows,[old[key]||[],current[key]||[]])};
+  const releases=list('new_releases').length?list('new_releases'):list('recent_songs');
+  return {...old,...current,weekly_chart:list('weekly_chart'),recent_chart:list('recent_chart'),new_releases:releases,recent_songs:releases,sources:{...(old.sources||{}),...(current.sources||{})}};
+}
+async function lookupCover(title:string,artist:string){try{const r=await timedFetch(`https://itunes.apple.com/search?term=${encodeURIComponent(`${title} ${artist}`)}&country=JP&media=music&entity=song&limit=3`,{headers:{'user-agent':'PT-Universe/1.0','accept':'application/json'}},6_000);const j=await r.json<any>();const result=(j.results||[]).find((x:any)=>x.artworkUrl100)||j.results?.[0];return result?.artworkUrl100?.replace(/\d+x\d+bb/,'300x300bb')||''}catch{return ''}}
 async function refreshMusic(env:Env,sharedBrowser?:Browser){
-  const old=await previous<any>(env,'music.json',{});
+  const cached=await previous<any>(env,'music.json',{});
+  const repository=await repositorySnapshot<any>('music.json',{});
+  const old=mergeMusicHistory(cached,repository);
   const scrape=async(browser:Browser)=>{
     const page=tunePage(await browser.newPage()),sources:Record<string,Json>={};let weekly:any[]=[],recent:any[]=[];
-    try{await page.goto('https://www.billboard-japan.com/charts/detail?a=hot100',{waitUntil:'domcontentloaded',timeout:20_000});weekly=await page.locator('td.name_td').evaluateAll(els=>els.slice(0,30).map((el:any,index:number)=>({rank:index+1,title:(el.querySelector('p.musuc_title')?.textContent||'').trim(),artist:(el.querySelector('p.artist_name')?.textContent||'').trim()})).filter((x:any)=>x.title));sources.billboard_japan={label:'Billboard JAPAN Hot 100',ok:true,count:weekly.length}}catch(e){weekly=old.weekly_chart||[];sources.billboard_japan={label:'Billboard JAPAN Hot 100',ok:false,count:weekly.length,error:String(e),fallback:true}}
+    try{await page.goto('https://www.billboard-japan.com/charts/detail?a=hot100',{waitUntil:'domcontentloaded',timeout:20_000});weekly=await page.locator('td.name_td').evaluateAll(els=>els.slice(0,30).map((el:any,index:number)=>{const tr=el.closest('tr'),img=tr?.querySelector('img'),title=(el.querySelector('p.musuc_title')?.textContent||'').trim(),artist=(el.querySelector('p.artist_name')?.textContent||'').trim(),link=el.querySelector('a[href]')?.href||location.href;return {rank:index+1,title,artist,artwork:img?.getAttribute('data-src')||img?.getAttribute('data-original')||img?.src||'',url:link,youtube_music_url:`https://music.youtube.com/search?q=${encodeURIComponent(`${title} ${artist}`)}`}}).filter((x:any)=>x.title));weekly=mergeSongs(weekly,[old.weekly_chart||[]]);sources.billboard_japan={label:'Billboard JAPAN Hot 100',ok:true,count:weekly.length,coverCount:weekly.filter((x:any)=>x.artwork).length}}catch(e){weekly=old.weekly_chart||[];sources.billboard_japan={label:'Billboard JAPAN Hot 100',ok:false,count:weekly.length,error:String(e),fallback:true}}
     try{await page.goto('https://kworb.net/youtube/insights/jp.html',{waitUntil:'domcontentloaded',timeout:20_000});recent=await page.locator('#weeklytable tbody tr').evaluateAll(els=>els.map((el:any,index:number)=>{const c=[...el.querySelectorAll('td')].map((x:any)=>x.textContent.trim()),track=c[2]||'',cut=track.indexOf(' - '),artist=cut>0?track.slice(0,cut).trim():'YouTube Japan',title=cut>0?track.slice(cut+3).trim():track.trim(),weeks=Number(c[3])||0,movement=c[1]||'';return {rank:Number(c[0])||index+1,rank_change:movement,is_new:movement.toUpperCase()==='NEW'||weeks===1,title,artist,weeks,peak:Number(c[4])||null,streams:c[6]||'',streams_change:c[7]||'',url:`https://www.youtube.com/results?search_query=${encodeURIComponent(track)}`,youtube_music_url:`https://music.youtube.com/search?q=${encodeURIComponent(`${title} ${artist}`)}`,source:'youtube_japan_recent',source_label:'YouTube Japan Weekly · 8 周内'}}).filter((x:any)=>x.title&&x.weeks>0&&x.weeks<=8).slice(0,30));if(!recent.length)throw new Error('近期榜无 8 周内歌曲');sources.youtube_japan_recent={label:'YouTube Japan Weekly via Kworb',ok:true,count:recent.length}}catch(e){recent=(old.recent_chart||old.recent_songs||[]).filter((x:any)=>Number(x.weeks||99)<=8).slice(0,30);sources.youtube_japan_recent={label:'YouTube Japan Weekly via Kworb',ok:false,count:recent.length,error:String(e),fallback:true}}finally{await closeFast(page)}
-    for(const song of recent.slice(0,12))if(!song.artwork)song.artwork=await lookupCover(`${song.title} ${song.artist}`);
-    return {...old,generated_at:now(),chart_date:new Date().toISOString().slice(0,10),recent_chart:recent,recent_songs:recent,weekly_chart:weekly,sources};
+    recent=mergeSongs(recent,[old.recent_chart||[],old.weekly_chart||[]]);
+    const unresolved=[...recent,...weekly].filter(song=>!song.artwork).slice(0,12);
+    for(const song of unresolved)if(!song.artwork)song.artwork=await lookupCover(song.title,song.artist);
+    const releases=old.new_releases?.length?old.new_releases:(old.recent_songs||[]);
+    sources.youtube_japan_recent={...(sources.youtube_japan_recent||{}),coverCount:recent.filter((x:any)=>x.artwork).length};
+    return {...old,generated_at:now(),chart_date:new Date().toISOString().slice(0,10),recent_chart:recent,recent_songs:releases,new_releases:releases,weekly_chart:weekly,sources};
   };
   const result=sharedBrowser?await scrape(sharedBrowser):await withBrowser(env,scrape);
   if(!result.recent_chart?.length&&!result.weekly_chart?.length)throw new Error('音乐榜单抓取失败');await putData(env,'music.json',result);return {recent:result.recent_chart.length,weekly:result.weekly_chart.length,sources:result.sources};
@@ -217,11 +280,9 @@ async function refreshGames(env:Env){
 async function runRefresh(env:Env,scope:RefreshScope){
   const result:Json={};
   if(scope==='all'){
-    result.news=await refreshNews(env);
     await withBrowser(env,async browser=>{result.sites=await refreshSites(env,browser);result.music=await refreshMusic(env,browser)});
     result.games=await refreshGames(env);
-  }else if(scope==='news')result.news=await refreshNews(env);
-  else if(scope==='sites')result.sites=await refreshSites(env);
+  }else if(scope==='sites')result.sites=await refreshSites(env);
   else if(scope==='music')result.music=await refreshMusic(env);
   else if(scope==='games')result.games=await refreshGames(env);
   const state={generated_at:now(),scope,result};await putData(env,'state.json',state);return result;
@@ -252,7 +313,7 @@ export default {
       const proxy=await proxyRoute(request,url);if(proxy)return proxy;
       const data=url.pathname.match(/^\/api\/data\/([^/]+\.json)$/);
       if(data&&DATA_FILES.includes(data[1]))return new Response(await getData(env,data[1]),{headers:{'content-type':'application/json; charset=utf-8','cache-control':'public,max-age=300,stale-while-revalidate=86400',...cors(request)}});
-      const refresh=url.pathname.match(/^\/api\/refresh\/(all|news|sites|music|games)$/);
+      const refresh=url.pathname.match(/^\/api\/refresh\/(all|sites|music|games)$/);
       if(refresh&&request.method==='POST')return enqueue(request,env,refresh[1] as RefreshScope,'manual');
       const run=url.pathname.match(/^\/api\/refresh\/status\/([\w-]+)$/);
       if(run){const row=await env.DB.prepare('SELECT * FROM refresh_runs WHERE request_id=?').bind(run[1]).first();return row?reply(request,row):error(request,'刷新任务不存在',404)}

@@ -2,8 +2,8 @@ const LOCAL_LIBRARY_KEY='tsugi-local-library-v1';
 const LOCAL_UPDATES_KEY='tsugi-local-updates-v1';
 const ARTIST_FOLLOWS_KEY='tsugi-followed-artists-v1';
 const state={
-  feed:null,library:null,site:null,news:null,content:null,music:null,games:null,
-  filter:'all',siteFilter:'all',siteSource:'all',newsFilter:'all',query:'',musicView:'recent',gameView:'mobile',
+  feed:null,library:null,site:null,content:null,music:null,games:null,
+  filter:'all',siteFilter:'all',siteSource:'all',query:'',musicView:'recent',gameView:'mobile',
   read:new Set(JSON.parse(localStorage.getItem('tsugi-read')||'[]')),
   localLibrary:loadLocalArray(LOCAL_LIBRARY_KEY),
   localUpdates:loadLocalArray(LOCAL_UPDATES_KEY),
@@ -17,6 +17,67 @@ const relativeTime=d=>{if(!d)return '';const x=new Date(d);if(Number.isNaN(+x))r
 function loadLocalArray(key){try{const x=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(x)?x:[]}catch{return []}}
 function saveLocalArray(key,value){localStorage.setItem(key,JSON.stringify(value))}
 const PT_API='https://pt-universe-api.summer07-nanjolno.workers.dev';
+async function fetchJSON(target){try{const r=await fetch(`${target}?v=${Date.now()}`,{cache:'no-store'});if(!r.ok)throw new Error(`HTTP ${r.status}`);return await r.json()}catch{return null}}
+function normText(value){return String(value||'').normalize('NFKC').toLowerCase().replace(/[\s\p{P}\p{S}]+/gu,'')}
+function maxStamp(values){return values.filter(Boolean).sort((a,b)=>(Date.parse(b)||0)-(Date.parse(a)||0))[0]||null}
+function siteKey(x){return `${x.source||''}|${normalizeUrl(x.url||x.latest_url||'')||normText(x.title)}`}
+function meaningfulLatest(value){const v=String(value||'').trim();return Boolean(v&&!/^(?:最新更新|更新|latest)$/i.test(v))}
+function meaningfulUpdated(value){const v=String(value||'').trim();return Boolean(v&&!/cloudflare|实时抓取|刚刚抓取/i.test(v))}
+function cleanSiteTitle(row){
+  const raw=String(row?.title||'').replace(/\s+/g,' ').trim();
+  if(row?.source==='manhuagui'){const match=raw.match(/^(?:连载|完结)?\s*(.+?)\s*作\s*者[：:]/);if(match)return match[1].trim()}
+  return raw;
+}
+function titleQuality(row){const title=cleanSiteTitle(row);return title&&!/作\s*者|更新至[：:]|作者|\.\.\.|…/.test(title)&&title.length<=72?2:title?1:0}
+function mergeSiteRow(current,known){
+  const latest=meaningfulLatest(current.latest)?current.latest:(meaningfulLatest(known.latest)?known.latest:(current.latest||known.latest||''));
+  const currentHasChapter=meaningfulLatest(current.latest);
+  return {...known,...current,
+    title:titleQuality(current)>=titleQuality(known)?cleanSiteTitle(current):cleanSiteTitle(known),
+    cover:current.cover||known.cover||'',latest,
+    latest_url:(currentHasChapter?current.latest_url:'')||known.latest_url||current.latest_url||current.url||known.url||'',
+    updated_text:meaningfulUpdated(current.updated_text)?current.updated_text:(meaningfulUpdated(known.updated_text)?known.updated_text:''),
+    chapter_count:current.chapter_count??known.chapter_count??null,
+    fetched_at:maxStamp([current.fetched_at,known.fetched_at]),
+  };
+}
+function siteSortTime(x){
+  const raw=meaningfulUpdated(x.updated_text)?x.updated_text:(x.updated_at||x.changed_at||'');
+  const parsed=Date.parse(raw||'');if(Number.isFinite(parsed))return 1e15+parsed;
+  return Date.parse(x.fetched_at||x._snapshotAt||'')||0;
+}
+function mergeSiteSnapshots(snapshots){
+  const ordered=snapshots.filter(Boolean).sort((a,b)=>(Date.parse(b.generated_at)||0)-(Date.parse(a.generated_at)||0));
+  if(!ordered.length)return null;
+  const rows=new Map();
+  ordered.forEach((snapshot,snapshotIndex)=>(snapshot.items||[]).forEach((item,itemIndex)=>{
+    const row={...item,title:cleanSiteTitle(item),updated_text:meaningfulUpdated(item.updated_text)?item.updated_text:'',_snapshotAt:snapshot.generated_at||'',_sourceOrder:item.order??itemIndex,_snapshotOrder:snapshotIndex};
+    const key=siteKey(row);if(!key)return;
+    rows.set(key,rows.has(key)?mergeSiteRow(rows.get(key),row):row);
+  }));
+  const items=[...rows.values()].sort((a,b)=>siteSortTime(b)-siteSortTime(a)||(a._snapshotOrder-b._snapshotOrder)||(a._sourceOrder-b._sourceOrder));
+  const sources=ordered.slice().reverse().reduce((all,x)=>({...all,...(x.sources||{})}),{});
+  return {...ordered[0],generated_at:maxStamp(ordered.map(x=>x.generated_at)),items,sources};
+}
+function songKey(x){return `${normText(x.title)}|${normText(x.artist)}`}
+function mergeMusicList(snapshots,key){
+  const primary=snapshots.find(x=>Array.isArray(x?.[key])&&x[key].length)?.[key]||[];
+  const known=new Map();
+  snapshots.slice().reverse().forEach(snapshot=>(snapshot?.[key]||[]).forEach(row=>{const prior=known.get(songKey(row))||{};known.set(songKey(row),{...prior,...row,artwork:row.artwork||prior.artwork||'',apple_music_url:row.apple_music_url||prior.apple_music_url||''})}));
+  return primary.map(row=>{const old=known.get(songKey(row))||{};return {...old,...row,artwork:row.artwork||old.artwork||'',apple_music_url:row.apple_music_url||old.apple_music_url||''}});
+}
+function mergeMusicSnapshots(snapshots){
+  const ordered=snapshots.filter(Boolean).sort((a,b)=>(Date.parse(b.generated_at)||0)-(Date.parse(a.generated_at)||0));
+  if(!ordered.length)return null;
+  const releasesKey=ordered.some(x=>x?.new_releases?.length)?'new_releases':'recent_songs';
+  const releases=mergeMusicList(ordered,releasesKey);
+  return {...ordered.slice().reverse().reduce((all,x)=>({...all,...x}),{}),...ordered[0],
+    generated_at:maxStamp(ordered.map(x=>x.generated_at)),
+    recent_chart:mergeMusicList(ordered,'recent_chart'),weekly_chart:mergeMusicList(ordered,'weekly_chart'),
+    new_releases:releases,recent_songs:releases,
+    sources:ordered.slice().reverse().reduce((all,x)=>({...all,...(x.sources||{})}),{})
+  };
+}
 async function loadJSON(url,fallback){
   const targets=url.startsWith('data/')?[`${PT_API}/api/data/${url.slice(5)}`,url]:[url];
   if(url==='data/game-releases.json'){
@@ -25,7 +86,12 @@ async function loadJSON(url,fallback){
     if(snapshots.length)return snapshots.sort((a,b)=>score(b)-score(a))[0];
     return fallback;
   }
-  for(const target of targets){try{const r=await fetch(`${target}?v=${Date.now()}`,{cache:'no-store'});if(!r.ok)throw 0;return await r.json()}catch{}}
+  if(url==='data/site-updates.json'||url==='data/music.json'){
+    const snapshots=(await Promise.all(targets.map(fetchJSON))).filter(Boolean);
+    const merged=url.includes('site-updates')?mergeSiteSnapshots(snapshots):mergeMusicSnapshots(snapshots);
+    return merged||fallback;
+  }
+  for(const target of targets){const value=await fetchJSON(target);if(value)return value}
   return fallback;
 }
 function normalizeUrl(raw){try{const u=new URL(raw,location.href);u.hash='';u.search='';return u.href.replace(/\/$/,'')}catch{return String(raw||'').replace(/[?#].*$/,'').replace(/\/$/,'')}}
@@ -45,20 +111,20 @@ function sourceLabel(id,kind){const row=(state.content?.[kind]||[]).find(x=>x.id
 
 async function load(){
   $('#syncText').textContent='正在同步…';$('#syncDot').classList.remove('ok');
-  const [feed,library,site,news,content,music,games]=await Promise.all([
+  const [feed,library,site,content,music,games]=await Promise.all([
     loadJSON('data/feed.json',{generated_at:null,updates:[],sources:{},items:{}}),
     loadJSON('config/library.json',{items:[]}),
     loadJSON('data/site-updates.json',{generated_at:null,items:[],sources:{}}),
-    loadJSON('data/acg-news.json',{generated_at:null,items:[],sources:{}}),
-    loadJSON('config/content.json',{site_updates:[],news:[],music:{}}),
+    loadJSON('config/content.json',{site_updates:[],music:{}}),
     loadJSON('data/music.json',{generated_at:null,weekly_chart:[],new_releases:[],recent_chart:[],sources:{}}),
     loadJSON('data/game-releases.json',{generated_at:null,date_jst:null,items:{mobile:[],pc:[],console:[]},sources:{}})
   ]);
-  state.feed=feed;state.library=library;state.site=site;state.news=news;state.content=content;state.music=music;state.games=games;
+  state.feed=feed;state.library=library;state.site=site;state.content=content;state.music=music;state.games=games;
   syncLocalLibraryFromSite();
   renderAll();
   $('#syncDot').classList.add('ok');
-  $('#syncText').textContent=(feed.generated_at||site.generated_at||news.generated_at||music.generated_at||games.generated_at)?'数据已加载':'尚未同步';
+  const synced=site.generated_at||feed.generated_at||music.generated_at||games.generated_at;
+  $('#syncText').textContent=synced?`更新流 ${fmt(site.generated_at||synced)}`:'尚未同步';
 }
 
 function remoteLibraryKeys(){
@@ -109,16 +175,16 @@ function renderSiteUpdates(){
     sources.map(([id,label])=>`<button class="source-filter ${state.siteSource===id?'active':''}" data-site-source="${esc(id)}">${esc(label)}${statuses[id]?.ok===false?' · 失败':''}</button>`).join('');
   $$('.source-filter').forEach(b=>b.onclick=()=>{state.siteSource=b.dataset.siteSource;renderSiteUpdates()});
   const visible=all.filter(x=>(state.siteFilter==='all'||x.type===state.siteFilter)&&(state.siteSource==='all'||x.source===state.siteSource)&&(!q||`${x.title} ${x.latest} ${x.source_label}`.toLowerCase().includes(q)));
-  $('#siteUpdatesGrid').innerHTML=visible.length?visible.map(x=>{const added=isShelfItem(x);return `<article class="site-update-card">
+  $('#siteUpdatesGrid').innerHTML=visible.length?visible.map(x=>{const added=isShelfItem(x);const latest=meaningfulLatest(x.latest)?x.latest:(x.chapter_count?`已解析 ${x.chapter_count} 个章节`:'章节待解析');const updated=meaningfulUpdated(x.updated_text)?x.updated_text:(x.fetched_at?`检查 ${fmt(x.fetched_at)}`:'更新时间待确认');return `<article class="site-update-card">
     <a class="site-card-main" href="${esc(x.latest_url||x.url)}" target="_blank" rel="noopener">
       ${imageHTML({cover:x.cover,type:x.type,className:'site-update-cover',placeholderClass:'site-update-placeholder'})}
       <div class="site-update-copy">
         <div class="site-meta"><span class="type-pill ${x.type==='manga'?'manga':'novel'}">${x.type==='manga'?'漫画':'小说'}</span><span class="site-source">${esc(x.source_label||x.source)}</span></div>
-        <h3>${esc(x.title)}</h3><p class="site-latest">${esc(x.latest||'最新更新')}</p>
-        <div class="site-meta"><span>${esc(x.updated_text||'')}</span><span>${x.latest_url?'直达最新章节 ↗':'打开作品页 ↗'}</span></div>
+        <h3>${esc(x.title)}</h3><p class="site-latest">${esc(latest)}</p>
+        <div class="site-meta"><span>${esc(updated)}</span><span>${meaningfulLatest(x.latest)&&x.latest_url?'直达最新章节 ↗':'打开作品页 ↗'}</span></div>
       </div>
     </a>
-    <div class="site-card-actions"><span class="site-open-link">${x.latest_url?'已解析章节':'作品详情'}</span><button class="shelf-btn ${added?'added':''}" data-add-shelf="${esc(x.id)}" ${added?'disabled':''}>${added?'✓ 已在书架':'＋ 加入书架'}</button></div>
+    <div class="site-card-actions"><span class="site-open-link">${x.chapter_count?`共 ${esc(x.chapter_count)} 章 / 话`:meaningfulLatest(x.latest)?'已解析最新章节':'作品详情'}</span><button class="shelf-btn ${added?'added':''}" data-add-shelf="${esc(x.id)}" ${added?'disabled':''}>${added?'✓ 已在书架':'＋ 加入书架'}</button></div>
   </article>`}).join(''):`<div class="empty"><div>这个筛选下暂无站点更新。<small>来源失败时可以到“来源状态”查看原因。</small></div></div>`;
   $$('[data-add-shelf]').forEach(btn=>btn.onclick=e=>{e.preventDefault();e.stopPropagation();const item=all.find(x=>String(x.id)===btn.dataset.addShelf);if(item)addToLocalShelf(item)});
 }
@@ -155,17 +221,6 @@ function renderLibrary(){
   $$('[data-remove-local]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();removeLocalShelf(b.dataset.removeLocal)});
 }
 
-function renderNewsFilters(){
-  const configured=(state.content?.news||[]).filter(x=>x.enabled!==false);const ids=new Set(configured.map(x=>x.id));if(state.newsFilter!=='all'&&!ids.has(state.newsFilter))state.newsFilter='all';
-  $('#newsFilterChips').innerHTML=`<button class="chip ${state.newsFilter==='all'?'active':''}" data-news-filter="all">全部</button>`+configured.map(x=>`<button class="chip ${state.newsFilter===x.id?'active':''}" data-news-filter="${esc(x.id)}">${esc(x.label)}</button>`).join('');
-  $$('.chip[data-news-filter]').forEach(b=>b.onclick=()=>{state.newsFilter=b.dataset.newsFilter;renderNews()});
-}
-function renderNews(){
-  renderNewsFilters();const allowed=enabledSourceIds('news');const all=(state.news?.items||[]).filter(x=>!allowed.size||allowed.has(x.source));const q=state.query.toLowerCase();const visible=all.filter(x=>(state.newsFilter==='all'||x.source===state.newsFilter)&&(!q||`${x.title} ${x.summary} ${x.source_label} ${x.category}`.toLowerCase().includes(q)));const hero=visible[0];
-  $('#newsHero').innerHTML=hero?`<a class="news-feature" href="${esc(hero.url)}" target="_blank" rel="noopener">${hero.image?`<img class="news-feature-image" src="${esc(hero.image)}" referrerpolicy="no-referrer" onerror="this.remove()">`:'<div class="news-feature-placeholder"></div>'}<div class="news-feature-copy"><div class="news-meta-row"><span class="news-badge">${esc(hero.source_label)}</span><span class="news-badge">${esc(hero.category)}</span><span class="news-time">${relativeTime(hero.published_at)}</span></div><h3>${esc(hero.title)}</h3><p>${esc(hero.summary||'')}</p><span class="news-feature-link">阅读原文 ↗</span></div></a>`:'';
-  const rest=visible.slice(hero?1:0);$('#newsGrid').innerHTML=rest.length?rest.map(x=>`<a class="news-card" href="${esc(x.url)}" target="_blank" rel="noopener">${imageHTML({cover:x.image,type:'news',className:'news-thumb',placeholderClass:'news-thumb-placeholder',placeholderText:'NEWS'})}<div class="news-card-copy"><div class="news-card-meta"><span>${esc(x.source_label)}</span><span>·</span><span>${relativeTime(x.published_at)}</span></div><h3>${esc(x.title)}</h3><p>${esc(x.summary||'')}</p></div></a>`).join(''):(hero?'':`<div class="empty"><div>暂无中文 ACG 新闻。<small>下一次每日 / 手动抓取后生成。</small></div></div>`);
-}
-
 function jsonp(url,timeout=12000){
   return new Promise((resolve,reject)=>{const cb=`tsugi_cb_${Date.now()}_${Math.random().toString(36).slice(2)}`;const script=document.createElement('script');const timer=setTimeout(()=>cleanup(new Error('请求超时')),timeout);function cleanup(err,data){clearTimeout(timer);delete window[cb];script.remove();err?reject(err):resolve(data)}window[cb]=data=>cleanup(null,data);script.onerror=()=>cleanup(new Error('请求失败'));script.src=`${url}${url.includes('?')?'&':'?'}callback=${cb}`;document.head.appendChild(script)});
 }
@@ -182,7 +237,7 @@ function artistFollowButton(name){const following=isFollowingName(name);return `
 function bindArtistFollowButtons(){$$('[data-follow-artist]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();followArtistByName(b.dataset.followArtist)})}
 function youtubeMusicSearch(title,artist){return `https://music.youtube.com/search?q=${encodeURIComponent(`${title||''} ${artist||''}`.trim())}`}
 function renderMusic(){
-  const chart=state.music?.weekly_chart||[];const recentChart=state.music?.recent_chart||[];const releases=state.music?.recent_songs||state.music?.new_releases||[];const q=state.query.toLowerCase();
+  const chart=state.music?.weekly_chart||[];const recentChart=state.music?.recent_chart||[];const releases=state.music?.new_releases||state.music?.recent_songs||[];const q=state.query.toLowerCase();
   $('#musicChartCount').textContent=chart.length;$('#musicRecentChartCount').textContent=recentChart.length;$('#musicReleaseCount').textContent=releases.length;$('#followedArtistCount').textContent=state.followedArtists.length;$('#musicChartDate').textContent=state.music?.chart_date?`榜单公布：${state.music.chart_date}`:'每周更新';
   const c=chart.filter(x=>!q||`${x.title} ${x.artist}`.toLowerCase().includes(q));
   $('#musicChartList').innerHTML=c.length?c.map(x=>`<article class="music-chart-row"><div class="music-rank">${esc(x.rank)}</div>${imageHTML({cover:x.artwork,type:'music',className:'music-cover',placeholderClass:'music-cover cover-placeholder',placeholderText:'♪'})}<div class="music-track-copy"><h4>${esc(x.title)}${x.is_new?'<span class="chart-new-badge">NEW</span>':''}</h4><p>${esc(x.artist)}${x.last_rank?` · 上周 ${esc(x.last_rank)}`:''}${x.weeks?` · 在榜 ${esc(x.weeks)} 周`:''}</p></div><div class="music-row-actions">${artistFollowButton(x.artist)}<a class="music-service-link yt" href="${esc(x.youtube_music_url||youtubeMusicSearch(x.title,x.artist))}" target="_blank" rel="noopener">YouTube Music ↗</a><a class="music-service-link" href="${esc(x.url||'#')}" target="_blank" rel="noopener">Billboard ↗</a></div></article>`).join(''):`<div class="empty music-empty">暂无周榜数据。</div>`;
@@ -220,7 +275,7 @@ function renderTimelineGame(x){
   </a>`;
 }
 function renderGameTimeline(rows,label){
-  if(!rows.length)return `<div class="empty game-empty"><div>暂无${label}时间线数据。<small>下一次每日 / 手动刷新订阅源后更新。</small></div></div>`;
+  if(!rows.length)return `<div class="empty game-empty"><div>暂无${label}时间线数据。<small>下一次每日 / 手动刷新全部数据后更新。</small></div></div>`;
   const today=state.games?.date_jst||new Date().toISOString().slice(0,10);const groups=new Map();
   rows.forEach(x=>{const d=gameEffectiveDate(x)||'undated';if(!groups.has(d))groups.set(d,[]);groups.get(d).push(x)});
   return [...groups.entries()].sort((a,b)=>a[0].localeCompare(b[0])).map(([d,items])=>`<section class="game-timeline-day ${d===today?'today':''}"><div class="game-timeline-date"><span class="timeline-dot"></span><div><strong>${esc(gameDateLabel(d,today))}</strong><small>${esc(d)}</small></div></div><div class="game-timeline-items">${items.map(renderTimelineGame).join('')}</div></section>`).join('');
@@ -238,24 +293,23 @@ function renderGames(){
 function renderSources(){
   const personal=Object.entries(state.feed?.sources||{}).map(([id,s])=>({group:'云端书架',id,label:s.label||id,ok:(s.failed||0)===0,count:s.ok||0,total:s.total||0,error:s.failed?`${s.failed} 个失败`:''}));
   const siteAllowed=enabledSourceIds('site_updates');const site=Object.entries(state.site?.sources||{}).filter(([id])=>!siteAllowed.size||siteAllowed.has(id)).map(([id,s])=>({group:'更新流',id,label:s.label||id,ok:s.ok!==false,count:s.count||0,total:s.count||0,error:s.error||''}));
-  const newsAllowed=enabledSourceIds('news');const news=Object.entries(state.news?.sources||{}).filter(([id])=>!newsAllowed.size||newsAllowed.has(id)).map(([id,s])=>({group:'ACG 新闻',id,label:s.label||id,ok:s.ok!==false,count:s.count||0,total:s.count||0,error:s.error||''}));
   const music=Object.entries(state.music?.sources||{}).map(([id,s])=>({group:'音乐追踪',id,label:s.label||id,ok:s.ok!==false,count:s.count||0,total:s.count||0,error:s.error||''}));
   const games=Object.entries(state.games?.sources||{}).map(([id,s])=>({group:'游戏追踪',id,label:s.label||id,ok:s.ok!==false,count:s.count||0,total:s.count||0,error:s.error||''}));
-  const entries=[...personal,...site,...news,...music,...games];$('#sourceStatus').innerHTML=entries.length?entries.map(s=>`<article class="source-card"><div class="source-top"><div><span class="section-kicker">${esc(s.group)}</span><h3>${esc(s.label)}</h3></div><i class="status-dot ${s.ok?'':'err'}"></i></div><strong>${s.count}<span style="color:var(--faint);font-size:.48em;font-weight:600"> ${s.group==='云端书架'?`/ ${s.total}`:'items'}</span></strong><p>${s.ok?'抓取正常':esc(s.error||'抓取失败')}</p></article>`).join(''):`<div class="empty">暂无来源状态。</div>`;
+  const entries=[...personal,...site,...music,...games];$('#sourceStatus').innerHTML=entries.length?entries.map(s=>`<article class="source-card"><div class="source-top"><div><span class="section-kicker">${esc(s.group)}</span><h3>${esc(s.label)}</h3></div><i class="status-dot ${s.ok?'':'err'}"></i></div><strong>${s.count}<span style="color:var(--faint);font-size:.48em;font-weight:600"> ${s.group==='云端书架'?`/ ${s.total}`:'items'}</span></strong><p>${s.ok?'抓取正常':esc(s.error||'抓取失败')}</p></article>`).join(''):`<div class="empty">暂无来源状态。</div>`;
 }
 function updateStats(){
-  const remote=(state.library?.items||[]).filter(x=>x.enabled!==false);const remoteKeys=remoteLibraryKeys();const local=state.localLibrary.filter(x=>!remoteKeys.has(workKey(x)));const site=(state.site?.items||[]).filter(x=>{const ids=enabledSourceIds('site_updates');return !ids.size||ids.has(x.source)});const news=(state.news?.items||[]).filter(x=>{const ids=enabledSourceIds('news');return !ids.size||ids.has(x.source)});
-  const gameTotal=['mobile','pc','console'].reduce((n,k)=>n+(state.games?.items?.[k]||[]).length,0);$('#libraryCount').textContent=remote.length+local.length;$('#updateCount').textContent=site.length;$('#newsCount').textContent=news.length;$('#musicCount').textContent=(state.music?.weekly_chart||[]).length+(state.music?.new_releases||[]).length+(state.music?.recent_chart||[]).length;$('#gameCount').textContent=gameTotal;$('#novelCount').textContent=site.filter(x=>x.type==='novel').length;$('#mangaCount').textContent=site.filter(x=>x.type==='manga').length;$('#todayUpdates').textContent=site.length;$('#lastSync').textContent=fmt(state.site?.generated_at||state.feed?.generated_at||state.news?.generated_at||state.music?.generated_at||state.games?.generated_at);
+  const remote=(state.library?.items||[]).filter(x=>x.enabled!==false);const remoteKeys=remoteLibraryKeys();const local=state.localLibrary.filter(x=>!remoteKeys.has(workKey(x)));const site=(state.site?.items||[]).filter(x=>{const ids=enabledSourceIds('site_updates');return !ids.size||ids.has(x.source)});
+  const syncAt=state.site?.generated_at||null;const gameTotal=['mobile','pc','console'].reduce((n,k)=>n+(state.games?.items?.[k]||[]).length,0);$('#libraryCount').textContent=remote.length+local.length;$('#updateCount').textContent=site.length;$('#musicCount').textContent=(state.music?.weekly_chart||[]).length+(state.music?.new_releases||[]).length+(state.music?.recent_chart||[]).length;$('#gameCount').textContent=gameTotal;$('#novelCount').textContent=site.filter(x=>x.type==='novel').length;$('#mangaCount').textContent=site.filter(x=>x.type==='manga').length;$('#todayUpdates').textContent=site.length;$('#lastSync').textContent=fmt(syncAt);const pageStamp=$('#pageUpdatedAt');if(pageStamp){pageStamp.textContent=syncAt?`最后同步 · ${fmt(syncAt)}`:'最后同步 · 尚无记录';pageStamp.title=syncAt?`阅读更新流最后完成抓取：${new Date(syncAt).toLocaleString('zh-CN')}`:''}
 }
-function renderAll(){renderSiteUpdates();renderLibrary();renderLibraryUpdates();renderNews();renderMusic();renderGames();renderSources();updateStats()}
+function renderAll(){renderSiteUpdates();renderLibrary();renderLibraryUpdates();renderMusic();renderGames();renderSources();updateStats()}
 function applyTheme(theme){document.documentElement.dataset.theme=theme;localStorage.setItem('tsugi-theme',theme);const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=theme==='light'?'#f4f6fb':'#090b10'}
-const titles={updates:['更新流','汇总各小说 / 漫画来源最新更新，可直接加入书架。'],library:['我的书架','合并本机一键订阅与 GitHub Actions 云端追踪，并显示更新记录。'],music:['音乐追踪','Billboard、YouTube Japan 近期热门榜、近一周新曲与艺人新曲追踪。'],games:['游戏追踪','过去 7 天到未来 90 天的游戏发售时间线；PC 仅保留 Steam 热门作品。'],news:['ACG 新闻','仅显示简体中文 / 繁体中文的 ACG 新闻。'],sources:['来源状态','检查阅读、音乐、游戏和中文 ACG 新闻最近一次抓取是否正常。'],settings:['设置说明','订阅作品、艺人关注、游戏发行、公开来源与同步频率设置。']};
+const titles={updates:['更新流','汇总各小说 / 漫画来源最新更新，可直接加入书架。'],library:['我的书架','合并本机一键订阅与 GitHub Actions 云端追踪，并显示更新记录。'],music:['音乐追踪','Billboard、YouTube Japan 近期热门榜、近一周新曲与艺人新曲追踪。'],games:['游戏追踪','过去 7 天到未来 90 天的游戏发售时间线；PC 仅保留 Steam 热门作品。'],sources:['来源状态','检查阅读、音乐和游戏最近一次抓取是否正常。'],settings:['设置说明','订阅作品、艺人关注、游戏发行、公开来源与同步频率设置。']};
 $$('.nav-item').forEach(b=>b.onclick=()=>{$$('.nav-item').forEach(x=>x.classList.remove('active'));b.classList.add('active');$$('.tab').forEach(x=>x.classList.remove('active'));$('#'+b.dataset.tab).classList.add('active');$('#pageTitle').textContent=titles[b.dataset.tab][0];$('#pageSubtitle').textContent=titles[b.dataset.tab][1]});
 $$('.chip[data-filter]').forEach(b=>b.onclick=()=>{$$('.chip[data-filter]').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.filter=b.dataset.filter;renderLibraryUpdates()});
 $$('.chip[data-site-filter]').forEach(b=>b.onclick=()=>{$$('.chip[data-site-filter]').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.siteFilter=b.dataset.siteFilter;renderSiteUpdates()});
 $$('[data-game-view]').forEach(b=>b.onclick=()=>{state.gameView=b.dataset.gameView;$$('[data-game-view]').forEach(x=>x.classList.toggle('active',x===b));$$('.game-pane').forEach(x=>x.classList.remove('active'));$(`#game${state.gameView==='mobile'?'Mobile':state.gameView==='pc'?'Pc':'Console'}Pane`).classList.add('active')});
 $$('[data-music-view]').forEach(b=>b.onclick=()=>{state.musicView=b.dataset.musicView;$$('[data-music-view]').forEach(x=>x.classList.toggle('active',x===b));$$('.music-pane').forEach(x=>x.classList.remove('active'));const pane={chart:'Chart',recent:'Recent',new:'New',artists:'Artists'}[state.musicView]||'Chart';$(`#music${pane}Pane`).classList.add('active');if(state.musicView==='artists')renderFollowedArtists()});
-$('#search').addEventListener('input',e=>{state.query=e.target.value.trim();renderSiteUpdates();renderLibrary();renderLibraryUpdates();renderNews();renderMusic();renderGames()});
-$('#refreshBtn').onclick=load;$('#themeBtn').onclick=()=>applyTheme(document.documentElement.dataset.theme==='light'?'dark':'light');$('#markAllRead').onclick=()=>{[...(state.feed?.updates||[]),...state.localUpdates].forEach(x=>state.read.add(x.id));saveRead();renderLibraryUpdates()};
+$('#search').addEventListener('input',e=>{state.query=e.target.value.trim();renderSiteUpdates();renderLibrary();renderLibraryUpdates();renderMusic();renderGames()});
+$('#themeBtn').onclick=()=>applyTheme(document.documentElement.dataset.theme==='light'?'dark':'light');$('#markAllRead').onclick=()=>{[...(state.feed?.updates||[]),...state.localUpdates].forEach(x=>state.read.add(x.id));saveRead();renderLibraryUpdates()};
 $('#artistSearchBtn').onclick=runArtistSearch;$('#artistSearchInput').addEventListener('keydown',e=>{if(e.key==='Enter')runArtistSearch()});$('#refreshArtistsBtn').onclick=renderFollowedArtists;
 applyTheme(document.documentElement.dataset.theme||'dark');load();

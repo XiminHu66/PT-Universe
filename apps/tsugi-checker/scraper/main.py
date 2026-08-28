@@ -128,7 +128,34 @@ def enrich_site_rows(found, src):
         time.sleep(float(src.get('detail_delay',0.18)))
     return found
 
+def site_row_key(row):
+    raw=(row.get('url') or row.get('latest_url') or '').split('#',1)[0].split('?',1)[0].rstrip('/')
+    return f"{row.get('source','')}|{raw or row.get('title','').strip().casefold()}"
+
+def merge_site_row(current, previous):
+    out={**previous, **current}
+    latest=str(current.get('latest') or '').strip()
+    if not latest or latest in ('最新更新','更新'):
+        out['latest']=previous.get('latest') or latest
+        out['latest_url']=previous.get('latest_url') or current.get('latest_url') or current.get('url')
+    else:
+        out['latest_url']=current.get('latest_url') or previous.get('latest_url') or current.get('url')
+    out['cover']=current.get('cover') or previous.get('cover') or ''
+    updated=str(current.get('updated_text') or '').strip()
+    out['updated_text']=updated if updated and 'Cloudflare' not in updated else previous.get('updated_text','')
+    out['chapter_count']=current.get('chapter_count') if current.get('chapter_count') is not None else previous.get('chapter_count')
+    return out
+
+def site_sort_time(row):
+    for value in (row.get('updated_text'),row.get('updated_at'),row.get('changed_at'),row.get('fetched_at')):
+        if not value: continue
+        try:return datetime.fromisoformat(str(value).replace('Z','+00:00')).timestamp()
+        except Exception: pass
+    return 0
+
 def refresh_site_updates(content_cfg, generated):
+    previous=load(SITE_FEED,{'items':[]}); previous_rows=previous.get('items',[])
+    previous_by_key={site_row_key(row):row for row in previous_rows}
     items=[]; statuses={}
     for src in content_cfg.get('site_updates',[]):
         if not src.get('enabled',True): continue
@@ -147,14 +174,24 @@ def refresh_site_updates(content_cfg, generated):
             found=found[:int(src.get('limit',24))]
             if not found: raise RuntimeError('no latest items detected')
             found=enrich_site_rows(found,src)
-            for row in found: row['fetched_at']=generated
+            for row in found:
+                row['fetched_at']=generated
+                prior=previous_by_key.get(site_row_key(row))
+                if prior: row.update(merge_site_row(row,prior))
             items.extend(found)
             statuses[sid]={'label':label,'ok':True,'count':len(found),'checked_at':generated}
             print(f"SITE {sid}: {len(found)} items")
         except Exception as e:
-            statuses[sid]={'label':label,'ok':False,'count':0,'checked_at':generated,'error':f'{type(e).__name__}: {e}'}
+            fallback=[row for row in previous_rows if row.get('source')==sid][:int(src.get('limit',24))]
+            items.extend(fallback)
+            statuses[sid]={'label':label,'ok':False,'count':len(fallback),'checked_at':generated,'error':f'{type(e).__name__}: {e}','fallback':bool(fallback)}
             print(f"SITE ERR {sid}: {e}",file=sys.stderr)
-    SITE_FEED.write_text(json.dumps({'generated_at':generated,'items':items[:400],'sources':statuses},ensure_ascii=False,indent=2)+'\n','utf-8')
+    dedup={}
+    for row in items:
+        key=site_row_key(row)
+        dedup[key]=merge_site_row(dedup[key],row) if key in dedup else row
+    ordered=sorted(dedup.values(),key=site_sort_time,reverse=True)
+    SITE_FEED.write_text(json.dumps({'generated_at':generated,'items':ordered[:400],'sources':statuses},ensure_ascii=False,indent=2)+'\n','utf-8')
 
 def refresh_news(content_cfg, generated):
     items=[]; statuses={}
@@ -211,7 +248,6 @@ def main(*, include_games=True):
     feed={'generated_at':generated,'updates':dedup[:200],'items':item_out,'sources':sources}
     STATE.write_text(json.dumps(state,ensure_ascii=False,indent=2)+'\n','utf-8'); FEED.write_text(json.dumps(feed,ensure_ascii=False,indent=2)+'\n','utf-8'); XML.write_text(build_atom(feed),'utf-8')
     refresh_site_updates(content_cfg,generated)
-    refresh_news(content_cfg,generated)
     refresh_music(content_cfg,generated,MUSIC_FEED,UA)
     if include_games:
         refresh_games(content_cfg,generated,GAME_FEED,GAME_STATE,UA)

@@ -56,7 +56,7 @@
   };
 
   renderGameTimeline=function(rows,label){
-    if(!rows.length)return `<div class="empty game-empty"><div>暂无${label}时间线数据。<small>下一次每日 / 手动刷新订阅源后更新。</small></div></div>`;
+    if(!rows.length)return `<div class="empty game-empty"><div>暂无${label}时间线数据。<small>下一次每日 / 手动刷新全部数据后更新。</small></div></div>`;
     const today=state.games?.date_jst||new Date().toISOString().slice(0,10),groups=new Map();
     rows.forEach(x=>{const d=gameEffectiveDate(x)||'undated';if(!groups.has(d))groups.set(d,[]);groups.get(d).push(x)});
     return [...groups.entries()].sort((a,b)=>a[0].localeCompare(b[0])).map(([d,items])=>{
@@ -76,7 +76,7 @@
   </details>`;
 
   function renderPcTimeline(rows){
-    if(!rows.length)return `<div class="empty game-empty"><div>暂无 PC 时间线数据。<small>下一次每日 / 手动刷新订阅源后更新。</small></div></div>`;
+    if(!rows.length)return `<div class="empty game-empty"><div>暂无 PC 时间线数据。<small>下一次每日 / 手动刷新全部数据后更新。</small></div></div>`;
     const today=state.games?.date_jst||new Date().toISOString().slice(0,10);
     const todayRows=[],next30=[],later=[],past=[],unknown=[];
     rows.forEach(x=>{

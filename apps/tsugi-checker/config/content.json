@@ -53,40 +53,6 @@
       "enabled": false
     }
   ],
-  "news": [
-    {
-      "id": "gnn",
-      "label": "巴哈姆特 GNN",
-      "category": "繁中 ACG",
-      "url": "https://gnn.gamer.com.tw/rss.xml",
-      "limit": 24,
-      "enabled": true
-    },
-    {
-      "id": "gcores",
-      "label": "机核 GCORES",
-      "category": "中文游戏文化",
-      "url": "https://www.gcores.com/rss",
-      "limit": 24,
-      "enabled": true
-    },
-    {
-      "id": "yystv",
-      "label": "游研社",
-      "category": "中文游戏文化",
-      "url": "https://www.yystv.cn/rss/feed",
-      "limit": 24,
-      "enabled": true
-    },
-    {
-      "id": "gamelook",
-      "label": "GameLook 游戏大观",
-      "category": "中文游戏产业",
-      "url": "http://www.gamelook.com.cn/feed",
-      "limit": 24,
-      "enabled": true
-    }
-  ],
   "music": {
     "weekly_source": "Billboard JAPAN Hot 100",
     "weekly_url": "https://www.billboard-japan.com/charts/detail?a=hot100",

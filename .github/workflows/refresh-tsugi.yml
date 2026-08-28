@@ -7,7 +7,7 @@ on:
     - cron: "35 18 * * *"
 
 # Daily and in-app refreshes now run in workers/pt-universe-api on Cloudflare.
-# The scheduled job is only a probe; the heavy scraper runs when Cloudflare data is stale.
+# The scheduled job is only a probe; the reading/music scraper runs when Cloudflare data is stale.
 
 permissions:
   contents: write
@@ -47,7 +47,7 @@ jobs:
               data = json.load(open("/tmp/pt-universe-status.json", encoding="utf-8"))
               files = {row["name"]: row for row in data.get("files", [])}
               cutoff = datetime.now(timezone.utc) - timedelta(hours=20)
-              required = ("site-updates.json", "music.json", "acg-news.json")
+              required = ("site-updates.json", "music.json")
               refreshed = []
               for name in required:
                   raw = ((files.get(name) or {}).get("metadata") or {}).get("updatedAt") or ""
@@ -86,7 +86,7 @@ jobs:
           python -m pip install -r apps/tsugi-checker/requirements.txt
           python -m playwright install --with-deps chromium
 
-      - name: Refresh reading, music and news feeds
+      - name: Refresh reading and music feeds
         if: steps.mode.outputs.scrape == 'true'
         working-directory: apps/tsugi-checker
         run: |
@@ -103,7 +103,6 @@ jobs:
             apps/tsugi-checker/data/feed.xml \
             apps/tsugi-checker/data/state.json \
             apps/tsugi-checker/data/site-updates.json \
-            apps/tsugi-checker/data/acg-news.json \
             apps/tsugi-checker/data/music.json
           if git diff --cached --quiet; then
             echo "No Tsugi data changes"

@@ -98,11 +98,6 @@
             <span class="nav-copy"><span>游戏追踪</span><small>Daily releases</small></span>
             <em id="gameCount">0</em>
           </button>
-          <button class="nav-item" data-tab="news">
-            <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/><path d="M7 8h6M7 12h10M7 16h7"/></svg></span>
-            <span class="nav-copy"><span>ACG 新闻</span><small>News desk</small></span>
-            <em id="newsCount">0</em>
-          </button>
           <button class="nav-item" data-tab="sources">
             <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="18" cy="18" r="2"/><path d="m8 11 8-4M8 13l8 4"/></svg></span>
             <span class="nav-copy"><span>来源状态</span><small>Source health</small></span>
@@ -138,22 +133,20 @@
           <p class="eyebrow">TSUGI / ACG TRACKING HUB</p>
           <h1 id="pageTitle">更新流</h1>
           <p class="page-subtitle" id="pageSubtitle">汇总各小说 / 漫画来源最新更新，并解析最新章节与话数。</p>
+          <span id="pageUpdatedAt" class="page-updated-at">最后同步 · 读取中</span>
         </div>
         <div class="top-actions">
           <label class="search-wrap">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
             <input id="search" placeholder="搜索作品、章节或来源" />
           </label>
-          <button id="sourceRefreshBtn" class="source-refresh-btn" title="通过 Cloudflare 手动刷新订阅源" aria-label="刷新订阅源">
+          <button id="sourceRefreshBtn" class="source-refresh-btn" title="通过 Cloudflare 刷新追更、音乐与游戏数据" aria-label="刷新全部数据">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5"/><path d="M4 18v-5h5"/><path d="M18.6 9A7 7 0 0 0 6.2 6.2L4 8M20 16l-2.2 1.8A7 7 0 0 1 5.4 15"/></svg>
-            <span>刷新订阅源</span>
+            <span>刷新全部数据</span>
           </button>
           <button id="themeBtn" class="icon-btn theme-btn" title="切换明暗主题" aria-label="切换明暗主题">
             <svg class="moon-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.2A8 8 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z"/></svg>
             <svg class="sun-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.41M17.66 6.34l1.41-1.41"/></svg>
-          </button>
-          <button id="refreshBtn" class="icon-btn" title="重新读取已生成的数据" aria-label="重新读取数据">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5"/><path d="M4 18v-5h5"/><path d="M18.6 9A7 7 0 0 0 6.2 6.2L4 8M20 16l-2.2 1.8A7 7 0 0 1 5.4 15"/></svg>
           </button>
         </div>
       </header>
@@ -320,21 +313,6 @@
         </div>
       </section>
 
-      <section id="news" class="tab">
-        <div class="section-head news-head">
-          <div>
-            <p class="section-kicker">ACG NEWS DESK</p>
-            <h2>ACG 新闻</h2>
-            <p>仅聚合简体中文 / 繁体中文 ACG 新闻，随每日抓取一起更新。</p>
-          </div>
-          <div class="chips" id="newsFilterChips">
-            <button class="chip active" data-news-filter="all">全部</button>
-          </div>
-        </div>
-        <div id="newsHero" class="news-hero"></div>
-        <div id="newsGrid" class="news-grid"></div>
-      </section>
-
       <section id="sources" class="tab">
         <div class="section-head">
           <div><p class="section-kicker">HEALTH CHECK</p><h2>来源状态</h2><p>最近一次 Cloudflare 刷新的抓取结果与成功率。</p></div>
@@ -374,7 +352,7 @@
           <article class="panel">
             <span class="panel-number">04</span><span class="panel-kicker">LOCAL FOLLOW & THEME</span>
             <h3>公开内容与主题</h3>
-            <p>站点更新与 ACG 新闻源配置在 <code>config/content.json</code>。一键加入书架、关注艺人、明暗主题和已读状态均保存在当前浏览器 LocalStorage；云端订阅仍由 <code>library.json</code> 驱动。</p>
+            <p>站点更新源配置在 <code>config/content.json</code>。一键加入书架、关注艺人、明暗主题和已读状态均保存在当前浏览器 LocalStorage；云端订阅仍由 <code>library.json</code> 驱动。</p>
           </article>
         </div>
       </section>
@@ -403,7 +381,7 @@
         btn.disabled=busy;
         btn.dataset.state=busy?'running':'';
         const label=btn.querySelector('span');
-        if(label)label.textContent=busy?'正在触发…':'刷新订阅源';
+        if(label)label.textContent=busy?'正在刷新…':'刷新全部数据';
       }
       async function pollForFreshData(requestId){
         for(let i=0;i<45;i++){
@@ -417,10 +395,16 @@
               setBusy(false);
               return;
             }
-            if(j.status==='failed')throw new Error(j.error||'刷新失败');
-          }catch{}
+            if(j.status==='failed'){
+              setBusy(false);
+              notify(`刷新失败：${j.error||'Cloudflare 抓取未完成'}`,'err');
+              return;
+            }
+          }catch(err){
+            if(i===44)notify(`刷新状态暂时无法读取：${err.message}`,'err');
+          }
         }
-        setBusy(false);notify('刷新仍在后台运行，可稍后点击右侧圆形按钮重新读取。');
+        setBusy(false);notify('刷新仍在后台运行；稍后再次点击“刷新全部数据”即可读取最新结果。');
       }
       btn?.addEventListener('click',async()=>{
         setBusy(true);
@@ -436,57 +420,6 @@
       });
     })();
   </script>
-
-  <script>
-    // Small, non-blocking timestamp for the actual reading update feed.
-    (() => {
-      const host = document.querySelector('.title-wrap');
-      const subtitle = document.getElementById('pageSubtitle');
-      if (!host || !subtitle) return;
-
-      let el = document.getElementById('pageUpdatedAt');
-      if (!el) {
-        el = document.createElement('span');
-        el.id = 'pageUpdatedAt';
-        el.className = 'page-updated-at';
-        el.textContent = '最后同步 · 读取中';
-        subtitle.insertAdjacentElement('afterend', el);
-      }
-
-      const shortFmt = new Intl.DateTimeFormat('zh-CN', {
-        month:'2-digit', day:'2-digit',
-        hour:'2-digit', minute:'2-digit',
-        hour12:false
-      });
-      const fullFmt = new Intl.DateTimeFormat('zh-CN', {
-        year:'numeric', month:'2-digit', day:'2-digit',
-        hour:'2-digit', minute:'2-digit', second:'2-digit',
-        hour12:false, timeZoneName:'short'
-      });
-
-      fetch(`data/site-updates.json?v=${Date.now()}`, {cache:'no-store'})
-        .then(r => {
-          if (!r.ok) throw new Error(`HTTP ${r.status}`);
-          return r.json();
-        })
-        .then(data => {
-          const raw = data?.generated_at;
-          const d = raw ? new Date(raw) : null;
-          if (!d || Number.isNaN(+d)) {
-            el.textContent = '最后同步 · 尚无记录';
-            el.title = '';
-            return;
-          }
-          el.textContent = `最后同步 · ${shortFmt.format(d)}`;
-          el.title = `阅读更新流最后完成抓取：${fullFmt.format(d)}`;
-        })
-        .catch(() => {
-          el.textContent = '最后同步 · 暂不可用';
-          el.title = '';
-        });
-    })();
-  </script>
-
 
 
 <!-- PT-UNIVERSE-BACKLINK -->
