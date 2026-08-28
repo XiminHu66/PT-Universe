@@ -79,6 +79,48 @@ test("custom feeds refresh through Cloudflare without KV writes", async () => {
   }
 });
 
+test("Zhihu's empty legacy RSS URL uses the daily compatibility feed", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async url => {
+    assert.equal(url, "https://daily.zhihu.com/api/4/news/latest");
+    return Response.json({ stories: [{ title: "知乎测试", url: "https://daily.zhihu.com/story/1", hint: "摘要", images: ["https://example.com/1.jpg"] }] });
+  };
+  try {
+    const response = await worker.fetch(new Request("https://proxy.example/custom?url=https%3A%2F%2Fwww.zhihu.com%2Frss", {
+      headers: { Origin: "https://ximinhu66.github.io" },
+    }), { RSS_CACHE: createKv() }, createCtx());
+    const text = await response.text();
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("X-RSS-Cache"), "COMPAT");
+    assert.equal(response.headers.get("X-RSS-Source"), "https://daily.zhihu.com/api/4/news/latest");
+    assert.match(text, /<title>知乎测试<\/title>/);
+    assert.match(text, /<enclosure url="https:\/\/example.com\/1.jpg"/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("36Kr's blocked legacy RSS URL uses the current CDN hot list", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async url => {
+    assert.match(url, /^https:\/\/openclaw\.36krcdn\.com\/media\/hotlist\/\d{4}-\d{2}-\d{2}\/24h_hot_list\.json$/);
+    return Response.json({ data: [{ title: "36氪测试", url: "https://36kr.com/p/1?channel=skills&from=rss", author: "作者", publishTime: "2026-08-28 12:07:21", content: "摘要" }] });
+  };
+  try {
+    const response = await worker.fetch(new Request("https://proxy.example/custom?url=https%3A%2F%2F36kr.com%2Ffeed", {
+      headers: { Origin: "https://ximinhu66.github.io" },
+    }), { RSS_CACHE: createKv() }, createCtx());
+    const text = await response.text();
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("X-RSS-Cache"), "COMPAT");
+    assert.match(response.headers.get("X-RSS-Source"), /36krcdn\.com/);
+    assert.match(text, /<title>36氪测试<\/title>/);
+    assert.match(text, /channel=skills&amp;/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("custom feed endpoint requires the production browser origin", async () => {
   const env = { RSS_CACHE: createKv() };
   for (const headers of [{}, { Origin: "https://evil.example" }]) {

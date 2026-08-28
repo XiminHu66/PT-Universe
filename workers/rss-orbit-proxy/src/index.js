@@ -11,6 +11,12 @@ const STATUS_KEY = "status";
 const MAX_FEED_BYTES = 5 * 1024 * 1024;
 const FETCH_BATCH_SIZE = 6;
 const MAX_REDIRECTS = 3;
+const COMPATIBILITY_FEEDS = new Map([
+  ["zhihu.com/rss", "zhihu-daily"],
+  ["www.zhihu.com/rss", "zhihu-daily"],
+  ["36kr.com/feed", "36kr-hot-list"],
+  ["www.36kr.com/feed", "36kr-hot-list"],
+]);
 
 export const FEEDS = Object.freeze({
   wallstreetcn: "https://dedicated.wallstreetcn.com/rss.xml",
@@ -33,7 +39,7 @@ function corsHeaders(request) {
     "Access-Control-Allow-Origin": ALLOWED_ORIGINS.has(origin) ? origin : "https://ximinhu66.github.io",
     "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
     "Access-Control-Allow-Headers": "Accept, Content-Type",
-    "Access-Control-Expose-Headers": "X-RSS-Cache, X-RSS-Fetched-At",
+    "Access-Control-Expose-Headers": "X-RSS-Cache, X-RSS-Fetched-At, X-RSS-Source",
     "Access-Control-Max-Age": "86400",
     Vary: "Origin",
   };
@@ -64,6 +70,7 @@ function feedResponse(request, body, metadata, cacheState, status = 200, headOnl
   headers.set("X-Content-Type-Options", "nosniff");
   headers.set("X-RSS-Cache", cacheState);
   if (metadata?.fetchedAt) headers.set("X-RSS-Fetched-At", metadata.fetchedAt);
+  if (metadata?.source) headers.set("X-RSS-Source", metadata.source);
   return new Response(headOnly ? null : body, { status, headers });
 }
 
@@ -159,6 +166,128 @@ async function readTextBounded(response) {
 function looksLikeFeed(text) {
   const opening = text.slice(0, 2048).toLowerCase();
   return opening.includes("<rss") || opening.includes("<feed") || opening.includes("<rdf:rdf");
+}
+
+function escapeXml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&apos;");
+}
+
+function rssDocument({ title, link, description, items }) {
+  const body = items.map(item => `
+    <item>
+      <title>${escapeXml(item.title)}</title>
+      <link>${escapeXml(item.link)}</link>
+      <guid isPermaLink="true">${escapeXml(item.link)}</guid>
+      ${item.author ? `<author>${escapeXml(item.author)}</author>` : ""}
+      ${item.pubDate ? `<pubDate>${escapeXml(item.pubDate)}</pubDate>` : ""}
+      <description>${escapeXml(item.description || "")}</description>
+      ${item.image ? `<enclosure url="${escapeXml(item.image)}" type="image/jpeg" />` : ""}
+    </item>`).join("");
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel>
+  <title>${escapeXml(title)}</title>
+  <link>${escapeXml(link)}</link>
+  <description>${escapeXml(description)}</description>
+  <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>${body}
+</channel></rss>`;
+}
+
+async function fetchJson(url) {
+  const response = await fetch(url, {
+    headers: {
+      Accept: "application/json",
+      "User-Agent": "PT-Universe-RSS-Proxy/2.1 (+https://github.com/XiminHu66/PT-Universe)",
+    },
+    signal: AbortSignal.timeout(12000),
+    redirect: "follow",
+    cf: { cacheTtl: 300, cacheEverything: true },
+  });
+  if (!response.ok) throw new Error(`compat_upstream_${response.status}`);
+  return response.json();
+}
+
+async function buildZhihuDailyFeed() {
+  const source = "https://daily.zhihu.com/api/4/news/latest";
+  const payload = await fetchJson(source);
+  if (!Array.isArray(payload?.stories) || !payload.stories.length) throw new Error("compat_invalid_data");
+  const text = rssDocument({
+    title: "知乎日报",
+    link: "https://daily.zhihu.com/",
+    description: "知乎每日精选兼容源，由知乎日报公开数据生成",
+    items: payload.stories.map(story => ({
+      title: story.title,
+      link: story.url,
+      description: story.hint,
+      image: Array.isArray(story.images) ? story.images[0] : story.image,
+    })),
+  });
+  return { text, source };
+}
+
+function shanghaiDate(offsetDays = 0) {
+  const date = new Date(Date.now() + offsetDays * 86400000);
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const value = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return `${value.year}-${value.month}-${value.day}`;
+}
+
+function chinaDateToRfc822(value) {
+  if (!value) return "";
+  const parsed = new Date(`${String(value).replace(" ", "T")}+08:00`);
+  return Number.isNaN(parsed.getTime()) ? "" : parsed.toUTCString();
+}
+
+async function build36KrHotListFeed() {
+  let payload;
+  let source;
+  let lastError;
+  for (let offset = 0; offset >= -2; offset--) {
+    source = `https://openclaw.36krcdn.com/media/hotlist/${shanghaiDate(offset)}/24h_hot_list.json`;
+    try {
+      payload = await fetchJson(source);
+      if (Array.isArray(payload?.data) && payload.data.length) break;
+      throw new Error("compat_invalid_data");
+    } catch (error) {
+      lastError = error;
+      payload = null;
+    }
+  }
+  if (!payload) throw lastError || new Error("compat_unavailable");
+  const text = rssDocument({
+    title: "36氪 24 小时热榜",
+    link: "https://36kr.com/",
+    description: "36氪 RSS 兼容源，由 36氪公开热榜数据生成",
+    items: payload.data.map(item => ({
+      title: item.title,
+      link: item.url,
+      author: item.author,
+      pubDate: chinaDateToRfc822(item.publishTime),
+      description: item.content,
+    })),
+  });
+  return { text, source };
+}
+
+function compatibilityFeedId(url) {
+  const path = url.pathname.replace(/\/+$/, "") || "/";
+  return COMPATIBILITY_FEEDS.get(`${url.hostname.toLowerCase()}${path}`) || "";
+}
+
+async function buildCompatibilityFeed(url) {
+  const feedId = compatibilityFeedId(url);
+  if (feedId === "zhihu-daily") return buildZhihuDailyFeed();
+  if (feedId === "36kr-hot-list") return build36KrHotListFeed();
+  return null;
 }
 
 async function readCachedFeed(env, feedId) {
@@ -259,6 +388,15 @@ export default {
         return json(request, { ok: false, error: String(error?.message || error) }, 400);
       }
       try {
+        const compatible = await buildCompatibilityFeed(upstreamUrl);
+        if (compatible) {
+          return feedResponse(request, compatible.text, {
+            contentType: "application/rss+xml; charset=utf-8",
+            fetchedAt: new Date().toISOString(),
+            bytes: new TextEncoder().encode(compatible.text).byteLength,
+            source: compatible.source,
+          }, "COMPAT", 200, method === "HEAD");
+        }
         const upstream = await fetchUpstream(upstreamUrl.href);
         if (!upstream.ok) throw new Error(`upstream_${upstream.status}`);
         const { text, size } = await readTextBounded(upstream);
