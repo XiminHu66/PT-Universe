@@ -2,6 +2,12 @@ name: Refresh Tsugi data (Cloudflare watchdog fallback)
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "apps/tsugi-checker/scraper/**"
+      - "apps/tsugi-checker/config/content.json"
+      - ".github/workflows/refresh-tsugi.yml"
   schedule:
     # Emergency watchdog: 10:35 PST / 11:35 PDT, after Cloudflare's 09:17 run.
     - cron: "35 18 * * *"
