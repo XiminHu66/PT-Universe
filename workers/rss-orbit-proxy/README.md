@@ -20,6 +20,8 @@ The Worker exposes:
 - `GET /feed/:id` — KV-backed allowlisted RSS response. A first cache miss bootstraps that feed from the origin.
 - `GET /feed/:id?refresh=1` — bypass KV and read the origin immediately. Failed origins fall back to stale KV; manual reads do not consume KV writes.
 - `GET /custom?url=<rss-url>` — fetch a browser-added public RSS/Atom URL through Cloudflare. It requires the approved GitHub Pages origin, rejects private/local destinations and unsafe redirects, validates the response as a feed, and does not write KV.
+  - The retired `zhihu.com/rss` endpoint is transparently converted from Zhihu Daily's public data.
+  - The blocked `36kr.com/feed` endpoint is transparently converted from 36Kr's current 24-hour hot-list data.
 
 The production browser origin is restricted to `https://ximinhu66.github.io`. Requests without an `Origin` header remain available for direct health checks and command-line diagnostics.
 
