@@ -1,10 +1,13 @@
-name: Refresh Tsugi data (manual fallback)
+name: Refresh Tsugi data (Cloudflare watchdog fallback)
 
 on:
   workflow_dispatch:
+  schedule:
+    # Emergency watchdog: 10:35 PST / 11:35 PDT, after Cloudflare's 09:17 run.
+    - cron: "35 18 * * *"
 
 # Daily and in-app refreshes now run in workers/pt-universe-api on Cloudflare.
-# This workflow remains dispatch-only as a portable emergency fallback.
+# The scheduled job is only a probe; the heavy scraper runs when Cloudflare data is stale.
 
 permissions:
   contents: write
@@ -33,40 +36,36 @@ jobs:
             exit 0
           fi
 
-          LOCAL_HOUR="$(TZ=America/Los_Angeles date +%H)"
-          if (( 10#$LOCAL_HOUR < 9 )); then
-            echo "scrape=false" >> "$GITHUB_OUTPUT"
-            echo "reason=backup_probe_arrived_before_09" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          git fetch origin main --quiet
-          if git show origin/main:apps/tsugi-checker/data/site-updates.json > /tmp/tsugi-site-updates.json 2>/dev/null; then
+          if curl --fail --silent --show-error --max-time 20 \
+            "https://pt-universe-api.summer07-nanjolno.workers.dev/api/status?watchdog=${{ github.run_id }}" \
+            > /tmp/pt-universe-status.json; then
             if python - <<'PY'
           import json, sys
-          from datetime import datetime
-          from zoneinfo import ZoneInfo
+          from datetime import datetime, timedelta, timezone
 
-          tz = ZoneInfo("America/Los_Angeles")
-          now = datetime.now(tz)
           try:
-              data = json.load(open("/tmp/tsugi-site-updates.json", encoding="utf-8"))
-              raw = data.get("generated_at") or ""
-              refreshed = datetime.fromisoformat(raw.replace("Z", "+00:00")).astimezone(tz)
-              fresh = refreshed.date() == now.date() and refreshed.hour >= 9
+              data = json.load(open("/tmp/pt-universe-status.json", encoding="utf-8"))
+              files = {row["name"]: row for row in data.get("files", [])}
+              cutoff = datetime.now(timezone.utc) - timedelta(hours=20)
+              required = ("site-updates.json", "music.json", "acg-news.json")
+              refreshed = []
+              for name in required:
+                  raw = ((files.get(name) or {}).get("metadata") or {}).get("updatedAt") or ""
+                  refreshed.append(datetime.fromisoformat(raw.replace("Z", "+00:00")) >= cutoff)
+              fresh = all(refreshed)
           except Exception:
               fresh = False
           sys.exit(0 if fresh else 1)
           PY
             then
               echo "scrape=false" >> "$GITHUB_OUTPUT"
-              echo "reason=already_refreshed_after_09_today" >> "$GITHUB_OUTPUT"
+              echo "reason=cloudflare_data_is_fresh" >> "$GITHUB_OUTPUT"
               exit 0
             fi
           fi
 
           echo "scrape=true" >> "$GITHUB_OUTPUT"
-          echo "reason=scheduled_morning_refresh_needed" >> "$GITHUB_OUTPUT"
+          echo "reason=cloudflare_data_stale_or_status_unavailable" >> "$GITHUB_OUTPUT"
 
       - name: Show refresh decision
         run: |
