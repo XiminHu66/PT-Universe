@@ -6,6 +6,7 @@ type Json=Record<string,unknown>;
 
 const DATA_FILES=['site-updates.json','acg-news.json','music.json','game-releases.json','feed.json','state.json','game-state.json'];
 const BROWSER_DATA_FILES=new Set(['site-updates.json','music.json']);
+const WATCHDOG_DATA_FILES=new Set(['site-updates.json','acg-news.json','music.json']);
 const FALLBACK_AFTER_MS=20*3600_000;
 const RAW='https://raw.githubusercontent.com/XiminHu66/PT-Universe/main/apps/tsugi-checker/data/';
 const allowedOrigins=new Set(['https://ximinhu66.github.io','http://localhost:8000','http://127.0.0.1:8000']);
@@ -30,7 +31,7 @@ function timingSafe(a:string,b:string){if(a.length!==b.length)return false;let d
 
 async function getData(env:Env,name:string){
   const entry=await env.PT_UNIVERSE_DATA.getWithMetadata<{updatedAt?:string}>(`data/${name}`),cached=entry.value;
-  const updatedAt=Date.parse(entry.metadata?.updatedAt||''),stale=BROWSER_DATA_FILES.has(name)&&(!Number.isFinite(updatedAt)||Date.now()-updatedAt>FALLBACK_AFTER_MS);
+  const updatedAt=Date.parse(entry.metadata?.updatedAt||''),stale=WATCHDOG_DATA_FILES.has(name)&&(!Number.isFinite(updatedAt)||Date.now()-updatedAt>FALLBACK_AFTER_MS);
   if(cached&&!stale)return cached;
   try{
     const response=await timedFetch(RAW+name,{headers:{'user-agent':'PT-Universe/1.0','accept':'application/json'}},12_000);
@@ -230,7 +231,7 @@ async function runRefresh(env:Env,scope:RefreshScope){
 async function status(env:Env){
   await env.DB.prepare("UPDATE refresh_runs SET status='failed',completed_at=?,error='Refresh session exceeded six minutes and was reclaimed' WHERE status='running' AND datetime(started_at) < datetime('now','-6 minutes')").bind(now()).run();
   const rows=await env.DB.prepare('SELECT request_id,scope,source,status,started_at,completed_at,duration_ms,error,result_json FROM refresh_runs ORDER BY rowid DESC LIMIT 20').all();
-  const files:Json[]=[];for(const name of DATA_FILES){const entry=await env.PT_UNIVERSE_DATA.getWithMetadata<{updatedAt?:string}>(`data/${name}`),updatedAt=entry.metadata?.updatedAt||'',updatedMs=Date.parse(updatedAt),ageHours=Number.isFinite(updatedMs)?Math.round((Date.now()-updatedMs)/360_000)/10:null;files.push({name,available:entry.value!==null,metadata:entry.metadata,ageHours,browserBacked:BROWSER_DATA_FILES.has(name),fallbackDue:BROWSER_DATA_FILES.has(name)&&(ageHours===null||ageHours>20)})}
+  const files:Json[]=[];for(const name of DATA_FILES){const entry=await env.PT_UNIVERSE_DATA.getWithMetadata<{updatedAt?:string}>(`data/${name}`),updatedAt=entry.metadata?.updatedAt||'',updatedMs=Date.parse(updatedAt),ageHours=Number.isFinite(updatedMs)?Math.round((Date.now()-updatedMs)/360_000)/10:null;files.push({name,available:entry.value!==null,metadata:entry.metadata,ageHours,browserBacked:BROWSER_DATA_FILES.has(name),fallbackDue:WATCHDOG_DATA_FILES.has(name)&&(ageHours===null||ageHours>20)})}
   return {service:'pt-universe-api',time:now(),files,runs:rows.results};
 }
 
