@@ -140,10 +140,13 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
             <input id="search" placeholder="搜索作品、章节或来源" />
           </label>
-          <button id="sourceRefreshBtn" class="source-refresh-btn" title="通过 Cloudflare 刷新追更、音乐与游戏数据" aria-label="刷新全部数据">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5"/><path d="M4 18v-5h5"/><path d="M18.6 9A7 7 0 0 0 6.2 6.2L4 8M20 16l-2.2 1.8A7 7 0 0 1 5.4 15"/></svg>
-            <span>刷新全部数据</span>
-          </button>
+          <div class="refresh-action-group">
+            <button id="sourceRefreshBtn" class="source-refresh-btn" title="通过 Cloudflare 刷新追更、音乐与游戏数据" aria-label="刷新全部数据">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5"/><path d="M4 18v-5h5"/><path d="M18.6 9A7 7 0 0 0 6.2 6.2L4 8M20 16l-2.2 1.8A7 7 0 0 1 5.4 15"/></svg>
+              <span>刷新全部数据</span>
+            </button>
+            <span id="refreshBudgetIndicator" class="refresh-budget-indicator" data-state="loading">安全余量内 · 计算中</span>
+          </div>
           <button id="themeBtn" class="icon-btn theme-btn" title="切换明暗主题" aria-label="切换明暗主题">
             <svg class="moon-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.2A8 8 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z"/></svg>
             <svg class="sun-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.41M17.66 6.34l1.41-1.41"/></svg>
@@ -366,6 +369,7 @@
     (()=>{
       const API='https://pt-universe-api.summer07-nanjolno.workers.dev';
       const btn=document.getElementById('sourceRefreshBtn');
+      const budgetIndicator=document.getElementById('refreshBudgetIndicator');
       const toast=document.getElementById('tsugiToast');
       let toastTimer=null;
 
@@ -382,6 +386,23 @@
         btn.dataset.state=busy?'running':'';
         const label=btn.querySelector('span');
         if(label)label.textContent=busy?'正在刷新…':'刷新全部数据';
+      }
+      function showBudget(budget,{running=false}={}){
+        if(!budgetIndicator||!budget)return;
+        const remaining=Math.max(0,Number(budget.remainingRefreshes)||0);
+        budgetIndicator.textContent=running?`刷新中 · 完成后预计 ${remaining} 次`:`安全余量内 · 预计还可刷新 ${remaining} 次`;
+        budgetIndicator.dataset.state=remaining===0?'empty':remaining<=1?'low':'ok';
+        budgetIndicator.title=`按最近完整刷新约 ${Math.round((budget.estimatedFullRefreshMs||0)/1000)} 秒估算；保留 Cloudflare 免费额度的 ${budget.reservePercent||50}%。UTC ${new Date(budget.resetsAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} 重置。`;
+      }
+      async function updateBudget(options={}){
+        try{
+          const response=await fetch(`${API}/api/refresh/budget`,{cache:'no-store'});
+          if(!response.ok)throw new Error(`API ${response.status}`);
+          const budget=await response.json();showBudget(budget,options);return budget;
+        }catch{
+          if(budgetIndicator){budgetIndicator.textContent='刷新余量 · 暂时无法读取';budgetIndicator.dataset.state='loading'}
+          return null;
+        }
       }
       function currentSyncText(){
         const value=document.getElementById('pageUpdatedAt')?.textContent?.trim();
@@ -400,13 +421,15 @@
             const r=await fetch(`${API}/api/refresh/status/${requestId}`,{cache:'no-store'});
             const j=await r.json();
             if(j.status==='success'){
-              notify('Cloudflare 刷新完成，页面数据已自动重新载入。','ok');
               if(typeof load==='function')await load();
+              const budget=await updateBudget();
               setBusy(false);
+              notify(`Cloudflare 刷新完成；安全余量内预计还可刷新 ${budget?.remainingRefreshes??'—'} 次。`,'ok');
               return;
             }
             if(j.status==='failed'){
               setBusy(false);
+              await updateBudget();
               notify(`刷新失败：${j.error||'Cloudflare 抓取未完成'}`,'err');
               return;
             }
@@ -414,7 +437,7 @@
             if(i===44)notify(`刷新状态暂时无法读取：${err.message}`,'err');
           }
         }
-        setBusy(false);notify('刷新仍在后台运行；稍后再次点击“刷新全部数据”即可读取最新结果。');
+        setBusy(false);await updateBudget();notify('刷新仍在后台运行；稍后再次点击“刷新全部数据”即可读取最新结果。');
       }
       btn?.addEventListener('click',async()=>{
         setBusy(true);
@@ -422,18 +445,21 @@
           const response=await fetch(`${API}/api/refresh/all`,{method:'POST'}),result=await response.json();
           if(response.status===429&&result.reason==='browser_budget'){
             if(typeof load==='function')await load();
+            showBudget(result.budget);
             setBusy(false);
-            notify(`今日实时抓取额度已保留；已载入${currentSyncText()}。`,'ok');
+            notify(`安全余量内预计剩余 0 次；已载入${currentSyncText()}。50% 免费额度仍保留。`,'ok');
             return;
           }
           if(response.status===429&&(/冷却/.test(result.error||'')||result.reason==='browser_session')){
             if(typeof load==='function')await load();
+            showBudget(result.budget);
             setBusy(false);
             notify(`已有刷新刚刚触发；已载入${currentSyncText()}，请稍后再试。`,'ok');
             return;
           }
           if(!response.ok)throw new Error(result.error||`Cloudflare API ${response.status}`);
           if(result.reused){
+            showBudget(result.budget,{running:result.status==='queued'||result.status==='running'});
             if((result.status==='queued'||result.status==='running')&&result.requestId){
               notify('已有刷新任务正在运行，完成后会自动重新载入。','ok');
               void pollForFreshData(result.requestId);
@@ -444,6 +470,7 @@
             notify(`已载入${currentSyncText()}；${remainingText(result.cooldownUntil)}可再次刷新。`,'ok');
             return;
           }
+          showBudget(result.budget,{running:true});
           notify('Cloudflare 已接收刷新任务，完成后会自动重新载入。','ok');
           void pollForFreshData(result.requestId);
         }catch(err){
@@ -451,6 +478,7 @@
           notify(`无法触发刷新：${err.message}`,'err');
         }
       });
+      void updateBudget();
     })();
   </script>
 

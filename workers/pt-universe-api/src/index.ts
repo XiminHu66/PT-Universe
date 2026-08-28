@@ -3,6 +3,7 @@ import { launch, type Browser, type Page } from '@cloudflare/playwright';
 type RefreshScope='all'|'sites'|'music'|'games';
 type RefreshMessage={requestId:string;scope:RefreshScope;source:'manual'|'scheduled';limitKeys?:string[]};
 type RefreshRunSummary={request_id:string;scope:RefreshScope;status:string;started_at:string|null;completed_at:string|null;error:string|null};
+type RefreshBudget={day:string;officialDailyMs:number;safeDailyMs:number;usedMs:number;reservedMs:number;remainingMs:number;estimatedFullRefreshMs:number;remainingRefreshes:number;reservePercent:number;resetsAt:string;scheduledRunFinished:boolean;inFlightRefreshes:number};
 type Json=Record<string,unknown>;
 
 const DATA_FILES=['site-updates.json','music.json','game-releases.json','feed.json','state.json','game-state.json'];
@@ -10,6 +11,9 @@ const BROWSER_DATA_FILES=new Set(['site-updates.json','music.json']);
 const WATCHDOG_DATA_FILES=new Set(['site-updates.json','music.json']);
 const FALLBACK_AFTER_MS=20*3600_000;
 const GAME_SYNC_AFTER_MS=30*3600_000;
+const OFFICIAL_BROWSER_DAILY_MS=600_000;
+const SAFE_BROWSER_DAILY_MS=300_000;
+const DEFAULT_FULL_REFRESH_MS=50_000;
 const RAW='https://raw.githubusercontent.com/XiminHu66/PT-Universe/main/apps/tsugi-checker/data/';
 const allowedOrigins=new Set(['https://ximinhu66.github.io','http://localhost:8000','http://127.0.0.1:8000']);
 const jsonHeaders={'content-type':'application/json; charset=utf-8','cache-control':'no-store'};
@@ -61,6 +65,36 @@ async function authenticate(request:Request,env:Env,id:string){
   const row=await env.DB.prepare('SELECT token_hash FROM sync_accounts WHERE sync_id = ?').bind(id).first<{token_hash:string}>();
   return !!row&&timingSafe(row.token_hash,await sha256(token));
 }
+
+function median(values:number[]){
+  const sorted=[...values].sort((a,b)=>a-b),middle=Math.floor(sorted.length/2);
+  return sorted.length?sorted.length%2?sorted[middle]:Math.round((sorted[middle-1]+sorted[middle])/2):DEFAULT_FULL_REFRESH_MS;
+}
+async function refreshBudget(env:Env):Promise<RefreshBudget>{
+  const [usage,durations,scheduled,active]=await Promise.all([
+    env.DB.prepare("SELECT COALESCE(SUM(duration_ms),0) AS total FROM refresh_runs WHERE scope IN ('all','sites','music') AND status IN ('success','failed') AND completed_at >= datetime('now','start of day')").first<{total:number}>(),
+    env.DB.prepare("SELECT duration_ms FROM refresh_runs WHERE scope='all' AND status='success' AND duration_ms IS NOT NULL ORDER BY rowid DESC LIMIT 7").all<{duration_ms:number}>(),
+    env.DB.prepare("SELECT COUNT(*) AS total FROM refresh_runs WHERE scope='all' AND source='scheduled' AND status IN ('success','failed') AND completed_at >= datetime('now','start of day')").first<{total:number}>(),
+    env.DB.prepare("SELECT COUNT(*) AS total, SUM(CASE WHEN source='scheduled' THEN 1 ELSE 0 END) AS scheduled FROM refresh_runs WHERE scope IN ('all','sites','music') AND status IN ('queued','running')").first<{total:number;scheduled:number}>()
+  ]);
+  const samples=(durations.results||[]).map(row=>Number(row.duration_ms)).filter(value=>Number.isFinite(value)&&value>0);
+  const estimatedFullRefreshMs=Math.max(35_000,Math.min(60_000,median(samples)));
+  const usedMs=Math.max(0,Number(usage?.total||0));
+  const inFlightRefreshes=Math.max(0,Number(active?.total||0));
+  const scheduledRunFinished=Number(scheduled?.total||0)>0;
+  const scheduledReservedMs=!scheduledRunFinished&&Number(active?.scheduled||0)===0?estimatedFullRefreshMs:0;
+  const reservedMs=scheduledReservedMs+inFlightRefreshes*estimatedFullRefreshMs;
+  const remainingMs=Math.max(0,SAFE_BROWSER_DAILY_MS-usedMs-reservedMs);
+  const reset=new Date();reset.setUTCHours(24,0,0,0);
+  return {
+    day:new Date().toISOString().slice(0,10),
+    officialDailyMs:OFFICIAL_BROWSER_DAILY_MS,
+    safeDailyMs:SAFE_BROWSER_DAILY_MS,
+    usedMs,reservedMs,remainingMs,estimatedFullRefreshMs,
+    remainingRefreshes:Math.max(0,Math.floor(remainingMs/estimatedFullRefreshMs)),
+    reservePercent:50,resetsAt:reset.toISOString(),scheduledRunFinished,inFlightRefreshes
+  };
+}
 async function syncRoute(request:Request,env:Env,url:URL){
   if(url.pathname==='/api/sync/register'&&request.method==='POST'){
     const body=await request.json<{id?:string;token?:string}>();
@@ -108,21 +142,22 @@ async function enqueue(request:Request,env:Env,scope:RefreshScope,source:'manual
         lastRequestedAt:row?.last_requested_at||null,
         cooldownUntil:new Date(lastRequestedAt+cooldown).toISOString(),
         completedAt:recent?.completed_at||null,
-        error:recent?.error||null
+        error:recent?.error||null,
+        budget:scope==='all'||scope==='sites'||scope==='music'?await refreshBudget(env):null
       },active?202:200);
     }
     if(scope==='all'||scope==='sites'||scope==='music'){
-      const usage=await env.DB.prepare("SELECT COALESCE(SUM(duration_ms),0) AS total FROM refresh_runs WHERE scope IN ('all','sites','music') AND status='success' AND completed_at >= datetime('now','-1 day')").first<{total:number}>();
-      if(Number(usage?.total||0)>=240_000)return reply(request,{error:'今日 Browser 安全预算已用完，请等待自动刷新',reason:'browser_budget',retryable:false},429);
+      const budget=await refreshBudget(env);
+      if(budget.remainingRefreshes<1)return reply(request,{error:'今日安全余量内预计刷新次数已用完；UTC 次日自动恢复',reason:'browser_budget',retryable:false,budget},429);
       const browserKey='browser:global',browserRow=await env.DB.prepare('SELECT last_requested_at FROM refresh_limits WHERE limit_key=?').bind(browserKey).first<{last_requested_at:string}>();
-      if(browserRow&&Date.now()-Date.parse(browserRow.last_requested_at)<30_000)return reply(request,{error:'Browser 会话冷却中，请 30 秒后重试',reason:'browser_session',retryAfterSeconds:30},429,{'retry-after':'30'});
+      if(browserRow&&Date.now()-Date.parse(browserRow.last_requested_at)<30_000)return reply(request,{error:'Browser 会话冷却中，请 30 秒后重试',reason:'browser_session',retryAfterSeconds:30,budget},429,{'retry-after':'30'});
       await env.DB.prepare('INSERT INTO refresh_limits(limit_key,last_requested_at) VALUES(?,?) ON CONFLICT(limit_key) DO UPDATE SET last_requested_at=excluded.last_requested_at').bind(browserKey,stamp).run();limitKeys.push(browserKey);
     }
     await env.DB.prepare('INSERT INTO refresh_limits(limit_key,last_requested_at) VALUES(?,?) ON CONFLICT(limit_key) DO UPDATE SET last_requested_at=excluded.last_requested_at').bind(key,stamp).run();limitKeys.push(key);
   }
   await env.DB.prepare('INSERT INTO refresh_runs(request_id,scope,source,status) VALUES(?,?,?,?)').bind(requestId,scope,source,'queued').run();
   await env.REFRESH_QUEUE.send({requestId,scope,source,limitKeys} satisfies RefreshMessage);
-  return reply(request,{requestId,scope,status:'queued'},202);
+  return reply(request,{requestId,scope,status:'queued',budget:scope==='all'||scope==='sites'||scope==='music'?await refreshBudget(env):null},202);
 }
 
 async function proxyRoute(request:Request,url:URL){
@@ -309,7 +344,7 @@ async function status(env:Env){
   await env.DB.prepare("UPDATE refresh_runs SET status='failed',completed_at=?,error='Refresh session exceeded six minutes and was reclaimed' WHERE status='running' AND datetime(started_at) < datetime('now','-6 minutes')").bind(now()).run();
   const rows=await env.DB.prepare('SELECT request_id,scope,source,status,started_at,completed_at,duration_ms,error,result_json FROM refresh_runs ORDER BY rowid DESC LIMIT 20').all();
   const files:Json[]=[];for(const name of DATA_FILES){const entry=await env.PT_UNIVERSE_DATA.getWithMetadata<{updatedAt?:string}>(`data/${name}`),updatedAt=entry.metadata?.updatedAt||'',updatedMs=Date.parse(updatedAt),ageHours=Number.isFinite(updatedMs)?Math.round((Date.now()-updatedMs)/360_000)/10:null;files.push({name,available:entry.value!==null,metadata:entry.metadata,ageHours,browserBacked:BROWSER_DATA_FILES.has(name),fallbackDue:WATCHDOG_DATA_FILES.has(name)&&(ageHours===null||ageHours>20)})}
-  return {service:'pt-universe-api',time:now(),files,runs:rows.results};
+  return {service:'pt-universe-api',time:now(),files,runs:rows.results,refreshBudget:await refreshBudget(env)};
 }
 
 export default {
@@ -319,6 +354,7 @@ export default {
     try{
       if(url.pathname==='/api/health')return reply(request,{ok:true,time:now(),storage:'KV + D1',rssOrbit:'external'});
       if(url.pathname==='/api/status')return reply(request,await status(env));
+      if(url.pathname==='/api/refresh/budget'&&request.method==='GET')return reply(request,await refreshBudget(env));
       if(url.pathname==='/api/analytics'&&request.method==='POST'){
         const body=await request.json<{path?:string}>();const path=String(body.path||'').slice(0,180);
         if(!path.startsWith('/PT-Universe'))return error(request,'无效路径');
