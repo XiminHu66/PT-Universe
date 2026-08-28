@@ -2,6 +2,7 @@ import { launch, type Browser, type Page } from '@cloudflare/playwright';
 
 type RefreshScope='all'|'sites'|'music'|'games';
 type RefreshMessage={requestId:string;scope:RefreshScope;source:'manual'|'scheduled';limitKeys?:string[]};
+type RefreshRunSummary={request_id:string;scope:RefreshScope;status:string;started_at:string|null;completed_at:string|null;error:string|null};
 type Json=Record<string,unknown>;
 
 const DATA_FILES=['site-updates.json','music.json','game-releases.json','feed.json','state.json','game-state.json'];
@@ -92,13 +93,29 @@ async function enqueue(request:Request,env:Env,scope:RefreshScope,source:'manual
   if(source==='manual'){
     const key=`${scope}:${request.headers.get('cf-connecting-ip')||'unknown'}`;
     const row=await env.DB.prepare('SELECT last_requested_at FROM refresh_limits WHERE limit_key=?').bind(key).first<{last_requested_at:string}>();
-    const cooldown=scope==='all'?12*3600_000:10*60_000;
-    if(row&&Date.now()-Date.parse(row.last_requested_at)<cooldown)return error(request,`刷新冷却中，请稍后再试`,429);
+    const cooldown=scope==='all'?30*60_000:10*60_000;
+    const lastRequestedAt=Date.parse(row?.last_requested_at||'');
+    if(Number.isFinite(lastRequestedAt)&&Date.now()-lastRequestedAt<cooldown){
+      const recent=await env.DB.prepare(`SELECT request_id,scope,status,started_at,completed_at,error
+        FROM refresh_runs WHERE scope=? ORDER BY rowid DESC LIMIT 1`).bind(scope).first<RefreshRunSummary>();
+      const active=recent?.status==='queued'||recent?.status==='running';
+      return reply(request,{
+        requestId:recent?.request_id||null,
+        scope,
+        status:recent?.status||'cooldown',
+        reused:true,
+        reason:'cooldown',
+        lastRequestedAt:row?.last_requested_at||null,
+        cooldownUntil:new Date(lastRequestedAt+cooldown).toISOString(),
+        completedAt:recent?.completed_at||null,
+        error:recent?.error||null
+      },active?202:200);
+    }
     if(scope==='all'||scope==='sites'||scope==='music'){
       const usage=await env.DB.prepare("SELECT COALESCE(SUM(duration_ms),0) AS total FROM refresh_runs WHERE scope IN ('all','sites','music') AND status='success' AND completed_at >= datetime('now','-1 day')").first<{total:number}>();
-      if(Number(usage?.total||0)>=240_000)return error(request,'今日 Browser 安全预算已用完，请等待自动刷新',429);
+      if(Number(usage?.total||0)>=240_000)return reply(request,{error:'今日 Browser 安全预算已用完，请等待自动刷新',reason:'browser_budget',retryable:false},429);
       const browserKey='browser:global',browserRow=await env.DB.prepare('SELECT last_requested_at FROM refresh_limits WHERE limit_key=?').bind(browserKey).first<{last_requested_at:string}>();
-      if(browserRow&&Date.now()-Date.parse(browserRow.last_requested_at)<30_000)return error(request,'Browser 会话冷却中，请 30 秒后重试',429);
+      if(browserRow&&Date.now()-Date.parse(browserRow.last_requested_at)<30_000)return reply(request,{error:'Browser 会话冷却中，请 30 秒后重试',reason:'browser_session',retryAfterSeconds:30},429,{'retry-after':'30'});
       await env.DB.prepare('INSERT INTO refresh_limits(limit_key,last_requested_at) VALUES(?,?) ON CONFLICT(limit_key) DO UPDATE SET last_requested_at=excluded.last_requested_at').bind(browserKey,stamp).run();limitKeys.push(browserKey);
     }
     await env.DB.prepare('INSERT INTO refresh_limits(limit_key,last_requested_at) VALUES(?,?) ON CONFLICT(limit_key) DO UPDATE SET last_requested_at=excluded.last_requested_at').bind(key,stamp).run();limitKeys.push(key);

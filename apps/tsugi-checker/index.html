@@ -383,6 +383,16 @@
         const label=btn.querySelector('span');
         if(label)label.textContent=busy?'正在刷新…':'刷新全部数据';
       }
+      function currentSyncText(){
+        const value=document.getElementById('pageUpdatedAt')?.textContent?.trim();
+        return value&&value!=='最后同步 · 读取中'?value:'最近一次成功数据';
+      }
+      function remainingText(iso){
+        const until=Date.parse(iso||'');
+        if(!Number.isFinite(until))return '稍后';
+        const minutes=Math.max(1,Math.ceil((until-Date.now())/60000));
+        return minutes>=60?`${Math.ceil(minutes/60)} 小时后`:`${minutes} 分钟后`;
+      }
       async function pollForFreshData(requestId){
         for(let i=0;i<45;i++){
           await new Promise(r=>setTimeout(r,8000));
@@ -410,9 +420,32 @@
         setBusy(true);
         try{
           const response=await fetch(`${API}/api/refresh/all`,{method:'POST'}),result=await response.json();
+          if(response.status===429&&result.reason==='browser_budget'){
+            if(typeof load==='function')await load();
+            setBusy(false);
+            notify(`今日实时抓取额度已保留；已载入${currentSyncText()}。`,'ok');
+            return;
+          }
+          if(response.status===429&&(/冷却/.test(result.error||'')||result.reason==='browser_session')){
+            if(typeof load==='function')await load();
+            setBusy(false);
+            notify(`已有刷新刚刚触发；已载入${currentSyncText()}，请稍后再试。`,'ok');
+            return;
+          }
           if(!response.ok)throw new Error(result.error||`Cloudflare API ${response.status}`);
+          if(result.reused){
+            if((result.status==='queued'||result.status==='running')&&result.requestId){
+              notify('已有刷新任务正在运行，完成后会自动重新载入。','ok');
+              void pollForFreshData(result.requestId);
+              return;
+            }
+            if(typeof load==='function')await load();
+            setBusy(false);
+            notify(`已载入${currentSyncText()}；${remainingText(result.cooldownUntil)}可再次刷新。`,'ok');
+            return;
+          }
           notify('Cloudflare 已接收刷新任务，完成后会自动重新载入。','ok');
-          pollForFreshData(result.requestId);
+          void pollForFreshData(result.requestId);
         }catch(err){
           setBusy(false);
           notify(`无法触发刷新：${err.message}`,'err');
