@@ -9,6 +9,18 @@ html[data-theme=dark]{--bg:#0d1210;--surface:#151b18;--surface-2:#1b241f;--surfa
 /* Hidden reader states must not keep their full-height flex/grid layout. */
 .reader-empty[hidden],#readerArticle[hidden],.reader-panel img[hidden]{display:none!important}
 
+/* Subscription manager actions and recoverable default-source deletion. */
+.source-row>.source-info{overflow:hidden}
+.source-row>.source-actions{justify-content:flex-end;gap:5px;flex-wrap:wrap}
+.restore-sources{width:100%;margin-top:9px;padding:8px 10px;border:1px dashed var(--line);border-radius:9px;background:transparent;color:var(--muted);font-size:var(--fs-10,10px)}
+.restore-sources:hover{border-color:var(--accent);color:var(--accent)}
+.source-form-actions{display:flex;align-self:end;gap:6px}
+.source-form-actions button{flex:1;height:36px;padding:0 8px;border:0;border-radius:9px;background:var(--accent);color:#fff;font-size:var(--fs-10,10px);white-space:nowrap}
+.source-form-actions button.secondary{border:1px solid var(--line);background:var(--surface);color:var(--muted)}
+.source-form-actions button.secondary:hover{color:var(--text)}
+
+@media(max-width:620px){.source-row{grid-template-columns:1fr;gap:9px}.source-row>.source-actions{justify-content:flex-start}.source-form-actions{width:100%}}
+
 /* Compact, optically aligned section controls. */
 .side-title{min-height:31px;padding:0 8px 8px;line-height:1}
 .side-title button{display:inline-flex;flex:0 0 26px;align-items:center;justify-content:center;width:26px;height:26px;padding:0;border-radius:9px;line-height:1}
