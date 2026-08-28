@@ -1,6 +1,6 @@
 # RSS Orbit Proxy
 
-Cloudflare Worker, Cron scheduler, and KV backend for RSS Orbit. It is deliberately not an open URL proxy: only the 12 curated feed IDs in `src/index.js` are accepted.
+Cloudflare Worker, Cron scheduler, and KV backend for RSS Orbit. The 12 curated feeds are cached in KV. Browser-added feeds use a separate validated, size-limited RSS endpoint and are never persisted by the Worker.
 
 ## Cloudflare dashboard deployment
 
@@ -19,6 +19,7 @@ The Worker exposes:
 - `GET /health` — deployment, schedule, and last-Cron health check.
 - `GET /feed/:id` — KV-backed allowlisted RSS response. A first cache miss bootstraps that feed from the origin.
 - `GET /feed/:id?refresh=1` — bypass KV and read the origin immediately. Failed origins fall back to stale KV; manual reads do not consume KV writes.
+- `GET /custom?url=<rss-url>` — fetch a browser-added public RSS/Atom URL through Cloudflare. It requires the approved GitHub Pages origin, rejects private/local destinations and unsafe redirects, validates the response as a feed, and does not write KV.
 
 The production browser origin is restricted to `https://ximinhu66.github.io`. Requests without an `Origin` header remain available for direct health checks and command-line diagnostics.
 

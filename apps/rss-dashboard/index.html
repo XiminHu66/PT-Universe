@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f4f7f4">
   <meta name="description" content="PT Universe 的本地优先中文 RSS 阅读器。">
   <title>RSS Orbit · 你的信息收件箱</title>
-  <link rel="stylesheet" href="styles.css?v=20260828-10">
+  <link rel="stylesheet" href="styles.css?v=20260828-11">
   <link rel="stylesheet" href="../../pt-bridge.css?v=20260827-1">
 </head>
 <body>
@@ -122,6 +122,9 @@
           <label><span>Worker 地址</span><input id="proxyUrlInput" type="url" inputmode="url" placeholder="https://rss-orbit-proxy.xxx.workers.dev"></label>
           <button type="button" id="proxyConnectButton">保存并测试</button>
         </div>
+        <div class="manager-section-head"><div><strong>分类</strong><small>直接改名；箭头决定侧栏和下拉框的顺序</small></div></div>
+        <div id="categoryManager" class="category-manager"></div>
+        <div class="manager-section-head"><div><strong>订阅源与健康状态</strong><small>绿色正常，黄色表示沿用缓存，红色表示读取失败</small></div></div>
         <div id="sourceManager" class="source-manager"></div>
         <button type="button" class="restore-sources" id="restoreSourcesButton" hidden>恢复已删除的默认源</button>
         <div class="add-source" id="sourceForm">
@@ -132,7 +135,7 @@
             <label class="url-field">RSS 地址<input id="newFeedUrl" type="url" placeholder="https://example.com/feed.xml"></label>
             <div class="source-form-actions"><button type="button" class="secondary" id="cancelEditButton" hidden>取消</button><button type="button" id="addFeedButton">添加并尝试读取</button></div>
           </div>
-          <small>添加或修改的地址由浏览器直接读取；未修改的默认源继续使用 Cloudflare KV 缓存。</small>
+          <small>添加或修改的地址会在手动刷新时由 Cloudflare 即时读取；默认源同时保留 KV 定时缓存。</small>
         </div>
       </section>
       <section class="dialog-pane" id="pane-opml">
@@ -155,8 +158,8 @@
       </section>
       <section class="dialog-pane about-pane" id="pane-about">
         <div class="about-card"><span>01</span><div><h3>定时聚合</h3><p>Cloudflare 每天按美西时间 08:00–23:00 每小时抓取，并在 00:00 完成最后一次抓取；夜间进入休眠。</p></div></div>
-        <div class="about-card"><span>02</span><div><h3>手动实时刷新</h3><p>点击顶部刷新按钮会通过 Cloudflare Worker 即时读取全部 RSS；失败来源自动保留 KV 缓存。</p></div></div>
-        <div class="about-card"><span>03</span><div><h3>本地优先</h3><p>已读、收藏、隐藏来源、主题、字号、面板比例和本机订阅只存于浏览器，不需要账号。</p></div></div>
+        <div class="about-card"><span>02</span><div><h3>手动实时刷新</h3><p>点击顶部刷新按钮会通过 Cloudflare Worker 即时读取默认源和本机新增源；默认源失败时沿用 KV 缓存。</p></div></div>
+        <div class="about-card"><span>03</span><div><h3>本地优先</h3><p>已读、收藏、隐藏来源、分类名称与顺序、主题、字号、面板比例和本机订阅只存于浏览器，不需要账号。</p></div></div>
         <div class="about-card"><span>04</span><div><h3>原文阅读</h3><p>Dashboard 只整理标题与摘要，完整内容始终从原网站打开。</p></div></div>
       </section>
     </form>
@@ -164,7 +167,7 @@
 
   <div id="toast" role="status"></div>
   <a id="ptu-home-link" href="../../" aria-label="返回 PT Universe"><i aria-hidden="true">‹</i><span>PT Universe</span></a>
-  <script src="app.js?v=20260828-10"></script>
+  <script src="app.js?v=20260828-11"></script>
 <script src="../../pt-sync.js?v=20260827-1"></script>
 <script src="../../pt-bridge.js?v=20260827-1"></script>
 </body>
