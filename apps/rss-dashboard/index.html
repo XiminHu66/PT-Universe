@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f4f7f4">
   <meta name="description" content="PT Universe 的本地优先中文 RSS 阅读器。">
   <title>RSS Orbit · 你的信息收件箱</title>
-  <link rel="stylesheet" href="styles.css?v=20260827-9">
+  <link rel="stylesheet" href="styles.css?v=20260828-10">
   <link rel="stylesheet" href="../../pt-bridge.css?v=20260827-1">
 </head>
 <body>
@@ -21,10 +21,10 @@
       </div>
 
       <nav class="main-nav" aria-label="阅读视图">
-        <button class="nav-item active" data-view="all"><span>⌂</span><b>全部文章</b><em id="allCount">0</em></button>
-        <button class="nav-item" data-view="today"><span>◷</span><b>今日更新</b><em id="todayCount">0</em></button>
-        <button class="nav-item" data-view="unread"><span>●</span><b>未读</b><em id="unreadCount">0</em></button>
-        <button class="nav-item" data-view="saved"><span>★</span><b>稍后读</b><em id="savedCount">0</em></button>
+        <button class="nav-item active" data-view="all"><span>⌂</span><b>全部文章</b><em id="allCount" title="未读文章数">0</em></button>
+        <button class="nav-item" data-view="today"><span>◷</span><b>今日更新</b><em id="todayCount" title="今日未读文章数">0</em></button>
+        <button class="nav-item" data-view="unread"><span>●</span><b>未读</b><em id="unreadCount" title="未读文章数">0</em></button>
+        <button class="nav-item" data-view="saved"><span>★</span><b>稍后读</b><em id="savedCount" title="收藏文章数">0</em></button>
       </nav>
 
       <div class="side-section">
@@ -123,15 +123,16 @@
           <button type="button" id="proxyConnectButton">保存并测试</button>
         </div>
         <div id="sourceManager" class="source-manager"></div>
-        <div class="add-source">
-          <h3>添加本机订阅</h3>
+        <button type="button" class="restore-sources" id="restoreSourcesButton" hidden>恢复已删除的默认源</button>
+        <div class="add-source" id="sourceForm">
+          <h3 id="sourceFormTitle">添加本机订阅</h3>
           <div class="form-grid">
             <label>名称<input id="newFeedName" placeholder="例如：我的博客"></label>
             <label>分类<select id="newFeedCategory"><option value="finance">财经</option><option value="world">时事</option><option value="tech" selected>科技</option><option value="game">游戏</option><option value="other">其他</option></select></label>
             <label class="url-field">RSS 地址<input id="newFeedUrl" type="url" placeholder="https://example.com/feed.xml"></label>
-            <button type="button" id="addFeedButton">添加并尝试读取</button>
+            <div class="source-form-actions"><button type="button" class="secondary" id="cancelEditButton" hidden>取消</button><button type="button" id="addFeedButton">添加并尝试读取</button></div>
           </div>
-          <small>本机订阅使用网站直连或公共代理读取；默认源使用 Cloudflare KV 缓存，更稳定。</small>
+          <small>添加或修改的地址由浏览器直接读取；未修改的默认源继续使用 Cloudflare KV 缓存。</small>
         </div>
       </section>
       <section class="dialog-pane" id="pane-opml">
@@ -163,7 +164,7 @@
 
   <div id="toast" role="status"></div>
   <a id="ptu-home-link" href="../../" aria-label="返回 PT Universe"><i aria-hidden="true">‹</i><span>PT Universe</span></a>
-  <script src="app.js?v=20260827-9"></script>
+  <script src="app.js?v=20260828-10"></script>
 <script src="../../pt-sync.js?v=20260827-1"></script>
 <script src="../../pt-bridge.js?v=20260827-1"></script>
 </body>
