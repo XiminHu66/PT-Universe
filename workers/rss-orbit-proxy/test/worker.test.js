@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import worker, { FEEDS, refreshAllFeeds, shouldRunScheduledRefresh } from "../src/index.js";
+import worker, { FEEDS, refreshAllFeeds, shouldRunScheduledRefresh, validateCustomFeedUrl } from "../src/index.js";
 
 function createKv(initial = {}) {
   const values = new Map();
@@ -39,7 +39,7 @@ const RSS = "<rss><channel><title>Test</title><item><title>Hello</title></item><
 
 test("health endpoint reports Cloudflare KV status", async () => {
   const kv = createKv({
-    status: JSON.stringify({ last_refresh: "2026-08-27T15:00:00.000Z", ok: 12, failed: [] }),
+    status: JSON.stringify({ last_refresh: "2026-08-27T15:00:00.000Z", ok: 12, failed: [], sources: { sspai: { ok: true, fetched_at: "2026-08-27T15:00:00.000Z" } } }),
   });
   const response = await worker.fetch(new Request("https://proxy.example/health"), { RSS_CACHE: kv }, createCtx());
   assert.equal(response.status, 200);
@@ -48,6 +48,43 @@ test("health endpoint reports Cloudflare KV status", async () => {
   assert.equal(payload.backend, "cloudflare-kv");
   assert.equal(payload.feeds, 12);
   assert.equal(payload.last_refresh, "2026-08-27T15:00:00.000Z");
+  assert.equal(payload.source_health.sspai.ok, true);
+});
+
+test("custom URL validation blocks local and private destinations", () => {
+  assert.equal(validateCustomFeedUrl("https://example.com/feed.xml").href, "https://example.com/feed.xml");
+  for (const url of ["file:///tmp/feed.xml", "http://localhost/rss", "http://127.0.0.1/rss", "http://10.2.3.4/rss", "http://[::1]/rss"]) {
+    assert.throws(() => validateCustomFeedUrl(url));
+  }
+});
+
+test("custom feeds refresh through Cloudflare without KV writes", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, options) => {
+    assert.equal(url, "https://example.com/feed.xml");
+    assert.equal(options.redirect, "manual");
+    return new Response(RSS, { headers: { "Content-Type": "application/rss+xml" } });
+  };
+  try {
+    const kv = createKv();
+    const response = await worker.fetch(new Request("https://proxy.example/custom?url=https%3A%2F%2Fexample.com%2Ffeed.xml", {
+      headers: { Origin: "https://ximinhu66.github.io" },
+    }), { RSS_CACHE: kv }, createCtx());
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("X-RSS-Cache"), "CUSTOM");
+    assert.equal(await response.text(), RSS);
+    assert.equal(kv.writes.length, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("custom feed endpoint requires the production browser origin", async () => {
+  const env = { RSS_CACHE: createKv() };
+  for (const headers of [{}, { Origin: "https://evil.example" }]) {
+    const response = await worker.fetch(new Request("https://proxy.example/custom?url=https%3A%2F%2Fexample.com%2Ffeed.xml", { headers }), env, createCtx());
+    assert.equal(response.status, 403);
+  }
 });
 
 test("unknown feeds and unapproved browser origins are rejected", async () => {
@@ -132,6 +169,8 @@ test("scheduled refresh writes every valid feed plus one status record", async (
     const status = await refreshAllFeeds({ RSS_CACHE: kv }, "2026-08-27T15:00:00.000Z");
     assert.equal(status.ok, 12);
     assert.deepEqual(status.failed, []);
+    assert.equal(status.sources.sspai.ok, true);
+    assert.equal(status.sources.sspai.fetched_at, "2026-08-27T15:00:00.000Z");
     assert.equal(kv.writes.filter(write => write.key.startsWith("feed:")).length, 12);
     assert.equal(kv.writes.filter(write => write.key === "status").length, 1);
   } finally {

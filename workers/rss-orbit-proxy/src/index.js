@@ -10,6 +10,7 @@ const FEED_KEY_PREFIX = "feed:";
 const STATUS_KEY = "status";
 const MAX_FEED_BYTES = 5 * 1024 * 1024;
 const FETCH_BATCH_SIZE = 6;
+const MAX_REDIRECTS = 3;
 
 export const FEEDS = Object.freeze({
   wallstreetcn: "https://dedicated.wallstreetcn.com/rss.xml",
@@ -32,6 +33,7 @@ function corsHeaders(request) {
     "Access-Control-Allow-Origin": ALLOWED_ORIGINS.has(origin) ? origin : "https://ximinhu66.github.io",
     "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
     "Access-Control-Allow-Headers": "Accept, Content-Type",
+    "Access-Control-Expose-Headers": "X-RSS-Cache, X-RSS-Fetched-At",
     "Access-Control-Max-Age": "86400",
     Vary: "Origin",
   };
@@ -78,15 +80,52 @@ export function shouldRunScheduledRefresh(timestamp) {
   return ACTIVE_HOURS.has(pacificHour(timestamp));
 }
 
-async function fetchUpstream(url) {
-  return fetch(url, {
+function isBlockedIpv4(hostname) {
+  const parts = hostname.split(".").map(Number);
+  if (parts.length !== 4 || parts.some(part => !Number.isInteger(part) || part < 0 || part > 255)) return false;
+  const [a, b] = parts;
+  return a === 0 || a === 10 || a === 127 || a >= 224 ||
+    (a === 100 && b >= 64 && b <= 127) ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168) ||
+    (a === 198 && (b === 18 || b === 19));
+}
+
+export function validateCustomFeedUrl(value) {
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error("invalid_url");
+  }
+  if (!["http:", "https:"].includes(url.protocol) || url.username || url.password) throw new Error("invalid_url");
+  const hostname = url.hostname.toLowerCase().replace(/\.$/, "");
+  if (!hostname || hostname.includes(":") || hostname === "localhost" || hostname.endsWith(".localhost") ||
+      hostname.endsWith(".local") || hostname.endsWith(".internal") || hostname.endsWith(".lan") ||
+      hostname === "metadata.google.internal" || isBlockedIpv4(hostname)) {
+    throw new Error("blocked_url");
+  }
+  return url;
+}
+
+async function fetchUpstream(value, redirectCount = 0) {
+  const url = validateCustomFeedUrl(value);
+  const response = await fetch(url.href, {
     headers: {
       Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml, */*",
       "User-Agent": "PT-Universe-RSS-Proxy/2.0 (+https://github.com/XiminHu66/PT-Universe)",
     },
     signal: AbortSignal.timeout(18000),
+    redirect: "manual",
     cf: { cacheEverything: false },
   });
+  if (response.status >= 300 && response.status < 400) {
+    const location = response.headers.get("Location");
+    if (!location || redirectCount >= MAX_REDIRECTS) throw new Error("too_many_redirects");
+    return fetchUpstream(new URL(location, url).href, redirectCount + 1);
+  }
+  return response;
 }
 
 async function readTextBounded(response) {
@@ -137,7 +176,7 @@ async function fetchAndStoreFeed(env, feedId, upstreamUrl, fetchedAt) {
   await env.RSS_CACHE.put(`${FEED_KEY_PREFIX}${feedId}`, text, {
     metadata: { fetchedAt, contentType, source: upstreamUrl, bytes: size },
   });
-  return { feedId, ok: true, bytes: size };
+  return { feedId, ok: true, bytes: size, fetchedAt };
 }
 
 export async function refreshAllFeeds(env, fetchedAt = new Date().toISOString()) {
@@ -164,6 +203,12 @@ export async function refreshAllFeeds(env, fetchedAt = new Date().toISOString())
     source_count: entries.length,
     timezone: PACIFIC_TIME_ZONE,
     schedule: "hourly at 08:00-23:00 and 00:00 Pacific",
+    sources: Object.fromEntries(results.map(result => [result.feedId, {
+      ok: result.ok,
+      fetched_at: result.ok ? result.fetchedAt : fetchedAt,
+      bytes: result.ok ? result.bytes : undefined,
+      error: result.ok ? undefined : result.error,
+    }])),
   };
   await env.RSS_CACHE.put(STATUS_KEY, JSON.stringify(status));
   console.log(JSON.stringify({ event: "rss_refresh", ...status }));
@@ -200,7 +245,36 @@ export default {
         schedule: "08:00-23:00 and 00:00 hourly",
         last_refresh: status?.last_refresh || null,
         last_result: status ? { ok: status.ok, failed: status.failed } : null,
+        source_health: status?.sources || null,
       });
+    }
+
+    if (url.pathname === "/custom") {
+      const origin = request.headers.get("Origin") || "";
+      if (!ALLOWED_ORIGINS.has(origin)) return json(request, { ok: false, error: "origin_not_allowed" }, 403);
+      let upstreamUrl;
+      try {
+        upstreamUrl = validateCustomFeedUrl(url.searchParams.get("url") || "");
+      } catch (error) {
+        return json(request, { ok: false, error: String(error?.message || error) }, 400);
+      }
+      try {
+        const upstream = await fetchUpstream(upstreamUrl.href);
+        if (!upstream.ok) throw new Error(`upstream_${upstream.status}`);
+        const { text, size } = await readTextBounded(upstream);
+        if (!text.trim() || !looksLikeFeed(text)) throw new Error("invalid_feed");
+        return feedResponse(request, text, {
+          contentType: upstream.headers.get("Content-Type") || "application/rss+xml; charset=utf-8",
+          fetchedAt: new Date().toISOString(),
+          bytes: size,
+        }, "CUSTOM", 200, method === "HEAD");
+      } catch (error) {
+        return json(request, {
+          ok: false,
+          error: "upstream_unavailable",
+          detail: String(error?.message || error).slice(0, 160),
+        }, 504);
+      }
     }
 
     const match = url.pathname.match(/^\/feed\/([a-z0-9-]+)$/i);
