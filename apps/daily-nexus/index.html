@@ -61,15 +61,18 @@
       gap:7px 12px;align-items:stretch;padding:1px 0
     }
     .hw-current{
-      grid-area:current;display:grid;grid-template-columns:48px auto minmax(0,1fr);
+      grid-area:current;display:grid;grid-template-columns:54px auto minmax(0,1fr);
       align-items:center;gap:11px;min-width:0;padding:0 8px
     }
-    .hw-icon{font-size:43px;line-height:1;text-align:center}
+    .hw-icon{width:50px;height:50px;display:grid;place-items:center;border-radius:15px;background:color-mix(in srgb,var(--accent) 9%,transparent);font-size:46px;line-height:1;text-align:center;filter:drop-shadow(0 4px 8px color-mix(in srgb,var(--text) 12%,transparent))}
     .hw-temp{font-size:45px;font-weight:875;letter-spacing:-2.5px;line-height:.95;white-space:nowrap}
-    .hw-copy{min-width:0;padding-left:2px}
-    .hw-place{font-size:14px;font-weight:780;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px;cursor:pointer}
+    .hw-copy{min-width:0;padding-left:2px;display:grid;gap:4px}
+    .hw-condition{font-size:14px;font-weight:820;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+    .hw-place{font-size:11px;font-weight:720;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:92px;cursor:pointer;color:var(--text)}
     .hw-place:hover{text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--accent) 45%,transparent)}
-    .hw-desc{font-size:12px;color:var(--muted);line-height:1.35;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+    .hw-desc{display:flex;align-items:center;gap:5px;min-width:0;font-size:10px;color:var(--muted);line-height:1.2;white-space:nowrap;overflow:hidden}
+    .hw-desc #weatherMeta{overflow:hidden;text-overflow:ellipsis}
+    .hw-desc #weatherMeta::before{content:"·";margin-right:5px;color:var(--muted)}
 
     .hw-metrics{
       grid-area:metrics;display:flex;align-items:center;justify-content:flex-end;
@@ -91,11 +94,12 @@
     .header-day{
       border:1px solid var(--line);border-radius:13px;padding:8px 11px;
       background:color-mix(in srgb,var(--panel2) 62%,transparent);
-      display:grid;grid-template-columns:1fr auto;grid-template-areas:"day icon" "temp rain";
-      align-items:center;min-width:0
+      display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"day weather icon" "temp temp rain";
+      align-items:center;column-gap:6px;min-width:0
     }
     .header-day b{grid-area:day;font-size:12px;margin:0;white-space:nowrap}
-    .header-day .dayicon{grid-area:icon;font-size:14px;line-height:1}
+    .header-day .dayweather{grid-area:weather;min-width:0;color:var(--muted);font-size:10px;font-weight:650;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .header-day .dayicon{grid-area:icon;font-size:20px;line-height:1;filter:drop-shadow(0 2px 3px color-mix(in srgb,var(--text) 12%,transparent))}
     .header-day .daytemp{grid-area:temp;font-size:12px;color:var(--text);white-space:nowrap;margin-top:4px}
     .header-day .dayrain{grid-area:rain;font-size:10px;color:var(--accent);white-space:nowrap;margin-top:4px}
     .header-actions{display:flex;align-items:center;justify-content:center}
@@ -508,7 +512,7 @@
     .link-edit-row button{border:1px solid var(--line);background:var(--panel2);border-radius:10px;padding:9px}
     .add-link-row{display:grid;grid-template-columns:64px 1fr 1.8fr auto;gap:7px;align-items:end}
 
-    @media(max-width:740px){html,body{overflow:hidden}.app{grid-template-columns:1fr;grid-template-rows:1fr 68px;padding:8px;gap:8px}.sidebar{grid-row:2;border-radius:21px;flex-direction:row;justify-content:flex-start;padding:6px;order:2;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}.sidebar::-webkit-scrollbar{display:none}.logo,.spacer,.sidebar .themeSide{display:none}.navbtn{width:52px;min-width:52px;flex:0 0 52px;height:54px}.navicon{font-size:18px}.navbtn span{font-size:10px}.shell{grid-row:1;min-height:0}.topbar{min-height:92px;padding:7px 9px;grid-template-columns:118px 1fr 76px;gap:7px}.header-actions{gap:4px}.header-clock{padding:0 8px}.header-clock-photo{display:none}.header-clock .time{font-size:32px;letter-spacing:-1.6px}.header-clock .date{font-size:9px;margin-top:5px}.header-clock .greet{display:none}.header-weather{display:block;padding:0}.hw-current{padding:0 5px;gap:8px;height:100%}.hw-icon{font-size:27px}.hw-temp{font-size:29px;letter-spacing:-1.2px}.hw-place{font-size:10px;max-width:90px}.hw-desc{font-size:9px}.hw-metrics,.header-forecast{display:none}.header-actions .iconbtn{width:36px;height:36px}.calendar-quick{display:inline-grid}.calendar-modal-layout{grid-template-columns:1fr}.calendar-panel,.day-checklist{min-height:0}.calendar-grid button{min-height:36px}.dashboard{display:block;overflow:auto;padding-bottom:4px}.card{margin-bottom:9px;min-height:230px}.homecalendar{min-height:380px}.home-cal-body{grid-template-columns:1fr}.home-cal-month{padding-right:0;border-right:0}.home-today-panel{border-top:1px solid var(--line);padding-top:9px;margin-top:4px;min-height:130px}.home-calendar-grid button{height:34px}.home-links-card{min-height:310px}.event-list{grid-template-columns:repeat(3,minmax(115px,1fr));overflow:auto}.discover{min-height:390px}.workspace,.tools-layout{display:block;overflow:auto}.bigcard{margin-bottom:9px}.settings-grid{grid-template-columns:1fr}.focusclock{font-size:60px}.tool-grid{grid-template-columns:1fr 1fr}.event-row{grid-template-columns:1fr}.discover-grid{height:360px;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}.board-frame-wrap{border-radius:18px}.link-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.nexus-link{grid-template-columns:34px 1fr;min-height:82px;padding:10px}.nexus-link .li{width:34px;height:34px}.nexus-link .go{display:none}.link-edit-row,.add-link-row{grid-template-columns:54px 1fr}.link-edit-row input:nth-child(3),.add-link-row input:nth-child(3){grid-column:1/-1}.link-edit-row button,.add-link-row button{grid-column:1/-1}.links-actions{gap:4px}.links-actions a,.links-actions button{padding:6px 8px}}
+    @media(max-width:740px){html,body{overflow:hidden}.app{grid-template-columns:1fr;grid-template-rows:1fr 68px;padding:8px;gap:8px}.sidebar{grid-row:2;border-radius:21px;flex-direction:row;justify-content:flex-start;padding:6px;order:2;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}.sidebar::-webkit-scrollbar{display:none}.logo,.spacer,.sidebar .themeSide{display:none}.navbtn{width:52px;min-width:52px;flex:0 0 52px;height:54px}.navicon{font-size:18px}.navbtn span{font-size:10px}.shell{grid-row:1;min-height:0}.topbar{min-height:92px;padding:7px 9px;grid-template-columns:118px 1fr 76px;gap:7px}.header-actions{gap:4px}.header-clock{padding:0 8px}.header-clock-photo{display:none}.header-clock .time{font-size:32px;letter-spacing:-1.6px}.header-clock .date{font-size:9px;margin-top:5px}.header-clock .greet{display:none}.header-weather{display:block;padding:0}.hw-current{grid-template-columns:38px auto minmax(0,1fr);padding:0 5px;gap:7px;height:100%}.hw-icon{width:36px;height:36px;border-radius:11px;font-size:29px}.hw-temp{font-size:29px;letter-spacing:-1.2px}.hw-condition{font-size:10px}.hw-place{font-size:9px;max-width:62px}.hw-desc{gap:3px;font-size:8px}.hw-desc #weatherMeta::before{margin-right:3px}.hw-metrics,.header-forecast{display:none}.header-actions .iconbtn{width:36px;height:36px}.calendar-quick{display:inline-grid}.calendar-modal-layout{grid-template-columns:1fr}.calendar-panel,.day-checklist{min-height:0}.calendar-grid button{min-height:36px}.dashboard{display:block;overflow:auto;padding-bottom:4px}.card{margin-bottom:9px;min-height:230px}.homecalendar{min-height:380px}.home-cal-body{grid-template-columns:1fr}.home-cal-month{padding-right:0;border-right:0}.home-today-panel{border-top:1px solid var(--line);padding-top:9px;margin-top:4px;min-height:130px}.home-calendar-grid button{height:34px}.home-links-card{min-height:310px}.event-list{grid-template-columns:repeat(3,minmax(115px,1fr));overflow:auto}.discover{min-height:390px}.workspace,.tools-layout{display:block;overflow:auto}.bigcard{margin-bottom:9px}.settings-grid{grid-template-columns:1fr}.focusclock{font-size:60px}.tool-grid{grid-template-columns:1fr 1fr}.event-row{grid-template-columns:1fr}.discover-grid{height:360px;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}.board-frame-wrap{border-radius:18px}.link-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.nexus-link{grid-template-columns:34px 1fr;min-height:82px;padding:10px}.nexus-link .li{width:34px;height:34px}.nexus-link .go{display:none}.link-edit-row,.add-link-row{grid-template-columns:54px 1fr}.link-edit-row input:nth-child(3),.add-link-row input:nth-child(3){grid-column:1/-1}.link-edit-row button,.add-link-row button{grid-column:1/-1}.links-actions{gap:4px}.links-actions a,.links-actions button{padding:6px 8px}}
     .sidebar{overflow-y:auto;scrollbar-width:none}.sidebar::-webkit-scrollbar{display:none}.sidebar .navbtn{flex:0 0 52px;height:52px}
     .nexus-workspace{height:100%;overflow:auto;padding:20px}.nexus-pagehead{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}.nexus-pagehead h2{margin:0 0 5px;font-size:26px}.nexus-pagehead p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}
     .nexus-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(300px,.85fr);gap:14px;align-items:start}.nexus-panel{min-width:0;border-radius:22px;padding:18px}.nexus-panel h3{margin:0;font-size:16px}.nexus-panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.nexus-muted{color:var(--muted);font-size:12px;line-height:1.55}.nexus-form{display:grid;gap:10px}.nexus-form label{display:grid;gap:6px;color:var(--muted);font-size:12px}.nexus-form .field{width:100%}.nexus-form-actions{display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-wrap:wrap}
@@ -548,11 +552,11 @@
       </div>
       <div class="header-weather">
         <div class="hw-current">
-          <div class="hw-icon" id="weatherIcon">◌</div>
+          <div class="hw-icon" id="weatherIcon" aria-hidden="true">◌</div>
           <div class="hw-temp" id="temp">--°</div>
           <div class="hw-copy">
-            <div class="hw-place" id="weatherPlace" title="点击到设置调整天气地区">Seattle</div>
-            <div class="hw-desc" id="weatherMeta">正在获取天气…</div>
+            <div class="hw-condition" id="weatherCondition">正在获取天气</div>
+            <div class="hw-desc"><span class="hw-place" id="weatherPlace" title="点击到设置调整天气地区">Seattle</span><span id="weatherMeta">正在连接</span></div>
           </div>
         </div>
         <div class="hw-metrics">
@@ -3408,7 +3412,7 @@ function aqiText(v){
 }
 async function loadWeather(coords=null){
   try{
-    $("#weatherMeta").textContent="正在获取天气…";
+    $("#weatherCondition").textContent="正在获取天气";$("#weatherMeta").textContent="正在连接";
     let g=coords||state.weatherGeo||await geocode(state.city),lat=g.latitude??g.lat,lon=g.longitude??g.lon;
     $("#weatherPlace").textContent=g.name||state.city;
     const tempUnit=state.weatherUnit==="C"?"celsius":"fahrenheit";
@@ -3419,17 +3423,18 @@ async function loadWeather(coords=null){
     const j=await wr.json(),air=ar.ok?await ar.json():null,c=j.current,info=weatherCodes[c.weather_code]||["天气","◌"];
     $("#temp").textContent=Math.round(c.temperature_2m)+"°";
     $("#weatherIcon").textContent=info[1];
-    $("#weatherMeta").textContent=`${info[0]} · 风 ${Math.round(c.wind_speed_10m)} mph`;
+    $("#weatherCondition").textContent=info[0];
+    $("#weatherMeta").textContent=`风 ${Math.round(c.wind_speed_10m)} mph`;
     $("#feelMetric").textContent=`${Math.round(c.apparent_temperature)}°`;
     $("#humidityMetric").textContent=`${c.relative_humidity_2m}%`;
     $("#weatherDays").innerHTML=j.daily.time.map((t,i)=>{
       const d=new Date(t+"T12:00:00"),wi=weatherCodes[j.daily.weather_code[i]]||["","◌"];
       const rain=j.daily.precipitation_probability_max?.[i]??0;
-      return `<div class="header-day"><b>${i===0?"今天":d.toLocaleDateString("zh-CN",{weekday:"short"})}</b><span class="dayicon">${wi[1]}</span><span class="daytemp">${Math.round(j.daily.temperature_2m_min[i])}° / ${Math.round(j.daily.temperature_2m_max[i])}°</span><span class="dayrain">${rain}%</span></div>`
+      return `<div class="header-day" title="${wi[0]}"><b>${i===0?"今天":d.toLocaleDateString("zh-CN",{weekday:"short"})}</b><span class="dayweather">${wi[0]}</span><span class="dayicon" aria-hidden="true">${wi[1]}</span><span class="daytemp">${Math.round(j.daily.temperature_2m_min[i])}° / ${Math.round(j.daily.temperature_2m_max[i])}°</span><span class="dayrain">${rain}%</span></div>`
     }).join("");
     $("#aqiMetric").textContent=aqiText(air?.current?.us_aqi);
   }catch(e){
-    $("#weatherMeta").textContent="天气加载失败 · "+e.message;
+    $("#weatherCondition").textContent="天气暂不可用";$("#weatherMeta").textContent=e.message;
     $("#aqiMetric").textContent="--";$("#feelMetric").textContent="--";$("#humidityMetric").textContent="--";
   }
 }
