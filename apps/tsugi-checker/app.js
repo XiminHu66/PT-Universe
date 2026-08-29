@@ -143,6 +143,8 @@ async function reloadFreshData(){
   }
   return {changed:false,generatedAt:state.site?.generated_at||''};
 }
+window.tsugiLoad=load;
+window.tsugiReloadFreshData=reloadFreshData;
 
 function remoteLibraryKeys(){
   const keys=new Set();
