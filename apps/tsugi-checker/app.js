@@ -20,6 +20,13 @@ const PT_API='https://pt-universe-api.summer07-nanjolno.workers.dev';
 async function fetchJSON(target){try{const r=await fetch(`${target}?v=${Date.now()}`,{cache:'no-store'});if(!r.ok)throw new Error(`HTTP ${r.status}`);return await r.json()}catch{return null}}
 function normText(value){return String(value||'').normalize('NFKC').toLowerCase().replace(/[\s\p{P}\p{S}]+/gu,'')}
 function maxStamp(values){return values.filter(Boolean).sort((a,b)=>(Date.parse(b)||0)-(Date.parse(a)||0))[0]||null}
+function cleanLatestChapter(value){return String(value||'').replace(/\s*更新于\s*[：:]?\s*20\d{2}[-/.]\d{1,2}[-/.]\d{1,2}(?:\s+\d{1,2}:\d{2})?\s*$/i,'').trim()}
+function compactUpdateDate(value){
+  const raw=String(value||'').trim(),dateOnly=raw.match(/^(20\d{2})-(\d{2})-(\d{2})$/);
+  if(dateOnly){const [,year,month,day]=dateOnly;return `${year===String(new Date().getFullYear())?'':`${Number(year)}年`}${Number(month)}月${Number(day)}日`}
+  const parsed=new Date(raw);if(!raw||Number.isNaN(+parsed))return raw;
+  return new Intl.DateTimeFormat('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}).format(parsed)
+}
 function siteKey(x){return `${x.source||''}|${normalizeUrl(x.url||x.latest_url||'')||normText(x.title)}`}
 function meaningfulLatest(value){const v=String(value||'').trim();return Boolean(v&&!/^(?:最新更新|更新|latest)$/i.test(v))}
 function meaningfulUpdated(value){const v=String(value||'').trim();return Boolean(v&&!/cloudflare|实时抓取|刚刚抓取/i.test(v))}
@@ -51,7 +58,7 @@ function mergeSiteSnapshots(snapshots){
   if(!ordered.length)return null;
   const rows=new Map();
   ordered.forEach((snapshot,snapshotIndex)=>(snapshot.items||[]).forEach((item,itemIndex)=>{
-    const row={...item,title:cleanSiteTitle(item),updated_text:meaningfulUpdated(item.updated_text)?item.updated_text:'',_snapshotAt:snapshot.generated_at||'',_sourceOrder:item.order??itemIndex,_snapshotOrder:snapshotIndex};
+    const row={...item,title:cleanSiteTitle(item),latest:cleanLatestChapter(item.latest),updated_text:meaningfulUpdated(item.updated_text)?item.updated_text:'',_snapshotAt:snapshot.generated_at||'',_sourceOrder:item.order??itemIndex,_snapshotOrder:snapshotIndex};
     const key=siteKey(row);if(!key)return;
     rows.set(key,rows.has(key)?mergeSiteRow(rows.get(key),row):row);
   }));
@@ -78,8 +85,8 @@ function mergeMusicSnapshots(snapshots){
     sources:ordered.slice().reverse().reduce((all,x)=>({...all,...(x.sources||{})}),{})
   };
 }
-async function loadJSON(url,fallback){
-  const targets=url.startsWith('data/')?[`${PT_API}/api/data/${url.slice(5)}`,url]:[url];
+async function loadJSON(url,fallback,{apiOnly=false}={}){
+  const targets=url.startsWith('data/')?[`${PT_API}/api/data/${url.slice(5)}`,...(apiOnly?[]:[url])]:[url];
   if(url==='data/game-releases.json'){
     const snapshots=(await Promise.all(targets.map(async target=>{try{const r=await fetch(`${target}?v=${Date.now()}`,{cache:'no-store'});if(!r.ok)throw 0;return await r.json()}catch{return null}}))).filter(Boolean);
     const score=x=>x?.sources?.snapshot?.fallback?0:(Date.parse(x?.generated_at||'')||0);
@@ -109,15 +116,15 @@ function imageHTML({cover,type,className='cover',placeholderClass='cover cover-p
 function enabledSourceIds(kind){return new Set((state.content?.[kind]||[]).filter(x=>x.enabled!==false).map(x=>x.id))}
 function sourceLabel(id,kind){const row=(state.content?.[kind]||[]).find(x=>x.id===id);return row?.label||id}
 
-async function load(){
+async function load({fresh=false}={}){
   $('#syncText').textContent='正在同步…';$('#syncDot').classList.remove('ok');
   const [feed,library,site,content,music,games]=await Promise.all([
-    loadJSON('data/feed.json',{generated_at:null,updates:[],sources:{},items:{}}),
+    loadJSON('data/feed.json',fresh&&state.feed?state.feed:{generated_at:null,updates:[],sources:{},items:{}},{apiOnly:fresh}),
     loadJSON('config/library.json',{items:[]}),
-    loadJSON('data/site-updates.json',{generated_at:null,items:[],sources:{}}),
+    loadJSON('data/site-updates.json',fresh&&state.site?state.site:{generated_at:null,items:[],sources:{}},{apiOnly:fresh}),
     loadJSON('config/content.json',{site_updates:[],music:{}}),
-    loadJSON('data/music.json',{generated_at:null,weekly_chart:[],new_releases:[],recent_chart:[],sources:{}}),
-    loadJSON('data/game-releases.json',{generated_at:null,date_jst:null,items:{mobile:[],pc:[],console:[]},sources:{}})
+    loadJSON('data/music.json',fresh&&state.music?state.music:{generated_at:null,weekly_chart:[],new_releases:[],recent_chart:[],sources:{}},{apiOnly:fresh}),
+    loadJSON('data/game-releases.json',fresh&&state.games?state.games:{generated_at:null,date_jst:null,items:{mobile:[],pc:[],console:[]},sources:{}},{apiOnly:fresh})
   ]);
   state.feed=feed;state.library=library;state.site=site;state.content=content;state.music=music;state.games=games;
   syncLocalLibraryFromSite();
@@ -125,6 +132,16 @@ async function load(){
   $('#syncDot').classList.add('ok');
   const synced=site.generated_at||feed.generated_at||music.generated_at||games.generated_at;
   $('#syncText').textContent=synced?`更新流 ${fmt(site.generated_at||synced)}`:'尚未同步';
+}
+async function reloadFreshData(){
+  const previous=state.site?.generated_at||'';
+  for(let attempt=0;attempt<6;attempt++){
+    await load({fresh:true});
+    const current=state.site?.generated_at||'';
+    if(current&&current!==previous)return {changed:true,generatedAt:current};
+    if(attempt<5)await new Promise(resolve=>setTimeout(resolve,1200));
+  }
+  return {changed:false,generatedAt:state.site?.generated_at||''};
 }
 
 function remoteLibraryKeys(){
@@ -175,7 +192,7 @@ function renderSiteUpdates(){
     sources.map(([id,label])=>`<button class="source-filter ${state.siteSource===id?'active':''}" data-site-source="${esc(id)}">${esc(label)}${statuses[id]?.ok===false?' · 失败':''}</button>`).join('');
   $$('.source-filter').forEach(b=>b.onclick=()=>{state.siteSource=b.dataset.siteSource;renderSiteUpdates()});
   const visible=all.filter(x=>(state.siteFilter==='all'||x.type===state.siteFilter)&&(state.siteSource==='all'||x.source===state.siteSource)&&(!q||`${x.title} ${x.latest} ${x.source_label}`.toLowerCase().includes(q)));
-  $('#siteUpdatesGrid').innerHTML=visible.length?visible.map(x=>{const added=isShelfItem(x);const latest=meaningfulLatest(x.latest)?x.latest:(x.chapter_count?`已解析 ${x.chapter_count} 个章节`:'章节待解析');const updated=meaningfulUpdated(x.updated_text)?x.updated_text:(x.fetched_at?`检查 ${fmt(x.fetched_at)}`:'更新时间待确认');return `<article class="site-update-card">
+  $('#siteUpdatesGrid').innerHTML=visible.length?visible.map(x=>{const added=isShelfItem(x);const latest=meaningfulLatest(x.latest)?`最新章节 · ${x.latest}`:(x.chapter_count?`已解析 · ${x.chapter_count} 章 / 话`:'最新章节 · 待解析');const updated=meaningfulUpdated(x.updated_text)?`更新时间 · ${compactUpdateDate(x.updated_text)}`:(x.fetched_at?`检查时间 · ${compactUpdateDate(x.fetched_at)}`:'更新时间 · 待确认');return `<article class="site-update-card">
     <a class="site-card-main" href="${esc(x.latest_url||x.url)}" target="_blank" rel="noopener">
       ${imageHTML({cover:x.cover,type:x.type,className:'site-update-cover',placeholderClass:'site-update-placeholder'})}
       <div class="site-update-copy">

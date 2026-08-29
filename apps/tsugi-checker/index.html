@@ -22,9 +22,6 @@
     /* v9: make the actual update stream the first content users see. */
     #updates>.hero-row{display:none}
     #updates>.modern-feed-head{margin-top:2px}
-    .site-update-card .site-meta:last-child>span:first-child::before{content:"最后更新 · ";color:var(--faint);font-weight:650}
-    .site-update-card .site-meta:last-child>span:first-child:empty::before{content:"最后更新 · 未解析";color:var(--faint);font-weight:650}
-
   </style>
   <link rel="stylesheet" href="styles.css?v=20260828-headerfix1" />
   <link rel="stylesheet" href="v5.css?v=20260828-headerfix1" />
@@ -329,7 +326,7 @@
     </main>
   </div>
   <div id="tsugiToast" class="tsugi-toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20260828-headerfix1"></script>
+  <script src="app.js?v=20260829-refreshfix1"></script>
   <script src="games.js?v=20260828-metadata1"></script>
   <script src="ui-settings.js?v=20260828-metadata1"></script>
   <script>
@@ -390,10 +387,10 @@
             const r=await fetch(`${API}/api/refresh/status/${requestId}`,{cache:'no-store'});
             const j=await r.json();
             if(j.status==='success'){
-              if(typeof load==='function')await load();
+              const refreshed=typeof reloadFreshData==='function'?await reloadFreshData():(typeof load==='function'?(await load({fresh:true}),{changed:true}):{changed:false});
               const budget=await updateBudget();
               setBusy(false);
-              notify(`Cloudflare 刷新完成；安全余量内预计还可刷新 ${budget?.remainingRefreshes??'—'} 次。`,'ok');
+              notify(`${refreshed.changed?'刷新完成，页面内容已自动更新。':'刷新完成，已重新读取最新数据。'} 安全余量内预计还可刷新 ${budget?.remainingRefreshes??'—'} 次。`,'ok');
               return;
             }
             if(j.status==='failed'){
@@ -413,14 +410,14 @@
         try{
           const response=await fetch(`${API}/api/refresh/all`,{method:'POST'}),result=await response.json();
           if(response.status===429&&result.reason==='browser_budget'){
-            if(typeof load==='function')await load();
+            if(typeof load==='function')await load({fresh:true});
             showBudget(result.budget);
             setBusy(false);
             notify(`安全余量内预计剩余 0 次；已载入${currentSyncText()}。50% 免费额度仍保留。`,'ok');
             return;
           }
           if(response.status===429&&(/冷却/.test(result.error||'')||result.reason==='browser_session')){
-            if(typeof load==='function')await load();
+            if(typeof load==='function')await load({fresh:true});
             showBudget(result.budget);
             setBusy(false);
             notify(`已有刷新刚刚触发；已载入${currentSyncText()}，请稍后再试。`,'ok');
@@ -434,7 +431,7 @@
               void pollForFreshData(result.requestId);
               return;
             }
-            if(typeof load==='function')await load();
+            if(typeof load==='function')await load({fresh:true});
             setBusy(false);
             notify(`已载入${currentSyncText()}；${remainingText(result.cooldownUntil)}可再次刷新。`,'ok');
             return;
