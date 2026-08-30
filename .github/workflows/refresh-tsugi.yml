@@ -1,4 +1,4 @@
-name: Refresh Tsugi data (Cloudflare watchdog fallback)
+name: Refresh Tsugi data (verified daily fallback)
 
 on:
   workflow_dispatch:
@@ -8,11 +8,10 @@ on:
       - "apps/tsugi-checker/scraper/**"
       - "apps/tsugi-checker/config/content.json"
   schedule:
-    # Emergency watchdog: 10:35 PST / 11:35 PDT, after Cloudflare's 09:17 run.
+    # Verified daily fallback: 10:35 PST / 11:35 PDT.
+    # Cloudflare remains the primary in-app/manual refresh path; this run keeps
+    # the GitHub Pages snapshot independently fresh once per day.
     - cron: "35 18 * * *"
-
-# Daily and in-app refreshes now run in workers/pt-universe-api on Cloudflare.
-# The scheduled job is only a probe; the reading/music scraper runs when Cloudflare data is stale.
 
 permissions:
   contents: write
@@ -31,78 +30,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Decide whether the scheduled probe should refresh
-        id: mode
-        shell: bash
+      - name: Explain refresh mode
         run: |
-          if [[ "${{ github.event_name }}" != "schedule" ]]; then
-            echo "scrape=true" >> "$GITHUB_OUTPUT"
-            echo "reason=manual_or_source_change" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          if curl --fail --silent --show-error --max-time 20 \
-            "https://pt-universe-api.summer07-nanjolno.workers.dev/api/status?watchdog=${{ github.run_id }}" \
-            > /tmp/pt-universe-status.json; then
-            curl --fail --silent --show-error --max-time 20 \
-              -H "Origin: https://ximinhu66.github.io" \
-              -H "Referer: https://ximinhu66.github.io/PT-Universe/apps/tsugi-checker/" \
-              "https://pt-universe-api.summer07-nanjolno.workers.dev/api/data/site-updates.json?watchdog=${{ github.run_id }}" \
-              > /tmp/pt-universe-sites.json || true
-            curl --fail --silent --show-error --max-time 20 \
-              -H "Origin: https://ximinhu66.github.io" \
-              -H "Referer: https://ximinhu66.github.io/PT-Universe/apps/tsugi-checker/" \
-              "https://pt-universe-api.summer07-nanjolno.workers.dev/api/data/music.json?watchdog=${{ github.run_id }}" \
-              > /tmp/pt-universe-music.json || true
-            if python - <<'PY'
-          import json, sys
-          from datetime import datetime, timedelta, timezone
-
-          try:
-              data = json.load(open("/tmp/pt-universe-status.json", encoding="utf-8"))
-              files = {row["name"]: row for row in data.get("files", [])}
-              cutoff = datetime.now(timezone.utc) - timedelta(hours=20)
-              required = ("site-updates.json", "music.json")
-              refreshed = []
-              for name in required:
-                  raw = ((files.get(name) or {}).get("metadata") or {}).get("updatedAt") or ""
-                  refreshed.append(datetime.fromisoformat(raw.replace("Z", "+00:00")) >= cutoff)
-              sites = json.load(open("/tmp/pt-universe-sites.json", encoding="utf-8"))
-              music = json.load(open("/tmp/pt-universe-music.json", encoding="utf-8"))
-              site_rows = sites.get("items") or []
-              site_covers = sum(bool(row.get("cover")) for row in site_rows)
-              site_chapters = sum(bool(row.get("latest") and row.get("latest") not in ("最新更新", "更新")) for row in site_rows)
-              songs = (music.get("recent_chart") or []) + (music.get("weekly_chart") or [])
-              song_covers = sum(bool(row.get("artwork")) for row in songs)
-              quality = (
-                  len(site_rows) >= 80
-                  and site_covers / len(site_rows) >= 0.70
-                  and site_chapters / len(site_rows) >= 0.50
-                  and len(songs) >= 40
-                  and song_covers / len(songs) >= 0.70
-              )
-              fresh = all(refreshed) and quality
-          except Exception:
-              fresh = False
-          sys.exit(0 if fresh else 1)
-          PY
-            then
-              echo "scrape=false" >> "$GITHUB_OUTPUT"
-              echo "reason=cloudflare_data_is_fresh" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-          fi
-
-          echo "scrape=true" >> "$GITHUB_OUTPUT"
-          echo "reason=cloudflare_data_stale_or_status_unavailable" >> "$GITHUB_OUTPUT"
-
-      - name: Show refresh decision
-        run: |
-          echo "scrape=${{ steps.mode.outputs.scrape }}"
-          echo "reason=${{ steps.mode.outputs.reason }}"
+          echo "Running verified Tsugi scrape."
+          echo "event=${{ github.event_name }}"
+          echo "Cloudflare generated_at is intentionally not used as a reason to skip this daily fallback."
 
       - name: Set up Python
-        if: steps.mode.outputs.scrape == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -110,20 +44,42 @@ jobs:
           cache-dependency-path: apps/tsugi-checker/requirements.txt
 
       - name: Install scraper dependencies
-        if: steps.mode.outputs.scrape == 'true'
         run: |
           python -m pip install -r apps/tsugi-checker/requirements.txt
           python -m playwright install --with-deps chromium
 
       - name: Refresh reading and music feeds
-        if: steps.mode.outputs.scrape == 'true'
         working-directory: apps/tsugi-checker
         run: |
           python scraper/main.py --skip-games
           python scraper/site_dates.py
 
+      - name: Validate refreshed snapshot
+        working-directory: apps/tsugi-checker
+        run: |
+          python - <<'PY'
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          site = json.loads(Path('data/site-updates.json').read_text(encoding='utf-8'))
+          music = json.loads(Path('data/music.json').read_text(encoding='utf-8'))
+          rows = site.get('items') or []
+          songs = (music.get('recent_chart') or []) + (music.get('weekly_chart') or [])
+          if len(rows) < 30:
+              raise SystemExit(f'site snapshot unexpectedly small: {len(rows)}')
+          if len(songs) < 20:
+              raise SystemExit(f'music snapshot unexpectedly small: {len(songs)}')
+          generated = site.get('generated_at')
+          if not generated:
+              raise SystemExit('site snapshot missing generated_at')
+          age = datetime.now(timezone.utc) - datetime.fromisoformat(generated.replace('Z', '+00:00'))
+          if age.total_seconds() > 3600:
+              raise SystemExit(f'site snapshot was not regenerated by this run: {generated}')
+          print(f'validated site_rows={len(rows)} songs={len(songs)} generated_at={generated}')
+          PY
+
       - name: Commit refreshed Tsugi data to PT Universe
-        if: steps.mode.outputs.scrape == 'true'
         run: |
           git config user.name "pt-universe-tsugi-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
