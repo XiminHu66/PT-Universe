@@ -25,9 +25,28 @@
   root.querySelector('[data-sync=disconnect]').onclick=()=>{PTSync.disconnect();code.value='';note('已断开此设备')};
   const refreshStatus=root.querySelector('.ptb-refresh-status');
   const refreshNote=(message,bad=false)=>{refreshStatus.textContent=message;refreshStatus.style.color=bad?'#ff9eaa':'#8f9db4'};
-  async function pollRefresh(id){for(let i=0;i<50;i++){await new Promise(r=>setTimeout(r,6000));const response=await fetch(`${PTSync.API}/api/refresh/status/${id}`,{cache:'no-store'}),run=await response.json();if(run.status==='success'){refreshNote('刷新完成 · 重新打开页面即可读取新数据');dispatchEvent(new CustomEvent('pt-cloud-refresh',{detail:run}));return}if(run.status==='failed')throw new Error(run.error||'刷新失败')}refreshNote('任务仍在后台运行')}
+  async function pollRefresh(id){for(let i=0;i<50;i++){await new Promise(r=>setTimeout(r,6000));const response=await fetch(`${PTSync.API}/api/refresh/status/${id}?v=${Date.now()}`,{cache:'no-store'}),run=await response.json();if(run.status==='success'){refreshNote('刷新完成 · 正在载入新快照…');dispatchEvent(new CustomEvent('pt-cloud-refresh',{detail:run}));return}if(run.status==='failed')throw new Error(run.error||'刷新失败')}refreshNote('任务仍在后台运行')}
   root.querySelectorAll('[data-refresh]').forEach(button=>button.onclick=async()=>{try{root.querySelectorAll('[data-refresh]').forEach(x=>x.disabled=true);refreshNote('正在提交刷新任务…');const response=await fetch(`${PTSync.API}/api/refresh/${button.dataset.refresh}`,{method:'POST'}),result=await response.json();if(!response.ok)throw new Error(result.error||`HTTP ${response.status}`);refreshNote(`任务已排队 · ${button.textContent}`);await pollRefresh(result.requestId)}catch(e){refreshNote(e.message,true)}finally{root.querySelectorAll('[data-refresh]').forEach(x=>x.disabled=false)}});
-  fetch(`${PTSync.API}/api/status`).then(r=>r.json()).then(data=>{const labels={'site-updates.json':'漫画/小说','acg-news.json':'新闻','music.json':'音乐'},due=(data.files||[]).filter(x=>x.fallbackDue).map(x=>labels[x.name]||x.name),run=data.runs?.[0];if(due.length)refreshNote(`⚠ ${due.join('、')}已过期 · GitHub 备用抓取将自动接管`,true);else refreshNote(run?`最近：${run.scope} · ${run.status} · ${run.completed_at||run.started_at||'等待中'}`:'尚无刷新记录')}).catch(()=>refreshNote('刷新状态暂不可用',true));
+  fetch(`${PTSync.API}/api/status?v=${Date.now()}`,{cache:'no-store'}).then(r=>r.json()).then(data=>{const labels={'site-updates.json':'漫画/小说','acg-news.json':'新闻','music.json':'音乐'},due=(data.files||[]).filter(x=>x.fallbackDue).map(x=>labels[x.name]||x.name),run=data.runs?.[0];if(due.length)refreshNote(`⚠ ${due.join('、')}已过期 · GitHub 备用抓取将自动接管`,true);else refreshNote(run?`最近：${run.scope} · ${run.status} · ${run.completed_at||run.started_at||'等待中'}`:'尚无刷新记录')}).catch(()=>refreshNote('刷新状态暂不可用',true));
+  if(current==='tsugi-checker'&&typeof window.tsugiReloadFreshData==='function'){
+    const baseReload=window.tsugiReloadFreshData;
+    window.tsugiReloadFreshData=async()=>{
+      let last={changed:false,generatedAt:''};
+      for(let round=0;round<6;round++){
+        last=await baseReload();
+        if(last?.changed)return last;
+        if(round<5)await new Promise(resolve=>setTimeout(resolve,1800));
+      }
+      if(typeof window.tsugiLoad==='function')await window.tsugiLoad({fresh:false});
+      return last;
+    };
+    addEventListener('pt-cloud-refresh',async()=>{
+      try{
+        const result=await window.tsugiReloadFreshData();
+        refreshNote(result?.changed?'刷新完成 · 页面已自动更新':'刷新完成 · 已载入最新可见快照');
+      }catch(e){refreshNote(`刷新完成，但重新载入失败：${e.message}`,true)}
+    });
+  }
   addEventListener('pt-sync-status',e=>{if(e.detail.type==='error')note(e.detail.error,true);else note(e.detail.type==='push'?'已上传设置':'已收到另一设备的设置')});
   addEventListener('pt-sync-applied',()=>{note('收到新设置，刷新页面后生效')});render();
 })();
