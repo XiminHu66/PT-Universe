@@ -144,8 +144,18 @@
     .home-today-add button{height:34px;border:0;border-radius:10px;background:color-mix(in srgb,var(--accent) 18%,transparent);font-size:16px}
 
 
-    textarea{width:100%;height:105px;resize:none;border:0;outline:none;background:transparent;line-height:1.55;font-size:14px}.memo-foot{display:flex;align-items:center;gap:8px;border-top:1px solid var(--line);padding-top:10px}.memo-foot input{flex:1;min-width:0;border:0;outline:none;background:transparent;font-size:13px}.miniadd{border:0;background:color-mix(in srgb,var(--accent) 18%,transparent);padding:8px 10px;border-radius:11px}.tasks{margin-top:7px;display:flex;gap:7px;overflow:auto;padding-bottom:2px}.taskchip{white-space:nowrap;border:1px solid var(--line);padding:6px 9px;border-radius:999px;font-size:11px;color:var(--muted);background:var(--panel2)}.taskchip.done{text-decoration:line-through;opacity:.6}
+    textarea{width:100%;height:105px;resize:none;border:0;outline:none;background:transparent;line-height:1.55;font-size:14px}.memo{display:flex;flex-direction:column}.memo-foot{display:flex;align-items:center;gap:8px;border-top:1px solid var(--line);padding-top:10px}.memo-foot input{flex:1;min-width:0;border:0;outline:none;background:transparent;font-size:13px}.miniadd{border:0;background:color-mix(in srgb,var(--accent) 18%,transparent);padding:8px 10px;border-radius:11px}.tasks{margin-top:7px;display:flex;gap:7px;overflow:auto;padding-bottom:2px}.taskchip{white-space:nowrap;border:1px solid var(--line);padding:6px 9px;border-radius:999px;font-size:11px;color:var(--muted);background:var(--panel2)}.taskchip.done{text-decoration:line-through;opacity:.6}
     .memo-empty{margin-top:8px;border:1px dashed var(--line);border-radius:13px;padding:8px 10px;font-size:11px;color:var(--muted);display:none}.memo-empty.show{display:block}
+    .memo-countdown{margin-top:auto;padding-top:10px;border-top:1px solid var(--line)}
+    .memo-countdown-head{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+    .memo-countdown-head b{font-size:12px}.memo-countdown-head span{font-size:10px;color:var(--muted)}
+    .memo-countdown-head button{margin-left:auto;border:0;background:transparent;color:var(--muted);font-size:10px;padding:3px 0}
+    .memo-countdown-list{display:grid;gap:6px}
+    .memo-countdown-row{width:100%;display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:8px;align-items:center;text-align:left;border:1px solid var(--line);background:color-mix(in srgb,var(--panel2) 58%,transparent);border-radius:11px;padding:6px 8px;color:var(--text)}
+    .memo-countdown-date{font-variant-numeric:tabular-nums;border-right:1px solid var(--line);padding-right:7px}.memo-countdown-date b{display:block;font-size:11px}.memo-countdown-date span{display:block;margin-top:2px;font-size:8px;color:var(--muted)}
+    .memo-countdown-copy{min-width:0}.memo-countdown-title{display:block;font-size:12px;font-weight:780;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.memo-countdown-meta{display:block;font-size:9px;color:var(--muted);margin-top:3px}
+    .memo-countdown-due{font-size:9px;font-weight:750;white-space:nowrap;padding:4px 6px;border-radius:7px;background:color-mix(in srgb,var(--accent) 12%,transparent)}.memo-countdown-due.bad{color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,transparent)}.memo-countdown-due.warn{color:var(--warn)}
+    .memo-countdown-empty{width:100%;border:1px dashed var(--line);background:transparent;border-radius:11px;padding:11px 9px;text-align:center;color:var(--muted);font-size:10px}
     
 
     .upcoming-toolbar{display:flex;align-items:center;gap:6px;margin:-1px 0 9px;overflow-x:auto;scrollbar-width:none}
@@ -593,6 +603,10 @@
       <article class="card glass memo">
         <div class="cardhead"><h2>今日备忘</h2><span class="sub" id="memoStatus">自动保存</span></div><textarea id="memo" placeholder="今天别忘了什么？&#10;随手写，内容只保存在这台设备。"></textarea>
         <div class="memo-foot"><input id="taskInput" placeholder="添加一个小任务…"/><button class="miniadd" id="addTask">＋</button></div><div class="tasks" id="tasks"></div><div class="memo-empty" id="memoEmpty">Tip：小任务会自动出现在「专注」页的目标选择里。</div>
+        <div class="memo-countdown">
+          <div class="memo-countdown-head"><b>最近倒数</b><span>订阅与家庭项目</span><button id="memoCountdownMore" type="button">查看全部</button></div>
+          <div class="memo-countdown-list" id="memoCountdownList"></div>
+        </div>
       </article>
 
       <article class="card glass home-links-card">
@@ -2829,9 +2843,31 @@ function bindCountdownActions(){
   $$("#subscriptionList [data-sub-action]").forEach(button=>button.onclick=event=>{event.preventDefault();runSubscriptionAction(button.closest("[data-sub-id]")?.dataset.subId,button.dataset.subAction)});
   $$("#maintenanceList [data-maint-action]").forEach(button=>button.onclick=event=>{event.preventDefault();runMaintenanceAction(button.closest("[data-maint-id]")?.dataset.maintId,button.dataset.maintAction)});
 }
+function homeCountdownItems(){
+  return [
+    ...state.subscriptions.map(item=>({id:item.id,type:"subscription",name:item.name||"未命名订阅",date:item.nextDate,detail:`订阅 · ${moneyText(item.amount,item.currency)}`})),
+    ...state.maintenance.map(item=>({id:item.id,type:"maintenance",name:item.name||"未命名项目",date:item.due,detail:"家庭维护"}))
+  ].filter(item=>item.date).sort((a,b)=>nexusDayDiff(a.date)-nexusDayDiff(b.date)||String(a.name).localeCompare(String(b.name),"zh-CN"));
+}
+function renderHomeCountdown(){
+  const host=$("#memoCountdownList"),more=$("#memoCountdownMore");if(!host||!more)return;
+  const items=homeCountdownItems(),shown=items.slice(0,2),remaining=Math.max(0,items.length-shown.length);
+  more.textContent=remaining?`查看全部 +${remaining}`:"查看全部";
+  host.innerHTML=shown.length?shown.map(item=>{
+    const date=new Date(`${item.date}T12:00:00`),due=nexusDueMeta(item.date),dateLabel=`${date.getMonth()+1}/${date.getDate()}`,weekday=new Intl.DateTimeFormat("zh-CN",{weekday:"short"}).format(date);
+    return `<button class="memo-countdown-row" type="button" data-home-countdown="${escapeAttr(item.id)}">
+      <span class="memo-countdown-date"><b>${escapeHtml(dateLabel)}</b><span>${escapeHtml(weekday)}</span></span>
+      <span class="memo-countdown-copy"><span class="memo-countdown-title">${escapeHtml(item.name)}</span><span class="memo-countdown-meta">${escapeHtml(item.detail)}</span></span>
+      <span class="memo-countdown-due ${due.kind}">${escapeHtml(due.label)}</span>
+    </button>`;
+  }).join(""):'<button class="memo-countdown-empty" id="memoCountdownEmpty" type="button">还没有倒数项目 · 点击添加</button>';
+  $$('[data-home-countdown]').forEach(button=>button.onclick=()=>switchNexusView("countdown"));
+  $("#memoCountdownEmpty")?.addEventListener("click",()=>switchNexusView("countdown"));
+}
 function renderCountdown(){
   const subList=$("#subscriptionList"),maintList=$("#maintenanceList");if(!subList||!maintList)return;
   ensureCountdownIds();
+  renderHomeCountdown();
   const all=[...state.subscriptions.map(item=>item.nextDate),...state.maintenance.map(item=>item.due)].filter(Boolean);
   $("#countdownSoonStat").textContent=all.filter(date=>{const d=nexusDayDiff(date);return d>=0&&d<=7}).length;
   $("#countdownOverdueStat").textContent=all.filter(date=>nexusDayDiff(date)<0).length;
@@ -2864,6 +2900,7 @@ function renderCountdown(){
   }).join(""):'<div class="nexus-empty">添加滤芯、滤网或清扫计划，到期与逾期会醒目标记。</div>';
   bindCountdownActions();
 }
+$("#memoCountdownMore")?.addEventListener("click",()=>switchNexusView("countdown"));
 $("#subscriptionForm")?.addEventListener("submit",event=>{
   event.preventDefault();
   const name=$("#subName").value.trim(),amount=Number($("#subAmount").value),nextDate=$("#subNextDate").value;
