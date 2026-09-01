@@ -3528,7 +3528,7 @@ function upcomingCategoryLabel(cat){
 function upDateObj(x){const d=new Date(x?.date);return isNaN(d)?null:d}
 function upDayStart(d=new Date()){const x=new Date(d);x.setHours(0,0,0,0);return x}
 function upCalendarKey(itemOrDate){
-  const item=typeof itemOrDate==="object"&&itemOrDate!==null?itemOrDate:{date:itemOrDate};
+  const item=itemOrDate instanceof Date?{date:itemOrDate}:typeof itemOrDate==="object"&&itemOrDate!==null?itemOrDate:{date:itemOrDate};
   if(item.dateKey&&/^\d{4}-\d{2}-\d{2}$/.test(item.dateKey))return item.dateKey;
   const raw=String(item.date||"");
   const m=raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
