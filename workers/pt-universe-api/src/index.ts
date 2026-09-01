@@ -172,18 +172,21 @@ async function enqueue(request:Request,env:Env,scope:RefreshScope,source:'manual
 
 async function vspoStreams(request:Request){
   const fetched=await Promise.allSettled(VSPO_YOUTUBE_CHANNELS.map(async([member,channelId])=>{
-    const response=await timedFetch(`https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`,{headers:{'user-agent':'PT-Universe/1.0','accept':'application/atom+xml,application/xml'}},12_000);
-    if(!response.ok)throw new Error(`YouTube feed ${response.status}`);
-    const xml=await response.text(),entries=xml.match(/<entry>[\s\S]*?<\/entry>/gi)||[];
-    return entries.slice(0,4).map(block=>{
-      const pick=(tag:string)=>text((block.match(new RegExp(`<${tag}(?:\\s[^>]*)?>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/${tag}>`,'i'))||[])[1]);
-      const videoId=pick('yt:videoId'),published=pick('published');
-      return videoId&&published?{id:videoId,member,channel_id:channelId,title:pick('title'),url:`https://www.youtube.com/watch?v=${videoId}`,published_at:new Date(published).toISOString(),source:'youtube_atom'}:null;
-    }).filter(Boolean);
+    const response=await timedFetch(`https://www.youtube.com/channel/${channelId}/live`,{headers:{'user-agent':'Mozilla/5.0 (compatible; PT-Universe/1.0)','accept':'text/html,application/xhtml+xml'}},12_000);
+    if(!response.ok)throw new Error(`YouTube live page ${response.status}`);
+    const html=await response.text();
+    if(!/"isLiveNow":true/.test(html))return null;
+    const videoId=(html.match(/"videoDetails":\{"videoId":"([^"]+)"/)||[])[1];
+    if(!videoId)return null;
+    const ownerBlock=(html.match(/"videoOwnerRenderer":\{"thumbnail":\{"thumbnails":\[([\s\S]*?)\]\}/)||[])[1]||'';
+    const avatars=[...ownerBlock.matchAll(/"url":"([^"]+)"/g)].map(match=>{
+      try{return JSON.parse(`"${match[1]}"`) as string}catch{return match[1].replace(/\\u0026/g,'&').replace(/\\\//g,'/')}
+    });
+    return {id:videoId,member,channel_id:channelId,avatar:avatars.at(-1)||'',url:`https://www.youtube.com/watch?v=${videoId}`,is_live:true,source:'youtube_live_page'};
   }));
-  const seen=new Set<string>(),items=fetched.flatMap(result=>result.status==='fulfilled'?result.value:[]).filter((item):item is NonNullable<typeof item>=>{if(!item||seen.has(item.id))return false;seen.add(item.id);return true}).sort((a,b)=>Date.parse(b.published_at)-Date.parse(a.published_at)).slice(0,100);
+  const items=fetched.flatMap(result=>result.status==='fulfilled'&&result.value?[result.value]:[]);
   const successful_sources=fetched.filter(result=>result.status==='fulfilled').length;
-  return reply(request,{generated_at:now(),source:'VSPO! official member YouTube feeds',successful_sources,total_sources:VSPO_YOUTUBE_CHANNELS.length,items},200,{'cache-control':'public,max-age=300'});
+  return reply(request,{generated_at:now(),source:'VSPO! official member live pages',successful_sources,total_sources:VSPO_YOUTUBE_CHANNELS.length,live_count:items.length,items},200,{'cache-control':'public,max-age=120,stale-while-revalidate=300'});
 }
 
 function pacificToday(){
