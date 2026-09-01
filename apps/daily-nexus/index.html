@@ -148,13 +148,15 @@
     .memo-empty{margin-top:8px;border:1px dashed var(--line);border-radius:13px;padding:8px 10px;font-size:11px;color:var(--muted);display:none}.memo-empty.show{display:block}
     .memo-countdown{margin-top:auto;padding-top:10px;border-top:1px solid var(--line)}
     .memo-countdown-head{display:flex;align-items:center;gap:8px;margin-bottom:7px}
-    .memo-countdown-head b{font-size:12px}.memo-countdown-head span{font-size:10px;color:var(--muted)}
-    .memo-countdown-head button{margin-left:auto;border:0;background:transparent;color:var(--muted);font-size:10px;padding:3px 0}
+    .memo-countdown-head b{font-size:14px}.memo-countdown-head span{font-size:11px;color:var(--muted)}
+    .memo-countdown-head button{margin-left:auto;border:0;background:transparent;color:var(--muted);font-size:12px;padding:3px 0}
     .memo-countdown-list{display:grid;gap:6px}
-    .memo-countdown-row{width:100%;display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:8px;align-items:center;text-align:left;border:1px solid var(--line);background:color-mix(in srgb,var(--panel2) 58%,transparent);border-radius:11px;padding:6px 8px;color:var(--text)}
-    .memo-countdown-date{font-variant-numeric:tabular-nums;border-right:1px solid var(--line);padding-right:7px}.memo-countdown-date b{display:block;font-size:11px}.memo-countdown-date span{display:block;margin-top:2px;font-size:8px;color:var(--muted)}
-    .memo-countdown-copy{min-width:0}.memo-countdown-title{display:block;font-size:12px;font-weight:780;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.memo-countdown-meta{display:block;font-size:9px;color:var(--muted);margin-top:3px}
-    .memo-countdown-due{font-size:9px;font-weight:750;white-space:nowrap;padding:4px 6px;border-radius:7px;background:color-mix(in srgb,var(--accent) 12%,transparent)}.memo-countdown-due.bad{color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,transparent)}.memo-countdown-due.warn{color:var(--warn)}
+    .memo-countdown-row{width:100%;display:grid;grid-template-columns:58px minmax(0,1fr) auto;gap:10px;align-items:center;text-align:left;border:1px solid var(--line);background:color-mix(in srgb,var(--panel2) 58%,transparent);border-radius:12px;padding:8px 10px;color:var(--text);transition:border-color .16s,background .16s,box-shadow .16s}
+    .memo-countdown-row.soon{border-color:color-mix(in srgb,var(--warn) 58%,var(--line));background:color-mix(in srgb,var(--warn) 10%,var(--panel2));box-shadow:inset 3px 0 0 color-mix(in srgb,var(--warn) 85%,transparent)}
+    .memo-countdown-row.urgent{border-color:color-mix(in srgb,var(--bad) 62%,var(--line));background:color-mix(in srgb,var(--bad) 11%,var(--panel2));box-shadow:inset 3px 0 0 color-mix(in srgb,var(--bad) 90%,transparent)}
+    .memo-countdown-date{font-variant-numeric:tabular-nums;border-right:1px solid var(--line);padding-right:8px}.memo-countdown-date b{display:block;font-size:13px}.memo-countdown-date span{display:block;margin-top:3px;font-size:10px;color:var(--muted)}
+    .memo-countdown-copy{min-width:0}.memo-countdown-title{display:block;font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.memo-countdown-meta{display:block;font-size:11px;color:var(--muted);margin-top:4px}
+    .memo-countdown-due{font-size:11px;font-weight:800;white-space:nowrap;padding:5px 7px;border-radius:8px;background:color-mix(in srgb,var(--accent) 12%,transparent)}.memo-countdown-row.urgent .memo-countdown-due{color:var(--bad);background:color-mix(in srgb,var(--bad) 16%,transparent)}.memo-countdown-row.soon .memo-countdown-due{color:color-mix(in srgb,var(--warn) 78%,var(--text));background:color-mix(in srgb,var(--warn) 18%,transparent)}
     .memo-countdown-empty{width:100%;border:1px dashed var(--line);background:transparent;border-radius:11px;padding:11px 9px;text-align:center;color:var(--muted);font-size:10px}
     
 
@@ -2855,7 +2857,8 @@ function renderHomeCountdown(){
   more.textContent=remaining?`查看全部 +${remaining}`:"查看全部";
   host.innerHTML=shown.length?shown.map(item=>{
     const date=new Date(`${item.date}T12:00:00`),due=nexusDueMeta(item.date),dateLabel=`${date.getMonth()+1}/${date.getDate()}`,weekday=new Intl.DateTimeFormat("zh-CN",{weekday:"short"}).format(date);
-    return `<button class="memo-countdown-row" type="button" data-home-countdown="${escapeAttr(item.id)}">
+    const urgency=due.days<=2?"urgent":due.days<=5?"soon":"";
+    return `<button class="memo-countdown-row ${urgency}" type="button" data-home-countdown="${escapeAttr(item.id)}">
       <span class="memo-countdown-date"><b>${escapeHtml(dateLabel)}</b><span>${escapeHtml(weekday)}</span></span>
       <span class="memo-countdown-copy"><span class="memo-countdown-title">${escapeHtml(item.name)}</span><span class="memo-countdown-meta">${escapeHtml(item.detail)}</span></span>
       <span class="memo-countdown-due ${due.kind}">${escapeHtml(due.label)}</span>
