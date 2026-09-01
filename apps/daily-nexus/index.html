@@ -105,7 +105,7 @@
     .header-actions{display:flex;align-items:center;justify-content:center}
     .calendar-quick{display:none}
     .pillbtn,.iconbtn,.action{border:1px solid var(--line);background:color-mix(in srgb,var(--panel2) 88%,transparent);border-radius:14px}.pillbtn{padding:8px 11px}.iconbtn{width:42px;height:42px}.view{min-height:0;display:none}.view.active{display:block;height:100%}
-    .dashboard{height:100%;display:grid;grid-template-columns:1.34fr .96fr .70fr;grid-template-rows:minmax(395px,1.18fr) minmax(270px,.82fr);gap:12px}.card{border-radius:var(--radius);padding:16px;min-width:0;min-height:0;overflow:hidden;position:relative}.cardhead{display:flex;align-items:center;gap:10px;margin-bottom:9px}.cardhead h2{font-size:15px;margin:0}.cardhead .sub{margin-left:auto;color:var(--muted);font-size:12px}.homecalendar{grid-column:1;grid-row:1}.memo{grid-column:2;grid-row:1}.home-links-card{grid-column:3;grid-row:1}.upcomingcard{grid-column:1;grid-row:2}.discover{grid-column:2/span 2;grid-row:2}
+    .dashboard{height:100%;display:grid;grid-template-columns:1.34fr .96fr .96fr;grid-template-rows:minmax(395px,1.18fr) minmax(270px,.82fr);gap:12px}.card{border-radius:var(--radius);padding:16px;min-width:0;min-height:0;overflow:hidden;position:relative}.cardhead{display:flex;align-items:center;gap:10px;margin-bottom:9px}.cardhead h2{font-size:15px;margin:0}.cardhead .sub{margin-left:auto;color:var(--muted);font-size:12px}.homecalendar{grid-column:1;grid-row:1}.memo{grid-column:2;grid-row:1}.home-links-card{grid-column:2;grid-row:2}.upcomingcard{grid-column:1;grid-row:2}.discover{grid-column:3;grid-row:1/span 2}
 
     .home-cal-body{height:calc(100% - 33px);display:grid;grid-template-columns:minmax(0,1.34fr) minmax(180px,.66fr);gap:12px}
     .home-cal-month{min-width:0;padding-right:10px;border-right:1px solid var(--line)}
@@ -253,11 +253,11 @@
     .discover{display:flex;flex-direction:column}
     .discover-grid{
       flex:1;min-height:0;display:grid;
-      grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:1fr;
+      grid-template-columns:1fr;grid-template-rows:repeat(3,minmax(0,1fr));
       gap:10px
     }
     .discovery-item{
-      border:1px solid var(--line);border-radius:16px;padding:11px 12px;
+      border:1px solid var(--line);border-radius:16px;padding:12px 13px;
       background:color-mix(in srgb,var(--panel2) 58%,transparent);
       min-width:0;overflow:hidden;display:flex;flex-direction:column
     }
@@ -272,14 +272,14 @@
     .discover-icon.github{background:color-mix(in srgb,var(--accent) 12%,var(--panel))}
     .discover-head .eyebrow{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;font-weight:850;letter-spacing:.02em;text-transform:none;color:var(--text)}
     .eyebrow{font-size:11px;letter-spacing:.10em;text-transform:uppercase;color:var(--muted)}
-    .discover-rank-list{display:grid;gap:2px;margin-top:5px;min-height:0;overflow:auto;scrollbar-width:none}
+    .discover-rank-list{display:grid;gap:4px;margin-top:7px;min-height:0;overflow:auto;scrollbar-width:none}
     .discover-rank-list::-webkit-scrollbar{display:none}
-    .discover-rank-row{display:grid;grid-template-columns:25px minmax(0,1fr);gap:7px;align-items:center;border-radius:10px;padding:3px 4px;text-decoration:none;color:var(--text)}
+    .discover-rank-row{display:grid;grid-template-columns:28px minmax(0,1fr);gap:9px;align-items:center;border-radius:11px;padding:6px 5px;text-decoration:none;color:var(--text)}
     .discover-rank-row:hover{background:color-mix(in srgb,var(--accent) 9%,transparent)}
-    .discover-rank-no{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;background:var(--panel);border:1px solid var(--line);font-size:12px;font-weight:900;color:var(--muted)}
+    .discover-rank-no{width:27px;height:27px;border-radius:8px;display:grid;place-items:center;background:var(--panel);border:1px solid var(--line);font-size:13px;font-weight:900;color:var(--muted)}
     .discover-rank-row:first-child .discover-rank-no{background:color-mix(in srgb,#f6c85f 22%,var(--panel));color:#9a6810}
-    .discover-rank-copy{min-width:0}.discover-rank-copy b{display:block;font-size:15px;line-height:1.28;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .discover-rank-copy small{display:block;margin-top:2px;font-size:12px;line-height:1.3;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .discover-rank-copy{min-width:0}.discover-rank-copy b{display:block;font-size:16px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .discover-rank-copy small{display:block;margin-top:3px;font-size:13px;line-height:1.35;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .discover-rank-row.live .discover-rank-no{color:var(--bad);background:color-mix(in srgb,var(--bad) 13%,var(--panel))}
     .discover-source-strip{margin-top:8px;border-top:1px solid var(--line);padding-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
     .discover-source-strip b{font-size:13px;color:var(--text)}
@@ -307,7 +307,7 @@
     .day-checklist h4{font-size:15px;margin:0}.day-checklist .day-sub{font-size:11px;color:var(--muted);margin:4px 0 12px}.calendar-add{display:flex;gap:7px;margin-bottom:10px}.calendar-add input{flex:1}.calendar-task-list{display:grid;gap:7px;max-height:300px;overflow:auto}.calendar-task{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:9px;background:var(--panel)}.calendar-task input{accent-color:var(--accent)}.calendar-task span{font-size:12px}.calendar-task.done span{text-decoration:line-through;opacity:.55}.calendar-task button{border:0;background:transparent;color:var(--muted);font-size:15px}.calendar-task-empty{border:1px dashed var(--line);border-radius:12px;padding:18px;text-align:center;color:var(--muted);font-size:11px}
 
     .modal{position:fixed;inset:0;background:rgba(0,0,0,.62);display:none;place-items:center;padding:18px;z-index:20}.modal.open{display:grid}.modalcard{width:min(920px,96vw);max-height:90vh;border-radius:22px;padding:16px;overflow:auto}.modaltop{display:flex;align-items:center;margin-bottom:10px}.modaltop h3{margin:0}.modaltop button{margin-left:auto}.video{aspect-ratio:16/9;width:100%;border:0;border-radius:16px;background:#000}.event-editor-list{display:grid;gap:7px;margin-top:12px}.event-row{display:grid;grid-template-columns:1fr 160px auto;gap:7px;align-items:center}.event-row button{border:1px solid var(--line);background:var(--panel2);border-radius:10px;padding:8px}.muted{color:var(--muted)}
-    @media(max-width:1100px){.topbar{grid-template-columns:300px minmax(0,1fr) 84px}.header-actions{gap:4px}.header-weather{grid-template-columns:305px minmax(250px,1fr);grid-template-rows:58px 1fr}.hw-metric{min-width:82px;padding:3px 9px}.header-forecast{grid-template-columns:repeat(7,minmax(78px,1fr));overflow-x:auto}.header-day{padding:7px 8px}.calendar-quick{display:inline-grid}.dashboard{grid-template-columns:1fr 1fr;grid-template-rows:minmax(320px,1.15fr) 1fr 1.35fr}.homecalendar{grid-column:1/span 2;grid-row:1}.memo{grid-column:1;grid-row:2}.home-links-card{grid-column:2;grid-row:2}.upcomingcard{grid-column:1;grid-row:3}.discover{grid-column:2;grid-row:3}.discover-grid{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}}
+    @media(max-width:1100px){.topbar{grid-template-columns:300px minmax(0,1fr) 84px}.header-actions{gap:4px}.header-weather{grid-template-columns:305px minmax(250px,1fr);grid-template-rows:58px 1fr}.hw-metric{min-width:82px;padding:3px 9px}.header-forecast{grid-template-columns:repeat(7,minmax(78px,1fr));overflow-x:auto}.header-day{padding:7px 8px}.calendar-quick{display:inline-grid}.dashboard{grid-template-columns:1fr 1fr;grid-template-rows:minmax(320px,1.15fr) 1fr minmax(560px,1.8fr)}.homecalendar{grid-column:1/span 2;grid-row:1}.memo{grid-column:1;grid-row:2}.home-links-card{grid-column:2;grid-row:2}.upcomingcard{grid-column:1;grid-row:3}.discover{grid-column:2;grid-row:3}.discover-grid{grid-template-columns:1fr;grid-template-rows:repeat(3,minmax(0,1fr))}}
 
 
     /* v7 · 非金融看板区域整体字号放大 */
@@ -509,7 +509,7 @@
     .link-edit-row button{border:1px solid var(--line);background:var(--panel2);border-radius:10px;padding:9px}
     .add-link-row{display:grid;grid-template-columns:64px 1fr 1.8fr auto;gap:7px;align-items:end}
 
-    @media(max-width:740px){html,body{overflow:hidden}.app{grid-template-columns:1fr;grid-template-rows:1fr 68px;padding:8px;gap:8px}.sidebar{grid-row:2;border-radius:21px;flex-direction:row;justify-content:flex-start;padding:6px;order:2;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}.sidebar::-webkit-scrollbar{display:none}.logo,.spacer,.sidebar .themeSide{display:none}.navbtn{width:52px;min-width:52px;flex:0 0 52px;height:54px}.navicon{font-size:18px}.navbtn span{font-size:10px}.shell{grid-row:1;min-height:0}.topbar{min-height:92px;padding:7px 9px;grid-template-columns:118px 1fr 76px;gap:7px}.header-actions{gap:4px}.header-clock{padding:0 8px}.header-clock-photo{display:none}.header-clock .time{font-size:32px;letter-spacing:-1.6px}.header-clock .date{font-size:9px;margin-top:5px}.header-clock .greet{display:none}.header-weather{display:block;padding:0}.hw-current{grid-template-columns:38px auto minmax(0,1fr);padding:0 5px;gap:7px;height:100%}.hw-icon{width:36px;height:36px;border-radius:11px;font-size:29px}.hw-temp{font-size:29px;letter-spacing:-1.2px}.hw-condition{font-size:10px}.hw-place{font-size:9px;max-width:62px}.hw-desc{gap:3px;font-size:8px}.hw-desc #weatherMeta::before{margin-right:3px}.hw-metrics,.header-forecast{display:none}.header-actions .iconbtn{width:36px;height:36px}.calendar-quick{display:inline-grid}.calendar-modal-layout{grid-template-columns:1fr}.calendar-panel,.day-checklist{min-height:0}.calendar-grid button{min-height:36px}.dashboard{display:block;overflow:auto;padding-bottom:4px}.card{margin-bottom:9px;min-height:230px}.homecalendar{min-height:380px}.home-cal-body{grid-template-columns:1fr}.home-cal-month{padding-right:0;border-right:0}.home-today-panel{border-top:1px solid var(--line);padding-top:9px;margin-top:4px;min-height:130px}.home-calendar-grid button{height:34px}.home-links-card{min-height:310px}.event-list{grid-template-columns:repeat(3,minmax(115px,1fr));overflow:auto}.discover{min-height:470px}.workspace,.tools-layout{display:block;overflow:auto}.bigcard{margin-bottom:9px}.settings-grid{grid-template-columns:1fr}.focusclock{font-size:60px}.tool-grid{grid-template-columns:1fr 1fr}.event-row{grid-template-columns:1fr}.discover-grid{height:auto;min-height:380px;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}.board-frame-wrap{border-radius:18px}.link-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.nexus-link{grid-template-columns:34px 1fr;min-height:82px;padding:10px}.nexus-link .li{width:34px;height:34px}.nexus-link .go{display:none}.link-edit-row,.add-link-row{grid-template-columns:54px 1fr}.link-edit-row input:nth-child(3),.add-link-row input:nth-child(3){grid-column:1/-1}.link-edit-row button,.add-link-row button{grid-column:1/-1}.links-actions{gap:4px}.links-actions a,.links-actions button{padding:6px 8px}}
+    @media(max-width:740px){html,body{overflow:hidden}.app{grid-template-columns:1fr;grid-template-rows:1fr 68px;padding:8px;gap:8px}.sidebar{grid-row:2;border-radius:21px;flex-direction:row;justify-content:flex-start;padding:6px;order:2;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}.sidebar::-webkit-scrollbar{display:none}.logo,.spacer,.sidebar .themeSide{display:none}.navbtn{width:52px;min-width:52px;flex:0 0 52px;height:54px}.navicon{font-size:18px}.navbtn span{font-size:10px}.shell{grid-row:1;min-height:0}.topbar{min-height:92px;padding:7px 9px;grid-template-columns:118px 1fr 76px;gap:7px}.header-actions{gap:4px}.header-clock{padding:0 8px}.header-clock-photo{display:none}.header-clock .time{font-size:32px;letter-spacing:-1.6px}.header-clock .date{font-size:9px;margin-top:5px}.header-clock .greet{display:none}.header-weather{display:block;padding:0}.hw-current{grid-template-columns:38px auto minmax(0,1fr);padding:0 5px;gap:7px;height:100%}.hw-icon{width:36px;height:36px;border-radius:11px;font-size:29px}.hw-temp{font-size:29px;letter-spacing:-1.2px}.hw-condition{font-size:10px}.hw-place{font-size:9px;max-width:62px}.hw-desc{gap:3px;font-size:8px}.hw-desc #weatherMeta::before{margin-right:3px}.hw-metrics,.header-forecast{display:none}.header-actions .iconbtn{width:36px;height:36px}.calendar-quick{display:inline-grid}.calendar-modal-layout{grid-template-columns:1fr}.calendar-panel,.day-checklist{min-height:0}.calendar-grid button{min-height:36px}.dashboard{display:block;overflow:auto;padding-bottom:4px}.card{margin-bottom:9px;min-height:230px}.homecalendar{min-height:380px}.home-cal-body{grid-template-columns:1fr}.home-cal-month{padding-right:0;border-right:0}.home-today-panel{border-top:1px solid var(--line);padding-top:9px;margin-top:4px;min-height:130px}.home-calendar-grid button{height:34px}.home-links-card{min-height:310px}.event-list{grid-template-columns:repeat(3,minmax(115px,1fr));overflow:auto}.discover{min-height:720px}.workspace,.tools-layout{display:block;overflow:auto}.bigcard{margin-bottom:9px}.settings-grid{grid-template-columns:1fr}.focusclock{font-size:60px}.tool-grid{grid-template-columns:1fr 1fr}.event-row{grid-template-columns:1fr}.discover-grid{height:auto;min-height:630px;grid-template-columns:1fr;grid-template-rows:repeat(3,minmax(190px,1fr))}.board-frame-wrap{border-radius:18px}.link-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.nexus-link{grid-template-columns:34px 1fr;min-height:82px;padding:10px}.nexus-link .li{width:34px;height:34px}.nexus-link .go{display:none}.link-edit-row,.add-link-row{grid-template-columns:54px 1fr}.link-edit-row input:nth-child(3),.add-link-row input:nth-child(3){grid-column:1/-1}.link-edit-row button,.add-link-row button{grid-column:1/-1}.links-actions{gap:4px}.links-actions a,.links-actions button{padding:6px 8px}}
     .sidebar{overflow-y:auto;scrollbar-width:none}.sidebar::-webkit-scrollbar{display:none}.sidebar .navbtn{flex:0 0 52px;height:52px}
     .nexus-workspace{height:100%;overflow:auto;padding:20px}.nexus-pagehead{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}.nexus-pagehead h2{margin:0 0 5px;font-size:26px}.nexus-pagehead p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}
     .nexus-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(300px,.85fr);gap:14px;align-items:start}.nexus-panel{min-width:0;border-radius:22px;padding:18px}.nexus-panel h3{margin:0;font-size:16px}.nexus-panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.nexus-muted{color:var(--muted);font-size:12px;line-height:1.55}.nexus-form{display:grid;gap:10px}.nexus-form label{display:grid;gap:6px;color:var(--muted);font-size:12px}.nexus-form .field{width:100%}.nexus-form-actions{display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-wrap:wrap}
@@ -618,17 +618,16 @@
         </div>
         <div class="upcoming-toolbar">
           <button class="upcoming-filter active" data-upfilter="all" data-up-label="全部">全部</button>
-          <button class="upcoming-filter" data-upfilter="game" data-up-label="🎮 游戏">🎮 游戏</button>
-          <button class="upcoming-filter" data-upfilter="event" data-up-label="🎥 展会">🎥 展会</button>
-          <button class="upcoming-filter" data-upfilter="music" data-up-label="🎵 艺人">🎵 艺人</button>
+          <button class="upcoming-filter" data-upfilter="local" data-up-label="📍 本地">📍 本地</button>
+          <button class="upcoming-filter" data-upfilter="event" data-up-label="🎟 展会">🎟 展会</button>
           <button class="upcoming-filter" data-upfilter="pinned" data-up-label="★ 关注">★ 关注</button>
         </div>
         <div class="upcoming-home-list" id="upcomingHomeList">
-          <div class="upcoming-empty">正在读取未来 45 天的游戏、展会与音乐动态…</div>
+          <div class="upcoming-empty">正在读取 Seattle 本地活动与未来展会…</div>
         </div>
         <div class="upcoming-foot">
           <i id="upcomingStatusDot" class="upcoming-status-dot loading"></i>
-          <span id="upcomingStatus">Tsugi 大作 + 官方活动 + 关注艺人 · 正在刷新</span>
+          <span id="upcomingStatus">Seattle Center + 官方展会 · 正在刷新</span>
           <button id="addUpcomingQuick">＋ 添加</button>
         </div>
       </article>
@@ -639,9 +638,8 @@
           <div class="discovery-item"><div class="discover-head"><span class="discover-icon shop">🛠</span><div class="eyebrow">3C 小物榜</div></div><div class="discover-rank-list" id="productRank"><div class="upcoming-empty">整理中…</div></div></div>
           <div class="discovery-item"><div class="discover-head"><span class="discover-icon github">&lt;/&gt;</span><div class="eyebrow">GitHub 新星榜</div></div><div class="discover-rank-list" id="githubRank"><div class="upcoming-empty">抓取中…</div></div></div>
           <div class="discovery-item"><div class="discover-head"><span class="discover-icon vtuber">▶</span><div class="eyebrow">VSPO! 直播动态</div></div><div class="discover-rank-list" id="vtuberRank"><div class="upcoming-empty">读取成员动态…</div></div></div>
-          <div class="discovery-item"><div class="discover-head"><span class="discover-icon music">♫</span><div class="eyebrow">日本新曲榜</div></div><div class="discover-rank-list" id="musicRank"><div class="upcoming-empty">抓取中…</div></div></div>
         </div>
-        <div class="discover-source-strip"><b>实时榜单</b><span>数据源：</span><a href="https://vspo.jp/" target="_blank" rel="noopener">VSPO! / YouTube</a><span>·</span><a href="https://github.com/explore" target="_blank" rel="noopener">GitHub</a><span>·</span><a href="https://www.billboard-japan.com/charts/" target="_blank" rel="noopener">Billboard JAPAN</a></div>
+        <div class="discover-source-strip"><b>实时榜单</b><span>数据源：</span><a href="https://vspo.jp/" target="_blank" rel="noopener">VSPO! / YouTube</a><span>·</span><a href="https://github.com/explore" target="_blank" rel="noopener">GitHub</a></div>
       </article>
     </div></section>
 
@@ -990,12 +988,11 @@
 </div></div>
 <div class="modal" id="upcomingModal">
   <div class="modalcard glass" style="width:min(930px,96vw)">
-    <div class="modaltop"><h3>Upcoming · 发售与事件</h3><button class="iconbtn closeModal">×</button></div>
+    <div class="modaltop"><h3>接下来 · 本地活动与展会</h3><button class="iconbtn closeModal">×</button></div>
     <div class="upcoming-modal-top">
       <button class="upcoming-filter active" data-upmodalfilter="all">全部</button>
-      <button class="upcoming-filter" data-upmodalfilter="game">🎮 游戏</button>
-      <button class="upcoming-filter" data-upmodalfilter="event">🎥 活动</button>
-      <button class="upcoming-filter" data-upmodalfilter="music">🎵 音乐</button>
+      <button class="upcoming-filter" data-upmodalfilter="local">📍 本地活动</button>
+      <button class="upcoming-filter" data-upmodalfilter="event">🎟 大型展会</button>
       <button class="upcoming-filter" data-upmodalfilter="pinned">★ 已关注</button>
       <span class="spacer"></span>
       <label style="margin:0">范围</label>
@@ -1011,33 +1008,21 @@
     </div>
     <div class="upcoming-modal-list" id="upcomingModalList"></div>
     <div class="upcoming-addbox">
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <b>关注艺人</b>
-        <span class="hint" id="upcomingArtistSyncState" style="margin:0">自动读取 Tsugi</span>
-        <button class="pillbtn" id="syncTsugiArtists" style="margin-left:auto">重新同步</button>
-        <button class="pillbtn" id="openTsugiArtistManager">在追更管理</button>
-      </div>
-      <div id="upcomingArtistChips" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
-      <p class="hint" style="margin:8px 0 0">Daily Nexus 不再单独维护关注艺人；此处与 Music Tab 都直接使用 Tsugi 的关注列表。</p>
-    </div>
-
-    <div class="upcoming-addbox">
       <b>手动加入关注事件</b>
       <div class="upcoming-addgrid">
-        <input class="field" id="upcomingAddName" placeholder="事件名，例如：某游戏发售 / 发布会">
+        <input class="field" id="upcomingAddName" placeholder="事件名，例如：周末市集 / 发布会">
         <select class="field" id="upcomingAddCategory">
-          <option value="event">🎥 活动</option>
-          <option value="game">🎮 游戏</option>
+          <option value="local">📍 本地活动</option>
+          <option value="event">🎟 大型展会</option>
           <option value="tech">💻 科技</option>
           <option value="acg">📚 ACG</option>
-          <option value="music">🎵 音乐</option>
         </select>
         <input class="field" id="upcomingAddDate" type="datetime-local">
         <input class="field wide" id="upcomingAddUrl" placeholder="原始链接（可选） https://...">
       </div>
       <div style="margin-top:8px"><button class="save" id="saveUpcomingManual">＋ 添加到 Upcoming</button></div>
     </div>
-    <p class="hint" style="margin:10px 0 0">自动发现优先显示知名游戏 / 高热作品、官方页面实时确认的大型游戏与科技活动，以及 Tsugi 中关注艺人的近期新曲。点 ★ 后会保留为你的关注项；任何项目都可以一键加入 Daily Nexus 日历。</p>
+    <p class="hint" style="margin:10px 0 0">自动发现优先显示 Seattle Center 近期活动、Seattle 地区重点节庆，以及大型 ACG / 科技展会。点 ★ 后会保留为你的关注项；任何项目都可以一键加入 Daily Nexus 日历。</p>
   </div>
 </div>
 <div class="modal" id="linksModal"><div class="modalcard glass" style="width:min(960px,96vw)">
@@ -3492,8 +3477,38 @@ const OFFICIAL_UPCOMING_SEEDS=[
   },
   {
     id:"official:pax-west-2026",title:"PAX West 2026 · Seattle",
-    date:"2026-09-04T12:00:00",category:"event",source:"PAX · 9/4–9/7",
+    date:"2026-09-04T12:00:00",category:"local",source:"Seattle · PAX · 9/4–9/7",
     url:"https://west.paxsite.com/",manual:false,priority:94
+  },
+  {
+    id:"local:bumbershoot-2026",title:"Bumbershoot 2026",
+    date:"2026-09-05T12:00:00",category:"local",source:"Seattle Center · 9/5–9/6",
+    url:"https://visitseattle.org/",manual:false,priority:98
+  },
+  {
+    id:"local:live-aloha-2026",title:"Live Aloha Hawaiian Cultural Festival",
+    date:"2026-09-13T11:00:00",category:"local",source:"Seattle Center Festál · 免费",
+    url:"https://www.seattlecenter.com/events/featured-events/festal",manual:false,priority:96
+  },
+  {
+    id:"local:urban-x-2026",title:"Urban X · Downtown Seattle 城市探索",
+    date:"2026-09-13T10:00:00",category:"local",source:"Seattle Sports Commission",
+    url:"https://www.visitseattle.org/seattle-sports-commission/upcoming-sporting-events/",manual:false,priority:88
+  },
+  {
+    id:"local:fiestas-patrias-2026",title:"Sea Mar Fiestas Patrias",
+    date:"2026-09-19T11:00:00",category:"local",source:"Seattle Center Festál · 9/19–9/20 · 免费",
+    url:"https://www.seattlecenter.com/events/featured-events/festal",manual:false,priority:94
+  },
+  {
+    id:"local:italian-festival-2026",title:"The Italian Festival",
+    date:"2026-09-26T10:00:00",category:"local",source:"Seattle Center Festál · 9/26–9/27 · 免费",
+    url:"https://www.seattlecenter.com/events/featured-events/festal",manual:false,priority:93
+  },
+  {
+    id:"local:croatiafest-2026",title:"CroatiaFest",
+    date:"2026-10-04T12:00:00",category:"local",source:"Seattle Center Festál · 免费",
+    url:"https://www.seattlecenter.com/events/featured-events/festal",manual:false,priority:90
   },
   {
     id:"official:ifa-2026",title:"IFA Berlin 2026",
@@ -3521,11 +3536,11 @@ const MAJOR_PUBLISHER_RE=/(Nintendo|Sony|PlayStation|Xbox|Microsoft|CAPCOM|Capco
 const MAJOR_GAME_RE=/(Final Fantasy|ファイナルファンタジー|Dragon Quest|ドラゴンクエスト|Mario|マリオ|Zelda|ゼルダ|Pok[eé]mon|ポケモン|Metroid|メトロイド|Fire Emblem|ファイアーエムブレム|Persona|ペルソナ|Sonic|ソニック|Metal Gear|メタルギア|Silent Hill|サイレントヒル|Resident Evil|バイオハザード|Monster Hunter|モンスターハンター|Devil May Cry|デビル メイ クライ|Elden Ring|エルデンリング|STAR WARS|スター.?ウォーズ|Call of Duty|Battlefield|Assassin'?s Creed|Grand Theft Auto|GTA\b|Marvel'?s Wolverine|ウルヴァリン|ACE COMBAT|Kingdom Hearts|キングダム ハーツ|HADES|Onimusha|鬼武者|A Plague Tale|Witcher|Cyberpunk|Mass Effect|DOOM|Halo|Gears of War|Fallout|The Elder Scrolls|Mortal Shell|The Sinking City|Aliens|Mortal Kombat|Street Fighter|Tekken|鉄拳|Yakuza|Like a Dragon|龍が如く|NieR|Nioh|仁王)/i;
 const JUNK_GAME_RE=/(soundtrack|demo\b|artbook|digital art|server test|playtest|benchmark|character pass|season pass|BEST PRICE|ベストプライス|【.*選】|新作ゲーム\d+選|まとめ)/i;
 
-let upcomingAuto=[],upcomingMusic=[],upcomingOfficialDynamic=[];
+let upcomingLocal=[],upcomingOfficialDynamic=[];
 let upcomingHomeFilter="all",upcomingModalFilter="all";
 
 function upcomingCategoryLabel(cat){
-  return {game:"🎮 游戏",event:"🎥 活动",tech:"💻 科技",acg:"📚 ACG",music:"🎵 音乐"}[cat]||"⭐ 关注";
+  return {local:"📍 本地",event:"🎟 展会",tech:"💻 科技",acg:"📚 ACG"}[cat]||"⭐ 关注";
 }
 function upDateObj(x){const d=new Date(x?.date);return isNaN(d)?null:d}
 function upDayStart(d=new Date()){const x=new Date(d);x.setHours(0,0,0,0);return x}
@@ -3780,7 +3795,7 @@ function allUpcomingItems(){
     if(id.includes("ces-"))return !liveFamilies.has("ces");
     return true;
   });
-  [...seeds,...upcomingOfficialDynamic,...upcomingAuto,...upcomingMusic,...state.upcomingManual].forEach(x=>{
+  [...seeds,...upcomingOfficialDynamic,...upcomingLocal,...state.upcomingManual.filter(x=>x.category!=="game"&&x.category!=="music")].forEach(x=>{
     if(!x?.id||!x?.date||!upDateObj(x))return;
     map.set(x.id,{...x,pinned:isPinnedUpcoming(x.id)});
   });
@@ -3795,9 +3810,8 @@ function upcomingWithin(days=14){
 }
 function filterUpcoming(items,mode){
   if(mode==="pinned")return items.filter(x=>x.pinned);
-  if(mode==="game")return items.filter(x=>x.category==="game");
-  if(mode==="event")return items.filter(x=>x.category==="event"||x.category==="tech");
-  if(mode==="music")return items.filter(x=>x.category==="music");
+  if(mode==="local")return items.filter(x=>x.category==="local");
+  if(mode==="event")return items.filter(x=>x.category==="event"||x.category==="tech"||x.category==="acg");
   return items;
 }
 function smartHomeUpcoming(items){
@@ -3810,11 +3824,11 @@ function smartHomeUpcoming(items){
     const sb=(b.priority||0)-Math.max(0,upDaysAway(b))*1.15;
     return sb-sa||new Date(a.date)-new Date(b.date);
   })[0];
-  // Pinned interest + nearest official event + highest-signal major game + followed artist update.
+  // Pinned interest + nearby Seattle activity + the next major convention.
   add(best(x=>x.pinned));
-  add(best(x=>x.category==="event"||x.category==="tech"));
-  add(best(x=>x.category==="game"));
-  add(best(x=>x.category==="music"));
+  add(best(x=>x.category==="local"&&/免费/.test(x.source||"")));
+  add(best(x=>x.category==="local"));
+  add(best(x=>x.category==="event"||x.category==="tech"||x.category==="acg"));
   for(const x of chronological){
     if(result.length>=4)break;
     add(x);
@@ -3829,7 +3843,7 @@ function renderUpcomingHome(){
     b.textContent=`${b.dataset.upLabel||b.textContent.replace(/\s+\d+$/,'')} ${count}`;
   });
   if(!items.length){
-    const empty={pinned:"还没有关注事件。点任意项目右侧的 ★ 即可关注。",game:"游戏源正在重新抓取；空缓存不会再阻止刷新。",event:"未来 45 天暂时没有新展会，已保留 90–180 天的官方展会入口。",music:"正在读取 Tsugi 新曲；即使没有关注艺人，也会显示本周音乐动态。"}[upcomingHomeFilter]||"未来 45 天当前没有匹配项目。可手动添加，或稍后刷新自动发现。";
+    const empty={pinned:"还没有关注事件。点任意项目右侧的 ★ 即可关注。",local:"Seattle 官方活动源暂时没有近期项目，可稍后刷新或手动添加。",event:"未来 45 天暂时没有新展会，切换到 90–180 天可查看更远的官方展会。"}[upcomingHomeFilter]||"未来 45 天当前没有匹配项目。可手动添加，或稍后刷新自动发现。";
     host.innerHTML=`<div class="upcoming-empty">${empty}</div>`;
   }else{
     host.innerHTML=items.map(x=>`
@@ -3892,40 +3906,29 @@ function setUpcomingStatus(mode,text){
   if(dot){dot.classList.toggle("loading",mode==="loading");dot.classList.toggle("bad",mode==="bad")}
   if(label)label.textContent=text;
 }
-async function fetchTsugiGames(){
-  const urls=[TSUGI_GAMES_URL,`${TSUGI_BASE}data/game-releases.json`];
-  const snapshots=(await Promise.all(urls.map(async url=>{try{const r=await fetch(`${url}?v=${Date.now()}`,{cache:"no-store"});if(!r.ok)throw new Error(`HTTP ${r.status}`);return await r.json()}catch{return null}}))).filter(Boolean);
-  if(!snapshots.length)throw new Error("Tsugi games unavailable");
-  const score=x=>x?.sources?.snapshot?.fallback?0:(Date.parse(x?.generated_at||"")||0);
-  snapshots.sort((a,b)=>score(b)-score(a));
-  return tsugiGameItems(snapshots[0]);
+async function fetchSeattleLocalEvents(){
+  const r=await fetch(`${PTU_CLOUD_API}/api/events/seattle?v=${Date.now()}`,{cache:"no-store"});
+  if(!r.ok)throw new Error(`Seattle Center ${r.status}`);
+  const data=await r.json();
+  return Array.isArray(data.items)?data.items.filter(x=>x?.id&&x?.date).map(x=>({...x,category:"local",manual:false})):[];
 }
 async function loadUpcoming(force=false){
-  setUpcomingStatus("loading","游戏 + 展会 + 艺人动态 · 正在刷新");
-  const cache=store.get("upcomingCacheV3",null);
+  setUpcomingStatus("loading","Seattle Center + 官方展会 · 正在刷新");
+  const cache=store.get("upcomingCacheV4",null);
   const freshCache=!force&&cache&&Date.now()-cache.time<UPCOMING_CACHE_MS;
   if(freshCache){
-    upcomingAuto=Array.isArray(cache.games)?cache.games:[];
-    upcomingMusic=Array.isArray(cache.music)?cache.music:[];
+    upcomingLocal=Array.isArray(cache.local)?cache.local:[];
     upcomingOfficialDynamic=Array.isArray(cache.dynamic)?cache.dynamic:[];
-    if(upcomingAuto.length&&upcomingMusic.length){
-      const radar=upcomingWithin(45),artists=readFollowedArtists().length;
-      setUpcomingStatus("ok",`未来 45 天 · 游戏 ${filterUpcoming(radar,"game").length} · 展会 ${filterUpcoming(radar,"event").length} · 艺人 ${filterUpcoming(radar,"music").length} · 关注 ${artists}`);
-      renderUpcomingHome();renderUpcomingModal();return;
-    }
-    renderUpcomingHome();renderUpcomingModal();
+    const radar=upcomingWithin(45);
+    setUpcomingStatus("ok",`未来 45 天 · 本地 ${filterUpcoming(radar,"local").length} · 展会 ${filterUpcoming(radar,"event").length} · 关注 ${filterUpcoming(radar,"pinned").length}`);
+    renderUpcomingHome();renderUpcomingModal();return;
   }
-  let gameOk=false,musicOk=false;
-  try{upcomingAuto=await fetchTsugiGames();gameOk=true}catch(e){upcomingAuto=cache?.games||[]}
-  try{
-    const followed=await followedArtistUpdates(),radar=await fallbackTsugiMusic(),seen=new Set();
-    upcomingMusic=[...followed,...radar].filter(x=>x?.id&&!seen.has(x.id)&&seen.add(x.id)).slice(0,24);
-    musicOk=true;
-  }catch(e){upcomingMusic=cache?.music||[]}
+  let localOk=false;
+  try{upcomingLocal=await fetchSeattleLocalEvents();localOk=true}catch(e){upcomingLocal=cache?.local||[]}
   try{upcomingOfficialDynamic=await officialLaunchWatchers()}catch(e){upcomingOfficialDynamic=cache?.dynamic||[]}
-  store.set("upcomingCacheV3",{time:Date.now(),games:upcomingAuto,music:upcomingMusic,dynamic:upcomingOfficialDynamic});
-  const radar=upcomingWithin(45),artists=readFollowedArtists().length;
-  setUpcomingStatus(gameOk||upcomingAuto.length?"ok":"bad",`未来 45 天 · 游戏 ${filterUpcoming(radar,"game").length} · 展会 ${filterUpcoming(radar,"event").length} · 艺人 ${filterUpcoming(radar,"music").length} · 关注 ${artists}${!gameOk?" · 游戏源缓存/离线":""}${!musicOk?" · 音乐源缓存/离线":""}`);
+  store.set("upcomingCacheV4",{time:Date.now(),local:upcomingLocal,dynamic:upcomingOfficialDynamic});
+  const radar=upcomingWithin(45);
+  setUpcomingStatus(localOk||upcomingLocal.length?"ok":"bad",`未来 45 天 · 本地 ${filterUpcoming(radar,"local").length} · 展会 ${filterUpcoming(radar,"event").length} · 关注 ${filterUpcoming(radar,"pinned").length}${!localOk?" · 本地源使用缓存/精选":""}`);
   renderUpcomingHome();renderUpcomingModal();
 }
 function defaultUpcomingLocal(){
@@ -3949,14 +3952,6 @@ $("#upcomingHorizon").onchange=e=>{
 $("#openUpcoming").onclick=openUpcomingModal;
 $("#addUpcomingQuick").onclick=openUpcomingModal;
 $("#refreshUpcoming").onclick=()=>loadUpcoming(true);
-$("#syncTsugiArtists").onclick=async()=>{
-  await syncArtistsFromTsugiOrigin();
-  renderUpcomingArtists();
-  loadUpcoming(true);
-};
-$("#openTsugiArtistManager").onclick=()=>switchNexusView("tsugi");
-renderUpcomingArtists();
-syncArtistsFromTsugiOrigin().then(ok=>{renderUpcomingArtists();if(ok)loadUpcoming(true)});
 
 $("#saveUpcomingManual").onclick=()=>{
   const title=$("#upcomingAddName").value.trim(),date=$("#upcomingAddDate").value,category=$("#upcomingAddCategory").value,url=$("#upcomingAddUrl").value.trim();
@@ -4011,18 +4006,7 @@ async function getVspoRanking(force=false){
     renderDiscoverRank("#vtuberRank",rows,"VSPO! 成员动态暂时不可用");
   }
 }
-async function getMusicRanking(force=false){
-  let cache=store.get("jpMusicRankCacheV1",null);
-  try{
-    if(force||!cache||Date.now()-cache.time>30*60*1000){
-      const r=await fetch(`${TSUGI_MUSIC_URL}?v=${Date.now()}`,{cache:"no-store"});if(!r.ok)throw new Error(`music ${r.status}`);
-      const j=await r.json(),items=[...(j.weekly_chart||[])].sort((a,b)=>Number(a.rank||999)-Number(b.rank||999));
-      cache={time:Date.now(),items:items.slice(0,12)};store.set("jpMusicRankCacheV1",cache);
-    }
-    renderDiscoverRank("#musicRank",(cache?.items||[]).slice(0,3).map((x,i)=>({rank:x.rank||i+1,title:x.title,meta:`${x.artist||"日本新曲"}${x.is_new?" · NEW":""}`,url:x.apple_music_url||x.youtube_music_url||x.url})),"日本新曲榜暂时不可用");
-  }catch{renderDiscoverRank("#musicRank",(cache?.items||[]).slice(0,3).map((x,i)=>({rank:x.rank||i+1,title:x.title,meta:x.artist||"日本新曲",url:x.apple_music_url||x.youtube_music_url||x.url})),"日本新曲榜暂时不可用")}
-}
-function refreshDiscover(force=false){discoverIndex++;renderProductRanking();getGitHubRanking(force);getVspoRanking(force);getMusicRanking(force)}
+function refreshDiscover(force=false){discoverIndex++;renderProductRanking();getGitHubRanking(force);getVspoRanking(force)}
 $("#refreshDiscover").onclick=()=>refreshDiscover(true);$("#refreshFeedsNow").onclick=()=>refreshDiscover(true);refreshDiscover(false);
 function renderYT(){const y=state.youtube,liveName=$("#liveName"),livePage=$("#livePage");if(liveName)liveName.textContent=y.name||'直播监控';if(livePage)livePage.href=y.id?`https://www.youtube.com/channel/${encodeURIComponent(y.id)}/live`:'https://www.youtube.com';$("#ytName").value=y.name||'';$("#ytId").value=y.id||''}renderYT();$("#saveYT").onclick=()=>{state.youtube={name:$("#ytName").value.trim(),id:$("#ytId").value.trim()};store.set('youtube',state.youtube);renderYT()};if($("#openLive"))$("#openLive").onclick=()=>{if(!state.youtube.id)return;$("#liveModalTitle").textContent=(state.youtube.name||'YouTube')+' · Live';$("#liveFrame").src=`https://www.youtube.com/embed/live_stream?channel=${encodeURIComponent(state.youtube.id)}&autoplay=0&rel=0`;openModal('#liveModal')};
 

@@ -186,10 +186,64 @@ async function vspoStreams(request:Request){
   return reply(request,{generated_at:now(),source:'VSPO! official member YouTube feeds',successful_sources,total_sources:VSPO_YOUTUBE_CHANNELS.length,items},200,{'cache-control':'public,max-age=300'});
 }
 
+function pacificToday(){
+  const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',year:'numeric',month:'numeric',day:'numeric'}).formatToParts(new Date());
+  const pick=(type:string)=>Number(parts.find(part=>part.type===type)?.value||0);
+  return {year:pick('year'),month:pick('month'),day:pick('day')};
+}
+function seattleDateKey(label:string){
+  const match=text(label).match(/(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2})/i);
+  if(!match)return '';
+  const months=['january','february','march','april','may','june','july','august','september','october','november','december'];
+  const month=months.indexOf(match[1].toLowerCase())+1,day=Number(match[2]),today=pacificToday();
+  let year=today.year;
+  if(month<today.month-6)year++;
+  return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+}
+function seattleTime(raw:string){
+  const value=text(raw);
+  if(!value||/all day/i.test(value))return '12:00';
+  const match=value.match(/(\d{1,2})(?::(\d{2}))?\s*([ap])\.?m\.?/i);
+  if(!match)return '12:00';
+  let hour=Number(match[1])%12;if(match[3].toLowerCase()==='p')hour+=12;
+  return `${String(hour).padStart(2,'0')}:${match[2]||'00'}`;
+}
+function parseSeattleEvents(html:string){
+  const datePattern=/<p[^>]*class=["'][^"']*date-bar__date[^"']*["'][^>]*>([\s\S]*?)<\/p>/gi;
+  const dates=[...html.matchAll(datePattern)],items:Array<Record<string,unknown>>=[];
+  const seen=new Set<string>();
+  for(let index=0;index<dates.length;index++){
+    const dateKey=seattleDateKey(dates[index][1]);if(!dateKey)continue;
+    const start=(dates[index].index||0)+dates[index][0].length,end=index+1<dates.length?(dates[index+1].index||html.length):html.length;
+    const block=html.slice(start,end);
+    const eventPattern=/<div[^>]*class=["'][^"']*event-list__time[^"']*["'][^>]*>([\s\S]*?)<\/div>[\s\S]{0,12000}?<h2[^>]*class=["'][^"']*event-list__title[^"']*["'][^>]*>[\s\S]*?<a[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>[\s\S]*?<\/h2>[\s\S]{0,6000}?<div[^>]*class=["'][^"']*event-list__price[^"']*["'][^>]*>([\s\S]*?)<\/div>[\s\S]{0,6000}?<div[^>]*class=["'][^"']*event-list__tags[^"']*["'][^>]*>([\s\S]*?)<\/div>/gi;
+    for(const match of block.matchAll(eventPattern)){
+      const title=text(match[3]),key=title.toLowerCase().replace(/[^a-z0-9\p{L}]+/gu,' ');if(!title||seen.has(key))continue;seen.add(key);
+      const price=text(match[4]),tags=[...match[5].matchAll(/<span[^>]*>([\s\S]*?)<\/span>/gi)].map(tag=>text(tag[1])).filter(Boolean);
+      const venue=tags.at(-1)||'Seattle Center',eventType=tags[0]||'Local Event',free=/free/i.test(price);
+      const href=absolute(match[2],'https://www.seattlecenter.com/events/event-calendar');
+      items.push({
+        id:`seattle-center:${href.split('/').pop()||key.slice(0,40)}`,title,date:`${dateKey}T${seattleTime(match[1])}:00`,dateKey,
+        category:'local',source:`Seattle Center · ${free?'免费':price||eventType} · ${venue}`,url:href,manual:false,
+        priority:(free?105:82)+(/festival|arts|movies|sports|workshops/i.test(tags.join(' '))?8:0),free,venue,event_type:eventType
+      });
+    }
+  }
+  return items.sort((a,b)=>Date.parse(String(a.date))-Date.parse(String(b.date))||Number(b.priority)-Number(a.priority)).slice(0,30);
+}
+async function seattleEvents(request:Request){
+  const source='https://www.seattlecenter.com/events/event-calendar';
+  const response=await timedFetch(source,{headers:{'user-agent':'PT-Universe/1.0 (+https://github.com/XiminHu66/PT-Universe)','accept':'text/html,application/xhtml+xml'}},15_000);
+  if(!response.ok)throw new Error(`Seattle Center ${response.status}`);
+  const items=parseSeattleEvents(await response.text());
+  return reply(request,{generated_at:now(),source,location:'Seattle, WA',items},200,{'cache-control':'public,max-age=1800,stale-while-revalidate=21600'});
+}
+
 async function proxyRoute(request:Request,url:URL){
   const common={'user-agent':'PT-Universe/1.0 (+https://github.com/XiminHu66/PT-Universe)','accept':'application/json,text/plain,*/*'};
   let target:URL|undefined;
   if(url.pathname==='/api/vtuber/vspo')return vspoStreams(request);
+  if(url.pathname==='/api/events/seattle')return seattleEvents(request);
   if(url.pathname==='/api/weather'){
     const lat=Number(url.searchParams.get('lat')),lon=Number(url.searchParams.get('lon'));
     if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return error(request,'无效坐标');
