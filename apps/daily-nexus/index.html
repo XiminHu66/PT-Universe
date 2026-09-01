@@ -282,6 +282,15 @@
     .discover-rank-copy{min-width:0}.discover-rank-copy b{display:block;font-size:15px;line-height:1.22;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .discover-rank-copy small{display:block;margin-top:2px;font-size:12px;line-height:1.25;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .discover-rank-row.live .discover-rank-no{color:var(--bad);background:color-mix(in srgb,var(--bad) 13%,var(--panel))}
+    .vspo-live-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:4px 8px;margin-top:4px;min-height:0;overflow:hidden}
+    .vspo-live-list.few{grid-template-rows:minmax(0,1fr);align-items:center}
+    .vspo-live-member{min-width:0;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:12px;padding:3px;text-decoration:none;color:var(--text)}
+    .vspo-live-member:hover{background:color-mix(in srgb,var(--accent) 9%,transparent)}
+    .vspo-live-avatar{position:relative;width:48px;height:48px;flex:0 0 48px;border-radius:50%;display:grid;place-items:center;overflow:visible;background:color-mix(in srgb,#48bff2 15%,var(--panel));border:2px solid color-mix(in srgb,#48bff2 38%,var(--line));font-size:17px;font-weight:900;color:#1682b0}
+    .vspo-live-avatar::after{content:"";position:absolute;right:0;bottom:1px;width:10px;height:10px;border-radius:50%;background:var(--bad);border:2px solid var(--panel)}
+    .vspo-live-avatar img{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;object-fit:cover}
+    .vspo-live-member b{display:block;width:100%;font-size:13px;line-height:1.2;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .vspo-live-empty{grid-column:1/-1;align-self:center;text-align:center;color:var(--muted);font-size:13px}
     .discover-source-strip{margin-top:2px;border-top:1px solid var(--line);padding-top:6px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:11px;color:var(--muted)}
     .discover-source-strip b{font-size:13px;color:var(--text)}
     .discover-source-strip a{color:var(--muted);text-decoration:none}
@@ -639,7 +648,7 @@
         <div class="discover-grid">
           <div class="discovery-item"><div class="discover-head"><span class="discover-icon shop">🛠</span><div class="eyebrow">3C 小物榜</div></div><div class="discover-rank-list" id="productRank"><div class="upcoming-empty">整理中…</div></div></div>
           <div class="discovery-item"><div class="discover-head"><span class="discover-icon github">&lt;/&gt;</span><div class="eyebrow">GitHub 新星榜</div></div><div class="discover-rank-list" id="githubRank"><div class="upcoming-empty">抓取中…</div></div></div>
-          <div class="discovery-item"><div class="discover-head"><span class="discover-icon vtuber">▶</span><div class="eyebrow">VSPO! 直播动态</div></div><div class="discover-rank-list" id="vtuberRank"><div class="upcoming-empty">读取成员动态…</div></div></div>
+          <div class="discovery-item"><div class="discover-head"><span class="discover-icon vtuber">▶</span><div class="eyebrow">VSPO! 正在直播</div></div><div class="vspo-live-list" id="vtuberRank"><div class="vspo-live-empty">检查成员直播状态…</div></div></div>
         </div>
         <div class="discover-source-strip"><b>实时榜单</b><span>数据源：</span><a href="https://vspo.jp/" target="_blank" rel="noopener">VSPO! / YouTube</a><span>·</span><a href="https://github.com/explore" target="_blank" rel="noopener">GitHub</a></div>
       </article>
@@ -3997,20 +4006,23 @@ async function getGitHubRanking(force=false){
   }catch{renderDiscoverRank("#githubRank",(cache?.items||[]).slice(0,3).map((x,i)=>({rank:i+1,title:x.full_name,meta:`★ ${Number(x.stargazers_count||0).toLocaleString()} · ${x.language||"综合"}`,url:x.html_url})),"GitHub 匿名接口暂时限流")}
 }
 async function getVspoRanking(force=false){
-  let cache=store.get("vspoRankCacheV1",null);
+  let cache=store.get("vspoLiveCacheV2",null);
   try{
     if(force||!cache||Date.now()-cache.time>5*60*1000){
       const r=await fetch(`${PTU_CLOUD_API}/api/vtuber/vspo?v=${Date.now()}`,{cache:"no-store"});if(!r.ok)throw new Error(`VSPO ${r.status}`);
-      const j=await r.json();cache={time:Date.now(),items:(j.items||[]).slice(0,12)};store.set("vspoRankCacheV1",cache);
+      const j=await r.json();cache={time:Date.now(),items:(j.items||[]).filter(x=>x.is_live)};store.set("vspoLiveCacheV2",cache);
     }
-    const picked=(cache?.items||[]).filter((x,i,all)=>all.findIndex(y=>y.member===x.member)===i).slice(0,3);
-    const rows=picked.map((x,i)=>{const d=new Date(x.published_at),recent=Date.now()-d.getTime()<4*60*60*1000;return{rank:i+1,title:x.member||"VSPO!",meta:`${recent?"最近开播":d.toLocaleDateString("zh-CN",{month:"numeric",day:"numeric"})+" "+d.toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"})} · ${x.title||"打开观看"}`,url:x.url,live:recent}});
-    renderDiscoverRank("#vtuberRank",rows,"VSPO! 成员动态暂时不可用");
+    renderVspoLive(cache?.items||[]);
   }catch{
-    const picked=(cache?.items||[]).filter((x,i,all)=>all.findIndex(y=>y.member===x.member)===i).slice(0,3);
-    const rows=picked.map((x,i)=>{const d=new Date(x.published_at);return{rank:i+1,title:x.member||"VSPO!",meta:`${d.toLocaleDateString("zh-CN",{month:"numeric",day:"numeric"})} ${d.toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"})} · ${x.title||"打开观看"}`,url:x.url}});
-    renderDiscoverRank("#vtuberRank",rows,"VSPO! 成员动态暂时不可用");
+    renderVspoLive(cache?.items||[],true);
   }
+}
+function renderVspoLive(items,unavailable=false){
+  const host=$("#vtuberRank");if(!host)return;
+  const live=(items||[]).filter(x=>x?.is_live&&x?.url).filter((x,i,all)=>all.findIndex(y=>y.channel_id===x.channel_id)===i).slice(0,6);
+  host.classList.toggle("few",live.length>0&&live.length<=3);
+  if(!live.length){host.innerHTML=`<div class="vspo-live-empty">${unavailable?"直播状态暂时不可用":"当前没有成员直播"}</div>`;return}
+  host.innerHTML=live.map(x=>`<a class="vspo-live-member" href="${escapeAttr(x.url)}" target="_blank" rel="noopener" aria-label="观看 ${escapeAttr(x.member||"VSPO!")} 的当前直播"><span class="vspo-live-avatar"><span>${escapeHtml((x.member||"V").slice(0,1))}</span>${x.avatar?`<img src="${escapeAttr(x.avatar)}" alt="${escapeAttr(x.member||"VSPO!")}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:""}</span><b>${escapeHtml(x.member||"VSPO!")}</b></a>`).join("");
 }
 function refreshDiscover(force=false){discoverIndex++;renderProductRanking();getGitHubRanking(force);getVspoRanking(force)}
 $("#refreshDiscover").onclick=()=>refreshDiscover(true);$("#refreshFeedsNow").onclick=()=>refreshDiscover(true);refreshDiscover(false);
