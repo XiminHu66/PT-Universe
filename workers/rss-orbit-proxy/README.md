@@ -1,6 +1,6 @@
 # RSS Orbit Proxy
 
-Cloudflare Worker, Cron scheduler, and KV backend for RSS Orbit. The 12 curated feeds are cached in KV. Browser-added feeds use a separate validated, size-limited RSS endpoint and are never persisted by the Worker.
+Cloudflare Worker, Cron scheduler, and KV backend for RSS Orbit. The 12 curated feeds are merged into per-source histories of up to 100 entries in KV. Browser-added feeds use a separate validated, size-limited RSS endpoint; their 100-entry histories remain local to the browser.
 
 ## Cloudflare dashboard deployment
 
@@ -18,7 +18,7 @@ The Worker exposes:
 
 - `GET /health` — deployment, schedule, and last-Cron health check.
 - `GET /feed/:id` — KV-backed allowlisted RSS response. A first cache miss bootstraps that feed from the origin.
-- `GET /feed/:id?refresh=1` — bypass KV and read the origin immediately. Failed origins fall back to stale KV; manual reads do not consume KV writes.
+- `GET /feed/:id?refresh=1` — read the origin immediately, merge it with existing KV history, and persist up to 100 entries. Failed origins fall back to stale KV.
 - `GET /custom?url=<rss-url>` — fetch a browser-added public RSS/Atom URL through Cloudflare. It requires the approved GitHub Pages origin, rejects private/local destinations and unsafe redirects, validates the response as a feed, and does not write KV.
   - The retired `zhihu.com/rss` endpoint is transparently converted from Zhihu Daily's public data.
   - The blocked `36kr.com/feed` endpoint is transparently converted from 36Kr's current 24-hour hot-list data.

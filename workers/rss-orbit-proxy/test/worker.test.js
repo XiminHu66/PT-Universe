@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import worker, { FEEDS, refreshAllFeeds, shouldRunScheduledRefresh, validateCustomFeedUrl } from "../src/index.js";
+import worker, { FEEDS, mergeFeedHistory, refreshAllFeeds, shouldRunScheduledRefresh, validateCustomFeedUrl } from "../src/index.js";
 
 function createKv(initial = {}) {
   const values = new Map();
@@ -36,6 +36,22 @@ function createCtx() {
 }
 
 const RSS = "<rss><channel><title>Test</title><item><title>Hello</title></item></channel></rss>";
+const rssWithItems = items => `<rss><channel><title>Test</title>${items.map(({ id, title = id }) => `<item><guid>${id}</guid><title>${title}</title><link>https://example.com/${id}</link></item>`).join("")}</channel></rss>`;
+
+test("feed history merges old entries and caps each source at 100", () => {
+  const cached = rssWithItems(Array.from({ length: 100 }, (_, index) => ({ id: `old-${index}` })));
+  const fresh = rssWithItems([
+    { id: "new-1" },
+    { id: "new-2" },
+    { id: "old-0", title: "updated duplicate" },
+  ]);
+  const merged = mergeFeedHistory(fresh, cached);
+  assert.equal((merged.match(/<item>/g) || []).length, 100);
+  assert.match(merged, /<guid>new-1<\/guid>/);
+  assert.match(merged, /<guid>new-2<\/guid>/);
+  assert.equal((merged.match(/<guid>old-0<\/guid>/g) || []).length, 1);
+  assert.doesNotMatch(merged, /<guid>old-99<\/guid>/);
+});
 
 test("health endpoint reports Cloudflare KV status", async () => {
   const kv = createKv({
@@ -158,21 +174,25 @@ test("normal reads come directly from KV without an upstream request", async () 
   }
 });
 
-test("manual refresh bypasses KV and does not spend a KV write", async () => {
+test("manual refresh merges history and persists the 100-item snapshot", async () => {
   const originalFetch = globalThis.fetch;
+  const fresh = rssWithItems([{ id: "new" }]);
+  const cached = rssWithItems([{ id: "old" }]);
   globalThis.fetch = async url => {
     assert.equal(url, FEEDS.sspai);
-    return new Response(RSS, { headers: { "Content-Type": "application/rss+xml" } });
+    return new Response(fresh, { headers: { "Content-Type": "application/rss+xml" } });
   };
   try {
-    const kv = createKv({ "feed:sspai": "<rss>old</rss>" });
+    const kv = createKv({ "feed:sspai": cached });
     const response = await worker.fetch(new Request("https://proxy.example/feed/sspai?refresh=1", {
       headers: { Origin: "https://ximinhu66.github.io" },
     }), { RSS_CACHE: kv }, createCtx());
     assert.equal(response.status, 200);
     assert.equal(response.headers.get("X-RSS-Cache"), "REFRESH");
-    assert.equal(await response.text(), RSS);
-    assert.equal(kv.writes.length, 0);
+    const text = await response.text();
+    assert.match(text, /<guid>new<\/guid>/);
+    assert.match(text, /<guid>old<\/guid>/);
+    assert.equal(kv.writes.filter(write => write.key === "feed:sspai").length, 1);
   } finally {
     globalThis.fetch = originalFetch;
   }

@@ -2003,8 +2003,7 @@ async function loadNews(force=false){
   }
 }
 
-const LIVE_API_LIMIT=100;
-const LIVE_HISTORY_HOURS=24;
+const LIVE_API_LIMIT=200;
 const LIVE_HISTORY_MAX=200;
 const LIVE_API=`https://pt-universe-api.summer07-nanjolno.workers.dev/api/live/wallstreet`;
 function normalizeLivePayload(j){
@@ -2023,10 +2022,9 @@ function readLiveHistory(){
   }catch(e){return []}
 }
 function mergeLiveHistory(fresh,history=liveNews){
-  const cutoff=Date.now()-LIVE_HISTORY_HOURS*60*60*1000;
   const seen=new Set(),out=[];
   for(const x of [...fresh,...history].sort((a,b)=>b.date-a.date)){
-    if(!x?.date?.getTime?.()||x.date.getTime()<cutoff)continue;
+    if(!x?.date?.getTime?.())continue;
     const key=x.id?`id:${x.id}`:`t:${x.date.getTime()}:${x.title}`;
     if(seen.has(key))continue;
     seen.add(key);out.push(x);

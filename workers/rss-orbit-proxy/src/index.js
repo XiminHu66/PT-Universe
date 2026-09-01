@@ -8,6 +8,7 @@ const PACIFIC_TIME_ZONE = "America/Los_Angeles";
 const ACTIVE_HOURS = new Set([0, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]);
 const FEED_KEY_PREFIX = "feed:";
 const STATUS_KEY = "status";
+const MAX_ITEMS_PER_FEED = 100;
 const MAX_FEED_BYTES = 5 * 1024 * 1024;
 const FETCH_BATCH_SIZE = 6;
 const MAX_REDIRECTS = 3;
@@ -168,6 +169,53 @@ function looksLikeFeed(text) {
   return opening.includes("<rss") || opening.includes("<feed") || opening.includes("<rdf:rdf");
 }
 
+function feedEntryBlocks(xml) {
+  const tag = /<item\b/i.test(xml) ? "item" : /<entry\b/i.test(xml) ? "entry" : "";
+  if (!tag) return { tag: "", blocks: [], start: -1, end: -1 };
+  const pattern = new RegExp(`<${tag}\\b[\\s\\S]*?<\\/${tag}\\s*>`, "gi");
+  const matches = [...xml.matchAll(pattern)];
+  return {
+    tag,
+    blocks: matches.map(match => match[0]),
+    start: matches[0]?.index ?? -1,
+    end: matches.length ? (matches.at(-1).index + matches.at(-1)[0].length) : -1,
+  };
+}
+
+function entryValue(block, tag) {
+  const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = block.match(new RegExp(`<${escaped}\\b[^>]*>([\\s\\S]*?)<\\/${escaped}\\s*>`, "i"));
+  return (match?.[1] || "")
+    .replace(/^\s*<!\[CDATA\[|\]\]>\s*$/g, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function entryKey(block) {
+  const atomLink = block.match(/<link\b[^>]*\bhref=["']([^"']+)["']/i)?.[1] || "";
+  const link = atomLink || entryValue(block, "link");
+  const identity = link || entryValue(block, "guid") || entryValue(block, "id");
+  if (identity) return `id:${identity.trim().toLowerCase()}`;
+  return `title:${entryValue(block, "title").toLowerCase()}|${entryValue(block, "pubDate") || entryValue(block, "published") || entryValue(block, "updated")}`;
+}
+
+export function mergeFeedHistory(freshXml, cachedXml = "", limit = MAX_ITEMS_PER_FEED) {
+  const fresh = feedEntryBlocks(freshXml);
+  if (!fresh.blocks.length) return freshXml;
+  const cached = feedEntryBlocks(cachedXml);
+  const seen = new Set();
+  const blocks = [];
+  for (const block of [...fresh.blocks, ...(cached.tag === fresh.tag ? cached.blocks : [])]) {
+    const key = entryKey(block);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    blocks.push(block);
+    if (blocks.length >= limit) break;
+  }
+  return `${freshXml.slice(0, fresh.start)}${blocks.join("\n")}${freshXml.slice(fresh.end)}`;
+}
+
 function escapeXml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -296,16 +344,20 @@ async function readCachedFeed(env, feedId) {
   return result?.value ? result : null;
 }
 
-async function fetchAndStoreFeed(env, feedId, upstreamUrl, fetchedAt) {
-  const response = await fetchUpstream(upstreamUrl);
+async function fetchAndStoreFeed(env, feedId, upstreamUrl, fetchedAt, preparedResponse = null) {
+  const response = preparedResponse || await fetchUpstream(upstreamUrl);
   if (!response.ok) throw new Error(`upstream_${response.status}`);
-  const { text, size } = await readTextBounded(response);
+  const { text } = await readTextBounded(response);
   if (!text.trim() || !looksLikeFeed(text)) throw new Error("invalid_feed");
+  const cached = await readCachedFeed(env, feedId);
+  const merged = mergeFeedHistory(text, cached?.value || "");
+  const size = new TextEncoder().encode(merged).byteLength;
+  const itemCount = feedEntryBlocks(merged).blocks.length;
   const contentType = response.headers.get("Content-Type") || "application/rss+xml; charset=utf-8";
-  await env.RSS_CACHE.put(`${FEED_KEY_PREFIX}${feedId}`, text, {
-    metadata: { fetchedAt, contentType, source: upstreamUrl, bytes: size },
+  await env.RSS_CACHE.put(`${FEED_KEY_PREFIX}${feedId}`, merged, {
+    metadata: { fetchedAt, contentType, source: upstreamUrl, bytes: size, itemCount },
   });
-  return { feedId, ok: true, bytes: size, fetchedAt };
+  return { feedId, ok: true, bytes: size, fetchedAt, itemCount, text: merged, contentType };
 }
 
 export async function refreshAllFeeds(env, fetchedAt = new Date().toISOString()) {
@@ -336,6 +388,7 @@ export async function refreshAllFeeds(env, fetchedAt = new Date().toISOString())
       ok: result.ok,
       fetched_at: result.ok ? result.fetchedAt : fetchedAt,
       bytes: result.ok ? result.bytes : undefined,
+      item_count: result.ok ? result.itemCount : undefined,
       error: result.ok ? undefined : result.error,
     }])),
   };
@@ -436,12 +489,14 @@ export default {
         fetchedAt: new Date().toISOString(),
       };
 
-      if (!forceRefresh && env.RSS_CACHE) {
-        const { text, size } = await readTextBounded(upstream);
-        if (!text.trim() || !looksLikeFeed(text)) throw new Error("invalid_feed");
-        metadata.bytes = size;
-        ctx.waitUntil(env.RSS_CACHE.put(`${FEED_KEY_PREFIX}${feedId}`, text, { metadata }));
-        return feedResponse(request, text, metadata, "MISS", 200, method === "HEAD");
+      if (env.RSS_CACHE) {
+        const stored = await fetchAndStoreFeed(env, feedId, upstreamUrl, metadata.fetchedAt, upstream);
+        return feedResponse(request, stored.text, {
+          ...metadata,
+          contentType: stored.contentType,
+          bytes: stored.bytes,
+          itemCount: stored.itemCount,
+        }, forceRefresh ? "REFRESH" : "MISS", 200, method === "HEAD");
       }
 
       return feedResponse(request, upstream.body, metadata, "REFRESH", 200, method === "HEAD");

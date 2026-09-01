@@ -176,7 +176,21 @@ async function proxyRoute(request:Request,url:URL){
     if(!/^-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?$/.test(from)||!/^-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?$/.test(to))return error(request,'路线坐标无效');
     target=new URL(`https://router.project-osrm.org/route/v1/driving/${from};${to}`);target.search='overview=false&steps=false&alternatives=true';
   }else if(url.pathname==='/api/live/wallstreet'){
-    target=new URL('https://api-one-wscn.awtmt.com/apiv1/content/lives');target.search='channel=global-channel&client=pc&limit=24';
+    const endpoint='https://api-one-wscn.awtmt.com/apiv1/content/lives';
+    const firstUrl=new URL(endpoint);firstUrl.search='channel=global-channel&client=pc&limit=100&first_page=true';
+    const firstResponse=await fetch(firstUrl,{headers:common,cf:{cacheEverything:true,cacheTtl:300}});
+    if(!firstResponse.ok)return new Response(firstResponse.body,{status:firstResponse.status,headers:{'content-type':firstResponse.headers.get('content-type')||'application/json',...cors(request)}});
+    const payload=await firstResponse.json<any>(),firstItems=Array.isArray(payload?.data?.items)?payload.data.items:[],cursor=payload?.data?.next_cursor;
+    let items=firstItems;
+    if(cursor&&firstItems.length){
+      const secondUrl=new URL(endpoint);secondUrl.search=new URLSearchParams({channel:'global-channel',client:'pc',limit:'100',cursor:String(cursor)}).toString();
+      const secondResponse=await fetch(secondUrl,{headers:common,cf:{cacheEverything:true,cacheTtl:300}});
+      if(secondResponse.ok){
+        const secondPayload=await secondResponse.json<any>(),secondItems=Array.isArray(secondPayload?.data?.items)?secondPayload.data.items:[];
+        const seen=new Set<string>();items=[...firstItems,...secondItems].filter((item:any)=>{const key=String(item?.id||`${item?.display_time||''}:${item?.content_text||item?.content||''}`);if(seen.has(key))return false;seen.add(key);return true}).slice(0,200);
+      }
+    }
+    return reply(request,{...payload,data:{...payload.data,items}},200,{'cache-control':'public,max-age=120'});
   }
   if(!target)return null;
   const upstream=await fetch(target,{headers:common,cf:{cacheEverything:true,cacheTtl:300}});
@@ -185,7 +199,7 @@ async function proxyRoute(request:Request,url:URL){
 
 function parseRss(xml:string,source:{id:string;label:string;category:string;url:string}){
   const blocks=xml.match(/<(?:item|entry)\b[\s\S]*?<\/(?:item|entry)>/gi)||[];
-  return blocks.slice(0,24).map((block,index)=>{
+  return blocks.slice(0,100).map((block,index)=>{
     const pick=(tag:string)=>text((block.match(new RegExp(`<${tag}(?:\\s[^>]*)?>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/${tag}>`,'i'))||[])[1]);
     const link=pick('link')||((block.match(/<link[^>]+href=["']([^"']+)/i)||[])[1]||'');
     const date=pick('pubDate')||pick('published')||pick('updated');

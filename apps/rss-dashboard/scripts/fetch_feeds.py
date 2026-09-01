@@ -8,7 +8,7 @@ import hashlib
 import json
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 from time import mktime
@@ -20,9 +20,7 @@ from bs4 import BeautifulSoup
 
 ROOT = Path(__file__).resolve().parents[1]
 USER_AGENT = "PT-Universe-RSS/1.0 (+https://github.com/XiminHu66/PT-Universe)"
-MAX_PER_SOURCE = 60
-MAX_TOTAL = 700
-RETENTION_DAYS = 45
+MAX_PER_SOURCE = 100
 
 
 def clean_text(value: str | None, limit: int = 620) -> str:
@@ -155,12 +153,14 @@ def main() -> None:
             results.append(future.result())
 
     now = datetime.now(timezone.utc)
-    cutoff = now - timedelta(days=RETENTION_DAYS)
     items: list[dict] = []
     states: dict[str, dict] = {}
     for result in results:
         source = result["source"]
-        source_items = result["items"] if result["ok"] else previous_by_source.get(source["id"], [])
+        current_items = result["items"] if result["ok"] else []
+        history_items = previous_by_source.get(source["id"], [])
+        merged = {item["id"]: item for item in [*history_items, *current_items] if item.get("id")}
+        source_items = sorted(merged.values(), key=lambda item: item.get("published_at", ""), reverse=True)[:MAX_PER_SOURCE]
         items.extend(source_items)
         states[source["id"]] = {
             **source,
@@ -179,7 +179,7 @@ def main() -> None:
         except (KeyError, TypeError, ValueError):
             return now
 
-    fresh = [item for item in unique.values() if stamp(item) >= cutoff]
+    fresh = list(unique.values())
     fresh.sort(key=stamp, reverse=True)
     output = {
         "schema": 1,
@@ -188,10 +188,10 @@ def main() -> None:
             "source_count": len(sources),
             "healthy_count": sum(1 for state in states.values() if state["status"] == "ok"),
             "cached_count": sum(1 for state in states.values() if state["status"] == "cached"),
-            "item_count": min(len(fresh), MAX_TOTAL),
+            "item_count": len(fresh),
         },
         "sources": [states[source["id"]] for source in sources],
-        "items": fresh[:MAX_TOTAL],
+        "items": fresh,
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(output, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

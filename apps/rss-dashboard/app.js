@@ -1,5 +1,6 @@
 const DATA_URL='data/feed.json';
 const DEFAULT_PROXY_URL='https://rss-orbit-proxy.summer07-nanjolno.workers.dev';
+const MAX_ITEMS_PER_SOURCE=100;
 const DEFAULT_CATEGORIES={finance:{name:'财经',icon:'↗',color:'#dd8a35'},world:{name:'时事',icon:'◎',color:'#5b8fd7'},tech:{name:'科技',icon:'◇',color:'#7b72d8'},game:{name:'游戏',icon:'✦',color:'#cf6f85'},other:{name:'其他',icon:'○',color:'#7c8b83'}};
 const KEYS={read:'pt.rss.read',saved:'pt.rss.saved',hidden:'pt.rss.hidden',deleted:'pt.rss.deleted',sourceOverrides:'pt.rss.sourceOverrides',categories:'pt.rss.categories',health:'pt.rss.health',theme:'pt.rss.theme',custom:'pt.rss.custom',customItems:'pt.rss.customItems',readerRatio:'pt.rss.readerRatio',fontScale:'pt.rss.fontScale',proxyUrl:'pt.rss.proxyUrl'};
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
@@ -172,19 +173,27 @@ async function fetchText(url,sourceId='',force=false){
 }
 async function parseCustomFeed(xml,source){
   const doc=new DOMParser().parseFromString(xml,'text/xml');if(doc.querySelector('parsererror'))throw new Error('RSS XML 无法解析');
-  const nodes=[...doc.querySelectorAll('item, entry')].slice(0,60);if(!nodes.length)throw new Error('没有找到文章');
+  const nodes=[...doc.querySelectorAll('item, entry')].slice(0,MAX_ITEMS_PER_SOURCE);if(!nodes.length)throw new Error('没有找到文章');
   const pick=(node,names)=>{for(const name of names){const value=node.querySelector(name)?.textContent?.trim();if(value)return value}return ''};
   const items=await Promise.all(nodes.map(async node=>{const title=pick(node,['title']),rawLink=node.querySelector('link')?.getAttribute('href')||pick(node,['link']),link=safeUrl(rawLink,source.url),summaryHtml=pick(node,['description','summary','content\\:encoded','content']),date=pick(node,['pubDate','published','updated']);if(!title||!link)return null;const summaryDoc=new DOMParser().parseFromString(summaryHtml,'text/html'),rawImage=node.querySelector('enclosure[type^="image"]')?.getAttribute('url')||node.querySelector('media\\:thumbnail, media\\:content')?.getAttribute('url')||summaryDoc.querySelector('img')?.getAttribute('src')||'',image=rawImage?safeUrl(rawImage,link):'';return{id:await stableId(source.id,link,title),source_id:source.id,source:source.name,category:source.category,title,summary:summaryDoc.body.textContent.trim().replace(/\\s+/g,' ').slice(0,620),link,image,author:pick(node,['author name','dc\\:creator','author']),published_at:Number.isFinite(new Date(date).getTime())?new Date(date).toISOString():new Date().toISOString()}}));
   return items.filter(Boolean);
+}
+function mergeSourceHistory(fresh,history,sourceId){
+  const merged=new Map();
+  [...fresh,...history.filter(x=>x.source_id===sourceId)]
+    .sort((a,b)=>new Date(b.published_at)-new Date(a.published_at))
+    .forEach(item=>{if(item?.id&&!merged.has(item.id))merged.set(item.id,item)});
+  return [...merged.values()].slice(0,MAX_ITEMS_PER_SOURCE);
 }
 function healthError(error){const value=String(error?.message||error||'读取失败').replace(/^upstream_/,'源站 HTTP ').replace(/^compat_upstream_/,'兼容源 HTTP ').replace('compat_invalid_data','兼容源数据异常').replace('Failed to fetch','网络或源站拒绝访问').replace('invalid_feed','不是有效的 RSS');return value.slice(0,72)}
 async function refreshCustomFeed(source,quiet=false){
   setSourceHealth(source.id,{state:'checking'},false);if($('#manageDialog').open)renderManager();
   try{
     const {text,meta}=await fetchText(source.url),items=await parseCustomFeed(text,source);
-    customItems=[...items,...customItems.filter(x=>x.source_id!==source.id)].slice(0,500);store.set(KEYS.customItems,customItems);
-    setSourceHealth(source.id,{state:meta.cache==='STALE'?'stale':'ok',item_count:items.length,checked_at:meta.fetchedAt,cache:meta.cache,error:''});
-    if(!quiet)toast(`${source.name}：读取 ${items.length} 篇`);return true;
+    const retained=mergeSourceHistory(items,customItems,source.id);
+    customItems=[...retained,...customItems.filter(x=>x.source_id!==source.id)];store.set(KEYS.customItems,customItems);
+    setSourceHealth(source.id,{state:meta.cache==='STALE'?'stale':'ok',item_count:retained.length,checked_at:meta.fetchedAt,cache:meta.cache,error:''});
+    if(!quiet)toast(`${source.name}：保留 ${retained.length} 篇`);return true;
   }catch(error){setSourceHealth(source.id,{state:'error',checked_at:new Date().toISOString(),error:healthError(error)});if(!quiet)toast(`${source.name} 暂时无法读取`);return false}
 }
 async function refreshCustomFeeds(){const sources=customFeeds.filter(x=>!hiddenIds.has(x.id));if(!sources.length)return{sourceCount:0,totalSources:0,itemCount:0};const results=await Promise.all(sources.map(async source=>({source,ok:await refreshCustomFeed(source,true)}))),successful=results.filter(x=>x.ok);return{sourceCount:successful.length,totalSources:sources.length,itemCount:successful.reduce((sum,x)=>sum+customItems.filter(item=>item.source_id===x.source.id).length,0)}}
@@ -193,8 +202,9 @@ async function refreshDefaultFeed(source,force=false){
   setSourceHealth(source.id,{state:'checking'},false);
   try{
     const proxyId=source.proxy_id===false?'':source.id,{text,meta}=await fetchText(source.url,proxyId,force),items=await parseCustomFeed(text,source),stale=meta.cache==='STALE';
-    setSourceHealth(source.id,{state:stale?'stale':'ok',item_count:items.length,checked_at:meta.fetchedAt,cache:meta.cache,error:''});
-    return items.length?{source,items,fresh:!stale}:null;
+    const retained=mergeSourceHistory(items,data.items,source.id);
+    setSourceHealth(source.id,{state:stale?'stale':'ok',item_count:retained.length,checked_at:meta.fetchedAt,cache:meta.cache,error:''});
+    return retained.length?{source,items:retained,fresh:!stale}:null;
   }catch(error){setSourceHealth(source.id,{state:'error',checked_at:new Date().toISOString(),error:healthError(error)});return null}
 }
 async function refreshDefaultFeeds(force=false){
