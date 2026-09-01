@@ -170,7 +170,8 @@
       background:color-mix(in srgb,var(--accent) 15%,var(--panel2));color:var(--text);
       border-color:color-mix(in srgb,var(--accent) 45%,var(--line))
     }
-    .upcoming-home-list{display:grid;gap:7px;align-content:start}
+    .upcomingcard{display:flex;flex-direction:column}
+    .upcoming-home-list{display:grid;gap:7px;align-content:start;flex:1;min-height:0;overflow:auto;padding-right:2px}
     .upcoming-row{
       min-width:0;display:grid;grid-template-columns:52px minmax(0,1fr) auto auto;
       gap:9px;align-items:center;border:1px solid var(--line);
@@ -249,13 +250,14 @@
       .upcoming-addgrid{grid-template-columns:1fr}
       .upcoming-addgrid .wide{grid-column:auto}
     }
+    .discover{display:flex;flex-direction:column}
     .discover-grid{
-      height:calc(100% - 62px);display:grid;
+      flex:1;min-height:0;display:grid;
       grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:1fr;
       gap:10px
     }
     .discovery-item{
-      border:1px solid var(--line);border-radius:16px;padding:13px 14px;
+      border:1px solid var(--line);border-radius:16px;padding:11px 12px;
       background:color-mix(in srgb,var(--panel2) 58%,transparent);
       min-width:0;overflow:hidden;display:flex;flex-direction:column
     }
@@ -265,41 +267,22 @@
       font-size:13px;font-weight:900;border:1px solid var(--line);background:var(--panel)
     }
     .discover-icon.shop{background:color-mix(in srgb,#f4a340 13%,var(--panel))}
-    .discover-icon.youtube{background:color-mix(in srgb,#ff4e55 12%,var(--panel));color:#d63a41}
-    .discover-icon.hn{background:color-mix(in srgb,#ff8b35 14%,var(--panel));color:#cf681e}
+    .discover-icon.vtuber{background:color-mix(in srgb,#48bff2 16%,var(--panel));color:#1682b0}
+    .discover-icon.music{background:color-mix(in srgb,#d870df 14%,var(--panel));color:#a447aa}
     .discover-icon.github{background:color-mix(in srgb,var(--accent) 12%,var(--panel))}
-    .discover-head .eyebrow{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .discover-head .eyebrow{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;font-weight:850;letter-spacing:.02em;text-transform:none;color:var(--text)}
     .eyebrow{font-size:11px;letter-spacing:.10em;text-transform:uppercase;color:var(--muted)}
-    .discovery-item h3{
-      font-size:16px;margin:7px 0 5px;line-height:1.28;
-      display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden
-    }
-    .discovery-item p{
-      font-size:13px;color:var(--muted);margin:0;line-height:1.48;
-      display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden
-    }
-    .tinyrow{display:flex;gap:7px;margin-top:auto;padding-top:10px}
-    .tinyrow a,.tinyrow button{
-      border:1px solid var(--line);border-radius:10px;padding:7px 10px;
-      font-size:12px;background:var(--panel2)
-    }
-    .live-strip{
-      min-height:48px;margin-top:10px;border-top:1px solid var(--line);
-      padding-top:9px;display:flex;align-items:center;gap:10px;
-      font-size:13px;color:var(--muted)
-    }
-    .live-strip::before{
-      content:"LIVE";font-size:10px;font-weight:850;letter-spacing:.08em;
-      padding:4px 6px;border-radius:7px;background:color-mix(in srgb,var(--bad) 13%,transparent);
-      color:var(--bad)
-    }
-    .live-strip b{color:var(--text);font-weight:800;font-size:14px}
-    .live-strip #liveHint{font-size:12px}
-    .live-strip button,.live-strip a{
-      border:1px solid var(--line);background:var(--panel2);color:var(--text);
-      border-radius:9px;padding:6px 9px;font-size:12px
-    }
-    .live-strip button{margin-left:auto}.live-strip a{margin-left:0}
+    .discover-rank-list{display:grid;gap:2px;margin-top:5px;min-height:0;overflow:auto}
+    .discover-rank-row{display:grid;grid-template-columns:25px minmax(0,1fr);gap:7px;align-items:center;border-radius:10px;padding:3px 4px;text-decoration:none;color:var(--text)}
+    .discover-rank-row:hover{background:color-mix(in srgb,var(--accent) 9%,transparent)}
+    .discover-rank-no{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;background:var(--panel);border:1px solid var(--line);font-size:12px;font-weight:900;color:var(--muted)}
+    .discover-rank-row:first-child .discover-rank-no{background:color-mix(in srgb,#f6c85f 22%,var(--panel));color:#9a6810}
+    .discover-rank-copy{min-width:0}.discover-rank-copy b{display:block;font-size:15px;line-height:1.28;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .discover-rank-copy small{display:block;margin-top:2px;font-size:12px;line-height:1.3;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .discover-rank-row.live .discover-rank-no{color:var(--bad);background:color-mix(in srgb,var(--bad) 13%,var(--panel))}
+    .discover-source-strip{margin-top:8px;border-top:1px solid var(--line);padding-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+    .discover-source-strip b{font-size:13px;color:var(--text)}
+    .discover-source-strip a{color:var(--muted);text-decoration:none}
     .workspace{height:100%;display:grid;grid-template-columns:1.12fr .88fr;gap:12px}.bigcard{border-radius:var(--radius);padding:18px;min-height:0;overflow:auto}.section-title{display:flex;align-items:center;gap:10px;margin-bottom:14px}.section-title h2{margin:0;font-size:17px}.section-title p{margin-left:auto;color:var(--muted);font-size:12px}
     .focus-main{display:flex;flex-direction:column;min-height:100%}.focus-target{display:flex;gap:8px}.focus-target input{flex:1}.focusclock{font-size:78px;font-weight:900;letter-spacing:-5px;text-align:center;margin:24px 0 12px}.focusactions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}.focusactions button{padding:9px 14px}.preset-row{display:flex;justify-content:center;gap:7px;margin-top:10px}.preset-row button{border:0;background:transparent;color:var(--muted);font-size:11px;padding:5px 7px}.preset-row button:hover{color:var(--text)}.focus-progress{height:5px;border-radius:99px;background:color-mix(in srgb,var(--panel2) 90%,transparent);overflow:hidden;margin:18px 0}.focus-progress>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0}.focus-stats{margin-top:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.focus-stat{border:1px solid var(--line);border-radius:14px;padding:10px;background:var(--panel2)}.focus-stat span{font-size:10px;color:var(--muted);display:block}.focus-stat b{font-size:18px}
     .focus-desk label{font-size:10px;color:var(--muted);display:block;margin:9px 0 5px}.focus-desk textarea{height:90px;border:1px solid var(--line);border-radius:13px;padding:10px;background:var(--panel2)}.noise-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:8px}.noise-row button{border:1px solid var(--line);background:var(--panel2);border-radius:12px;padding:10px 8px;font-size:13px}.noise-row button.active{outline:1px solid var(--accent)}.session-log{margin-top:12px}.session-item{display:flex;align-items:center;gap:8px;border-top:1px solid var(--line);padding:7px 0;font-size:10px}.session-item b{max-width:55%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.session-item span{color:var(--muted);margin-left:auto}
@@ -323,7 +306,7 @@
     .day-checklist h4{font-size:15px;margin:0}.day-checklist .day-sub{font-size:11px;color:var(--muted);margin:4px 0 12px}.calendar-add{display:flex;gap:7px;margin-bottom:10px}.calendar-add input{flex:1}.calendar-task-list{display:grid;gap:7px;max-height:300px;overflow:auto}.calendar-task{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:9px;background:var(--panel)}.calendar-task input{accent-color:var(--accent)}.calendar-task span{font-size:12px}.calendar-task.done span{text-decoration:line-through;opacity:.55}.calendar-task button{border:0;background:transparent;color:var(--muted);font-size:15px}.calendar-task-empty{border:1px dashed var(--line);border-radius:12px;padding:18px;text-align:center;color:var(--muted);font-size:11px}
 
     .modal{position:fixed;inset:0;background:rgba(0,0,0,.62);display:none;place-items:center;padding:18px;z-index:20}.modal.open{display:grid}.modalcard{width:min(920px,96vw);max-height:90vh;border-radius:22px;padding:16px;overflow:auto}.modaltop{display:flex;align-items:center;margin-bottom:10px}.modaltop h3{margin:0}.modaltop button{margin-left:auto}.video{aspect-ratio:16/9;width:100%;border:0;border-radius:16px;background:#000}.event-editor-list{display:grid;gap:7px;margin-top:12px}.event-row{display:grid;grid-template-columns:1fr 160px auto;gap:7px;align-items:center}.event-row button{border:1px solid var(--line);background:var(--panel2);border-radius:10px;padding:8px}.muted{color:var(--muted)}
-    @media(max-width:1100px){.topbar{grid-template-columns:300px minmax(0,1fr) 84px}.header-actions{gap:4px}.header-weather{grid-template-columns:305px minmax(250px,1fr);grid-template-rows:58px 1fr}.hw-metric{min-width:82px;padding:3px 9px}.header-forecast{grid-template-columns:repeat(7,minmax(78px,1fr));overflow-x:auto}.header-day{padding:7px 8px}.calendar-quick{display:inline-grid}.dashboard{grid-template-columns:1fr 1fr;grid-template-rows:minmax(320px,1.15fr) 1fr 1fr}.homecalendar{grid-column:1/span 2;grid-row:1}.memo{grid-column:1;grid-row:2}.home-links-card{grid-column:2;grid-row:2}.upcomingcard{grid-column:1;grid-row:3}.discover{grid-column:2;grid-row:3}.discover-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+    @media(max-width:1100px){.topbar{grid-template-columns:300px minmax(0,1fr) 84px}.header-actions{gap:4px}.header-weather{grid-template-columns:305px minmax(250px,1fr);grid-template-rows:58px 1fr}.hw-metric{min-width:82px;padding:3px 9px}.header-forecast{grid-template-columns:repeat(7,minmax(78px,1fr));overflow-x:auto}.header-day{padding:7px 8px}.calendar-quick{display:inline-grid}.dashboard{grid-template-columns:1fr 1fr;grid-template-rows:minmax(320px,1.15fr) 1fr 1.35fr}.homecalendar{grid-column:1/span 2;grid-row:1}.memo{grid-column:1;grid-row:2}.home-links-card{grid-column:2;grid-row:2}.upcomingcard{grid-column:1;grid-row:3}.discover{grid-column:2;grid-row:3}.discover-grid{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}}
 
 
     /* v7 · 非金融看板区域整体字号放大 */
@@ -524,7 +507,7 @@
     .link-edit-row button{border:1px solid var(--line);background:var(--panel2);border-radius:10px;padding:9px}
     .add-link-row{display:grid;grid-template-columns:64px 1fr 1.8fr auto;gap:7px;align-items:end}
 
-    @media(max-width:740px){html,body{overflow:hidden}.app{grid-template-columns:1fr;grid-template-rows:1fr 68px;padding:8px;gap:8px}.sidebar{grid-row:2;border-radius:21px;flex-direction:row;justify-content:flex-start;padding:6px;order:2;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}.sidebar::-webkit-scrollbar{display:none}.logo,.spacer,.sidebar .themeSide{display:none}.navbtn{width:52px;min-width:52px;flex:0 0 52px;height:54px}.navicon{font-size:18px}.navbtn span{font-size:10px}.shell{grid-row:1;min-height:0}.topbar{min-height:92px;padding:7px 9px;grid-template-columns:118px 1fr 76px;gap:7px}.header-actions{gap:4px}.header-clock{padding:0 8px}.header-clock-photo{display:none}.header-clock .time{font-size:32px;letter-spacing:-1.6px}.header-clock .date{font-size:9px;margin-top:5px}.header-clock .greet{display:none}.header-weather{display:block;padding:0}.hw-current{grid-template-columns:38px auto minmax(0,1fr);padding:0 5px;gap:7px;height:100%}.hw-icon{width:36px;height:36px;border-radius:11px;font-size:29px}.hw-temp{font-size:29px;letter-spacing:-1.2px}.hw-condition{font-size:10px}.hw-place{font-size:9px;max-width:62px}.hw-desc{gap:3px;font-size:8px}.hw-desc #weatherMeta::before{margin-right:3px}.hw-metrics,.header-forecast{display:none}.header-actions .iconbtn{width:36px;height:36px}.calendar-quick{display:inline-grid}.calendar-modal-layout{grid-template-columns:1fr}.calendar-panel,.day-checklist{min-height:0}.calendar-grid button{min-height:36px}.dashboard{display:block;overflow:auto;padding-bottom:4px}.card{margin-bottom:9px;min-height:230px}.homecalendar{min-height:380px}.home-cal-body{grid-template-columns:1fr}.home-cal-month{padding-right:0;border-right:0}.home-today-panel{border-top:1px solid var(--line);padding-top:9px;margin-top:4px;min-height:130px}.home-calendar-grid button{height:34px}.home-links-card{min-height:310px}.event-list{grid-template-columns:repeat(3,minmax(115px,1fr));overflow:auto}.discover{min-height:390px}.workspace,.tools-layout{display:block;overflow:auto}.bigcard{margin-bottom:9px}.settings-grid{grid-template-columns:1fr}.focusclock{font-size:60px}.tool-grid{grid-template-columns:1fr 1fr}.event-row{grid-template-columns:1fr}.discover-grid{height:360px;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}.board-frame-wrap{border-radius:18px}.link-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.nexus-link{grid-template-columns:34px 1fr;min-height:82px;padding:10px}.nexus-link .li{width:34px;height:34px}.nexus-link .go{display:none}.link-edit-row,.add-link-row{grid-template-columns:54px 1fr}.link-edit-row input:nth-child(3),.add-link-row input:nth-child(3){grid-column:1/-1}.link-edit-row button,.add-link-row button{grid-column:1/-1}.links-actions{gap:4px}.links-actions a,.links-actions button{padding:6px 8px}}
+    @media(max-width:740px){html,body{overflow:hidden}.app{grid-template-columns:1fr;grid-template-rows:1fr 68px;padding:8px;gap:8px}.sidebar{grid-row:2;border-radius:21px;flex-direction:row;justify-content:flex-start;padding:6px;order:2;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}.sidebar::-webkit-scrollbar{display:none}.logo,.spacer,.sidebar .themeSide{display:none}.navbtn{width:52px;min-width:52px;flex:0 0 52px;height:54px}.navicon{font-size:18px}.navbtn span{font-size:10px}.shell{grid-row:1;min-height:0}.topbar{min-height:92px;padding:7px 9px;grid-template-columns:118px 1fr 76px;gap:7px}.header-actions{gap:4px}.header-clock{padding:0 8px}.header-clock-photo{display:none}.header-clock .time{font-size:32px;letter-spacing:-1.6px}.header-clock .date{font-size:9px;margin-top:5px}.header-clock .greet{display:none}.header-weather{display:block;padding:0}.hw-current{grid-template-columns:38px auto minmax(0,1fr);padding:0 5px;gap:7px;height:100%}.hw-icon{width:36px;height:36px;border-radius:11px;font-size:29px}.hw-temp{font-size:29px;letter-spacing:-1.2px}.hw-condition{font-size:10px}.hw-place{font-size:9px;max-width:62px}.hw-desc{gap:3px;font-size:8px}.hw-desc #weatherMeta::before{margin-right:3px}.hw-metrics,.header-forecast{display:none}.header-actions .iconbtn{width:36px;height:36px}.calendar-quick{display:inline-grid}.calendar-modal-layout{grid-template-columns:1fr}.calendar-panel,.day-checklist{min-height:0}.calendar-grid button{min-height:36px}.dashboard{display:block;overflow:auto;padding-bottom:4px}.card{margin-bottom:9px;min-height:230px}.homecalendar{min-height:380px}.home-cal-body{grid-template-columns:1fr}.home-cal-month{padding-right:0;border-right:0}.home-today-panel{border-top:1px solid var(--line);padding-top:9px;margin-top:4px;min-height:130px}.home-calendar-grid button{height:34px}.home-links-card{min-height:310px}.event-list{grid-template-columns:repeat(3,minmax(115px,1fr));overflow:auto}.discover{min-height:470px}.workspace,.tools-layout{display:block;overflow:auto}.bigcard{margin-bottom:9px}.settings-grid{grid-template-columns:1fr}.focusclock{font-size:60px}.tool-grid{grid-template-columns:1fr 1fr}.event-row{grid-template-columns:1fr}.discover-grid{height:auto;min-height:380px;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}.board-frame-wrap{border-radius:18px}.link-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.nexus-link{grid-template-columns:34px 1fr;min-height:82px;padding:10px}.nexus-link .li{width:34px;height:34px}.nexus-link .go{display:none}.link-edit-row,.add-link-row{grid-template-columns:54px 1fr}.link-edit-row input:nth-child(3),.add-link-row input:nth-child(3){grid-column:1/-1}.link-edit-row button,.add-link-row button{grid-column:1/-1}.links-actions{gap:4px}.links-actions a,.links-actions button{padding:6px 8px}}
     .sidebar{overflow-y:auto;scrollbar-width:none}.sidebar::-webkit-scrollbar{display:none}.sidebar .navbtn{flex:0 0 52px;height:52px}
     .nexus-workspace{height:100%;overflow:auto;padding:20px}.nexus-pagehead{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}.nexus-pagehead h2{margin:0 0 5px;font-size:26px}.nexus-pagehead p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}
     .nexus-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(300px,.85fr);gap:14px;align-items:start}.nexus-panel{min-width:0;border-radius:22px;padding:18px}.nexus-panel h3{margin:0;font-size:16px}.nexus-panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.nexus-muted{color:var(--muted);font-size:12px;line-height:1.55}.nexus-form{display:grid;gap:10px}.nexus-form label{display:grid;gap:6px;color:var(--muted);font-size:12px}.nexus-form .field{width:100%}.nexus-form-actions{display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-wrap:wrap}
@@ -629,17 +612,17 @@
       <article class="card glass upcomingcard">
         <div class="cardhead">
           <h2>接下来</h2>
-          <span class="sub"><button class="pillbtn" id="openUpcoming">未来 14 天</button></span>
+          <span class="sub"><button class="pillbtn" id="openUpcoming">未来 45 天</button></span>
         </div>
         <div class="upcoming-toolbar">
-          <button class="upcoming-filter active" data-upfilter="all">全部</button>
-          <button class="upcoming-filter" data-upfilter="game">🎮 游戏</button>
-          <button class="upcoming-filter" data-upfilter="event">🎥 活动</button>
-          <button class="upcoming-filter" data-upfilter="music">🎵 音乐</button>
-          <button class="upcoming-filter" data-upfilter="pinned">★ 关注</button>
+          <button class="upcoming-filter active" data-upfilter="all" data-up-label="全部">全部</button>
+          <button class="upcoming-filter" data-upfilter="game" data-up-label="🎮 游戏">🎮 游戏</button>
+          <button class="upcoming-filter" data-upfilter="event" data-up-label="🎥 展会">🎥 展会</button>
+          <button class="upcoming-filter" data-upfilter="music" data-up-label="🎵 艺人">🎵 艺人</button>
+          <button class="upcoming-filter" data-upfilter="pinned" data-up-label="★ 关注">★ 关注</button>
         </div>
         <div class="upcoming-home-list" id="upcomingHomeList">
-          <div class="upcoming-empty">正在读取未来 14 天的发售与活动…</div>
+          <div class="upcoming-empty">正在读取未来 45 天的游戏、展会与音乐动态…</div>
         </div>
         <div class="upcoming-foot">
           <i id="upcomingStatusDot" class="upcoming-status-dot loading"></i>
@@ -649,14 +632,14 @@
       </article>
 
       <article class="card glass discover">
-        <div class="cardhead"><h2>今日发现</h2><span class="sub"><button class="pillbtn" id="refreshDiscover">换一批</button></span></div>
+        <div class="cardhead"><h2>今日发现 · 排行榜</h2><span class="sub"><button class="pillbtn" id="refreshDiscover">刷新榜单</button></span></div>
         <div class="discover-grid">
-          <div class="discovery-item"><div class="discover-head"><span class="discover-icon shop">🛠</span><div class="eyebrow" id="productTag">GEEK PICK</div></div><h3 id="productName">加载中…</h3><p id="productDesc"></p><div class="tinyrow"><a id="productLink" target="_blank" rel="noopener">Amazon ↗</a></div></div>
-          <div class="discovery-item"><div class="discover-head"><span class="discover-icon youtube">▶</span><div class="eyebrow" id="channelTag">YOUTUBE PICK</div></div><h3 id="channelName">加载中…</h3><p id="channelDesc"></p><div class="tinyrow"><a id="channelLink" target="_blank" rel="noopener">打开频道 ↗</a></div></div>
-          <div class="discovery-item"><div class="discover-head"><span class="discover-icon hn">Y</span><div class="eyebrow">HACKER NEWS · LIVE</div></div><h3 id="hnTitle">抓取中…</h3><p id="hnDesc">来自官方 Hacker News Firebase API</p><div class="tinyrow"><a id="hnLink" target="_blank" rel="noopener">阅读 ↗</a></div></div>
-          <div class="discovery-item"><div class="discover-head"><span class="discover-icon github">&lt;/&gt;</span><div class="eyebrow">GITHUB · NEW</div></div><h3 id="ghTitle">抓取中…</h3><p id="ghDesc">最近创建、增长较快的公开项目</p><div class="tinyrow"><a id="ghLink" target="_blank" rel="noopener">Repo ↗</a></div></div>
+          <div class="discovery-item"><div class="discover-head"><span class="discover-icon shop">🛠</span><div class="eyebrow">3C 小物榜</div></div><div class="discover-rank-list" id="productRank"><div class="upcoming-empty">整理中…</div></div></div>
+          <div class="discovery-item"><div class="discover-head"><span class="discover-icon github">&lt;/&gt;</span><div class="eyebrow">GitHub 新星榜</div></div><div class="discover-rank-list" id="githubRank"><div class="upcoming-empty">抓取中…</div></div></div>
+          <div class="discovery-item"><div class="discover-head"><span class="discover-icon vtuber">▶</span><div class="eyebrow">VTuber 直播榜</div></div><div class="discover-rank-list" id="vtuberRank"><div class="upcoming-empty">读取官方日程…</div></div></div>
+          <div class="discovery-item"><div class="discover-head"><span class="discover-icon music">♫</span><div class="eyebrow">日本新曲榜</div></div><div class="discover-rank-list" id="musicRank"><div class="upcoming-empty">抓取中…</div></div></div>
         </div>
-        <div class="live-strip">Live Monitor · <b id="liveName">Nintendo</b><span id="liveHint">免 Key 检查</span><button id="openLive">检查直播</button><a id="livePage" target="_blank" rel="noopener">频道 ↗</a></div>
+        <div class="discover-source-strip"><b>实时榜单</b><span>官方数据源：</span><a href="https://schedule.hololive.tv/" target="_blank" rel="noopener">Hololive 日程</a><span>·</span><a href="https://github.com/explore" target="_blank" rel="noopener">GitHub</a><span>·</span><a href="https://www.billboard-japan.com/charts/" target="_blank" rel="noopener">Billboard JAPAN</a></div>
       </article>
     </div></section>
 
@@ -1016,8 +999,9 @@
       <label style="margin:0">范围</label>
       <select class="field" id="upcomingHorizon">
         <option value="7">7 天</option>
-        <option value="14" selected>14 天</option>
+        <option value="14">14 天</option>
         <option value="30">30 天</option>
+        <option value="45" selected>45 天</option>
         <option value="90">90 天</option>
         <option value="180">180 天</option>
       </select>
@@ -2315,7 +2299,7 @@ const state={
   tasks:store.get("tasks",[]),
   upcomingManual:migrateUpcomingManual(),
   upcomingPins:store.get("upcomingPins",[]),
-  upcomingHorizon:store.get("upcomingHorizon",14),
+  upcomingHorizon:store.get("upcomingHorizon",45),
   youtube:store.get("youtube",{name:"Nintendo",id:"UCGIY_O-8vW4rfX98KlMkvRg"}),
   bg:store.get("bg",{enabled:true,image:"",opacity:28,blur:0,x:50,y:50,zoom:100,mode:"cover"}),
   clockPhoto:store.get("clockPhoto",{enabled:true,image:"",opacity:88,x:50,y:50,zoom:100,mode:"cover"}),
@@ -3714,17 +3698,22 @@ async function followedArtistUpdates(){
   return rows;
 }
 async function fallbackTsugiMusic(){
-  const artists=readFollowedArtists();if(!artists.length)return[];
+  const artists=readFollowedArtists(),followed=new Set(artists.map(a=>String(a.name).toLowerCase()));
   try{
     const r=await fetch(`${TSUGI_MUSIC_URL}?v=${Date.now()}`,{cache:"no-store"});
     if(!r.ok)throw new Error("music HTTP "+r.status);
-    const j=await r.json(),names=new Set(artists.map(a=>String(a.name).toLowerCase())),generated=j.generated_at?new Date(j.generated_at):new Date();
-    if((Date.now()-generated.getTime())>4*86400000)return[];
-    return (j.recent_songs||j.new_releases||[]).filter(x=>names.has(String(x.artist||"").toLowerCase())).slice(0,12).map(x=>({
+    const j=await r.json(),generated=j.generated_at?new Date(j.generated_at):new Date();
+    if((Date.now()-generated.getTime())>7*86400000)return[];
+    const pool=[...(j.new_releases||[]),...(j.recent_songs||[]),...(j.weekly_chart||[]).filter(x=>x.is_new||Number(x.weeks)<=2)];
+    const seen=new Set(),rows=pool.filter(x=>{
+      const key=`${String(x.artist||"").toLowerCase()}::${String(x.title||"").toLowerCase()}`;
+      if(!x.title||seen.has(key))return false;seen.add(key);return true;
+    }).sort((a,b)=>Number(followed.has(String(b.artist||"").toLowerCase()))-Number(followed.has(String(a.artist||"").toLowerCase()))||Number(a.rank||999)-Number(b.rank||999));
+    return rows.slice(0,16).map(x=>({
       id:`tsugi-music-fallback:${x.id||x.artist+"-"+x.title}`,
       title:`${x.artist} · ${x.title}`,date:(x.release_date?new Date(x.release_date):generated).toISOString(),dateKey:x.release_date?String(x.release_date).slice(0,10):ymdLocal(generated),
       category:"music",source:x.source_label||"Tsugi · Billboard JAPAN",
-      url:x.youtube_music_url||x.url||`${TSUGI_BASE}/`,manual:false,priority:84,artist:x.artist
+      url:x.apple_music_url||x.youtube_music_url||x.url||`${TSUGI_BASE}/`,manual:false,priority:followed.has(String(x.artist||"").toLowerCase())?88:76,artist:x.artist
     }));
   }catch{return[]}
 }
@@ -3747,6 +3736,11 @@ function pickOfficialDate(text,keywords=[]){
   const clean=String(text||"").replace(/\s+/g," ");
   if(keywords.length&&!keywords.some(k=>clean.toLowerCase().includes(k.toLowerCase())))return null;
   return parseOfficialDates(clean)[0]||null;
+}
+async function fetchUpcomingText(url){
+  const response=await fetchWithTimeout(url,8000);
+  if(!response.ok)throw new Error(`official HTTP ${response.status}`);
+  return response.text();
 }
 const OFFICIAL_WATCHERS=[
   {id:"gamescom",title:"gamescom",category:"event",source:"gamescom · Official",url:"https://www.gamescom.global/en/"},
@@ -3826,10 +3820,15 @@ function smartHomeUpcoming(items){
   return result.sort((a,b)=>new Date(a.date)-new Date(b.date));
 }
 function renderUpcomingHome(){
-  const items=smartHomeUpcoming(filterUpcoming(upcomingWithin(14),upcomingHomeFilter)),host=$("#upcomingHomeList");
+  const horizonItems=upcomingWithin(45),items=smartHomeUpcoming(filterUpcoming(horizonItems,upcomingHomeFilter)),host=$("#upcomingHomeList");
   if(!host)return;
+  $$('[data-upfilter]').forEach(b=>{
+    const count=filterUpcoming(horizonItems,b.dataset.upfilter).length;
+    b.textContent=`${b.dataset.upLabel||b.textContent.replace(/\s+\d+$/,'')} ${count}`;
+  });
   if(!items.length){
-    host.innerHTML=`<div class="upcoming-empty">${upcomingHomeFilter==="pinned"?"还没有关注事件。点任意项目右侧的 ★ 即可 Pin。":"未来 14 天当前没有匹配项目。可手动添加，或稍后刷新自动发现。"}</div>`;
+    const empty={pinned:"还没有关注事件。点任意项目右侧的 ★ 即可关注。",game:"游戏源正在重新抓取；空缓存不会再阻止刷新。",event:"未来 45 天暂时没有新展会，已保留 90–180 天的官方展会入口。",music:"正在读取 Tsugi 新曲；即使没有关注艺人，也会显示本周音乐动态。"}[upcomingHomeFilter]||"未来 45 天当前没有匹配项目。可手动添加，或稍后刷新自动发现。";
+    host.innerHTML=`<div class="upcoming-empty">${empty}</div>`;
   }else{
     host.innerHTML=items.map(x=>`
       <div class="upcoming-row ${x.pinned?"pinned":""}" data-up-id="${escapeAttr(x.id)}">
@@ -3852,7 +3851,7 @@ function renderUpcomingHome(){
 }
 function renderUpcomingModal(){
   const host=$("#upcomingModalList");if(!host)return;
-  const horizon=Number($("#upcomingHorizon")?.value||state.upcomingHorizon||14);
+  const horizon=Number($("#upcomingHorizon")?.value||state.upcomingHorizon||45);
   const items=filterUpcoming(upcomingWithin(horizon),upcomingModalFilter);
   if(!items.length){host.innerHTML='<div class="upcoming-empty">这个范围内暂无匹配项目。</div>';return}
   host.innerHTML=items.map(x=>`
@@ -3900,27 +3899,31 @@ async function fetchTsugiGames(){
   return tsugiGameItems(snapshots[0]);
 }
 async function loadUpcoming(force=false){
-  setUpcomingStatus("loading","Tsugi 大作 + 官方活动 + 关注艺人 · 正在刷新");
-  const cache=store.get("upcomingCacheV2",null);
-  if(!force&&cache&&Date.now()-cache.time<UPCOMING_CACHE_MS){
+  setUpcomingStatus("loading","游戏 + 展会 + 艺人动态 · 正在刷新");
+  const cache=store.get("upcomingCacheV3",null);
+  const freshCache=!force&&cache&&Date.now()-cache.time<UPCOMING_CACHE_MS;
+  if(freshCache){
     upcomingAuto=Array.isArray(cache.games)?cache.games:[];
     upcomingMusic=Array.isArray(cache.music)?cache.music:[];
     upcomingOfficialDynamic=Array.isArray(cache.dynamic)?cache.dynamic:[];
-    const artists=readFollowedArtists().length;
-    setUpcomingStatus("ok",`大作 ${upcomingAuto.length} · 活动 ${OFFICIAL_UPCOMING_SEEDS.length+upcomingOfficialDynamic.length}（官方实时 ${upcomingOfficialDynamic.length}） · 关注艺人 ${artists}`);
-    renderUpcomingHome();renderUpcomingModal();return;
+    if(upcomingAuto.length&&upcomingMusic.length){
+      const artists=readFollowedArtists().length;
+      setUpcomingStatus("ok",`游戏 ${upcomingAuto.length} · 展会 ${OFFICIAL_UPCOMING_SEEDS.length+upcomingOfficialDynamic.length} · 音乐 ${upcomingMusic.length} · 关注艺人 ${artists}`);
+      renderUpcomingHome();renderUpcomingModal();return;
+    }
+    renderUpcomingHome();renderUpcomingModal();
   }
   let gameOk=false,musicOk=false;
   try{upcomingAuto=await fetchTsugiGames();gameOk=true}catch(e){upcomingAuto=cache?.games||[]}
   try{
-    upcomingMusic=await followedArtistUpdates();
-    if(!upcomingMusic.length)upcomingMusic=await fallbackTsugiMusic();
+    const followed=await followedArtistUpdates(),radar=await fallbackTsugiMusic(),seen=new Set();
+    upcomingMusic=[...followed,...radar].filter(x=>x?.id&&!seen.has(x.id)&&seen.add(x.id)).slice(0,24);
     musicOk=true;
   }catch(e){upcomingMusic=cache?.music||[]}
   try{upcomingOfficialDynamic=await officialLaunchWatchers()}catch(e){upcomingOfficialDynamic=cache?.dynamic||[]}
-  store.set("upcomingCacheV2",{time:Date.now(),games:upcomingAuto,music:upcomingMusic,dynamic:upcomingOfficialDynamic});
+  store.set("upcomingCacheV3",{time:Date.now(),games:upcomingAuto,music:upcomingMusic,dynamic:upcomingOfficialDynamic});
   const artists=readFollowedArtists().length,eventCount=OFFICIAL_UPCOMING_SEEDS.length+upcomingOfficialDynamic.length;
-  setUpcomingStatus(gameOk||upcomingAuto.length?"ok":"bad",`大作 ${upcomingAuto.length} · 活动 ${eventCount}（官方实时 ${upcomingOfficialDynamic.length}） · 关注艺人 ${artists}${!gameOk?" · 游戏源缓存/离线":""}`);
+  setUpcomingStatus(gameOk||upcomingAuto.length?"ok":"bad",`游戏 ${upcomingAuto.length} · 展会 ${eventCount} · 音乐 ${upcomingMusic.length} · 关注艺人 ${artists}${!gameOk?" · 游戏源缓存/离线":""}${!musicOk?" · 音乐源缓存/离线":""}`);
   renderUpcomingHome();renderUpcomingModal();
 }
 function defaultUpcomingLocal(){
@@ -3928,7 +3931,7 @@ function defaultUpcomingLocal(){
   return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}T${z(d.getHours())}:${z(d.getMinutes())}`;
 }
 function openUpcomingModal(){
-  $("#upcomingHorizon").value=String(state.upcomingHorizon||14);
+  $("#upcomingHorizon").value=String(state.upcomingHorizon||45);
   $("#upcomingAddDate").value=$("#upcomingAddDate").value||defaultUpcomingLocal();
   renderUpcomingModal();openModal("#upcomingModal");
 }
@@ -3939,7 +3942,7 @@ $$("[data-upmodalfilter]").forEach(b=>b.onclick=()=>{
   renderUpcomingModal();
 });
 $("#upcomingHorizon").onchange=e=>{
-  state.upcomingHorizon=Number(e.target.value)||14;store.set("upcomingHorizon",state.upcomingHorizon);renderUpcomingModal();
+  state.upcomingHorizon=Number(e.target.value)||45;store.set("upcomingHorizon",state.upcomingHorizon);renderUpcomingModal();
 };
 $("#openUpcoming").onclick=openUpcomingModal;
 $("#addUpcomingQuick").onclick=openUpcomingModal;
@@ -3968,11 +3971,62 @@ const products=[
 ['桌面极客','M5Stack Cardputer','小型 ESP32-S3 终端：键盘、屏幕、无线，适合做快捷控制器或迷你信息终端。','M5Stack Cardputer'],['桌面收纳','磁吸理线器','把临时充电线固定在桌边，减少线头掉到桌后的频率。','magnetic cable organizer desk'],['EDC','USB-C 功率计','查看 PD 协议、电压、电流和实时功率，排查充电问题非常方便。','USB C power meter tester'],['桌面工具','电动精密螺丝刀','拆键盘、手柄、小主机和电子设备时更顺手。','electric precision screwdriver'],['极客玩具','手机热成像模块','看设备温度、供电热点、窗户漏风，也很适合折腾硬件。','USB C thermal camera phone'],['音频周边','桌面耳机挂架','把头戴耳机从桌面移走，保持桌面清爽且方便拿取。','desk headphone hanger clamp'],['网络工具','2.5G USB-C 网卡','给笔记本或小主机快速补 2.5GbE。','2.5gbe usb c ethernet adapter'],['收纳','电子配件抽屉盒','按线材、转接头、Dongle、SD 卡分类。','small electronics organizer drawers'],['小工具','迷你电动气吹','清键盘、机箱滤网和桌面缝隙，比气罐更适合日常使用。','mini electric air duster'],['显示','USB-C 迷你状态屏','显示 CPU、天气、时间或 Home Assistant 状态。','USB C mini monitor status display'],['工具','电子卡尺','测键帽、螺丝、零件、模型尺寸，桌面 DIY 很实用。','digital caliper'],['极客','USB 逻辑分析仪','调试串口、I2C、SPI 等基础数字信号。','USB logic analyzer'],['桌搭','屏幕挂灯','减少桌面占用，夜间照亮键盘区。','monitor light bar'],['收纳','磁吸零件盘','拆设备时临时放螺丝，避免滚走。','magnetic parts tray'],['EDC','迷你棘轮螺丝刀','体积小但扭矩够，适合桌边工具包。','mini ratchet screwdriver set'],['桌面','USB-C KVM 切换器','两台设备共用键鼠或显示链路。','USB C KVM switch'],['网络','便携 Wi-Fi 6 路由器','旅行或临时网络环境下很方便。','travel router wifi 6'],['DIY','焊接练习套件','低成本练手焊接并获得一个可工作的成品。','electronics soldering practice kit'],['桌面','带夹臂小托盘','夹在桌边放耳机盒、手柄、线材。','clamp desk tray accessory'],['极客','NFC 标签套装','做手机自动化、场景切换、访客 Wi-Fi。','NFC tags NTAG215'],['测量','红外测温枪','查机箱出风、充电头、厨房设备温度。','infrared thermometer gun'],['电源','USB-C 诱骗测试板','做 PD 电压测试或小型 DIY 供电。','USB C PD trigger board'],['显示','电子墨水桌面牌','低功耗显示日程、天气、二维码或状态。','e ink desk display'],['桌搭','洞洞板小配件','把 Dongle、线材、小工具从桌面竖向收纳。','desk pegboard organizer accessories'],['键盘','宏键小键盘','给常用快捷键、脚本、媒体控制做独立按键。','macro keypad programmable'],['极客','迷你 HDMI 捕获卡','快速把相机、掌机、树莓派画面接进电脑。','USB HDMI capture card'],['维修','精密镊子套装','处理排线、贴纸、小螺丝和细小零件。','precision tweezers electronics'],['桌面','无线充电支架','高频拿手机时比平放充电板顺手。','Qi2 charging stand'],['小工具','标签打印机','线材、抽屉、充电器和收纳盒都能快速标记。','mini label maker bluetooth'],['极客','ESP32-S3 开发板','低成本做传感器、按钮、网络小工具。','ESP32 S3 development board'],['桌搭','可调角度小层架','把迷你主机、Dock、充电盒做垂直分层。','small adjustable desktop shelf'],['收纳','线材卷线扣','短线和备用线不再在抽屉里打结。','reusable cable organizer ties'],['网络','USB-C 网线测试器','快速验证线序、带宽与网络链路问题。','ethernet cable tester usb c'],['影音','HDMI 2.1 切换器','主机、掌机 Dock、PC 多设备切换。','HDMI 2.1 switch 4k 120hz'],['电源','GaN 充电器功率屏','带实时功率显示的多口充电器更适合桌搭诊断。','GaN charger display wattage'],['极客','迷你示波器','低频电子 DIY 和电源纹波排查的入门工具。','portable mini oscilloscope'],['桌面','旋钮控制器','音量、滚动、快捷操作都可以放到一个实体旋钮上。','programmable knob controller usb'],['EDC','小型万用表','测电压、通断、电池和小电子设备。','pocket multimeter'],['桌搭','桌边耳塞收纳盒','给常用真无线耳机盒固定一个高频拿取位置。','desk side small storage tray'],['收纳','SD卡/转接头小盒','集中管理容易丢的微型存储和转接件。','SD card organizer case']];
 const channels=[
 ['科技趋势','MKBHD','消费电子、手机与科技趋势，制作质量高。','https://www.youtube.com/@mkbhd'],['硬件','Linus Tech Tips','PC 硬件、实验、整机和科技娱乐。','https://www.youtube.com/@LinusTechTips'],['硬件深挖','Gamers Nexus','偏硬核的 PC 硬件测试、散热和行业分析。','https://www.youtube.com/@GamersNexus'],['极简桌搭','Optimum','高完成度桌搭、PC、外设与极简科技审美。','https://www.youtube.com/@optimumtech'],['笔电数码','Dave2D','笔电、手机、桌搭，节奏干净。','https://www.youtube.com/@Dave2D'],['Maker','DIY Perks','高完成度 DIY 硬件、显示器、音频和桌面项目。','https://www.youtube.com/@DIYPerks'],['复古科技','The 8-Bit Guy','老电脑、复古硬件与技术史。','https://www.youtube.com/@The8BitGuy'],['迷你主机','ETA PRIME','掌机、迷你 PC、模拟器和性价比硬件。','https://www.youtube.com/@ETAPRIME'],['科技原理','Technology Connections','把日常电器和工程原理讲得非常细。','https://www.youtube.com/@TechnologyConnections'],['工业设计','Scott Yu-Jan','桌搭、3D 打印和非常实用的小型 DIY。','https://www.youtube.com/@ScottYuJan'],['音频娱乐','DankPods','耳机、播放器与奇怪数码产品，偏娱乐。','https://www.youtube.com/@DankPods'],['科技新品','Mrwhosetheboss','消费电子新品与趋势向内容。','https://www.youtube.com/@Mrwhosetheboss'],['极客娱乐','Austin Evans','PC、游戏硬件与各种奇怪数码。','https://www.youtube.com/@austinevans'],['桌搭','Hardware Canucks','硬件、外设、桌搭和工作区。','https://www.youtube.com/@HardwareCanucks'],['复古计算','This Does Not Compute','复古电脑、维修与硬件历史。','https://www.youtube.com/@ThisDoesNotCompute'],['Maker','CNC Kitchen','3D 打印材料、强度测试与工程向实验。','https://www.youtube.com/@CNCKitchen'],['Maker','Maker’s Muse','3D 打印、设计与实用 Maker 项目。','https://www.youtube.com/@MakersMuse'],['摄影科技','Gerald Undone','相机、视频设备与技术测试。','https://www.youtube.com/@geraldundone'],['数码审美','The Verge','新品、设计与科技趋势新闻。','https://www.youtube.com/@TheVerge'],['芯片硬件','Level1Techs','Linux、服务器、存储、硬件深挖。','https://www.youtube.com/@Level1Techs'],['硬件实验','der8auer EN','超频、散热、芯片拆解和硬件工程。','https://www.youtube.com/@der8auer-en'],['工程','Ben Eater','数字电路、CPU、网络协议的可视化硬件教学。','https://www.youtube.com/@BenEater'],['小工具','Snazzy Labs','Apple、网络、桌搭与实用数码工具。','https://www.youtube.com/@snazzy'],['设计科技','Andres Vidoza','桌面、工作区和科技生活方式。','https://www.youtube.com/@AndresVidoza']];
-let discoverIndex=0;function localDiscover(){discoverIndex++;const p=products[Math.floor(Math.random()*products.length)],c=channels[Math.floor(Math.random()*channels.length)];$("#productTag").textContent=p[0];$("#productName").textContent=p[1];$("#productDesc").textContent=p[2];$("#productLink").href='https://www.amazon.com/s?k='+encodeURIComponent(p[3]);$("#channelTag").textContent=c[0];$("#channelName").textContent=c[1];$("#channelDesc").textContent=c[2];$("#channelLink").href=c[3]}
-async function getHN(force=false){try{let cache=store.get('hnCache',null);if(force||!cache||Date.now()-cache.time>20*60*1000){const ids=await (await fetch('https://hacker-news.firebaseio.com/v0/topstories.json')).json();const picks=ids.slice(0,30).sort(()=>Math.random()-.5).slice(0,12);const items=await Promise.all(picks.map(id=>fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(r=>r.json())));cache={time:Date.now(),items:items.filter(Boolean)};store.set('hnCache',cache)}const it=cache.items[Math.floor(Math.random()*cache.items.length)];$("#hnTitle").textContent=it.title;$("#hnDesc").textContent=`${it.score||0} points · ${it.by||'HN'} · ${it.descendants||0} comments`;$("#hnLink").href=it.url||`https://news.ycombinator.com/item?id=${it.id}`}catch(e){$("#hnTitle").textContent='Hacker News 暂时不可用';$("#hnDesc").textContent='稍后刷新重试';$("#hnLink").href='https://news.ycombinator.com'}}
-async function getGitHub(force=false){try{let cache=store.get('ghCache',null);if(force||!cache||Date.now()-cache.time>30*60*1000){const d=new Date(Date.now()-45*86400000).toISOString().slice(0,10),url=`https://api.github.com/search/repositories?q=created:%3E${d}&sort=stars&order=desc&per_page=30`;const r=await fetch(url,{headers:{'Accept':'application/vnd.github+json'}});if(!r.ok)throw new Error('GitHub '+r.status);const j=await r.json();cache={time:Date.now(),items:j.items||[]};store.set('ghCache',cache)}const it=cache.items[Math.floor(Math.random()*Math.min(cache.items.length,20))];if(!it)throw new Error('empty');$("#ghTitle").textContent=it.full_name;$("#ghDesc").textContent=`★ ${it.stargazers_count.toLocaleString()} · ${it.language||'Mixed'} · ${(it.description||'近期新项目').slice(0,80)}`;$("#ghLink").href=it.html_url}catch(e){$("#ghTitle").textContent='GitHub 数据暂时不可用';$("#ghDesc").textContent='可能触发匿名 API 限流，稍后会自动恢复';$("#ghLink").href='https://github.com/explore'}}
-function refreshDiscover(force=false){localDiscover();getHN(force);getGitHub(force)}$("#refreshDiscover").onclick=()=>refreshDiscover(false);$("#refreshFeedsNow").onclick=()=>refreshDiscover(true);refreshDiscover(false);
-function renderYT(){const y=state.youtube;$("#liveName").textContent=y.name||'直播监控';$("#livePage").href=y.id?`https://www.youtube.com/channel/${encodeURIComponent(y.id)}/live`:'https://www.youtube.com';$("#ytName").value=y.name||'';$("#ytId").value=y.id||''}renderYT();$("#saveYT").onclick=()=>{state.youtube={name:$("#ytName").value.trim(),id:$("#ytId").value.trim()};store.set('youtube',state.youtube);renderYT()};$("#openLive").onclick=()=>{if(!state.youtube.id)return;$("#liveModalTitle").textContent=(state.youtube.name||'YouTube')+' · Live';$("#liveFrame").src=`https://www.youtube.com/embed/live_stream?channel=${encodeURIComponent(state.youtube.id)}&autoplay=0&rel=0`;openModal('#liveModal')};
+let discoverIndex=0;
+function renderDiscoverRank(id,rows,emptyText="暂时没有榜单数据"){
+  const host=$(id);if(!host)return;
+  if(!rows?.length){host.innerHTML=`<div class="upcoming-empty">${escapeHtml(emptyText)}</div>`;return}
+  host.innerHTML=rows.map((x,i)=>`<a class="discover-rank-row ${x.live?"live":""}" href="${escapeAttr(x.url||"#")}" target="_blank" rel="noopener"><span class="discover-rank-no">${escapeHtml(String(x.rank||i+1))}</span><span class="discover-rank-copy"><b>${escapeHtml(x.title)}</b><small>${escapeHtml(x.meta||"")}</small></span></a>`).join("");
+}
+function renderProductRanking(){
+  const day=Math.floor(Date.now()/86400000),start=(day*7+discoverIndex*3)%products.length;
+  const rows=Array.from({length:3},(_,i)=>products[(start+i*11)%products.length]).map((p,i)=>({rank:i+1,title:p[1],meta:`${p[0]} · ${p[2]}`,url:'https://www.amazon.com/s?k='+encodeURIComponent(p[3])}));
+  renderDiscoverRank("#productRank",rows);
+}
+async function getGitHubRanking(force=false){
+  let cache=store.get("ghRankCacheV2",null);
+  try{
+    if(force||!cache||Date.now()-cache.time>30*60*1000){
+      const d=new Date(Date.now()-45*86400000).toISOString().slice(0,10),url=`https://api.github.com/search/repositories?q=created:%3E${d}&sort=stars&order=desc&per_page=12`;
+      const r=await fetch(url,{headers:{Accept:"application/vnd.github+json"}});if(!r.ok)throw new Error(`GitHub ${r.status}`);
+      const j=await r.json();cache={time:Date.now(),items:j.items||[]};store.set("ghRankCacheV2",cache);
+    }
+    renderDiscoverRank("#githubRank",(cache?.items||[]).slice(0,3).map((x,i)=>({rank:i+1,title:x.full_name,meta:`★ ${Number(x.stargazers_count||0).toLocaleString()} · ${x.language||"综合"}`,url:x.html_url})),"GitHub 匿名接口暂时限流");
+  }catch{renderDiscoverRank("#githubRank",(cache?.items||[]).slice(0,3).map((x,i)=>({rank:i+1,title:x.full_name,meta:`★ ${Number(x.stargazers_count||0).toLocaleString()} · ${x.language||"综合"}`,url:x.html_url})),"GitHub 匿名接口暂时限流")}
+}
+function hololiveDate(value){
+  const m=String(value||"").match(/^(\d{4})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/);
+  return m?new Date(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}+09:00`):new Date(value);
+}
+async function getVtuberRanking(force=false){
+  let cache=store.get("hololiveRankCacheV1",null);
+  try{
+    if(force||!cache||Date.now()-cache.time>5*60*1000){
+      const r=await fetch("https://schedule.hololive.tv/api/list/7",{cache:"no-store"});if(!r.ok)throw new Error(`Hololive ${r.status}`);
+      const j=await r.json(),now=Date.now();
+      const items=(j.dateGroupList||[]).flatMap(g=>g.videoList||[]).map(x=>({...x,time:hololiveDate(x.datetime)})).filter(x=>x.isLive||(!isNaN(x.time)&&x.time.getTime()>now-30*60*1000)).sort((a,b)=>Number(b.isLive)-Number(a.isLive)||a.time-b.time);
+      cache={time:Date.now(),items:items.slice(0,12)};store.set("hololiveRankCacheV1",cache);
+    }
+    const rows=(cache?.items||[]).slice(0,3).map((x,i)=>{const d=x.time instanceof Date?x.time:hololiveDate(x.datetime);return{rank:i+1,title:x.name||"Hololive",meta:x.isLive?`直播中 · ${x.title||"打开观看"}`:`${d.toLocaleDateString("zh-CN",{month:"numeric",day:"numeric"})} ${d.toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"})} · ${x.title||"预定直播"}`,url:x.url,live:!!x.isLive}});
+    renderDiscoverRank("#vtuberRank",rows,"Hololive 官方日程暂时不可用");
+  }catch{
+    const rows=(cache?.items||[]).slice(0,3).map((x,i)=>{const d=hololiveDate(x.datetime);return{rank:i+1,title:x.name||"Hololive",meta:x.isLive?`直播中 · ${x.title||"打开观看"}`:`${d.toLocaleDateString("zh-CN",{month:"numeric",day:"numeric"})} ${d.toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"})} · ${x.title||"预定直播"}`,url:x.url,live:!!x.isLive}});
+    renderDiscoverRank("#vtuberRank",rows,"Hololive 官方日程暂时不可用");
+  }
+}
+async function getMusicRanking(force=false){
+  let cache=store.get("jpMusicRankCacheV1",null);
+  try{
+    if(force||!cache||Date.now()-cache.time>30*60*1000){
+      const r=await fetch(`${TSUGI_MUSIC_URL}?v=${Date.now()}`,{cache:"no-store"});if(!r.ok)throw new Error(`music ${r.status}`);
+      const j=await r.json(),items=[...(j.weekly_chart||[])].sort((a,b)=>Number(a.rank||999)-Number(b.rank||999));
+      cache={time:Date.now(),items:items.slice(0,12)};store.set("jpMusicRankCacheV1",cache);
+    }
+    renderDiscoverRank("#musicRank",(cache?.items||[]).slice(0,3).map((x,i)=>({rank:x.rank||i+1,title:x.title,meta:`${x.artist||"日本新曲"}${x.is_new?" · NEW":""}`,url:x.apple_music_url||x.youtube_music_url||x.url})),"日本新曲榜暂时不可用");
+  }catch{renderDiscoverRank("#musicRank",(cache?.items||[]).slice(0,3).map((x,i)=>({rank:x.rank||i+1,title:x.title,meta:x.artist||"日本新曲",url:x.apple_music_url||x.youtube_music_url||x.url})),"日本新曲榜暂时不可用")}
+}
+function refreshDiscover(force=false){discoverIndex++;renderProductRanking();getGitHubRanking(force);getVtuberRanking(force);getMusicRanking(force)}
+$("#refreshDiscover").onclick=()=>refreshDiscover(true);$("#refreshFeedsNow").onclick=()=>refreshDiscover(true);refreshDiscover(false);
+function renderYT(){const y=state.youtube,liveName=$("#liveName"),livePage=$("#livePage");if(liveName)liveName.textContent=y.name||'直播监控';if(livePage)livePage.href=y.id?`https://www.youtube.com/channel/${encodeURIComponent(y.id)}/live`:'https://www.youtube.com';$("#ytName").value=y.name||'';$("#ytId").value=y.id||''}renderYT();$("#saveYT").onclick=()=>{state.youtube={name:$("#ytName").value.trim(),id:$("#ytId").value.trim()};store.set('youtube',state.youtube);renderYT()};if($("#openLive"))$("#openLive").onclick=()=>{if(!state.youtube.id)return;$("#liveModalTitle").textContent=(state.youtube.name||'YouTube')+' · Live';$("#liveFrame").src=`https://www.youtube.com/embed/live_stream?channel=${encodeURIComponent(state.youtube.id)}&autoplay=0&rel=0`;openModal('#liveModal')};
 
 let focusMode='work',focusTotal=25*60,focusSecs=focusTotal,focusRunning=false,focusTimer=null,focusStart=null;$("#focusNote").value=state.focus.note||'';$("#focusNote").oninput=e=>{state.focus.note=e.target.value;store.set('focus',state.focus)};
 function renderFocusTasks(){
