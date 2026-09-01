@@ -272,7 +272,8 @@
     .discover-icon.github{background:color-mix(in srgb,var(--accent) 12%,var(--panel))}
     .discover-head .eyebrow{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;font-weight:850;letter-spacing:.02em;text-transform:none;color:var(--text)}
     .eyebrow{font-size:11px;letter-spacing:.10em;text-transform:uppercase;color:var(--muted)}
-    .discover-rank-list{display:grid;gap:2px;margin-top:5px;min-height:0;overflow:auto}
+    .discover-rank-list{display:grid;gap:2px;margin-top:5px;min-height:0;overflow:auto;scrollbar-width:none}
+    .discover-rank-list::-webkit-scrollbar{display:none}
     .discover-rank-row{display:grid;grid-template-columns:25px minmax(0,1fr);gap:7px;align-items:center;border-radius:10px;padding:3px 4px;text-decoration:none;color:var(--text)}
     .discover-rank-row:hover{background:color-mix(in srgb,var(--accent) 9%,transparent)}
     .discover-rank-no{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;background:var(--panel);border:1px solid var(--line);font-size:12px;font-weight:900;color:var(--muted)}
@@ -3907,8 +3908,8 @@ async function loadUpcoming(force=false){
     upcomingMusic=Array.isArray(cache.music)?cache.music:[];
     upcomingOfficialDynamic=Array.isArray(cache.dynamic)?cache.dynamic:[];
     if(upcomingAuto.length&&upcomingMusic.length){
-      const artists=readFollowedArtists().length;
-      setUpcomingStatus("ok",`游戏 ${upcomingAuto.length} · 展会 ${OFFICIAL_UPCOMING_SEEDS.length+upcomingOfficialDynamic.length} · 音乐 ${upcomingMusic.length} · 关注艺人 ${artists}`);
+      const radar=upcomingWithin(45),artists=readFollowedArtists().length;
+      setUpcomingStatus("ok",`未来 45 天 · 游戏 ${filterUpcoming(radar,"game").length} · 展会 ${filterUpcoming(radar,"event").length} · 艺人 ${filterUpcoming(radar,"music").length} · 关注 ${artists}`);
       renderUpcomingHome();renderUpcomingModal();return;
     }
     renderUpcomingHome();renderUpcomingModal();
@@ -3922,8 +3923,8 @@ async function loadUpcoming(force=false){
   }catch(e){upcomingMusic=cache?.music||[]}
   try{upcomingOfficialDynamic=await officialLaunchWatchers()}catch(e){upcomingOfficialDynamic=cache?.dynamic||[]}
   store.set("upcomingCacheV3",{time:Date.now(),games:upcomingAuto,music:upcomingMusic,dynamic:upcomingOfficialDynamic});
-  const artists=readFollowedArtists().length,eventCount=OFFICIAL_UPCOMING_SEEDS.length+upcomingOfficialDynamic.length;
-  setUpcomingStatus(gameOk||upcomingAuto.length?"ok":"bad",`游戏 ${upcomingAuto.length} · 展会 ${eventCount} · 音乐 ${upcomingMusic.length} · 关注艺人 ${artists}${!gameOk?" · 游戏源缓存/离线":""}${!musicOk?" · 音乐源缓存/离线":""}`);
+  const radar=upcomingWithin(45),artists=readFollowedArtists().length;
+  setUpcomingStatus(gameOk||upcomingAuto.length?"ok":"bad",`未来 45 天 · 游戏 ${filterUpcoming(radar,"game").length} · 展会 ${filterUpcoming(radar,"event").length} · 艺人 ${filterUpcoming(radar,"music").length} · 关注 ${artists}${!gameOk?" · 游戏源缓存/离线":""}${!musicOk?" · 音乐源缓存/离线":""}`);
   renderUpcomingHome();renderUpcomingModal();
 }
 function defaultUpcomingLocal(){
