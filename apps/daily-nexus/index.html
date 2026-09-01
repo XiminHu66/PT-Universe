@@ -638,10 +638,10 @@
         <div class="discover-grid">
           <div class="discovery-item"><div class="discover-head"><span class="discover-icon shop">🛠</span><div class="eyebrow">3C 小物榜</div></div><div class="discover-rank-list" id="productRank"><div class="upcoming-empty">整理中…</div></div></div>
           <div class="discovery-item"><div class="discover-head"><span class="discover-icon github">&lt;/&gt;</span><div class="eyebrow">GitHub 新星榜</div></div><div class="discover-rank-list" id="githubRank"><div class="upcoming-empty">抓取中…</div></div></div>
-          <div class="discovery-item"><div class="discover-head"><span class="discover-icon vtuber">▶</span><div class="eyebrow">VTuber 直播榜</div></div><div class="discover-rank-list" id="vtuberRank"><div class="upcoming-empty">读取官方日程…</div></div></div>
+          <div class="discovery-item"><div class="discover-head"><span class="discover-icon vtuber">▶</span><div class="eyebrow">VSPO! 直播动态</div></div><div class="discover-rank-list" id="vtuberRank"><div class="upcoming-empty">读取成员动态…</div></div></div>
           <div class="discovery-item"><div class="discover-head"><span class="discover-icon music">♫</span><div class="eyebrow">日本新曲榜</div></div><div class="discover-rank-list" id="musicRank"><div class="upcoming-empty">抓取中…</div></div></div>
         </div>
-        <div class="discover-source-strip"><b>实时榜单</b><span>官方数据源：</span><a href="https://schedule.hololive.tv/" target="_blank" rel="noopener">Hololive 日程</a><span>·</span><a href="https://github.com/explore" target="_blank" rel="noopener">GitHub</a><span>·</span><a href="https://www.billboard-japan.com/charts/" target="_blank" rel="noopener">Billboard JAPAN</a></div>
+        <div class="discover-source-strip"><b>实时榜单</b><span>数据源：</span><a href="https://vspo.jp/" target="_blank" rel="noopener">VSPO! / YouTube</a><span>·</span><a href="https://github.com/explore" target="_blank" rel="noopener">GitHub</a><span>·</span><a href="https://www.billboard-japan.com/charts/" target="_blank" rel="noopener">Billboard JAPAN</a></div>
       </article>
     </div></section>
 
@@ -3995,24 +3995,18 @@ async function getGitHubRanking(force=false){
     renderDiscoverRank("#githubRank",(cache?.items||[]).slice(0,3).map((x,i)=>({rank:i+1,title:x.full_name,meta:`★ ${Number(x.stargazers_count||0).toLocaleString()} · ${x.language||"综合"}`,url:x.html_url})),"GitHub 匿名接口暂时限流");
   }catch{renderDiscoverRank("#githubRank",(cache?.items||[]).slice(0,3).map((x,i)=>({rank:i+1,title:x.full_name,meta:`★ ${Number(x.stargazers_count||0).toLocaleString()} · ${x.language||"综合"}`,url:x.html_url})),"GitHub 匿名接口暂时限流")}
 }
-function hololiveDate(value){
-  const m=String(value||"").match(/^(\d{4})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/);
-  return m?new Date(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}+09:00`):new Date(value);
-}
-async function getVtuberRanking(force=false){
-  let cache=store.get("hololiveRankCacheV1",null);
+async function getVspoRanking(force=false){
+  let cache=store.get("vspoRankCacheV1",null);
   try{
     if(force||!cache||Date.now()-cache.time>5*60*1000){
-      const r=await fetch("https://schedule.hololive.tv/api/list/7",{cache:"no-store"});if(!r.ok)throw new Error(`Hololive ${r.status}`);
-      const j=await r.json(),now=Date.now();
-      const items=(j.dateGroupList||[]).flatMap(g=>g.videoList||[]).map(x=>({...x,time:hololiveDate(x.datetime)})).filter(x=>x.isLive||(!isNaN(x.time)&&x.time.getTime()>now-30*60*1000)).sort((a,b)=>Number(b.isLive)-Number(a.isLive)||a.time-b.time);
-      cache={time:Date.now(),items:items.slice(0,12)};store.set("hololiveRankCacheV1",cache);
+      const r=await fetch(`${PTU_CLOUD_API}/api/vtuber/vspo?v=${Date.now()}`,{cache:"no-store"});if(!r.ok)throw new Error(`VSPO ${r.status}`);
+      const j=await r.json();cache={time:Date.now(),items:(j.items||[]).slice(0,12)};store.set("vspoRankCacheV1",cache);
     }
-    const rows=(cache?.items||[]).slice(0,3).map((x,i)=>{const d=x.time instanceof Date?x.time:hololiveDate(x.datetime);return{rank:i+1,title:x.name||"Hololive",meta:x.isLive?`直播中 · ${x.title||"打开观看"}`:`${d.toLocaleDateString("zh-CN",{month:"numeric",day:"numeric"})} ${d.toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"})} · ${x.title||"预定直播"}`,url:x.url,live:!!x.isLive}});
-    renderDiscoverRank("#vtuberRank",rows,"Hololive 官方日程暂时不可用");
+    const rows=(cache?.items||[]).slice(0,3).map((x,i)=>{const d=new Date(x.published_at),recent=Date.now()-d.getTime()<4*60*60*1000;return{rank:i+1,title:x.member||"VSPO!",meta:`${recent?"最近开播":d.toLocaleDateString("zh-CN",{month:"numeric",day:"numeric"})+" "+d.toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"})} · ${x.title||"打开观看"}`,url:x.url,live:recent}});
+    renderDiscoverRank("#vtuberRank",rows,"VSPO! 成员动态暂时不可用");
   }catch{
-    const rows=(cache?.items||[]).slice(0,3).map((x,i)=>{const d=hololiveDate(x.datetime);return{rank:i+1,title:x.name||"Hololive",meta:x.isLive?`直播中 · ${x.title||"打开观看"}`:`${d.toLocaleDateString("zh-CN",{month:"numeric",day:"numeric"})} ${d.toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"})} · ${x.title||"预定直播"}`,url:x.url,live:!!x.isLive}});
-    renderDiscoverRank("#vtuberRank",rows,"Hololive 官方日程暂时不可用");
+    const rows=(cache?.items||[]).slice(0,3).map((x,i)=>{const d=new Date(x.published_at);return{rank:i+1,title:x.member||"VSPO!",meta:`${d.toLocaleDateString("zh-CN",{month:"numeric",day:"numeric"})} ${d.toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"})} · ${x.title||"打开观看"}`,url:x.url}});
+    renderDiscoverRank("#vtuberRank",rows,"VSPO! 成员动态暂时不可用");
   }
 }
 async function getMusicRanking(force=false){
@@ -4026,7 +4020,7 @@ async function getMusicRanking(force=false){
     renderDiscoverRank("#musicRank",(cache?.items||[]).slice(0,3).map((x,i)=>({rank:x.rank||i+1,title:x.title,meta:`${x.artist||"日本新曲"}${x.is_new?" · NEW":""}`,url:x.apple_music_url||x.youtube_music_url||x.url})),"日本新曲榜暂时不可用");
   }catch{renderDiscoverRank("#musicRank",(cache?.items||[]).slice(0,3).map((x,i)=>({rank:x.rank||i+1,title:x.title,meta:x.artist||"日本新曲",url:x.apple_music_url||x.youtube_music_url||x.url})),"日本新曲榜暂时不可用")}
 }
-function refreshDiscover(force=false){discoverIndex++;renderProductRanking();getGitHubRanking(force);getVtuberRanking(force);getMusicRanking(force)}
+function refreshDiscover(force=false){discoverIndex++;renderProductRanking();getGitHubRanking(force);getVspoRanking(force);getMusicRanking(force)}
 $("#refreshDiscover").onclick=()=>refreshDiscover(true);$("#refreshFeedsNow").onclick=()=>refreshDiscover(true);refreshDiscover(false);
 function renderYT(){const y=state.youtube,liveName=$("#liveName"),livePage=$("#livePage");if(liveName)liveName.textContent=y.name||'直播监控';if(livePage)livePage.href=y.id?`https://www.youtube.com/channel/${encodeURIComponent(y.id)}/live`:'https://www.youtube.com';$("#ytName").value=y.name||'';$("#ytId").value=y.id||''}renderYT();$("#saveYT").onclick=()=>{state.youtube={name:$("#ytName").value.trim(),id:$("#ytId").value.trim()};store.set('youtube',state.youtube);renderYT()};if($("#openLive"))$("#openLive").onclick=()=>{if(!state.youtube.id)return;$("#liveModalTitle").textContent=(state.youtube.name||'YouTube')+' · Live';$("#liveFrame").src=`https://www.youtube.com/embed/live_stream?channel=${encodeURIComponent(state.youtube.id)}&autoplay=0&rel=0`;openModal('#liveModal')};
 

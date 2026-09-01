@@ -17,6 +17,16 @@ const DEFAULT_FULL_REFRESH_MS=50_000;
 const RAW='https://raw.githubusercontent.com/XiminHu66/PT-Universe/main/apps/tsugi-checker/data/';
 const allowedOrigins=new Set(['https://ximinhu66.github.io','http://localhost:8000','http://127.0.0.1:8000']);
 const jsonHeaders={'content-type':'application/json; charset=utf-8','cache-control':'no-store'};
+const VSPO_YOUTUBE_CHANNELS=[
+  ['花芽すみれ','UCyLGcqYs7RsBb3L0SJfzGYA'],['花芽なずな','UCiMG6VdScBabPhJ1ZtaVmbw'],['小雀とと','UCgTzsBI0DIRopMylJEDqnog'],['一ノ瀬うるは','UC5LyYg6cCA4yHEYvtUsir3g'],
+  ['胡桃のあ','UCIcAj6WkJ8vZ7DeJVgmeqKw'],['兎咲ミミ','UCnvVG9RbOW3J6Ifqo-zKLiw'],['空澄セナ','UCF_U2GCKHvDz52jWdizppIA'],['橘ひなの','UCvUc0m317LWTTPZoBQV479A'],
+  ['英リサ','UCurEA8YoqFwimJcAuSHU0MQ'],['如月れん','UCGWa1dMU_sDCaRQjdabsVgg'],['神成きゅぴ','UCMp55EbT_ZlqiMS3lCj01BQ'],['八雲べに','UCjXBuHmWkieBApgBhDuJMMQ'],
+  ['藍沢エマ','UCPkKpOHxEDcwmUAnRpIu-Ng'],['紫宮るな','UCD5W21JqNMv_tV9nfjvF9sw'],['猫汰つな','UCIjdfjcSaEgdjwbgjxC3ZWg'],['白波らむね','UC61OwuYOVuKkpKnid-43Twg'],
+  ['小森めと','UCzUNASdzI4PV5SlqtYwAkKQ'],['夢野あかり','UCS5l_Y0oMVTjEos2LuyeSZQ'],['夜乃くろむ','UCX4WL24YEOUYd7qDsFSLDOw'],['紡木こかげ','UC-WX1CXssCtCtc2TNIRnJzg'],
+  ['千燈ゆうひ','UCuDY3ibSP2MFRgf7eo3cojg'],['蝶屋はなび','UCL9hJsdk9eQa0IlWbFB2oRg'],['甘結もか','UC8vKBjGY2HVfbW9GAmgikWw'],['銀城サイネ','UC2xXx1m1jeL0W84_0jTg-Yw'],
+  ['龍巻ちせ','UCoW8qQy80mKH0RJTKAK-nNA'],['青月レミア','UCCra1t-eIlO3ULyXQQMD9Xw'],['Arya Kuroha','UCLlJpxXt6L5d-XQ0cDdIyDQ'],['Jira Jisaki','UCeCWj-SiJG9SWN6wGORiLmw'],
+  ['Narin Mikure','UCKSpM183c85d5V2cW5qaUjA'],['Riko Solari','UC7Xglp1fske9zmRe7Oj8YyA'],['Eris Suzukami','UCp_3ej2br9l9L1DSoHVDZGw'],['Juno Umezono','UCRJV_1aV4aZjFAEUn6o5arw']
+] as const;
 
 function cors(request:Request){
   const origin=request.headers.get('origin')||'';
@@ -160,9 +170,26 @@ async function enqueue(request:Request,env:Env,scope:RefreshScope,source:'manual
   return reply(request,{requestId,scope,status:'queued',budget:scope==='all'||scope==='sites'||scope==='music'?await refreshBudget(env):null},202);
 }
 
+async function vspoStreams(request:Request){
+  const fetched=await Promise.allSettled(VSPO_YOUTUBE_CHANNELS.map(async([member,channelId])=>{
+    const response=await timedFetch(`https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`,{headers:{'user-agent':'PT-Universe/1.0','accept':'application/atom+xml,application/xml'}},12_000);
+    if(!response.ok)throw new Error(`YouTube feed ${response.status}`);
+    const xml=await response.text(),entries=xml.match(/<entry>[\s\S]*?<\/entry>/gi)||[];
+    return entries.slice(0,4).map(block=>{
+      const pick=(tag:string)=>text((block.match(new RegExp(`<${tag}(?:\\s[^>]*)?>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/${tag}>`,'i'))||[])[1]);
+      const videoId=pick('yt:videoId'),published=pick('published');
+      return videoId&&published?{id:videoId,member,channel_id:channelId,title:pick('title'),url:`https://www.youtube.com/watch?v=${videoId}`,published_at:new Date(published).toISOString(),source:'youtube_atom'}:null;
+    }).filter(Boolean);
+  }));
+  const seen=new Set<string>(),items=fetched.flatMap(result=>result.status==='fulfilled'?result.value:[]).filter((item):item is NonNullable<typeof item>=>{if(!item||seen.has(item.id))return false;seen.add(item.id);return true}).sort((a,b)=>Date.parse(b.published_at)-Date.parse(a.published_at)).slice(0,100);
+  const successful_sources=fetched.filter(result=>result.status==='fulfilled').length;
+  return reply(request,{generated_at:now(),source:'VSPO! official member YouTube feeds',successful_sources,total_sources:VSPO_YOUTUBE_CHANNELS.length,items},200,{'cache-control':'public,max-age=300'});
+}
+
 async function proxyRoute(request:Request,url:URL){
   const common={'user-agent':'PT-Universe/1.0 (+https://github.com/XiminHu66/PT-Universe)','accept':'application/json,text/plain,*/*'};
   let target:URL|undefined;
+  if(url.pathname==='/api/vtuber/vspo')return vspoStreams(request);
   if(url.pathname==='/api/weather'){
     const lat=Number(url.searchParams.get('lat')),lon=Number(url.searchParams.get('lon'));
     if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return error(request,'无效坐标');
