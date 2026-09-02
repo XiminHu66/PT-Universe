@@ -171,22 +171,22 @@ async function enqueue(request:Request,env:Env,scope:RefreshScope,source:'manual
 }
 
 async function vspoStreams(request:Request){
-  const fetched=await Promise.allSettled(VSPO_YOUTUBE_CHANNELS.map(async([member,channelId])=>{
-    const response=await timedFetch(`https://www.youtube.com/channel/${channelId}/live`,{headers:{'user-agent':'Mozilla/5.0 (compatible; PT-Universe/1.0)','accept':'text/html,application/xhtml+xml'}},12_000);
-    if(!response.ok)throw new Error(`YouTube live page ${response.status}`);
-    const html=await response.text();
-    if(!/"isLiveNow":true/.test(html))return null;
-    const videoId=(html.match(/"videoDetails":\{"videoId":"([^"]+)"/)||[])[1];
-    if(!videoId)return null;
-    const ownerBlock=(html.match(/"videoOwnerRenderer":\{"thumbnail":\{"thumbnails":\[([\s\S]*?)\]\}/)||[])[1]||'';
-    const avatars=[...ownerBlock.matchAll(/"url":"([^"]+)"/g)].map(match=>{
-      try{return JSON.parse(`"${match[1]}"`) as string}catch{return match[1].replace(/\\u0026/g,'&').replace(/\\\//g,'/')}
-    });
-    return {id:videoId,member,channel_id:channelId,avatar:avatars.at(-1)||'',url:`https://www.youtube.com/watch?v=${videoId}`,is_live:true,source:'youtube_live_page'};
-  }));
-  const items=fetched.flatMap(result=>result.status==='fulfilled'&&result.value?[result.value]:[]);
-  const successful_sources=fetched.filter(result=>result.status==='fulfilled').length;
-  return reply(request,{generated_at:now(),source:'VSPO! official member live pages',successful_sources,total_sources:VSPO_YOUTUBE_CHANNELS.length,live_count:items.length,items},200,{'cache-control':'public,max-age=120,stale-while-revalidate=300'});
+  const source='https://www.vspo-schedule.com/en/schedule/live';
+  const response=await timedFetch(source,{headers:{'user-agent':'Mozilla/5.0 (compatible; PT-Universe/1.0)','accept':'text/html,application/xhtml+xml'}},15_000);
+  if(!response.ok)throw new Error(`VSPO schedule ${response.status}`);
+  const raw=await response.text(),html=raw.replace(/\\"/g,'"').replace(/\\u0026/g,'&').replace(/\\\//g,'/');
+  const memberNames=new Map<string,string>(VSPO_YOUTUBE_CHANNELS.map(([member,channelId])=>[channelId,member]));
+  const items=[] as Array<Record<string,unknown>>;
+  const seen=new Set<string>();
+  for(const match of html.matchAll(/\{"id":"([^"]+)","type":"livestream"([\s\S]{0,30000}?)"status":"live"/g)){
+    const id=match[1],block=match[2],pick=(key:string)=>(block.match(new RegExp(`"${key}":"([^"]*)"`))||[])[1]||'';
+    const channelId=pick('channelId'),url=pick('link'),avatar=pick('channelThumbnailUrl'),channelTitle=pick('channelTitle');
+    if(!id||!url||seen.has(id))continue;seen.add(id);
+    const member=memberNames.get(channelId)||text(channelTitle).replace(/[【〖][^】〗]*(?:VSPO|ぶいすぽ)[^】〗]*[】〗]/gi,'').replace(/\s*[\/|｜]\s*[^\/|｜]+$/,'').trim()||'VSPO!';
+    items.push({id,member,channel_id:channelId,avatar,url,is_live:true,platform:pick('platform')||'youtube',source:'vspo_schedule'});
+  }
+  if(/"status":"live"/.test(html)&&!items.length)throw new Error('VSPO schedule live entries could not be parsed');
+  return reply(request,{generated_at:now(),source:'Spodule VSPO! live schedule',source_url:source,successful_sources:1,total_sources:1,live_count:items.length,items},200,{'cache-control':'public,max-age=120,stale-while-revalidate=300'});
 }
 
 function pacificToday(){
