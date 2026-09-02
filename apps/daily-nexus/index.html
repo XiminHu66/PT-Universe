@@ -2402,7 +2402,7 @@ function applyClockPhoto(){
   if($("#toggleClockPhoto"))$("#toggleClockPhoto").textContent=p.enabled?"暂时关闭":"重新开启";
 }
 applyBg();applyTheme();
-function updateClock(){const d=new Date();$("#clock").textContent=d.toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit",hour12:false});$("#dateText").textContent=d.toLocaleDateString("zh-CN",{year:"numeric",month:"long",day:"numeric",weekday:"long"});const h=d.getHours(),name=(state.profile?.nickname||"Daily Nexus").trim()||"Daily Nexus";$("#greeting").textContent=(h<11?"早上好":h<14?"中午好":h<18?"下午好":"晚上好")+" · "+name}applyProfile();updateClock();setInterval(updateClock,1000);
+function updateClock(){const d=new Date();$("#clock").textContent=d.toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit",hour12:false});$("#dateText").textContent=d.toLocaleDateString("zh-CN",{year:"numeric",month:"long",day:"numeric",weekday:"long"});const h=d.getHours(),name=(state.profile?.nickname||"Daily Nexus").trim()||"Daily Nexus";$("#greeting").textContent=(h<11?"早上好":h<14?"中午好":h<18?"下午好":"晚上好")+" · "+name}applyProfile();updateClock();setInterval(()=>{updateClock();handleDailyNexusDayRollover()},1000);
 
 function ymdLocal(d){
   const p=n=>String(n).padStart(2,"0");
@@ -2412,7 +2412,7 @@ function dateFromYmd(s){
   const [y,m,d]=String(s).split("-").map(Number);return new Date(y,m-1,d,12,0,0,0);
 }
 function cloneMonth(d){return new Date(d.getFullYear(),d.getMonth(),1,12)}
-let miniCalCursor=cloneMonth(new Date()),calendarCursor=cloneMonth(new Date()),selectedCalendarDate=ymdLocal(new Date());
+let dailyNexusDayKey=ymdLocal(new Date()),miniCalCursor=cloneMonth(new Date()),calendarCursor=cloneMonth(new Date()),selectedCalendarDate=dailyNexusDayKey;
 function calendarItems(dateKey){return Array.isArray(state.calendar?.[dateKey])?state.calendar[dateKey]:[]}
 function saveCalendar(){store.set("calendar",state.calendar);renderMiniCalendar();renderCalendarMonth();renderFocusTasks()}
 function monthCells(cursor){
@@ -2446,6 +2446,14 @@ function addHomeTodayTask(){
   items.push({id:crypto.randomUUID?.()||String(Date.now()),text,done:false});
   state.calendar[key]=items;input.value="";saveCalendar();
 }
+function handleDailyNexusDayRollover(){
+  const current=ymdLocal(new Date());if(current===dailyNexusDayKey)return;
+  const previous=dailyNexusDayKey;dailyNexusDayKey=current;miniCalCursor=cloneMonth(new Date());
+  if(selectedCalendarDate===previous)selectedCalendarDate=current;
+  renderMiniCalendar();renderCalendarMonth();renderCalendarChecklist();
+  renderHomeCountdown();renderCountdown();renderUpcomingHome();renderUpcomingModal();
+}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){updateClock();handleDailyNexusDayRollover()}});
 $("#homeTodayAdd").onclick=addHomeTodayTask;
 $("#homeTodayInput").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();addHomeTodayTask()}};
 
@@ -4006,11 +4014,11 @@ async function getGitHubRanking(force=false){
   }catch{renderDiscoverRank("#githubRank",(cache?.items||[]).slice(0,3).map((x,i)=>({rank:i+1,title:x.full_name,meta:`★ ${Number(x.stargazers_count||0).toLocaleString()} · ${x.language||"综合"}`,url:x.html_url})),"GitHub 匿名接口暂时限流")}
 }
 async function getVspoRanking(force=false){
-  let cache=store.get("vspoLiveCacheV2",null);
+  let cache=store.get("vspoLiveCacheV3",null);
   try{
     if(force||!cache||Date.now()-cache.time>5*60*1000){
       const r=await fetch(`${PTU_CLOUD_API}/api/vtuber/vspo?v=${Date.now()}`,{cache:"no-store"});if(!r.ok)throw new Error(`VSPO ${r.status}`);
-      const j=await r.json();cache={time:Date.now(),items:(j.items||[]).filter(x=>x.is_live)};store.set("vspoLiveCacheV2",cache);
+      const j=await r.json();cache={time:Date.now(),items:(j.items||[]).filter(x=>x.is_live)};store.set("vspoLiveCacheV3",cache);
     }
     renderVspoLive(cache?.items||[]);
   }catch{
