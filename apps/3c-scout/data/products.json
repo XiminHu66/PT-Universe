@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-05T17:20:57.151405+00:00",
+  "generated_at": "2026-09-06T17:36:29.782326+00:00",
   "retention_days": 14,
   "purchase_link_count": 40,
   "items": [
@@ -141,34 +141,6 @@
       "discount_percent": 0
     },
     {
-      "id": "118503d17d96fe8d",
-      "stream": "new",
-      "title": "Alogic Expands Display Lineup With New 5K and 6K Models, Debuts New Peripherals",
-      "summary": "Accessory brand Alogic today announced an expansion to its display lineup, adding several new 5K and 6K models offering varying feature sets with availability coming over the next couple of months. Aspekt displays New models in the Aspekt touch-enabled family include a 27-inch 5K model and a 32-inch 6K model with support for 10-point multitouch and MPP 2.0 s",
-      "category": "桌面",
-      "tags": [
-        "桌面",
-        "ssd",
-        "dock",
-        "storage"
-      ],
-      "language": "en",
-      "source": "MacRumors",
-      "source_url": "https://www.macrumors.com/2026/09/04/alogic-new-displays-peripherals/",
-      "product_url": "https://www.macrumors.com/2026/09/04/alogic-new-displays-peripherals/",
-      "link_type": "source",
-      "image_url": "https://images.macrumors.com/article-new/2026/09/alogic-aspekt-displays.jpg",
-      "published_at": "2026-09-04T19:51:13+00:00",
-      "fetched_at": "2026-09-05T17:20:57.151405+00:00",
-      "relevance_score": 31.42,
-      "reason": "匹配你的偏好：ssd",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "",
-      "price_value": null,
-      "original_price": "",
-      "discount_percent": 0
-    },
-    {
       "id": "28ce3d9dd57a3dd3",
       "stream": "new",
       "title": "Apple Announces New Mac Mini With M6 and M5 Pro Chips and More",
@@ -189,6 +161,34 @@
       "published_at": "2026-08-25T13:11:44+00:00",
       "fetched_at": "2026-08-26T00:07:52.658513+00:00",
       "relevance_score": 31.18,
+      "reason": "匹配你的偏好：ssd",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "",
+      "price_value": null,
+      "original_price": "",
+      "discount_percent": 0
+    },
+    {
+      "id": "118503d17d96fe8d",
+      "stream": "new",
+      "title": "Alogic Expands Display Lineup With New 5K and 6K Models, Debuts New Peripherals",
+      "summary": "Accessory brand Alogic today announced an expansion to its display lineup, adding several new 5K and 6K models offering varying feature sets with availability coming over the next couple of months. Aspekt displays New models in the Aspekt touch-enabled family include a 27-inch 5K model and a 32-inch 6K model with support for 10-point multitouch and MPP 2.0 s",
+      "category": "桌面",
+      "tags": [
+        "桌面",
+        "ssd",
+        "dock",
+        "storage"
+      ],
+      "language": "en",
+      "source": "MacRumors",
+      "source_url": "https://www.macrumors.com/2026/09/04/alogic-new-displays-peripherals/",
+      "product_url": "https://www.macrumors.com/2026/09/04/alogic-new-displays-peripherals/",
+      "link_type": "source",
+      "image_url": "https://images.macrumors.com/article-new/2026/09/alogic-aspekt-displays.jpg",
+      "published_at": "2026-09-04T19:51:13+00:00",
+      "fetched_at": "2026-09-06T17:36:29.782326+00:00",
+      "relevance_score": 31.0,
       "reason": "匹配你的偏好：ssd",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
       "price": "",
@@ -245,6 +245,61 @@
       "fetched_at": "2026-08-29T18:30:36.778050+00:00",
       "relevance_score": 30.37,
       "reason": "匹配你的偏好：airpods",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "",
+      "price_value": null,
+      "original_price": "",
+      "discount_percent": 0
+    },
+    {
+      "id": "1503b2fdac66dff9",
+      "stream": "new",
+      "title": "MSI MEG CoreLiquid E15 360 AIO Review: Bold and stunning, with market-leading performance",
+      "summary": "(Image credit: Tom's Hardware) Today we’re testing MSI’s latest flagship AIO, the MEG Coreliquid E15 360, a luxury AIO with a premium black-and-gold aesthetic symbolizing authority and elegance. So we’re expecting market-leading thermal performance. Of course, the feature that stands out the most is the stunning 6.67-inch curved 2240x1080 AMOLED screen. The",
+      "category": "桌面",
+      "tags": [
+        "桌面",
+        "desk",
+        "storage",
+        "fan"
+      ],
+      "language": "en",
+      "source": "Tom's Hardware",
+      "source_url": "https://www.tomshardware.com/pc-components/liquid-cooling/msi-meg-coreliquid-e15-360-aio-review-bold-and-stunning-with-market-leading-performance",
+      "product_url": "https://click.linksynergy.com/deeplink?id=kXQk6%2AivFEQ&mid=44583&u1=tomshardware-us-8067158809383088693&murl=https%3A%2F%2Fwww.newegg.com%2Fmsi-aio-meg-coreliquid-e-radiator-size-360-mm-intel-lga-1700-1851-amd-am5-am4-argb%2Fp%2FN82E16835846084%3Fitem%3DN82E16835846084",
+      "link_type": "purchase",
+      "image_url": "https://cdn.mos.cms.futurecdn.net/dRo7MvFTvJyk79EXRmLzSN-1280-80.jpg",
+      "published_at": "2026-09-06T12:48:03+00:00",
+      "fetched_at": "2026-09-06T17:36:29.782326+00:00",
+      "relevance_score": 30.2,
+      "reason": "匹配你的偏好：desk",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "",
+      "price_value": null,
+      "original_price": "",
+      "discount_percent": 0
+    },
+    {
+      "id": "b0da466d09c8cd45",
+      "stream": "new",
+      "title": "PS5 emulator can now run the console version of GTA V at up to 60 FPS on PC, but quickly crashes as tweakers continue to optimize — PS5 emulation advancing at an astronomical pace leading up to GTA VI launch",
+      "summary": "The PS5 emulation scene is growing at a rapid pace, perhaps the most rapidly we've ever seen, because the PS5 version of GTA V is now at least playable at up to 60 FPS on PC for a few minutes as modders work to fine-tune their approach. The last time we checked in over a month ago, GTA V was still stuck at the initial splash screen while 2D games were runnin",
+      "category": "游戏",
+      "tags": [
+        "游戏",
+        "steam deck",
+        "handheld"
+      ],
+      "language": "en",
+      "source": "Tom's Hardware",
+      "source_url": "https://www.tomshardware.com/video-games/pc-gaming/ps5-emulator-can-now-run-the-console-version-of-gta-v-at-up-to-60-fps-on-pc-but-quickly-crashes-as-tweakers-continue-to-optimize-ps5-emulation-advancing-at-an-astronomical-pace-leading-up-to-gta-vi-launch",
+      "product_url": "https://www.tomshardware.com/video-games/pc-gaming/ps5-emulator-can-now-run-the-console-version-of-gta-v-at-up-to-60-fps-on-pc-but-quickly-crashes-as-tweakers-continue-to-optimize-ps5-emulation-advancing-at-an-astronomical-pace-leading-up-to-gta-vi-launch",
+      "link_type": "source",
+      "image_url": "https://cdn.mos.cms.futurecdn.net/2s3c3BG6VKQvKTM2t6gARX-1280-80.jpg",
+      "published_at": "2026-09-06T11:48:08+00:00",
+      "fetched_at": "2026-09-06T17:36:29.782326+00:00",
+      "relevance_score": 30.03,
+      "reason": "匹配你的偏好：steam deck",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
       "price": "",
       "price_value": null,
@@ -603,33 +658,6 @@
       "discount_percent": 0
     },
     {
-      "id": "034b5d971a034d6d",
-      "stream": "new",
-      "title": "Top Stories: 'Surprise and Shine' Apple Event Preview, John Ternus Takes Over, and More",
-      "summary": "After years of rumors, the highly anticipated foldable iPhone is almost here, but that's not all we're expecting to see at next week's big event, and we've got full coverage of expectations for the \"Surprise and Shine\" event. Beyond the event, this week also saw John Ternus take over from Tim Cook as Apple CEO, while we learned a bit more about what's coming",
-      "category": "桌面",
-      "tags": [
-        "桌面",
-        "desk",
-        "airpods"
-      ],
-      "language": "en",
-      "source": "MacRumors",
-      "source_url": "https://www.macrumors.com/2026/09/05/top-stories-suprise-and-shine-preview/",
-      "product_url": "https://www.macrumors.com/2026/09/05/top-stories-suprise-and-shine-preview/",
-      "link_type": "source",
-      "image_url": "https://images.macrumors.com/article-new/2026/09/top-stories-2026-09-05.jpg",
-      "published_at": "2026-09-05T13:00:10+00:00",
-      "fetched_at": "2026-09-05T17:20:57.151405+00:00",
-      "relevance_score": 26.28,
-      "reason": "匹配你的偏好：desk",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "",
-      "price_value": null,
-      "original_price": "",
-      "discount_percent": 0
-    },
-    {
       "id": "1fb0667992a72d9c",
       "stream": "new",
       "title": "索尼发布乐高 PS1 套装：几乎等比例还原初代 PlayStation 主机，180 美元",
@@ -806,8 +834,8 @@
       "link_type": "source",
       "image_url": "https://images.macrumors.com/article-new/2025/03/Best-Apple-Deals-Feature-Shelf-Blue.jpg",
       "published_at": "2026-09-04T20:25:31+00:00",
-      "fetched_at": "2026-09-05T17:20:57.151405+00:00",
-      "relevance_score": 25.51,
+      "fetched_at": "2026-09-06T17:36:29.782326+00:00",
+      "relevance_score": 25.0,
       "reason": "匹配你的偏好：charger",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
       "price": "",
@@ -1161,34 +1189,6 @@
       "discount_percent": 0
     },
     {
-      "id": "a4c2eb0713391b53",
-      "stream": "new",
-      "title": "iPhone Ultra, iPhone 18 Pro, and More: Apple's September 9 Event Preview",
-      "summary": "Apple's September event will take place on Wednesday, September 9 at 10:00 a.m. Pacific Time. Apple will announce its 2026 iPhone lineup, and this year is a big one. Along with the slab-style iPhones we've been using for years, Apple is going to debut its first foldable device. We'll also get new Apple Watches, a new set of AirPods, and possibly some other s",
-      "category": "3C 数码",
-      "tags": [
-        "3C 数码",
-        "earbud",
-        "airpods",
-        "storage"
-      ],
-      "language": "en",
-      "source": "MacRumors",
-      "source_url": "https://www.macrumors.com/guide/apple-september-2026-what-to-expect/",
-      "product_url": "https://www.macrumors.com/guide/apple-september-2026-what-to-expect/",
-      "link_type": "source",
-      "image_url": "https://images.macrumors.com/article-new/2026/08/iPhone-Ultra-Fold-Feature.jpg",
-      "published_at": "2026-09-04T22:26:17+00:00",
-      "fetched_at": "2026-09-05T17:20:57.151405+00:00",
-      "relevance_score": 23.85,
-      "reason": "匹配你的偏好：earbud",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "",
-      "price_value": null,
-      "original_price": "",
-      "discount_percent": 0
-    },
-    {
       "id": "e65f07aa3b9fdf78",
       "stream": "new",
       "title": "英伟达发布 GeForce 616.56 WHQL 驱动：为《星球大战：零号连队》提供首发优化",
@@ -1292,32 +1292,6 @@
       "discount_percent": 0
     },
     {
-      "id": "db040ea18e2dfb47",
-      "stream": "new",
-      "title": "早报｜苹果将迎来史上最大产品发布潮/微信小微内测Agent间沟通/何庭波发布「韬定律」新论文",
-      "summary": "· 千问办公上线一个月，用户突破 3000 万 · 存储涨价推高手机成本，全球在售机型平均涨价约 15% · 大众汽车追加裁员计划，德国四座工厂将陆续停产 #欢迎关注爱范儿官方微信公众号：爱范儿（微信号：ifanr），更多精彩内容第一时间为您奉上。",
-      "category": "3C 数码",
-      "tags": [
-        "3C 数码",
-        "fan"
-      ],
-      "language": "zh",
-      "source": "爱范儿",
-      "source_url": "https://www.ifanr.com/1677342?utm_source=rss&utm_medium=rss&utm_campaign=",
-      "product_url": "https://www.ifanr.com/1677342?utm_source=rss&utm_medium=rss&utm_campaign=",
-      "link_type": "source",
-      "image_url": "",
-      "published_at": "2026-09-05T00:44:17+00:00",
-      "fetched_at": "2026-09-05T17:20:57.151405+00:00",
-      "relevance_score": 23.23,
-      "reason": "匹配你的偏好：fan",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "",
-      "price_value": null,
-      "original_price": "",
-      "discount_percent": 0
-    },
-    {
       "id": "f1b7f3f8dcb155f3",
       "stream": "new",
       "title": "Apple Unveils New Mac Studio With M5 Max and M5 Ultra Chips",
@@ -1401,6 +1375,61 @@
       "discount_percent": 0
     },
     {
+      "id": "034b5d971a034d6d",
+      "stream": "new",
+      "title": "Top Stories: 'Surprise and Shine' Apple Event Preview, John Ternus Takes Over, and More",
+      "summary": "After years of rumors, the highly anticipated foldable iPhone is almost here, but that's not all we're expecting to see at next week's big event, and we've got full coverage of expectations for the \"Surprise and Shine\" event. Beyond the event, this week also saw John Ternus take over from Tim Cook as Apple CEO, while we learned a bit more about what's coming",
+      "category": "桌面",
+      "tags": [
+        "桌面",
+        "desk",
+        "airpods"
+      ],
+      "language": "en",
+      "source": "MacRumors",
+      "source_url": "https://www.macrumors.com/2026/09/05/top-stories-suprise-and-shine-preview/",
+      "product_url": "https://www.macrumors.com/2026/09/05/top-stories-suprise-and-shine-preview/",
+      "link_type": "source",
+      "image_url": "https://images.macrumors.com/article-new/2026/09/top-stories-2026-09-05.jpg",
+      "published_at": "2026-09-05T13:00:10+00:00",
+      "fetched_at": "2026-09-06T17:36:29.782326+00:00",
+      "relevance_score": 23.0,
+      "reason": "匹配你的偏好：desk",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "",
+      "price_value": null,
+      "original_price": "",
+      "discount_percent": 0
+    },
+    {
+      "id": "a4c2eb0713391b53",
+      "stream": "new",
+      "title": "iPhone Ultra, iPhone 18 Pro, and More: Apple's September 9 Event Preview",
+      "summary": "Apple's September event will take place on Wednesday, September 9 at 10:00 a.m. Pacific Time. Apple will announce its 2026 iPhone lineup, and this year is a big one. Along with the slab-style iPhones we've been using for years, Apple is going to debut its first foldable device. We'll also get new Apple Watches, a new set of AirPods, and possibly some other s",
+      "category": "3C 数码",
+      "tags": [
+        "3C 数码",
+        "earbud",
+        "airpods",
+        "storage"
+      ],
+      "language": "en",
+      "source": "MacRumors",
+      "source_url": "https://www.macrumors.com/guide/apple-september-2026-what-to-expect/",
+      "product_url": "https://www.macrumors.com/guide/apple-september-2026-what-to-expect/",
+      "link_type": "source",
+      "image_url": "https://images.macrumors.com/article-new/2026/08/iPhone-Ultra-Fold-Feature.jpg",
+      "published_at": "2026-09-04T22:26:17+00:00",
+      "fetched_at": "2026-09-06T17:36:29.782326+00:00",
+      "relevance_score": 23.0,
+      "reason": "匹配你的偏好：earbud",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "",
+      "price_value": null,
+      "original_price": "",
+      "discount_percent": 0
+    },
+    {
       "id": "8b1439139e075f01",
       "stream": "new",
       "title": "Grab a new 3D printer for as low as $229 right now in Creality's Labor Day flash sale, with up to 50% off —big sale discounts also include resin and filament bundles, along with 3D scanners and toolkits",
@@ -1419,7 +1448,7 @@
       "link_type": "purchase",
       "image_url": "https://cdn.mos.cms.futurecdn.net/udgCgmx7eiSTJL9gCRLuuW-1280-80.png",
       "published_at": "2026-09-04T17:00:00+00:00",
-      "fetched_at": "2026-09-05T17:20:57.151405+00:00",
+      "fetched_at": "2026-09-06T17:36:29.782326+00:00",
       "relevance_score": 23.0,
       "reason": "匹配你的偏好：ssd，并有 50% 折扣",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
@@ -1742,6 +1771,33 @@
       "discount_percent": 0
     },
     {
+      "id": "835cbe410bf92bef",
+      "stream": "new",
+      "title": "FSP Mega GM 1200W power supply review: An in-house FSP platform that quietly overshoots its own Gold label",
+      "summary": "FSP is not a brand that needs an introduction so much as a reminder of scale. Founded in Taiwan in April 1993 as a joint venture between Fortron/Source of the United States, Sparkle Power International, and Powertech Systems — the three names that give the company its initials — FSP grew into one of the largest power-supply manufacturers in the world. It bec",
+      "category": "桌面",
+      "tags": [
+        "桌面",
+        "storage",
+        "fan"
+      ],
+      "language": "en",
+      "source": "Tom's Hardware",
+      "source_url": "https://www.tomshardware.com/pc-components/power-supplies/fsp-mega-gm-1200w-power-supply-review",
+      "product_url": "https://www.tomshardware.com/pc-components/power-supplies/fsp-mega-gm-1200w-power-supply-review",
+      "link_type": "source",
+      "image_url": "https://cdn.mos.cms.futurecdn.net/FqJJp2rhMpgQHAaZ4AgvEn-1280-80.jpg",
+      "published_at": "2026-09-06T13:57:18+00:00",
+      "fetched_at": "2026-09-06T17:36:29.782326+00:00",
+      "relevance_score": 22.39,
+      "reason": "匹配你的偏好：storage",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "",
+      "price_value": null,
+      "original_price": "",
+      "discount_percent": 0
+    },
+    {
       "id": "07d77c6181ca0615",
       "stream": "new",
       "title": "宏碁推出 Swift Air 14 笔记本：英特尔 WCL 平台，1.19kg 重",
@@ -1864,58 +1920,6 @@
       "fetched_at": "2026-09-02T18:43:04.585208+00:00",
       "relevance_score": 22.13,
       "reason": "匹配你的偏好：掌机",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "",
-      "price_value": null,
-      "original_price": "",
-      "discount_percent": 0
-    },
-    {
-      "id": "977630120b4dd4ca",
-      "stream": "new",
-      "title": "TCL 首款 OLED 显示屏 NXTPAPER 手机 P80 Ultra 发布，可一键切换“电纸书”模式",
-      "summary": "IT之家 9 月 3 日消息，TCL 今天（3 日）推出了全新的 P80 系列机型，首次把 OLED 屏幕带到 NXTPAPER 手机上。其中，Ultra 系列延续了此前 LCD 机型类似电子墨水的显示特点：需要阅读或减少干扰时， 可以切换到低功耗黑白模式，获得接近纸张的观感 ；正常使用时，则能恢复 TCL 所称的“旗舰级”OLED 显示效果。 P80 Ultra 配备 6.83 英寸 OLED 屏幕，拥有 1.5K 分辨率、120Hz 刷新率、3200 尼特峰值亮度 ，并覆盖 100% DCI-P3 色域，整体规格达到高端 OLED 水平。 日常使用时，P80 Ultra 绝大多数时候就是一部普通手机。拨动专用 NXTPAPER 按键后，系统会进入 Max Ink 模式，整部手机随即 更接近电子阅读器 ：屏幕",
-      "category": "3C 数码",
-      "tags": [
-        "3C 数码",
-        "阅读器"
-      ],
-      "language": "zh",
-      "source": "IT之家",
-      "source_url": "https://www.ithome.com/0/998/142.htm",
-      "product_url": "https://www.ithome.com/0/998/142.htm",
-      "link_type": "source",
-      "image_url": "https://img.ithome.com/newsuploadfiles/2026/9/a91e1a29-4fe1-46a4-be19-b8704d02da1f.png?x-bce-process=image/format,f_auto",
-      "published_at": "2026-09-03T12:41:40+00:00",
-      "fetched_at": "2026-09-03T18:39:27.485003+00:00",
-      "relevance_score": 22.01,
-      "reason": "匹配你的偏好：阅读器",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "",
-      "price_value": null,
-      "original_price": "",
-      "discount_percent": 0
-    },
-    {
-      "id": "3c00e255c48a5756",
-      "stream": "new",
-      "title": "苹果发布会最全爆料：折叠 iPhone 和新 CEO 都来了，还有一个 One more thing",
-      "summary": "苹果今年最重要的一场发布会，终于来了！ #欢迎关注爱范儿官方微信公众号：爱范儿（微信号：ifanr），更多精彩内容第一时间为您奉上。",
-      "category": "3C 数码",
-      "tags": [
-        "3C 数码",
-        "fan"
-      ],
-      "language": "zh",
-      "source": "爱范儿",
-      "source_url": "https://www.ifanr.com/1676900?utm_source=rss&utm_medium=rss&utm_campaign=",
-      "product_url": "https://www.ifanr.com/1676900?utm_source=rss&utm_medium=rss&utm_campaign=",
-      "link_type": "source",
-      "image_url": "",
-      "published_at": "2026-08-27T06:25:14+00:00",
-      "fetched_at": "2026-08-31T20:50:00.580113+00:00",
-      "relevance_score": 22.0,
-      "reason": "匹配你的偏好：fan",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
       "price": "",
       "price_value": null,
@@ -2056,6 +2060,34 @@
       "price_value": null,
       "original_price": "",
       "discount_percent": 46
+    },
+    {
+      "id": "e8cc8cbef7a7c6b7",
+      "stream": "deals",
+      "title": "Woot Debut Deals Clearance: Up to 85% off + free shipping w/ Prime",
+      "summary": "Woot's Debut Deals clearance sale covers a wide mix of categories, from power banks and dash cams to treadmills and dehumidifiers. Some standout markdowns include a 36-Pint Basement Dehumidifier at $124.99, down from $383.98, and a Crayo Festival Unisex Watch at $19.99, down from $135. The sale includes household goods, electronics, and outdoor gear, all of",
+      "category": "生活",
+      "tags": [
+        "生活",
+        "earbud",
+        "fan",
+        "smart home"
+      ],
+      "language": "en",
+      "source": "DealNews Editors' Choice",
+      "source_url": "https://www.dealnews.com/Woot-Debut-Deals-Clearance-Up-to-85-off-free-shipping-w-Prime/22139073.html?iref=rss",
+      "product_url": "https://www.dealnews.com/Woot-Debut-Deals-Clearance-Up-to-85-off-free-shipping-w-Prime/22139073.html?iref=rss",
+      "link_type": "source",
+      "image_url": "https://d.dlnws.com/64599/1788430927-product-trimmed.jpg?h=70&w=125",
+      "published_at": "2026-09-06T09:06:46+00:00",
+      "fetched_at": "2026-09-06T17:36:29.782326+00:00",
+      "relevance_score": 38.58,
+      "reason": "匹配你的偏好：earbud，并有 85% 折扣",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "$124.99",
+      "price_value": 124.99,
+      "original_price": "$383.98",
+      "discount_percent": 85
     },
     {
       "id": "2fdcc11a5699f063",
@@ -2305,33 +2337,6 @@
       "price_value": null,
       "original_price": "",
       "discount_percent": 0
-    },
-    {
-      "id": "c914d22bacc1bdaa",
-      "stream": "deals",
-      "title": "Dodge the RAMpocalypse with 20% discounts on Corsair RAM — hundreds off on 32GB and 64GB DDR5-6400 kits",
-      "summary": "Memory prices have reached unprecedented highs, so every bit of savings can make a real difference. Corsair has stepped up to offer discounts up to 23% on select Vengeance RGB DDR5-6400 memory kits in both 32GB and 64GB configurations. The former capacity is available in a variety of colors, including white , black , and RGB variants. Check out the Vengeance",
-      "category": "3C 数码",
-      "tags": [
-        "3C 数码",
-        "ssd",
-        "storage"
-      ],
-      "language": "en",
-      "source": "Tom's Hardware",
-      "source_url": "https://www.tomshardware.com/pc-components/dodge-the-rampocalypse-with-20-percent-discounts-on-corsair-ram-hundreds-off-on-32gb-and-64gb-ddr5-6400-kits",
-      "product_url": "https://www.tomshardware.com/pc-components/dodge-the-rampocalypse-with-20-percent-discounts-on-corsair-ram-hundreds-off-on-32gb-and-64gb-ddr5-6400-kits",
-      "link_type": "source",
-      "image_url": "https://cdn.mos.cms.futurecdn.net/GmTdXdoDa5oec4AUkZrT6T-1280-80.jpg",
-      "published_at": "2026-09-05T11:30:00+00:00",
-      "fetched_at": "2026-09-05T17:20:57.151405+00:00",
-      "relevance_score": 33.36,
-      "reason": "匹配你的偏好：ssd，并有 20% 折扣",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "",
-      "price_value": null,
-      "original_price": "",
-      "discount_percent": 20
     },
     {
       "id": "175d18ce89fc62a7",
@@ -2605,32 +2610,6 @@
       "discount_percent": 33
     },
     {
-      "id": "fe3e7982be677f68",
-      "stream": "deals",
-      "title": "Official Apple Crossbody Straps hit Amazon all-time lows from just $17 for Labor Day (Up to 72% off)",
-      "summary": "As part of its massive Labor Day sale, Amazon is delivering some notable Apple deals, including $50 off AirPods Pro 3 and the ongoing all-time low on AirTag 2. But if you’re into those iPhone straps, the official Apple Crossbody model is also seeing some new all-time lows starting down at just $17 Prime shipped. more…",
-      "category": "3C 数码",
-      "tags": [
-        "3C 数码",
-        "airpods"
-      ],
-      "language": "en",
-      "source": "9to5Toys",
-      "source_url": "https://9to5toys.com/2026/09/05/official-apple-crossbody-strap-deals/",
-      "product_url": "https://amzn.to/3TaHmtX",
-      "link_type": "purchase",
-      "image_url": "https://9to5toys.com/wp-content/uploads/sites/5/2025/12/Apple-Crossbody-Strap-deals-1.jpg?quality=82&strip=all&w=1600",
-      "published_at": "2026-09-05T12:50:56+00:00",
-      "fetched_at": "2026-09-05T17:20:57.151405+00:00",
-      "relevance_score": 32.25,
-      "reason": "匹配你的偏好：airpods，并有 72% 折扣",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "$17",
-      "price_value": 17.0,
-      "original_price": "",
-      "discount_percent": 72
-    },
-    {
       "id": "ec3a101ca06708eb",
       "stream": "deals",
       "title": "Amazon Anker Labor Day sale now live at up to 42% off! Deals on chargers, power banks, Qi2.2 gear, more from just $12",
@@ -2902,6 +2881,33 @@
       "discount_percent": 53
     },
     {
+      "id": "c914d22bacc1bdaa",
+      "stream": "deals",
+      "title": "Dodge the RAMpocalypse with 20% discounts on Corsair RAM — hundreds off on 32GB and 64GB DDR5-6400 kits",
+      "summary": "Memory prices have reached unprecedented highs, so every bit of savings can make a real difference. Corsair has stepped up to offer discounts up to 23% on select Vengeance RGB DDR5-6400 memory kits in both 32GB and 64GB configurations. The former capacity is available in a variety of colors, including white , black , and RGB variants. Check out the Vengeance",
+      "category": "3C 数码",
+      "tags": [
+        "3C 数码",
+        "ssd",
+        "storage"
+      ],
+      "language": "en",
+      "source": "Tom's Hardware",
+      "source_url": "https://www.tomshardware.com/pc-components/dodge-the-rampocalypse-with-20-percent-discounts-on-corsair-ram-hundreds-off-on-32gb-and-64gb-ddr5-6400-kits",
+      "product_url": "https://www.tomshardware.com/pc-components/dodge-the-rampocalypse-with-20-percent-discounts-on-corsair-ram-hundreds-off-on-32gb-and-64gb-ddr5-6400-kits",
+      "link_type": "source",
+      "image_url": "https://cdn.mos.cms.futurecdn.net/GmTdXdoDa5oec4AUkZrT6T-1280-80.jpg",
+      "published_at": "2026-09-05T11:30:00+00:00",
+      "fetched_at": "2026-09-06T17:36:29.782326+00:00",
+      "relevance_score": 30.33,
+      "reason": "匹配你的偏好：ssd，并有 20% 折扣",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "",
+      "price_value": null,
+      "original_price": "",
+      "discount_percent": 20
+    },
+    {
       "id": "f9cf8e6751a34efd",
       "stream": "deals",
       "title": "SucceBuy Wall Mounted 48-Piece Storage Bins Panel for $20 + free shipping",
@@ -3007,31 +3013,6 @@
       "discount_percent": 43
     },
     {
-      "id": "e0df43cf7a5a348f",
-      "stream": "deals",
-      "title": "9to5Toys Steals Weekly – Steel Apple Watch band $11.50, sleek 8-in-1 power strip $14.50, AOC USB-C monitor $50, more",
-      "summary": "Welcome to 9to5Toys Steals Weekly – your go-to spot for already-affordable everyday essentials that are now selling for even less. This weekly roundup pulls together all of the Steals from the past week, and puts them in a digestable list for you to consume every Saturday morning. A few popular posts lately include this stainless steel Apple Watch band for $",
-      "category": "3C 数码",
-      "tags": [
-        "3C 数码"
-      ],
-      "language": "en",
-      "source": "9to5Toys",
-      "source_url": "https://9to5toys.com/2026/09/05/steals-weekly-sep-5/",
-      "product_url": "https://amzn.to/4eBJ6F3",
-      "link_type": "purchase",
-      "image_url": "https://9to5toys.com/wp-content/uploads/sites/5/2024/12/9to5toys-steals-weekly.png?w=1600",
-      "published_at": "2026-09-05T12:00:00+00:00",
-      "fetched_at": "2026-09-05T17:20:57.151405+00:00",
-      "relevance_score": 30.11,
-      "reason": "3C 数码分类中折扣力度较高（77%）",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "$11.5",
-      "price_value": 11.5,
-      "original_price": "$50",
-      "discount_percent": 77
-    },
-    {
       "id": "c33396cc6b7efafb",
       "stream": "deals",
       "title": "Magzter Digital Sale for 3 years for $99",
@@ -3127,7 +3108,7 @@
       "link_type": "purchase",
       "image_url": "https://9to5toys.com/wp-content/uploads/sites/5/2026/09/ORICO-USB-C-Rechargeable-Desk-Fan.png?w=1600",
       "published_at": "2026-09-04T17:03:53+00:00",
-      "fetched_at": "2026-09-05T17:20:57.151405+00:00",
+      "fetched_at": "2026-09-06T17:36:29.782326+00:00",
       "relevance_score": 29.83,
       "reason": "匹配你的偏好：desk，并有 53% 折扣",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
@@ -3220,6 +3201,34 @@
       "discount_percent": 12
     },
     {
+      "id": "806b119de8b4be2d",
+      "stream": "deals",
+      "title": "Save nearly 50% on this awesome 16-inch OLED laptop with a Ryzen AI 5 430 CPU & 16GB RAM — HP's MacBook Neo-beating OmniBook X Flip is down to just $699",
+      "summary": "With the entire PC hardware industry in shambles right now, laptops represent some of the best deals to be had. The integrated nature of these devices often results in unexpected savings compared to their desktop counterparts. As such, we've found a great offer on an HP OmniBook Flip X 2-in-1 for just $699 , down 47% from its list price of $1,329 on Best Buy",
+      "category": "3C 数码",
+      "tags": [
+        "3C 数码",
+        "ssd",
+        "charger",
+        "desk"
+      ],
+      "language": "en",
+      "source": "Tom's Hardware",
+      "source_url": "https://www.tomshardware.com/pc-components/save-nearly-50-percent-on-this-awesome-16-inch-oled-laptop-with-a-ryzen-ai-5-430-cpu-and-16gb-ram-hps-macbook-neo-beating-omnibook-x-flip-is-down-to-just-usd699",
+      "product_url": "https://www.bestbuy.com/product/hp-omnibook-x-flip-2-in-1-16-2k-oled-touchscreen-laptop-amd-ryzen-ai-5-430-2026-16gb-memory-512gb-ssd-copilot-meteor-silver/JJGWKYZY3J",
+      "link_type": "purchase",
+      "image_url": "https://cdn.mos.cms.futurecdn.net/DBiw2KhgFRKwNG3ZgKm8vB-1280-80.png",
+      "published_at": "2026-09-05T18:51:54+00:00",
+      "fetched_at": "2026-09-06T17:36:29.782326+00:00",
+      "relevance_score": 29.54,
+      "reason": "匹配你的偏好：ssd，并有 50% 折扣",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "$699",
+      "price_value": 699.0,
+      "original_price": "",
+      "discount_percent": 50
+    },
+    {
       "id": "56c3e980816a644e",
       "stream": "deals",
       "title": "Save up to $701 on these six Bluetti power station alternator charger bundles during a 72-hour flash sale starting from $629",
@@ -3297,6 +3306,32 @@
       "price_value": 375.0,
       "original_price": "$1,368",
       "discount_percent": 73
+    },
+    {
+      "id": "fe3e7982be677f68",
+      "stream": "deals",
+      "title": "Official Apple Crossbody Straps hit Amazon all-time lows from just $17 for Labor Day (Up to 72% off)",
+      "summary": "As part of its massive Labor Day sale, Amazon is delivering some notable Apple deals, including $50 off AirPods Pro 3 and the ongoing all-time low on AirTag 2. But if you’re into those iPhone straps, the official Apple Crossbody model is also seeing some new all-time lows starting down at just $17 Prime shipped. more…",
+      "category": "3C 数码",
+      "tags": [
+        "3C 数码",
+        "airpods"
+      ],
+      "language": "en",
+      "source": "9to5Toys",
+      "source_url": "https://9to5toys.com/2026/09/05/official-apple-crossbody-strap-deals/",
+      "product_url": "https://amzn.to/3TaHmtX",
+      "link_type": "purchase",
+      "image_url": "https://9to5toys.com/wp-content/uploads/sites/5/2025/12/Apple-Crossbody-Strap-deals-1.jpg?quality=82&strip=all&w=1600",
+      "published_at": "2026-09-05T12:50:56+00:00",
+      "fetched_at": "2026-09-06T17:36:29.782326+00:00",
+      "relevance_score": 29.0,
+      "reason": "匹配你的偏好：airpods，并有 72% 折扣",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "$17",
+      "price_value": 17.0,
+      "original_price": "",
+      "discount_percent": 72
     },
     {
       "id": "0f76fe761d937c70",
@@ -3533,6 +3568,32 @@
       "price_value": 800.0,
       "original_price": "$1,429.99",
       "discount_percent": 44
+    },
+    {
+      "id": "37d53de273d69136",
+      "stream": "deals",
+      "title": "Woot Liquidation Sale: Up to 80% off + free shipping w/ Prime",
+      "summary": "Woot's Liquidation Sale covers a mix of categories, including Home & Kitchen, Electronics, Tools & Garden, Sports & Outdoors, and Computers. Amazon Prime members also get free standard shipping on Woot orders during this event. This deal ends September 15. Shop Now at Woot! An Amazon Company",
+      "category": "生活",
+      "tags": [
+        "生活",
+        "garden"
+      ],
+      "language": "en",
+      "source": "DealNews Editors' Choice",
+      "source_url": "https://www.dealnews.com/Woot-Liquidation-Sale-Up-to-80-off-free-shipping-w-Prime/22142339.html?iref=rss",
+      "product_url": "https://www.dealnews.com/Woot-Liquidation-Sale-Up-to-80-off-free-shipping-w-Prime/22142339.html?iref=rss",
+      "link_type": "source",
+      "image_url": "https://d.dlnws.com/64599/1788512350-product-trimmed.jpg?h=94&w=125",
+      "published_at": "2026-09-06T09:08:25+00:00",
+      "fetched_at": "2026-09-06T17:36:29.782326+00:00",
+      "relevance_score": 28.59,
+      "reason": "匹配你的偏好：garden，并有 80% 折扣",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "",
+      "price_value": null,
+      "original_price": "",
+      "discount_percent": 80
     },
     {
       "id": "0331f6e1947d9152",
@@ -3795,58 +3856,6 @@
       "discount_percent": 53
     },
     {
-      "id": "36493d1f8275b653",
-      "stream": "deals",
-      "title": "Whoa! LISEN’s Apple Watch charger with 20W adapter just fell further, now $9",
-      "summary": "LISEN Apple Watch Charger with 20W Adapter Buy for $9 (Reg. $16) What we love We featured this deal last week when it was $10, but Amazon has now made things even better with a lower $9 price tag. We thought this warranted another look, so cash in and grab one if you could use a spare charger. more…",
-      "category": "3C 数码",
-      "tags": [
-        "3C 数码",
-        "charger"
-      ],
-      "language": "en",
-      "source": "9to5Toys",
-      "source_url": "https://9to5toys.com/2026/08/31/lisen-apple-watch-charger-with-20w-adapter/",
-      "product_url": "https://www.amazon.com/dp/B07JP41D5R?tag=simonwalsh2-20&psc=1",
-      "link_type": "purchase",
-      "image_url": "https://9to5toys.com/wp-content/uploads/sites/5/2026/08/LISEN-Apple-Watch-Charger-with-20W-Adapter.png?w=1600",
-      "published_at": "2026-08-31T16:54:51+00:00",
-      "fetched_at": "2026-08-31T20:50:00.580113+00:00",
-      "relevance_score": 27.68,
-      "reason": "匹配你的偏好：charger，并有 44% 折扣",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "$9",
-      "price_value": 9.0,
-      "original_price": "$16",
-      "discount_percent": 44
-    },
-    {
-      "id": "d9707225a1943986",
-      "stream": "deals",
-      "title": "Certified Refurb eufy SoloCam C210 2K Wireless Security Camera for $57 + free shipping",
-      "summary": "This eufy SoloCam C210 drops to $56.99 with promo code \"LABORDAY20\", down from its $134.99 list price. The camera is certified refurbished with a two-year warranty included. It records at 2K resolution and includes 8 GB of built-in storage, so there's no need for a subscription or extra hardware to save footage. Shipping is free. Coupon expires September 7.",
-      "category": "3C 数码",
-      "tags": [
-        "3C 数码",
-        "storage"
-      ],
-      "language": "en",
-      "source": "DealNews Editors' Choice",
-      "source_url": "https://www.dealnews.com/Certified-Refurb-eufy-Solo-Cam-C210-2-K-Wireless-Security-Camera-for-57-free-shipping/22142777.html?iref=rss",
-      "product_url": "https://www.dealnews.com/Certified-Refurb-eufy-Solo-Cam-C210-2-K-Wireless-Security-Camera-for-57-free-shipping/22142777.html?iref=rss",
-      "link_type": "source",
-      "image_url": "https://d.dlnws.com/64599/1788544790-s-l1600.jpg?h=61&w=125",
-      "published_at": "2026-09-04T17:59:56+00:00",
-      "fetched_at": "2026-09-04T18:24:40.097869+00:00",
-      "relevance_score": 27.6,
-      "reason": "匹配你的偏好：storage，并有 58% 折扣",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "$57",
-      "price_value": 57.0,
-      "original_price": "$134.99",
-      "discount_percent": 58
-    },
-    {
       "id": "8a31cb81da706cb8",
       "stream": "discover",
       "title": "FiiO QX11 brings desktop-class audio power to a pocket-sized DAC",
@@ -3918,35 +3927,9 @@
       "link_type": "source",
       "image_url": "https://assets.newatlas.com/dims4/default/21d80a4/2147483647/strip/true/crop/2048x1188+0+0/resize/1440x835!/format/webp/quality/90/?url=https%3A%2F%2Fnewatlas-brightspot.s3.ap-southeast-2.amazonaws.com%2Fce%2Fcd%2F3d63ee01463d8e8f682d50f4adbe%2Fhow1.jpg",
       "published_at": "2026-08-27T03:36:15+00:00",
-      "fetched_at": "2026-09-05T17:20:57.151405+00:00",
+      "fetched_at": "2026-09-06T17:36:29.782326+00:00",
       "relevance_score": 21.0,
       "reason": "来自设计、众筹或独立硬件渠道的潜力生活产品，匹配你的偏好：desk",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "",
-      "price_value": null,
-      "original_price": "",
-      "discount_percent": 0
-    },
-    {
-      "id": "fba20d2d3bcae6c5",
-      "stream": "discover",
-      "title": "ESPHome Starter Kit review: From blinking lights to building a smart home",
-      "summary": "There’s something unusually exciting about opening the ESPHome Starter Kit. This isn’t just another ESP32 development board. It’s the first official hardware product from ESPHome, which has quietly become one of the foundations of the DIY smart home. That feels significant. Continue Reading Category: Technology Tags: Consumer Electronics , Internet of Things",
-      "category": "生活",
-      "tags": [
-        "生活",
-        "smart home"
-      ],
-      "language": "en",
-      "source": "New Atlas Technology",
-      "source_url": "https://newatlas.com/technology/esphome-starter-kit-review-from-blinking-lights-to-building-a-smart-home/",
-      "product_url": "https://newatlas.com/technology/esphome-starter-kit-review-from-blinking-lights-to-building-a-smart-home/",
-      "link_type": "source",
-      "image_url": "https://assets.newatlas.com/dims4/default/15bb6d8/2147483647/strip/true/crop/2048x1810+0+0/resize/1086x960!/format/webp/quality/90/?url=https%3A%2F%2Fnewatlas-brightspot.s3.ap-southeast-2.amazonaws.com%2F1d%2F68%2F5c1f0e1547f4b7d905fd4b0d0ef4%2Fh1.png",
-      "published_at": "2026-09-05T00:03:00+00:00",
-      "fetched_at": "2026-09-05T17:20:57.151405+00:00",
-      "relevance_score": 20.12,
-      "reason": "来自设计、众筹或独立硬件渠道的潜力生活产品，匹配你的偏好：smart home",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
       "price": "",
       "price_value": null,
@@ -4035,6 +4018,32 @@
       "discount_percent": 0
     },
     {
+      "id": "fba20d2d3bcae6c5",
+      "stream": "discover",
+      "title": "ESPHome Starter Kit review: From blinking lights to building a smart home",
+      "summary": "There’s something unusually exciting about opening the ESPHome Starter Kit. This isn’t just another ESP32 development board. It’s the first official hardware product from ESPHome, which has quietly become one of the foundations of the DIY smart home. That feels significant. Continue Reading Category: Technology Tags: Consumer Electronics , Internet of Things",
+      "category": "生活",
+      "tags": [
+        "生活",
+        "smart home"
+      ],
+      "language": "en",
+      "source": "New Atlas Technology",
+      "source_url": "https://newatlas.com/technology/esphome-starter-kit-review-from-blinking-lights-to-building-a-smart-home/",
+      "product_url": "https://newatlas.com/technology/esphome-starter-kit-review-from-blinking-lights-to-building-a-smart-home/",
+      "link_type": "source",
+      "image_url": "https://assets.newatlas.com/dims4/default/15bb6d8/2147483647/strip/true/crop/2048x1810+0+0/resize/1086x960!/format/webp/quality/90/?url=https%3A%2F%2Fnewatlas-brightspot.s3.ap-southeast-2.amazonaws.com%2F1d%2F68%2F5c1f0e1547f4b7d905fd4b0d0ef4%2Fh1.png",
+      "published_at": "2026-09-05T00:03:00+00:00",
+      "fetched_at": "2026-09-06T17:36:29.782326+00:00",
+      "relevance_score": 19.0,
+      "reason": "来自设计、众筹或独立硬件渠道的潜力生活产品，匹配你的偏好：smart home",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "",
+      "price_value": null,
+      "original_price": "",
+      "discount_percent": 0
+    },
+    {
       "id": "5f88c8c811dd4698",
       "stream": "discover",
       "title": "Keyboard-MIDI controller combo could be the stuff of musicians' dreams",
@@ -4052,7 +4061,7 @@
       "link_type": "source",
       "image_url": "https://assets.newatlas.com/dims4/default/a4c4254/2147483647/strip/true/crop/1839x1226+0+0/resize/1440x960!/format/webp/quality/90/?url=https%3A%2F%2Fnewatlas-brightspot.s3.ap-southeast-2.amazonaws.com%2F28%2F3a%2F2c71cdf142d58e6e539a31f4d122%2Fpolyends-keys-is-built-for-musicians-who-dont-want-a-clunky-midi-controller-taking-up-room-on-their-desks.jpg",
       "published_at": "2026-08-30T07:03:00+00:00",
-      "fetched_at": "2026-09-05T17:20:57.151405+00:00",
+      "fetched_at": "2026-09-06T17:36:29.782326+00:00",
       "relevance_score": 19.0,
       "reason": "来自设计、众筹或独立硬件渠道的潜力桌面产品，匹配你的偏好：desk",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
@@ -4737,7 +4746,7 @@
       "link_type": "source",
       "image_url": "https://assets.newatlas.com/dims4/default/d561453/2147483647/strip/true/crop/1920x1280+0+0/resize/1440x960!/format/webp/quality/90/?url=https%3A%2F%2Fnewatlas-brightspot.s3.ap-southeast-2.amazonaws.com%2F18%2F78%2F1a85234a49299c2c48bbb7d92e26%2Fdownload.jpeg",
       "published_at": "2026-09-02T13:03:00+00:00",
-      "fetched_at": "2026-09-05T17:20:57.151405+00:00",
+      "fetched_at": "2026-09-06T17:36:29.782326+00:00",
       "relevance_score": 15.0,
       "reason": "来自设计、众筹或独立硬件渠道的潜力3C 数码产品，匹配你的偏好：desk",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
@@ -4763,7 +4772,7 @@
       "link_type": "source",
       "image_url": "https://assets.newatlas.com/dims4/default/826b5ba/2147483647/strip/true/crop/2762x1841+0+0/resize/1440x960!/format/webp/quality/90/?url=https%3A%2F%2Fnewatlas-brightspot.s3.ap-southeast-2.amazonaws.com%2Fe3%2F74%2F96f3e7d34d0baec91cf7cd0efc8c%2F20260823-123748.jpg",
       "published_at": "2026-08-28T07:03:00+00:00",
-      "fetched_at": "2026-09-05T17:20:57.151405+00:00",
+      "fetched_at": "2026-09-06T17:36:29.782326+00:00",
       "relevance_score": 15.0,
       "reason": "来自设计、众筹或独立硬件渠道的潜力桌面产品，匹配你的偏好：desk",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
@@ -5058,32 +5067,6 @@
       "discount_percent": 0
     },
     {
-      "id": "8c648a58d482f8c4",
-      "stream": "discover",
-      "title": "Tiles",
-      "summary": "Turning desktop chaos into curated spaces. Discussion | Link",
-      "category": "桌面",
-      "tags": [
-        "桌面",
-        "desk"
-      ],
-      "language": "en",
-      "source": "Product Hunt",
-      "source_url": "https://www.producthunt.com/products/tiles-5",
-      "product_url": "https://www.producthunt.com/products/tiles-5",
-      "link_type": "source",
-      "image_url": "",
-      "published_at": "2026-08-22T19:41:41+00:00",
-      "fetched_at": "2026-08-31T20:50:00.580113+00:00",
-      "relevance_score": 14.0,
-      "reason": "来自设计、众筹或独立硬件渠道的潜力桌面产品，匹配你的偏好：desk",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "",
-      "price_value": null,
-      "original_price": "",
-      "discount_percent": 0
-    },
-    {
       "id": "aefc8cffd5f5494a",
       "stream": "discover",
       "title": "Vention’s New Power Bank Reads Like a Sunset, Not a Spec Sheet",
@@ -5226,7 +5209,7 @@
       "link_type": "source",
       "image_url": "https://assets.newatlas.com/dims4/default/bd60682/2147483647/strip/true/crop/1200x800+0+0/resize/1200x800!/format/webp/quality/90/?url=https%3A%2F%2Fnewatlas-brightspot.s3.ap-southeast-2.amazonaws.com%2F14%2F71%2F7ed96e6d4015a98d7ea41f51a5a7%2Fthe-piston-v-packs-a-well-specced-gaming-machine-and-work-desktop-into-a-dual-booting-mini-pc.jpg",
       "published_at": "2026-08-24T17:32:20+00:00",
-      "fetched_at": "2026-09-05T17:20:57.151405+00:00",
+      "fetched_at": "2026-09-06T17:36:29.782326+00:00",
       "relevance_score": 13.0,
       "reason": "来自设计、众筹或独立硬件渠道的潜力游戏产品，匹配你的偏好：mini pc",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
@@ -5337,6 +5320,31 @@
       "discount_percent": 0
     },
     {
+      "id": "5de386aeac339e1e",
+      "stream": "discover",
+      "title": "Review: Liene PixCut S1 prints AND cuts custom stickers for pennies",
+      "summary": "I've used a million printers over my decades of being a computer nerd and a professional photographer. I used to print professional 11 x 14 matte images like they were going out of style on the ol' Canon Pixma Pro9000. Less so these days with e-ink frames and everything being so digital now. But the Pixcut S1 ain't that kind of printer ... this thing can pri",
+      "category": "3C 数码",
+      "tags": [
+        "3C 数码"
+      ],
+      "language": "en",
+      "source": "New Atlas Technology",
+      "source_url": "https://newatlas.com/consumer-tech/liene-pixcut-s1-review/",
+      "product_url": "https://newatlas.com/consumer-tech/liene-pixcut-s1-review/",
+      "link_type": "source",
+      "image_url": "https://assets.newatlas.com/dims4/default/eeaec95/2147483647/strip/true/crop/3951x2904+0+0/resize/1306x960!/format/webp/quality/90/?url=https%3A%2F%2Fnewatlas-brightspot.s3.ap-southeast-2.amazonaws.com%2F6d%2F29%2F476f221a4b8fb50078335933a327%2F1000014165.jpg",
+      "published_at": "2026-09-06T00:03:00+00:00",
+      "fetched_at": "2026-09-06T17:36:29.782326+00:00",
+      "relevance_score": 12.07,
+      "reason": "来自设计、众筹或独立硬件渠道的潜力3C 数码产品",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "",
+      "price_value": null,
+      "original_price": "",
+      "discount_percent": 0
+    },
+    {
       "id": "0c0902fa0591df79",
       "stream": "discover",
       "title": "The Cyberdeck Trend Went Viral and Raspberry Pi Just Made It Official",
@@ -5423,13 +5431,13 @@
     {
       "name": "DealNews",
       "ok": true,
-      "item_count": 27,
+      "item_count": 19,
       "error": ""
     },
     {
       "name": "DealNews Editors' Choice",
       "ok": true,
-      "item_count": 27,
+      "item_count": 19,
       "error": ""
     },
     {
@@ -5465,25 +5473,25 @@
     {
       "name": "少数派",
       "ok": true,
-      "item_count": 3,
+      "item_count": 4,
       "error": ""
     },
     {
       "name": "爱范儿",
       "ok": true,
-      "item_count": 2,
+      "item_count": 1,
       "error": ""
     },
     {
       "name": "IT之家",
       "ok": true,
-      "item_count": 5,
+      "item_count": 6,
       "error": ""
     },
     {
       "name": "UNWIRE.HK",
       "ok": true,
-      "item_count": 0,
+      "item_count": 1,
       "error": ""
     },
     {
@@ -5495,7 +5503,7 @@
     {
       "name": "Engadget",
       "ok": true,
-      "item_count": 2,
+      "item_count": 0,
       "error": ""
     },
     {
@@ -5507,7 +5515,7 @@
     {
       "name": "Tom's Hardware",
       "ok": true,
-      "item_count": 13,
+      "item_count": 15,
       "error": ""
     },
     {
@@ -5519,7 +5527,7 @@
     {
       "name": "9to5Mac",
       "ok": true,
-      "item_count": 11,
+      "item_count": 10,
       "error": ""
     },
     {
@@ -5543,7 +5551,7 @@
     {
       "name": "Yanko Design",
       "ok": true,
-      "item_count": 4,
+      "item_count": 1,
       "error": ""
     },
     {
