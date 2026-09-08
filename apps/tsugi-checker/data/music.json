@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-07T21:44:42Z",
+  "generated_at": "2026-09-08T21:21:33Z",
   "chart_date": "2026/09/02",
   "weekly_chart": [
     {
@@ -599,18 +599,18 @@
       "artwork_checked": true
     },
     {
-      "id": "53a6fe360a1c85fe",
+      "id": "83cd24b3e79ba1e8",
       "rank": 9,
       "rank_change": "NEW",
       "is_new": true,
-      "title": "陽のあたる坂道",
+      "title": "陽のあたる坂道(Live)",
       "artist": "Do As Infinity",
       "weeks": 1,
       "peak": 9,
       "streams": "2,521,333",
       "streams_change": "",
-      "url": "https://www.youtube.com/results?search_query=Do+As+Infinity+-+%E9%99%BD%E3%81%AE%E3%81%82%E3%81%9F%E3%82%8B%E5%9D%82%E9%81%93",
-      "youtube_music_url": "https://music.youtube.com/search?q=%E9%99%BD%E3%81%AE%E3%81%82%E3%81%9F%E3%82%8B%E5%9D%82%E9%81%93+Do+As+Infinity",
+      "url": "https://www.youtube.com/results?search_query=Do+As+Infinity+-+%E9%99%BD%E3%81%AE%E3%81%82%E3%81%9F%E3%82%8B%E5%9D%82%E9%81%93%28Live%29",
+      "youtube_music_url": "https://music.youtube.com/search?q=%E9%99%BD%E3%81%AE%E3%81%82%E3%81%9F%E3%82%8B%E5%9D%82%E9%81%93%28Live%29+Do+As+Infinity",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
       "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/d3/d6/d9/d3d6d906-2c03-925c-f47b-6e37d9813888/mzi.muciaycp.jpg/300x300bb.jpg",
@@ -1041,8 +1041,9 @@
       "youtube_music_url": "https://music.youtube.com/search?q=%E3%82%AC%E3%83%81%E5%A4%A2%E4%B8%AD%EF%BC%81+Chotokkyu",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": false
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/5d/f7/ec/5df7ec34-6bca-ff99-c906-57136bf93577/26UMGIM40239.rgb.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/%E3%82%AC%E3%83%81%E5%A4%A2%E4%B8%AD/1891923968?i=1891924257&uo=4"
     },
     {
       "id": "818a65c31ca4122c",
@@ -1059,8 +1060,9 @@
       "youtube_music_url": "https://music.youtube.com/search?q=Bloody+Paradise+ENHYPEN",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": false
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/be/25/e3/be25e373-c70c-f452-cd8f-3a024d129670/26UM1IM03683.rgb.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/bloody-paradise/6802622750?i=6802622768&uo=4"
     },
     {
       "id": "138d199bcabb95c4",
@@ -1077,8 +1079,9 @@
       "youtube_music_url": "https://music.youtube.com/search?q=SUN+KISS+TUIDE",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": false
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/f6/59/50/f6595017-02c4-7a23-811f-124ef49b4cca/26UM1IM06731.rgb.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/sun-kiss/6803315375?i=6803315872&uo=4"
     },
     {
       "id": "04013e67fe584425",
@@ -1095,8 +1098,9 @@
       "youtube_music_url": "https://music.youtube.com/search?q=%E3%83%A2%E3%83%B3%E3%82%B9%E3%83%88%E3%83%AD+Ado",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": false
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/aa/c4/ab/aac4ab69-4af5-db18-4ffd-0199ae43188c/26UMGIM92689.rgb.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/%E3%83%A2%E3%83%B3%E3%82%B9%E3%83%88%E3%83%AD/6793398195?i=6793398196&uo=4"
     },
     {
       "id": "277e7f1e22838b67",
@@ -1114,7 +1118,7 @@
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
       "artwork": "",
-      "artwork_checked": false
+      "artwork_checked": true
     }
   ],
   "sources": {
@@ -1122,13 +1126,13 @@
       "label": "Billboard JAPAN Hot 100",
       "ok": true,
       "count": 30,
-      "checked_at": "2026-09-07T21:44:42Z"
+      "checked_at": "2026-09-08T21:21:33Z"
     },
     "apple_music_weekly_new": {
       "label": "Apple Music Japan · 本周新曲",
       "ok": true,
       "count": 8,
-      "checked_at": "2026-09-07T21:44:42Z",
+      "checked_at": "2026-09-08T21:21:33Z",
       "fallback": "Billboard JAPAN Hot 100 本周新进榜",
       "error": "RuntimeError: Apple Music Best New Songs heading not found"
     },
@@ -1136,8 +1140,8 @@
       "label": "YouTube Japan · 近期热门榜",
       "ok": true,
       "count": 30,
-      "cover_count": 23,
-      "checked_at": "2026-09-07T21:44:42Z",
+      "cover_count": 27,
+      "checked_at": "2026-09-08T21:21:33Z",
       "chart_date": "2026/09/03",
       "endpoint": "https://kworb.net/youtube/insights/jp.html"
     }
