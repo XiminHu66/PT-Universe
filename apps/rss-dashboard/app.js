@@ -71,8 +71,8 @@ function renderNavigation(){
   $('#categoryNav').innerHTML=categoryEntries().map(([id,c])=>{const total=items.filter(x=>x.category===id).length,count=unreadItems.filter(x=>x.category===id).length;if(!total&&id==='other')return '';return `<button class="feed-item ${category===id?'active':''}" data-category="${id}" style="--dot:${c.color}"><i></i><span>${c.icon} ${esc(c.name)}</span><em title="未读文章数">${count}</em></button>`}).join('');
   const sources=allSources().filter(x=>!hiddenIds.has(x.id));
   $('#sourceCount').textContent=sources.length;$('#feedNav').innerHTML=sources.map(x=>`<button class="feed-item ${feed===x.id?'active':''}" data-feed="${esc(x.id)}" style="--dot:${sourceColor(x.id)}"><i></i><span>${esc(x.name)}</span><em title="未读文章数">${unreadItems.filter(a=>a.source_id===x.id).length}</em></button>`).join('');
-  $$('[data-category]').forEach(x=>x.onclick=()=>{category=category===x.dataset.category?null:x.dataset.category;feed=null;view='all';visibleLimit=40;renderAll();closeSidebar()});
-  $$('[data-feed]').forEach(x=>x.onclick=()=>{feed=feed===x.dataset.feed?null:x.dataset.feed;category=null;view='all';visibleLimit=40;renderAll();closeSidebar()});
+  $$('[data-category]').forEach(x=>x.onclick=()=>{category=category===x.dataset.category?null:x.dataset.category;feed=null;view='all';visibleLimit=40;renderAll();closeSidebar();resetFeedScroll()});
+  $$('[data-feed]').forEach(x=>x.onclick=()=>{feed=feed===x.dataset.feed?null:x.dataset.feed;category=null;view='all';visibleLimit=40;renderAll();closeSidebar();resetFeedScroll()});
 }
 
 function titleState(){
@@ -104,6 +104,11 @@ function renderList(){
 }
 
 function renderAll(){renderNavigation();titleState();renderList();if(selectedId&&!enabledItems().some(x=>x.id===selectedId))closeReader()}
+function resetFeedScroll(){
+  // Desktop scrolls the workspace; mobile can scroll the document as well.
+  $('.workspace').scrollTo({top:0,behavior:'instant'});
+  window.scrollTo({top:0,behavior:'instant'});
+}
 function selectArticle(id){selectedId=id;readIds.add(id);saveSet(KEYS.read,readIds);renderNavigation();renderList();renderReader();$('#readerPanel').scrollTop=0;$('#readerPanel').classList.add('open')}
 function currentArticle(){return allItems().find(x=>x.id===selectedId)}
 function renderReader(){const item=currentArticle();if(!item){closeReader();return}$('#readerEmpty').hidden=true;$('#readerArticle').hidden=false;$('#readerSourceIcon').textContent=sourceInitial(item.source);$('#readerSource').textContent=item.source;$('#readerMeta').textContent=`${fullDate(item.published_at)}${item.author?` · ${item.author}`:''}`;$('#readerCategory').textContent=categoryInfo(item.category).name;$('#readerTitle').textContent=item.title;$('#readerSummary').textContent=item.summary||'这个来源没有提供摘要，请打开原文继续阅读。';const image=safeUrl(item.image),readerImage=$('#readerImage');readerImage.hidden=!image;if(image){readerImage.dataset.original=image;wireImage(readerImage,900)}else readerImage.removeAttribute('src');const link=safeUrl(item.link);$('#readerOpen').href=link||'#';$('#readerSave').classList.toggle('on',savedIds.has(item.id));$('#readerSave').textContent=savedIds.has(item.id)?'★ 已收藏':'☆ 稍后读';$('#readerUnread').textContent=readIds.has(item.id)?'标为未读':'标为已读'}
@@ -231,8 +236,8 @@ async function loadCloudflareStatus(){const proxy=proxyBase();if(!proxy)return;t
 async function loadData(){const btn=$('#refreshButton');btn.classList.add('loading');try{const response=await fetch(DATA_URL);if(!response.ok)throw new Error();const payload=await response.json();if(Array.isArray(payload.items))data={...payload,items:applySourcePreferences(payload.items),generated_at:null};const cached=await refreshDefaultFeeds(false);await loadCloudflareStatus();await refreshCustomFeeds();syncStatus();renderAll();if(!cached.sourceCount)toast('Cloudflare 缓存暂时不可用，正在显示内置备用数据')}catch{$('#syncDot').className='error';$('#syncText').textContent='数据缓存暂时不可用';renderAll()}finally{btn.classList.remove('loading')}}
 async function refreshNow(){const btn=$('#refreshButton');if(btn.classList.contains('loading'))return;btn.classList.add('loading');btn.disabled=true;toast(proxyBase()?'正在通过 Cloudflare 即时刷新全部 RSS…':'正在直接读取 RSS 源…');try{const defaults=await refreshDefaultFeeds(true),custom=await refreshCustomFeeds(),fresh=defaults.sourceCount+custom.sourceCount,total=defaults.totalSources+custom.totalSources,itemCount=defaults.itemCount+custom.itemCount,unavailable=total-fresh;if(fresh)manualRefreshAt=new Date();syncStatus();if($('#manageDialog').open)renderManager();renderAll();if(fresh===total)toast(`全部 ${fresh} 个来源已实时刷新 · ${itemCount} 篇`);else if(fresh)toast(`实时更新 ${fresh}/${total} 个来源；${unavailable} 个请查看健康状态`);else toast('全部来源当前无法实时刷新，已保留已有内容')}finally{btn.classList.remove('loading');btn.disabled=false}}
 
-$$('.nav-item').forEach(x=>x.onclick=()=>{view=x.dataset.view;category=null;feed=null;quickFilter='all';visibleLimit=40;$$('.filter-pill').forEach(y=>y.classList.toggle('active',y.dataset.filter==='all'));renderAll();closeSidebar()});
-$$('.filter-pill').forEach(x=>x.onclick=()=>{quickFilter=x.dataset.filter;visibleLimit=40;$$('.filter-pill').forEach(y=>y.classList.toggle('active',y===x));renderList()});
+$$('.nav-item').forEach(x=>x.onclick=()=>{view=x.dataset.view;category=null;feed=null;quickFilter='all';visibleLimit=40;$$('.filter-pill').forEach(y=>y.classList.toggle('active',y.dataset.filter==='all'));renderAll();closeSidebar();resetFeedScroll()});
+$$('.filter-pill').forEach(x=>x.onclick=()=>{quickFilter=x.dataset.filter;visibleLimit=40;$$('.filter-pill').forEach(y=>y.classList.toggle('active',y===x));renderList();resetFeedScroll()});
 $('#searchInput').oninput=e=>{query=e.target.value.trim();visibleLimit=40;renderAll()};
 $('#sortButton').onclick=()=>{sortDesc=!sortDesc;$('#sortButton').textContent=sortDesc?'最新优先 ↓':'最早优先 ↑';renderList()};
 $('#loadMoreButton').onclick=()=>{visibleLimit+=40;renderList()};

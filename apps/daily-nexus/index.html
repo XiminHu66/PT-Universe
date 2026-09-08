@@ -2536,6 +2536,22 @@ function moveNavRow(index,delta){
   const rows=collectNavEditor(),j=index+delta;if(j<0||j>=rows.length)return;
   [rows[index],rows[j]]=[rows[j],rows[index]];state.navConfig=rows;renderNavEditor();
 }
+function resetNexusViewScroll(target){
+  if(!target)return;
+  // Views contain their own scrolling panels, including same-origin embedded apps.
+  const resetPanels=root=>{
+    [root,...root.querySelectorAll('*')].forEach(el=>{
+      if(el.scrollTop&&!el.matches('textarea,input'))el.scrollTo({top:0,behavior:'instant'});
+    });
+  };
+  resetPanels(target);
+  for(let el=target.parentElement;el;el=el.parentElement){
+    if(el.scrollTop)el.scrollTo({top:0,behavior:'instant'});
+  }
+  target.querySelectorAll('iframe.board-frame,iframe.embed-frame').forEach(frame=>{
+    try{if(frame.contentDocument?.documentElement)resetPanels(frame.contentDocument.documentElement)}catch(_){}
+  });
+}
 function switchNexusView(view){
   $$('.navbtn[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===view));
   $$('.view').forEach(v=>v.classList.remove('active'));
@@ -2547,6 +2563,7 @@ function switchNexusView(view){
   if(view==='focus')renderFocusTasks();
   if(view==='traffic')renderTraffic();
   if(view==='countdown')renderCountdown();
+  resetNexusViewScroll(target);
 }
 
 // ---------- Traffic dashboard ----------
