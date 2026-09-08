@@ -192,7 +192,7 @@ function renderSiteUpdates(){
   const statuses=state.site?.sources||{};
   $('#siteSourceBar').innerHTML=`<button class="source-filter ${state.siteSource==='all'?'active':''}" data-site-source="all">全部来源</button>`+
     sources.map(([id,label])=>`<button class="source-filter ${state.siteSource===id?'active':''}" data-site-source="${esc(id)}">${esc(label)}${statuses[id]?.ok===false?' · 失败':''}</button>`).join('');
-  $$('.source-filter').forEach(b=>b.onclick=()=>{state.siteSource=b.dataset.siteSource;renderSiteUpdates()});
+  $$('.source-filter').forEach(b=>b.onclick=()=>{state.siteSource=b.dataset.siteSource;renderSiteUpdates();resetTabScroll()});
   const visible=all.filter(x=>(state.siteFilter==='all'||x.type===state.siteFilter)&&(state.siteSource==='all'||x.source===state.siteSource)&&(!q||`${x.title} ${x.latest} ${x.source_label}`.toLowerCase().includes(q)));
   $('#siteUpdatesGrid').innerHTML=visible.length?visible.map(x=>{const added=isShelfItem(x);const latest=meaningfulLatest(x.latest)?`最新章节 · ${x.latest}`:(x.chapter_count?`已解析 · ${x.chapter_count} 章 / 话`:'最新章节 · 待解析');const updated=meaningfulUpdated(x.updated_text)?`更新时间 · ${compactUpdateDate(x.updated_text)}`:(x.fetched_at?`检查时间 · ${compactUpdateDate(x.fetched_at)}`:'更新时间 · 待确认');return `<article class="site-update-card">
     <a class="site-card-main" href="${esc(x.latest_url||x.url)}" target="_blank" rel="noopener">
@@ -322,11 +322,12 @@ function updateStats(){
 }
 function renderAll(){renderSiteUpdates();renderLibrary();renderLibraryUpdates();renderMusic();renderGames();renderSources();updateStats()}
 function applyTheme(theme){document.documentElement.dataset.theme=theme;localStorage.setItem('tsugi-theme',theme);const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=theme==='light'?'#f4f6fb':'#090b10'}
-$$('.nav-item').forEach(b=>b.onclick=()=>{$$('.nav-item').forEach(x=>x.classList.remove('active'));b.classList.add('active');$$('.tab').forEach(x=>x.classList.remove('active'));$('#'+b.dataset.tab).classList.add('active')});
-$$('.chip[data-filter]').forEach(b=>b.onclick=()=>{$$('.chip[data-filter]').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.filter=b.dataset.filter;renderLibraryUpdates()});
-$$('.chip[data-site-filter]').forEach(b=>b.onclick=()=>{$$('.chip[data-site-filter]').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.siteFilter=b.dataset.siteFilter;renderSiteUpdates()});
-$$('[data-game-view]').forEach(b=>b.onclick=()=>{state.gameView=b.dataset.gameView;$$('[data-game-view]').forEach(x=>x.classList.toggle('active',x===b));$$('.game-pane').forEach(x=>x.classList.remove('active'));$(`#game${state.gameView==='mobile'?'Mobile':state.gameView==='pc'?'Pc':'Console'}Pane`).classList.add('active')});
-$$('[data-music-view]').forEach(b=>b.onclick=()=>{state.musicView=b.dataset.musicView;$$('[data-music-view]').forEach(x=>x.classList.toggle('active',x===b));$$('.music-pane').forEach(x=>x.classList.remove('active'));const pane={chart:'Chart',recent:'Recent',new:'New',artists:'Artists'}[state.musicView]||'Chart';$(`#music${pane}Pane`).classList.add('active');if(state.musicView==='artists')renderFollowedArtists()});
+function resetTabScroll(){window.scrollTo({top:0,behavior:'instant'})}
+$$('.nav-item').forEach(b=>b.onclick=()=>{$$('.nav-item').forEach(x=>x.classList.remove('active'));b.classList.add('active');$$('.tab').forEach(x=>x.classList.remove('active'));$('#'+b.dataset.tab).classList.add('active');resetTabScroll()});
+$$('.chip[data-filter]').forEach(b=>b.onclick=()=>{$$('.chip[data-filter]').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.filter=b.dataset.filter;renderLibraryUpdates();resetTabScroll()});
+$$('.chip[data-site-filter]').forEach(b=>b.onclick=()=>{$$('.chip[data-site-filter]').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.siteFilter=b.dataset.siteFilter;renderSiteUpdates();resetTabScroll()});
+$$('[data-game-view]').forEach(b=>b.onclick=()=>{state.gameView=b.dataset.gameView;$$('[data-game-view]').forEach(x=>x.classList.toggle('active',x===b));$$('.game-pane').forEach(x=>x.classList.remove('active'));$(`#game${state.gameView==='mobile'?'Mobile':state.gameView==='pc'?'Pc':'Console'}Pane`).classList.add('active');resetTabScroll()});
+$$('[data-music-view]').forEach(b=>b.onclick=()=>{state.musicView=b.dataset.musicView;$$('[data-music-view]').forEach(x=>x.classList.toggle('active',x===b));$$('.music-pane').forEach(x=>x.classList.remove('active'));const pane={chart:'Chart',recent:'Recent',new:'New',artists:'Artists'}[state.musicView]||'Chart';$(`#music${pane}Pane`).classList.add('active');if(state.musicView==='artists')renderFollowedArtists();resetTabScroll()});
 $('#search').addEventListener('input',e=>{state.query=e.target.value.trim();renderSiteUpdates();renderLibrary();renderLibraryUpdates();renderMusic();renderGames()});
 $('#themeBtn').onclick=()=>applyTheme(document.documentElement.dataset.theme==='light'?'dark':'light');$('#markAllRead').onclick=()=>{[...(state.feed?.updates||[]),...state.localUpdates].forEach(x=>state.read.add(x.id));saveRead();renderLibraryUpdates()};
 $('#artistSearchBtn').onclick=runArtistSearch;$('#artistSearchInput').addEventListener('keydown',e=>{if(e.key==='Enter')runArtistSearch()});$('#refreshArtistsBtn').onclick=renderFollowedArtists;
