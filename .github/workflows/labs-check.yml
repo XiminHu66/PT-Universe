@@ -4,15 +4,57 @@ on:
     branches: ['codex/pt-research-tools']
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
+concurrency:
+  group: labs-validation
+  cancel-in-progress: true
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install requests beautifulsoup4 yfinance
-      - run: python scripts/labs/probe_sources.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: pip install -r scripts/labs/requirements.txt playwright
+      - run: python -m playwright install --with-deps chromium
+      - name: Validate accounting transformations
+        run: python -m unittest discover -s scripts/labs -p 'test_*.py' -v
+      - name: Fetch live financials, game offers and local events
+        run: python scripts/labs/refresh.py
+      - name: Validate JavaScript
+        run: |
+          node --check app.js
+          node --check pt-bridge.js
+          for file in apps/_lab/core.js apps/thesis-lab/app.js apps/earnings-dojo/app.js apps/game-deals/app.js apps/eastside-weekend/app.js; do
+            node --check "$file"
+          done
+      - name: Browser interaction and responsive checks
+        run: python scripts/labs/browser_test.py
+      - name: Keep verified initial snapshots on feature branch
+        if: github.ref == 'refs/heads/codex/pt-research-tools'
+        run: |
+          git config user.name "pt-universe-labs-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/thesis-lab/data apps/game-deals/data apps/eastside-weekend/data
+          if ! git diff --cached --quiet; then
+            git commit -m "data(labs): verified financial, game and event snapshots"
+            git pull --rebase origin codex/pt-research-tools
+            git push origin HEAD:codex/pt-research-tools
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: research-tools-verification
+          path: |
+            test-results/labs
+            apps/thesis-lab/data
+            apps/game-deals/data
+            apps/eastside-weekend/data
+          retention-days: 7

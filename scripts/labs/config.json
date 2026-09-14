@@ -1,0 +1,75 @@
+{
+  "stocks": [
+    [
+      "NVDA",
+      "NVIDIA",
+      1045810
+    ],
+    [
+      "AAPL",
+      "Apple",
+      320193
+    ],
+    [
+      "MSFT",
+      "Microsoft",
+      789019
+    ],
+    [
+      "GOOGL",
+      "Alphabet",
+      1652044
+    ],
+    [
+      "META",
+      "Meta Platforms",
+      1326801
+    ],
+    [
+      "TSLA",
+      "Tesla",
+      1318605
+    ],
+    [
+      "PLTR",
+      "Palantir",
+      1321655
+    ],
+    [
+      "AMD",
+      "AMD",
+      2488
+    ],
+    [
+      "AVGO",
+      "Broadcom",
+      1730168
+    ],
+    [
+      "ANET",
+      "Arista Networks",
+      1596532
+    ],
+    [
+      "DELL",
+      "Dell Technologies",
+      1571996
+    ],
+    [
+      "W",
+      "Wayfair",
+      1616707
+    ]
+  ],
+  "gameTitles": [
+    "Street Fighter 6",
+    "ELDEN RING",
+    "Hades II",
+    "Cyberpunk 2077",
+    "Monster Hunter Wilds",
+    "Clair Obscur",
+    "TEKKEN 8",
+    "Baldur's Gate 3"
+  ],
+  "eventDays": 45
+}

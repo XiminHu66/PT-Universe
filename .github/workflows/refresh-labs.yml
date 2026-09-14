@@ -1,0 +1,107 @@
+name: Refresh Research Tools
+on:
+  schedule:
+    - cron: '35 15,16 * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/labs/**'
+      - 'apps/_lab/**'
+      - 'apps/thesis-lab/**'
+      - 'apps/earnings-dojo/**'
+      - 'apps/game-deals/**'
+      - 'apps/eastside-weekend/**'
+      - '.github/workflows/refresh-labs.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pt-universe-research-refresh
+  cancel-in-progress: false
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.check.outputs.run }}
+    steps:
+      - id: check
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" != "schedule" ] || [ "$(TZ=America/Los_Angeles date +%H)" = "08" ]; then
+            echo "run=yes" >> "$GITHUB_OUTPUT"
+          fi
+  refresh:
+    needs: gate
+    if: needs.gate.outputs.run == 'yes'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r scripts/labs/requirements.txt
+      - run: python -m unittest discover -s scripts/labs -p 'test_*.py'
+      - run: python scripts/labs/refresh.py
+      - name: Save public data snapshots
+        run: |
+          git config user.name "pt-universe-labs-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/thesis-lab/data apps/game-deals/data apps/eastside-weekend/data
+          if ! git diff --cached --quiet; then
+            git commit -m "data(labs): refresh research tools"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+  deploy:
+    needs: refresh
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - uses: actions/deploy-pages@v4
+        id: deployment
+  verify:
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install playwright
+      - run: python -m playwright install --with-deps chromium
+      - name: Verify published pages and interactive flows
+        env:
+          LABS_BASE_URL: https://ximinhu66.github.io/PT-Universe/
+        run: python scripts/labs/browser_test.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: published-research-tools
+          path: test-results/labs
+          retention-days: 7
