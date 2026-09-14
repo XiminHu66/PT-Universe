@@ -1,7 +1,7 @@
 name: Research tools validation
 on:
   push:
-    branches: ['codex/pt-research-tools']
+    branches: ['codex/pt-research-tools', 'codex/labs-reliability']
   workflow_dispatch:
 permissions:
   contents: write
@@ -27,7 +27,7 @@ jobs:
       - name: Validate accounting transformations
         run: python -m unittest discover -s scripts/labs -p 'test_*.py' -v
       - name: Fetch live financials, game offers and local events
-        run: python scripts/labs/refresh.py
+        run: python scripts/labs/refresh.py --force
       - name: Validate JavaScript
         run: |
           node --check app.js
