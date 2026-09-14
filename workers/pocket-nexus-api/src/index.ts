@@ -1,10 +1,26 @@
 type StockRow = { symbol:string; price:number; changePct:number; lastTradeAt:string|null };
 type NewsRow = { title:string; publishedAt:number; source:string };
 type WeatherRow = { location:string; temperature:number; apparent:number; humidity:number; wind:number; weatherCode:number };
+type RssRow = { title:string; source:string; feedId:string };
 
 const STOCK_SOURCE = 'https://raw.githubusercontent.com/XiminHu66/stock-alert/main/data/quotes.json';
 const WSCN_SOURCE = 'https://api-one-wscn.awtmt.com/apiv1/content/lives?channel=global-channel&client=pc&limit=24&first_page=true';
+const RSS_ORBIT_BASE = 'https://rss-orbit-proxy.summer07-nanjolno.workers.dev';
 const WATCH = ['QQQ','SPY','SMH','NVDA','AMD','TSM','MSFT','GOOGL'];
+const RSS_FEEDS = [
+  {id:'wallstreetcn',name:'华尔街见闻'},
+  {id:'ftchinese',name:'FT中文网'},
+  {id:'techbang',name:'T客邦'},
+  {id:'rfi-cn',name:'RFI中文'},
+  {id:'bbc-zh',name:'BBC中文'},
+  {id:'rthk',name:'香港电台'},
+  {id:'sspai',name:'少数派'},
+  {id:'ithome',name:'IT之家'},
+  {id:'solidot',name:'Solidot'},
+  {id:'appinn',name:'小众软件'},
+  {id:'infoq-cn',name:'InfoQ中文'},
+  {id:'gcores',name:'机核'}
+] as const;
 const JSON_HEADERS = {
   'content-type': 'application/json; charset=utf-8',
   'cache-control': 'public, max-age=60, s-maxage=60',
@@ -16,13 +32,16 @@ function cleanText(value:unknown){
   return String(value ?? '')
     .replace(/<[^>]*>/g,' ')
     .replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#(?:39|x27);/g,"'")
-    .replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim();
+    .replace(/&nbsp;/g,' ').replace(/&lt;/g,'<').replace(/&gt;/g,'>')
+    .replace(/&#(\d+);/g,(_,n)=>String.fromCodePoint(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi,(_,n)=>String.fromCodePoint(parseInt(n,16)))
+    .replace(/\s+/g,' ').trim();
 }
 function json(value:unknown,status=200){return new Response(JSON.stringify(value),{status,headers:JSON_HEADERS});}
-async function timedFetch(url:string,timeout=8000){
+async function timedFetch(url:string,timeout=8000,accept='application/json'){
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),timeout);
-  try{return await fetch(url,{signal:controller.signal,headers:{'user-agent':'Pocket-Nexus/1.0','accept':'application/json'}});}
+  try{return await fetch(url,{signal:controller.signal,headers:{'user-agent':'Pocket-Nexus/1.1','accept':accept}});}
   finally{clearTimeout(timer);}
 }
 
@@ -80,6 +99,36 @@ async function loadWeather(request:Request):Promise<WeatherRow> {
   };
 }
 
+function rssBlocks(xml:string){
+  const itemMatches=[...xml.matchAll(/<item\b[\s\S]*?<\/item\s*>/gi)].map(match=>match[0]);
+  if(itemMatches.length)return itemMatches;
+  return [...xml.matchAll(/<entry\b[\s\S]*?<\/entry\s*>/gi)].map(match=>match[0]);
+}
+function rssTag(block:string,tag:string){
+  const safe=tag.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const match=block.match(new RegExp(`<${safe}\\b[^>]*>([\\s\\S]*?)<\\/${safe}\\s*>`,'i'));
+  return cleanText(match?.[1] ?? '');
+}
+async function loadRandomRss():Promise<RssRow>{
+  const seed=Math.floor(Math.random()*RSS_FEEDS.length);
+  let lastError='rss_unavailable';
+  for(let attempt=0;attempt<Math.min(5,RSS_FEEDS.length);attempt++){
+    const feed=RSS_FEEDS[(seed+attempt)%RSS_FEEDS.length];
+    try{
+      const response=await timedFetch(`${RSS_ORBIT_BASE}/feed/${feed.id}`,9000,'application/rss+xml, application/atom+xml, application/xml, text/xml, */*');
+      if(!response.ok)throw new Error(`rss_${response.status}`);
+      const xml=await response.text();
+      const blocks=rssBlocks(xml).slice(0,40);
+      if(!blocks.length)throw new Error('rss_empty');
+      const block=blocks[Math.floor(Math.random()*blocks.length)];
+      const title=rssTag(block,'title');
+      if(!title)throw new Error('rss_title_missing');
+      return {title,source:feed.name,feedId:feed.id};
+    }catch(error){lastError=error instanceof Error?error.message:'rss_unavailable';}
+  }
+  throw new Error(lastError);
+}
+
 export default {
   async fetch(request:Request):Promise<Response>{
     const url=new URL(request.url);
@@ -98,6 +147,10 @@ export default {
       if(url.pathname==='/api/weather'){
         const weather=await loadWeather(request);
         return json({ok:true,generatedAt:new Date().toISOString(),...weather});
+      }
+      if(url.pathname==='/api/rss-random'){
+        const item=await loadRandomRss();
+        return json({ok:true,generatedAt:new Date().toISOString(),item});
       }
       if(url.pathname==='/api/brief'){
         const [stocksResult,newsResult,weatherResult]=await Promise.allSettled([loadStocks(),loadNews(),loadWeather(request)]);
