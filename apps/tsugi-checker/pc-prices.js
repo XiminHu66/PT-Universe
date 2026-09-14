@@ -34,5 +34,6 @@
  };
  const legacy=localStorage.getItem('ptu.labs.games');
  if(legacy){const button=$('#pcpLegacy');button.hidden=false;button.onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({version:1,project:'games',data:JSON.parse(localStorage.getItem('ptu.labs.games')||'{}')},null,2)],{type:'application/json'}));a.download='game-scout-records.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}}
- if(location.hash==='#pc-prices')document.querySelector('#nav [data-tab="games"]')?.click();
+ function openPriceTab(){if(location.hash!=='#pc-prices')return;document.querySelector('#nav [data-tab="games"]')?.click();document.querySelector('#gameSwitch [data-game-view="prices"]')?.click()}
+ window.addEventListener('hashchange',openPriceTab);openPriceTab();
 })();
