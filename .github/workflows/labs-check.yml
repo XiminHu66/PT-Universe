@@ -1,7 +1,7 @@
 name: Research tools validation
 on:
   push:
-    branches: ['codex/pt-research-tools', 'codex/labs-reliability', 'codex/tsugi-search-regional-events']
+    branches: ['codex/pt-research-tools', 'codex/labs-reliability', 'codex/tsugi-search-regional-events', 'codex/tsugi-pc-search-tab']
   workflow_dispatch:
 permissions:
   contents: write

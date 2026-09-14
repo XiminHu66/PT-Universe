@@ -306,6 +306,10 @@
       if(gv)document.querySelector(`[data-game-view="${CSS.escape(gv)}"]`)?.click();
       const mv=localStorage.getItem(MUSIC_VIEW_KEY);
       if(mv)document.querySelector(`[data-music-view="${CSS.escape(mv)}"]`)?.click();
+      if(location.hash==='#pc-prices'){
+        document.querySelector('#nav [data-tab="games"]')?.click();
+        document.querySelector('#gameSwitch [data-game-view="prices"]')?.click();
+      }
     },30);
   }
   function bindHotkeys(){

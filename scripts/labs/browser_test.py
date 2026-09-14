@@ -75,8 +75,19 @@ with sync_playwright() as p:
   page.reload(wait_until='networkidle');page.wait_for_selector('#freshness[data-state="partial"]')
   page.unroute(pattern,snapshot);page.unroute('**/api/training/**',failure)
   print('BROWSER PASS',app,flush=True)
+ page.goto(base+'apps/tsugi-checker/',wait_until='networkidle',timeout=60000)
+ page.locator('#nav [data-tab="games"]').click()
+ assert page.locator('#gameMobilePane').is_visible()
+ assert not page.locator('#pc-prices').is_visible(),'Search must not alter the default release layout'
+ for view,pane in [('pc','gamePcPane'),('console','gameConsolePane'),('mobile','gameMobilePane'),('prices','pc-prices')]:
+  page.locator('#gameSwitch [data-game-view="'+view+'"]').click()
+  assert page.locator('#'+pane).is_visible()
+  assert page.locator('#games .game-pane:visible').count()==1
+ page.evaluate("localStorage.setItem('tsugi-last-tab-v1','music');localStorage.setItem('tsugi-last-game-view-v1','console')")
  page.goto(base+'apps/tsugi-checker/#pc-prices',wait_until='networkidle',timeout=60000)
- page.locator('#nav [data-tab="games"]').click();page.locator('#pcpQuery').fill('Street Fighter 6');page.locator('#pcpSubmit').click()
+ assert page.locator('#pc-prices').is_visible(),'Deep link must select the search subtab'
+ assert page.locator('#gameSwitch [data-game-view="prices"]').evaluate("el=>el.classList.contains('active')")
+ page.locator('#pcpQuery').fill('Street Fighter 6');page.locator('#pcpSubmit').click()
  page.wait_for_selector('#pcpCandidate',timeout=40000)
  options=page.locator('#pcpCandidate option').all_text_contents();chosen=next(i for i,x in enumerate(options) if 'Street Fighter' in x and '6' in x)
  page.locator('#pcpCandidate').select_option(index=chosen)
@@ -87,7 +98,15 @@ with sync_playwright() as p:
  page.screenshot(path=str(OUT/'tsugi-prices-desktop.png'),full_page=False);page.set_viewport_size({'width':390,'height':844})
  assert page.evaluate("document.querySelector('#pc-prices').scrollWidth<=window.innerWidth+2"),'Tsugi price search mobile overflow'
  page.screenshot(path=str(OUT/'tsugi-prices-mobile.png'),full_page=False)
- print('BROWSER PASS tsugi PC price search',flush=True)
+ for width in [390,320]:
+  page.set_viewport_size({'width':width,'height':844})
+  assert page.evaluate("document.documentElement.scrollWidth<=window.innerWidth+2"),'Tsugi page mobile overflow'
+  for view,pane in [('pc','gamePcPane'),('console','gameConsolePane'),('mobile','gameMobilePane'),('prices','pc-prices')]:
+   page.locator('#gameSwitch [data-game-view="'+view+'"]').click()
+   assert page.locator('#'+pane).is_visible()
+   assert page.locator('#games .game-pane:visible').count()==1
+  assert page.locator('.pcp-offer.best').is_visible(),'Switching tabs must retain search results'
+ print('BROWSER PASS tsugi PC search subtab, release tabs, deep link, retained results, mobile 390/320',flush=True)
  page.goto(base,wait_until='networkidle',timeout=60000)
  for app in pages+['tsugi-checker']:assert page.locator('[data-app="'+app+'"]').count()>=1
  assert page.locator('[data-app="game-deals"]').count()==0
