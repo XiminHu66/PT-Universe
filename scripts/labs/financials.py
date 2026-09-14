@@ -4,6 +4,7 @@ import math,time
 from datetime import date
 import requests
 import yfinance as yf
+from reliability import source, cached_source, selected
 TAGS={
 "revenue":["RevenueFromContractWithCustomerExcludingAssessedTax","Revenues","SalesRevenueNet"],
 "operatingIncome":["OperatingIncomeLoss"],"netIncome":["NetIncomeLoss"],"grossProfit":["GrossProfit"],
@@ -70,13 +71,15 @@ def from_yahoo(ticker):
 def collect(config,old,now):
  sources=[];companies=[];previous={x["ticker"]:x for x in old.get("companies",[])};sec_available=True
  for ticker,name,cik in config["stocks"]:
+  if not selected(config,ticker) and ticker in previous and cached_source(old,ticker):
+   companies.append(previous[ticker]);sources.append(cached_source(old,ticker));continue
   sec_url=f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cik:010d}.json"
   qs=[];provider="";error=""
   if sec_available:
    try:
     r=requests.get(sec_url,headers={"User-Agent":"PTUniverseResearch/1.0 contact 36136585+XiminHu66@users.noreply.github.com"},timeout=20)
     if r.status_code in (403,429):
-     sec_available=False;sources.append({"name":"SEC EDGAR","url":sec_url,"ok":False,"count":0,"error":f"HTTP {r.status_code}；本轮切换 Yahoo，不继续请求 SEC"})
+     sec_available=False;sources.append(source(old,"sec","SEC EDGAR",sec_url,now,False,error=f"HTTP {r.status_code}；本轮切换 Yahoo，不继续请求 SEC",optional=True))
     r.raise_for_status();qs=from_sec(r.json(),cik);provider="SEC EDGAR"
     time.sleep(.25)
    except Exception as e: error=str(e)[:160]
@@ -85,10 +88,10 @@ def collect(config,old,now):
    except Exception as e: error=str(e)[:160]
   if len(qs)>=2:
    item={"ticker":ticker,"name":name,"cik":cik,"provider":provider,"sourceURL":sec_url if provider=="SEC EDGAR" else f"https://finance.yahoo.com/quote/{ticker}/financials/","quarters":qs,"updatedAt":now,"stale":False}
-   companies.append(item);sources.append({"name":ticker+" · "+provider,"url":item["sourceURL"],"ok":True,"count":len(qs)})
+   companies.append(item);sources.append(source(old,ticker,ticker+" · "+provider,item["sourceURL"],now,True,len(qs)))
   else:
    if ticker in previous: companies.append({**previous[ticker],"stale":True})
-   sources.append({"name":ticker,"url":sec_url,"ok":False,"count":0,"error":error or "不足两个有效季度"})
+   sources.append(source(old,ticker,ticker,sec_url,now,False,error=error or "不足两个有效季度"))
   print("FINANCIAL",ticker,len(qs),provider,error if not qs else "")
   time.sleep(.3)
- return {"version":1,"updatedAt":now if any(not c["stale"] for c in companies) else old.get("updatedAt"),"attemptedAt":now,"companies":companies,"sources":sources}
+ return {"version":1,"updatedAt":max((c["updatedAt"] for c in companies if c.get("updatedAt")),default=old.get("updatedAt")),"attemptedAt":now,"companies":companies,"sources":sources}

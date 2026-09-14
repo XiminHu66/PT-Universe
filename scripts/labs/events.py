@@ -5,6 +5,7 @@ from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 from dateutil import parser
+from reliability import source, cached_source, selected
 CENTERS={"Kirkland":[47.6815,-122.2087],"Bellevue":[47.6101,-122.2015],"Redmond":[47.6740,-122.1215]}
 def get(url):
  r=requests.get(url,headers={"User-Agent":"PTUniverseEvents/1.0 (https://github.com/XiminHu66/PT-Universe)"},timeout=25);r.raise_for_status();time.sleep(.15);return r
@@ -106,14 +107,17 @@ def collect(config,old,now):
  specs=[("Kirkland","https://www.kirklandwa.gov/Whats-Happening/Community-Events",kirkland),("Redmond","https://experienceredmond.com/redmond-events/",redmond),("Bellevue","https://bellevuewa.gov/calendar",bellevue)]
  events=[];sources=[]
  for city,url,fn in specs:
+  if not selected(config,city) and cached_source(old,city):
+   events.extend(e for e in old.get("events",[]) if e["city"]==city and e["start"][:10]>=today.isoformat())
+   sources.append(cached_source(old,city));continue
   try:
    rows=fn(today,until)
    if not rows:raise ValueError("No dated upcoming events parsed")
    events.extend({**e,"source":city,"checkedAt":now,"stale":False} for e in rows)
-   sources.append({"name":city+" 官方活动","url":url,"ok":True,"count":len(rows)})
+   sources.append(source(old,city,city+" 官方活动",url,now,True,len(rows)))
   except Exception as e:
    events.extend({**e,"stale":True} for e in old.get("events",[]) if e["city"]==city and e["start"][:10]>=today.isoformat())
-   sources.append({"name":city+" 官方活动","url":url,"ok":False,"count":0,"error":str(e)[:160]})
+   sources.append(source(old,city,city+" 官方活动",url,now,False,error=str(e)[:160]))
   print("EVENTS",city,sources[-1])
  events=list({e["id"]:e for e in events}.values());events.sort(key=lambda e:e["start"])
- return {"version":1,"updatedAt":now if any(s["ok"] for s in sources) else old.get("updatedAt"),"attemptedAt":now,"events":events,"sources":sources,"timezone":"America/Los_Angeles","through":until.isoformat()}
+ return {"version":1,"updatedAt":max((s["lastSuccessAt"] for s in sources if s.get("lastSuccessAt")),default=old.get("updatedAt")),"attemptedAt":now,"events":events,"sources":sources,"timezone":"America/Los_Angeles","through":until.isoformat()}

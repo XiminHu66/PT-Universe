@@ -1,5 +1,5 @@
 
-import {$,esc,link,change,pct,compact,read,save,toast,json,meta,boot,backups,financialTable,bars} from '../_lab/core.js';
+import {$,esc,link,change,pct,compact,read,save,toast,json,meta,boot,backups,financialTable,bars} from '../_lab/core.js?v=2';
 boot();let data,cases=[],index=0,revealed=false,history=read('dojo',[]);
 function sign(a,b){return a>b?'up':a<b?'down':'same'}
 const direction={up:'上升',down:'下降',same:'持平'};

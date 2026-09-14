@@ -1,6 +1,7 @@
 
 """Real collected snapshots; deterministic mock only for on-demand external quote lookup."""
-import json,threading,functools,os
+import json,threading,functools,os,copy
+from datetime import datetime,timezone
 from pathlib import Path
 from http.server import SimpleHTTPRequestHandler,ThreadingHTTPServer
 from playwright.sync_api import sync_playwright
@@ -71,7 +72,33 @@ with sync_playwright() as p:
   page.screenshot(path=str(OUT/(app+"-mobile.png")),full_page=False)
   assert page.evaluate("document.querySelector('main').scrollWidth<=window.innerWidth+2"),app+" mobile overflow"
   page.set_viewport_size({"width":1280,"height":900})
-  print("BROWSER PASS",app)
+  # Verify visible failure/age alerts without changing the public snapshots.
+  datafile={"thesis-lab":"apps/thesis-lab/data/financials.json","earnings-dojo":"apps/thesis-lab/data/financials.json","game-deals":"apps/game-deals/data/deals.json","eastside-weekend":"apps/eastside-weekend/data/events.json"}[app]
+  fixture=json.loads((ROOT/datafile).read_text())
+  fixture["updatedAt"]="2000-01-01T00:00:00Z"
+  for source in fixture.get("sources",[]):source["lastSuccessAt"]="2000-01-01T00:00:00Z"
+  route_pattern="**/"+datafile.split("/")[-1]
+  def old_snapshot(route):route.fulfill(status=200,content_type="application/json",body=json.dumps(fixture))
+  page.route(route_pattern,old_snapshot)
+  page.reload(wait_until="networkidle")
+  page.wait_for_selector('#freshness[data-state="expired"]')
+  assert "数据已过期" in page.locator("#freshness").inner_text()
+  page.set_viewport_size({"width":390,"height":844})
+  assert page.evaluate("document.querySelector('main').scrollWidth<=window.innerWidth+2"),app+" stale warning overflow"
+  page.screenshot(path=str(OUT/(app+"-stale-mobile.png")),full_page=False)
+  fixture["updatedAt"]=datetime.now(timezone.utc).isoformat()
+  for source in fixture.get("sources",[]):
+   source["lastSuccessAt"]=fixture["updatedAt"]
+   if not source.get("optional"):source["ok"]=True
+  required=[s for s in fixture["sources"] if not s.get("optional")]
+  required[0]["ok"]=False
+  required[0]["error"]="Injected temporary source failure"
+  page.reload(wait_until="networkidle")
+  page.wait_for_selector('#freshness[data-state="partial"]')
+  assert "部分来源更新失败" in page.locator("#freshness").inner_text()
+  page.unroute(route_pattern,old_snapshot)
+  page.set_viewport_size({"width":1280,"height":900})
+  print("BROWSER PASS",app,"including stale and partial source warnings")
  page.goto(base,wait_until="networkidle",timeout=60000)
  for app in pages: assert page.locator('[data-app="'+app+'"]').count()>=1,app+" missing home registration"
  assert not errors,errors
