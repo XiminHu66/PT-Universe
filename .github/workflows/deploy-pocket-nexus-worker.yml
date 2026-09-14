@@ -40,3 +40,20 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx wrangler deploy
+      - name: Verify public Pocket API
+        working-directory: .
+        run: |
+          set -euo pipefail
+          base='https://pocket-nexus-api.summer07-nanjolno.workers.dev'
+          curl --fail --silent --show-error --retry 5 --retry-delay 2 "$base/health" | tee /tmp/health.json
+          curl --fail --silent --show-error --retry 5 --retry-delay 2 "$base/api/stocks" | tee /tmp/stocks.json
+          curl --fail --silent --show-error --retry 5 --retry-delay 2 "$base/api/news" | tee /tmp/news.json
+          python - <<'PY'
+          import json
+          for name in ('health','stocks','news'):
+              data=json.load(open(f'/tmp/{name}.json',encoding='utf-8'))
+              assert data.get('ok') is True, (name,data)
+          assert len(json.load(open('/tmp/stocks.json'))['items']) >= 4
+          assert len(json.load(open('/tmp/news.json'))['items']) >= 1
+          print('Pocket Nexus API verified')
+          PY
