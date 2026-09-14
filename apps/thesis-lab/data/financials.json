@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-14T20:02:05.917578+00:00",
-  "attemptedAt": "2026-09-14T20:02:05.917578+00:00",
+  "updatedAt": "2026-09-14T20:22:56.046957+00:00",
+  "attemptedAt": "2026-09-14T20:22:56.046957+00:00",
   "companies": [
     {
       "ticker": "NVDA",
@@ -86,7 +86,7 @@
           "fcf": 21400000000.0
         }
       ],
-      "updatedAt": "2026-09-14T20:02:05.917578+00:00",
+      "updatedAt": "2026-09-14T20:22:56.046957+00:00",
       "stale": false
     },
     {
@@ -172,7 +172,7 @@
           "fcf": 31914000000.0
         }
       ],
-      "updatedAt": "2026-09-14T20:02:05.917578+00:00",
+      "updatedAt": "2026-09-14T20:22:56.046957+00:00",
       "stale": false
     },
     {
@@ -258,7 +258,7 @@
           "fcf": 19639000000.0
         }
       ],
-      "updatedAt": "2026-09-14T20:02:05.917578+00:00",
+      "updatedAt": "2026-09-14T20:22:56.046957+00:00",
       "stale": false
     },
     {
@@ -344,7 +344,7 @@
           "fcf": -5855000000.0
         }
       ],
-      "updatedAt": "2026-09-14T20:02:05.917578+00:00",
+      "updatedAt": "2026-09-14T20:22:56.046957+00:00",
       "stale": false
     },
     {
@@ -430,7 +430,7 @@
           "fcf": 1746000000.0
         }
       ],
-      "updatedAt": "2026-09-14T20:02:05.917578+00:00",
+      "updatedAt": "2026-09-14T20:22:56.046957+00:00",
       "stale": false
     },
     {
@@ -516,7 +516,7 @@
           "fcf": -1099000000.0
         }
       ],
-      "updatedAt": "2026-09-14T20:02:05.917578+00:00",
+      "updatedAt": "2026-09-14T20:22:56.046957+00:00",
       "stale": false
     },
     {
@@ -602,7 +602,7 @@
           "fcf": 1201613000.0
         }
       ],
-      "updatedAt": "2026-09-14T20:02:05.917578+00:00",
+      "updatedAt": "2026-09-14T20:22:56.046957+00:00",
       "stale": false
     },
     {
@@ -688,7 +688,7 @@
           "fcf": 1558000000.0
         }
       ],
-      "updatedAt": "2026-09-14T20:02:05.917578+00:00",
+      "updatedAt": "2026-09-14T20:22:56.046957+00:00",
       "stale": false
     },
     {
@@ -774,7 +774,7 @@
           "fcf": 13665000000.0
         }
       ],
-      "updatedAt": "2026-09-14T20:02:05.917578+00:00",
+      "updatedAt": "2026-09-14T20:22:56.046957+00:00",
       "stale": false
     },
     {
@@ -860,7 +860,7 @@
           "fcf": 1053300000.0
         }
       ],
-      "updatedAt": "2026-09-14T20:02:05.917578+00:00",
+      "updatedAt": "2026-09-14T20:22:56.046957+00:00",
       "stale": false
     },
     {
@@ -946,7 +946,7 @@
           "fcf": 986000000.0
         }
       ],
-      "updatedAt": "2026-09-14T20:02:05.917578+00:00",
+      "updatedAt": "2026-09-14T20:22:56.046957+00:00",
       "stale": false
     },
     {
@@ -1032,89 +1032,162 @@
           "fcf": 301000000.0
         }
       ],
-      "updatedAt": "2026-09-14T20:02:05.917578+00:00",
+      "updatedAt": "2026-09-14T20:22:56.046957+00:00",
       "stale": false
     }
   ],
   "sources": [
     {
+      "id": "sec",
       "name": "SEC EDGAR",
       "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json",
       "ok": false,
       "count": 0,
-      "error": "HTTP 403；本轮切换 Yahoo，不继续请求 SEC"
+      "checkedAt": "2026-09-14T20:22:56.046957+00:00",
+      "lastSuccessAt": null,
+      "error": "HTTP 403；本轮切换 Yahoo，不继续请求 SEC",
+      "optional": true
     },
     {
+      "id": "NVDA",
       "name": "NVDA · Yahoo Finance 标准化财报",
       "url": "https://finance.yahoo.com/quote/NVDA/financials/",
       "ok": true,
-      "count": 5
+      "count": 5,
+      "checkedAt": "2026-09-14T20:22:56.046957+00:00",
+      "lastSuccessAt": "2026-09-14T20:22:56.046957+00:00",
+      "error": null,
+      "optional": false
     },
     {
+      "id": "AAPL",
       "name": "AAPL · Yahoo Finance 标准化财报",
       "url": "https://finance.yahoo.com/quote/AAPL/financials/",
       "ok": true,
-      "count": 5
+      "count": 5,
+      "checkedAt": "2026-09-14T20:22:56.046957+00:00",
+      "lastSuccessAt": "2026-09-14T20:22:56.046957+00:00",
+      "error": null,
+      "optional": false
     },
     {
+      "id": "MSFT",
       "name": "MSFT · Yahoo Finance 标准化财报",
       "url": "https://finance.yahoo.com/quote/MSFT/financials/",
       "ok": true,
-      "count": 5
+      "count": 5,
+      "checkedAt": "2026-09-14T20:22:56.046957+00:00",
+      "lastSuccessAt": "2026-09-14T20:22:56.046957+00:00",
+      "error": null,
+      "optional": false
     },
     {
+      "id": "GOOGL",
       "name": "GOOGL · Yahoo Finance 标准化财报",
       "url": "https://finance.yahoo.com/quote/GOOGL/financials/",
       "ok": true,
-      "count": 5
+      "count": 5,
+      "checkedAt": "2026-09-14T20:22:56.046957+00:00",
+      "lastSuccessAt": "2026-09-14T20:22:56.046957+00:00",
+      "error": null,
+      "optional": false
     },
     {
+      "id": "META",
       "name": "META · Yahoo Finance 标准化财报",
       "url": "https://finance.yahoo.com/quote/META/financials/",
       "ok": true,
-      "count": 5
+      "count": 5,
+      "checkedAt": "2026-09-14T20:22:56.046957+00:00",
+      "lastSuccessAt": "2026-09-14T20:22:56.046957+00:00",
+      "error": null,
+      "optional": false
     },
     {
+      "id": "TSLA",
       "name": "TSLA · Yahoo Finance 标准化财报",
       "url": "https://finance.yahoo.com/quote/TSLA/financials/",
       "ok": true,
-      "count": 5
+      "count": 5,
+      "checkedAt": "2026-09-14T20:22:56.046957+00:00",
+      "lastSuccessAt": "2026-09-14T20:22:56.046957+00:00",
+      "error": null,
+      "optional": false
     },
     {
+      "id": "PLTR",
       "name": "PLTR · Yahoo Finance 标准化财报",
       "url": "https://finance.yahoo.com/quote/PLTR/financials/",
       "ok": true,
-      "count": 5
+      "count": 5,
+      "checkedAt": "2026-09-14T20:22:56.046957+00:00",
+      "lastSuccessAt": "2026-09-14T20:22:56.046957+00:00",
+      "error": null,
+      "optional": false
     },
     {
+      "id": "AMD",
       "name": "AMD · Yahoo Finance 标准化财报",
       "url": "https://finance.yahoo.com/quote/AMD/financials/",
       "ok": true,
-      "count": 5
+      "count": 5,
+      "checkedAt": "2026-09-14T20:22:56.046957+00:00",
+      "lastSuccessAt": "2026-09-14T20:22:56.046957+00:00",
+      "error": null,
+      "optional": false
     },
     {
+      "id": "AVGO",
       "name": "AVGO · Yahoo Finance 标准化财报",
       "url": "https://finance.yahoo.com/quote/AVGO/financials/",
       "ok": true,
-      "count": 5
+      "count": 5,
+      "checkedAt": "2026-09-14T20:22:56.046957+00:00",
+      "lastSuccessAt": "2026-09-14T20:22:56.046957+00:00",
+      "error": null,
+      "optional": false
     },
     {
+      "id": "ANET",
       "name": "ANET · Yahoo Finance 标准化财报",
       "url": "https://finance.yahoo.com/quote/ANET/financials/",
       "ok": true,
-      "count": 5
+      "count": 5,
+      "checkedAt": "2026-09-14T20:22:56.046957+00:00",
+      "lastSuccessAt": "2026-09-14T20:22:56.046957+00:00",
+      "error": null,
+      "optional": false
     },
     {
+      "id": "DELL",
       "name": "DELL · Yahoo Finance 标准化财报",
       "url": "https://finance.yahoo.com/quote/DELL/financials/",
       "ok": true,
-      "count": 5
+      "count": 5,
+      "checkedAt": "2026-09-14T20:22:56.046957+00:00",
+      "lastSuccessAt": "2026-09-14T20:22:56.046957+00:00",
+      "error": null,
+      "optional": false
     },
     {
+      "id": "W",
       "name": "W · Yahoo Finance 标准化财报",
       "url": "https://finance.yahoo.com/quote/W/financials/",
       "ok": true,
-      "count": 5
+      "count": 5,
+      "checkedAt": "2026-09-14T20:22:56.046957+00:00",
+      "lastSuccessAt": "2026-09-14T20:22:56.046957+00:00",
+      "error": null,
+      "optional": false
     }
-  ]
+  ],
+  "refresh": {
+    "state": "ok",
+    "lastAttemptAt": "2026-09-14T20:22:56.046957+00:00",
+    "lastCompleteAt": "2026-09-14T20:22:56.046957+00:00",
+    "failedSources": [],
+    "attempts": 1,
+    "maxAgeHours": 36,
+    "runId": "34892520383"
+  }
 }
