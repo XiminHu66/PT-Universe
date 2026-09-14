@@ -83,6 +83,7 @@ with sync_playwright() as p:
   page.locator('#gameSwitch [data-game-view="'+view+'"]').click()
   assert page.locator('#'+pane).is_visible()
   assert page.locator('#games .game-pane:visible').count()==1
+ page.evaluate("localStorage.setItem('tsugi-last-tab-v1','music');localStorage.setItem('tsugi-last-game-view-v1','console')")
  page.goto(base+'apps/tsugi-checker/#pc-prices',wait_until='networkidle',timeout=60000)
  assert page.locator('#pc-prices').is_visible(),'Deep link must select the search subtab'
  assert page.locator('#gameSwitch [data-game-view="prices"]').evaluate("el=>el.classList.contains('active')")
