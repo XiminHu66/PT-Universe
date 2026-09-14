@@ -2,6 +2,10 @@
   'use strict';
   if(location.hostname.endsWith('github.io'))fetch('https://pt-universe-api.summer07-nanjolno.workers.dev/api/analytics',{method:'POST',body:JSON.stringify({path:location.pathname}),headers:{'content-type':'text/plain;charset=UTF-8'},keepalive:true}).catch(()=>{});
   const apps=[
+    ["thesis-lab","◈","Thesis Lab · 财报论点"],
+    ["earnings-dojo","学","Earnings Dojo · 财报训练"],
+    ["game-deals","▣","Game Scout · 游戏购买"],
+    ["eastside-weekend","⌖","Weekend Atlas · 活动地图"],
     ['daily-nexus','⌂','Daily Nexus'],['deskboard','▦','DeskBoard'],['rss-dashboard','◉','RSS Orbit'],['stock-alert','↗','Stock Alert'],
     ['qf-tool','◇','QF Tool'],['3c-scout','⌁','3C Scout'],['meal-orbit','筷','Food Orbit'],['tsugi-checker','継','Tsugi']
   ];
