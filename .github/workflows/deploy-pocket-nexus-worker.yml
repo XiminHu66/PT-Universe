@@ -1,0 +1,42 @@
+name: Deploy Pocket Nexus Worker
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - workers/pocket-nexus-api/**
+      - .github/workflows/deploy-pocket-nexus-worker.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pocket-nexus-worker-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: workers/pocket-nexus-api
+    steps:
+      - name: Check out PT Universe
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Install dependencies
+        run: npm install
+      - name: Validate Worker
+        run: |
+          npm run check
+          npx wrangler deploy --dry-run
+      - name: Deploy Worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler deploy
