@@ -56,14 +56,17 @@ jobs:
           curl --fail --silent --show-error --retry 5 --retry-delay 2 "$base/api/stocks" | tee /tmp/stocks.json
           curl --fail --silent --show-error --retry 5 --retry-delay 2 "$base/api/news" | tee /tmp/news.json
           curl --fail --silent --show-error --retry 5 --retry-delay 2 "$base/api/weather" | tee /tmp/weather.json
+          curl --fail --silent --show-error --retry 5 --retry-delay 2 "$base/api/rss-random" | tee /tmp/rss.json
           python - <<'PY'
           import json
-          for name in ('health','stocks','news','weather'):
+          for name in ('health','stocks','news','weather','rss'):
               data=json.load(open(f'/tmp/{name}.json',encoding='utf-8'))
               assert data.get('ok') is True, (name,data)
           assert len(json.load(open('/tmp/stocks.json'))['items']) >= 4
           assert len(json.load(open('/tmp/news.json'))['items']) >= 1
           weather=json.load(open('/tmp/weather.json'))
           assert isinstance(weather.get('temperature'), (int,float))
+          rss=json.load(open('/tmp/rss.json'))['item']
+          assert rss.get('title') and rss.get('source')
           print('Pocket Nexus API verified')
           PY
