@@ -15,7 +15,7 @@ Live site: https://ximinhu66.github.io/PT-Universe/
 - Food Orbit — meal wheel, restaurant discovery and Chinese recipes
 - Tsugi — manga, novels, Japanese music, game releases and ACG news
 
-PT Universe is a local-first monorepo. Favorites, recent apps, quick notes, countdown and theme are stored in the browser. All eight tools are vendored below `apps/`, so navigation and static assets stay inside this repository and do not depend on the original Pages sites.
+PT Universe is a local-first monorepo. Favorites, recent apps, quick notes, countdown and theme are stored in the browser. All twelve tools are vendored below `apps/`, so navigation and static assets stay inside this repository and do not depend on the original Pages sites.
 
 ```text
 apps/
@@ -36,3 +36,12 @@ Add one item to `APPS` in `app.js`. Navigation, search, category views, favorite
 ## Deployment
 
 The included `Deploy PT Universe` workflow publishes the repository root to GitHub Pages after every push to `main`.
+
+## Research tools
+
+- [Thesis Lab — 财报与投资论点](https://ximinhu66.github.io/PT-Universe/apps/thesis-lab/)
+- [Earnings Dojo — 财报阅读训练](https://ximinhu66.github.io/PT-Universe/apps/earnings-dojo/)
+- [Game Scout — 游戏购买助手](https://ximinhu66.github.io/PT-Universe/apps/game-deals/)
+- [Weekend Atlas — Eastside 活动地图](https://ximinhu66.github.io/PT-Universe/apps/eastside-weekend/)
+
+Daily public snapshots refresh around 08:35 America/Los_Angeles. The refresh workflow deploys Pages and verifies the published routes. See [data sources and verification](scripts/labs/README.md).

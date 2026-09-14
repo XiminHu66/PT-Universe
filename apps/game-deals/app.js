@@ -2,7 +2,7 @@
 import {$,esc,link,money,read,save,toast,json,meta,boot,backups,safeURL,stamp} from '../_lab/core.js';
 boot();let data,personal=read('games',{}),tab='discover',remote=[],filter='';
 const API='https://www.cheapshark.com/api/1.0/';
-function all(){const map=new Map((data?.games||[]).map(g=>[g.id,g]));for(const p of Object.values(personal))if(p.game&&!map.has(p.game.id))map.set(p.game.id,p.game);for(const g of remote)map.set(g.id,g);return [...map.values()]}
+function all(){const map=new Map((data?.games||[]).map(g=>[g.id,g]));for(const p of Object.values(personal))if(p.game&&(!map.has(p.game.id)||Date.parse(p.game.checkedAt||0)>Date.parse(data?.updatedAt||0)))map.set(p.game.id,p.game);for(const g of remote)map.set(g.id,g);return [...map.values()]}
 function targetHit(g){const p=personal[g.id];return p?.wish&&!p.owned&&Number.isFinite(p.target)&&Number.isFinite(g.price)&&g.price<=p.target}
 function write(){save('games',personal)}
 function render(){

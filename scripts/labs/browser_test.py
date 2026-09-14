@@ -66,9 +66,9 @@ with sync_playwright() as p:
    target=OUT/"events.ics";dl.value.save_as(target);assert "BEGIN:VEVENT" in target.read_text()
    page.locator("[data-map]").first.click()
    assert page.locator("#selected h3").count()==1
-  page.screenshot(path=str(OUT/(app+"-desktop.png")),full_page=True)
+  page.screenshot(path=str(OUT/(app+"-desktop.png")),full_page=False)
   page.set_viewport_size({"width":390,"height":844})
-  page.screenshot(path=str(OUT/(app+"-mobile.png")),full_page=True)
+  page.screenshot(path=str(OUT/(app+"-mobile.png")),full_page=False)
   assert page.evaluate("document.querySelector('main').scrollWidth<=window.innerWidth+2"),app+" mobile overflow"
   page.set_viewport_size({"width":1280,"height":900})
   print("BROWSER PASS",app)

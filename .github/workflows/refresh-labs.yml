@@ -83,6 +83,7 @@ jobs:
       - uses: actions/deploy-pages@v4
         id: deployment
   verify:
+    if: github.event_name != 'schedule'
     needs: deploy
     runs-on: ubuntu-latest
     timeout-minutes: 12

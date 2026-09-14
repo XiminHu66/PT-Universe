@@ -38,7 +38,7 @@ def kirkland(today,until):
    if not title or href in seen:continue
    seen.add(href);desc=raw[m.end():].split("Tagged as:")[0].strip()
    if category(title)=="会议":continue
-   start=dateval.isoformat();venue="";cost=""
+   start=dateval.isoformat();venue="";cost="";lat=None;lon=None;occurrences=[]
    try:
     detail=BeautifulSoup(get(href).text,"html.parser")
     dat=detail.select_one(".event-date")
@@ -49,9 +49,25 @@ def kirkland(today,until):
     if location:venue=location.get_text(" ",strip=True)[:200]
     # Do not interpret a mention of free parking or vaccinations as a free event.
     content=detail.get_text(" ",strip=True)
+    geo=re.search(r"\b(47\.\d+)\s*,\s*(-122\.\d+)",content)
+    if geo:lat,lon=geo.groups()
+    loc=re.search(r"\bLocation\s+(.+?)\s*(?:View Map|Skip to below map|Add to Calendar)",content)
+    if loc:venue=loc.group(1).strip(" ,")
+    fee=re.search(r"Event Snapshot\s+Cost\s+(.+?)(?:\s+Contact|\s+Tagged as:)",content)
+    if fee:cost=fee.group(1).strip()[:80]
+    for occurrence in detail.select(".multi-date-item"):
+     label=occurrence.get_text(" ",strip=True)
+     dm=re.search(r"([A-Za-z]+ \d{1,2}, 20\d{2})",label)
+     if not dm:continue
+     dd=parser.parse(dm.group(1)).date()
+     if not today<=dd<=until:continue
+     tt=re.search(r"(\d{1,2}:\d{2}\s*[AP]M)",label)
+     val=dd.isoformat()
+     if tt:val+="T"+datetime.strptime(tt.group(1).replace(" ",""),"%I:%M%p").strftime("%H:%M:%S")
+     occurrences.append(val)
     if re.search(r"(?:free and open to the public|free admission|admission is free|this free event)",content,re.I):cost="Free"
    except Exception:pass
-   out.append(event(title,start,href,"Kirkland",venue,cost,desc))
+   for occurrence in dict.fromkeys(occurrences or [start]):out.append(event(title,occurrence,href,"Kirkland",venue,cost,desc,lat,lon))
  return out
 def redmond(today,until):
  url=f"https://experienceredmond.com/wp-json/tribe/events/v1/events?per_page=100&start_date={today.isoformat()}&end_date={until.isoformat()}"
@@ -63,7 +79,8 @@ def redmond(today,until):
  return out
 def bellevue(today,until):
  base="https://bellevuewa.gov/calendar";soup=BeautifulSoup(get(base).text,"html.parser")
- links=list(dict.fromkeys(urljoin(base,a["href"]) for a in soup.select('a[href^="/events/"]')))[:35];out=[]
+ titles={urljoin(base,a["href"]):a.get_text(" ",strip=True) for a in soup.select('a[href^="/events/"]') if a.get_text(" ",strip=True) not in ("View Event","")}
+ links=list(titles)[:35];out=[]
  for url in links:
   try:
    detail=BeautifulSoup(get(url).text,"html.parser");d=detail.select_one("time[datetime]");h=detail.select_one("h1")
@@ -72,11 +89,16 @@ def bellevue(today,until):
    if not today.isoformat()<=start<=until.isoformat():continue
    dt=detail.select_one(".field-date-time");tm=re.search(r"(\d{1,2}:\d{2}\s*[AP]M)",dt.get_text(" ",strip=True) if dt else "")
    if tm:start+="T"+datetime.strptime(tm.group(1).replace(" ",""),"%I:%M%p").strftime("%H:%M:%S")
-   title=h.get_text(" ",strip=True)
+   title=titles.get(url) or h.get_text(" ",strip=True)
    if category(title)=="会议":continue
    loc=detail.select_one('[class*="field--name-field-location"],[class*="field--name-field-event-location"]')
    body=detail.select_one(".field--name-body,.field--name-field-event-description")
-   out.append(event(title,start,url,"Bellevue",loc.get_text(" ",strip=True) if loc else "",desc=body.get_text(" ",strip=True) if body else ""))
+   content=detail.get_text(" ",strip=True)
+   location=re.search(r"\bLocation\s+(.+?)\s+Description\b",content)
+   description=re.search(r"\bDescription\s+(.+?)(?:Reasonable Accommodation|$)",content)
+   venue=loc.get_text(" ",strip=True) if loc else location.group(1) if location else ""
+   desc=body.get_text(" ",strip=True) if body else description.group(1) if description else ""
+   out.append(event(title,start,url,"Bellevue",venue,desc=desc))
   except Exception as e:print("EVENT DETAIL",url,str(e)[:100])
  return out
 def collect(config,old,now):
