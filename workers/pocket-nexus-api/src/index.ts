@@ -2,10 +2,10 @@ type StockRow = { symbol:string; price:number; changePct:number; lastTradeAt:str
 type NewsRow = { title:string; publishedAt:number; source:string };
 type WeatherRow = { location:string; temperature:number; apparent:number; humidity:number; wind:number; weatherCode:number };
 type RssRow = { title:string; source:string; feedId:string };
+type Env = { RSS_ORBIT:any };
 
 const STOCK_SOURCE = 'https://raw.githubusercontent.com/XiminHu66/stock-alert/main/data/quotes.json';
 const WSCN_SOURCE = 'https://api-one-wscn.awtmt.com/apiv1/content/lives?channel=global-channel&client=pc&limit=24&first_page=true';
-const RSS_ORBIT_BASE = 'https://rss-orbit-proxy.summer07-nanjolno.workers.dev';
 const WATCH = ['QQQ','SPY','SMH','NVDA','AMD','TSM','MSFT','GOOGL'];
 const RSS_FEEDS = [
   {id:'wallstreetcn',name:'华尔街见闻'},
@@ -109,13 +109,17 @@ function rssTag(block:string,tag:string){
   const match=block.match(new RegExp(`<${safe}\\b[^>]*>([\\s\\S]*?)<\\/${safe}\\s*>`,'i'));
   return cleanText(match?.[1] ?? '');
 }
-async function loadRandomRss():Promise<RssRow>{
+async function loadRandomRss(env:Env):Promise<RssRow>{
+  if(!env?.RSS_ORBIT)throw new Error('rss_binding_missing');
   const seed=Math.floor(Math.random()*RSS_FEEDS.length);
   let lastError='rss_unavailable';
   for(let attempt=0;attempt<Math.min(5,RSS_FEEDS.length);attempt++){
     const feed=RSS_FEEDS[(seed+attempt)%RSS_FEEDS.length];
     try{
-      const response=await timedFetch(`${RSS_ORBIT_BASE}/feed/${feed.id}`,9000,'application/rss+xml, application/atom+xml, application/xml, text/xml, */*');
+      const request=new Request(`https://rss-orbit.internal/feed/${feed.id}`,{
+        headers:{'user-agent':'Pocket-Nexus/1.1','accept':'application/rss+xml, application/atom+xml, application/xml, text/xml, */*'}
+      });
+      const response=await env.RSS_ORBIT.fetch(request);
       if(!response.ok)throw new Error(`rss_${response.status}`);
       const xml=await response.text();
       const blocks=rssBlocks(xml).slice(0,40);
@@ -130,7 +134,7 @@ async function loadRandomRss():Promise<RssRow>{
 }
 
 export default {
-  async fetch(request:Request):Promise<Response>{
+  async fetch(request:Request,env:Env):Promise<Response>{
     const url=new URL(request.url);
     if(request.method==='OPTIONS')return new Response(null,{status:204,headers:JSON_HEADERS});
     if(request.method!=='GET')return json({error:'method_not_allowed'},405);
@@ -149,7 +153,7 @@ export default {
         return json({ok:true,generatedAt:new Date().toISOString(),...weather});
       }
       if(url.pathname==='/api/rss-random'){
-        const item=await loadRandomRss();
+        const item=await loadRandomRss(env);
         return json({ok:true,generatedAt:new Date().toISOString(),item});
       }
       if(url.pathname==='/api/brief'){
