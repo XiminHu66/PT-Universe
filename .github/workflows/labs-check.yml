@@ -1,7 +1,7 @@
 name: Research tools validation
 on:
   push:
-    branches: ['codex/pt-research-tools', 'codex/labs-reliability']
+    branches: ['codex/pt-research-tools', 'codex/labs-reliability', 'codex/tsugi-search-regional-events']
   workflow_dispatch:
 permissions:
   contents: write
@@ -21,20 +21,25 @@ jobs:
           python-version: '3.12'
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
       - run: pip install -r scripts/labs/requirements.txt playwright
       - run: python -m playwright install --with-deps chromium
       - name: Validate accounting transformations
         run: python -m unittest discover -s scripts/labs -p 'test_*.py' -v
-      - name: Fetch live financials, game offers and local events
+      - name: Fetch live financials and regional events
         run: python scripts/labs/refresh.py --force
       - name: Validate JavaScript
         run: |
           node --check app.js
           node --check pt-bridge.js
-          for file in apps/_lab/core.js apps/thesis-lab/app.js apps/earnings-dojo/app.js apps/game-deals/app.js apps/eastside-weekend/app.js; do
+          for file in apps/_lab/core.js apps/thesis-lab/app.js apps/earnings-dojo/app.js apps/tsugi-checker/pc-prices.js apps/earnings-dojo/questions.js apps/eastside-weekend/app.js; do
             node --check "$file"
           done
+      - name: Check Worker and real search / financial refresh APIs
+        run: |
+          npm ci --prefix workers/pt-universe-api
+          npm run check --prefix workers/pt-universe-api
+          node --experimental-strip-types scripts/labs/test_research.mjs
       - name: Browser interaction and responsive checks
         run: python scripts/labs/browser_test.py
       - name: Keep verified initial snapshots on feature branch
@@ -42,7 +47,7 @@ jobs:
         run: |
           git config user.name "pt-universe-labs-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/thesis-lab/data apps/game-deals/data apps/eastside-weekend/data
+          git add apps/thesis-lab/data apps/eastside-weekend/data
           if ! git diff --cached --quiet; then
             git commit -m "data(labs): verified financial, game and event snapshots"
             git pull --rebase origin codex/pt-research-tools
@@ -54,7 +59,7 @@ jobs:
           name: research-tools-verification
           path: |
             test-results/labs
+            test-results/research
             apps/thesis-lab/data
-            apps/game-deals/data
             apps/eastside-weekend/data
           retention-days: 7

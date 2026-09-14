@@ -29,17 +29,17 @@ class SchedulingTests(unittest.TestCase):
 
     def test_winter_time(self):
         self.assertEqual(pending_targets(datetime(2026, 12, 14, 15, 35, tzinfo=timezone.utc), {}), [])
-        self.assertEqual(len(pending_targets(datetime(2026, 12, 14, 16, 35, tzinfo=timezone.utc), {})), 3)
+        self.assertEqual(len(pending_targets(datetime(2026, 12, 14, 16, 35, tzinfo=timezone.utc), {})), 2)
 
     def test_success_deduplicates_only_that_dataset(self):
         healthy = {'refresh': {'state': 'ok', 'lastCompleteAt': NOW_TEXT}}
-        self.assertEqual(pending_targets(NOW, {'financials': healthy}), ['games', 'events'])
+        self.assertEqual(pending_targets(NOW, {'financials': healthy}), ['events'])
 
     def test_same_day_failed_manual_refresh_still_retries(self):
         self.assertTrue(due({'refresh': {'state': 'partial', 'lastCompleteAt': NOW_TEXT}}, NOW))
 
     def test_force_runs_even_before_morning(self):
-        self.assertEqual(len(pending_targets(datetime(2026, 9, 14, 10, tzinfo=timezone.utc), {}, True)), 3)
+        self.assertEqual(len(pending_targets(datetime(2026, 9, 14, 10, tzinfo=timezone.utc), {}, True)), 2)
 
     def test_failed_deployment_is_detected_and_repaired(self):
         data = {'financials': {'updatedAt': NOW_TEXT, 'refresh': {'runId': 'new'}}}
@@ -102,34 +102,17 @@ class RefreshTests(unittest.TestCase):
     def test_one_dataset_fails_other_dataset_still_publishes(self):
         def fail(*_):raise OSError('finance down')
         a,ok=refresh_target('financials',{},self.path,1,collector=fail,clock=lambda:NOW)
-        other=self.path.with_name('games.json')
-        def game(_,old,now):return {'games':[{'id':'fresh-game'}],'updatedAt':now,'sources':[source(old,'g','g','',now,True)]}
-        b,game_ok=refresh_target('games',{},other,1,collector=game,clock=lambda:NOW)
+        other=self.path.with_name('events.json')
+        def game(_,old,now):return {'events':[{'id':'fresh-event'}],'updatedAt':now,'sources':[source(old,'g','g','',now,True)]}
+        b,game_ok=refresh_target('events',{},other,1,collector=game,clock=lambda:NOW)
         self.assertFalse(ok);self.assertTrue(game_ok)
-        self.assertEqual(read_data(other)['games'][0]['id'],'fresh-game')
+        self.assertEqual(read_data(other)['events'][0]['id'],'fresh-event')
 
     def test_non_finite_payload_does_not_replace_good_snapshot(self):
         old=snapshot();write_data(self.path,old)
         def invalid(*_):return {**old,'companies':[{'revenue':float('nan')}]}
         data,ok=refresh_target('financials',{},self.path,1,collector=invalid,clock=lambda:NOW)
         self.assertFalse(ok);self.assertEqual(data['companies'],old['companies'])
-
-
-class GameFallbackTests(unittest.TestCase):
-    def test_failed_feed_retained_but_stale_price_does_not_win(self):
-        import games
-        offer={'id':'1','title':'Game','dealID':'deal','price':5,'regular':20,'discount':75,'reviews':1,'storeID':'1','url':'https://example.com','checkedAt':OLD}
-        old={'games':[offer],'sourceBatches':{'top':[offer]},'updatedAt':OLD,'sources':[{'id':'top','name':'CheapShark · Deal Rating','ok':True,'lastSuccessAt':OLD}]}
-        row={'gameID':'1','title':'Game','dealID':'deal','salePrice':'10','normalPrice':'20','storeID':'1','savings':'50'}
-        def get(path,**params):
-            if path=='stores':return [{'storeID':'1','storeName':'Steam'}]
-            if params.get('sortBy')=='Deal Rating':raise OSError('top feed down')
-            return [row]
-        with patch.object(games,'get',side_effect=get):data=games.collect({'gameTitles':[]},old,NOW_TEXT)
-        self.assertEqual(data['games'][0]['price'],10)
-        self.assertFalse(data['games'][0]['stale'])
-        self.assertTrue(data['sourceBatches']['top'][0]['stale'])
-        self.assertEqual(data['sources'][0]['lastSuccessAt'],OLD)
 
 
 if __name__=='__main__':unittest.main()
