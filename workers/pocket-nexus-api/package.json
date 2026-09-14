@@ -1,0 +1,14 @@
+{
+  "name": "pocket-nexus-api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260914.0",
+    "typescript": "^5.9.2",
+    "wrangler": "^4.127.0"
+  }
+}
