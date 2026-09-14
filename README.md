@@ -41,7 +41,7 @@ The included `Deploy PT Universe` workflow publishes the repository root to GitH
 
 - [Thesis Lab — 财报与投资论点](https://ximinhu66.github.io/PT-Universe/apps/thesis-lab/)
 - [Earnings Dojo — 财报阅读训练](https://ximinhu66.github.io/PT-Universe/apps/earnings-dojo/)
-- [Game Scout — 游戏购买助手](https://ximinhu66.github.io/PT-Universe/apps/game-deals/)
-- [Weekend Atlas — Eastside 活动地图](https://ximinhu66.github.io/PT-Universe/apps/eastside-weekend/)
+- [Tsugi — PC 游戏比价搜索](https://ximinhu66.github.io/PT-Universe/apps/tsugi-checker/#pc-prices)
+- [Weekend Atlas — 大西雅图活动地图](https://ximinhu66.github.io/PT-Universe/apps/eastside-weekend/)
 
 Daily public snapshots refresh around 08:35 America/Los_Angeles. The refresh workflow deploys Pages and verifies the published routes. See [data sources and verification](scripts/labs/README.md).

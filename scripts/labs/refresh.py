@@ -11,7 +11,6 @@ from reliability import MAX_AGE_HOURS, failed_sources, successful_today
 ROOT = Path(__file__).resolve().parents[2]
 TARGETS = {
     "financials": ("thesis-lab", "financials.json", "companies"),
-    "games": ("game-deals", "deals.json", "games"),
     "events": ("eastside-weekend", "events.json", "events"),
 }
 

@@ -26,6 +26,7 @@
   <link rel="stylesheet" href="styles.css?v=20260828-headerfix1" />
   <link rel="stylesheet" href="v5.css?v=20260828-headerfix1" />
   <link rel="stylesheet" href="games.css" />
+  <link rel="stylesheet" href="pc-prices.css?v=1" />
   <link rel="stylesheet" href="ui-settings.css" />
   <link rel="alternate" type="application/atom+xml" title="Tsugi Updates" href="data/feed.xml" />
   <link rel="stylesheet" href="../../pt-bridge.css?v=20260827-1">
@@ -245,6 +246,14 @@
 
 
       <section id="games" class="tab">
+        <section class="pcp" id="pc-prices" aria-label="PC 游戏比价搜索">
+          <div class="pcp-heading"><h3>PC 游戏比价搜索</h3><span class="pcp-tag">Steam 官方 + 第三方 · 美区 USD</span></div>
+          <p class="pcp-note">输入游戏名，选择准确版本，再比较当前最低价格、折扣与购买渠道。</p>
+          <form id="pcpForm"><input id="pcpQuery" type="search" minlength="2" maxlength="80" required placeholder="游戏名，例如 Street Fighter 6、ELDEN RING" aria-label="PC 游戏名称"><button id="pcpSubmit" type="submit">搜索价格</button></form>
+          <p id="pcpStatus" role="status">按需查询，不依赖每日游戏发行更新。</p>
+          <div id="pcpResults" aria-live="polite"></div>
+          <button type="button" id="pcpLegacy" hidden>导出原游戏购买助手的个人记录</button>
+        </section>
         <div class="section-head game-head">
           <div>
             <p class="section-kicker">DAILY GAME RELEASE TRACKER</p>
@@ -328,6 +337,7 @@
   <div id="tsugiToast" class="tsugi-toast" role="status" aria-live="polite"></div>
   <script src="app.js?v=20260908-scroll-top"></script>
   <script src="games.js?v=20260828-metadata1"></script>
+  <script src="pc-prices.js?v=1"></script>
   <script src="ui-settings.js?v=20260828-metadata1"></script>
   <script>
     (()=>{

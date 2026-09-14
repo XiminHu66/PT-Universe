@@ -11,7 +11,6 @@ on:
       - 'apps/_lab/**'
       - 'apps/thesis-lab/**'
       - 'apps/earnings-dojo/**'
-      - 'apps/game-deals/**'
       - 'apps/eastside-weekend/**'
       - '.github/workflows/refresh-labs.yml'
   workflow_dispatch:
@@ -109,7 +108,7 @@ jobs:
         run: |
           git config user.name "pt-universe-labs-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/thesis-lab/data apps/game-deals/data apps/eastside-weekend/data
+          git add apps/thesis-lab/data apps/eastside-weekend/data
           if ! git diff --cached --quiet; then
             git commit -m "data(labs): publish independent snapshots and source health"
             for attempt in 1 2 3; do
@@ -160,6 +159,15 @@ jobs:
         run: pip install playwright
       - if: github.event_name != 'schedule'
         run: python -m playwright install --with-deps chromium
+      - uses: actions/setup-node@v4
+        if: github.event_name != 'schedule'
+        with:
+          node-version: '24'
+      - name: Verify live PC quotes and repeated upstream financial refresh
+        if: github.event_name != 'schedule'
+        env:
+          LABS_API_URL: https://pt-universe-api.summer07-nanjolno.workers.dev
+        run: node --experimental-strip-types scripts/labs/test_research.mjs
       - name: Verify published interactive flows
         if: github.event_name != 'schedule'
         env:
