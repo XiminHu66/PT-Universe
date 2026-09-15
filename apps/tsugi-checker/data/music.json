@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-14T21:58:42Z",
+  "generated_at": "2026-09-15T21:41:06Z",
   "chart_date": "2026/09/09",
   "weekly_chart": [
     {
@@ -627,22 +627,23 @@
       "artwork_checked": true
     },
     {
-      "id": "f40f72b961468da5",
+      "id": "e75baabd4221c388",
       "rank": 21,
-      "rank_change": "NEW",
-      "is_new": true,
-      "title": "Aeropickles (Live at YouTube Music Weekend 12.0)",
+      "rank_change": "RE",
+      "is_new": false,
+      "title": "エアロピクルス",
       "artist": "KomeAnime",
-      "weeks": 1,
+      "weeks": 2,
       "peak": 21,
       "streams": "1,408,909",
       "streams_change": "",
-      "url": "https://www.youtube.com/results?search_query=KomeAnime+-+Aeropickles+%28Live+at+YouTube+Music+Weekend+12.0%29",
-      "youtube_music_url": "https://music.youtube.com/search?q=Aeropickles+%28Live+at+YouTube+Music+Weekend+12.0%29+KomeAnime",
+      "url": "https://www.youtube.com/results?search_query=KomeAnime+-+%E3%82%A8%E3%82%A2%E3%83%AD%E3%83%94%E3%82%AF%E3%83%AB%E3%82%B9",
+      "youtube_music_url": "https://music.youtube.com/search?q=%E3%82%A8%E3%82%A2%E3%83%AD%E3%83%94%E3%82%AF%E3%83%AB%E3%82%B9+KomeAnime",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": true
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/33/4d/77/334d77b7-4255-10f2-c456-cacf4486cf2c/4550755814095_cover.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/%E3%82%A8%E3%82%A2%E3%83%AD%E3%83%94%E3%82%AF%E3%83%AB%E3%82%B9/1895373327?i=6763556755&uo=4"
     },
     {
       "id": "43746ad3bd39d3b7",
@@ -882,8 +883,9 @@
       "youtube_music_url": "https://music.youtube.com/search?q=GO+GHOST+King+Gnu",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": false
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/47/f3/49/47f3490b-4395-28ba-e6a9-88c9dd7be8fa/4547366841732.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/go-ghost/6794271990?i=6794271993&uo=4"
     },
     {
       "id": "29c608ddc189b601",
@@ -900,8 +902,9 @@
       "youtube_music_url": "https://music.youtube.com/search?q=%E3%82%AC%E3%83%81%E5%A4%A2%E4%B8%AD%EF%BC%81+Chotokkyu",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": false
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/5d/f7/ec/5df7ec34-6bca-ff99-c906-57136bf93577/26UMGIM40239.rgb.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/%E3%82%AC%E3%83%81%E5%A4%A2%E4%B8%AD/1891923968?i=1891924257&uo=4"
     },
     {
       "id": "5b08cb4a31d2640c",
@@ -919,7 +922,7 @@
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
       "artwork": "",
-      "artwork_checked": false
+      "artwork_checked": true
     },
     {
       "id": "04013e67fe584425",
@@ -936,8 +939,9 @@
       "youtube_music_url": "https://music.youtube.com/search?q=%E3%83%A2%E3%83%B3%E3%82%B9%E3%83%88%E3%83%AD+Ado",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": false
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/aa/c4/ab/aac4ab69-4af5-db18-4ffd-0199ae43188c/26UMGIM92689.rgb.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/%E3%83%A2%E3%83%B3%E3%82%B9%E3%83%88%E3%83%AD/6793398195?i=6793398196&uo=4"
     },
     {
       "id": "123c3dda5f42074b",
@@ -954,8 +958,9 @@
       "youtube_music_url": "https://music.youtube.com/search?q=Dance+Forever+SixTONES",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": false
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/66/5c/99/665c990f-c72d-81d4-0c3e-600fd28d4327/4547366830583.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/dance-forever/6780773016?i=6780773162&uo=4"
     },
     {
       "id": "424783648d2bcbb8",
@@ -972,8 +977,9 @@
       "youtube_music_url": "https://music.youtube.com/search?q=Mark+on+Me+%26TEAM",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": false
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/18/74/62/18746282-cb01-153e-df50-ec283cf07f0f/26UM1IM07694.rgb.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/mark-on-me/6806202377?i=6806202391&uo=4"
     },
     {
       "id": "19111f6be760cc79",
@@ -990,8 +996,9 @@
       "youtube_music_url": "https://music.youtube.com/search?q=%E3%81%8F%E3%81%A4%E3%81%9A%E3%82%8C+Hachiware%28CV%3ATanaka+Makoto%29",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": false
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/24/76/29/24762904-117f-098f-79f7-f9d5f451fec9/4550758739203_cover.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/%E3%81%8F%E3%81%A4%E3%81%9A%E3%82%8C/6792290933?i=6792290934&uo=4"
     },
     {
       "id": "93df309173369304",
@@ -1009,7 +1016,7 @@
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
       "artwork": "",
-      "artwork_checked": false
+      "artwork_checked": true
     },
     {
       "id": "496becde354dee25",
@@ -1027,7 +1034,7 @@
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
       "artwork": "",
-      "artwork_checked": false
+      "artwork_checked": true
     }
   ],
   "sources": {
@@ -1035,13 +1042,13 @@
       "label": "Billboard JAPAN Hot 100",
       "ok": true,
       "count": 30,
-      "checked_at": "2026-09-14T21:58:42Z"
+      "checked_at": "2026-09-15T21:41:06Z"
     },
     "apple_music_weekly_new": {
       "label": "Apple Music Japan · 本周新曲",
       "ok": true,
       "count": 5,
-      "checked_at": "2026-09-14T21:58:42Z",
+      "checked_at": "2026-09-15T21:41:06Z",
       "fallback": "Billboard JAPAN Hot 100 本周新进榜",
       "error": "RuntimeError: Apple Music Best New Songs heading not found"
     },
@@ -1049,8 +1056,8 @@
       "label": "YouTube Japan · 近期热门榜",
       "ok": true,
       "count": 30,
-      "cover_count": 17,
-      "checked_at": "2026-09-14T21:58:42Z",
+      "cover_count": 24,
+      "checked_at": "2026-09-15T21:41:06Z",
       "chart_date": "2026/09/10",
       "endpoint": "https://kworb.net/youtube/insights/jp.html"
     }
