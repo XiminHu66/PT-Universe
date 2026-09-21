@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-20T18:17:24.715025+00:00",
-  "attemptedAt": "2026-09-20T18:17:24.715025+00:00",
+  "updatedAt": "2026-09-21T20:06:58.443481+00:00",
+  "attemptedAt": "2026-09-21T20:06:58.443481+00:00",
   "companies": [
     {
       "ticker": "NVDA",
@@ -86,7 +86,7 @@
           "fcf": 21400000000.0
         }
       ],
-      "updatedAt": "2026-09-20T18:17:24.715025+00:00",
+      "updatedAt": "2026-09-21T20:06:58.443481+00:00",
       "stale": false
     },
     {
@@ -172,7 +172,7 @@
           "fcf": 31914000000.0
         }
       ],
-      "updatedAt": "2026-09-20T18:17:24.715025+00:00",
+      "updatedAt": "2026-09-21T20:06:58.443481+00:00",
       "stale": false
     },
     {
@@ -258,7 +258,7 @@
           "fcf": 19639000000.0
         }
       ],
-      "updatedAt": "2026-09-20T18:17:24.715025+00:00",
+      "updatedAt": "2026-09-21T20:06:58.443481+00:00",
       "stale": false
     },
     {
@@ -344,7 +344,7 @@
           "fcf": -5855000000.0
         }
       ],
-      "updatedAt": "2026-09-20T18:17:24.715025+00:00",
+      "updatedAt": "2026-09-21T20:06:58.443481+00:00",
       "stale": false
     },
     {
@@ -430,7 +430,7 @@
           "fcf": 1746000000.0
         }
       ],
-      "updatedAt": "2026-09-20T18:17:24.715025+00:00",
+      "updatedAt": "2026-09-21T20:06:58.443481+00:00",
       "stale": false
     },
     {
@@ -516,7 +516,7 @@
           "fcf": -1099000000.0
         }
       ],
-      "updatedAt": "2026-09-20T18:17:24.715025+00:00",
+      "updatedAt": "2026-09-21T20:06:58.443481+00:00",
       "stale": false
     },
     {
@@ -602,7 +602,7 @@
           "fcf": 1201613000.0
         }
       ],
-      "updatedAt": "2026-09-20T18:17:24.715025+00:00",
+      "updatedAt": "2026-09-21T20:06:58.443481+00:00",
       "stale": false
     },
     {
@@ -688,7 +688,7 @@
           "fcf": 1558000000.0
         }
       ],
-      "updatedAt": "2026-09-20T18:17:24.715025+00:00",
+      "updatedAt": "2026-09-21T20:06:58.443481+00:00",
       "stale": false
     },
     {
@@ -774,7 +774,7 @@
           "fcf": 13665000000.0
         }
       ],
-      "updatedAt": "2026-09-20T18:17:24.715025+00:00",
+      "updatedAt": "2026-09-21T20:06:58.443481+00:00",
       "stale": false
     },
     {
@@ -860,7 +860,7 @@
           "fcf": 1053300000.0
         }
       ],
-      "updatedAt": "2026-09-20T18:17:24.715025+00:00",
+      "updatedAt": "2026-09-21T20:06:58.443481+00:00",
       "stale": false
     },
     {
@@ -946,7 +946,7 @@
           "fcf": 986000000.0
         }
       ],
-      "updatedAt": "2026-09-20T18:17:24.715025+00:00",
+      "updatedAt": "2026-09-21T20:06:58.443481+00:00",
       "stale": false
     },
     {
@@ -1032,7 +1032,7 @@
           "fcf": 301000000.0
         }
       ],
-      "updatedAt": "2026-09-20T18:17:24.715025+00:00",
+      "updatedAt": "2026-09-21T20:06:58.443481+00:00",
       "stale": false
     }
   ],
@@ -1043,7 +1043,7 @@
       "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json",
       "ok": false,
       "count": 0,
-      "checkedAt": "2026-09-20T18:17:24.715025+00:00",
+      "checkedAt": "2026-09-21T20:06:58.443481+00:00",
       "lastSuccessAt": null,
       "error": "HTTP 403；本轮切换 Yahoo，不继续请求 SEC",
       "optional": true
@@ -1054,8 +1054,8 @@
       "url": "https://finance.yahoo.com/quote/NVDA/financials/",
       "ok": true,
       "count": 5,
-      "checkedAt": "2026-09-20T18:17:24.715025+00:00",
-      "lastSuccessAt": "2026-09-20T18:17:24.715025+00:00",
+      "checkedAt": "2026-09-21T20:06:58.443481+00:00",
+      "lastSuccessAt": "2026-09-21T20:06:58.443481+00:00",
       "error": null,
       "optional": false
     },
@@ -1065,8 +1065,8 @@
       "url": "https://finance.yahoo.com/quote/AAPL/financials/",
       "ok": true,
       "count": 5,
-      "checkedAt": "2026-09-20T18:17:24.715025+00:00",
-      "lastSuccessAt": "2026-09-20T18:17:24.715025+00:00",
+      "checkedAt": "2026-09-21T20:06:58.443481+00:00",
+      "lastSuccessAt": "2026-09-21T20:06:58.443481+00:00",
       "error": null,
       "optional": false
     },
@@ -1076,8 +1076,8 @@
       "url": "https://finance.yahoo.com/quote/MSFT/financials/",
       "ok": true,
       "count": 5,
-      "checkedAt": "2026-09-20T18:17:24.715025+00:00",
-      "lastSuccessAt": "2026-09-20T18:17:24.715025+00:00",
+      "checkedAt": "2026-09-21T20:06:58.443481+00:00",
+      "lastSuccessAt": "2026-09-21T20:06:58.443481+00:00",
       "error": null,
       "optional": false
     },
@@ -1087,8 +1087,8 @@
       "url": "https://finance.yahoo.com/quote/GOOGL/financials/",
       "ok": true,
       "count": 5,
-      "checkedAt": "2026-09-20T18:17:24.715025+00:00",
-      "lastSuccessAt": "2026-09-20T18:17:24.715025+00:00",
+      "checkedAt": "2026-09-21T20:06:58.443481+00:00",
+      "lastSuccessAt": "2026-09-21T20:06:58.443481+00:00",
       "error": null,
       "optional": false
     },
@@ -1098,8 +1098,8 @@
       "url": "https://finance.yahoo.com/quote/META/financials/",
       "ok": true,
       "count": 5,
-      "checkedAt": "2026-09-20T18:17:24.715025+00:00",
-      "lastSuccessAt": "2026-09-20T18:17:24.715025+00:00",
+      "checkedAt": "2026-09-21T20:06:58.443481+00:00",
+      "lastSuccessAt": "2026-09-21T20:06:58.443481+00:00",
       "error": null,
       "optional": false
     },
@@ -1109,8 +1109,8 @@
       "url": "https://finance.yahoo.com/quote/TSLA/financials/",
       "ok": true,
       "count": 5,
-      "checkedAt": "2026-09-20T18:17:24.715025+00:00",
-      "lastSuccessAt": "2026-09-20T18:17:24.715025+00:00",
+      "checkedAt": "2026-09-21T20:06:58.443481+00:00",
+      "lastSuccessAt": "2026-09-21T20:06:58.443481+00:00",
       "error": null,
       "optional": false
     },
@@ -1120,8 +1120,8 @@
       "url": "https://finance.yahoo.com/quote/PLTR/financials/",
       "ok": true,
       "count": 5,
-      "checkedAt": "2026-09-20T18:17:24.715025+00:00",
-      "lastSuccessAt": "2026-09-20T18:17:24.715025+00:00",
+      "checkedAt": "2026-09-21T20:06:58.443481+00:00",
+      "lastSuccessAt": "2026-09-21T20:06:58.443481+00:00",
       "error": null,
       "optional": false
     },
@@ -1131,8 +1131,8 @@
       "url": "https://finance.yahoo.com/quote/AMD/financials/",
       "ok": true,
       "count": 5,
-      "checkedAt": "2026-09-20T18:17:24.715025+00:00",
-      "lastSuccessAt": "2026-09-20T18:17:24.715025+00:00",
+      "checkedAt": "2026-09-21T20:06:58.443481+00:00",
+      "lastSuccessAt": "2026-09-21T20:06:58.443481+00:00",
       "error": null,
       "optional": false
     },
@@ -1142,8 +1142,8 @@
       "url": "https://finance.yahoo.com/quote/AVGO/financials/",
       "ok": true,
       "count": 5,
-      "checkedAt": "2026-09-20T18:17:24.715025+00:00",
-      "lastSuccessAt": "2026-09-20T18:17:24.715025+00:00",
+      "checkedAt": "2026-09-21T20:06:58.443481+00:00",
+      "lastSuccessAt": "2026-09-21T20:06:58.443481+00:00",
       "error": null,
       "optional": false
     },
@@ -1153,8 +1153,8 @@
       "url": "https://finance.yahoo.com/quote/ANET/financials/",
       "ok": true,
       "count": 5,
-      "checkedAt": "2026-09-20T18:17:24.715025+00:00",
-      "lastSuccessAt": "2026-09-20T18:17:24.715025+00:00",
+      "checkedAt": "2026-09-21T20:06:58.443481+00:00",
+      "lastSuccessAt": "2026-09-21T20:06:58.443481+00:00",
       "error": null,
       "optional": false
     },
@@ -1164,8 +1164,8 @@
       "url": "https://finance.yahoo.com/quote/DELL/financials/",
       "ok": true,
       "count": 5,
-      "checkedAt": "2026-09-20T18:17:24.715025+00:00",
-      "lastSuccessAt": "2026-09-20T18:17:24.715025+00:00",
+      "checkedAt": "2026-09-21T20:06:58.443481+00:00",
+      "lastSuccessAt": "2026-09-21T20:06:58.443481+00:00",
       "error": null,
       "optional": false
     },
@@ -1175,19 +1175,19 @@
       "url": "https://finance.yahoo.com/quote/W/financials/",
       "ok": true,
       "count": 5,
-      "checkedAt": "2026-09-20T18:17:24.715025+00:00",
-      "lastSuccessAt": "2026-09-20T18:17:24.715025+00:00",
+      "checkedAt": "2026-09-21T20:06:58.443481+00:00",
+      "lastSuccessAt": "2026-09-21T20:06:58.443481+00:00",
       "error": null,
       "optional": false
     }
   ],
   "refresh": {
     "state": "ok",
-    "lastAttemptAt": "2026-09-20T18:17:24.715025+00:00",
-    "lastCompleteAt": "2026-09-20T18:17:24.715025+00:00",
+    "lastAttemptAt": "2026-09-21T20:06:58.443481+00:00",
+    "lastCompleteAt": "2026-09-21T20:06:58.443481+00:00",
     "failedSources": [],
     "attempts": 1,
     "maxAgeHours": 36,
-    "runId": "35528552192"
+    "runId": "35648990812"
   }
 }
