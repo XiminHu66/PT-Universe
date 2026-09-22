@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-21T22:09:01Z",
+  "generated_at": "2026-09-22T21:37:00Z",
   "chart_date": "2026/09/16",
   "weekly_chart": [
     {
@@ -813,6 +813,24 @@
       "apple_music_url": "https://music.apple.com/jp/album/%E3%81%86%E3%81%95%E3%81%8E%E3%83%A9%E3%83%83%E3%83%97-%E3%83%AA%E3%82%BA%E3%83%A0%E6%84%9F%E3%81%AE%E3%81%82%E3%82%8B%E8%80%85%E3%81%9F%E3%81%A1ver/6792293464?i=6792293577&uo=4"
     },
     {
+      "id": "e936f906a2c92b56",
+      "rank": 35,
+      "rank_change": "-1",
+      "is_new": false,
+      "title": "BPM(Live) (feat. KREVA)",
+      "artist": "Kvi Baba",
+      "weeks": 4,
+      "peak": 25,
+      "streams": "963,172",
+      "streams_change": "-114,554",
+      "url": "https://www.youtube.com/results?search_query=Kvi+Baba+-+BPM%28Live%29+%28feat.+KREVA%29",
+      "youtube_music_url": "https://music.youtube.com/search?q=BPM%28Live%29+%28feat.+KREVA%29+Kvi+Baba",
+      "source": "youtube_japan_recent",
+      "source_label": "YouTube Japan Weekly · 8 周内",
+      "artwork": "",
+      "artwork_checked": true
+    },
+    {
       "id": "59b0219e55e256b6",
       "rank": 36,
       "rank_change": "+14",
@@ -906,18 +924,18 @@
       "apple_music_url": "https://music.apple.com/jp/album/%E5%A5%87%E8%B7%A1/6802879262?i=6802879416&uo=4"
     },
     {
-      "id": "5febc7f642a0da04",
+      "id": "ce9cd493453225f3",
       "rank": 43,
       "rank_change": "-34",
       "is_new": false,
       "title": "Paradox (Live)",
-      "artist": "ARASHI",
+      "artist": "ジュニアCHANNEL",
       "weeks": 2,
       "peak": 9,
       "streams": "872,787",
       "streams_change": "-1,689,769",
-      "url": "https://www.youtube.com/results?search_query=ARASHI+-+Paradox+%28Live%29",
-      "youtube_music_url": "https://music.youtube.com/search?q=Paradox+%28Live%29+ARASHI",
+      "url": "https://www.youtube.com/results?search_query=%E3%82%B8%E3%83%A5%E3%83%8B%E3%82%A2CHANNEL+-+Paradox+%28Live%29",
+      "youtube_music_url": "https://music.youtube.com/search?q=Paradox+%28Live%29+%E3%82%B8%E3%83%A5%E3%83%8B%E3%82%A2CHANNEL",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
       "artwork": "",
@@ -976,8 +994,9 @@
       "youtube_music_url": "https://music.youtube.com/search?q=KO1KEYZ+KO1KEYZ",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": false
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/66/bd/90/66bd90df-154f-aefb-dadf-589668a72c63/26UM1IM00248.rgb.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/ko1keyz/6799816951?i=6799816953&uo=4"
     },
     {
       "id": "424783648d2bcbb8",
@@ -1012,8 +1031,9 @@
       "youtube_music_url": "https://music.youtube.com/search?q=%E5%B3%B6%E3%81%AE%E3%81%86%E3%81%9F+%28%E3%82%BB%E3%82%A4%E3%83%AC%E3%83%BC%E3%83%B3ver.%29+Minori+Suzuki",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": false
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/24/76/29/24762904-117f-098f-79f7-f9d5f451fec9/4550758739203_cover.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/%E5%B3%B6%E3%81%AE%E3%81%86%E3%81%9F-%E3%82%BB%E3%82%A4%E3%83%AC%E3%83%BC%E3%83%B3ver/6792290933?i=6792291237&uo=4"
     },
     {
       "id": "6289cf25463c69a6",
@@ -1030,8 +1050,9 @@
       "youtube_music_url": "https://music.youtube.com/search?q=Feeling+%28Live%29+Mrs.+GREEN+APPLE",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": false
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/a4/ad/58/a4ad5816-0612-60d0-3ea2-917bea2e9c8e/23UMGIM61979.rgb.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/feeling/1691229798?i=1691230123&uo=4"
     },
     {
       "id": "1ab04b321e7c5d09",
@@ -1066,8 +1087,9 @@
       "youtube_music_url": "https://music.youtube.com/search?q=Emotion+Ae%21+group",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": false
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/5f/f0/e7/5ff0e746-68a9-510e-3000-c5a1d7ae3927/26UM1IM01870.rgb.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/emotion/6810991639?i=6810991641&uo=4"
     },
     {
       "id": "e6886cbfafdc3546",
@@ -1102,8 +1124,9 @@
       "youtube_music_url": "https://music.youtube.com/search?q=%E3%82%AC%E3%83%81%E5%A4%A2%E4%B8%AD%EF%BC%81+Chotokkyu",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": false
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/5d/f7/ec/5df7ec34-6bca-ff99-c906-57136bf93577/26UMGIM40239.rgb.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/%E3%82%AC%E3%83%81%E5%A4%A2%E4%B8%AD/1891923968?i=1891924257&uo=4"
     },
     {
       "id": "3cdce31b5f945722",
@@ -1120,26 +1143,9 @@
       "youtube_music_url": "https://music.youtube.com/search?q=GO+GHOST+King+Gnu",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": false
-    },
-    {
-      "id": "e4e949689ef2e712",
-      "rank": 62,
-      "rank_change": "RE",
-      "is_new": false,
-      "title": "Stargaze",
-      "artist": "SixTONES",
-      "weeks": 3,
-      "peak": 55,
-      "streams": "696,709",
-      "streams_change": "",
-      "url": "https://www.youtube.com/results?search_query=SixTONES+-+Stargaze",
-      "youtube_music_url": "https://music.youtube.com/search?q=Stargaze+SixTONES",
-      "source": "youtube_japan_recent",
-      "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": false
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/47/f3/49/47f3490b-4395-28ba-e6a9-88c9dd7be8fa/4547366841732.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/go-ghost/6794271990?i=6794271993&uo=4"
     }
   ],
   "sources": {
@@ -1147,13 +1153,13 @@
       "label": "Billboard JAPAN Hot 100",
       "ok": true,
       "count": 30,
-      "checked_at": "2026-09-21T22:09:01Z"
+      "checked_at": "2026-09-22T21:37:00Z"
     },
     "apple_music_weekly_new": {
       "label": "Apple Music Japan · 本周新曲",
       "ok": true,
       "count": 9,
-      "checked_at": "2026-09-21T22:09:01Z",
+      "checked_at": "2026-09-22T21:37:00Z",
       "fallback": "Billboard JAPAN Hot 100 本周新进榜",
       "error": "RuntimeError: Apple Music Best New Songs heading not found"
     },
@@ -1161,8 +1167,8 @@
       "label": "YouTube Japan · 近期热门榜",
       "ok": true,
       "count": 30,
-      "cover_count": 20,
-      "checked_at": "2026-09-21T22:09:01Z",
+      "cover_count": 26,
+      "checked_at": "2026-09-22T21:37:00Z",
       "chart_date": "2026/09/17",
       "endpoint": "https://kworb.net/youtube/insights/jp.html"
     }
