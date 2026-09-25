@@ -8,10 +8,10 @@
 .motion-frame span{position:absolute;top:6px;left:50%;transform:translateX(-50%);white-space:nowrap;border-radius:99px;border:1px solid #416e73;background:#123742e8;padding:4px 10px;color:#e0f8f3;font-size:.83rem;font-weight:700}
 .frame-1{animation-delay:0s}.frame-2{animation-delay:-3.6s}.frame-3{animation-delay:-2.4s}.frame-4{animation-delay:-1.2s}
 @keyframes show-frame{0%,24.99%{opacity:1}25%,100%{opacity:0}}
-.real-motion{inset:9px 10px 59px;border-radius:12px;overflow:hidden;background:#f8f8f7}
-.real-motion img{height:100%;width:100%;object-fit:contain;display:block}
+.real-motion{inset:9px 10px 59px;display:block;border-radius:12px;overflow:hidden;background:#f8f8f7}
+.real-motion img{position:absolute;inset:0;height:100%;width:100%;object-fit:contain;display:block}
 .demo-fallback{display:none;color:#17333c;padding:25px;text-align:center;font-size:.9rem;line-height:1.6}
-.asset-error .real-motion img{display:none}.asset-error .demo-fallback{display:block}
+.asset-error .real-motion img{display:none}.asset-error .demo-fallback{display:grid;place-items:center;height:100%}
 .motion-text{position:absolute;bottom:36px;left:12px;right:12px;color:#ecfbf7;text-align:center;font-size:.83rem;font-weight:650;line-height:1.4;text-shadow:0 2px 8px #07131d}
 .demo-visual.paused .motion-frame{animation-play-state:paused}
 .demo-toggle[hidden]{display:none}
