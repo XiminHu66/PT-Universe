@@ -1,14 +1,11 @@
-Workout Guide exercise illustrations
-===================================
+# 动作画面来源
 
-The SVG frames in `art/` are unmodified assets from
-https://github.com/bryllim/workout-guide by Bryl Lim, with upstream
-Everkinetic-derived illustrations as detailed in the original project's
-ATTRIBUTION.md. They are licensed under CC BY-SA 4.0:
-https://creativecommons.org/licenses/by-sa/4.0/
+力量和拉伸动作使用美国疾病控制与预防中心（CDC）的完整循环动图，
+在 Wikimedia Commons 列为美国联邦政府公有领域作品：
+https://commons.wikimedia.org/wiki/Category:CDC_strength_training_for_older_adults
 
-Assets used: bodyweight-squat, wall-push-up, forward-lunge, arm-circles,
-standing-quad-stretch (three original SVG frames each).
+页面按需从 Wikimedia Commons 加载 Squat、Wallpushup、Lunge、Toe stand、
+Quad stretch、Chest stretch。来源不可用时显示文字提示及动作说明链接。
 
-The training interface, timing logic, and remaining instructional graphics
-are separate original code in PT Universe. No SVG artwork was altered.
+有氧动作的全身四步示意由 PT Universe 原创代码绘制。它用于提示动作顺序，
+不提供个体姿势纠错。动作要点和外部说明链接列于每段示意下方。

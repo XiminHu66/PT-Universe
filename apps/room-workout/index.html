@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#07131d">
-  <meta name="description" content="3㎡无器械低冲击跟练：自动计时、语音报动作、动态动作示意。">
+  <meta name="description" content="3㎡低冲击跟练：自动计时、语音报动作、全身分步示意与完整动作动图。">
   <title>Room Workout · PT Universe</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2307131d'/%3E%3Ccircle cx='32' cy='32' r='21' fill='none' stroke='%2353c5bf' stroke-width='5'/%3E%3Cpath d='M32 17v16l10 6' fill='none' stroke='%23fff' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="./style.css?v=2">
+  <link rel="stylesheet" href="./style.css?v=3">
 </head>
 <body>
   <main class="layout">
@@ -15,14 +15,14 @@
     <div class="mode-bar" role="group" aria-label="训练方案"><button class="mode active" data-mode="standard" aria-pressed="true">标准 · 22 分钟</button><button class="mode" data-mode="long" aria-pressed="false">进阶 · 27 分钟</button><button class="mode" data-mode="easy" aria-pressed="false">轻松 · 13 分钟</button></div>
     <section class="stage" aria-label="当前动作">
       <div class="stage-top"><span id="phase" class="phase">准备开始</span><span id="position" class="position">01 / 38</span></div>
-      <div class="stage-grid"><div class="instruction"><h2 id="exercise">原地慢走</h2><p id="hint">自然摆臂，逐渐加快。按开始后自动切换动作。</p><div class="clock" id="clock">1:00</div><div class="clock-label">当前动作剩余 <span id="totalRemaining">全程 22:00</span></div><div class="timeline"><div id="progress"></div></div><div class="next">接下来 <strong id="next">左右踏步</strong></div></div><div class="demo"><div id="demo" class="demo-visual" role="img" aria-label="当前动作循环示意图"></div><span class="demo-label" id="demoLabel">动作示范 · 循环播放</span><button id="demoPause" class="demo-toggle" aria-label="暂停动作示意">Ⅱ</button></div></div>
+      <div class="stage-grid"><div class="instruction"><h2 id="exercise">原地慢走</h2><p id="hint">自然摆臂，逐渐加快。按开始后自动切换动作。</p><div class="clock" id="clock">1:00</div><div class="clock-label">当前动作剩余 <span id="totalRemaining">全程 22:00</span></div><div class="timeline"><div id="progress"></div></div><div class="next">接下来 <strong id="next">左右踏步</strong></div></div><div class="demo"><div id="demo" class="demo-visual" role="img" aria-label="当前动作演示"></div><span class="demo-label" id="demoLabel">全身分步示意</span><button id="demoPause" class="demo-toggle" aria-label="暂停动作示意">Ⅱ</button></div></div>
       <div class="controls"><button id="start" class="primary">▶ 开始跟练</button><button id="skip">跳过这段 →</button><button id="reset">重新开始</button></div>
-      <p id="notice" class="notice" role="status" aria-live="polite">保持屏幕亮起，可以直接看着示意图跟练。</p>
+      <p id="notice" class="notice" role="status" aria-live="polite">先看动作和三条要点，再按舒服的幅度开始。</p>
     </section>
-    <section class="guide"><div class="guide-head"><div><span class="eyebrow">FORM CHECK</span><h2 id="guideTitle">原地慢走 · 动作要点</h2></div><a id="reference" href="https://www.heart.org/en/healthy-living/exercise-and-physical-activity" target="_blank" rel="noopener">参考动作图解 ↗</a></div><ul id="cues"></ul><p class="guide-note">示意动画帮助记住动作方向和节奏；力量动作可打开图解核对完整姿势。疼痛时停下或减小幅度。</p></section>
+    <section class="guide"><div class="guide-head"><div><span class="eyebrow">FORM CHECK</span><h2 id="guideTitle">原地慢走 · 动作要点</h2></div><a id="reference" href="https://www.nhs.uk/live-well/exercise/how-to-warm-up-before-exercising/" target="_blank" rel="noopener">查看动作说明 ↗</a></div><ul id="cues"></ul><p class="guide-note">有氧动作是分步姿势图；力量和拉伸采用完整循环动图。画面不能判断你的姿势；先慢练，疼痛或不适就停下。</p></section>
     <div class="bottom-grid"><section class="settings"><h2>跟练设置</h2><label><input id="voice" type="checkbox" checked><span>中文语音报动作</span></label><label><input id="sound" type="checkbox" checked><span>切换提示音</span></label><p>语音受设备静音与浏览器设置影响。开始训练后尽量保持页面在前台；切走页面会自动暂停。</p></section><details class="routine"><summary>查看完整训练顺序 <span id="routineCount">38 段</span></summary><ol id="routineList"></ol></details></div>
-    <footer>热身 3 分钟 · 低冲击有氧 10 分钟 · 力量 6 分钟 · 放松 3 分钟。强度以微喘、仍能说话为宜。<br><a href="https://www.heart.org/en/healthy-living/exercise-and-physical-activity/fitness-basics/aha-recs-for-physical-activity-in-adults" target="_blank" rel="noopener">AHA 成人运动建议 ↗</a> · 部分动作线稿由 <a href="https://github.com/bryllim/workout-guide" target="_blank" rel="noopener">Workout Guide / Bryl Lim</a> 提供，<a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>，原图未修改。</footer>
+    <footer>热身 3 分钟 · 低冲击有氧 10 分钟 · 力量 6 分钟 · 放松 3 分钟。强度以微喘、仍能说话为宜。<br><a href="https://www.heart.org/en/healthy-living/exercise-and-physical-activity/fitness-basics/aha-recs-for-physical-activity-in-adults" target="_blank" rel="noopener">AHA 成人运动建议 ↗</a> · 力量和拉伸动图来自 <a href="https://commons.wikimedia.org/wiki/Category:CDC_strength_training_for_older_adults" target="_blank" rel="noopener">美国 CDC / Wikimedia Commons</a>（公有领域），需联网加载。</footer>
   </main>
-  <script src="./app.js?v=2"></script>
+  <script src="./app.js?v=3"></script>
 </body>
 </html>
