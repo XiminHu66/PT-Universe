@@ -39,7 +39,7 @@
   function announce(){const s=segments[index];beep(s.stage==='休息'||s.stage==='慢走恢复'?520:760);speak(s.stage==='休息'?'休息，慢走二十秒':s.stage==='慢走恢复'?'慢走恢复，二十秒':exercise[s.key].label)}
   function render(){
     if(done){$('#phase').textContent='完成';$('#position').textContent=`${segments.length} / ${segments.length}`;$('#exercise').textContent='今天训练完成';$('#hint').textContent='慢慢调整呼吸，喝水休息。';$('#clock').textContent='0:00';$('#totalRemaining').textContent='全程完成';$('#next').textContent='—';$('#progress').style.width='100%';$('#start').textContent='再练一次';$('#start').disabled=false;$('#notice').textContent='训练完成。今天做得够了。';return}
-    const s=segments[index],e=exercise[s.key];$('#phase').textContent=s.stage;$('#position').textContent=`${String(index+1).padStart(2,'0')} / ${segments.length}`;$('#exercise').textContent=e.label;$('#hint').textContent=e.hint;$('#clock').textContent=format(remaining);$('#totalRemaining').textContent=`全程还剩 ${format(duration()*1000-elapsed())}`;$('#progress').style.width=`${Math.min(100,elapsed()/(duration()*1000)*100)}%`;$('#next').textContent=upcoming();$('#guideTitle').textContent=`${e.label} · 动作要点`;$('#cues').replaceChildren(...e.cues.map(c=>{const li=document.createElement('li');li.textContent=c;return li}));$('#reference').href=e.link;$('#demo').setAttribute('aria-label',`${e.label}循环动作示意图`);$('#start').textContent=running?'Ⅱ 暂停':'▶ '+(index===0&&remaining===s.sec*1000?'开始跟练':'继续跟练');
+    const s=segments[index],e=exercise[s.key];$('#phase').textContent=s.stage;$('#position').textContent=`${String(index+1).padStart(2,'0')} / ${segments.length}`;$('#exercise').textContent=e.label;$('#hint').textContent=e.hint;$('#clock').textContent=format(remaining);$('#totalRemaining').textContent=`全程还剩 ${format(duration()*1000-elapsed())}`;$('#progress').style.width=`${Math.min(100,elapsed()/(duration()*1000)*100)}%`;$('#next').textContent=upcoming();$('#guideTitle').textContent=`${e.label} · 动作要点`;$('#cues').replaceChildren(...e.cues.map(c=>{const li=document.createElement('li');li.textContent=c;return li}));$('#reference').href=e.link;$('#demo').setAttribute('aria-label',`${e.label}循环动作示意图`);renderDemo(s.key);$('#start').textContent=running?'Ⅱ 暂停':'▶ '+(index===0&&remaining===s.sec*1000?'开始跟练':'继续跟练');
   }
   function setNotice(s){$('#notice').textContent=s}
   async function acquireWake(){try{if('wakeLock'in navigator)wake=await navigator.wakeLock.request('screen')}catch{setNotice('无法保持屏幕常亮；请在设备设置里延长锁屏时间。')}}
@@ -51,37 +51,47 @@
   function start(){if(done)reset();running=true;deadline=performance.now()+remaining;acquireWake();announce();ticker=setInterval(tick,100);render();setNotice('跟随动画动作方向练习；呼吸加快但仍能说话。')}
   function reset(){pause();done=false;index=0;remaining=segments[0].sec*1000;render();setNotice('准备好了就开始，自动切换动作和语音提示。')}
   function selectMode(value){pause();mode=value;segments=build(mode);document.querySelectorAll('.mode').forEach(b=>{const chosen=b.dataset.mode===value;b.classList.toggle('active',chosen);b.setAttribute('aria-pressed',String(chosen))});reset();$('#routineCount').textContent=`${segments.length} 段`;$('#routineList').replaceChildren(...segments.map(s=>{const li=document.createElement('li');li.textContent=exercise[s.key].label;const small=document.createElement('small');small.textContent=`${s.stage} · ${s.sec}秒`;li.append(small);return li}));const desc=value==='easy'?'热身 2 分钟 · 低冲击有氧 8 分钟 · 放松 3 分钟。':`热身 3 分钟 · 低冲击有氧 ${value==='long'?15:10} 分钟 · 力量 6 分钟 · 放松 3 分钟。`;document.querySelector('footer').firstChild.textContent=desc+'强度以微喘、仍能说话为宜。';render()}
-  $('#start').onclick=()=>running?pause():start();$('#skip').onclick=()=>{if(done)return;advance();if(!running&&!done)setNotice('已跳过，点继续跟练。')};$('#reset').onclick=reset;document.querySelectorAll('.mode').forEach(b=>b.onclick=()=>selectMode(b.dataset.mode));$('#demoPause').onclick=()=>{demoPaused=!demoPaused;$('#demoPause').textContent=demoPaused?'▶':'Ⅱ';$('#demoPause').setAttribute('aria-label',demoPaused?'播放动作示意':'暂停动作示意')};document.addEventListener('visibilitychange',()=>{if(document.hidden)pause(true)});
+  $('#start').onclick=()=>running?pause():start();$('#skip').onclick=()=>{if(done)return;advance();if(!running&&!done)setNotice('已跳过，点继续跟练。')};$('#reset').onclick=reset;document.querySelectorAll('.mode').forEach(b=>b.onclick=()=>selectMode(b.dataset.mode));$('#demoPause').onclick=()=>{demoPaused=!demoPaused;$('#demo').classList.toggle('paused',demoPaused);$('#demoPause').textContent=demoPaused?'▶':'Ⅱ';$('#demoPause').setAttribute('aria-label',demoPaused?'播放动作示意':'暂停动作示意')};document.addEventListener('visibilitychange',()=>{if(document.hidden)pause(true)});
 
-  // Two carefully simplified poses per move; interpolation communicates direction and rhythm.
-  const base={head:[150,43],neck:[150,68],hip:[150,139],le:[122,88],lh:[108,125],re:[178,88],rh:[191,125],lk:[134,184],lf:[127,215],rk:[166,184],rf:[173,215]};
-  const copy=(changes={})=>({...base,...changes});
-  const pose={
-    walk:[copy({lh:[113,91],rh:[192,152],lk:[126,173],lf:[129,209],rk:[173,184],rf:[178,215]}),copy({lh:[107,153],rh:[188,91],lk:[128,184],lf:[124,215],rk:[169,173],rf:[166,209]})],
-    step:[copy({lf:[105,215],rf:[167,215],lh:[104,119],rh:[191,134]}),copy({lf:[133,215],rf:[195,215],lh:[112,134],rh:[198,119]})],
-    jack:[copy({lf:[127,215],rf:[172,215],lh:[103,114],rh:[198,114]}),copy({lf:[92,215],rf:[173,215],le:[111,70],lh:[91,44],re:[189,70],rh:[210,44]})],
-    box:[copy({le:[119,83],lh:[134,94],re:[178,84],rh:[177,100]}),copy({le:[117,87],lh:[85,92],re:[184,83],rh:[227,77]})],
-    shoulder:[copy({le:[121,84],lh:[111,125],re:[179,84],rh:[189,125]}),copy({le:[113,66],lh:[102,49],re:[187,66],rh:[198,49]})],
-    squat:[copy({head:[157,42],neck:[153,68],hip:[149,137],le:[126,89],lh:[122,127],re:[174,90],rh:[186,121],lk:[140,185],lf:[130,215],rk:[173,185],rf:[181,215]}),copy({head:[145,74],neck:[139,100],hip:[104,162],le:[120,121],lh:[159,125],re:[149,120],rh:[184,126],lk:[152,178],lf:[133,215],rk:[184,180],rf:[184,215]})],
-    push:[copy({head:[169,80],neck:[153,93],hip:[125,148],le:[177,103],lh:[220,104],re:[181,116],rh:[220,118],lk:[111,184],lf:[91,214],rk:[129,190],rf:[110,214]}),copy({head:[186,88],neck:[167,99],hip:[128,155],le:[187,112],lh:[220,104],re:[191,126],rh:[220,118],lk:[113,187],lf:[91,214],rk:[130,192],rf:[110,214]})],
-    lunge:[copy({head:[150,42],neck:[150,68],hip:[150,135],lk:[123,179],lf:[106,215],rk:[179,181],rf:[194,215]}),copy({head:[150,68],neck:[150,91],hip:[150,157],lk:[111,180],lf:[106,215],rk:[186,183],rf:[194,215]})],
-    calf:[copy({lf:[129,215],rf:[174,215]}),copy({head:[150,33],neck:[150,58],hip:[150,129],le:[122,78],lh:[108,115],re:[178,78],rh:[191,115],lk:[134,174],lf:[135,204],rk:[166,174],rf:[180,204]})],
-    stretch:[copy({lf:[112,215],rf:[180,215],lh:[108,126]}),copy({lf:[109,215],rf:[210,215],hip:[143,141],lh:[105,133],rh:[195,123]})]
+  // Licensed illustrated frames for strength moves; directional diagrams for compact cardio.
+  const artwork={
+    squat:{slug:'bodyweight-squat',order:[3,2,1],note:'站稳 → 向后坐 → 起身；只蹲到舒服的深度'},
+    push:{slug:'wall-push-up',order:[1,2,3],note:'双手撑墙 → 屈肘靠近 → 推回；身体保持直线'},
+    lunge:{slug:'forward-lunge',order:[3,2,1],note:'前后分腿 → 缓慢屈膝 → 站直；可扶墙'},
+    shoulder:{slug:'arm-circles',order:[2,1,3],note:'小幅绕肩，别甩手；动作保持轻柔'},
+    legstretch:{slug:'standing-quad-stretch',order:[3,2,1],note:'图示为大腿前侧；本段也轻柔拉伸腿后侧和小腿'}
   };
-  const canvas=$('#demo'),ctx=canvas.getContext('2d');let frozen=0;
-  function draw(now){requestAnimationFrame(draw);if(demoPaused){if(!frozen)frozen=now;now=frozen}else frozen=0;
-    const type=exercise[segments[Math.min(index,segments.length-1)].key].kind, [a,b]=pose[type]||pose.walk;
-    const t=(1-Math.cos(now/430))/2, p={};for(const k of Object.keys(a))p[k]=[a[k][0]+(b[k][0]-a[k][0])*t,a[k][1]+(b[k][1]-a[k][1])*t];
-    const w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);ctx.save();ctx.scale(w/300,h/240);
-    ctx.strokeStyle='#345b64';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(50,220);ctx.lineTo(250,220);ctx.stroke();
-    if(type==='push'){ctx.strokeStyle='#73bfc0';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(224,60);ctx.lineTo(224,221);ctx.stroke()}
-    ctx.fillStyle='#37758044';ctx.beginPath();ctx.ellipse(151,218,65,5,0,0,Math.PI*2);ctx.fill();
-    const line=(x,y)=>{ctx.beginPath();ctx.moveTo(...p[x]);ctx.lineTo(...p[y]);ctx.stroke()};
-    ctx.lineCap='round';ctx.lineJoin='round';ctx.lineWidth=10;ctx.strokeStyle='#62cfc0';line('neck','hip');line('hip','lk');line('lk','lf');line('hip','rk');line('rk','rf');line('neck','le');line('le','lh');line('neck','re');line('re','rh');
-    ctx.fillStyle='#dbf7e9';ctx.beginPath();ctx.arc(...p.head,14,0,Math.PI*2);ctx.fill();ctx.fillStyle='#142d36';ctx.beginPath();ctx.arc(p.head[0]+4,p.head[1]-2,1.6,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#d5f3e7';for(const k of ['lh','rh']){ctx.beginPath();ctx.arc(...p[k],5,0,Math.PI*2);ctx.fill()}
-    ctx.fillStyle='#83b6b9';for(const k of ['lf','rf']){ctx.beginPath();ctx.ellipse(p[k][0],p[k][1],10,4,0,0,Math.PI*2);ctx.fill()}
-    ctx.restore();
+  const feet='<svg viewBox="0 0 60 120" aria-hidden="true"><path d="M19 44C15 58 13 70 15 83c2 13 7 24 18 25 12 1 17-11 17-23 0-9-5-23-8-38-2-10-4-17-12-17-6 0-9 5-11 14Z"/><circle cx="12" cy="26" r="5"/><circle cx="21" cy="17" r="6"/><circle cx="32" cy="13" r="6"/><circle cx="43" cy="17" r="5"/><circle cx="51" cy="27" r="4"/></svg>';
+  const fist='<svg viewBox="0 0 76 70" aria-hidden="true"><rect x="12" y="17" width="51" height="40" rx="15"/><path d="M17 30h43M27 19v14m12-14v14m11-14v14" fill="none" stroke="#0e3340" stroke-width="3"/></svg>';
+  const designs={
+    walk:{title:'左右交替踏步',caption:'左脚抬起 → 落地 → 右脚抬起',kind:'feet'},
+    fast:{title:'轻快交替 · 不跺脚',caption:'左脚 → 右脚，手臂自然反向摆动',kind:'feet'},
+    step:{title:'横向迈步、并脚',caption:'向左一步 → 并脚 → 向右一步',kind:'side'},
+    jack:{title:'单脚侧点 · 无跳跃',caption:'右脚侧点 → 收回 → 左脚侧点',kind:'jack'},
+    box:{title:'直拳交替 · 肩膀放松',caption:'左拳伸出 → 收回 → 右拳伸出',kind:'boxing'},
+    quickbox:{title:'直拳交替 · 稍加快',caption:'左拳 → 回位 → 右拳；脚小幅踏步',kind:'boxing'},
+    calf:{title:'脚跟缓慢抬起',caption:'脚掌踩稳 → 双脚跟抬起 → 控制落下',kind:'heels'},
+    chest:{title:'胸肩轻柔打开',caption:'手臂自然向外打开，缓慢呼吸',kind:'open'}
+  };
+  let renderedKey='';
+  function renderDemo(key){
+    if(renderedKey===key)return;
+    renderedKey=key;
+    const root=$('#demo'),illustration=artwork[key];
+    root.className='demo-visual'+(demoPaused?' paused':'');
+    if(illustration){
+      root.innerHTML=`<div class="pose-cycle">${illustration.order.map((number,i)=>`<img class="pose pose-${i+1}" src="./art/${illustration.slug}/frame-${number}.svg" alt="" draggable="false">`).join('')}</div><div class="motion-text">${illustration.note}</div>`;
+      $('#demoLabel').textContent='真人比例线稿 · 动作分帧';
+      return;
+    }
+    const d=designs[key]||designs.walk;
+    const graphic=d.kind==='boxing'
+      ? `<div class="fist-pair"><span class="fist left">${fist}<b>左拳</b></span><span class="centerline">前方 <i>→</i></span><span class="fist right">${fist}<b>右拳</b></span></div>`
+      : d.kind==='open'
+      ? '<div class="open-arms"><span>↖</span><b>胸口打开</b><span>↗</span></div>'
+      : `<div class="foot-pair"><span class="foot left">${feet}<b>左脚</b></span><span class="track-line"></span><span class="foot right">${feet}<b>右脚</b></span></div>`;
+    root.innerHTML=`<div class="motion-guide ${d.kind}"><strong class="motion-heading">${d.title}</strong>${graphic}<div class="motion-text">${d.caption}</div></div>`;
+    $('#demoLabel').textContent='动作方向 · 循环演示';
   }
-  selectMode('standard');requestAnimationFrame(draw);
+  selectMode('standard');
 })();
