@@ -5,6 +5,7 @@
     ["thesis-lab","◈","Thesis Lab · 财报论点"],
     ["earnings-dojo","学","Earnings Dojo · 财报训练"],
     ["eastside-weekend","⌖","Weekend Atlas · 活动地图"],
+    ['room-workout','◷','Room Workout · 房间跟练'],
     ['daily-nexus','⌂','Daily Nexus'],['deskboard','▦','DeskBoard'],['rss-dashboard','◉','RSS Orbit'],['stock-alert','↗','Stock Alert'],
     ['qf-tool','◇','QF Tool'],['3c-scout','⌁','3C Scout'],['meal-orbit','筷','Food Orbit'],['tsugi-checker','継','Tsugi']
   ];
