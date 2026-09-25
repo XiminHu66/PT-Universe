@@ -11,10 +11,10 @@
     jack:{label:'侧点步抬臂',kind:'jack',hint:'左右脚轮流侧点地，双臂轻轻抬起，全程不跳。',cues:['每次只侧点一只脚，另一脚踩稳','收回脚再换另一边，全程不跳','双臂抬到舒服高度，不耸肩'],link:'https://www.northerncarealliance.nhs.uk/patient-information/patient-leaflets/cardiology-home-exercises-cardiac-rehabilitation-programme'},
     squat:{label:'椅前深蹲',kind:'squat',hint:'椅子放在身后，臀部向后坐，慢慢起身。',cues:['稳固椅子置于身后，脚约与肩同宽','髋部向后坐，膝盖顺着脚尖方向','只下到舒服深度，必要时轻触椅面'],link:'https://www.nhs.uk/live-well/exercise/strength-exercises/'},
     push:{label:'墙壁俯卧撑',kind:'push',hint:'双手撑墙，身体成一直线，缓慢靠近再推回。',cues:['双手略宽于肩，掌心撑住墙','屈肘时头、躯干和腿保持一条直线','推回时呼气，别让腰部塌下去'],link:'https://www.nhs.uk/live-well/exercise/strength-and-flex-exercise-plan-how-to-videos/'},
-    lunge:{label:'原地分腿蹲',kind:'lunge',hint:'扶稳椅背，前后分腿，缓慢屈膝再站直。',cues:['稳定椅子放在一侧，扶椅背保持平衡','前后分腿，两膝向下缓慢弯曲','20 秒后换腿；只下到稳得住的幅度'],link:'https://www.rnoh.nhs.uk/patients-and-visitors/patient-information-guides/functional-fitness-exercise-pack'},
+    lunge:{label:'扶稳前跨弓步',kind:'lunge',hint:'扶稳身旁的稳固支撑，一脚向前跨、屈膝，再站起收回。',cues:['扶稳身旁的固定支撑，先站直，再单脚向前跨步','前脚踩稳、两膝缓慢弯曲；后膝不必贴地','站起收脚；20 秒后换腿，幅度以站稳为准'],link:'https://www.rnoh.nhs.uk/patients-and-visitors/patient-information-guides/functional-fitness-exercise-pack'},
     calf:{label:'扶椅提踵',kind:'calf',hint:'扶稳椅背保持平衡，缓慢踮起再放下。',cues:['双脚约与髋同宽，扶稳椅背','脚跟缓慢抬起，避免向外崴脚','控制着落下，不要弹震'],link:NHS},
     legstretch:{label:'大腿前侧拉伸',kind:'stretch',hint:'扶稳椅背，轻柔拉伸一侧大腿前方，30 秒后换腿。',cues:['扶稳椅背，缓慢弯曲一侧膝盖','仅到轻微牵拉感，不拉扯、不弹震','30 秒时换腿，正常呼吸'],link:'https://www.nhs.uk/live-well/exercise/strength-and-flex-exercise-plan-how-to-videos/'},
-    chest:{label:'胸部轻柔拉伸',kind:'chest',hint:'站直，轻轻向后打开肩和胸，缓慢呼吸。',cues:['双脚站稳，肩膀自然下沉','按动图把双臂轻轻向后打开','只到轻微牵拉感，别抬下巴或憋气'],link:NHS}
+    chest:{label:'胸部轻柔拉伸',kind:'chest',hint:'站直，双手在身后轻握，缓慢打开胸口。',cues:['双脚站稳，肩膀自然下沉','双手在背后轻握，手臂向后下方伸','只到轻微牵拉感，别抬下巴或憋气'],link:NHS}
   };
   const make=(key,sec,stage)=>({key,sec,stage});
   function build(mode){
@@ -66,8 +66,8 @@
   };
   const cdcNotes={
     squat:'椅子置于身后 · 向后坐 · 慢慢站起',push:'双手撑墙 · 屈肘靠近 · 推回',
-    lunge:'扶稳椅背 · 前后分腿 · 20 秒换腿',calf:'扶稳椅背 · 提起双脚跟 · 慢慢落下',
-    legstretch:'扶稳椅背 · 只到轻微牵拉 · 30 秒换腿',chest:'站直 · 双臂轻轻向后打开 · 慢慢呼吸'
+    lunge:'扶稳支撑 · 向前跨步屈膝 · 站起收回 · 20 秒换腿',calf:'扶稳椅背 · 提起双脚跟 · 慢慢落下',
+    legstretch:'扶稳椅背 · 只到轻微牵拉 · 30 秒换腿',chest:'站直 · 双手在背后轻握 · 慢慢呼吸'
   };
   const C={left:'#5ed9ca',right:'#dff2f0',body:'#dff2f0'};
   // Coordinates are shared across all poses: the trunk never changes length and the planted foot stays on the floor.
