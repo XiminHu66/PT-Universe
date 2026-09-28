@@ -1,7 +1,17 @@
 # 动作视频来源
 
-真人动作示范由 [FAME – Fitness and Mobility Exercise Program](https://fameexercise.com/fame-exercise-videos/) 发布。页面直接从原站加载公开的 MP4，不在 PT Universe 仓库中复制视频文件；视频需要联网。原站说明这些视频得到加拿大卫生部、Brain Canada 与 Heart and Stroke Foundation Canadian Partnership for Stroke Recovery 的资助。
+页面只从原始发布方加载动作视频，不在 PT Universe 仓库中复制第三方媒体文件。各视频仅作跟练参考；动作幅度和速度以本页要点及个人舒适程度为准。
 
-使用的原站短片：Fast Marching、Slow Weight Shift Side 1、Quick Weight Shift、Fast & Low Steps、Sit to Stand、Wall Pushups、Toe Raises、Ankle Rotations、Slow Marching with High Knees。页面内的中文名称与要点按照视频画面重新核对。视频原有播放速度与页面的慢速播放不同，用户可自行选择速度。
+| 动作 | 原站示范 |
+| --- | --- |
+| 原地慢走／快走 | [FAME – Fast Marching](https://fameexercise.com/fame-exercise-videos/)（慢走时降低播放速度） |
+| Step Touch | [FitMetrics – Step Touch](https://www.fitmetrics.ch/en/exercise/68f3fc65b486c-step-touch/videos) |
+| 影子拳击／快节奏影子拳击 | [DAREBEE – Punches (Jab + Cross)](https://darebee.com/exercises/punches.html) |
+| 低冲击开合步 | [DAREBEE – Step Jacks](https://darebee.com/exercises/step-jacks.html) |
+| 站姿扩胸活动 | [DAREBEE – Chest Expansions](https://darebee.com/exercises/chest-expansions.html) |
+| 徒手浅蹲 | [Traination – Bodyweight Squat](https://www.traination.fit/exercises/bodyweight-squat)（以更浅的舒适幅度跟练） |
+| 墙壁俯卧撑 | [FAME – Wall Pushups](https://fameexercise.com/fame-exercise-videos/) |
+| 后撤小弓步 | [Traination – Reverse Lunge](https://www.traination.fit/exercises/reverse-lunge)（以更小步幅跟练） |
+| 站姿提踵 | [DAREBEE – Calf Raises](https://darebee.com/exercises/calf-raises.html) |
 
-FAME 的视频未声明开放再分发许可，因此本站仅连接至原站媒体并提供原站链接。若原站无法访问，页面展示来源链接和文字动作要点。
+FAME 与 Traination 以原站 MP4 播放；DAREBEE 与 FitMetrics 用其 YouTube 嵌入播放器。YouTube 播放速度和暂停由播放器控制。原站视频需要联网；若无法播放，可打开每个动作的“查看原始示范”链接，同时阅读页面动作要点。
