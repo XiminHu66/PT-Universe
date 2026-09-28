@@ -1,0 +1,15 @@
+services:
+  engine:
+    build: .
+    ports:
+      - "127.0.0.1:8789:8789"
+    volumes:
+      - media-data:/data
+    environment:
+      MEDIA_ORIGINS: https://ximinhu66.github.io,http://localhost:8000,http://127.0.0.1:8000
+    restart: unless-stopped
+    init: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+volumes:
+  media-data:

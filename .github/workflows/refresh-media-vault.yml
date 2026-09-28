@@ -1,0 +1,87 @@
+name: Refresh Media Vault
+on:
+  schedule:
+    # 08:23 Pacific with 09–11 recovery windows, including DST.
+    - cron: '23 15-19 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - apps/media-vault/**
+      - scripts/media-vault/**
+      - services/media-engine/**
+      - .github/workflows/refresh-media-vault.yml
+permissions:
+  contents: read
+concurrency:
+  group: media-vault-refresh
+  cancel-in-progress: false
+jobs:
+  engine-build:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile novel adapter and build download engine
+        run: docker build -t media-vault-engine services/media-engine
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate frontend and engine
+        run: |
+          node --check apps/media-vault/app.js
+          python -m unittest discover -s scripts/media-vault -p 'test_*.py'
+      - name: Refresh charts and source availability
+        env:
+          EVENT: ${{ github.event_name }}
+        run: python scripts/media-vault/refresh.py
+      - name: Commit only metadata snapshots
+        run: |
+          git config user.name 'media-vault-bot'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/media-vault/data/snapshot.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'data(media-vault): refresh daily charts and source health'
+            for attempt in 1 2 3; do
+              git pull --rebase origin main
+              if git push origin HEAD:main; then exit 0; fi
+            done
+            exit 1
+          fi
+  deploy:
+    needs: refresh
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - uses: actions/deploy-pages@v4
+        id: deployment

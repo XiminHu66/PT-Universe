@@ -1,5 +1,6 @@
 import { launch, type Browser, type Page } from '@cloudflare/playwright';
 import { researchRoute } from './research';
+import { mediaRoute } from './media';
 
 type RefreshScope='all'|'sites'|'music'|'games';
 type RefreshMessage={requestId:string;scope:RefreshScope;source:'manual'|'scheduled';limitKeys?:string[]};
@@ -461,6 +462,7 @@ export default {
         await env.DB.prepare('INSERT INTO analytics_daily(day,path,views) VALUES(?,?,1) ON CONFLICT(day,path) DO UPDATE SET views=views+1').bind(day,path).run();
         return new Response(null,{status:204,headers:cors(request)});
       }
+      const media=await mediaRoute(request);if(media)return reply(request,media);
       const research=await researchRoute(request);if(research)return reply(request,research);
       const sync=await syncRoute(request,env,url);if(sync)return sync;
       const proxy=await proxyRoute(request,url);if(proxy)return proxy;

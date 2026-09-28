@@ -45,3 +45,9 @@ The included `Deploy PT Universe` workflow publishes the repository root to GitH
 - [Weekend Atlas — 大西雅图活动地图](https://ximinhu66.github.io/PT-Universe/apps/eastside-weekend/)
 
 Daily public snapshots refresh around 08:35 America/Los_Angeles. The refresh workflow deploys Pages and verifies the published routes. See [data sources and verification](scripts/labs/README.md).
+
+## Media Vault
+
+- [Media Vault · 万能下载](https://ximinhu66.github.io/PT-Universe/apps/media-vault/) — 轻小说、各国/曲风音乐榜单与 FLAC 音源、动漫、BT 和视频解析。
+- 每日 08:23 PT 起更新元数据，沿用 GitHub Pages + Cloudflare Worker。
+- BT / yt-dlp / 整本 EPUB 需要连接自己的[下载引擎](services/media-engine/README.md)。源站阻挡会显示真实错误。
