@@ -11,6 +11,7 @@
 .asset-error video{display:none}.asset-error .demo-fallback{display:block}
 .video-bar{position:absolute;left:0;right:0;bottom:0;min-height:49px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px 7px 14px;background:#0a242b}
 .demo-label{position:static;color:#b7d4d4;white-space:nowrap;font-size:.75rem}
+.demo-label a{color:#a6ecde;text-decoration:underline;text-underline-offset:3px}
 .video-actions{display:flex;align-items:center;gap:6px}
 .demo-toggle{position:static;background:#214650;color:#edfaf7;border:1px solid #4b7980;border-radius:9px;min-width:39px;height:34px;padding:0 9px;font-size:.75rem;white-space:nowrap}
 .demo-toggle.icon{font-size:1rem;font-weight:700;padding:0;width:37px}
