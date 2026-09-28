@@ -82,7 +82,8 @@
     $('#demoSpeed').hidden=external;$('#demoPause').hidden=external;$('#demoFullscreen').hidden=external;
     if(external){
       const frame=document.createElement('iframe');frame.title=`${e.label}动作视频`;frame.src=`https://www.youtube-nocookie.com/embed/${e.youtube}?autoplay=1&mute=1&loop=1&playlist=${e.youtube}&playsinline=1&rel=0`;frame.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';frame.allowFullscreen=true;frame.referrerPolicy='strict-origin-when-cross-origin';root.append(frame);
-      $('#demoLabel').textContent='真人动作 · 未自动播放请点画面';return;
+      const label=$('#demoLabel');label.textContent='视频黑屏或未播放？ ';
+      const link=document.createElement('a');link.href=e.source;link.target='_blank';link.rel='noopener';link.textContent='打开原始示范 ↗';label.append(link);return;
     }
     const v=document.createElement('video');v.src=e.clip.startsWith('https://')?e.clip:media(e.clip);v.autoplay=true;v.muted=true;v.loop=true;v.playsInline=true;v.preload='metadata';v.setAttribute('aria-label',`${e.label}真人动作循环视频`);
     v.addEventListener('error',()=>root.classList.add('asset-error'));
