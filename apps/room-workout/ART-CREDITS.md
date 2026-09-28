@@ -14,4 +14,4 @@
 | 后撤小弓步 | [Traination – Reverse Lunge](https://www.traination.fit/exercises/reverse-lunge)（以更小步幅跟练） |
 | 站姿提踵 | [DAREBEE – Calf Raises](https://darebee.com/exercises/calf-raises.html) |
 
-FAME 与 Traination 以原站 MP4 播放；DAREBEE 与 FitMetrics 用其 YouTube 嵌入播放器。YouTube 播放速度和暂停由播放器控制。原站视频需要联网；若无法播放，可打开每个动作的“查看原始示范”链接，同时阅读页面动作要点。
+FAME 与 Traination 以原站 MP4 播放；DAREBEE 与 FitMetrics 用其 YouTube 嵌入播放器，并隐藏 YouTube 的进度条、改用页面自己的播放／暂停按钮。原站视频需要联网；若无法播放，可打开每个动作的“查看原始示范”链接，同时阅读页面动作要点。

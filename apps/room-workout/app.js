@@ -63,29 +63,51 @@
     document.querySelector('footer').firstChild.textContent=desc+'强度以微喘、仍能说话为宜。';render();
   }
   $('#start').onclick=()=>running?pause():start();$('#skip').onclick=()=>{if(done)return;advance();if(!running&&!done)setNotice('已跳过，点继续跟练。')};$('#reset').onclick=reset;document.querySelectorAll('.mode').forEach(b=>b.onclick=()=>selectMode(b.dataset.mode));
-  $('#demoPause').onclick=()=>{demoPaused=!demoPaused;updatePlayback()};$('#demoSpeed').onclick=()=>{slowVideo=!slowVideo;updatePlayback()};$('#demoFullscreen').onclick=()=>{const v=$('#demo video');if(v?.requestFullscreen)v.requestFullscreen().catch(()=>{});else if(v?.webkitEnterFullscreen)v.webkitEnterFullscreen()};document.addEventListener('visibilitychange',()=>{if(document.hidden)pause(true)});
+  $('#demoPause').onclick=()=>{demoPaused=!demoPaused;if(exercise[renderedKey].youtube){if(youtubePlayer){try{demoPaused?youtubePlayer.pauseVideo():youtubePlayer.playVideo()}catch{}}syncDemoPause()}else updatePlayback()};$('#demoSpeed').onclick=()=>{slowVideo=!slowVideo;updatePlayback()};$('#demoFullscreen').onclick=()=>{const v=$('#demo video'),frame=$('#demo iframe');if(v?.requestFullscreen)v.requestFullscreen().catch(()=>{});else if(v?.webkitEnterFullscreen)v.webkitEnterFullscreen();else if(frame?.requestFullscreen)frame.requestFullscreen().catch(()=>{})};document.addEventListener('visibilitychange',()=>{if(document.hidden)pause(true)});
 
-  let renderedKey='';
+  let renderedKey='',youtubePlayer=null,youtubeAPI=null,youtubeAutoplayBlocked=false;
+  function syncDemoPause(){ $('#demoPause').textContent=demoPaused?'▶':'Ⅱ';$('#demoPause').setAttribute('aria-label',demoPaused?'播放动作视频':'暂停动作视频') }
+  function loadYouTubeAPI(){
+    if(window.YT?.Player)return Promise.resolve(window.YT);
+    if(!youtubeAPI)youtubeAPI=new Promise((resolve,reject)=>{
+      window.onYouTubeIframeAPIReady=()=>resolve(window.YT);
+      const script=document.createElement('script');script.src='https://www.youtube.com/iframe_api';script.async=true;script.onerror=()=>reject(new Error('YouTube API unavailable'));document.head.append(script);
+    });
+    return youtubeAPI;
+  }
   function updatePlayback(){
     const v=$('#demo video');if(!v)return;
     v.playbackRate=(exercise[renderedKey].pace||1)*(slowVideo?.75:1);
     $('#demoSpeed').textContent=slowVideo?'慢速 · 0.75×':'常速 · 1×';
     $('#demoSpeed').setAttribute('aria-pressed',String(slowVideo));
-    $('#demoPause').textContent=demoPaused?'▶':'Ⅱ';
-    $('#demoPause').setAttribute('aria-label',demoPaused?'播放动作视频':'暂停动作视频');
+    syncDemoPause();
     if(demoPaused)v.pause();else v.play().catch(()=>{$('#demo').classList.add('play-required');$('#demoPause').textContent='▶';$('#demoPause').setAttribute('aria-label','播放动作视频')});
   }
   function renderDemo(key){
     if(renderedKey===key)return;
+    if(youtubePlayer){try{youtubePlayer.destroy()}catch{}youtubePlayer=null}
+    if(youtubeAutoplayBlocked){demoPaused=false;youtubeAutoplayBlocked=false}
     renderedKey=key;const e=exercise[key],root=$('#demo');root.className='demo-visual';root.replaceChildren();
+    $('.demo').classList.remove('portrait');
     const external=Boolean(e.youtube);
-    $('#demoSpeed').hidden=external;$('#demoPause').hidden=external;$('#demoFullscreen').hidden=external;
+    $('#demoSpeed').hidden=external;$('#demoPause').hidden=false;$('#demoFullscreen').hidden=false;
     if(external){
-      const frame=document.createElement('iframe');frame.title=`${e.label}动作视频`;frame.src=`https://www.youtube-nocookie.com/embed/${e.youtube}?autoplay=1&mute=1&loop=1&playlist=${e.youtube}&playsinline=1&rel=0`;frame.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';frame.allowFullscreen=true;frame.referrerPolicy='strict-origin-when-cross-origin';root.append(frame);
+      const frame=document.createElement('iframe');frame.title=`${e.label}动作视频`;frame.src=`https://www.youtube-nocookie.com/embed/${e.youtube}?autoplay=1&mute=1&controls=0&enablejsapi=1&origin=${encodeURIComponent(location.origin)}&loop=1&playlist=${e.youtube}&playsinline=1&rel=0`;frame.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';frame.allowFullscreen=true;frame.referrerPolicy='strict-origin-when-cross-origin';root.append(frame);syncDemoPause();
+      loadYouTubeAPI().then(YT=>{
+        if(renderedKey!==key||!frame.isConnected)return;
+        youtubePlayer=new YT.Player(frame,{events:{
+          onReady:event=>{event.target.mute();if(!demoPaused)event.target.playVideo()},
+          onStateChange:event=>{if(event.data===YT.PlayerState.ENDED&&!demoPaused)event.target.playVideo()},
+          onAutoplayBlocked:()=>{if(renderedKey!==key)return;demoPaused=true;youtubeAutoplayBlocked=true;syncDemoPause()},
+          onError:()=>{if(renderedKey===key)root.classList.add('asset-error')}
+        }});
+      }).catch(()=>{if(renderedKey===key)root.classList.add('asset-error')});
+      const fallback=document.createElement('div');fallback.className='demo-fallback';fallback.innerHTML=`视频无法播放。<br><a href="${e.source}" target="_blank" rel="noopener">打开原始示范 ↗</a>`;root.append(fallback);
       const label=$('#demoLabel');label.textContent='视频黑屏或未播放？ ';
       const link=document.createElement('a');link.href=e.source;link.target='_blank';link.rel='noopener';link.textContent='打开原始示范 ↗';label.append(link);return;
     }
     const v=document.createElement('video');v.src=e.clip.startsWith('https://')?e.clip:media(e.clip);v.autoplay=true;v.muted=true;v.loop=true;v.playsInline=true;v.preload='metadata';v.setAttribute('aria-label',`${e.label}真人动作循环视频`);
+    v.addEventListener('loadedmetadata',()=>{if(renderedKey===key)$('.demo').classList.toggle('portrait',v.videoHeight>v.videoWidth*1.2)});
     v.addEventListener('error',()=>root.classList.add('asset-error'));
     v.addEventListener('playing',()=>root.classList.remove('play-required'));
     root.append(v);
