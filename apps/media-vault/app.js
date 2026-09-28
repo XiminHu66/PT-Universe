@@ -77,3 +77,5 @@ $('#readerEPUB').onclick=e=>busy(e.currentTarget,async()=>{
  blobDownload(await zip.generateAsync({type:'blob',mimeType:'application/epub+zip'}),readerName+'.epub');
 });
 $('#watchManage').onclick=e=>busy(e.currentTarget,async()=>{const d=await callEngine('/watch');$('#filesTitle').textContent='每日小说追更';$('#filesList').innerHTML=d.items.length?d.items.map((w,i)=>`<div class="file-row"><strong>${esc(w.title||w.url)}</strong><p>最近检查 ${date(w.checkedAt)} · ${esc(w.error||'等待每日检查 / 已检查')} ${w.jobId?' · 下载任务已创建':''}</p><button data-watch-remove="${i}">停止追更</button></div>`).join(''):empty('还没有追更小说。打开小说后点击“每日自动追更”。');$('#files').showModal();$$('[data-watch-remove]').forEach(b=>b.onclick=()=>busy(b,async()=>{await callEngine('/watch',{url:d.items[+b.dataset.watchRemove].url,remove:true});b.closest('.file-row').remove();}));});
+// Keep failed remote artwork from leaving broken-image icons in the UI.
+document.addEventListener('error',e=>{const img=e.target;if(img.tagName==='IMG'&&!img.classList.contains('cover-fallback')){img.classList.add('cover-fallback');img.src='../../icon.svg';}},true);

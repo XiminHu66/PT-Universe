@@ -6,7 +6,7 @@ COPY novel_adapter.dart bin/pt_adapter.dart
 RUN dart pub get && dart compile exe bin/pt_adapter.dart -o /novel-adapter
 
 FROM python:3.12-slim
-RUN apt-get update && apt-get install -y --no-install-recommends aria2 ffmpeg ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends aria2 ffmpeg nodejs ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt

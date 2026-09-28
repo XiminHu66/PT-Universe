@@ -1,0 +1,53 @@
+name: Media Vault validation
+on:
+  pull_request:
+    paths:
+      - apps/media-vault/**
+      - scripts/media-vault/**
+      - services/media-engine/**
+      - workers/pt-universe-api/**
+      - .github/workflows/media-vault-check.yml
+permissions:
+  contents: read
+jobs:
+  engine:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: python -m unittest discover -s scripts/media-vault -p 'test_*.py'
+      - run: docker build -t media-vault-engine services/media-engine
+      - name: Verify runtime tools
+        run: docker run --rm --entrypoint sh media-vault-engine -c 'yt-dlp --version && aria2c --version && node --version && test -x /usr/local/bin/novel-adapter'
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --prefix workers/pt-universe-api
+      - run: npm run check --prefix workers/pt-universe-api
+      - run: npm run types --prefix workers/pt-universe-api -- --check
+      - run: npx --prefix workers/pt-universe-api wrangler deploy --config workers/pt-universe-api/wrangler.jsonc --dry-run
+      - run: npm install --no-save playwright@1.58.2
+      - run: npx playwright install --with-deps chromium
+      - name: Browser interaction and responsive layout
+        run: node scripts/media-vault/browser-test.cjs
+      - name: Validate generated EPUB structure
+        run: |
+          python - <<'PY'
+          import zipfile, xml.etree.ElementTree as ET
+          with zipfile.ZipFile('test-results/media-vault/reader.epub') as z:
+              assert z.namelist()[0] == 'mimetype'
+              assert z.read('mimetype') == b'application/epub+zip'
+              for p in ['META-INF/container.xml','OEBPS/content.opf','OEBPS/chapter.xhtml','OEBPS/nav.xhtml']:
+                  ET.fromstring(z.read(p))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: media-vault-browser-review
+          path: test-results/media-vault
+          retention-days: 7

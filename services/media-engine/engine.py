@@ -76,7 +76,7 @@ def novel_call(mode,url,index=None):
 def resolve(url):
     safe_url(url)
     with tempfile.TemporaryDirectory(prefix='resolve-',dir=DATA) as tmp:
-        run_process(['yt-dlp','--no-playlist','--skip-download','--no-warnings','--socket-timeout','15','--retries','1','--write-info-json','-o',str(Path(tmp)/'media'),'--',url],tmp,timeout=60)
+        run_process(['yt-dlp','--js-runtimes','node','--no-playlist','--skip-download','--no-warnings','--socket-timeout','15','--retries','1','--write-info-json','-o',str(Path(tmp)/'media'),'--',url],tmp,timeout=60)
         files=list(Path(tmp).glob('*.info.json'))
         if not files:raise ValueError('No metadata was returned')
         d=json.loads(files[0].read_text())
@@ -102,7 +102,7 @@ def work(id):
         else:
             fmt=j.get('format') or 'bv*+ba/b'
             if not re.fullmatch(r'[a-zA-Z0-9_+/.\[\]*<>=?,-]{1,150}',fmt):raise ValueError('Invalid format selector')
-            args=['yt-dlp','--no-playlist','--newline','--socket-timeout','20','--retries','3','--max-filesize','10G','--write-subs','--sub-langs','zh.*,cmn.*','--embed-subs','--no-overwrites','-f',fmt,'-o',str(folder/'%(title).160B [%(id)s].%(ext)s'),'--',j['url']]
+            args=['yt-dlp','--js-runtimes','node','--no-playlist','--newline','--socket-timeout','20','--retries','3','--max-filesize','10G','--write-subs','--sub-langs','zh.*,cmn.*','--embed-subs','--no-overwrites','-f',fmt,'-o',str(folder/'%(title).160B [%(id)s].%(ext)s'),'--',j['url']]
             run_process(args,folder,id,timeout=14400)
         with LOCK:
             if j['status']=='cancelled':return
