@@ -95,10 +95,12 @@ async function novel(raw:string,chapter=false){
  if(chapter){
   markup=await new HTMLRewriter().on('#contentdp,script,style',{element(e){e.remove();}}).on('br',{element(e){e.replace('\n');}}).transform(new Response(markup)).text();
   const body=await select(markup,'#content');const title=(await select(markup,'#title'))[0]?.text;
-  if(!body[0]?.text)throw new Error('未识别到正文，可能需要登录或站点结构已变化');
+  const pictures=(await select(markup,'#content img','src')).filter(x=>x.value).map(x=>({type:'image',url:new URL(x.value,u).href}));
+  if(!body[0]?.text&&!pictures.length)throw new Error('未识别到正文，可能需要登录或站点结构已变化');
   // select() normalizes whitespace for metadata; preserve paragraph text separately.
   let text='';await new HTMLRewriter().on('#content',{text(t){text+=t.text;}}).transform(new Response(markup)).text();
-  return {title:title||'章节',text:decodeText(text).trim(),url:u.href,fetchedAt:stamp()};
+  const decoded=decodeText(text).trim();
+  return {title:title||'章节',text:decoded||'本章为插图，文字版 EPUB 不包含图片。',...(pictures.length?{blocks:[...(decoded?[{type:'text',text:decoded}]:[]),...pictures]}:{}),url:u.href,fetchedAt:stamp()};
  }
  const wenku=u.hostname.includes('wenku8');
  let title=(await select(markup,wenku?'#content span b, #title':'.book-title'))[0]?.text||(await select(markup,'title'))[0]?.text||'轻小说';
