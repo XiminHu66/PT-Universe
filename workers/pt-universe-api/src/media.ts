@@ -103,7 +103,9 @@ async function novelUpdates(){
 }
 async function anime(q:string){
  const raw='https://anime1.me/'+(q?'?s='+encodeURIComponent(q.slice(0,100)):'');const markup=await html(raw,'anime');
- const items=await links(markup,'.entry-title a',raw);
+ // The homepage is a JS-populated catalogue; recent episode links live in the sidebar.
+ // Search pages contain actual article headings, so do not mix unrelated sidebar results in.
+ const items=await links(markup,q?'.entry-title a':'.widget_recent_entries a',raw);
  if(!items.length)throw new Error('Anime1 当前未返回可用列表；可使用原站搜索或解析单集链接');
  return {items:items.slice(0,30),source:'Anime1',fetchedAt:stamp()};
 }
