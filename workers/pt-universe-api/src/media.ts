@@ -1,5 +1,5 @@
 import { readBiliChapter, decodeText } from './novel-reader';
-import { animePlayback, animeStream, musicTracks, musicFile, torrentSearch } from './media-sources';
+import { animePlayback, animeStream, torrentSearch, ektoplazmSearch } from './media-sources';
 // On-demand metadata and reading; Anime1 uses short-lived playback tickets.
 const novels = new Set(['www.wenku8.net','wenku8.net','www.bilinovel.com','www.bilinovel.net','www.linovelib.com','w.linovelib.com']);
 const countries = new Set(['us','jp','cn','tw','hk','kr','gb']);
@@ -76,6 +76,16 @@ async function archiveFiles(id:string){
  const d:any=JSON.parse(await smallText(await source('https://archive.org/metadata/'+id)));
  return {title:d.metadata?.title,license:d.metadata?.licenseurl||null,files:(d.files||[]).filter((x:any)=>/\.(flac|mp3|mp4|webm|mkv|srt|vtt|torrent)$/i.test(x.name)&&x.private!=='true').slice(0,300).map((x:any)=>({name:x.name,size:Number(x.size)||0,format:x.format,url:`https://archive.org/download/${id}/${x.name.split('/').map(encodeURIComponent).join('/')}`}))};
 }
+async function archiveTracks(q:string){
+ const found=await archiveSearch(q,'flac');
+ const groups=await Promise.all(found.items.slice(0,5).map(async(album:any)=>{try{const files=await archiveFiles(album.id);return files.files.filter((f:any)=>/\.flac$/i.test(f.name)).slice(0,14).map((f:any)=>({...f,id:album.id,title:f.name.replace(/\.flac$/i,''),artist:album.artist,album:album.title,artwork:album.artwork,lossless:true,license:files.license}));}catch{return [];}}));
+ return {source:'Internet Archive · 实际 FLAC 文件',items:groups.flat(),fetchedAt:stamp()};
+}
+async function archiveTicket(id:string,name:string,env:{PT_UNIVERSE_DATA:KVNamespace},base:string){
+ const d=await archiveFiles(id),file=d.files.find((f:any)=>f.name===name&&/\.flac$/i.test(f.name));if(!file)throw new Error('资源中不存在此 FLAC 文件');
+ const ticket=crypto.randomUUID();await env.PT_UNIVERSE_DATA.put('media/play/'+ticket,JSON.stringify({url:file.url,cookies:'',title:file.name.replace(/\.flac$/i,''),kind:'archive'}),{expirationTtl:3600});
+ const stream=base+'/api/media/stream?ticket='+ticket;return {url:stream,downloadURL:stream+'&download=1',format:'FLAC',size:file.size};
+}
 async function novel(raw:string,chapter=false){
  const u=mediaURL(raw,'novel');
  if(chapter&&!u.hostname.includes('wenku8'))return readBiliChapter(u.href,url=>html(url,'novel'));
@@ -119,7 +129,7 @@ async function video(raw:string){
  const found=[...await select(markup,'video[src],audio[src],source[src]','src'),...await select(markup,'meta[property="og:video"],meta[property="og:video:url"],meta[property="og:video:secure_url"]','content')];
  const urls=[...new Set(found.map(x=>{try{return mediaURL(new URL(x.value,raw).href).href;}catch{return '';}}).filter(Boolean))];
  const title=(await select(markup,'title'))[0]?.text||u.hostname;
- if(!urls.length)throw new Error('页面没有公开媒体直链；动态视频或 Anime1 播放接口需要连接下载引擎后解析');
+ if(!urls.length)throw new Error('页面没有公开媒体直链；此站点的动态视频需要专用下载引擎解析');
  return {title,formats:urls.map(url=>({url,format:url.split('?')[0].split('.').pop()?.toLowerCase(),label:'公开媒体',direct:true})),fetchedAt:stamp()};
 }
 export async function mediaRoute(request:Request,env?:{PT_UNIVERSE_DATA:KVNamespace}):Promise<any|null>{
@@ -129,13 +139,13 @@ export async function mediaRoute(request:Request,env?:{PT_UNIVERSE_DATA:KVNamesp
  if(route==='health')return {ok:true,version:2,engineRequired:['torrent TCP/UDP','generic yt-dlp'],time:stamp()};
  if(route==='stream'){if(!env)throw new Error('缺少播放存储');return animeStream(request,env.PT_UNIVERSE_DATA);}
  if(route==='video'&&new URL(p.get('url')||'https://invalid.example').hostname==='anime1.me'){if(!env)throw new Error('缺少播放存储');return animePlayback(p.get('url')||'',html,env.PT_UNIVERSE_DATA,u.origin);}
- const key=new Request(u.href),cache=await caches.open('media-vault-v2');
+ const key=new Request(u.href),cache=await caches.open('media-vault-v3');
  const cached=await cache.match(key);if(cached)return cached.json();
  let data:any;
  if(route==='charts')data=await charts(p.get('country')||'jp',p.get('genre')||'0');
- else if(route==='music/search')data=await archiveSearch(p.get('q')||'','flac');
- else if(route==='music/tracks')data=await musicTracks(p.get('q')||'',html);
- else if(route==='music/file')data=await musicFile(p.get('id')||'',html,env?.PT_UNIVERSE_DATA,u.origin);
+ else if(route==='music/search')data=await archiveTracks(p.get('q')||'');
+ else if(route==='archive/file'){if(!env)throw new Error('缺少媒体存储');data=await archiveTicket(p.get('id')||'',p.get('name')||'',env,u.origin);}
+ else if(route==='music/ektoplazm')data=await ektoplazmSearch(p.get('q')||'',html);
  else if(route==='torrent/search')data=await torrentSearch(p.get('q')||'',html);
  else if(route==='archive/files')data=await archiveFiles(p.get('id')||'');
  else if(route==='novel')data=await novel(p.get('url')||'');
@@ -145,6 +155,6 @@ export async function mediaRoute(request:Request,env?:{PT_UNIVERSE_DATA:KVNamesp
  else if(route==='video')data=await video(p.get('url')||'');
  else throw new Error('未知媒体接口');
  const failed=route==='novel/updates'&&data.sources.some((s:any)=>!s.ok);
- await cache.put(key,new Response(JSON.stringify(data),{headers:{'content-type':'application/json','cache-control':`public,max-age=${route==='music/file'?60:failed?300:route==='charts'?3600:route==='chapter'?86400:900}`}}));
+ await cache.put(key,new Response(JSON.stringify(data),{headers:{'content-type':'application/json','cache-control':`public,max-age=${route==='archive/file'?60:failed?300:route==='charts'?3600:route==='chapter'?86400:900}`}}));
  return data;
 }

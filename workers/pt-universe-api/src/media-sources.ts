@@ -2,35 +2,12 @@ import { decodeText } from './novel-reader';
 export type Load=(url:string,kind?:string)=>Promise<string>;
 const clean=(s:string)=>decodeText(s.replace(/<[^>]+>/g,' ')).replace(/\s+/g,' ').trim();
 
-// Legacy Kuwo responds with single-quoted strings. Convert string tokens, not code.
-export function legacyJSON(s:string):any {
- try{return JSON.parse(s);}catch{}
- const converted=s.replace(/'((?:\\.|[^'\\])*)'/g,(_,v)=>JSON.stringify(v.replace(/\\'/g,"'").replace(/\\"/g,'"')));
- return JSON.parse(converted);
-}
-export async function musicTracks(q:string,load:Load){
- const query=q.trim().slice(0,100);if(!query)throw new Error('请输入歌曲或歌手');
- const p=new URLSearchParams({all:query,ft:'music',client:'kt',pn:'0',rn:'30',rformat:'json',encoding:'utf8',vipver:'1'});
- const d=legacyJSON(await load('https://search.kuwo.cn/r.s?'+p));
- return {source:'酷我公开音源',items:(d.abslist||[]).map((x:any)=>({id:String(x.MUSICRID||'').replace('MUSIC_',''),title:clean(x.SONGNAME||x.NAME||''),artist:clean(x.ARTIST||''),album:clean(x.ALBUM||''),duration:Number(x.DURATION)||0,lossless:/flac|ALFLAC|AL/gi.test(x.MINFO||x.FORMATS||''),artwork:x.hts_MVPIC?.replace(/^http:/,'https:')||'',url:'https://www.kuwo.cn/play_detail/'+String(x.MUSICRID||'').replace('MUSIC_','')})).filter((x:any)=>/^\d+$/.test(x.id)),fetchedAt:new Date().toISOString()};
-}
-export async function musicFile(id:string,load:Load,kv?:KVNamespace,base=''){
- if(!/^\d{1,15}$/.test(id))throw new Error('歌曲编号无效');
- const p=new URLSearchParams({f:'web',source:'kwplayercar_ar_6.0.0.9_B_jiakong_vh.apk',from:'PC',type:'convert_url_with_sign',br:'flac',rid:id});
- const d=JSON.parse(await load('https://mobi.kuwo.cn/mobi.s?'+p));const url=d.data?.url;
- if(!url)throw new Error('来源没有提供这首歌的 FLAC 下载权限或当前不可用；不会用 MP3 代替');
- const u=new URL(url);if(u.protocol==='http:')u.protocol='https:';
- if(u.protocol!=='https:'||!/(^|\.)(kuwo\.cn|kwcdn\.kuwo\.cn)$/.test(u.hostname))throw new Error('音源地址不在可信来源内');
- if(!/flac/i.test(d.data?.format||u.pathname))throw new Error('来源返回的不是 FLAC，已拒绝伪无损下载');
- const verify=await fetch(u.href,{headers:{range:'bytes=0-4095'},redirect:'manual',signal:AbortSignal.timeout(15000)});
- if(!verify.ok)throw new Error('FLAC 文件无法访问：HTTP '+verify.status);
- const reader=verify.body?.getReader();const chunk=await reader?.read();await reader?.cancel();
- const magic=chunk?.value?new TextDecoder().decode(chunk.value.slice(0,4)):'';
- if(magic!=='fLaC')throw new Error('文件签名不是原始 FLAC，已停止下载');
- if(!kv)throw new Error('缺少媒体存储');
- const ticket=crypto.randomUUID();await kv.put('media/play/'+ticket,JSON.stringify({url:u.href,cookies:'',title:id,kind:'flac'}),{expirationTtl:3600});
- const stream=base+'/api/media/stream?ticket='+ticket;
- return {url:stream,downloadURL:stream+'&download=1',format:'FLAC',verified:true,source:'酷我公开音源',expires:true};
+export async function ektoplazmSearch(q:string,load:Load){
+ const query=q.trim().slice(0,100);if(!query)throw new Error('请输入专辑或艺术家');
+ const page=await load('https://ektoplazm.com/?s='+encodeURIComponent(query));
+ const albums=[...page.matchAll(/<h[12][^>]*>\s*<a[^>]*href=["'](https:\/\/ektoplazm\.com\/free-music\/[^"']+)["'][^>]*>([\s\S]*?)<\/a>/g)].slice(0,8);
+ const rows=await Promise.all(albums.map(async m=>{try{const body=await load(m[1]);const url=body.match(/href=["'](https:\/\/ektoplazm\.com\/files\/[^"']*FLAC\.zip)["']/i)?.[1];return url?{title:clean(m[2]),artist:'Ektoplazm',album:'FLAC 专辑压缩包',url:m[1],downloadURL:decodeText(url),format:'FLAC ZIP',lossless:true}:null;}catch{return null;}}));
+ return {source:'Ektoplazm · 艺术家公开发行',items:rows.filter(Boolean),fetchedAt:new Date().toISOString()};
 }
 const tag=(s:string,name:string)=>clean((s.match(new RegExp('<'+name+'(?:\\s[^>]*)?>([\\s\\S]*?)</'+name+'>','i'))?.[1]||'').replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g,'$1'));
 export function parseTorrentFeed(xml:string,source:string){
@@ -67,10 +44,11 @@ export async function animeStream(request:Request,kv:KVNamespace){
  const u=new URL(request.url),ticket=u.searchParams.get('ticket')||'';if(!/^[a-f0-9-]{36}$/.test(ticket))throw new Error('播放凭据无效');
  const saved=await kv.get<{url:string;cookies:string;title:string;kind?:string}>('media/play/'+ticket,'json');
  if(!saved)throw new Error('播放链接已过期，请重新解析');
- const audio=saved.kind==='flac',su=new URL(saved.url);
- if(audio?su.protocol!=='https:'||!/(^|\.)kuwo\.cn$/.test(su.hostname):!isAnimeMedia(saved.url))throw new Error('来源无效');
+ const archive=saved.kind==='archive',audio=archive,su=new URL(saved.url);
+ if(archive?su.protocol!=='https:'||su.hostname!=='archive.org':!isAnimeMedia(saved.url))throw new Error('来源无效');
  const headers:Record<string,string>={cookie:saved.cookies};const range=request.headers.get('range');if(range&&/^bytes=\d*-\d*$/.test(range))headers.range=range;
- const r=await fetch(saved.url,{headers,redirect:'manual',signal:AbortSignal.timeout(20000)});
+ let r=await fetch(saved.url,{headers,redirect:'manual',signal:AbortSignal.timeout(20000)});
+ for(let i=0;archive&&r.status>=300&&r.status<400&&i<4;i++){const next=new URL(r.headers.get('location')||'',r.url||saved.url);if(next.protocol!=='https:'||!/(^|\.)archive\.org$/.test(next.hostname))throw new Error('下载重定向来源无效');await r.body?.cancel();r=await fetch(next,{headers,redirect:'manual',signal:AbortSignal.timeout(20000)});}
  if(![200,206,416].includes(r.status)){await r.body?.cancel();throw new Error('视频来源返回 '+r.status+'，请重新解析');}
  const out=new Headers({'content-type':audio?'audio/flac':'video/mp4','cache-control':'private,no-store','access-control-allow-origin':'https://ximinhu66.github.io','access-control-expose-headers':'Content-Length,Content-Range,Accept-Ranges','x-content-type-options':'nosniff'});
  for(const h of ['content-length','content-range','accept-ranges']){const v=r.headers.get(h);if(v)out.set(h,v);}
