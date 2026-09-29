@@ -28,6 +28,8 @@ jobs:
         with:
           node-version: '24'
       - run: npm ci --prefix workers/pt-universe-api
+      - run: node scripts/media-vault/frontend-test.cjs
+      - run: npm run test:media --prefix workers/pt-universe-api
       - run: npm run check --prefix workers/pt-universe-api
       - run: npm run types --prefix workers/pt-universe-api -- --check
       - run: npx --prefix workers/pt-universe-api wrangler deploy --config workers/pt-universe-api/wrangler.jsonc --dry-run

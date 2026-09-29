@@ -1,5 +1,7 @@
+import { animeCatalog, animeEpisodes, novelCatalog } from './media-catalog';
+import { torrentSearch } from './torrent-search';
 import { readBiliChapter, decodeText } from './novel-reader';
-import { animePlayback, animeStream, torrentSearch, ektoplazmSearch } from './media-sources';
+import { animePlayback, animeStream, ektoplazmSearch } from './media-sources';
 // On-demand metadata and reading; Anime1 uses short-lived playback tickets.
 const novels = new Set(['www.wenku8.net','wenku8.net','www.bilinovel.com','www.bilinovel.net','www.linovelib.com','w.linovelib.com']);
 const countries = new Set(['us','jp','cn','tw','hk','kr','gb']);
@@ -30,7 +32,7 @@ async function publicHost(host:string){
 async function source(raw:string,kind='fixed',depth=0):Promise<Response>{
  const u=mediaURL(raw,kind);
  if(kind==='public')await publicHost(u.hostname);
- const r=await fetch(u,{redirect:'manual',signal:AbortSignal.timeout(18000),headers:{'user-agent':kind==='novel'&&!u.hostname.includes('wenku8')?'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36 PT-Universe/1.0':'PT-Universe MediaVault/1.0','accept':'text/html,application/json,application/xml;q=0.9,*/*;q=0.5'}});
+ const r=await fetch(u,{redirect:'manual',signal:AbortSignal.timeout(18000),headers:{'user-agent':kind==='novel'&&!u.hostname.includes('wenku8')?'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36 PT-Universe/1.0':'PT-Universe MediaVault/1.0','accept':'text/html,application/json,application/xml;q=0.9,*/*;q=0.5',...(kind==='novel'&&!u.hostname.includes('wenku8')?{'Referer':u.origin+'/','Accept-Language':'zh-CN,zh;q=0.9','Cookie':'night=0'}:{})}});
  if(r.status>=300&&r.status<400){if(depth>=3)throw new Error('来源重定向过多');const next=new URL(r.headers.get('location')||'',u);return source(next.href,kind,depth+1);}
  if(!r.ok)throw new Error(`来源返回 HTTP ${r.status}；未获取内容，请稍后重试或在原站查看`);
  return r;
@@ -122,14 +124,6 @@ async function novelUpdates(){
  const sources=await Promise.all([...['https://www.wenku8.net/modules/article/toplist.php?sort=lastupdate','https://www.bilinovel.com/']].map(async url=>{try{const m=await html(url,'novel');const items=(await links(m,'a',url)).filter(x=>/\/(book\/\d+\.htm|novel\/\d+\.html)$/.test(x.url));return {url,ok:!!items.length,items:[...new Map(items.map(x=>[x.url,x])).values()].slice(0,30),fetchedAt:stamp(),error:items.length?null:'未识别到更新列表'};}catch(e){return {url,ok:false,items:[],error:String(e),fetchedAt:stamp()};}}));
  return {sources,fetchedAt:stamp()};
 }
-async function anime(q:string){
- const raw='https://anime1.me/'+(q?'?s='+encodeURIComponent(q.slice(0,100)):'');const markup=await html(raw,'anime');
- // The homepage is a JS-populated catalogue; recent episode links live in the sidebar.
- // Search pages contain actual article headings, so do not mix unrelated sidebar results in.
- const items=await links(markup,q?'.entry-title a':'.widget_recent_entries a',raw);
- if(!items.length)throw new Error('Anime1 当前未返回可用列表；可使用原站搜索或解析单集链接');
- return {items:items.slice(0,30),source:'Anime1',fetchedAt:stamp()};
-}
 async function video(raw:string){
  const u=mediaURL(raw);const direct=u.pathname.match(/\.(mp4|webm|m4a|mp3|flac|m3u8|mpd|vtt|srt)$/i);
  if(direct)return {title:decodeURIComponent(u.pathname.split('/').pop()||'媒体文件'),formats:[{url:u.href,format:direct[1].toLowerCase(),label:direct[1].toUpperCase(),direct:true}],fetchedAt:stamp()};
@@ -144,28 +138,30 @@ export async function mediaRoute(request:Request,env?:{PT_UNIVERSE_DATA:KVNamesp
  const u=new URL(request.url);if(!u.pathname.startsWith('/api/media/'))return null;
  if(request.method!=='GET')throw new Error('只支持 GET');
  const route=u.pathname.slice('/api/media/'.length),p=u.searchParams;
- if(route==='health')return {ok:true,version:3,build:'2026-09-29-recovery',engineRequired:['torrent TCP/UDP','generic yt-dlp'],time:stamp()};
+ if(route==='health')return {ok:true,version:4,build:'2026-09-29-sources',engineRequired:['torrent TCP/UDP','generic yt-dlp'],time:stamp()};
  if(route==='stream'){if(!env)throw new Error('缺少播放存储');return animeStream(request,env.PT_UNIVERSE_DATA);}
  if(route==='video'&&new URL(p.get('url')||'https://invalid.example').hostname==='anime1.me'){if(!env)throw new Error('缺少播放存储');return animePlayback(p.get('url')||'',html,env.PT_UNIVERSE_DATA,u.origin);}
  // Refresh skips lookup but replaces the canonical cached value. Cache failures
  // must not turn successfully retrieved content into a broken endpoint.
  const refresh=p.get('refresh')==='1';u.searchParams.delete('refresh');
- const key=new Request(u.href),cache=await caches.open('media-vault-v6');
+ const key=new Request(u.href),cache=await caches.open('media-vault-v7');
  const cached=refresh?null:await cache.match(key).catch(()=>null);if(cached)return cached.json();
  let data:any;
  if(route==='charts')data=await charts(p.get('country')||'jp',p.get('genre')||'0');
  else if(route==='music/search')data=await archiveTracks(p.get('q')||'');
  else if(route==='archive/file'){if(!env)throw new Error('缺少媒体存储');data=await archiveTicket(p.get('id')||'',p.get('name')||'',env,u.origin);}
  else if(route==='music/ektoplazm')data=await ektoplazmSearch(p.get('q')||'',html);
- else if(route==='torrent/search')data=await torrentSearch(p.get('q')||'',html);
+ else if(route==='torrent/search')data=await torrentSearch(p.get('q')||'',html,p.get('variant')||'',p.get('source')||'all');
  else if(route==='archive/files')data=await archiveFiles(p.get('id')||'');
  else if(route==='novel')data=await novel(p.get('url')||'');
  else if(route==='chapter')data=await novel(p.get('url')||'',true);
  else if(route==='novel/updates')data=await novelUpdates();
- else if(route==='anime')data=await anime(p.get('q')||'');
+ else if(route==='anime')data=await animeCatalog(html);
+ else if(route==='anime/episodes')data=await animeEpisodes(p.get('id')||'',p.get('page')||'1',html);
+ else if(route==='novel/catalog')data=await novelCatalog(html);
  else if(route==='video')data=await video(p.get('url')||'');
  else throw new Error('未知媒体接口');
  const failed=route==='novel/updates'&&data.sources.some((s:any)=>!s.ok);
- await cache.put(key,new Response(JSON.stringify(data),{headers:{'content-type':'application/json','cache-control':`public,max-age=${route==='archive/file'?60:failed?300:route==='charts'?3600:route==='chapter'?86400:900}`}})).catch(()=>{});
+ await cache.put(key,new Response(JSON.stringify(data),{headers:{'content-type':'application/json','cache-control':`public,max-age=${route==='archive/file'?60:failed?300:['charts','anime','novel/catalog'].includes(route)?3600:route==='chapter'?86400:900}`}})).catch(()=>{});
  return data;
 }

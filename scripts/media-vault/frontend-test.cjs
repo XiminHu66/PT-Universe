@@ -12,10 +12,12 @@ function fixture(hash=''){
  const storage={getItem:k=>saved.get(k)||null,setItem:(k,v)=>saved.set(k,v),removeItem:k=>saved.delete(k)};
  let handler=async u=>{if(u.includes('snapshot.json'))return {charts:{'jp-0':{source:'snapshot',items:[]}}};if(u.includes('/charts'))return {source:'live',items:[]};if(u.includes('/novel/updates'))return {sources:[]};if(u.includes('/chapter'))return {title:'Chapter',text:'complete text'};if(u.includes('/health'))return {version:3};throw Error('Unexpected URL '+u);};
  const ctx=vm.createContext({document:{querySelector:get,querySelectorAll:()=>[],addEventListener(){},createElement:element,body:{append(e){if(e.id)elements.set('#'+e.id,e);}}},window:{scrollTo(){}},localStorage:storage,sessionStorage:storage,location:{hash},fetch:async url=>{requests.push(String(url));return Response.json(await handler(String(url)));},URL,URLSearchParams,AbortSignal,Response,Blob,TextDecoder,crypto:webcrypto,console,setTimeout,clearTimeout,setInterval(){},queueMicrotask,addEventListener(){},navigator:{clipboard:{writeText:async()=>{}}}});
- vm.runInContext(code,ctx);return {ctx,get,requests,saved,setHandler:f=>handler=f,run:s=>vm.runInContext(s,ctx)};
+ vm.runInContext(readFileSync('apps/media-vault/vendor/opencc-full.js','utf8'),ctx);vm.runInContext(code,ctx);return {ctx,get,requests,saved,setHandler:f=>handler=f,run:s=>vm.runInContext(s,ctx)};
 }
 (async()=>{
  const f=fixture();await settle();await settle();
+ assert.equal(f.run("normalizeTitle('無職轉生')"),f.run("normalizeTitle('无职转生')"));
+ assert.equal(f.run("normalizeTitle('貴族千金只願意親近我。')"),f.run("normalizeTitle('贵族千金只愿意亲近我')"));
  assert.match(f.get('#chartMeta').textContent,/snapshot/);
  await f.get('#chartRefresh').onclick({currentTarget:f.get('#chartRefresh')});
  assert.ok(f.requests.some(u=>u.includes('/charts?')&&u.includes('refresh=1')));

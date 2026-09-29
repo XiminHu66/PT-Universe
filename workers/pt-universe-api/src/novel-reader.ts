@@ -10,7 +10,7 @@ export function arithmetic(expression:string):number {
  function sum():number {let n=product();while(['+','-'].includes(tokens[i])){const op=tokens[i++],v=product();n=op==='+'?n+v:n-v;}return n;}
  const n=sum();if(i!==tokens.length||!Number.isSafeInteger(n))throw new Error('参数无效');return n;
 }
-export function assertComplete(text:string){if(/(?:内容|內容)[\s\S]{0,8}(?:加载|加載)[\s\S]{0,8}(?:失败|失敗)/.test(text))throw new Error('原站只返回了不完整正文（内容加载失败），已停止阅读和导出；请稍后重试');}
+export function assertComplete(text:string){if(/(?:内容|內容)[\s\S]{0,8}(?:加载|加載)[\s\S]{0,8}(?:失败|失敗)/.test(text))throw new Error('此来源返回“内容加载失败”，未取得完整正文。可重试，或按书名选择其他版本继续阅读和导出');}
 type Params={fixed:number;seed:number;a:number;c:number;mod:number};
 export function shuffleParams(js:string,id:number):Params {
  const seedRE=/var\s+[_$a-zA-Z0-9]+\s*=\s*[^;]*?Number\s*\(\s*[_$a-zA-Z0-9]+\s*\)\s*,\s*([^,)]+?)\s*\)\s*,\s*([^,)]+?)\s*\)\s*,/g;
@@ -37,9 +37,10 @@ export function restoreParagraphs<T>(paragraphs:T[],params:Params):T[]{
 type Block={type:'text'|'image';text?:string;url?:string};
 export async function readBiliChapter(raw:string,load:(url:string)=>Promise<string>){
  const start=new URL(raw);if(!/^\/novel\/\d+\/\d+(?:_\d+)?\.html$/.test(start.pathname))throw new Error('请选择实际章节，卷封面不是正文');
- let next:string|null=start.href,title='',pages=0;const blocks:Block[]=[],seen=new Set<string>();
+ let next:string|null=start.href,title='',pages=0;const blocks:Block[]=[],seen=new Set<string>(),retried=new Set<string>();
  while(next&&pages<16){
-  if(seen.has(next))throw new Error('章节分页循环');seen.add(next);const current:string=next,markup=await load(current);pages++;
+  if(seen.has(next))throw new Error('章节分页循环');seen.add(next);const current:string=next;let markup=await load(current);pages++;
+
   if(/cf-chl-|just a moment|人机验证/i.test(markup))throw new Error('来源要求浏览器验证，无法获取正文');
   let cleaned=await new HTMLRewriter().on('#acontent div, #acontent ins, #acontent script, #acontent .tp, #acontent .bd, .bcontent div, .bcontent ins, .bcontent script, .bcontent .tp, .bcontent .bd',{element(e){e.remove();}}).transform(new Response(markup)).text();
   cleaned=await new HTMLRewriter().on('#acontent *, .bcontent *',{element(e){if(/^[a-z]\d{4}$/i.test(e.tagName))e.remove();}}).transform(new Response(cleaned)).text();
@@ -49,6 +50,7 @@ export async function readBiliChapter(raw:string,load:(url:string)=>Promise<stri
    .on('#acontent img, .bcontent img',{element(e){const src=e.getAttribute('data-src')||e.getAttribute('src');if(src&&!src.startsWith('data:')){const u=new URL(src,current);if(u.protocol==='https:')page.push({type:'image',url:u.href});}}})
    .on('script[src*="chapterlog.js"]',{element(e){script=e.getAttribute('src')||'';}})
    .on('#footlink a.nextlink',{text(t){nextLabel+=t.text;}}).transform(new Response(cleaned)).text();
+  try{assertComplete(page.filter(b=>b.type==='text').map(b=>b.text).join('\n'));}catch(e){if(retried.has(current))throw e;retried.add(current);seen.delete(current);if(pages===1)title='';pages--;next=current;continue;}
   const textSlots=page.map((b,i)=>b.type==='text'&&b.text?.trim()?i:-1).filter(i=>i>=0);
   if(script&&textSlots.length){const id=Number(markup.match(/chapterid\s*:\s*['"](\d+)/)?.[1]);if(!id)throw new Error('缺少章节排序编号');const js=await load(new URL(script,current).href);const sorted=restoreParagraphs(textSlots.map(i=>page[i]),shuffleParams(js,id));textSlots.forEach((slot,i)=>{page[slot]=sorted[i];});}
   for(const b of page){if(b.type==='text')b.text=decodeText(b.text||'').trim();if(b.type==='image'||b.text)blocks.push(b);}
