@@ -27,3 +27,25 @@ assert.equal(result.sources.filter(x=>x.ok).length,2);
 assert.equal(result.items.length,2);
 assert.ok(result.items.some(x=>x.torrent.endsWith('/fixture_archive.torrent')));
 console.log('Media regressions passed: arithmetic, paragraph order, truncated text, media host validation, RSS, partial-source failure.');
+// A slow body must remain readable after the header timeout has elapsed.
+const realFetch=globalThis.fetch;
+let streamSignal;
+try {
+ globalThis.fetch=async (_url,init)=>{streamSignal=init.signal;return new Response(new ReadableStream({start(controller){setTimeout(()=>{if(init.signal.aborted)controller.error(new Error('body aborted'));else{controller.enqueue(new TextEncoder().encode('complete file'));controller.close();}},40);}}));};
+ const response=await s.fetchStream('https://archive.org/test',{},10);
+ assert.equal(await response.text(),'complete file');
+ assert.equal(streamSignal.aborted,false);
+ globalThis.fetch=(_url,init)=>new Promise((_,reject)=>init.signal.addEventListener('abort',()=>reject(new Error('header timeout'))));
+ await assert.rejects(s.fetchStream('https://archive.org/test',{},10),/header timeout/);
+} finally {globalThis.fetch=realFetch;}
+console.log('Streaming regression passed: headers time out; long bodies do not.');
+
+const media=await module('src/media.ts');
+try {
+ globalThis.fetch=async url=>String(url).includes('itunes.apple.com')?new Response('',{status:403}):Response.json({feed:{updated:'2026-09-29',results:[{id:'one',name:'Song',artistName:'Artist',genres:[{genreId:'21',name:'Rock'}]}]}});
+ const fallback=await media.charts('jp','21');
+ assert.match(fallback.source,/Apple Music.*曲风筛选/);
+ assert.equal(fallback.items[0].title,'Song');
+ assert.equal(fallback.items[0].preview,null);
+} finally {globalThis.fetch=realFetch;}
+console.log('Chart fallback regression passed: unavailable iTunes -> accurately labelled Apple Music.');

@@ -50,19 +50,22 @@ async function select(markup:string,selector:string,attribute?:string){
  return rows.map(r=>({...r,text:clean(r.text)}));
 }
 async function links(markup:string,selector:string,base:string){return (await select(markup,selector,'href')).map(r=>({title:r.text,url:new URL(r.value,base).href})).filter(r=>r.title&&(r.url.startsWith('https://')||/^http:\/\/(www\.)?wenku8\.net\//.test(r.url)));}
-export async function charts(country:string,genre:string){
- if(!countries.has(country)||!genres.has(genre))throw new Error('不支持该国家或曲风');
- if(['cn','kr'].includes(country)){
+async function appleCharts(country:string,genre:string){
   const url=`https://rss.marketingtools.apple.com/api/v2/${country}/music/most-played/100/songs.json`;
   const d:any=JSON.parse(await smallText(await source(url)));
   const rows=(d.feed?.results||[]).map((x:any,i:number)=>({...x,rank:i+1})).filter((x:any)=>genre==='0'||x.genres?.some((g:any)=>g.genreId===genre));
   return {kind:'charts',country,genre,source:'Apple Music 热播榜'+(genre==='0'?'':' · 总榜内曲风筛选'),sourceURL:url,updatedAt:d.feed.updated,fetchedAt:stamp(),items:rows.map((x:any)=>({id:x.id,rank:x.rank,title:x.name,artist:x.artistName,artwork:x.artworkUrl100,url:x.url,genre:x.genres?.map((g:any)=>g.name).join(' / '),preview:null}))};
- }
+}
+export async function charts(country:string,genre:string){
+ if(!countries.has(country)||!genres.has(genre))throw new Error('不支持该国家或曲风');
+ if(['cn','kr'].includes(country))return appleCharts(country,genre);
+ try{
  const url=`https://itunes.apple.com/${country}/rss/topsongs/limit=50/${genre==='0'?'':`genre=${genre}/`}json`;
  const d:any=JSON.parse(await smallText(await source(url)));
  const entries=d.feed?.entry||[];
  if(!entries.length)throw new Error('该地区/曲风没有可用榜单');
  return {kind:'charts',country,genre,source:'iTunes Top Songs · 商店销量榜',sourceURL:url,updatedAt:d.feed.updated?.label||stamp(),fetchedAt:stamp(),items:entries.map((x:any,i:number)=>({id:x.id?.attributes?.['im:id'],rank:i+1,title:x['im:name']?.label,artist:x['im:artist']?.label,artwork:x['im:image']?.at(-1)?.label,url:x.id?.label,genre:x.category?.attributes?.label,preview:(Array.isArray(x.link)?x.link:[x.link].filter(Boolean)).find((l:any)=>l.attributes?.type==='audio/x-m4a')?.attributes?.href}))};
+ }catch{return appleCharts(country,genre);}
 }
 async function archiveSearch(q:string,kind:string){
  const safe=q.replace(/[^\p{L}\p{N}\s.'-]/gu,' ').trim().slice(0,120);
@@ -141,11 +144,14 @@ export async function mediaRoute(request:Request,env?:{PT_UNIVERSE_DATA:KVNamesp
  const u=new URL(request.url);if(!u.pathname.startsWith('/api/media/'))return null;
  if(request.method!=='GET')throw new Error('只支持 GET');
  const route=u.pathname.slice('/api/media/'.length),p=u.searchParams;
- if(route==='health')return {ok:true,version:2,engineRequired:['torrent TCP/UDP','generic yt-dlp'],time:stamp()};
+ if(route==='health')return {ok:true,version:3,build:'2026-09-29-recovery',engineRequired:['torrent TCP/UDP','generic yt-dlp'],time:stamp()};
  if(route==='stream'){if(!env)throw new Error('缺少播放存储');return animeStream(request,env.PT_UNIVERSE_DATA);}
  if(route==='video'&&new URL(p.get('url')||'https://invalid.example').hostname==='anime1.me'){if(!env)throw new Error('缺少播放存储');return animePlayback(p.get('url')||'',html,env.PT_UNIVERSE_DATA,u.origin);}
- const key=new Request(u.href),cache=await caches.open('media-vault-v5');
- const cached=await cache.match(key);if(cached)return cached.json();
+ // Refresh skips lookup but replaces the canonical cached value. Cache failures
+ // must not turn successfully retrieved content into a broken endpoint.
+ const refresh=p.get('refresh')==='1';u.searchParams.delete('refresh');
+ const key=new Request(u.href),cache=await caches.open('media-vault-v6');
+ const cached=refresh?null:await cache.match(key).catch(()=>null);if(cached)return cached.json();
  let data:any;
  if(route==='charts')data=await charts(p.get('country')||'jp',p.get('genre')||'0');
  else if(route==='music/search')data=await archiveTracks(p.get('q')||'');
@@ -160,6 +166,6 @@ export async function mediaRoute(request:Request,env?:{PT_UNIVERSE_DATA:KVNamesp
  else if(route==='video')data=await video(p.get('url')||'');
  else throw new Error('未知媒体接口');
  const failed=route==='novel/updates'&&data.sources.some((s:any)=>!s.ok);
- await cache.put(key,new Response(JSON.stringify(data),{headers:{'content-type':'application/json','cache-control':`public,max-age=${route==='archive/file'?60:failed?300:route==='charts'?3600:route==='chapter'?86400:900}`}}));
+ await cache.put(key,new Response(JSON.stringify(data),{headers:{'content-type':'application/json','cache-control':`public,max-age=${route==='archive/file'?60:failed?300:route==='charts'?3600:route==='chapter'?86400:900}`}})).catch(()=>{});
  return data;
 }
