@@ -103,12 +103,12 @@ async function novel(raw:string,chapter=false){
  const wenku=u.hostname.includes('wenku8');
  const title=(await select(markup,wenku?'#content span b, #title':'.book-title'))[0]?.text||(await select(markup,'title'))[0]?.text||'轻小说';
  let catalog=u.href;
- if(wenku&&!u.pathname.includes('/novel/')){catalog=(await links(markup,'a',u.href)).find(x=>x.url.includes('/novel/'))?.url||'';}
+ if(wenku&&!u.pathname.includes('/novel/')){catalog=(await links(markup,'a',u.href)).find(x=>/\/novel\/\d+\/\d+\/(?:index\.htm)?$/.test(new URL(x.url).pathname))?.url||'';}
  if(!wenku){const id=u.pathname.match(/\/(?:novel|download)\/(\d+)/)?.[1];if(!id)throw new Error('无法识别小说编号');catalog=`${u.origin}/novel/${id}/catalog`;}
  if(!catalog)throw new Error('未找到目录，来源可能要求登录');
  if(catalog!==u.href)markup=await html(catalog,'novel');
  const chapters=(await links(markup,wenku?'.ccss a':'.volume-chapters li.jsChapter a',catalog)).filter(x=>/\.(?:html|htm)(?:$|\?)/.test(x.url));
- if(!chapters.length)throw new Error('目录为空；请在原站确认链接，或连接小说引擎');
+ if(!chapters.length)throw new Error('目录为空：'+catalog+'；请在原站确认该书可公开阅读');
  return {title,url:u.href,chapters,fetchedAt:stamp(),source:wenku?'轻小说文库':'哔哩轻小说',reader:true};
 }
 async function novelUpdates(){
