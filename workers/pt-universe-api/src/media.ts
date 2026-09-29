@@ -30,7 +30,7 @@ async function publicHost(host:string){
 async function source(raw:string,kind='fixed',depth=0):Promise<Response>{
  const u=mediaURL(raw,kind);
  if(kind==='public')await publicHost(u.hostname);
- const r=await fetch(u,{redirect:'manual',signal:AbortSignal.timeout(18000),headers:{'user-agent':'PT-Universe MediaVault/1.0','accept':'text/html,application/json,application/xml;q=0.9,*/*;q=0.5'}});
+ const r=await fetch(u,{redirect:'manual',signal:AbortSignal.timeout(18000),headers:{'user-agent':kind==='novel'&&!u.hostname.includes('wenku8')?'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36 PT-Universe/1.0':'PT-Universe MediaVault/1.0','accept':'text/html,application/json,application/xml;q=0.9,*/*;q=0.5'}});
  if(r.status>=300&&r.status<400){if(depth>=3)throw new Error('来源重定向过多');const next=new URL(r.headers.get('location')||'',u);return source(next.href,kind,depth+1);}
  if(!r.ok)throw new Error(`来源返回 HTTP ${r.status}；未获取内容，请稍后重试或在原站查看`);
  return r;
@@ -103,7 +103,7 @@ async function novel(raw:string,chapter=false){
  const wenku=u.hostname.includes('wenku8');
  const title=(await select(markup,wenku?'#content span b, #title':'.book-title'))[0]?.text||(await select(markup,'title'))[0]?.text||'轻小说';
  let catalog=u.href;
- if(wenku&&!u.pathname.includes('/novel/')){catalog=(await links(markup,'legend + div > a',u.href)).find(x=>x.url.includes('/novel/'))?.url||'';}
+ if(wenku&&!u.pathname.includes('/novel/')){catalog=(await links(markup,'a',u.href)).find(x=>x.url.includes('/novel/'))?.url||'';}
  if(!wenku){const id=u.pathname.match(/\/(?:novel|download)\/(\d+)/)?.[1];if(!id)throw new Error('无法识别小说编号');catalog=`${u.origin}/novel/${id}/catalog`;}
  if(!catalog)throw new Error('未找到目录，来源可能要求登录');
  if(catalog!==u.href)markup=await html(catalog,'novel');
