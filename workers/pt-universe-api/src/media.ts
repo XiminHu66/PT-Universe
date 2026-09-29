@@ -1,8 +1,10 @@
-// Media metadata only. Large transfers go directly to the source or the private engine.
+import { readBiliChapter, decodeText } from './novel-reader';
+import { animePlayback, animeStream, musicTracks, musicFile, torrentSearch } from './media-sources';
+// On-demand metadata and reading; Anime1 uses short-lived playback tickets.
 const novels = new Set(['www.wenku8.net','wenku8.net','www.bilinovel.com','www.bilinovel.net','www.linovelib.com','w.linovelib.com']);
 const countries = new Set(['us','jp','cn','tw','hk','kr','gb']);
 const genres = new Set(['0','14','21','18','17','27','51','2']);
-const clean = (s:string) => s.replace(/\s+/g,' ').trim();
+const clean = (s:string) => decodeText(s).replace(/\s+/g,' ').trim();
 const stamp = () => new Date().toISOString();
 export function mediaURL(raw:string, kind='public') {
  const u = new URL(raw);
@@ -75,10 +77,11 @@ async function archiveFiles(id:string){
  return {title:d.metadata?.title,license:d.metadata?.licenseurl||null,files:(d.files||[]).filter((x:any)=>/\.(flac|mp3|mp4|webm|mkv|srt|vtt|torrent)$/i.test(x.name)&&x.private!=='true').slice(0,300).map((x:any)=>({name:x.name,size:Number(x.size)||0,format:x.format,url:`https://archive.org/download/${id}/${x.name.split('/').map(encodeURIComponent).join('/')}`}))};
 }
 async function novel(raw:string,chapter=false){
- const u=mediaURL(raw,'novel');let markup=await html(u.href,'novel');
+ const u=mediaURL(raw,'novel');
+ if(chapter&&!u.hostname.includes('wenku8'))return readBiliChapter(u.href,url=>html(url,'novel'));
+ let markup=await html(u.href,'novel');
  if(/just a moment|cf-chl-|人机验证/i.test(markup))throw new Error('来源要求浏览器验证，请在原站查看；不会绕过验证');
  if(chapter){
-  if(!u.hostname.includes('wenku8'))throw new Error('哔哩正文需要处理分页和段落顺序，请使用已连接的小说引擎');
   markup=await new HTMLRewriter().on('#contentdp,script,style',{element(e){e.remove();}}).on('br',{element(e){e.replace('\n');}}).transform(new Response(markup)).text();
   const body=await select(markup,'#content');const title=(await select(markup,'#title'))[0]?.text;
   if(!body[0]?.text)throw new Error('未识别到正文，可能需要登录或站点结构已变化');
@@ -93,9 +96,9 @@ async function novel(raw:string,chapter=false){
  if(!wenku){const id=u.pathname.match(/\/(?:novel|download)\/(\d+)/)?.[1];if(!id)throw new Error('无法识别小说编号');catalog=`${u.origin}/novel/${id}/catalog`;}
  if(!catalog)throw new Error('未找到目录，来源可能要求登录');
  if(catalog!==u.href)markup=await html(catalog,'novel');
- const chapters=(await links(markup,wenku?'.ccss a':'.volume-chapters li a',catalog)).filter(x=>/\.(?:html|htm)(?:$|\?)/.test(x.url));
+ const chapters=(await links(markup,wenku?'.ccss a':'.volume-chapters li.jsChapter a',catalog)).filter(x=>/\.(?:html|htm)(?:$|\?)/.test(x.url));
  if(!chapters.length)throw new Error('目录为空；请在原站确认链接，或连接小说引擎');
- return {title,url:u.href,chapters,fetchedAt:stamp(),source:wenku?'轻小说文库':'哔哩轻小说',reader:wenku};
+ return {title,url:u.href,chapters,fetchedAt:stamp(),source:wenku?'轻小说文库':'哔哩轻小说',reader:true};
 }
 async function novelUpdates(){
  const sources=await Promise.all([...['https://www.wenku8.net/modules/article/toplist.php?sort=lastupdate','https://www.bilinovel.com/']].map(async url=>{try{const m=await html(url,'novel');const items=(await links(m,'a',url)).filter(x=>/\/(book\/\d+\.htm|novel\/\d+\.html)$/.test(x.url));return {url,ok:!!items.length,items:[...new Map(items.map(x=>[x.url,x])).values()].slice(0,30),fetchedAt:stamp(),error:items.length?null:'未识别到更新列表'};}catch(e){return {url,ok:false,items:[],error:String(e),fetchedAt:stamp()};}}));
@@ -119,16 +122,21 @@ async function video(raw:string){
  if(!urls.length)throw new Error('页面没有公开媒体直链；动态视频或 Anime1 播放接口需要连接下载引擎后解析');
  return {title,formats:urls.map(url=>({url,format:url.split('?')[0].split('.').pop()?.toLowerCase(),label:'公开媒体',direct:true})),fetchedAt:stamp()};
 }
-export async function mediaRoute(request:Request):Promise<any|null>{
+export async function mediaRoute(request:Request,env?:{PT_UNIVERSE_DATA:KVNamespace}):Promise<any|null>{
  const u=new URL(request.url);if(!u.pathname.startsWith('/api/media/'))return null;
  if(request.method!=='GET')throw new Error('只支持 GET');
  const route=u.pathname.slice('/api/media/'.length),p=u.searchParams;
- if(route==='health')return {ok:true,version:1,engineRequired:['torrent TCP/UDP','yt-dlp','bili EPUB'],time:stamp()};
- const key=new Request(u.href),cache=await caches.open('media-vault-v1');
+ if(route==='health')return {ok:true,version:2,engineRequired:['torrent TCP/UDP','generic yt-dlp'],time:stamp()};
+ if(route==='stream'){if(!env)throw new Error('缺少播放存储');return animeStream(request,env.PT_UNIVERSE_DATA);}
+ if(route==='video'&&new URL(p.get('url')||'https://invalid.example').hostname==='anime1.me'){if(!env)throw new Error('缺少播放存储');return animePlayback(p.get('url')||'',html,env.PT_UNIVERSE_DATA,u.origin);}
+ const key=new Request(u.href),cache=await caches.open('media-vault-v2');
  const cached=await cache.match(key);if(cached)return cached.json();
  let data:any;
  if(route==='charts')data=await charts(p.get('country')||'jp',p.get('genre')||'0');
  else if(route==='music/search')data=await archiveSearch(p.get('q')||'','flac');
+ else if(route==='music/tracks')data=await musicTracks(p.get('q')||'',html);
+ else if(route==='music/file')data=await musicFile(p.get('id')||'',html,env?.PT_UNIVERSE_DATA,u.origin);
+ else if(route==='torrent/search')data=await torrentSearch(p.get('q')||'',html);
  else if(route==='archive/files')data=await archiveFiles(p.get('id')||'');
  else if(route==='novel')data=await novel(p.get('url')||'');
  else if(route==='chapter')data=await novel(p.get('url')||'',true);
@@ -137,6 +145,6 @@ export async function mediaRoute(request:Request):Promise<any|null>{
  else if(route==='video')data=await video(p.get('url')||'');
  else throw new Error('未知媒体接口');
  const failed=route==='novel/updates'&&data.sources.some((s:any)=>!s.ok);
- await cache.put(key,new Response(JSON.stringify(data),{headers:{'content-type':'application/json','cache-control':`public,max-age=${failed?300:route==='charts'?3600:route==='chapter'?86400:900}`}}));
+ await cache.put(key,new Response(JSON.stringify(data),{headers:{'content-type':'application/json','cache-control':`public,max-age=${route==='music/file'?60:failed?300:route==='charts'?3600:route==='chapter'?86400:900}`}}));
  return data;
 }
