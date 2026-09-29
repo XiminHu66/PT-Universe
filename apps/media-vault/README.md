@@ -27,6 +27,7 @@ PT Universe 独立分项目：`apps/media-vault/`。
 
 ```sh
 node --check apps/media-vault/app.js
+node scripts/media-vault/frontend-test.cjs
 npm run check --prefix workers/pt-universe-api
 npm run test:media --prefix workers/pt-universe-api
 python -m unittest discover -s scripts/media-vault -p 'test_*.py'
@@ -35,3 +36,15 @@ python -m unittest discover -s scripts/media-vault -p 'test_*.py'
 Worker 部署前运行回归测试：段落恢复、安全表达式、截断正文拒绝、媒体域名校验、RSS 解析、单来源失败时保留其他来源。UI mock 测试仅覆盖界面交互，不能作为真实来源可用的证据。
 
 JSZip 按 MIT 使用，许可证位于 `vendor/JSZIP-LICENSE.txt`。正文段落恢复适配自 MIT 项目 bili_novel_packer，许可证位于 Worker `licenses/`。未将下载文件、小说正文或密钥提交到仓库。
+
+## 2026-09-29 续接修复
+
+- 流式传输仅等待响应头时设置超时，响应体不再被 20 秒计时器截断；回归测试使用延迟响应体验证。
+- 附件下载通过命名框架交给浏览器，避免异步取票后的弹窗被拦截。大 FLAC 不整体装入 JS 内存。
+- 手动刷新跳过前后端旧缓存；iTunes 不可用时尝试 Apple Music（准确标注榜单类型），再保留已成功的静态快照。
+- 阅读请求防止旧响应覆盖新章节；禁用 IndexedDB 的浏览器仍可直接阅读；停止 EPUB 打包不会在最后一章完成时误触发下载。
+- 小说本机追更无需引擎：打开小说页每天检查一次，支持手动检查；网页关闭时不执行整本后台抓取。
+- 现有磁力/种子入口在未连接引擎时交给本机客户端；不宣称实现浏览器 TCP/UDP BT 或免费云离线下载。
+- 右上角可检测服务连接，资源请求的超时、来源失败与缓存数据分别显示。
+
+未解决的上游边界仍保留：Bili 样本截断正文、Nyaa 429、主流商业歌曲稳定 FLAC 源，以及无人值守通用云下载引擎。

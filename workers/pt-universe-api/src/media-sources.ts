@@ -34,6 +34,12 @@ export async function torrentSearch(q:string,load:Load){
 }
 
 export function isAnimeMedia(raw:string){try{const u=new URL(raw);return u.protocol==='https:'&&!u.username&&!u.password&&!u.port&&/(^|\.)anime1\.me$/.test(u.hostname)&&/\.mp4$/i.test(u.pathname);}catch{return false;}}
+// Only time out waiting for headers. An AbortSignal.timeout attached to a
+// streaming Response also aborts its body, cutting long downloads off mid-file.
+export async function fetchStream(url:string|URL,init:RequestInit={},timeout=20000):Promise<Response>{
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeout);
+ try{return await fetch(url,{...init,signal:controller.signal});}finally{clearTimeout(timer);}
+}
 export async function animePlayback(raw:string,load:Load,kv:KVNamespace,base:string){
  const u=new URL(raw);if(u.origin!=='https://anime1.me'||!/^\/\d+\/?$/.test(u.pathname))throw new Error('请输入 Anime1 单集链接');
  const markup=await load(u.href,'anime');const apiReq=decodeText(markup.match(/data-apireq=["']([^"']+)/)?.[1]||'');
@@ -55,8 +61,8 @@ export async function animeStream(request:Request,kv:KVNamespace){
  const archive=saved.kind==='archive',audio=archive,su=new URL(saved.url);
  if(archive?su.protocol!=='https:'||su.hostname!=='archive.org':!isAnimeMedia(saved.url))throw new Error('来源无效');
  const headers:Record<string,string>={cookie:saved.cookies};const range=request.headers.get('range');if(range&&/^bytes=\d*-\d*$/.test(range))headers.range=range;
- let r=await fetch(saved.url,{headers,redirect:'manual',signal:AbortSignal.timeout(20000)});
- for(let i=0;archive&&r.status>=300&&r.status<400&&i<4;i++){const next=new URL(r.headers.get('location')||'',r.url||saved.url);if(next.protocol!=='https:'||!/(^|\.)archive\.org$/.test(next.hostname))throw new Error('下载重定向来源无效');await r.body?.cancel();r=await fetch(next,{headers,redirect:'manual',signal:AbortSignal.timeout(20000)});}
+ let r=await fetchStream(saved.url,{headers,redirect:'manual'});
+ for(let i=0;archive&&r.status>=300&&r.status<400&&i<4;i++){const next=new URL(r.headers.get('location')||'',r.url||saved.url);if(next.protocol!=='https:'||!/(^|\.)archive\.org$/.test(next.hostname))throw new Error('下载重定向来源无效');await r.body?.cancel();r=await fetchStream(next,{headers,redirect:'manual'});}
  if(![200,206,416].includes(r.status)){await r.body?.cancel();throw new Error('视频来源返回 '+r.status+'，请重新解析');}
  const out=new Headers({'content-type':audio?'audio/flac':'video/mp4','cache-control':'private,no-store','access-control-allow-origin':'https://ximinhu66.github.io','access-control-expose-headers':'Content-Length,Content-Range,Accept-Ranges','x-content-type-options':'nosniff'});
  for(const h of ['content-length','content-range','accept-ranges']){const v=r.headers.get(h);if(v)out.set(h,v);}

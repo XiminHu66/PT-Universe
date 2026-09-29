@@ -4,3 +4,5 @@
 .brand>div{white-space:nowrap;font-size:19px}.brand small{font-size:7px;letter-spacing:1px}.brand-icon{font-size:20px;padding:5px 7px}.brand{gap:10px}.card img.cover-fallback{object-fit:contain;background:#26382e;padding:35px}.track img.cover-fallback{object-fit:contain;padding:11px}
 
 @media(max-width:700px){#musicSearch{flex-wrap:wrap}#musicSearch input{flex-basis:70%}#musicSearch select{flex:1;width:60%;font-size:12px}}
+
+.topbar{min-height:87px;height:auto;gap:12px;padding:15px 0}.topbar>div{flex-wrap:wrap;justify-content:flex-end;gap:10px}.topbar>span{white-space:nowrap}#serviceStatus:empty{display:none}@media(max-width:650px){.topbar{min-height:62px}.topbar>div{gap:6px}#serviceStatus{flex-basis:100%;text-align:right}.section-head{flex-wrap:wrap}}
