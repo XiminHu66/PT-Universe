@@ -35,19 +35,28 @@ def main():
     try:old=json.loads(OUT.read_text())
     except (OSError,ValueError):old={}
     pt=datetime.datetime.now(ZoneInfo('America/Los_Angeles'))
-    if os.environ.get('EVENT')=='schedule':
+    scheduled=os.environ.get('EVENT')=='schedule'
+    same_day=old.get('pacificDay')==pt.date().isoformat()
+    keys=[c+'-'+g for c in COUNTRIES for g in GENRES]+['novels','anime']
+    previous_health=old.get('health',{}) if scheduled and same_day else {}
+    if scheduled:
         if pt.hour<8 or pt.hour>11:return
-        if old.get('pacificDay')==pt.date().isoformat() and old.get('successCount',0)>=30:return
-    data={**old,'generatedAt':stamp(),'pacificDay':pt.date().isoformat(),'charts':old.get('charts',{}),'health':{},'successCount':0}
+        if all(previous_health.get(k,{}).get('ok') for k in keys):return
+    data={**old,'generatedAt':stamp(),'pacificDay':pt.date().isoformat(),'charts':old.get('charts',{}),'health':dict(previous_health),'successCount':0}
+    pending=[(c,g) for c in COUNTRIES for g in GENRES if not previous_health.get(c+'-'+g,{}).get('ok')]
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
-        for key,result,error in pool.map(chart,[(c,g) for c in COUNTRIES for g in GENRES]):
+        for key,result,error in pool.map(chart,pending):
             data['health'][key]={'ok':error is None,'checkedAt':stamp(),'error':error}
-            if result:data['charts'][key]=result;data['successCount']+=1
+            if result:data['charts'][key]=result
+    data['successCount']=sum(bool(data['health'].get(c+'-'+g,{}).get('ok')) for c in COUNTRIES for g in GENRES)
     for key,path in [('novels','novel/updates'),('anime','anime')]:
+        if previous_health.get(key,{}).get('ok'):continue
         try:
             result=fetch(API+path)
             if result.get('error'):raise ValueError(result['error'])
-            data[key]=result;data['health'][key]={'ok':True,'checkedAt':stamp()}
+            data[key]=result
+            failures=[s.get('error') or s.get('url','来源不可用') for s in result.get('sources',[]) if not s.get('ok')]
+            data['health'][key]={'ok':not failures,'checkedAt':stamp(),'error':'; '.join(failures) or None}
         except Exception as e:data['health'][key]={'ok':False,'checkedAt':stamp(),'error':str(e)}
     OUT.parent.mkdir(parents=True,exist_ok=True);OUT.write_text(json.dumps(data,ensure_ascii=False,separators=(',',':'))+'\n')
     print(f"Updated {data['successCount']}/{len(COUNTRIES)*len(GENRES)} charts; failed source health retained")
