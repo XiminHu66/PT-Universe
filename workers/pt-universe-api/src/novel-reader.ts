@@ -10,6 +10,7 @@ export function arithmetic(expression:string):number {
  function sum():number {let n=product();while(['+','-'].includes(tokens[i])){const op=tokens[i++],v=product();n=op==='+'?n+v:n-v;}return n;}
  const n=sum();if(i!==tokens.length||!Number.isSafeInteger(n))throw new Error('参数无效');return n;
 }
+export function assertComplete(text:string){if(/(?:内容|內容)[\s\S]{0,8}(?:加载|加載)[\s\S]{0,8}(?:失败|失敗)/.test(text))throw new Error('原站只返回了不完整正文（内容加载失败），已停止阅读和导出；请稍后重试');}
 type Params={fixed:number;seed:number;a:number;c:number;mod:number};
 export function shuffleParams(js:string,id:number):Params {
  const seedRE=/var\s+[_$a-zA-Z0-9]+\s*=\s*[^;]*?Number\s*\(\s*[_$a-zA-Z0-9]+\s*\)\s*,\s*([^,)]+?)\s*\)\s*,\s*([^,)]+?)\s*\)\s*,/g;
@@ -55,6 +56,7 @@ export async function readBiliChapter(raw:string,load:(url:string)=>Promise<stri
   if(next){const n=new URL(next);if(n.origin!==start.origin||n.pathname.replace(/_\d+(?=\.html$)/,'')!==start.pathname.replace(/_\d+(?=\.html$)/,''))throw new Error('分页指向其他章节，已停止');}
  }
  if(next)throw new Error('章节超过 16 页，请分段读取');
+ assertComplete(blocks.filter(b=>b.type==='text').map(b=>b.text).join('\n'));
  if(!blocks.length)throw new Error('没有获取到正文或插图，来源可能要求登录');
  return {title:decodeText(title).trim(),text:blocks.filter(b=>b.type==='text').map(b=>b.text).join('\n\n'),blocks,pages,url:raw,fetchedAt:new Date().toISOString()};
 }

@@ -39,6 +39,7 @@ jobs:
       - name: Validate Worker
         run: |
           npm run check
+          npm run test:media
           npm run types -- --check
           npx wrangler deploy --dry-run
 

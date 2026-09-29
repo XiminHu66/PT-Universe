@@ -8,7 +8,8 @@ const clean = (s:string) => decodeText(s).replace(/\s+/g,' ').trim();
 const stamp = () => new Date().toISOString();
 export function mediaURL(raw:string, kind='public') {
  const u = new URL(raw);
- if(u.protocol!=='https:'||u.username||u.password||u.port||u.href.length>2048)throw new Error('请输入有效 HTTPS 链接');
+ const legacyWenku=kind==='novel'&&['www.wenku8.net','wenku8.net'].includes(u.hostname)&&u.protocol==='http:';
+ if((u.protocol!=='https:'&&!legacyWenku)||u.username||u.password||u.port||u.href.length>2048)throw new Error('请输入有效 HTTPS 链接');
  if(kind==='novel'&&!novels.has(u.hostname))throw new Error('目前支持 wenku8、bilinovel、linovelib 链接');
  if(kind==='anime'&&u.hostname!=='anime1.me')throw new Error('请输入 anime1.me 页面链接');
  if(kind==='public'&&!/^(?:[a-z0-9-]+\.)+[a-z]{2,}$/i.test(u.hostname))throw new Error('不支持本地或 IP 地址');
@@ -48,7 +49,7 @@ async function select(markup:string,selector:string,attribute?:string){
  await new HTMLRewriter().on(selector,{element(e){active={text:'',value:attribute?e.getAttribute(attribute)||'':''};rows.push(active);},text(t){if(active)active.text+=t.text;}}).transform(new Response(markup)).text();
  return rows.map(r=>({...r,text:clean(r.text)}));
 }
-async function links(markup:string,selector:string,base:string){return (await select(markup,selector,'href')).map(r=>({title:r.text,url:new URL(r.value,base).href})).filter(r=>r.title&&r.url.startsWith('https://'));}
+async function links(markup:string,selector:string,base:string){return (await select(markup,selector,'href')).map(r=>({title:r.text,url:new URL(r.value,base).href})).filter(r=>r.title&&(r.url.startsWith('https://')||/^http:\/\/(www\.)?wenku8\.net\//.test(r.url)));}
 export async function charts(country:string,genre:string){
  if(!countries.has(country)||!genres.has(genre))throw new Error('不支持该国家或曲风');
  if(['cn','kr'].includes(country)){
@@ -139,7 +140,7 @@ export async function mediaRoute(request:Request,env?:{PT_UNIVERSE_DATA:KVNamesp
  if(route==='health')return {ok:true,version:2,engineRequired:['torrent TCP/UDP','generic yt-dlp'],time:stamp()};
  if(route==='stream'){if(!env)throw new Error('缺少播放存储');return animeStream(request,env.PT_UNIVERSE_DATA);}
  if(route==='video'&&new URL(p.get('url')||'https://invalid.example').hostname==='anime1.me'){if(!env)throw new Error('缺少播放存储');return animePlayback(p.get('url')||'',html,env.PT_UNIVERSE_DATA,u.origin);}
- const key=new Request(u.href),cache=await caches.open('media-vault-v3');
+ const key=new Request(u.href),cache=await caches.open('media-vault-v4');
  const cached=await cache.match(key);if(cached)return cached.json();
  let data:any;
  if(route==='charts')data=await charts(p.get('country')||'jp',p.get('genre')||'0');

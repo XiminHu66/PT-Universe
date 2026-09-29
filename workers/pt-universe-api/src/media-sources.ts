@@ -17,10 +17,18 @@ export function parseTorrentFeed(xml:string,source:string){
   return {title:tag(s,'title'),url:tag(s,'guid')||tag(s,'link'),magnet,torrent:enclosure||tag(s,'link'),size:tag(s,'nyaa:size'),seeders:Number(tag(s,'nyaa:seeders'))||0,publishedAt:tag(s,'pubDate'),source};
  }).filter(x=>x.title&&(x.magnet||/^https?:/.test(x.torrent)));
 }
+async function archiveTorrents(q:string,load:Load){
+ const terms=q.replace(/[^\p{L}\p{N}\s.'-]/gu,' ').trim().split(/\s+/).filter(Boolean);
+ if(!terms.length)return [];
+ const params=new URLSearchParams({q:'(mediatype:movies OR mediatype:audio) AND ('+terms.map(x=>'"'+x+'"').join(' AND ')+')',output:'json',rows:'8','fl[]':'identifier,title',sort:'downloads desc'});
+ const data=JSON.parse(await load('https://archive.org/advancedsearch.php?'+params));
+ const rows=await Promise.all((data.response?.docs||[]).map(async(x:any)=>{try{if(!/^[\w.-]{1,150}$/.test(x.identifier))return null;const detail=JSON.parse(await load('https://archive.org/metadata/'+x.identifier));const file=(detail.files||[]).find((f:any)=>/\.torrent$/i.test(f.name)&&f.private!=='true');return file?{title:String(x.title),url:'https://archive.org/details/'+x.identifier,magnet:'',torrent:'https://archive.org/download/'+x.identifier+'/'+encodeURIComponent(file.name),size:'归档资源种子',seeders:0,publishedAt:'',source:'Internet Archive'}:null;}catch{return null;}}));
+ return rows.filter(Boolean);
+}
 export async function torrentSearch(q:string,load:Load){
  const query=q.trim().slice(0,100);if(!query)throw new Error('请输入资源名称');
  const feeds=[['Nyaa','https://nyaa.si/?page=rss&c=0_0&f=0&q='+encodeURIComponent(query)],['动漫花园','https://share.dmhy.org/topics/rss/rss.xml?keyword='+encodeURIComponent(query)]];
- const results=await Promise.all(feeds.map(async([name,url])=>{try{return {source:name,ok:true,items:parseTorrentFeed(await load(url),name)};}catch(e){return {source:name,ok:false,error:String(e),items:[]};}}));
+ const results=await Promise.all([...feeds.map(async([name,url])=>{try{return {source:name,ok:true,items:parseTorrentFeed(await load(url),name)};}catch(e){return {source:name,ok:false,error:String(e),items:[]};}}), (async()=>{try{return {source:'Internet Archive',ok:true,items:await archiveTorrents(query,load)};}catch(e){return {source:'Internet Archive',ok:false,error:String(e),items:[]};}})()]);
  const items=results.flatMap(s=>s.items),seen=new Set<string>();
  return {items:items.filter(x=>{const key=x.magnet?.match(/btih:([^&]+)/i)?.[1]?.toLowerCase()||x.torrent;if(seen.has(key))return false;seen.add(key);return true;}).sort((a,b)=>b.seeders-a.seeders),sources:results.map(({items,...s})=>({...s,count:items.length})),fetchedAt:new Date().toISOString()};
 }

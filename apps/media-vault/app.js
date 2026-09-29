@@ -23,7 +23,7 @@ function player(track,url,type){if(!safeURL(url))throw new Error('没有可用�
 $('#audio').addEventListener('error',()=>notice('音频加载失败：来源可能不支持跨站播放，或该浏览器不支持此编码。',true));
 $('#playerClose').onclick=()=>{$('#audio').pause();$('#audio').removeAttribute('src');$('#audio').load();$('#player').hidden=true;};
 $('#tabs').innerHTML=Object.entries(meta).map(([id,m])=>`<a href="#${id}" data-tab="${id}"><b>${m[0]}</b>${m[1]}</a>`).join('');
-function route(){let id=location.hash.slice(1)||'music';if(!meta[id])id='music';$$('.view').forEach(x=>x.hidden=x.id!==id);$$('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===id));$('#breadcrumb').textContent='发现 / '+meta[id][1];$('#eyebrow').textContent=meta[id][2];$('#title').innerHTML=meta[id][3];$('#subtitle').textContent=meta[id][4];notice('');window.scrollTo(0,0);if(!loaded.has(id)){loaded.add(id);if(id==='music')loadCharts();if(id==='novels'){renderShelf();loadNovelUpdates();}if(id==='anime')loadAnime();if(id==='torrent')loadTasks();}}
+function route(){let id=location.hash.slice(1)||'music';if(!meta[id])id='music';if(id!=='video')$('#videoPlayer').pause();$$('.view').forEach(x=>x.hidden=x.id!==id);$$('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===id));$('#breadcrumb').textContent='发现 / '+meta[id][1];$('#eyebrow').textContent=meta[id][2];$('#title').innerHTML=meta[id][3];$('#subtitle').textContent=meta[id][4];notice('');window.scrollTo(0,0);if(!loaded.has(id)){loaded.add(id);if(id==='music')loadCharts();if(id==='novels'){renderShelf();loadNovelUpdates();}if(id==='anime')loadAnime();if(id==='torrent')loadTasks();}}
 addEventListener('hashchange',route);
 const countries=[['jp','日本'],['us','美国'],['cn','中国'],['tw','台湾'],['hk','香港'],['kr','韩国'],['gb','英国']];
 $('#countries').innerHTML=countries.map(([id,name])=>`<button data-country="${id}">${name}</button>`).join('');
@@ -39,14 +39,16 @@ async function searchMusic(button){return busy(button,async()=>{
  try{
   const d=await api(source==='archive'?'music/search':'music/ektoplazm',{q});
   $('#musicSourceStatus').textContent=d.source||'';
-  $('#albums').innerHTML=d.items.length?d.items.map((x,i)=>`<article class="card">${x.artwork?`<img loading="lazy" src="${href(x.artwork)}" alt="">`:''}<span class="badge">${source==='archive'?'档案 FLAC':x.format||'FLAC'}</span><h3>${esc(x.title)}</h3><p>${esc(x.artist)}</p><p class="caption">${esc(x.album||'')}</p><div class="actions">${source==='archive'?`<button data-track-download="${i}">↓ 下载 FLAC</button><button data-track-play="${i}">▶ 播放</button>`:`<a class="button" href="${href(x.downloadURL)}" target="_blank" rel="noopener">↓ 下载 FLAC 专辑</a>`}</div></article>`).join(''):empty('该来源没有匹配结果，请更换关键词或音源。');
+  $('#albums').innerHTML=d.items.length?d.items.map((x,i)=>`<article class="card">${x.artwork?`<img loading="lazy" src="${href(x.artwork)}" alt="">`:''}<span class="badge">${source==='archive'?'档案 FLAC':x.format||'FLAC'}</span><h3>${esc(x.title)}</h3><p>${esc(x.artist)}</p><p class="caption">${esc(x.album||'')}${x.size?' · '+bytes(x.size):''}</p><div class="actions">${source==='archive'?`<button data-track-download="${i}">↓ 下载 FLAC</button><button data-track-play="${i}">▶ 播放</button>`:`<a class="button" href="${href(x.downloadURL)}" target="_blank" rel="noopener">↓ 下载 FLAC 专辑</a>`}</div></article>`).join(''):empty('该来源没有匹配结果，请更换关键词或音源。');
   $$('[data-album]').forEach(b=>b.onclick=()=>busy(b,()=>showArchive(d.items[+b.dataset.album])));
-  const resolve=async (b,play)=>{const t=d.items[Number(play?b.dataset.trackPlay:b.dataset.trackDownload)];return busy(b,async()=>{notice('正在获取 FLAC 文件…');const f=await api('archive/file',{id:t.id,name:t.name});if(play){player(t,f.url,'FLAC');notice('正在播放档案中的 FLAC 文件');}else await saveRemote(f.downloadURL||f.url,t.artist+' - '+t.title+'.flac',true);});};
+  const resolve=async (b,play)=>{const t=d.items[Number(play?b.dataset.trackPlay:b.dataset.trackDownload)];return busy(b,async()=>{notice('正在获取 FLAC 文件…');const f=await api('archive/file',{id:t.id,name:t.name});if(play){player(t,f.url,'FLAC');notice('正在播放档案中的 FLAC 文件');}else await saveRemote(f.downloadURL||f.url,t.artist+' - '+t.title+'.flac',true,f.size);});};
   $$('[data-track-download]').forEach(b=>b.onclick=()=>resolve(b,false));$$('[data-track-play]').forEach(b=>b.onclick=()=>resolve(b,true));
   notice(`找到 ${d.items.length} 个结果。`);
  }catch(e){$('#albums').innerHTML=empty(e.message);throw e;}
 });}
-async function saveRemote(url,name,verifyFLAC=false){
+async function saveRemote(url,name,verifyFLAC=false,size=0){
+ if(size>128e6){const r=await fetch(url,{headers:{Range:'bytes=0-3'},signal:AbortSignal.timeout(30000)});if(!r.ok)throw new Error('文件不可访问：HTTP '+r.status);const reader=r.body.getReader(),first=await reader.read();await reader.cancel();if(verifyFLAC&&new TextDecoder().decode(first.value?.slice(0,4))!=='fLaC')throw new Error('文件签名不是 FLAC');downloadURL(url,name);notice('FLAC 文件已验证，已交给浏览器下载（'+bytes(size)+'）；完成情况请查看浏览器下载列表。');return;}
+
  notice('正在下载 '+name+'…');const r=await fetch(url,{signal:AbortSignal.timeout(240000)});if(!r.ok)throw new Error('文件下载失败：HTTP '+r.status);
  const blob=await r.blob();if(verifyFLAC&&await blob.slice(0,4).text()!=='fLaC')throw new Error('收到的文件不是 FLAC，已停止保存');
  if(!blob.size)throw new Error('下载文件为空');blobDownload(blob,name);notice('已生成下载文件：'+name+' · '+bytes(blob.size));
@@ -58,11 +60,11 @@ async function openNovel(url,button){return busy(button,async()=>{$('#novelURL')
 $('#novelSearch').onsubmit=e=>{e.preventDefault();openNovel($('#novelURL').value.trim(),e.submitter);};
 let exportStopped=false;
 const chapterDB=new Promise(resolve=>{const r=indexedDB.open('media-vault-reading',1);r.onupgradeneeded=()=>r.result.createObjectStore('chapters');r.onsuccess=()=>resolve(r.result);r.onerror=()=>resolve(null);});
-async function cachedChapter(url){const db=await chapterDB;if(db){const old=await new Promise(resolve=>{const r=db.transaction('chapters').objectStore('chapters').get(url);r.onsuccess=()=>resolve(r.result);r.onerror=()=>resolve(null);});if(old)return old;}const d=await api('chapter',{url});if(db)await new Promise(resolve=>{const tx=db.transaction('chapters','readwrite');tx.objectStore('chapters').put(d,url);tx.oncomplete=resolve;tx.onerror=resolve;});return d;}
+async function cachedChapter(url){const db=await chapterDB;if(db){const old=await new Promise(resolve=>{const r=db.transaction('chapters').objectStore('chapters').get(url);r.onsuccess=()=>resolve(r.result);r.onerror=()=>resolve(null);});if(old&&!/(?:内容|內容)[\s\S]{0,8}(?:加载|加載)[\s\S]{0,8}(?:失败|失敗)/.test(old.text||''))return old;}const d=await api('chapter',{url});if(db)await new Promise(resolve=>{const tx=db.transaction('chapters','readwrite');tx.objectStore('chapters').put(d,url);tx.oncomplete=resolve;tx.onerror=resolve;});return d;}
 async function readChapter(index){
  if(!book||index<0||index>=book.chapters.length)return;chapterIndex=index;const c=book.chapters[index];
- $('#readerTitle').textContent=book.title+' · '+c.title;$('#readerText').textContent='正在读取完整章节与分页…';if(!$('#reader').open)$('#reader').showModal();
- try{const d=await cachedChapter(c.url);readerContent=d.text;readerName=d.title||c.title;
+ readerContent='';$('#readerDownload').disabled=true;$('#readerEPUB').disabled=true;$('#readerTitle').textContent=book.title+' · '+c.title;$('#readerText').textContent='正在读取完整章节与分页…';if(!$('#reader').open)$('#reader').showModal();
+ try{const d=await cachedChapter(c.url);readerContent=d.text;readerName=d.title||c.title;$('#readerDownload').disabled=!readerContent;$('#readerEPUB').disabled=!readerContent;
  $('#readerTitle').textContent=book.title+' · '+readerName;
  $('#readerText').innerHTML=d.blocks?.length?d.blocks.map(b=>b.type==='image'?`<img loading="lazy" referrerpolicy="no-referrer" src="${href(b.url)}" alt="章节插图" style="max-width:100%;height:auto">`:`<p>${esc(b.text)}</p>`).join(''):esc(d.text).replace(/\n/g,'<br>');
  $('#readerPrev').disabled=index===0;$('#readerNext').disabled=index===book.chapters.length-1;$('#reader').scrollTop=0;
