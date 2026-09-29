@@ -98,15 +98,17 @@ async function novel(raw:string,chapter=false){
   if(!body[0]?.text)throw new Error('未识别到正文，可能需要登录或站点结构已变化');
   // select() normalizes whitespace for metadata; preserve paragraph text separately.
   let text='';await new HTMLRewriter().on('#content',{text(t){text+=t.text;}}).transform(new Response(markup)).text();
-  return {title:title||'章节',text:text.trim(),url:u.href,fetchedAt:stamp()};
+  return {title:title||'章节',text:decodeText(text).trim(),url:u.href,fetchedAt:stamp()};
  }
  const wenku=u.hostname.includes('wenku8');
- const title=(await select(markup,wenku?'#content span b, #title':'.book-title'))[0]?.text||(await select(markup,'title'))[0]?.text||'轻小说';
+ let title=(await select(markup,wenku?'#content span b, #title':'.book-title'))[0]?.text||(await select(markup,'title'))[0]?.text||'轻小说';
  let catalog=u.href;
  if(wenku&&!u.pathname.includes('/novel/')){catalog=(await links(markup,'a',u.href)).find(x=>/\/novel\/\d+\/\d+\/(?:index\.htm)?$/.test(new URL(x.url).pathname))?.url||'';}
  if(!wenku){const id=u.pathname.match(/\/(?:novel|download)\/(\d+)/)?.[1];if(!id)throw new Error('无法识别小说编号');catalog=`${u.origin}/novel/${id}/catalog`;}
+ if(!catalog&&wenku){const id=u.pathname.match(/\/book\/(\d+)\.htm/)?.[1];if(id)catalog=`${u.origin}/novel/${Math.floor(Number(id)/1000)}/${id}/index.htm`;}
  if(!catalog)throw new Error('未找到目录，来源可能要求登录');
  if(catalog!==u.href)markup=await html(catalog,'novel');
+ if(wenku)title=(await select(markup,'#title'))[0]?.text||title;
  const chapters=(await links(markup,wenku?'.ccss a':'.volume-chapters li.jsChapter a',catalog)).filter(x=>/\.(?:html|htm)(?:$|\?)/.test(x.url));
  if(!chapters.length)throw new Error('目录为空：'+catalog+'；请在原站确认该书可公开阅读');
  return {title,url:u.href,chapters,fetchedAt:stamp(),source:wenku?'轻小说文库':'哔哩轻小说',reader:true};
@@ -140,7 +142,7 @@ export async function mediaRoute(request:Request,env?:{PT_UNIVERSE_DATA:KVNamesp
  if(route==='health')return {ok:true,version:2,engineRequired:['torrent TCP/UDP','generic yt-dlp'],time:stamp()};
  if(route==='stream'){if(!env)throw new Error('缺少播放存储');return animeStream(request,env.PT_UNIVERSE_DATA);}
  if(route==='video'&&new URL(p.get('url')||'https://invalid.example').hostname==='anime1.me'){if(!env)throw new Error('缺少播放存储');return animePlayback(p.get('url')||'',html,env.PT_UNIVERSE_DATA,u.origin);}
- const key=new Request(u.href),cache=await caches.open('media-vault-v4');
+ const key=new Request(u.href),cache=await caches.open('media-vault-v5');
  const cached=await cache.match(key);if(cached)return cached.json();
  let data:any;
  if(route==='charts')data=await charts(p.get('country')||'jp',p.get('genre')||'0');
