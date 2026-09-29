@@ -83,6 +83,59 @@ def resolve(url):
         if d.get('has_drm'):raise ValueError('DRM protected media is not supported')
         return {'title':d.get('title'),'formats':[{'id':f['format_id'],'url':f.get('url'),'format':f.get('ext'),'label':str(f.get('format_note') or f.get('resolution') or f['format_id'])+' · '+str(f.get('ext','')),'note':f.get('format'),'size':f.get('filesize') or f.get('filesize_approx'),'audioOnly':f.get('vcodec')=='none','videoOnly':f.get('acodec')=='none'} for f in d.get('formats',[]) if not f.get('has_drm') and f.get('ext') not in ('mhtml',)],'subtitles':list(d.get('subtitles',{}))}
 
+def qobuz_configured():
+    return all(os.environ.get(k) for k in ('QOBUZ_APP_ID','QOBUZ_AUTH_TOKEN','QOBUZ_SECRET'))
+
+def qobuz_request(path,params):
+    if not qobuz_configured():raise ValueError('Qobuz 尚未配置：请在私有引擎中设置自己的 QOBUZ_APP_ID、QOBUZ_AUTH_TOKEN、QOBUZ_SECRET；完整音轨需要有效订阅。')
+    req=urllib.request.Request('https://www.qobuz.com/api.json/0.2/'+path+'?'+urllib.parse.urlencode(params),headers={'X-App-Id':os.environ['QOBUZ_APP_ID'],'X-User-Auth-Token':os.environ['QOBUZ_AUTH_TOKEN']})
+    try:
+        with urllib.request.urlopen(req,timeout=25) as r:data=json.load(r)
+    except urllib.error.HTTPError as e:raise ValueError('Qobuz 返回 HTTP '+str(e.code)+'；请检查订阅、地区和凭据') from None
+    if data.get('status')=='error':raise ValueError('Qobuz 请求失败，请检查账户权限')
+    return data
+
+def qobuz_search(q):
+    q=str(q).strip()[:120]
+    if not q:raise ValueError('请输入歌曲或艺术家')
+    data=qobuz_request('catalog/search',{'query':q,'limit':40,'offset':0})
+    items=[]
+    for x in data.get('tracks',{}).get('items',[]):
+        album=x.get('album') or {};artist=x.get('performer') or album.get('artist') or {}
+        items.append({'id':str(x['id']),'title':x.get('title',''),'artist':artist.get('name',''),'album':album.get('title',''),'artwork':(album.get('image') or {}).get('large',''),'duration':x.get('duration'),'available':bool(x.get('streamable')),'format':'Qobuz FLAC'})
+    return {'source':'Qobuz · 你的订阅账户','items':items}
+
+def qobuz_download(track,quality,folder,job_id):
+    if not re.fullmatch(r'\d{1,15}',str(track)) or str(quality) not in ('6','7','27'):raise ValueError('无效 Qobuz 音轨或音质')
+    if not qobuz_configured():raise ValueError('请先配置自己的 Qobuz 订阅凭据')
+    timestamp=str(int(time.time()))
+    signature=hashlib.md5(('trackgetFileUrlformat_id'+str(quality)+'intentstreamtrack_id'+str(track)+timestamp+os.environ['QOBUZ_SECRET']).encode()).hexdigest()
+    data=qobuz_request('track/getFileUrl',{'format_id':quality,'intent':'stream','track_id':track,'request_ts':timestamp,'request_sig':signature})
+    if data.get('sample') or data.get('format_id') not in (None,6,7,27,'6','7','27'):raise ValueError('Qobuz 只提供试听或有损文件，已停止无损下载')
+    url=safe_url(data.get('url',''))
+    class PublicRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self,req,fp,code,msg,headers,newurl):
+            safe_url(newurl)
+            return super().redirect_request(req,fp,code,msg,headers,newurl)
+    # Signed CDN requests carry no account headers. Partial files are never offered for download.
+    part=folder/(str(track)+'.flac.part');target=folder/(str(track)+'.flac')
+    try:
+        with urllib.request.build_opener(PublicRedirect()).open(url,timeout=30) as r,part.open('wb') as out:
+            head=r.read(4)
+            if head!=b'fLaC':raise ValueError('收到的文件不是 FLAC，已停止保存')
+            out.write(head);size=4;total=int(r.headers.get('Content-Length','0'))
+            if total>1_000_000_000:raise ValueError('音轨超过 1 GB 下载上限')
+            while True:
+                if state['jobs'][job_id]['status']=='cancelled':raise ValueError('下载已取消')
+                chunk=r.read(262144)
+                if not chunk:break
+                size+=len(chunk)
+                if size>1_000_000_000:raise ValueError('音轨超过 1 GB 下载上限')
+                out.write(chunk)
+            if size<=4 or total and size!=total:raise ValueError('音轨下载不完整，请重试')
+        part.replace(target)
+    finally:part.unlink(missing_ok=True)
+
 def update_job(id,**values):
     with LOCK:state['jobs'][id].update(values);save()
 
@@ -96,7 +149,9 @@ def work(id):
         if j['kind']=='torrent':
             gid=rpc('addUri',[j['url']],{'dir':str(folder),'seed-time':'0','seed-ratio':'0','max-download-limit':'0','follow-torrent':'true','max-tries':'3','retry-wait':'10'})
             update_job(id,gid=gid,status='active');return
-        if j['kind']=='novel':
+        if j['kind']=='qobuz':
+            qobuz_download(j['url'],j.get('format') or '6',folder,id)
+        elif j['kind']=='novel':
             run_process(['novel-adapter','pack',j['url']],folder,id,timeout=14400)
             if not list(folder.rglob('*.epub')):raise ValueError('Packer did not produce an EPUB')
         else:
@@ -116,8 +171,11 @@ def work(id):
 
 def submit(body):
     kind=body.get('kind');url=body.get('url','')
-    if kind not in ('torrent','video','novel'):raise ValueError('Unsupported job kind')
-    novel_url(url) if kind=='novel' else safe_url(url,kind=='torrent')
+    if kind not in ('torrent','video','novel','qobuz'):raise ValueError('Unsupported job kind')
+    if kind=='qobuz':
+        if not qobuz_configured():raise ValueError('请先配置自己的 Qobuz 订阅凭据')
+        if not re.fullmatch(r'\d{1,15}',str(url)) or str(body.get('format') or '6') not in ('6','7','27'):raise ValueError('无效 Qobuz 音轨或音质')
+    else:novel_url(url) if kind=='novel' else safe_url(url,kind=='torrent')
     with LOCK:
         if sum(j['status'] in ('queued','running','active','waiting') for j in state['jobs'].values())>=10:raise ValueError('Queue is full (10 active jobs)')
         if shutil.disk_usage(DATA).free<1_000_000_000:raise ValueError('Less than 1 GB disk space remains')
@@ -200,7 +258,7 @@ class Handler(BaseHTTPRequestHandler):
         if path.path=='/download':self.download(query.get('ticket',[''])[0]);return
         if not self.authorized():return
         try:
-            if path.path=='/health':self.respond({'ok':True,'version':1,'freeBytes':shutil.disk_usage(DATA).free,'capabilities':{'ytDlp':bool(shutil.which('yt-dlp')),'novel':bool(shutil.which('novel-adapter')),'aria2':bool(shutil.which('aria2c'))}})
+            if path.path=='/health':self.respond({'ok':True,'version':1,'freeBytes':shutil.disk_usage(DATA).free,'capabilities':{'ytDlp':bool(shutil.which('yt-dlp')),'novel':bool(shutil.which('novel-adapter')),'aria2':bool(shutil.which('aria2c')),'qobuz':qobuz_configured()}})
             elif path.path=='/jobs':self.respond({'jobs':refresh_jobs()})
             elif path.path=='/jobs/files':
                 id=query.get('id',[''])[0]
@@ -216,6 +274,7 @@ class Handler(BaseHTTPRequestHandler):
             if not 0<length<=32768:raise ValueError('Invalid request size')
             body=json.loads(self.rfile.read(length));path=urllib.parse.urlsplit(self.path).path
             if path=='/resolve':self.respond(resolve(body['url']))
+            elif path=='/music/qobuz/search':self.respond(qobuz_search(body.get('q','')))
             elif path=='/novel/catalog':self.respond(novel_call('catalog',body['url']))
             elif path=='/novel/chapter':self.respond(novel_call('chapter',body['url'],int(body['index'])))
             elif path=='/jobs':self.respond(submit(body),202)

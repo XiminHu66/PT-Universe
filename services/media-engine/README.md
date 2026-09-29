@@ -46,3 +46,9 @@ docker compose up -d
 ```
 
 源站变化时需要先更新固定版本或适配器，再重新构建。不要直接用不明镜像或把账户 cookie 上传到公开网页。
+
+## Qobuz 订阅音源（可选）
+
+参考 [QobuzDL/Qobuz-DL](https://github.com/QobuzDL/Qobuz-DL) 的公开 API 协议，增加鉴权搜索和 FLAC 下载任务。需自行拥有有效 Qobuz 订阅及获准使用的应用凭据；不会从网页提取凭据，也不使用共享账号。
+
+在 Compose 目录的私有 `.env` 文件设置 `QOBUZ_APP_ID`、`QOBUZ_AUTH_TOKEN`、`QOBUZ_SECRET`，然后重建并重启引擎。不要提交该文件。网页连接引擎后选择“Qobuz · 自有订阅”，搜索歌曲，再选择 CD / Hi-Res 音质下载。完成后在下载任务里取回 FLAC。凭据只发送到固定 Qobuz 官方 API，签名 CDN 下载不携带账户请求头；拒绝试听、非 FLAC 和不完整文件。未提供有效订阅时此源不可用。

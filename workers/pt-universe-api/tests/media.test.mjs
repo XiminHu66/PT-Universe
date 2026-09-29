@@ -17,18 +17,27 @@ assert.equal(s.isAnimeMedia('http://cdn.anime1.me/test.mp4'),false);
 const feed='<rss><item><title><![CDATA[Test &amp; title]]></title><enclosure url="magnet:?xt=urn:btih:123&amp;dn=Test"/></item></rss>';
 assert.equal(s.parseTorrentFeed(feed,'fixture')[0].title,'Test & title');
 assert.equal(s.parseTorrentFeed(feed,'fixture')[0].magnet,'magnet:?xt=urn:btih:123&dn=Test');
-const result=await s.torrentSearch('test',async url=>{
- if(url.includes('nyaa.si'))throw new Error('HTTP 429');
- if(url.includes('dmhy.org'))return feed;
- if(url.includes('advancedsearch'))return JSON.stringify({response:{docs:[{identifier:'fixture',title:'Archive fixture'}]}});
- return JSON.stringify({files:[{name:'fixture_archive.torrent'}]});
-});
-assert.equal(result.sources.filter(x=>x.ok).length,2);
-assert.equal(result.items.length,2);
-assert.ok(result.items.some(x=>x.torrent.endsWith('/fixture_archive.torrent')));
-console.log('Media regressions passed: arithmetic, paragraph order, truncated text, media host validation, RSS, partial-source failure.');
-// A slow body must remain readable after the header timeout has elapsed.
+const torrents=await module('src/torrent-search.ts'),catalog=await module('src/media-catalog.ts');
 const realFetch=globalThis.fetch;
+try{
+ globalThis.fetch=async()=>Response.json({hits:[{title:'Test',hash:'a'.repeat(40),seeders:8,bytes:900,tracker:'fixture'}]});
+ const result=await torrents.torrentSearch('test',async url=>{
+  if(url.includes('nyaa.si'))throw new Error('HTTP 429');
+  if(url.includes('dmhy.org'))return feed;
+  return '<rss><channel><item><guid>not a URL</guid><link>https://mikanani.me/Home/Episode/one</link><title>Test</title><description>Test[1.2GB]</description><enclosure url="https://mikanani.me/Download/'+ 'a'.repeat(40)+'.torrent"/></item></channel></rss>';
+ });
+ assert.equal(result.sources.filter(x=>x.ok).length,3);
+ assert.equal(result.items.length,2);
+ assert.equal(result.items[0].seeders,8);
+ assert.deepEqual(result.items[0].sources,['Knaben','蜜柑计划']);
+ assert.throws(()=>torrents.parseKnaben({error:'unavailable'}));
+ assert.throws(()=>s.parseTorrentFeed('<html>Site Unavailable</html>','蜜柑计划'));
+ assert.equal(result.items[0].torrent,'https://mikanani.me/Download/'+'a'.repeat(40)+'.torrent');
+ const list=catalog.parseAnimeCatalog(JSON.stringify([[19,'無職轉生','1-12','2024','春','字幕组'],[null,'unsupported']]));
+ assert.equal(list.length,1);assert.equal(list[0].url,'https://anime1.me/?cat=19');
+}finally{globalThis.fetch=realFetch;}
+console.log('Media regressions passed: paragraph order, incomplete text, full catalogue, source failures, torrent deduplication and seed metadata.');
+// A slow body must remain readable after the header timeout has elapsed.
 let streamSignal;
 try {
  globalThis.fetch=async (_url,init)=>{streamSignal=init.signal;return new Response(new ReadableStream({start(controller){setTimeout(()=>{if(init.signal.aborted)controller.error(new Error('body aborted'));else{controller.enqueue(new TextEncoder().encode('complete file'));controller.close();}},40);}}));};

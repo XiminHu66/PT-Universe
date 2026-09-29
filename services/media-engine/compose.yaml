@@ -7,6 +7,9 @@ services:
       - media-data:/data
     environment:
       MEDIA_ORIGINS: https://ximinhu66.github.io,http://localhost:8000,http://127.0.0.1:8000
+      QOBUZ_APP_ID: ${QOBUZ_APP_ID:-}
+      QOBUZ_AUTH_TOKEN: ${QOBUZ_AUTH_TOKEN:-}
+      QOBUZ_SECRET: ${QOBUZ_SECRET:-}
     restart: unless-stopped
     init: true
     cap_drop: [ALL]
