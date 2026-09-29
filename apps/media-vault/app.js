@@ -73,7 +73,19 @@ let exportStopped=false,exportRunning=false,readerRequest=0;
 
 const chapterDB=new Promise(resolve=>{try{const r=indexedDB.open('media-vault-reading',1);const timer=setTimeout(()=>resolve(null),2000);r.onupgradeneeded=()=>r.result.createObjectStore('chapters');r.onsuccess=()=>{clearTimeout(timer);resolve(r.result);};r.onerror=r.onblocked=()=>{clearTimeout(timer);resolve(null);};}catch{resolve(null);}});
 async function chapterCache(key,value){const storage=await chapterDB;if(!storage)return null;try{return await new Promise(resolve=>{const tx=storage.transaction('chapters',value?'readwrite':'readonly'),table=tx.objectStore('chapters'),r=value?table.put(value,key):table.get(key);let result=null;r.onsuccess=()=>{result=r.result;};tx.oncomplete=()=>resolve(result);tx.onerror=tx.onabort=()=>resolve(null);});}catch{return null;}}
-async function cachedChapter(url){const key='v4:'+url,old=await chapterCache(key);if(old)return old;const d=await api('chapter',{url});if(!d.text?.trim()&&!d.blocks?.some(b=>b.type==='image'))throw new Error('来源没有返回完整正文，已停止导出');await chapterCache(key,d);return d;}
+let lastChapterFetch=0;
+let chapterDelay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function cachedChapter(url,paced=false){
+ const key='v3:'+url,old=await chapterCache(key);if(old)return old;
+ const interval=url.includes('wenku8')?3000:4200;
+ for(let attempt=0;attempt<3;attempt++){
+  if(paced){const wait=Math.max(0,interval-(Date.now()-lastChapterFetch));if(wait)await chapterDelay(wait);if(exportStopped)throw new Error('已停止打包，已读取章节保留在本机缓存');}
+  lastChapterFetch=Date.now();
+  try{const d=await api('chapter',{url});if(!d.text?.trim()&&!d.blocks?.some(b=>b.type==='image'))throw new Error('来源没有返回完整正文，已停止导出');await chapterCache(key,d);return d;}
+  catch(e){if(!paced||attempt===2||!/HTTP (429|502|503|504)\b/.test(e.message))throw e;const delay=(attempt+1)*15000;$('#exportStatus').textContent=`来源暂时限流或繁忙，${delay/1000} 秒后重试本章；已读章节已保留。`;await chapterDelay(delay);}
+ }
+}
+
 async function readChapter(index){
  if(!book||index<0||index>=book.chapters.length)return;const request=++readerRequest,target=book;chapterIndex=index;const c=target.chapters[index];$('#readerPrev').disabled=true;$('#readerNext').disabled=true;
  readerContent='';$('#readerRetry').hidden=true;$('#readerAlternative').hidden=true;$('#readerDownload').disabled=true;$('#readerEPUB').disabled=true;$('#readerTitle').textContent=book.title+' · '+c.title;$('#readerText').textContent='正在读取完整章节与分页…';if(!$('#reader').open)$('#reader').showModal();
@@ -89,7 +101,7 @@ async function exportBook(){
  const from=Number($('#exportFrom').value),to=Number($('#exportTo').value),target=book;
  if(!Number.isInteger(from)||!Number.isInteger(to)||from<1||to<from||to>target.chapters.length)throw new Error('请选择有效章节范围');
  exportRunning=true;exportStopped=false;$('#exportCancel').hidden=false;const chapters=[];
- try{for(let i=from-1;i<to;i++){if(exportStopped)throw new Error('已停止，已抓取章节保留在本机，下次继续会复用');$('#exportStatus').textContent=`正在读取 ${i-from+2} / ${to-from+1}：${target.chapters[i].title}。请保持页面打开。`;const d=await cachedChapter(target.chapters[i].url);if(exportStopped)throw new Error('已停止打包，已读取章节保留在本机缓存');chapters.push({title:d.title||target.chapters[i].title,text:d.text||'本章为插图，文字版 EPUB 不包含图片。'});}
+ try{for(let i=from-1;i<to;i++){if(exportStopped)throw new Error('已停止，已抓取章节保留在本机，下次继续会复用');$('#exportStatus').textContent=`正在读取 ${i-from+2} / ${to-from+1}：${target.chapters[i].title}。请保持页面打开。`;const d=await cachedChapter(target.chapters[i].url,true);if(exportStopped)throw new Error('已停止打包，已读取章节保留在本机缓存');chapters.push({title:d.title||target.chapters[i].title,text:d.text||'本章为插图，文字版 EPUB 不包含图片。'});}
  const filename=target.title+(from===1&&to===target.chapters.length?'':`（${from}—${to}章）`);await createBookEPUB(filename,chapters);$('#exportStatus').textContent=`完成：${chapters.length} 章文字版 EPUB。`;
  }catch(e){$('#exportStatus').textContent='未完成：'+e.message;throw e;}finally{exportRunning=false;$('#exportCancel').hidden=true;}
 }
