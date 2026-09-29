@@ -117,7 +117,7 @@ async function loadAnime(q='',fresh=false){
  }catch(e){if(request===animeRequest){$('#animeList').innerHTML=empty(e.message);$('#animeMeta').textContent='目录读取失败';$('#animePager').hidden=true;}}
 }
 function filterAnime(){
- if(!animeCatalogItems)return;animeCategory=null;$('#animeBack').hidden=true;
+ if(!animeCatalogItems)return;animeRequest++;animeCategory=null;$('#animeBack').hidden=true;
  const q=$('#animeQuery').value,year=$('#animeYear').value,season=$('#animeSeason').value,terms=q.trim().split(/\s+/).map(normalizeTitle).filter(Boolean);
  animeFiltered=animeCatalogItems.filter(x=>(!year||x.year===year)&&(!season||x.season===season)&&terms.every(t=>x.normalized.includes(t)));animePage=1;renderAnime();
 }
@@ -129,7 +129,7 @@ function renderAnime(){
  $$('[data-series]').forEach(b=>b.onclick=()=>busy(b,()=>loadEpisodes(b.dataset.series,1)));
 }
 async function loadEpisodes(id,page=1){
- const request=++animeRequest;animeCategory=id;$('#animeList').innerHTML=empty('正在读取剧集…');$('#animeBack').hidden=false;
+ const request=++animeRequest;animeCategory=id;$('#animePrev').disabled=true;$('#animeNext').disabled=true;$('#animeList').innerHTML=empty('正在读取剧集…');$('#animeBack').hidden=false;
  try{const d=await api('anime/episodes',{id,page});if(request!==animeRequest)return;animePage=page;
  $('#animeMeta').textContent=(animeCatalogItems?.find(x=>String(x.id)===String(id))?.title||'番剧')+' · 剧集按最近发布排列';
  $('#animeList').innerHTML=d.items.length?d.items.map((x,i)=>`<article class="card"><h3>${esc(x.title)}</h3><div class="actions"><button data-episode="${i}">解析 / 播放</button><a href="${href(x.url)}" target="_blank" rel="noopener">原站 ↗</a></div></article>`).join(''):empty('本页没有可用剧集');
@@ -141,7 +141,7 @@ $('#animeSearch').onsubmit=e=>{e.preventDefault();const q=$('#animeQuery').value
 $('#animeRefresh').onclick=e=>busy(e.currentTarget,()=>loadAnime($('#animeQuery').value,true));
 $('#animeYear').onchange=$('#animeSeason').onchange=filterAnime;
 $('#animeBack').onclick=()=>{animeRequest++;filterAnime();};
-for(const [id,delta] of [['animePrev',-1],['animeNext',1]])$('#'+id).onclick=e=>{if(animeCategory)busy(e.currentTarget,()=>loadEpisodes(animeCategory,animePage+delta));else{animePage+=delta;renderAnime();$('#animeMeta').scrollIntoView({block:'start'});}};
+for(const [id,delta] of [['animePrev',-1],['animeNext',1]])$('#'+id).onclick=e=>{if(animeCategory)loadEpisodes(animeCategory,animePage+delta);else{animePage+=delta;renderAnime();$('#animeMeta').scrollIntoView({block:'start'});}};
 let novelCatalogItems=null,novelSearchRequest=0;
 async function searchNovelTitles(q){
  const request=++novelSearchRequest;$('#novelMatches').hidden=false;$('#novelMatches').innerHTML=empty('正在查找书名与其他版本…');

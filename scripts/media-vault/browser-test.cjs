@@ -48,7 +48,8 @@ const fs=require('node:fs');
  const simplified=await page.locator('#animeList').textContent();
  await page.fill('#animeQuery','無職轉生');await page.click('#animeSearch button');await page.waitForFunction(()=>!document.querySelector('#animeSearch button').disabled);
  if(await page.locator('#animeList').textContent()!==simplified)throw Error('Simplified/traditional results differ');
- await page.click('[data-series]');await page.waitForSelector('[data-episode]');await page.click('#animeNext');await page.waitForFunction(()=>document.querySelector('#animeNext').disabled);
+ await page.click('[data-series]');await page.waitForSelector('[data-episode]');await page.click('#animeNext');await page.waitForFunction(()=>document.querySelector('#animePageLabel').textContent==='剧集第 2 页');
+ if(!await page.locator('#animeNext').isDisabled())throw Error('Last episode page must disable Next');
  if(!(await page.locator('#animeList').textContent()).includes('01'))throw Error('Episode pagination failed');
  await page.click('#animeBack');await page.waitForSelector('[data-series]');
  for(const tab of ['anime','torrent','video']){await page.click(`[data-tab="${tab}"]`);await page.locator('#'+tab).waitFor({state:'visible'});}
