@@ -24,7 +24,7 @@ function buildNav(){
   $$('[data-cat]').forEach(b=>b.onclick=()=>showCategory(b.dataset.cat));
   $$('[data-mobile]').forEach(b=>b.onclick=()=>b.dataset.mobile==='more'?openMenu():showCategory(b.dataset.mobile));
 }
-function card(a){let fav=favorites.includes(a.id);return `<article class="app-card" data-app="${a.id}" style="--accent:${a.accent}"><div class="card-top"><span class="app-symbol">${a.icon}</span><button class="fav ${fav?'on':''}" data-fav="${a.id}">${fav?'★':'☆'}</button></div><h3>${a.name}</h3><p>${a.desc}</p><div class="card-foot"><span class="chip">${a.catName}</span><button class="launch" data-launch="${a.id}">打开 →</button></div></article>`}
+function card(a){let fav=favorites.includes(a.id);return `<article class="app-card" data-app="${a.id}" style="--accent:${a.accent}"><div class="card-top"><span class="app-symbol">${a.icon}</span><button class="fav ${fav?'on':''}" data-fav="${a.id}">${fav?'★':'☆'}</button></div><h3>${a.name}</h3><p>${a.desc}</p><div class="card-foot"><span class="chip">${a.catName}</span><button class="launch" data-launch="${a.id}">${a.id==='room-workout'?'独立打开 ↗':'打开 →'}</button></div></article>`}
 function render(){
   let pinned=favorites.map(id=>APPS.find(a=>a.id===id)).filter(Boolean);
   $('#favoriteGrid').innerHTML=pinned.length?pinned.map(card).join(''):'<button class="empty pin-empty" id="emptyPinButton">尚未 Pin 常用工具 · 点击选择</button>';
@@ -45,7 +45,9 @@ function renderPinOptions(){const box=$('#pinOptions');if(!box)return;box.innerH
 function openPins(){renderPinOptions();$('#pinDialog').showModal()}
 function showCategory(id){if(id==='home'){if(location.hash!=='#/home')location.hash='#/home';showHome();return}showHome();let c=CATS.find(x=>x.id===id),apps=APPS.filter(a=>a.cat===id);$('#pageEyebrow').textContent='COLLECTION';$('#pageTitle').textContent=c.name;$('#collectionTitle').textContent=c.name;$('#favoriteGrid').innerHTML=apps.map(card).join('');bindCards();updateNav(id);if(location.hash!==`#/category/${id}`)location.hash=`#/category/${id}`;setTimeout(()=>$('#favoriteGrid').scrollIntoView({behavior:'smooth',block:'start'}),20)}
 function openApp(id){
-  let a=APPS.find(x=>x.id===id);if(!a)return;active=a;recents=[id,...recents.filter(x=>x!==id)].slice(0,8);db.set('recents',recents);
+  let a=APPS.find(x=>x.id===id);if(!a)return;recents=[id,...recents.filter(x=>x!==id)].slice(0,8);db.set('recents',recents);
+  if(id==='room-workout'){renderRecent();window.open(a.url,'_blank','noopener');return}
+  active=a;
   window.location.assign(a.url);
 }
 function tick(){let d=new Date();$('#todayDate').textContent=new Intl.DateTimeFormat('zh-CN',{weekday:'long',month:'long',day:'numeric'}).format(d);$('#todayTime').textContent=d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false});let h=d.getHours();$('#todayGreeting').textContent=h<6?'夜深了，保留一点安静。':h<12?'早上好，先从最重要的一件事开始。':h<18?'下午好，工具都已就位。':'晚上好，收拢今天的轨道。';renderCountdown()}
