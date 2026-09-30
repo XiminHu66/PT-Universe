@@ -25,3 +25,5 @@ function generateWeekend(p){const pool=planEvents(events.events,{date:p.date,cit
 function weekendText(x){return `${x.p.date} · ${x.e.city}\n${time(x.start)} ${x.e.title}\n${x.e.venue}\n活动原文：${x.e.url}\n${time(x.finish+30)} 用餐：${x.food}\n建议行程，出发前核对活动时段、票务、营业和实际车程。\n路线：${x.route}`}
 async function load(){try{events=await json('apps/eastside-weekend/data/events.json');renderWeekend()}catch(e){toast(e.message);renderWeekend()}}
 if(host){render();if(mode==='weekend')load()}
+
+addEventListener('workspace-records',e=>{if(mode==='weekend'&&['savedPlaces','sync'].includes(e.detail.key)){const select=host.querySelector('[name=restaurant]');if(!select)return;const value=select.value;select.replaceChildren(new Option('活动附近用餐',''),...places().map(p=>new Option(p.name,p.id||p.name)));if([...select.options].some(o=>o.value===value))select.value=value;}});

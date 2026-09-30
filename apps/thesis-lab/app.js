@@ -8,8 +8,9 @@ function value(c,metric){const q=c.quarters.at(-1),y=yoyQuarter(c,q);if(!q)retur
 function evaluate(t){const c=data.companies.find(c=>c.ticker===t.ticker),v=c?value(c,t.metric):null;if(!Number.isFinite(v)||c.stale||expired(c.updatedAt))return {text:'待确认',cls:'muted',detail:'指标缺失或数据未及时更新'};const ok=t.op==='gte'?v>=t.threshold:v<=t.threshold;return {text:ok?'条件满足':'条件未满足',cls:ok?'good':'bad',detail:'当前 '+v.toFixed(2)+' · '+c.quarters.at(-1).end}}
 function render(){
  $('#app').innerHTML='<div class="toolbar"><label>观察公司<select id="company">'+data.companies.map(c=>'<option value="'+esc(c.ticker)+'" '+(c.ticker===selected?'selected':'')+'>'+esc(c.ticker+' · '+c.name)+'</option>').join('')+'</select></label><span class="tag">'+data.companies.length+' 家公司</span></div><div id="companyView"></div><section class="panel"><div class="row"><h2>投资论点</h2><button id="newThesis" class="primary">＋ 添加论点</button></div><p class="muted">写下理由，并用一个可验证的指标跟踪。条件满足不等于买入建议。</p><div id="thesisForm"></div><div id="theses" class="grid"></div></section>';
- $('#company').onchange=e=>{selected=e.target.value;renderCompany();renderTheses()};
+ $('#company').onchange=e=>{selected=e.target.value;renderCompany();renderTheses();dispatchEvent(new CustomEvent('workspace-symbol-changed',{detail:{symbol:selected}}))};
  $('#newThesis').onclick=()=>form();
+ if(selected&&!data.companies.some(c=>c.ticker===selected)){const o=new Option(selected+' · 暂无财报快照',selected,true,true);$('#company').append(o)}
  renderCompany();renderTheses();
 }
 function renderCompany(){const c=data.companies.find(c=>c.ticker===selected);if(!c){$('#companyView').innerHTML='<div class="empty">暂未取得财报，运行状态中可查看原因。</div>';return}
@@ -27,4 +28,7 @@ function form(t={}){editing=t.id||null;$('#thesisForm').innerHTML='<form id="edi
  $('#editor').onsubmit=e=>{e.preventDefault();const v=Object.fromEntries(new FormData(e.target));v.threshold=Number(v.threshold);if(!Number.isFinite(v.threshold))return;const item={...v,id:editing||crypto.randomUUID(),history:t.history||[],updatedAt:new Date().toISOString()};theses=editing?theses.map(x=>x.id===editing?item:x):[...theses,item];save('theses',theses);dispatchEvent(new Event('decision-thesis-updated'));selected=item.ticker;render();toast('论点已保存')};$('#editor input[name=title]').focus();
 }
 backups('theses',()=>theses,v=>{if(!Array.isArray(v)||v.length>1000||!v.every(x=>x&&typeof x.id==='string'&&typeof x.title==='string'&&rules[x.metric]&&['gte','lte'].includes(x.op)&&Number.isFinite(x.threshold)&&(!x.history||Array.isArray(x.history))))throw new Error('记录格式不正确');theses=v;save('theses',v);render()});
-try{data=await json('./data/financials.json');selected=data.companies.find(c=>c.ticker===new URLSearchParams(location.search).get('symbol'))?.ticker||data.companies[0]?.ticker||'';meta(data);render()}catch(e){$('#app').innerHTML='<div class="empty">'+esc(e.message)+'，请稍后读取最新快照。</div>'}
+try{data=await json('./data/financials.json');selected=new URLSearchParams(location.search).get('symbol')||data.companies[0]?.ticker||'';meta(data);render()}catch(e){$('#app').innerHTML='<div class="empty">'+esc(e.message)+'，请稍后读取最新快照。</div>'}
+
+addEventListener('workspace-select-symbol',e=>{if(data&&selected!==e.detail.symbol){selected=e.detail.symbol;editing=null;render()}});
+addEventListener('workspace-records',e=>{if(data&&(e.detail.key==='ptu.labs.theses'||e.detail.key==='sync')){theses=read('theses',[]);renderTheses()}});

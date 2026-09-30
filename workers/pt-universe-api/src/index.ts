@@ -1,3 +1,4 @@
+import { decisionRoute, decisionTick } from './decision';
 import { launch, type Browser, type Page } from '@cloudflare/playwright';
 import { researchRoute } from './research';
 import { mediaRoute } from './media';
@@ -462,6 +463,7 @@ export default {
         await env.DB.prepare('INSERT INTO analytics_daily(day,path,views) VALUES(?,?,1) ON CONFLICT(day,path) DO UPDATE SET views=views+1').bind(day,path).run();
         return new Response(null,{status:204,headers:cors(request)});
       }
+      const decision=await decisionRoute(request,env,authenticate);if(decision)return reply(request,decision.body,decision.status||200);
       const media=await mediaRoute(request,env);if(media)return media instanceof Response?media:reply(request,media);
       const research=await researchRoute(request);if(research)return reply(request,research);
       const sync=await syncRoute(request,env,url);if(sync)return sync;
@@ -476,6 +478,7 @@ export default {
     }catch(e){console.error('request_failed',{path:url.pathname,error:String(e)});return error(request,e instanceof Error?e.message:String(e),500)}
   },
   async scheduled(_controller:ScheduledController,env:Env,ctx:ExecutionContext){
+    if(_controller.cron==='*/15 * * * *'){ctx.waitUntil(decisionTick(env));return;}
     ctx.waitUntil((async()=>{
       const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(new Date());
       const pick=(type:string)=>parts.find(x=>x.type===type)?.value||'',hour=Number(pick('hour'));
