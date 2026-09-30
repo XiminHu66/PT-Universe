@@ -1,69 +1,21 @@
-# Decision tools, September 2026
+# Decision workspaces and automatic collection
 
-Scope: Stock Alert + Thesis Lab holding reviews; 3C Scout purchase shortlist;
-Weekend Atlas half-day planning + Food Orbit dinner planning; Signal Audit,
-Watch Inbox and Ask GPT. Other tools retain their existing code and behavior.
+The two investment apps share one entry at apps/investment-desk/. Weekend Atlas and Food Orbit share apps/life-desk/. Original app URLs redirect, while embedded=workspace supports the workspace adapters and standalone=1 supports regression testing. Existing storage keys are preserved.
 
-## State and evidence
+## Collection
 
-New records use `ptu.decision.*` in localStorage. Existing PT sync already
-includes this prefix and encrypts before upload. No personal records, holdings,
-monitor URLs or signals are committed to the public repository. Data backup
-buttons export each record collection. Ask GPT exports text and stores drafts
-and the last 30 packets. Pair devices through the existing PT bridge.
+The existing PT Universe Worker now supports authenticated /api/decision/:owner/sources routes. A collector account is created only when the user connects a source. It is separate from device synchronization and uses the existing bearer authentication table. Public source configuration and collected text are stored server-side; holdings and private notes are not uploaded by the collector. The account credential can travel through existing encrypted device synchronization.
 
-Holdings support USD stock positions (not options/cash), explicit review
-boundaries, conditional thesis checks and append-only review history. Quotes
-older than 96 hours cannot trigger price comparisons; ages are always shown.
-Concentration applies only to the fully priced, entered equity subset.
+Sources: public HTTPS page text (optional CSS selector), RSS/Atom feeds, and explicit JSON-LD Product/Offer quotes. No authenticated browsing, X account access, or Muse account integration is claimed. Those services need actual source information. Page collection uses normal HTTP; JS-only pages, access challenges and missing prices report a failure and retain previous evidence.
 
-Shopping matches the existing news feed on all supplied keyword tokens.
-Article prices and links are discovery hints, never verified transaction prices.
-A user-confirmed observation (less than 72 hours old), same currency and variant,
-compatibility evidence and target price are required for the ready state.
-This is evaluated when the page opens or the user refreshes, not background
-merchant polling. Observations retain their original source and timestamps.
+A 15-minute dispatch checks up to 20 due sources, each with a one-hour cooldown. Source rows use atomic leases to avoid duplicate collection. Current source status includes checked time, failure, pause state and bounded snapshots. URLs and redirects reject internal names, IP literals, credentials and non-HTTPS schemes. Responses are capped at 1 MB, page text at 60,000 characters; snapshots retain 20 changes and feeds retain 300 first-seen originals. Data expires 60 days after the last successful collection. Pausing retains prior records. Removing a source deletes its remote data. The existing daily crawler schedule is not changed.
 
-Signal Audit retains original text, publication/recording timestamps and fixed
-rules. Notes and archive status can change; original signals cannot be rewritten
-in the UI. All archived records remain in the comparison. Daily OHLC observes
-next-session open to Nth-session close. No same-day lookahead or intraday execution
-inference. Only complete daily bars are evaluated, conservatively after 17:00 ET.
-Late-entered signals are separated from prospective results. SPY is buy-and-hold
-context, not an appropriate short strategy excess-return baseline. Gross directional
-returns exclude costs. This is observation research, not a broker simulator.
+Watch Inbox pulls source snapshots on open, while visible every minute, and when returning to the tab. A first snapshot establishes a baseline; changes are evaluated using existing conditions. Unresolved transitions remain pending even when later snapshots do not trigger. Browser forms are not overwritten by polling.
 
-Watch Inbox has no assumed Muse API or Twitter integration. Paste text or import:
+Signal Audit automatically ingests only a single cashtag plus an explicit direction without detected conditional, option or exit language. This conservative heuristic is not semantic understanding. Other original posts remain visible for review. First-seen capture time is retained, retrospective results are separated, and feed edits do not rewrite original signals. Statistics describe the parsed signals, not all posts from a bot. The source's attribution is not independently authenticated against X.
 
-```json
-{"observations":[{"url":"https://example.com/","text":"new content","observedAt":"2026-09-30T17:00:00Z","provider":"Muse"}]}
-```
+3C Scout reads structured merchant quotes separately from confirmed purchase evidence: a price crossing the target is a reason to check variant, stock and checkout fees, not proof of compatibility. Ask GPT builds context on open and offers an explicit user action carrying the preview in a ChatGPT URL; long contexts retain copy/download options. No AI API execution is claimed.
 
-Unknown URLs are skipped. The first observation establishes a baseline. Numeric
-rules require a single numeric field, not number extraction from arbitrary HTML.
-Unresolved matching changes remain pending through later no-change captures.
-Snooze reappears on opening the page after the chosen date; it is not an OS push
-notification. Pause blocks ingestion. Changed rules establish a fresh baseline.
+## Validation
 
-Weekend plans use real event snapshots, exact dates, freshness and explicit filters.
-Suggested visit lengths, transfer buffers and meal stops are not live opening or
-traffic data. Source pages and multi-stop Maps routes remain attached. Dinner
-menus use a small transparent recipe set with estimated times and portion scaling;
-filters fail closed rather than silently ignoring excluded ingredients.
-
-Ask GPT includes only chosen record collections and explicit page handoffs. It
-reads current available public snapshots when requested, preserves timestamps,
-marks source text as evidence, and copies editable text. Opening ChatGPT does not
-send it. Handoff content is stored locally, not in URL query strings.
-
-## Verification
-
-```
-node scripts/decision/test-models.mjs
-python -m http.server 8765
-node scripts/decision/browser-test.cjs
-```
-
-Browser tests require Playwright with Chromium. `PT_CHROME` selects a compatible
-local binary; `PT_TEST_URL` sets the base URL. Tests use isolated browser storage,
-not the user's records. Screenshots are written to `/tmp/pt-*.png`.
+Decision tools validation runs model regressions, legacy browser flows, workspace navigation/draft/shared-storage/mobile checks, automatic frontend ingestion checks, TypeScript validation and collector tests against Cloudflare's local runtime. Tests use fixtures and separate browser profiles, never the user's local records. Production Worker deployment also retains the existing type, media and dry-run checks.

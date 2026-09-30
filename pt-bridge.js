@@ -3,15 +3,16 @@
   if(location.hostname.endsWith('github.io'))fetch('https://pt-universe-api.summer07-nanjolno.workers.dev/api/analytics',{method:'POST',body:JSON.stringify({path:location.pathname}),headers:{'content-type':'text/plain;charset=UTF-8'},keepalive:true}).catch(()=>{});
   const apps=[
     ['media-vault','↓','Media Vault · 万能下载'],
-    ["thesis-lab","◈","Thesis Lab · 财报论点"],
+    ["investment-desk","↗","投资工作台"],
     ["earnings-dojo","学","Earnings Dojo · 财报训练"],
-    ["eastside-weekend","⌖","Weekend Atlas · 活动地图"],
+    ["life-desk","⌖","周末与吃饭"],
     ['room-workout','◷','Room Workout · 房间跟练'],
-    ['daily-nexus','⌂','Daily Nexus'],['deskboard','▦','DeskBoard'],['rss-dashboard','◉','RSS Orbit'],['stock-alert','↗','Stock Alert'],
-    ['qf-tool','◇','QF Tool'],['3c-scout','⌁','3C Scout'],['meal-orbit','筷','Food Orbit'],['tsugi-checker','継','Tsugi']
+    ['daily-nexus','⌂','Daily Nexus'],['deskboard','▦','DeskBoard'],['rss-dashboard','◉','RSS Orbit'],
+    ['qf-tool','◇','QF Tool'],['3c-scout','⌁','3C Scout'],['tsugi-checker','継','Tsugi']
   ];
+  const aliases={'stock-alert':'investment-desk','thesis-lab':'investment-desk','meal-orbit':'life-desk','eastside-weekend':'life-desk'};
   const current=(location.pathname.match(/\/apps\/([^/]+)/)||[])[1]||'';
-  const selected=()=>{try{return JSON.parse(localStorage.getItem('ptu.projectLinks'))||['daily-nexus','rss-dashboard','tsugi-checker']}catch{return ['daily-nexus','rss-dashboard','tsugi-checker']}};
+  const selected=()=>{try{return [...new Set((JSON.parse(localStorage.getItem('ptu.projectLinks'))||['daily-nexus','rss-dashboard','tsugi-checker']).map(id=>aliases[id]||id))]}catch{return ['daily-nexus','rss-dashboard','tsugi-checker']}};
   const root=document.createElement('div');root.className='ptb-root';
   root.innerHTML=`<button class="ptb-tab" aria-label="打开项目导航" aria-expanded="false">⌘</button><section class="ptb-panel" aria-label="PT Universe 项目导航"><header class="ptb-head"><strong>PT Universe</strong><button class="ptb-close" aria-label="关闭">×</button></header><nav class="ptb-links"></nav><details class="ptb-settings"><summary>显示项目 · 自定义</summary><div class="ptb-checks">${apps.map(([id,icon,name])=>`<label><input type="checkbox" value="${id}"> ${icon} ${name}</label>`).join('')}</div></details><details class="ptb-settings ptb-refresh"><summary>手动刷新中心 · Cloudflare</summary><div class="ptb-refresh-grid"><button data-refresh="news">新闻</button><button data-refresh="sites">漫画/小说</button><button data-refresh="music">音乐</button><button data-refresh="games">游戏</button><button class="all" data-refresh="all">全部刷新</button></div><p class="ptb-refresh-status">读取状态中…</p></details><section class="ptb-sync"><p>跨设备同步使用浏览器端 AES-GCM 加密；服务器只保存密文。</p><div class="ptb-sync-row"><button class="ptb-action primary" data-sync="create">生成配对码</button><button class="ptb-action" data-sync="connect">连接设备</button></div><textarea class="ptb-code" rows="2" placeholder="配对码只显示/输入在这里"></textarea><div class="ptb-sync-row"><button class="ptb-action" data-sync="now">立即同步</button><button class="ptb-action danger" data-sync="disconnect">断开</button></div><p class="ptb-status"></p></section></section>`;
   document.body.append(root);

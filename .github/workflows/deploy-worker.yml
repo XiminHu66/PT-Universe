@@ -48,3 +48,14 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx wrangler deploy
+
+      - name: Verify deployed collector authentication
+        run: |
+          node --input-type=module <<'JS'
+          const api='https://pt-universe-api.summer07-nanjolno.workers.dev';
+          const health=await fetch(api+'/api/health');
+          if(!health.ok)throw Error('Worker health failed');
+          const denied=await fetch(api+'/api/decision/11111111-1111-4111-8111-111111111111/sources');
+          if(denied.status!==401)throw Error('Collector endpoint did not enforce authentication: '+denied.status);
+          console.log('Deployed collector endpoint responds and enforces owner authentication');
+          JS

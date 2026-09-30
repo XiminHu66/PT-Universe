@@ -181,7 +181,7 @@ function inferMarketState() {
 
 function renderAll() {
   if (!state.watchlist.length) state.watchlist = structuredClone(DEFAULT_WATCHLIST);
-  if (!state.watchlist.some(item => item.symbol === state.selected)) state.selected = state.watchlist[0].symbol;
+  if (!state.watchlist.some(item => item.symbol === state.selected)) {if(/^[A-Z0-9.^-]{1,20}$/.test(state.selected))state.watchlist.push({symbol:state.selected,display:state.selected,name:state.selected});else state.selected=state.watchlist[0].symbol;}
   renderWatchlist(); renderSelected();
 }
 
@@ -214,6 +214,7 @@ function renderWatchlist() {
 }
 
 function renderSelected() {
+  dispatchEvent(new CustomEvent('workspace-symbol-changed',{detail:{symbol:state.selected}}));
   const item = dataFor(); const watch = state.watchlist.find(entry => entry.symbol === state.selected) || { display: state.selected, name: state.selected };
   $("quoteSymbol").textContent = watch.display; $("quoteName").textContent = item?.name || watch.name || "等待行情";
   $("quoteExchange").textContent = item?.exchange || "—"; $("quoteCurrency").textContent = currencyMark(item); $("quotePrice").textContent = fmt(item?.price);
@@ -499,3 +500,5 @@ function init() {
   setInterval(()=>fetchLiveSelectedQuote(false),60*1000); setInterval(()=>loadMarketData(false),2*60*1000);
 }
 init();
+
+addEventListener('workspace-select-symbol',async e=>{const symbol=e.detail.symbol;if(!/^[A-Z0-9.^-]{1,20}$/.test(symbol)||state.selected===symbol)return;if(!state.watchlist.some(w=>w.symbol===symbol)){state.watchlist.push({symbol,display:symbol,name:symbol});writeStorage(KEYS.watchlist,state.watchlist);}state.selected=symbol;localStorage.setItem(KEYS.selected,symbol);renderAll();});

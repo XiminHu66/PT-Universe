@@ -2,6 +2,10 @@ name: Decision tools validation
 on:
   pull_request:
     paths:
+      - 'app.js'
+      - 'apps/investment-desk/**'
+      - 'apps/life-desk/**'
+      - 'workers/pt-universe-api/**'
       - 'apps/_decision/**'
       - 'apps/signal-audit/**'
       - 'apps/watch-inbox/**'
@@ -27,8 +31,25 @@ jobs:
         run: |
           python -m http.server 8765 --bind 127.0.0.1 > /tmp/pt-server.log 2>&1 &
           node scripts/decision/browser-test.cjs
+          node scripts/decision/workspace-test.cjs
+          node scripts/decision/automatic-test.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: decision-tools-screenshots
           path: /tmp/pt-*.png
+
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate collection backend
+        working-directory: workers/pt-universe-api
+        run: |
+          npm ci
+          npm run check
+          node tests/decision.test.mjs
