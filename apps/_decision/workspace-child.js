@@ -14,8 +14,9 @@
  .topbar .brand{display:none!important}
  .watch-panel{position:static!important;width:auto!important;height:auto!important;max-height:none!important;padding:12px 20px!important}
  .watch-panel .panel-heading,.watch-panel .watch-legend{display:none!important}
- .watch-list{display:flex!important;gap:6px;overflow-x:auto!important}
- .watch-item{min-width:100px!important;flex:0 0 auto!important}
+ .watchlist{display:flex!important;gap:8px;overflow-x:auto!important;max-height:180px!important;padding-bottom:6px!important}
+ .watch-item{min-width:250px!important;max-width:290px!important;flex:0 0 auto!important}
+ .watch-panel .watch-footer{display:none!important}
  .dashboard{max-width:none!important;padding:12px!important}
  body:has(.workspace){display:block!important}
  .sidebar{display:none!important}
@@ -34,9 +35,12 @@
    dispatchEvent(new CustomEvent('workspace-activate',{detail:e.data}));resize();
   }
   if(e.data.type==='symbol'&&typeof e.data.symbol==='string'&&/^[A-Z0-9.^-]{1,20}$/.test(e.data.symbol))dispatchEvent(new CustomEvent('workspace-select-symbol',{detail:{symbol:e.data.symbol}}));
+  if(e.data.type==='investment-data')dispatchEvent(new CustomEvent('workspace-investment-data',{detail:e.data}));
   if(e.data.type==='records')dispatchEvent(new CustomEvent('workspace-records',{detail:e.data}));
  });
  addEventListener('workspace-symbol-changed',e=>send('symbol',{symbol:e.detail.symbol}));
  addEventListener('decision-thesis-updated',()=>send('records',{key:'ptu.labs.theses'}));
+ addEventListener('workspace-request-investment',()=>send('ready'));
+ addEventListener('workspace-refresh-investment',()=>send('investment-refresh'));
  send('ready');resize();
 })();

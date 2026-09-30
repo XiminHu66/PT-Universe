@@ -516,9 +516,11 @@ ${time(x.finish + 30)} \u7528\u9910\uFF1A${x.food}
   var routes = investment ? { market: "stock-alert", thesis: "thesis-lab" } : { weekend: "eastside-weekend", ...document.querySelector("#panel-dinner") ? {} : { dinner: "meal-orbit" }, restaurants: "meal-orbit", recipes: "meal-orbit", favorites: "meal-orbit", wheel: "meal-orbit" };
   var buttons = [...document.querySelectorAll("[data-tab]")];
   var frames = /* @__PURE__ */ new Map();
+  var investmentData = null;
   var tab = "";
   var symbol = params.get("symbol") || raw("ptu.workspace.symbol", "NVDA");
   if (!/^[A-Z0-9.^-]{1,20}$/.test(symbol)) symbol = "NVDA";
+  if (investment && !params.has("symbol") && read("holdings").length && !read("holdings").some((h) => h.symbol === symbol)) symbol = read("holdings")[0].symbol;
   function send(frame, type, data2 = {}) {
     frame.contentWindow?.postMessage({ channel: "pt-workspace", type, ...data2 }, location.origin);
   }
@@ -618,7 +620,9 @@ ${time(x.finish + 30)} \u7528\u9910\uFF1A${x.food}
     if (!x) return;
     const d = e.data;
     if (d.type === "height" && Number.isFinite(d.height)) x.frame.style.height = Math.min(3e4, Math.max(500, d.height)) + "px";
+    if (d.type === "investment-refresh" && investment) dispatchEvent(new Event("investment-refresh"));
     if (d.type === "ready") {
+      if (investmentData) send(x.frame, "investment-data", investmentData);
       send(x.frame, "activate", { tab });
       if (investment) send(x.frame, "symbol", { symbol });
     }
@@ -656,6 +660,10 @@ ${time(x.finish + 30)} \u7528\u9910\uFF1A${x.food}
     renderPlans();
     for (const x of frames.values()) send(x.frame, "records", { key: "sync" });
   });
+  addEventListener("investment-data", (e) => {
+    investmentData = e.detail;
+    for (const x of frames.values()) send(x.frame, "investment-data", investmentData);
+  });
   activate(params.get("tab") || (investment ? "review" : "weekend"));
   addEventListener("investment-select", (e) => {
     if (!investment) return;
@@ -664,6 +672,7 @@ ${time(x.finish + 30)} \u7528\u9910\uFF1A${x.food}
   });
   addEventListener("decision-change", (e) => {
     if (!investment) return;
+    if (e.detail.key === "holdings" && read("holdings").length && !read("holdings").some((h) => h.symbol === symbol)) setSymbol(read("holdings")[0].symbol);
     document.querySelector("#ws-symbols").innerHTML = [.../* @__PURE__ */ new Set([...read("holdings").map((h) => h.symbol), ...raw("stock_alert_watchlist_v1").map((h) => h.symbol)])].map((s) => '<option value="' + esc(s) + '">').join("");
     for (const x of frames.values()) send(x.frame, "records", { key: e.detail.key });
   });
