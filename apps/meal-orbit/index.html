@@ -556,7 +556,7 @@
 
   </style>
   <link rel="stylesheet" href="../../pt-bridge.css?v=20260827-1">
-</head>
+<link rel="stylesheet" href="../_decision/ui.css?v=1"></head>
 <body>
   <aside class="sidebar">
     <div class="brand">
@@ -571,7 +571,7 @@
     </div>
 
     <nav class="nav-tabs" aria-label="页面分区">
-      <button class="nav-tab active" data-section="decide">🎯 今天吃啥</button>
+      <button class="nav-tab active" data-section="dinner">🍽 今晚菜单</button><button class="nav-tab" data-section="decide">🎯 今天吃啥</button>
       <button class="nav-tab" data-section="nearby">🔎 餐厅雷达</button>
       <button class="nav-tab" data-section="recipes">🍳 今日食谱</button>
       <button class="nav-tab" data-section="saved">♡ 我的收藏</button>
@@ -587,11 +587,11 @@
 
   <main class="workspace">
     <div class="workspace-top">
-      <div class="workspace-title"><span>Food Orbit</span><strong id="workspaceTitle">今天吃啥</strong></div>
+      <div class="workspace-title"><span>Food Orbit</span><strong id="workspaceTitle">今晚菜单</strong></div>
       <div class="workspace-note">一页完成决定 · 探店 · 找菜谱</div>
     </div>
 
-    <section class="section active" id="section-decide">
+    <section class="section" id="section-decide">
       <div class="wheel-layout">
         <div class="card wheel-card">
           <div class="wheel-wrap">
@@ -640,7 +640,7 @@
       </div>
     </section>
 
-    <section class="section" id="section-nearby">
+    <section class="section active" id="section-dinner"><div class="d-root" data-decision="meal"></div></section><section class="section" id="section-nearby">
       <div class="section-head">
         <div><h2>餐厅雷达</h2><p>不再抓一份不完整的附近餐厅数据库，直接去最擅长“新店”和“高分”的实时来源。</p></div>
         <button class="btn primary" id="radarLocateBtn">◎ 精确定位</button>
@@ -838,7 +838,7 @@
       $$('.section').forEach(x=>x.classList.remove('active'));
       $(`#section-${btn.dataset.section}`).classList.add('active');
       const labels={decide:'今天吃啥',nearby:'餐厅雷达',recipes:'今日食谱',saved:'我的收藏'};
-      $('#workspaceTitle').textContent=labels[btn.dataset.section]||'Food Orbit';
+      $('#workspaceTitle').textContent=labels[btn.dataset.section]||(btn.dataset.section==='dinner'?'今晚菜单':'Food Orbit');
       if(btn.dataset.section==='saved') renderSaved();
     });
     const now = new Date();
@@ -1264,5 +1264,5 @@
 <a id="ptu-home-link" href="../../" aria-label="返回 PT Universe"><i aria-hidden="true">‹</i><span>PT Universe</span></a>
 <script src="../../pt-sync.js?v=20260827-1"></script>
 <script src="../../pt-bridge.js?v=20260827-1"></script>
-</body>
+<script type="module" src="../_decision/life.js?v=1"></script></body>
 </html>
