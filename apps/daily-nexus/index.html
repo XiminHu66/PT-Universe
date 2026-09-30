@@ -3306,11 +3306,12 @@ const NEXUS_DEFAULT_LINKS=[
   {emoji:'♫',name:'YouTube Music',url:'https://music.youtube.com/',group:'common'},
   {emoji:'↗',name:'Fidelity',url:'https://www.fidelity.com/',group:'common'},
   {emoji:'📚',name:'追更',url:'../tsugi-checker/',group:'more'},
-  {emoji:'🍜',name:'吃什么',url:'../meal-orbit/',group:'more'}
+  {emoji:'⌖',name:'周末与吃饭',url:'../life-desk/',group:'common'}
 ];
 let deskLinkDraft=[];
 function normalizeDeskLinkUrl(url){
   let u=String(url||'').trim();if(!u)return '';
+  if(/^(?:\.\.?\/|\/)/.test(u)){try{return new URL(u,location.href).href}catch{return ''}}
   if(!/^https?:\/\//i.test(u))u='https://'+u;
   try{const x=new URL(u);return /^https?:$/.test(x.protocol)?x.href:''}catch(e){return ''}
 }
@@ -3319,7 +3320,16 @@ function cloneLinks(rows){return rows.map(x=>({...x}))}
 function migrateUnifiedLinks(){
   try{
     const existing=JSON.parse(localStorage.getItem(NEXUS_LINK_KEY)||'null');
-    if(Array.isArray(existing))return existing;
+    if(Array.isArray(existing)){
+      if(!localStorage.getItem('daily_nexus_life_link_v1')){
+        const index=existing.findIndex(x=>/\/apps\/(life-desk|meal-orbit)\/|^\.\.\/(life-desk|meal-orbit)\//.test(String(x.url||'')));
+        const life={emoji:'⌖',name:'周末与吃饭',url:'../life-desk/',group:'common'};
+        if(index>=0)existing[index]={...existing[index],...life};else existing.push(life);
+        localStorage.setItem(NEXUS_LINK_KEY,JSON.stringify(existing));
+        localStorage.setItem('daily_nexus_life_link_v1','1');
+      }
+      return existing;
+    }
   }catch(_){}
   let legacy=[];
   try{
@@ -3333,6 +3343,7 @@ function migrateUnifiedLinks(){
   const extras=(legacy.length?legacy:NEXUS_DEFAULT_LINKS.filter(x=>x.group==='more')).map(x=>({...x,group:'more'}));
   const merged=[...common,...extras];
   localStorage.setItem(NEXUS_LINK_KEY,JSON.stringify(merged));
+  localStorage.setItem('daily_nexus_life_link_v1','1');
   return merged;
 }
 function loadUnifiedLinks(){

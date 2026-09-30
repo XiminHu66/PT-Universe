@@ -4,13 +4,14 @@
   const apps=[
     ['media-vault','↓','Media Vault · 万能下载'],
     ["investment-desk","↗","投资工作台"],
+    ["watch-inbox","◫","Muse 每日监视"],
     ["earnings-dojo","学","Earnings Dojo · 财报训练"],
     ["life-desk","⌖","周末与吃饭"],
     ['room-workout','◷','Room Workout · 房间跟练'],
     ['daily-nexus','⌂','Daily Nexus'],['deskboard','▦','DeskBoard'],['rss-dashboard','◉','RSS Orbit'],
     ['qf-tool','◇','QF Tool'],['3c-scout','⌁','3C Scout'],['tsugi-checker','継','Tsugi']
   ];
-  const aliases={'stock-alert':'investment-desk','thesis-lab':'investment-desk','meal-orbit':'life-desk','eastside-weekend':'life-desk'};
+  const aliases={'signal-audit':'investment-desk','ask-gpt':'investment-desk','stock-alert':'investment-desk','thesis-lab':'investment-desk','meal-orbit':'life-desk','eastside-weekend':'life-desk'};
   const current=(location.pathname.match(/\/apps\/([^/]+)/)||[])[1]||'';
   const selected=()=>{try{return [...new Set((JSON.parse(localStorage.getItem('ptu.projectLinks'))||['daily-nexus','rss-dashboard','tsugi-checker']).map(id=>aliases[id]||id))]}catch{return ['daily-nexus','rss-dashboard','tsugi-checker']}};
   const root=document.createElement('div');root.className='ptb-root';

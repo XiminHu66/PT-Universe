@@ -1,0 +1,61 @@
+name: Refresh public investment disclosures
+on:
+  schedule:
+    - cron: '12 */4 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: investment-public-disclosures
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python scripts/investment/refresh.py
+      - name: Save public disclosures only
+        run: |
+          git config user.name "pt-universe-investment-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/investment-desk/data/public-trades.json
+          if ! git diff --cached --quiet; then
+            git commit -m "data(investment): refresh public disclosure evidence"
+            for attempt in 1 2 3; do
+              git pull --rebase origin main
+              if git push origin HEAD:main; then exit 0; fi
+            done
+            exit 1
+          fi
+  deploy:
+    needs: refresh
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - uses: actions/deploy-pages@v4
+        id: deployment

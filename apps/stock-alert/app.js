@@ -501,4 +501,6 @@ function init() {
 }
 init();
 
-addEventListener('workspace-select-symbol',async e=>{const symbol=e.detail.symbol;if(!/^[A-Z0-9.^-]{1,20}$/.test(symbol)||state.selected===symbol)return;if(!state.watchlist.some(w=>w.symbol===symbol)){state.watchlist.push({symbol,display:symbol,name:symbol});writeStorage(KEYS.watchlist,state.watchlist);}state.selected=symbol;localStorage.setItem(KEYS.selected,symbol);renderAll();});
+addEventListener('workspace-select-symbol',async e=>{const symbol=e.detail.symbol;if(!/^[A-Z0-9.^-]{1,20}$/.test(symbol)||state.selected===symbol)return;if(!state.watchlist.some(w=>w.symbol===symbol)){state.watchlist.push({symbol,display:symbol,name:symbol});writeStorage(KEYS.watchlist,state.watchlist);}state.selected=symbol;localStorage.setItem(KEYS.selected,symbol);renderAll();if(!state.data?.symbols?.[symbol])fetchCustomSymbol(symbol);});
+
+addEventListener('workspace-records',()=>{state.watchlist=readStorage(KEYS.watchlist,DEFAULT_WATCHLIST);renderAll()});

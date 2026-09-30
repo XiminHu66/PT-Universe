@@ -23,3 +23,6 @@ addEventListener('message',e=>{if(e.origin!==location.origin||e.data?.channel!==
 document.addEventListener('click',e=>{const a=e.target.closest('a[href]');if(!a)return;const u=new URL(a.href);if(u.origin!==location.origin)return;const slug=u.pathname.match(/\/apps\/([^/]+)/)?.[1],next=Object.keys(routes).find(k=>routes[k]===slug);if(next){e.preventDefault();e.stopImmediatePropagation();if(u.searchParams.get('symbol'))setSymbol(u.searchParams.get('symbol'));activate(next)}},true);
 addEventListener('storage',e=>{summary();if(tab==='plans')renderPlans();for(const x of frames.values())send(x.frame,'records',{key:e.key})});addEventListener('decision-change',summary);addEventListener('pt-sync-applied',()=>{summary();renderPlans();for(const x of frames.values())send(x.frame,'records',{key:'sync'})});
 activate(params.get('tab')|| (investment?'review':'weekend'));
+
+addEventListener('investment-select',e=>{if(!investment)return;setSymbol(e.detail.symbol);activate(e.detail.tab||'review')});
+addEventListener('decision-change',e=>{if(!investment)return;document.querySelector('#ws-symbols').innerHTML=[...new Set([...read('holdings').map(h=>h.symbol),...raw('stock_alert_watchlist_v1').map(h=>h.symbol)])].map(s=>'<option value="'+esc(s)+'">').join('');for(const x of frames.values())send(x.frame,'records',{key:e.detail.key})});

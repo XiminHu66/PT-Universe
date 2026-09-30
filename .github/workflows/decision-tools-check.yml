@@ -11,6 +11,8 @@ on:
       - 'apps/watch-inbox/**'
       - 'apps/ask-gpt/**'
       - 'scripts/decision/**'
+      - 'scripts/investment/**'
+      - 'apps/daily-nexus/index.html'
       - '.github/workflows/decision-tools-check.yml'
   workflow_dispatch:
 permissions:
@@ -25,6 +27,7 @@ jobs:
         with:
           node-version: '22'
       - run: node scripts/decision/test-models.mjs
+      - run: node scripts/investment/test.mjs
       - run: npm install --no-save --package-lock=false playwright@1.51.1
       - run: npx playwright install --with-deps chromium
       - name: Verify browser flows
@@ -33,6 +36,7 @@ jobs:
           node scripts/decision/browser-test.cjs
           node scripts/decision/workspace-test.cjs
           node scripts/decision/automatic-test.cjs
+          node scripts/investment/browser-test.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -53,3 +57,5 @@ jobs:
           npm ci
           npm run check
           node tests/decision.test.mjs
+          node tests/muse.test.mjs
+          node tests/investment.test.mjs
