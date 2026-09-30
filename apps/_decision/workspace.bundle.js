@@ -65,7 +65,7 @@
   setupPage();
   var investment = document.body.dataset.workspace === "investment";
   var params = new URLSearchParams(location.search);
-  var routes = investment ? { market: "stock-alert", thesis: "thesis-lab" } : { weekend: "eastside-weekend", dinner: "meal-orbit", restaurants: "meal-orbit", recipes: "meal-orbit", favorites: "meal-orbit", wheel: "meal-orbit" };
+  var routes = investment ? { market: "stock-alert", thesis: "thesis-lab" } : { weekend: "eastside-weekend", ...document.querySelector("#panel-dinner") ? {} : { dinner: "meal-orbit" }, restaurants: "meal-orbit", recipes: "meal-orbit", favorites: "meal-orbit", wheel: "meal-orbit" };
   var buttons = [...document.querySelectorAll("[data-tab]")];
   var frames = /* @__PURE__ */ new Map();
   var tab = "";
@@ -189,7 +189,7 @@
     if (!a) return;
     const u = new URL(a.href);
     if (u.origin !== location.origin) return;
-    const slug = u.pathname.match(/\/apps\/([^/]+)/)?.[1], next = Object.keys(routes).find((k) => routes[k] === slug);
+    const slug = u.pathname.match(/\/apps\/([^/]+)/)?.[1], next = !investment && slug === "meal-orbit" ? "dinner" : Object.keys(routes).find((k) => routes[k] === slug);
     if (next) {
       e.preventDefault();
       e.stopImmediatePropagation();
