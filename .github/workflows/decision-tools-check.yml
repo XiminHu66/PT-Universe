@@ -12,7 +12,7 @@ on:
       - 'apps/ask-gpt/**'
       - 'scripts/decision/**'
       - 'scripts/investment/**'
-      - 'apps/daily-nexus/index.html'
+      - 'apps/daily-nexus/**'
       - '.github/workflows/decision-tools-check.yml'
   workflow_dispatch:
 permissions:
@@ -37,6 +37,7 @@ jobs:
           node scripts/decision/workspace-test.cjs
           node scripts/decision/automatic-test.cjs
           node scripts/investment/browser-test.cjs
+          node scripts/investment/nexus-tabs-test.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

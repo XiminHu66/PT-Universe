@@ -541,6 +541,8 @@
     <button class="navbtn active" data-view="home"><div><div class="navicon">⌂</div><span>今日</span></div></button>
     <button class="navbtn" data-view="traffic"><div><div class="navicon">🚗</div><span>出行</span></div></button>
     <button class="navbtn" data-view="countdown"><div><div class="navicon">⏳</div><span>倒数</span></div></button>
+    <button class="navbtn" data-view="investment"><div><div class="navicon">↗</div><span>投资</span></div></button>
+    <button class="navbtn" data-view="muse"><div><div class="navicon">◫</div><span>Muse 日报</span></div></button>
     <button class="navbtn" data-view="board"><div><div class="navicon">▦</div><span>看板</span></div></button>
     <button class="navbtn" data-view="tsugi"><div><div class="navicon">📚</div><span>追更</span></div></button>
     <button class="navbtn" data-view="meal"><div><div class="navicon">🍜</div><span>吃什么</span></div></button>
@@ -653,6 +655,19 @@
         <div class="discover-source-strip"><b>实时榜单</b><span>数据源：</span><a href="https://vspo.jp/" target="_blank" rel="noopener">VSPO! / YouTube</a><span>·</span><a href="https://github.com/explore" target="_blank" rel="noopener">GitHub</a></div>
       </article>
     </div></section>
+
+    <section class="view" id="view-investment" aria-label="投资工作台">
+      <div class="embed-frame-wrap">
+        <div class="embed-loading" id="investmentLoading"><div><b>投资工作台</b><span>正在载入持仓、行情与公开交易…</span></div></div>
+        <iframe class="embed-frame" id="investmentFrame" title="投资工作台" loading="lazy" data-src="../investment-desk/?embedded=nexus" allow="clipboard-write"></iframe>
+      </div>
+    </section>
+    <section class="view" id="view-muse" aria-label="Muse 每日监视汇总">
+      <div class="embed-frame-wrap">
+        <div class="embed-loading" id="museLoading"><div><b>Muse 每日监视汇总</b><span>正在读取日报收件箱…</span></div></div>
+        <iframe class="embed-frame" id="museFrame" title="Muse 每日监视汇总" loading="lazy" data-src="../watch-inbox/?embedded=nexus" allow="clipboard-write"></iframe>
+      </div>
+    </section>
 
     <section class="view" id="view-board">
       <div class="board-frame-wrap">
@@ -2277,6 +2292,8 @@ const DEFAULT_NAV_CONFIG=[
   {view:"home",icon:"⌂",label:"今日"},
   {view:"traffic",icon:"🚗",label:"出行"},
   {view:"countdown",icon:"⏳",label:"倒数"},
+  {view:"investment",icon:"↗",label:"投资"},
+  {view:"muse",icon:"◫",label:"Muse 日报"},
   {view:"board",icon:"▦",label:"看板"},
   {view:"tsugi",icon:"📚",label:"追更"},
   {view:"meal",icon:"🍜",label:"吃什么"},
@@ -2559,6 +2576,8 @@ function switchNexusView(view){
   setDeskBoardActive(view==='board');
   if(view==='tsugi')ensureEmbeddedSite('tsugi');
   if(view==='meal')ensureEmbeddedSite('meal');
+  if(view==='investment'||view==='muse')ensureEmbeddedSite(view);
+  dispatchEvent(new CustomEvent('nexus-view-change',{detail:{view}}));
   if(view==='music')ensureMusicTab();
   if(view==='focus')renderFocusTasks();
   if(view==='traffic')renderTraffic();
@@ -3281,6 +3300,8 @@ function syncEmbeddedTheme(name,theme=resolvedNexusTheme()){
 }
 function syncEmbeddedThemes(theme=resolvedNexusTheme()){
   syncEmbeddedTheme('tsugi',theme);syncEmbeddedTheme('meal',theme);
+  syncEmbeddedTheme('investment',theme);syncEmbeddedTheme('muse',theme);
+  dispatchEvent(new CustomEvent('nexus-theme-change',{detail:{theme}}));
 }
 function ensureEmbeddedSite(name){
   if(embeddedSiteState[name]){syncEmbeddedTheme(name);return}
@@ -4276,6 +4297,7 @@ function openModal(sel){$(sel).classList.add('open')}function closeModals(){$$('
 @media(max-width:760px){#ptu-home-link{bottom:calc(76px + env(safe-area-inset-bottom));width:23px;height:28px;border-radius:0 9px 9px 0;opacity:.2}#ptu-home-link i{flex-basis:23px;width:23px;height:28px;font-size:20px}}
 </style>
 <a id="ptu-home-link" href="../../" aria-label="返回 PT Universe"><i aria-hidden="true">‹</i><span>PT Universe</span></a>
+<script src="./decision-tabs.js?v=1"></script>
 <script src="../../pt-sync.js?v=20260827-1"></script>
 <script src="../../pt-bridge.js?v=20260827-1"></script>
 </body>
