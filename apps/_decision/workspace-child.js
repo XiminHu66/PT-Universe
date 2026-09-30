@@ -9,15 +9,17 @@
  body>main>.hero,body>main>.topline{display:none!important}
  body>main{max-width:none!important;padding:12px!important}
  [data-decision="holdings"]{display:none!important}
- .app-shell{display:block!important;height:auto!important;min-height:0!important}
+ .app-shell{display:grid!important;grid-template:60px auto / 300px minmax(0,1fr)!important;align-items:start;height:auto!important;min-height:0!important}
  .topbar{position:static!important;min-height:60px!important}
  .topbar .brand{display:none!important}
- .watch-panel{position:static!important;width:auto!important;height:auto!important;max-height:none!important;padding:12px 20px!important}
+ .watch-panel{grid-column:1;grid-row:2;position:static!important;width:auto!important;min-width:0;height:auto!important;max-height:none!important;padding:16px 12px!important}
  .watch-panel .panel-heading,.watch-panel .watch-legend{display:none!important}
- .watchlist{display:flex!important;gap:8px;overflow-x:auto!important;max-height:180px!important;padding-bottom:6px!important}
- .watch-item{min-width:250px!important;max-width:290px!important;flex:0 0 auto!important}
+ .watchlist{display:block!important;min-height:0;overflow-x:hidden!important;overflow-y:auto!important;max-height:800px!important;padding-bottom:6px!important}
+ .watch-item{width:100%!important;min-width:0!important;max-width:none!important;margin-bottom:4px}
  .watch-panel .watch-footer{display:none!important}
- .dashboard{max-width:none!important;padding:12px!important}
+ .dashboard{grid-column:2;grid-row:2;min-width:0;max-width:none!important;padding:16px!important}
+ @media(max-width:1000px) and (min-width:761px){.app-shell{grid-template-columns:260px minmax(0,1fr)!important}.watch-panel{padding:12px 8px!important}.dashboard{padding:12px!important}.watch-panel .ticker-avatar{display:none}.watch-panel .watch-item{grid-template-columns:minmax(0,1fr) auto}}
+ @media(max-width:760px){.app-shell{display:block!important}.watch-panel{padding:12px!important}.watchlist{max-height:280px!important}.watch-panel .symbol-form{display:flex}.watch-panel .remove-symbol{display:block!important}.dashboard{padding:12px!important}}
  body:has(.workspace){display:block!important}
  .sidebar{display:none!important}
  .workspace{min-height:0!important;height:auto!important;display:block!important;overflow:visible!important}
