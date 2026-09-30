@@ -82,7 +82,7 @@ export function signalResult(s, market, now=Date.now()) {
   const retrospective=Date.parse(s.recordedAt)>published+24*3600000||dateIn(s.recordedAt,'America/New_York')>=first.d;
   const benchmark=market.symbols?.SPY?.history||[],bs=benchmark.find(b=>b.d===first.d),be=benchmark.find(b=>b.d===last.d);
   const benchmarkReturn=bs?.o>0&&be?.c>0?(be.c/bs.o-1)*100:null;
-  const adverse=Math.min(0,...window.map(b=>((s.direction==='short'?b.h:b.l)/first.o-1)*100*sign).filter(Number.isFinite));
+  const adverse=window.every(b=>Number.isFinite(s.direction==='short'?b.h:b.l)&&(s.direction==='short'?b.h:b.l)>0)?Math.min(0,...window.map(b=>((s.direction==='short'?b.h:b.l)/first.o-1)*100*sign)):null;
   return {state:window.length>=s.horizon?'complete':'tracking',text:window.length>=s.horizon?'观察窗口完成':`跟踪中 ${window.length}/${s.horizon} 交易日`,entry:first.o,entryDate:first.d,exit:last.c,exitDate:last.d,returnPct:ret,adverse,benchmarkReturn,retrospective,sourceAt:market.generatedAt};
 }
 export function signalSummary(rows) {

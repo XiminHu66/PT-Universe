@@ -28,6 +28,7 @@ const market={symbols:{ABC:{history:[{d:'2026-09-24',o:80,h:90,l:70,c:85},{d:'20
 const s={symbol:'ABC',publishedAt:'2026-09-24T15:00Z',recordedAt:'2026-09-24T15:01Z',horizon:2,direction:'long',method:'next-open'};
 const r=signalResult(s,market,now);assert.equal(r.entryDate,'2026-09-25');assert.equal(r.state,'complete');assert.ok(Math.abs(r.returnPct-15)<1e-8);assert.ok(Math.abs(r.adverse+10)<1e-8);assert.equal(r.retrospective,false);assert.ok(Math.abs(r.benchmarkReturn-4)<1e-8);
 assert.ok(signalResult({...s,direction:'short'},market,now).returnPct<0);
+const noLows=structuredClone(market);noLows.symbols.ABC.history.forEach(b=>b.l=null);assert.equal(signalResult(s,noLows,now).adverse,null);
 assert.equal(signalResult({...s,publishedAt:'2026-09-28T20:00Z'},market,now).state,'pending');
 assert.equal(signalResult({...s,publishedAt:'2025-01-01T10:00Z'},market,now).state,'missing');
 assert.equal(signalResult({...s,method:'observe'},market,now).state,'unscored');
