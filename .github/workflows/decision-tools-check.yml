@@ -1,0 +1,34 @@
+name: Decision tools validation
+on:
+  pull_request:
+    paths:
+      - 'apps/_decision/**'
+      - 'apps/signal-audit/**'
+      - 'apps/watch-inbox/**'
+      - 'apps/ask-gpt/**'
+      - 'scripts/decision/**'
+      - '.github/workflows/decision-tools-check.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/decision/test-models.mjs
+      - run: npm install --no-save --package-lock=false playwright@1.51.1
+      - run: npx playwright install --with-deps chromium
+      - name: Verify browser flows
+        run: |
+          python -m http.server 8765 --bind 127.0.0.1 > /tmp/pt-server.log 2>&1 &
+          node scripts/decision/browser-test.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: decision-tools-screenshots
+          path: /tmp/pt-*.png

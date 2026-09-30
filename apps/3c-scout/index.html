@@ -17,7 +17,7 @@
     />
     <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="../../pt-bridge.css?v=20260827-1">
-</head>
+<link rel="stylesheet" href="../_decision/ui.css?v=1"></head>
   <body>
     <div class="page-shell">
       <header class="topbar">
@@ -57,7 +57,7 @@
           </div>
         </section>
 
-        <section class="radar" aria-label="商品信息流">
+        <section class="d-root d-embed" data-decision="shopping"></section><section class="radar" aria-label="商品信息流">
           <div class="stream-tabs" role="tablist" aria-label="信息流类型">
             <button class="stream-tab active" type="button" role="tab" aria-selected="true" data-stream="new">
               <span>01</span> 新商品
@@ -161,5 +161,5 @@
 <a id="ptu-home-link" href="../../" aria-label="返回 PT Universe"><i aria-hidden="true">‹</i><span>PT Universe</span></a>
 <script src="../../pt-sync.js?v=20260827-1"></script>
 <script src="../../pt-bridge.js?v=20260827-1"></script>
-</body>
+<script type="module" src="../_decision/shopping.js?v=1"></script></body>
 </html>

@@ -20,7 +20,7 @@ const $ = id => document.getElementById(id);
 const state = {
   watchlist: readStorage(KEYS.watchlist, DEFAULT_WATCHLIST),
   ranges: readStorage(KEYS.ranges, {}),
-  selected: localStorage.getItem(KEYS.selected) || "NVDA",
+  selected: new URLSearchParams(location.search).get("symbol")?.toUpperCase() || localStorage.getItem(KEYS.selected) || "NVDA",
   data: { generatedAt: null, symbols: {} },
   period: "1Y",
   analysis: null,
