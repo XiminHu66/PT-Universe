@@ -1,3 +1,5 @@
+import { museRoute } from './muse';
+import { investmentRoute } from './investment';
 import { decisionRoute, decisionTick } from './decision';
 import { launch, type Browser, type Page } from '@cloudflare/playwright';
 import { researchRoute } from './research';
@@ -463,6 +465,8 @@ export default {
         await env.DB.prepare('INSERT INTO analytics_daily(day,path,views) VALUES(?,?,1) ON CONFLICT(day,path) DO UPDATE SET views=views+1').bind(day,path).run();
         return new Response(null,{status:204,headers:cors(request)});
       }
+      const muse=await museRoute(request,env,authenticate);if(muse)return reply(request,muse.body,muse.status||200);
+      const investment=await investmentRoute(request,env);if(investment)return reply(request,investment.body,investment.status||200);
       const decision=await decisionRoute(request,env,authenticate);if(decision)return reply(request,decision.body,decision.status||200);
       const media=await mediaRoute(request,env);if(media)return media instanceof Response?media:reply(request,media);
       const research=await researchRoute(request);if(research)return reply(request,research);

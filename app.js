@@ -1,9 +1,7 @@
 const APPS=[
- {"id":"investment-desk","name":"Investment Desk · 投资工作台","icon":"↗","cat":"money","catName":"资金与决策","accent":"#256d53","desc":"同一标的串起持仓复查、行情区间、财报和论点；原 Stock Alert 与 Thesis Lab 已整合。","tags":["股票","财报","持仓","论点"],"update":"行情与财报自动刷新","url":"apps/investment-desk/","repo":"https://github.com/XiminHu66/PT-Universe/tree/main/apps/investment-desk"},
+ {"id":"investment-desk","name":"Investment Desk · 投资工作台","icon":"↗","cat":"money","catName":"资金与决策","accent":"#256d53","desc":"导入持仓 CSV，自动核对行情与财报，给出买卖候选和参考区间；内置名人公开交易核验。","tags":["股票","财报","持仓","论点"],"update":"行情与财报自动刷新","url":"apps/investment-desk/","repo":"https://github.com/XiminHu66/PT-Universe/tree/main/apps/investment-desk"},
  {"id":"life-desk","name":"Life Desk · 周末与吃饭","icon":"⌖","cat":"life","catName":"生活与饮食","accent":"#208c79","desc":"半日安排、收藏餐厅、今晚菜单和食谱在一页接着用；原 Weekend Atlas 与 Food Orbit 已整合。","tags":["周末","餐厅","食谱","活动"],"update":"每日活动快照 · 实时餐厅查询","url":"apps/life-desk/","repo":"https://github.com/XiminHu66/PT-Universe/tree/main/apps/life-desk"},
- {id:'signal-audit',name:'Signal Audit · 信号验证',icon:'◎',cat:'money',catName:'资金与决策',accent:'#256d53',desc:'保留 bot 原始信号，以统一窗口验证方向表现，单列事后补录。',url:'apps/signal-audit/',repo:'https://github.com/XiminHu66/PT-Universe/tree/main/apps/signal-audit',tags:['交易','bot','信号','验证'],update:'后台自动收集 · 行情验证'},
- {id:'watch-inbox',name:'Watch Inbox · 监视结果',icon:'◫',cat:'today',catName:'今日与看板',accent:'#a2763c',desc:'自动检查公开网页，对照等待条件，只处理值得关注的变化。',url:'apps/watch-inbox/',repo:'https://github.com/XiminHu66/PT-Universe/tree/main/apps/watch-inbox',tags:['Muse','监视','变化','条件'],update:'后台每小时检查 · 自动比较'},
- {id:'ask-gpt',name:'Ask GPT · 提问包',icon:'↗',cat:'today',catName:'今日与看板',accent:'#597e93',desc:'把持仓、价格、监视与原始证据整理成可编辑、可复制的提问。',url:'apps/ask-gpt/',repo:'https://github.com/XiminHu66/PT-Universe/tree/main/apps/ask-gpt',tags:['GPT','上下文','提问','证据'],update:'自动整理 · 带上下文提问'},
+ {id:'watch-inbox',name:'Muse Inbox · 每日监视',icon:'◫',cat:'today',catName:'今日与看板',accent:'#a2763c',desc:'接收 Muse 每日监视报告，汇总变化、原始证据、监视失败和建议下一步。',url:'apps/watch-inbox/',repo:'https://github.com/XiminHu66/PT-Universe/tree/main/apps/watch-inbox',tags:['Muse','监视','变化','条件'],update:'Muse 每日投递 · 自动汇总'},
 
  {id:'media-vault',name:'Media Vault · 万能下载',icon:'↓',cat:'media',catName:'媒体与 ACG',accent:'#bfd98a',desc:'轻小说阅读与 EPUB、各国音乐榜单与 FLAC、动漫、BT 与视频下载。',url:'apps/media-vault/',repo:'https://github.com/XiminHu66/PT-Universe/tree/main/apps/media-vault',tags:['下载','FLAC','音乐','轻小说','动漫','BT','视频'],update:'每日 08:23 PT · 实时查询'},
  {"id":"earnings-dojo","name":"Earnings Dojo · 财报训练","icon":"学","cat":"money","catName":"资金与决策","accent":"#99705c","desc":"匿名真实财报练习、客观题评分和下一季揭晓。","tags":["财报","学习","训练","投资"],"update":"每日财报快照 · 本机练习","url":"apps/earnings-dojo/","repo":"https://github.com/XiminHu66/PT-Universe/tree/main/apps/earnings-dojo"},
@@ -18,7 +16,7 @@ const APPS=[
 const CATS=[{id:'home',name:'今日总览',icon:'⌂'},{id:'today',name:'今日与看板',icon:'▦'},{id:'money',name:'资金与决策',icon:'↗'},{id:'shopping',name:'购物与发现',icon:'⌁'},{id:'life',name:'生活与饮食',icon:'筷'},{id:'media',name:'媒体与 ACG',icon:'継'}];
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const db={get(k,f){try{let v=localStorage.getItem('ptu.'+k);return v===null?f:JSON.parse(v)}catch{return f}},set(k,v){localStorage.setItem('ptu.'+k,JSON.stringify(v))}};
-const APP_ALIASES={'stock-alert':['investment-desk','market'],'thesis-lab':['investment-desk','thesis'],'eastside-weekend':['life-desk','weekend'],'meal-orbit':['life-desk','dinner']};
+const APP_ALIASES={'signal-audit':['investment-desk','audit'],'ask-gpt':['investment-desk','review'],'stock-alert':['investment-desk','market'],'thesis-lab':['investment-desk','thesis'],'eastside-weekend':['life-desk','weekend'],'meal-orbit':['life-desk','dinner']};
 const migrateIds=xs=>[...new Set(xs.map(id=>APP_ALIASES[id]?.[0]||id))];
 let favorites=migrateIds(db.get('favorites',['daily-nexus','investment-desk','tsugi-checker','3c-scout']));db.set('favorites',favorites);
 let recents=migrateIds(db.get('recents',[])),active=null,results=[],selected=0;
