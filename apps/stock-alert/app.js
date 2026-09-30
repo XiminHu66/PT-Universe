@@ -1,3 +1,4 @@
+import {portfolioDecision} from '../_decision/portfolio.mjs';
 const DEFAULT_WATCHLIST = [
   ["^GSPC", "SPX", "S&P 500"], ["QQQ", "QQQ", "Nasdaq 100 ETF"],
   ["AAPL", "AAPL", "Apple"], ["SMH", "SMH", "VanEck Semiconductor ETF"],
@@ -19,6 +20,10 @@ const RAW_QUOTES = "data/quotes.json";
 const $ = id => document.getElementById(id);
 const state = {
   watchlist: readStorage(KEYS.watchlist, DEFAULT_WATCHLIST),
+  list: readStorage('ptu.decision.holdings', []).length ? 'holdings' : 'watch',
+  companies: [],
+  evidenceErrors: {},
+  evidenceBusy: false,
   ranges: readStorage(KEYS.ranges, {}),
   selected: new URLSearchParams(location.search).get("symbol")?.toUpperCase() || localStorage.getItem(KEYS.selected) || "NVDA",
   data: { generatedAt: null, symbols: {} },
@@ -86,12 +91,19 @@ async function loadMarketData(showFeedback = false) {
   if (loaded?.symbols) {
     const directItem = state.directQuoteSymbol ? dataFor(state.directQuoteSymbol) : null;
     const directCarry = directItem ? { symbol: state.directQuoteSymbol, at: state.directQuoteAt, price: directItem.price, previousClose: directItem.previousClose, change: directItem.change, changePct: directItem.changePct, lastTradeAt: directItem.lastTradeAt, liveSource: directItem.liveSource } : null;
+    const previous = state.data.symbols;
     state.data = loaded;
     if (quotes?.symbols) {
       Object.entries(quotes.symbols).forEach(([symbol, quote]) => {
         if (state.data.symbols[symbol]) Object.assign(state.data.symbols[symbol], quote);
       });
       state.data.quoteGeneratedAt = quotes.generatedAt;
+    }
+    // A delayed static snapshot must not erase custom holdings or newer API quotes.
+    for (const [symbol, quote] of Object.entries(previous)) {
+      const current = state.data.symbols[symbol];
+      if (!current || Date.parse(quote.lastTradeAt) >= Date.parse(current.lastTradeAt || 0))
+        state.data.symbols[symbol] = {...current, ...quote};
     }
     if (directCarry && new Date(directCarry.at).getTime() > new Date(state.data.quoteGeneratedAt || 0).getTime() && state.data.symbols[directCarry.symbol]) {
       Object.assign(state.data.symbols[directCarry.symbol], directCarry);
@@ -182,6 +194,8 @@ function inferMarketState() {
 function renderAll() {
   if (!state.watchlist.length) state.watchlist = structuredClone(DEFAULT_WATCHLIST);
   if (!state.watchlist.some(item => item.symbol === state.selected)) {if(/^[A-Z0-9.^-]{1,20}$/.test(state.selected))state.watchlist.push({symbol:state.selected,display:state.selected,name:state.selected});else state.selected=state.watchlist[0].symbol;}
+  const entries = listEntries();
+  if (state.list === 'holdings' && entries.length && !entries.some(h=>h.symbol===state.selected)) state.selected = entries[0].symbol;
   renderWatchlist(); renderSelected();
 }
 
@@ -200,17 +214,51 @@ function modelZoneState(item) {
   return null;
 }
 
+function holdings() { return readStorage('ptu.decision.holdings', []).filter(h=>h.quantity>0); }
+function listEntries() { return state.list === 'holdings' ? holdings().map(h=>({...h,display:h.symbol,name:h.description||h.symbol})) : state.watchlist; }
+function decisionFor(symbol) {
+  const holding = holdings().find(h=>h.symbol===symbol) || {symbol,quantity:0};
+  const company = state.companies.find(c=>c.ticker===symbol);
+  return {holding, company, decision:portfolioDecision(holding,dataFor(symbol),company,readStorage('ptu.labs.theses',[]))};
+}
 function renderWatchlist() {
-  $("watchlist").innerHTML = state.watchlist.map(item => {
+  const held = state.list === 'holdings';
+  for (const button of document.querySelectorAll('[data-list]')) {
+    const active = button.dataset.list === state.list;
+    button.setAttribute('aria-selected',String(active)); button.tabIndex=active?0:-1;
+    button.querySelector('span').textContent=button.dataset.list==='holdings'?holdings().length:state.watchlist.length;
+  }
+  $('watchlist').setAttribute('aria-labelledby',held?'holdingsTab':'watchTab');
+  $('addSymbolForm').hidden=held; $('resetWatchlist').hidden=held;
+  $('listSummary').textContent=held?'CSV 持仓 · 点击标的联动图表与结论':'原有自选 · 点击标的查看证据';
+  $("watchlist").innerHTML = listEntries().map(item => {
     const market = dataFor(item.symbol); const change = finite(market?.changePct); const alert = alertState(item.symbol, market); const modelZone = modelZoneState(market);
+    const d = decisionFor(item.symbol).decision;
     const zoneLabel = alert ? `自定${alert === "buy" ? "买" : "卖"}` : modelZone ? `模型${modelZone === "buy" ? "买" : "卖"}` : "";
     return `<button class="watch-item ${item.symbol === state.selected ? "active" : ""} ${modelZone ? `model-${modelZone}` : ""} ${alert ? `alert-${alert}` : ""}" data-symbol="${escapeHtml(item.symbol)}" type="button">
       <span class="ticker-avatar">${escapeHtml(item.display.slice(0,4))}</span>
-      <span class="ticker-id"><strong>${escapeHtml(item.display)} ${zoneLabel ? `<em class="zone-tag ${alert ? "custom" : ""}">${zoneLabel}</em>` : ""}</strong><small>${escapeHtml(item.name || item.symbol)}</small></span>
+      <span class="ticker-id"><strong>${escapeHtml(item.display)} ${zoneLabel ? `<em class="zone-tag ${alert ? "custom" : ""}">${zoneLabel}</em>` : ""}</strong><small>${held ? fmt(item.quantity, 6).replace(/\.?0+$/,'')+' 股 · 成本 $'+fmt(item.cost) : escapeHtml(item.name || item.symbol)}</small><em class="decision-tag ${d.state}">${escapeHtml(d.label)}</em></span>
       <span class="ticker-quote"><strong>${market ? `${currencyMark(market)}${fmt(market.price)}` : "—"}</strong><small class="${change >= 0 ? "positive" : "negative"}">${pct(change)}</small></span>
-      <span class="remove-symbol" data-remove="${escapeHtml(item.symbol)}">×</span>
+      ${held ? '' : `<span class="remove-symbol" data-remove="${escapeHtml(item.symbol)}" aria-label="移出观察">×</span>`}
     </button>`;
-  }).join("");
+  }).join("") || '<p class="position-empty">尚未导入持仓。点击「导入 / 更新 CSV」即可载入；观察列表仍可使用。</p>';
+}
+
+function safeSource(url, label) {
+  try { const u=new URL(url); if(!['https:','http:'].includes(u.protocol))return ''; return `<a href="${escapeHtml(u.href)}" target="_blank" rel="noopener noreferrer">${label} ↗</a>`; } catch { return ''; }
+}
+function renderPositionDecision() {
+  const {holding:h,company:c,decision:d}=decisionFor(state.selected), q=dataFor();
+  const pnl=h.quantity>0&&h.cost>0&&q?.currency==='USD'&&d.price>0?(d.price-h.cost)*h.quantity:null;
+  const time=value=>value?new Date(value).toLocaleString('zh-CN',{hour12:false}):'缺失';
+  const expanded=$('positionEvidence')?.open;
+  $('positionDecision').innerHTML=`
+    <div class="position-heading"><strong class="decision-tag ${d.state}">${escapeHtml(d.label)}</strong><span>${h.quantity>0?`持仓 ${fmt(h.quantity,6).replace(/\.?0+$/,'')} 股 · 均价 $${fmt(h.cost)}`:'仅观察 · 未持有'}${pnl!==null?` · 浮盈亏 <b class="${pnl>=0?'positive':'negative'}">${pnl>=0?'+':''}$${fmt(pnl)} (${pct((d.price/h.cost-1)*100)})</b>`:''}</span></div>
+    <p class="decision-reasons">${d.reasons.map(escapeHtml).join('；')}</p>
+    ${d.buy?`<div class="position-ranges"><div><small>买入 / 加仓参考</small><strong>$${fmt(d.buy[0])}–${fmt(d.buy[1])}</strong></div><div><small>减仓 / 止盈参考</small><strong>$${fmt(d.sell[0])}–${fmt(d.sell[1])}</strong></div><div><small>失效参考</small><strong>$${fmt(d.invalidation)}</strong></div></div>`:''}
+    ${state.evidenceErrors[state.selected]?`<p class="evidence-error">本次刷新：${escapeHtml(state.evidenceErrors[state.selected])}；保留带时间的已有证据。</p>`:''}
+    <details id="positionEvidence" ${expanded?'open':''}><summary>判断依据与来源 <span>· ${state.evidenceBusy?'刷新中':escapeHtml(time(q?.lastTradeAt))}</span></summary><ul>${d.evidence.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul><p>${safeSource(q?.sourceURL||'https://finance.yahoo.com/quote/'+encodeURIComponent(state.selected)+'/', '行情原始页面')} · 日线截至 ${escapeHtml(q?.history?.at(-1)?.d||'缺失')}</p><p>${c?`${safeSource(c.sourceURL,'财报原始页面')} · 检查 ${escapeHtml(time(c.updatedAt))}`:'无可用公司财报；ETF 不套用公司财报规则。'}</p><p>区间基于均线、支撑阻力与 ATR，是技术参考，不是公允价值。报价或日线过期时暂停综合信号。</p></details>
+    <div class="position-actions"><button type="button" data-investment-tab="thesis">财报与论点</button><button type="button" data-investment-tab="audit">核验名人信号</button></div>`;
 }
 
 function renderSelected() {
@@ -227,6 +275,7 @@ function renderSelected() {
   $("statPrev").textContent = fmt(item?.previousClose);
   $("stat52").textContent = analysis ? `${fmt(analysis.low52)} – ${fmt(analysis.high52)}` : "—";
   $("statVol").textContent = analysis ? `${fmt(analysis.annualVol,1)}%` : "—"; $("statAtr").textContent = analysis ? fmt(analysis.atr) : "—";
+  renderPositionDecision();
   renderChart(item?.history || [], analysis); renderAnalysis(analysis, item?.history || [], item?.fundamentals); renderRangeForm(analysis); renderOptions(item?.options, item?.price); renderNews(item?.news || []); renderAlert(item);
 }
 
@@ -463,7 +512,17 @@ function maybeNotify(kind,item,range) {
   new Notification(`${displayFor(state.selected)} ${kind === "buy" ? "买入" : "卖出"}区间提醒`, { body:`当前价 $${fmt(item.price)} · 区间 $${fmt(range[`${kind}Low`])}–$${fmt(range[`${kind}High`])}` });
 }
 
+function navigateInvestment(tab) {
+  if (parent!==window) parent.postMessage({channel:'pt-workspace',type:'navigate',tab,symbol:state.selected},location.origin);
+  else location.href='../investment-desk/?tab='+tab+'&symbol='+encodeURIComponent(state.selected);
+}
 function bindEvents() {
+  document.querySelectorAll('[data-list]').forEach((button,index,buttons)=>{
+    button.onclick=()=>{state.list=button.dataset.list;renderAll()};
+    button.onkeydown=e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?1:1-index;buttons[next].click();buttons[next].focus()}};
+  });
+  $('manageHoldings').onclick=()=>navigateInvestment('review');
+  $('positionDecision').onclick=e=>{const button=e.target.closest('[data-investment-tab]');if(button)navigateInvestment(button.dataset.investmentTab)};
   $("watchlist").addEventListener("click", event => {
     const remove = event.target.closest("[data-remove]"); if (remove) { event.stopPropagation(); removeSymbol(remove.dataset.remove); return; }
     const button = event.target.closest("[data-symbol]"); if (!button) return; state.selected = button.dataset.symbol; state.dismissedAlert = false; localStorage.setItem(KEYS.selected,state.selected); renderAll(); if(!dataFor()) fetchCustomSymbol(state.selected).then(()=>fetchLiveSelectedQuote(false)); else fetchLiveSelectedQuote(false);
@@ -471,6 +530,7 @@ function bindEvents() {
   $("addSymbolForm").addEventListener("submit", event => { event.preventDefault(); const input=$("symbolInput"); let symbol=input.value.trim().toUpperCase(); if(!symbol)return; if(symbol==="SPX")symbol="^GSPC"; if(symbol==="BTCUSD")symbol="BTC-USD"; if(!state.watchlist.some(item=>item.symbol===symbol))state.watchlist.push({symbol,display:symbol.replace("-USD","USD").replace("^GSPC","SPX"),name:symbol}); state.selected=symbol; input.value=""; writeStorage(KEYS.watchlist,state.watchlist); localStorage.setItem(KEYS.selected,symbol); renderAll(); fetchCustomSymbol(symbol); });
   $("resetWatchlist").addEventListener("click",()=>{state.watchlist=structuredClone(DEFAULT_WATCHLIST);writeStorage(KEYS.watchlist,state.watchlist);renderAll();toast("已恢复 deskboard 默认列表");});
   $("refreshButton").addEventListener("click",async()=>{
+    dispatchEvent(new Event('workspace-refresh-investment'));
     await loadMarketData(false);
     $("refreshButton").classList.add("loading");
     const direct = await fetchLiveSelectedQuote(true);
@@ -496,11 +556,36 @@ function removeSymbol(symbol) { if(state.watchlist.length<=1){toast("至少保�
 function init() {
   if (localStorage.getItem(KEYS.theme)==="light") document.body.classList.add("light");
   if (localStorage.getItem(KEYS.notifications)==="on") $("notifyButton").textContent="●";
+  if (state.list==='holdings' && !holdings().some(h=>h.symbol===state.selected)) state.selected=holdings()[0].symbol;
   bindEvents(); updateMarketStatus(); renderAll(); loadMarketData(false).then(()=>fetchLiveSelectedQuote(false));
   setInterval(()=>fetchLiveSelectedQuote(false),60*1000); setInterval(()=>loadMarketData(false),2*60*1000);
 }
 init();
 
-addEventListener('workspace-select-symbol',async e=>{const symbol=e.detail.symbol;if(!/^[A-Z0-9.^-]{1,20}$/.test(symbol)||state.selected===symbol)return;if(!state.watchlist.some(w=>w.symbol===symbol)){state.watchlist.push({symbol,display:symbol,name:symbol});writeStorage(KEYS.watchlist,state.watchlist);}state.selected=symbol;localStorage.setItem(KEYS.selected,symbol);renderAll();if(!state.data?.symbols?.[symbol])fetchCustomSymbol(symbol);});
-
-addEventListener('workspace-records',()=>{state.watchlist=readStorage(KEYS.watchlist,DEFAULT_WATCHLIST);renderAll()});
+addEventListener('workspace-select-symbol',e=>{
+  const symbol=e.detail.symbol;
+  if(!/^[A-Z0-9.^-]{1,20}$/.test(symbol)||state.selected===symbol)return;
+  state.list=holdings().some(h=>h.symbol===symbol)?'holdings':'watch';
+  if(state.list==='watch'&&!state.watchlist.some(w=>w.symbol===symbol)){state.watchlist.push({symbol,display:symbol,name:symbol});writeStorage(KEYS.watchlist,state.watchlist);}
+  state.selected=symbol;localStorage.setItem(KEYS.selected,symbol);renderAll();
+});
+function reloadRecords(e){
+  state.watchlist=readStorage(KEYS.watchlist,DEFAULT_WATCHLIST);
+  if(e?.detail?.key==='holdings'&&holdings().length)state.list='holdings';
+  renderAll();
+}
+addEventListener('workspace-records',reloadRecords);
+addEventListener('storage',reloadRecords);
+addEventListener('pt-sync-applied',reloadRecords);
+addEventListener('workspace-investment-data',e=>{
+  const {market,companies,errors,busy}=e.detail;
+  for(const [symbol,q] of Object.entries(market?.symbols||{})){
+    const old=dataFor(symbol);
+    if(!old||Date.parse(q.lastTradeAt)>=Date.parse(old.lastTradeAt||0))state.data.symbols[symbol]={...old,...q};
+  }
+  if(companies)state.companies=companies;
+  state.evidenceErrors=errors||{};state.evidenceBusy=!!busy;
+  renderAll();
+});
+// The classic bridge can become ready before this module's imports finish.
+dispatchEvent(new Event('workspace-request-investment'));

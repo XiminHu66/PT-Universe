@@ -383,3 +383,63 @@ h2 { font-size: 20px; }
   .decision-grid { grid-template-columns: 1fr; }.signal-box { grid-column: 1; }.indicator-grid { grid-template-columns: repeat(2,1fr); }
   .quote-head { gap: 8px; }.quote-price-block > div span { display: none; }.quote-price-block strong { font-size: 25px; }
 }
+
+/* Holdings, evidence and chart share a single selection. */
+[hidden] { display: none !important; }
+.portfolio-tabs { display:flex; gap:4px; padding:4px; margin:0 0 10px; border:1px solid var(--line); border-radius:12px; background:var(--panel-2); }
+.portfolio-tabs button { flex:1; padding:8px 14px; border:0; border-radius:8px; background:transparent; color:var(--muted); cursor:pointer; }
+.portfolio-tabs button[aria-selected="true"] { background:var(--accent-soft); color:var(--accent); }
+.portfolio-tabs span { margin-left:5px; font-size:11px; opacity:.8; }
+.list-context { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:10px; font-size:11px; color:var(--muted); }
+.list-context button { white-space:nowrap; }
+.decision-tag { display:inline-block; font-style:normal; font-size:11px; font-weight:600; line-height:1.5; border-radius:5px; padding:2px 6px; background:var(--panel-2); color:var(--muted); }
+.decision-tag.buy { color:var(--green); }
+.decision-tag.sell,.decision-tag.trim { color:var(--amber); }
+.decision-tag.candidate { color:var(--blue); }
+.ticker-id .decision-tag { margin-top:5px; white-space:normal; }
+.position-decision { border-block:1px solid var(--line); padding:14px 0; margin:6px 0 14px; }
+.position-heading { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.position-heading>.decision-tag { font-size:13px; padding:4px 8px; }
+.position-heading>span { font-size:11px; color:var(--muted); line-height:1.7; }
+.decision-reasons { font-size:12px; line-height:1.7; margin:9px 0; }
+.position-ranges { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
+.position-ranges>div { background:var(--panel-2); padding:9px; border-radius:8px; }
+.position-ranges small { display:block; font-size:10px; color:var(--muted); margin-bottom:5px; }
+.position-ranges strong { display:block; font-size:13px; overflow-wrap:anywhere; }
+.position-decision details { margin-top:10px; color:var(--muted); font-size:11px; line-height:1.7; }
+.position-decision summary { cursor:pointer; color:var(--text); }
+.position-decision summary span { color:var(--muted); }
+.position-decision details ul { padding-left:18px; }
+.position-decision a { color:var(--blue); text-decoration:underline; }
+.position-actions { display:flex; gap:12px; margin-top:8px; }
+.position-actions button { padding:0; border:0; background:none; color:var(--blue); font-size:11px; cursor:pointer; }
+.evidence-error { color:var(--amber); font-size:11px; line-height:1.6; }
+.position-empty { padding:12px; color:var(--muted); font-size:12px; line-height:1.8; }
+@media (max-width:760px) {
+  .watch-panel { position:static; }
+  .portfolio-tabs { margin-bottom:8px; }
+  .position-ranges { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .position-ranges>div:last-child { grid-column:1/-1; display:flex; align-items:center; gap:10px; }
+  .position-ranges>div:last-child small { margin:0; }
+  .position-heading { gap:6px; }
+}
+
+.technical-details>summary { cursor:pointer; font-size:13px; font-weight:600; line-height:1.8; }
+.technical-details>summary span { color:var(--muted); font-size:11px; font-weight:400; margin-left:8px; }
+.technical-details[open]>summary { margin-bottom:16px; }
+
+@media (min-width:1181px) {
+  .dashboard .stock-market-grid { grid-template-rows:auto min-content min-content 1fr auto auto; }
+  .dashboard .stock-market-grid>.hero-card { grid-column:1; grid-row:2 / span 3; align-self:start; }
+  .dashboard .stock-market-grid>.analysis-card { grid-column:2; grid-row:2; align-self:start; }
+  .dashboard .stock-market-grid>.options-card { grid-column:2; grid-row:3; align-self:start; }
+  .dashboard .stock-market-grid>.alert-settings { grid-column:2; grid-row:4; align-self:start; }
+  .dashboard .stock-market-grid>.news-card { grid-column:1 / -1; grid-row:5; }
+}
+@media (max-width:760px) {
+  .watchlist .watch-item { grid-template-columns:minmax(0,1fr) auto; text-align:left; padding:10px 12px; }
+  .watchlist .watch-item .ticker-avatar { display:none; }
+  .watchlist .watch-item .ticker-id small,.watchlist .watch-item .ticker-quote strong { display:block!important; }
+}
+
+.options-card:has(>.technical-details:not([open])) { min-height:0; }

@@ -7,7 +7,7 @@
   <meta name="description" content="自选股、新闻、期权活跃度、技术分析与价格区间提醒。">
   <title>Stock Alert · 交易观察台</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=20260821-representative-expiries">
+  <link rel="stylesheet" href="styles.css?v=20260930-holdings">
   <link rel="stylesheet" href="../../pt-bridge.css?v=20260827-1">
 <link rel="stylesheet" href="../_decision/ui.css?v=1"></head>
 <body>
@@ -35,12 +35,17 @@
         <div><span class="eyebrow">WATCHLIST</span><h2>我的自选</h2></div>
         <button id="resetWatchlist" class="text-button" type="button">恢复默认</button>
       </div>
+      <div class="portfolio-tabs" role="tablist" aria-label="标的列表">
+        <button id="holdingsTab" role="tab" aria-controls="watchlist" data-list="holdings">持仓 <span></span></button>
+        <button id="watchTab" role="tab" aria-controls="watchlist" data-list="watch">观察 <span></span></button>
+      </div>
+      <div class="list-context"><span id="listSummary"></span><button id="manageHoldings" class="text-button" type="button">导入 / 更新 CSV</button></div>
       <form id="addSymbolForm" class="symbol-form">
         <label class="sr-only" for="symbolInput">输入股票代码</label>
         <input id="symbolInput" autocomplete="off" maxlength="12" placeholder="输入代码，如 AMD">
         <button type="submit">＋</button>
       </form>
-      <div id="watchlist" class="watchlist" aria-live="polite"></div>
+      <div id="watchlist" class="watchlist" role="tabpanel" aria-live="polite"></div>
       <div class="watch-footer">
         <span><i class="dot buy"></i>买入提醒</span>
         <span><i class="dot sell"></i>卖出提醒</span>
@@ -66,6 +71,7 @@
             <span id="quoteChange" class="quote-change">—</span>
           </div>
         </div>
+        <section id="positionDecision" class="position-decision" aria-live="polite"></section>
         <div class="chart-toolbar">
           <div class="period-tabs" role="tablist" aria-label="图表周期">
             <button data-period="1M" type="button">1M</button>
@@ -86,14 +92,14 @@
         </div>
       </section>
 
-      <section class="analysis-card card">
+      <section class="analysis-card card"><details class="technical-details"><summary>技术指标与历史检验 <span>均线 · RSI · 回测 · 估值</span></summary>
         <div class="section-heading">
-          <div><span class="eyebrow">TECHNICAL MODEL</span><h2>技术分析 <em class="live-model-badge">随报价更新</em></h2></div>
+          <div><span class="eyebrow">TECHNICAL MODEL</span><h2>技术指标明细 <em class="live-model-badge">随报价更新</em></h2></div>
           <button id="methodButton" class="text-button" type="button">查看算法</button>
         </div>
         <div class="decision-grid">
           <div class="signal-box">
-            <span>综合信号</span>
+            <span>仅技术面信号</span>
             <strong id="signalText">等待数据</strong>
             <div class="confidence"><i id="confidenceBar"></i></div>
             <small id="confidenceText">指标一致度 —</small>
@@ -126,7 +132,7 @@
             <p class="micro-note">PE 是基本面估值指标，需与行业、增长和盈利质量比较，不能单独当作买卖信号。</p>
           </section>
         </div>
-      </section>
+      </details></section>
 
       <section class="alert-settings card">
         <div class="section-heading">
@@ -154,13 +160,13 @@
         </form>
       </section>
 
-      <section class="options-card card side-card">
+      <section class="options-card card side-card"><details class="technical-details"><summary>期权活跃度 <span>展开链与成交分布</span></summary>
         <div class="section-heading">
           <div><span class="eyebrow">OPTIONS SNAPSHOT</span><h2>期权活跃度</h2></div>
           <a id="optionsLink" class="text-button" href="#" target="_blank" rel="noopener">查看链 ↗</a>
         </div>
         <div id="optionsBody" class="options-body"><div class="empty-state">等待期权数据</div></div>
-      </section>
+      </details></section>
 
       <section class="news-card card side-card">
         <div class="section-heading">
@@ -199,7 +205,7 @@
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20260930-workspaces2" defer></script>
+  <script src="app.js?v=20260930-holdings" type="module"></script>
 
 
 <!-- PT-UNIVERSE-BACKLINK -->
@@ -214,5 +220,5 @@
 <a id="ptu-home-link" href="../../" aria-label="返回 PT Universe"><i aria-hidden="true">‹</i><span>PT Universe</span></a>
 <script src="../../pt-sync.js?v=20260827-1"></script>
 <script src="../../pt-bridge.js?v=20260827-1"></script>
-<script type="module" src="../_decision/holdings.js?v=20260930-workspaces2"></script><script src="../_decision/workspace-child.js?v=1"></script></body>
+<script type="module" src="../_decision/holdings.js?v=20260930-workspaces2"></script><script src="../_decision/workspace-child.js?v=20260930-holdings"></script></body>
 </html>

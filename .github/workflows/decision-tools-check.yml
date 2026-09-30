@@ -4,6 +4,7 @@ on:
     paths:
       - 'app.js'
       - 'apps/investment-desk/**'
+      - 'apps/stock-alert/**'
       - 'apps/life-desk/**'
       - 'apps/meal-orbit/**'
       - 'workers/pt-universe-api/**'
@@ -39,6 +40,7 @@ jobs:
           node scripts/decision/workspace-test.cjs
           node scripts/decision/automatic-test.cjs
           node scripts/investment/browser-test.cjs
+          node scripts/investment/holdings-market-test.cjs
           node scripts/investment/nexus-tabs-test.cjs
           node scripts/decision/nexus-meal-test.cjs
           node scripts/decision/meal-inputs-test.cjs
