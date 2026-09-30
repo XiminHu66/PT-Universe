@@ -26,3 +26,10 @@ activate(params.get('tab')|| (investment?'review':'weekend'));
 
 addEventListener('investment-select',e=>{if(!investment)return;setSymbol(e.detail.symbol);activate(e.detail.tab||'review')});
 addEventListener('decision-change',e=>{if(!investment)return;document.querySelector('#ws-symbols').innerHTML=[...new Set([...read('holdings').map(h=>h.symbol),...raw('stock_alert_watchlist_v1').map(h=>h.symbol)])].map(s=>'<option value="'+esc(s)+'">').join('');for(const x of frames.values())send(x.frame,'records',{key:e.detail.key})});
+
+// Announce interactivity only after all workspace handlers are installed.
+buttons.forEach(b=>b.disabled=false);
+document.body.dataset.workspaceReady='true';
+document.querySelector('#workspace-boot')?.remove();
+dispatchEvent(new Event('workspace-ready'));
+if(parent!==window)parent.postMessage({channel:'pt-nexus-tool',type:'ready'},location.origin);

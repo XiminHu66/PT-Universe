@@ -1,8 +1,8 @@
 // Keep the two same-origin tools mounted: switching tabs preserves drafts and credentials.
 (()=>{
   'use strict';
-  const routes={'investment-desk':'investment','watch-inbox':'muse','signal-audit':'investment'};
-  const frames=['investment','muse'].map(name=>({name,frame:document.getElementById(name+'Frame')}));
+  const routes={'life-desk':'meal','meal-orbit':'meal','investment-desk':'investment','watch-inbox':'muse','signal-audit':'investment'};
+  const frames=['investment','muse','meal'].map(name=>({name,frame:document.getElementById(name+'Frame')}));
   const theme=()=>document.documentElement.dataset.theme||'light';
   function syncTheme(doc,depth=0){
     if(!doc||depth>3)return;
@@ -34,8 +34,15 @@
       syncTheme(doc);frame.contentWindow.ptNexusActive=document.getElementById('view-'+name).classList.contains('active');
     });
   }
+  // Navigation is usable before optional sync/navigation scripts finish loading.
+  addEventListener('message',e=>{
+    if(e.origin!==location.origin||e.data?.channel!=='pt-nexus-tool'||e.data.type!=='ready')return;
+    const item=frames.find(x=>x.frame.contentWindow===e.source);if(!item)return;
+    const loading=document.getElementById(item.name+'Loading');
+    if(loading){loading.classList.add('hide');loading.style.display='none'}
+  });
   addEventListener('nexus-theme-change',()=>frames.forEach(({frame})=>syncTheme(frame.contentDocument)));
   addEventListener('nexus-view-change',e=>activate(e.detail.view));
   const initial=new URL(location.href).searchParams.get('tab');
-  if(['investment','muse'].includes(initial))window.switchNexusView(initial);
+  if(['investment','muse','meal'].includes(initial))window.switchNexusView(initial);
 })();
