@@ -1,0 +1,31 @@
+const {chromium}=require('playwright'),assert=require('node:assert/strict');
+(async()=>{
+ const browser=await chromium.launch({headless:true,...(process.env.PT_LIVE&&process.env.HTTPS_PROXY?{proxy:{server:process.env.HTTPS_PROXY}}:{})});
+ const ctx=await browser.newContext({ignoreHTTPSErrors:!!process.env.PT_LIVE,viewport:{width:1440,height:1000}}),page=await ctx.newPage(),errors=[];
+ page.setDefaultTimeout(process.env.PT_LIVE?60000:30000);page.on('pageerror',e=>errors.push(e.message));
+ await ctx.route('**/pt-analytics.js',r=>r.fulfill({body:''}));
+ // The complete index and recipe text must work without calls to the upstream host.
+ await ctx.route('https://api.github.com/repos/Anduin2017/HowToCook/**',r=>r.abort());
+ await ctx.route('https://raw.githubusercontent.com/Anduin2017/HowToCook/**',r=>r.abort());
+ const base=process.env.PT_TEST_URL||'http://127.0.0.1:8765/';
+ await page.goto(base+'apps/daily-nexus/?tab=meal&v=20260930-meal-inputs3',{waitUntil:'domcontentloaded'});
+ const desk=page.frameLocator('#mealFrame');await desk.locator('#meal-library').filter({hasText:/完整菜谱库 \d+ 篇/}).waitFor();
+ const titles=()=>desk.locator('#meal-options h3').allTextContents();
+ const submit=()=>desk.getByRole('button',{name:'生成今晚菜单',exact:true}).click();
+ await desk.locator('[name=pantry]').fill('牛肉');await submit();const beef=await titles();assert.ok(beef.some(n=>n.includes('牛肉')));
+ await desk.locator('[name=pantry]').fill('土豆');await desk.locator('#meal-options').waitFor({state:'hidden'});await submit();const potato=await titles();assert.notDeepEqual(potato,beef);assert.ok(potato.every(n=>n.includes('土豆')));
+ await desk.locator('#meal-more').click();assert.notDeepEqual(await titles(),potato);
+ await desk.locator('[name=pantry]').fill('西紅柿 鸡蛋');await submit();assert.ok((await titles()).includes('西红柿炒鸡蛋'));
+ const tomato=desk.locator('#meal-options article').filter({has:desk.locator('h3',{hasText:'西红柿炒鸡蛋'})});
+ await tomato.getByText('用量 · 计划 2 人',{exact:true}).click();assert.match(await tomato.innerText(),/西红柿 = 2个/);
+ await desk.locator('[name=people]').selectOption('4');await submit();await tomato.getByText('用量 · 计划 4 人',{exact:true}).click();assert.match(await tomato.innerText(),/西红柿 = 4个/);
+ await desk.locator('[name=exclude]').fill('鸡蛋');await submit();assert.ok(!(await titles()).some(n=>/鸡蛋|炒蛋/.test(n)));
+ await desk.locator('[name=pantry]').fill('火星石');await submit();assert.equal((await titles()).length,0);assert.match(await desk.locator('#meal-options').innerText(),/没有能用到/);
+ await desk.locator('[name=pantry]').fill('');await desk.locator('[name=exclude]').fill('');await desk.locator('[name=minutes]').selectOption('20');await desk.locator('[name=equipment]').selectOption('microwave');await submit();assert.ok((await titles()).length>0);assert.ok(!(await desk.locator('#meal-options').innerText()).includes('器材：锅'));
+ await desk.locator('[name=minutes]').selectOption('any');await desk.locator('[name=equipment]').selectOption('any');await desk.locator('[name=category]').selectOption('all');await submit();
+ const count=Number((await desk.locator('#meal-library').innerText()).match(/完整菜谱库 (\d+)/)[1]);assert.ok(count>=350);assert.match(await desk.locator('#meal-status').innerText(),new RegExp('符合条件 '+count+' 个'));
+ await desk.locator('[name=pantry]').fill('西兰花');await submit();await desk.locator('[data-meal-pick]').first().click();await desk.locator('#tab-plans').click();assert.match(await desk.locator('#ws-plans').innerText(),/HowToCook\/blob/);
+ await desk.locator('#tab-recipes').click();const food=desk.frameLocator('iframe[title=meal-orbit]');await food.locator('#recipeStatus').filter({hasText:'当前索引 '+count+' 篇'}).waitFor();assert.equal(await food.locator('#recipeGrid .recipe-card').count(),9);
+ await desk.locator('#tab-dinner').click();await page.setViewportSize({width:390,height:844});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2));await page.screenshot({path:'/tmp/pt-meal-inputs-mobile.png'});
+ assert.deepEqual(errors,[]);await browser.close();console.log('Full database UI: actual results change with ingredients, aliases, portions, exclusions, time/tools, paging, empty results, saved source and shared recipe library');
+})().catch(e=>{console.error(e);process.exit(1)});

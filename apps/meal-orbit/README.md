@@ -1,3 +1,16 @@
+# Food Orbit · 共享完整菜谱库
+
+「找食谱」与 Daily Nexus／Life Desk 的「今晚菜单」共用 `data/recipes.json`，包含 HowToCook `dishes/` 下的全部实际菜谱，排除模板／README。不再以六个固定菜单代替库内搜索。
+
+- 原菜谱全文、路径、上游提交及许可随快照保存；不需要浏览器逐篇调用 GitHub API。
+- 今晚菜单按原料、时间、器材、类别筛选，支持常见食材别名及换一组。无匹配直接说明。
+- 用时取自原文概述；缺失用时仅在不限时间时出现。工具按原文识别。
+- 只对有明确人数基准的原文用量做比例折算；未知基准和复杂公式保留原文。
+- 每次站点部署从上游重新同步。上游不可用时保留已验证快照，不换成示例菜谱。
+- 手动生成：`python scripts/decision/sync-recipes.py /path/to/HowToCook`；只需源仓库的 Markdown 与 LICENSE。
+
+源：<https://github.com/Anduin2017/HowToCook>，Unlicense（见 `data/HOWTOCOOK-LICENSE.txt`）。
+
 # Food Orbit v4.1
 
 纯静态单页版，可直接部署到 GitHub Pages。

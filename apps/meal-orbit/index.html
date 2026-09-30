@@ -1118,18 +1118,17 @@
     async function initRecipes(force=false){
       renderRecipeSkeletons();
       try {
-        const cached=store.get('recipeTreeCache',null), fresh=cached && Date.now()-cached.time<86400000;
-        if(fresh&&!force) state.recipeTree=cached.paths;
-        else {
-          const r=await fetch(TREE_URL,{headers:{Accept:'application/vnd.github+json'}}); if(!r.ok)throw new Error(`GitHub API ${r.status}`);
-          const data=await r.json();
-          state.recipeTree=(data.tree||[]).filter(x=>x.type==='blob'&&x.path.startsWith('dishes/')&&x.path.endsWith('.md')&&!/README|template|CONTRIBUT/i.test(x.path)).map(x=>x.path);
-          store.set('recipeTreeCache',{time:Date.now(),paths:state.recipeTree});
-        }
+        const response=await fetch('./data/recipes.json',{cache:force?'reload':'default'});
+        if(!response.ok)throw Error('菜谱库 HTTP '+response.status);
+        const snapshot=await response.json();
+        if(snapshot.version!==1||!Array.isArray(snapshot.recipes)||snapshot.recipes.length<300)throw Error('完整菜谱库无效');
+        state.recipeSnapshot=snapshot;
+        state.recipeByPath=new Map(snapshot.recipes.map(r=>[r.path,r]));
+        state.recipeTree=snapshot.recipes.map(r=>r.path);
         await loadRecipeBatch();
       } catch(e){
-        console.warn(e); $('#recipeStatus').innerHTML=`<span>⚠</span><div>在线菜谱索引加载失败，先显示内置示例。错误：${escapeHtml(e.message)}</div>`;
-        state.recipes=fallbackRecipes(); renderRecipes();
+        console.warn(e); $('#recipeStatus').innerHTML=`<span>⚠</span><div>完整菜谱库加载失败，请点击刷新重试。错误：${escapeHtml(e.message)}</div>`;
+        state.recipes=[]; renderRecipes();
       }
     }
     function recipeFilterPath(path,filter){
@@ -1153,22 +1152,15 @@
     }
     async function loadRecipeCard(path){
       try{
-        const r=await fetch(RAW_BASE+encodePath(path)); if(!r.ok)throw new Error(r.status); const md=await r.text();
+        const cached=state.recipeByPath?.get(path);let md=cached?.md;if(!md){const r=await fetch(RAW_BASE+encodePath(path));if(!r.ok)throw new Error(r.status);md=await r.text()}
         const title=(md.match(/^#\s+(.+)$/m)?.[1]||path.split('/').pop().replace(/\.md$/,'')).replace(/的做法$/,'');
         const imageMatch=md.match(/!\[[^\]]*\]\(([^)]+)\)/);
         let image=imageMatch?.[1]||'';
         if(image && !/^https?:\/\//.test(image)){ const dir=path.split('/').slice(0,-1).join('/'); image=RAW_BASE+encodePath(dir+'/'+image.replace(/^\.\//,'')); }
         const plain=md.replace(/!\[[^\]]*\]\([^)]+\)/g,'').replace(/\[[^\]]+\]\([^)]+\)/g,'').replace(/^#{1,6}\s+/gm,'').replace(/[*_`>#-]/g,' ').replace(/\s+/g,' ').trim();
         const desc=plain.slice(title.length).trim().slice(0,150);
-        return {id:path,path,title,image,desc,md,source:GH_BASE+encodePath(path)};
+        return {id:path,path,title,image,desc,md,source:state.recipeSnapshot?state.recipeSnapshot.source+'/blob/'+state.recipeSnapshot.sourceCommit+'/'+encodePath(path):GH_BASE+encodePath(path)};
       }catch(e){console.warn('recipe fail',path,e); return null;}
-    }
-    function fallbackRecipes(){
-      return [
-        {id:'fallback-1',title:'番茄炒蛋',desc:'酸甜家常、准备快，最适合“不知道做什么”的时候。',image:'',md:'# 番茄炒蛋\n\n## 原料\n- 番茄\n- 鸡蛋\n- 盐、糖\n\n## 做法\n1. 鸡蛋打散炒熟盛出。\n2. 番茄炒出汁，加盐和少量糖。\n3. 倒回鸡蛋翻炒均匀。',source:'https://github.com/Anduin2017/HowToCook'},
-        {id:'fallback-2',title:'青椒肉丝',desc:'下饭、快手，适合工作日晚餐。',image:'',md:'# 青椒肉丝\n\n## 原料\n- 猪里脊\n- 青椒\n- 生抽、淀粉\n\n## 做法\n1. 肉丝腌制。\n2. 大火滑炒肉丝。\n3. 加青椒快速翻炒调味。',source:'https://github.com/Anduin2017/HowToCook'},
-        {id:'fallback-3',title:'葱油拌面',desc:'十几分钟完成，碳水满足感很高。',image:'',md:'# 葱油拌面\n\n## 原料\n- 面条\n- 小葱\n- 生抽、老抽、糖\n\n## 做法\n1. 小火炸葱油。\n2. 加调味汁煮开。\n3. 面条煮熟后拌匀。',source:'https://github.com/Anduin2017/HowToCook'}
-      ];
     }
     function renderRecipeSkeletons(){
       $('#recipeGrid').innerHTML=Array.from({length:6},()=>`<div class="recipe-card"><div class="recipe-photo skeleton"></div><div class="card-body"><div class="skeleton" style="height:21px;border-radius:8px"></div><div class="skeleton" style="height:45px;border-radius:8px;margin-top:10px"></div></div></div>`).join('');
@@ -1219,7 +1211,7 @@
       if(r.path){ const dir=r.path.split('/').slice(0,-1).join('/'); md=md.replace(/!\[([^\]]*)\]\((?!https?:\/\/)([^)]+)\)/g,(_,alt,src)=>`![${alt}](${RAW_BASE+encodePath(dir+'/'+src.replace(/^\.\//,''))})`); }
       $('#recipeDialogBody').innerHTML=mdToHtml(md)+`<p style="margin-top:28px"><a class="btn" href="${escapeHtml(r.source||'https://github.com/Anduin2017/HowToCook')}" target="_blank" rel="noopener">查看原始菜谱 ↗</a></p>`;
     }
-    $('#refreshRecipesBtn').onclick=()=>{state.recipeBatch++;renderRecipeSkeletons();loadRecipeBatch();};
+    $('#refreshRecipesBtn').onclick=()=>{state.recipeBatch++;if(!state.recipeTree.length)initRecipes(true);else{renderRecipeSkeletons();loadRecipeBatch();}};
     $$('.filter-btn[data-recipe-filter]').forEach(b=>b.onclick=()=>{
       state.recipeFilter=b.dataset.recipeFilter; state.recipeBatch=0; $$('.filter-btn[data-recipe-filter]').forEach(x=>x.classList.toggle('active',x===b)); renderRecipeSkeletons(); loadRecipeBatch();
     });
@@ -1264,5 +1256,5 @@
 <a id="ptu-home-link" href="../../" aria-label="返回 PT Universe"><i aria-hidden="true">‹</i><span>PT Universe</span></a>
 <script src="../../pt-sync.js?v=20260827-1"></script>
 <script src="../../pt-bridge.js?v=20260827-1"></script>
-<script type="module" src="../_decision/life.js?v=20260930-workspaces2"></script><script src="../_decision/workspace-child.js?v=1"></script></body>
+<script type="module" src="../_decision/life.js?v=20260930-meal-inputs3"></script><script src="../_decision/workspace-child.js?v=1"></script></body>
 </html>

@@ -26,6 +26,25 @@ jobs:
           # Scraper commits made with GITHUB_TOKEN do not emit another push
           # workflow event. Always deploy the newest monorepo state instead.
           ref: main
+      - name: Read the full shared recipe source
+        id: recipes
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          repository: Anduin2017/HowToCook
+          ref: master
+          path: .recipe-source
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /dishes/**/*.md
+            /LICENSE
+      - name: Refresh shared recipe snapshot
+        if: steps.recipes.outcome == 'success'
+        continue-on-error: true
+        run: python scripts/decision/sync-recipes.py .recipe-source
+      - name: Remove temporary recipe checkout
+        if: always()
+        run: rm -rf .recipe-source
       - uses: actions/configure-pages@v5
         with:
           enablement: true
