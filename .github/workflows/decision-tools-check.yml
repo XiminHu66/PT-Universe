@@ -5,6 +5,7 @@ on:
       - 'app.js'
       - 'apps/investment-desk/**'
       - 'apps/life-desk/**'
+      - 'apps/meal-orbit/**'
       - 'workers/pt-universe-api/**'
       - 'apps/_decision/**'
       - 'apps/signal-audit/**'
@@ -27,6 +28,7 @@ jobs:
         with:
           node-version: '22'
       - run: node scripts/decision/test-models.mjs
+      - run: node scripts/decision/test-meals.mjs
       - run: node scripts/investment/test.mjs
       - run: npm install --no-save --package-lock=false playwright@1.51.1
       - run: npx playwright install --with-deps chromium
@@ -39,6 +41,7 @@ jobs:
           node scripts/investment/browser-test.cjs
           node scripts/investment/nexus-tabs-test.cjs
           node scripts/decision/nexus-meal-test.cjs
+          node scripts/decision/meal-inputs-test.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

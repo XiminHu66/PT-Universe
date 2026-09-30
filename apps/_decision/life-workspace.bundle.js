@@ -141,6 +141,167 @@
     return true;
   }
 
+  // apps/_decision/meal-planner.mjs
+  var families = {
+    "\u756A\u8304": ["\u897F\u7EA2\u67FF", "\u897F\u7D05\u67FF", "\u8543\u8304", "tomato"],
+    "\u571F\u8C46": ["\u9A6C\u94C3\u85AF", "\u99AC\u9234\u85AF", "\u6D0B\u828B", "potato"],
+    "\u9E21\u86CB": ["\u86CB", "\u96DE\u86CB", "\u9E21\u5B50", "egg", "eggs"],
+    "\u9E21\u8089": ["\u9E21", "\u96DE", "\u9E21\u817F", "\u9E21\u817F\u8089", "\u9E21\u80F8", "\u9E21\u80F8\u8089", "\u96DE\u8089", "\u9E21\u7FC5", "\u9E21\u4E01", "\u9E21\u4E1D", "\u6574\u9E21", "\u4E09\u9EC4\u9E21", "chicken"],
+    "\u725B\u8089": ["\u725B\u8089\u7247", "\u725B\u8089\u8584\u7247", "\u80A5\u725B", "\u725B\u8169", "\u725B\u8171", "\u725B\u67F3", "\u725B\u91CC\u810A", "beef"],
+    "\u732A\u8089": ["\u732A\u8089\u7247", "\u732A\u8089\u672B", "\u8089\u672B", "\u8C6C\u8089", "\u4E94\u82B1\u8089", "\u732A\u91CC\u810A", "\u732A\u7626\u8089", "\u91CC\u810A\u8089", "\u6392\u9AA8", "pork"],
+    "\u4E09\u6587\u9C7C": ["\u4E09\u6587\u9B5A", "\u9C91\u9C7C", "\u9BAD\u9B5A", "salmon"],
+    "\u91D1\u67AA\u9C7C": ["\u91D1\u69CD\u9B5A", "\u541E\u62FF\u9C7C", "\u5373\u98DF\u91D1\u67AA\u9C7C", "\u91D1\u67AA\u9C7C\u7F50\u5934", "tuna"],
+    "\u867E": ["\u867E\u4EC1", "\u8766", "\u8766\u4EC1", "\u5927\u867E", "\u867E\u76AE", "\u867E\u7C73", "\u6D77\u867E", "shrimp"],
+    "\u897F\u5170\u82B1": ["\u897F\u862D\u82B1", "\u9752\u82B1\u83DC", "\u7EFF\u82B1\u6930\u83DC", "broccoli"],
+    "\u9752\u6912": ["\u751C\u6912", "\u5F69\u6912", "bell pepper"],
+    "\u6D0B\u8471": ["\u6D0B\u8525", "onion"],
+    "\u9752\u83DC": ["\u5C0F\u767D\u83DC", "\u4E0A\u6D77\u9752", "\u6CB9\u83DC", "\u83E0\u83DC", "bok choy"],
+    "\u767D\u83DC": ["\u5927\u767D\u83DC", "\u5A03\u5A03\u83DC", "chinese cabbage"],
+    "\u80E1\u841D\u535C": ["\u80E1\u863F\u8514", "\u7EA2\u841D\u535C", "carrot"],
+    "\u8C46\u8150": ["tofu"],
+    "\u8611\u83C7": ["\u767D\u8611\u83C7", "\u53E3\u8611", "mushroom"],
+    "\u9999\u83C7": ["shiitake"],
+    "\u8304\u5B50": ["eggplant"],
+    "\u9EC4\u74DC": ["\u9EC3\u74DC", "\u5C0F\u9EC4\u74DC", "cucumber"],
+    "\u7389\u7C73": ["\u7389\u7C73\u7C92", "\u5373\u98DF\u7389\u7C73\u7C92", "\u7C9F\u7C73", "corn"],
+    "\u8C4C\u8C46": ["\u9752\u8C46", "peas"],
+    "\u7C73\u996D": ["\u719F\u7C73\u996D", "\u5DF2\u716E\u719F\u7C73\u996D", "\u53EF\u76F4\u63A5\u52A0\u70ED\u7C73\u996D", "\u7C73\u98EF", "\u5927\u7C73", "\u7C73", "rice"],
+    "\u9762\u6761": ["\u9762\u689D", "\u9762", "\u6302\u9762", "\u9EB5\u689D", "noodles"],
+    "\u71D5\u9EA6": ["\u71D5\u9EA6\u7247", "\u71D5\u9EA5", "\u71D5\u9EA5\u7247", "oats"],
+    "\u725B\u5976": ["milk"],
+    "\u9999\u8549": ["banana"],
+    "\u98DF\u7528\u6CB9": ["\u6CB9", "\u6A44\u6984\u6CB9", "\u83DC\u7C7D\u6CB9"],
+    "\u76D0": ["\u9E7D", "salt"],
+    "\u8089\u7C7B": ["\u8089", "\u8364\u83DC", "\u8477\u83DC"],
+    "\u9C7C\u7C7B": ["\u9C7C", "\u9B5A", "fish"],
+    "\u6D77\u9C9C": ["\u6D77\u9BAE", "seafood"],
+    "\u83CC\u83C7": ["\u83C7", "\u8611\u83C7\u7C7B", "\u83CC\u7C7B", "\u83C7\u7C7B"],
+    "\u8C46\u7C7B": ["\u8C46", "\u5927\u8C46", "\u8C46\u5236\u54C1", "\u8C46\u88FD\u54C1"],
+    "\u4E73\u5236\u54C1": ["\u5976", "\u4E73", "\u5976\u5236\u54C1", "\u4E73\u88FD\u54C1"],
+    "\u5C0F\u9EA6": ["\u5C0F\u9EA5", "\u9EB8\u8D28", "\u9EA9\u8CEA", "wheat"],
+    "\u7532\u58F3\u7C7B": ["\u7532\u6BBC\u985E"],
+    "\u8FA3\u6912": ["\u8FA3", "\u8FA3\u7684", "chili", "\u5C0F\u7C73\u8FA3", "\u5C0F\u7C73\u6912", "\u5241\u6912", "\u5E72\u8FA3\u6912", "\u8FA3\u6912\u7C89", "\u8FA3\u6912\u6CB9", "\u90EB\u53BF\u8C46\u74E3\u9171"],
+    "\u9999\u83DC": ["\u82AB\u837D"],
+    "\u8471": ["\u8471\u82B1", "\u8525"],
+    "\u849C": ["\u5927\u849C", "\u849C\u5934"],
+    "\u59DC": ["\u751F\u59DC", "\u8591"],
+    "\u575A\u679C": ["\u5805\u679C", "nuts"],
+    "\u82B1\u751F": ["peanut"],
+    "\u829D\u9EBB": ["sesame"]
+  };
+  var normalize = (x) => String(x ?? "").normalize("NFKC").trim().toLowerCase();
+  var aliases = new Map(Object.entries(families).flatMap(([key, list]) => [key, ...list].map((x) => [normalize(x), key])));
+  var groups = { \u9E21\u8089: ["\u8089\u7C7B"], \u725B\u8089: ["\u8089\u7C7B"], \u732A\u8089: ["\u8089\u7C7B"], \u4E09\u6587\u9C7C: ["\u9C7C\u7C7B", "\u6D77\u9C9C"], \u91D1\u67AA\u9C7C: ["\u9C7C\u7C7B", "\u6D77\u9C9C"], \u867E: ["\u6D77\u9C9C", "\u7532\u58F3\u7C7B"], \u8C46\u8150: ["\u8C46\u7C7B"], \u8C4C\u8C46: ["\u8C46\u7C7B"], \u725B\u5976: ["\u4E73\u5236\u54C1"], \u9762\u6761: ["\u5C0F\u9EA6"], \u8611\u83C7: ["\u83CC\u83C7"], \u9999\u83C7: ["\u83CC\u83C7"] };
+  function parseIngredients(value) {
+    let text = normalize(value);
+    for (const [alias, key] of aliases) if (alias.includes(" ")) text = text.replaceAll(alias, key);
+    return [...new Set(text.split(/[,，、;；\n\t +/|]+|以及|还有|和|与|及/).map((x) => x.replace(/^(?:我有|有|不吃|不要|忌口)\s*/, "").replace(/\d+(?:\.\d+)?\s*(?:克|千克|公斤|g|kg|个|根|颗|袋|斤)$/, "").trim()).filter(Boolean).map((x) => aliases.get(x) || x))];
+  }
+  var categoryNames = { meat_dish: "\u8364\u83DC", vegetable_dish: "\u7D20\u83DC", aquatic: "\u6C34\u4EA7", staple: "\u4E3B\u98DF", soup: "\u6C64", breakfast: "\u65E9\u9910", dessert: "\u751C\u70B9", drink: "\u996E\u54C1", "semi-finished": "\u534A\u6210\u54C1", condiment: "\u9171\u6599" };
+  var dinnerCategories = /* @__PURE__ */ new Set(["meat_dish", "vegetable_dish", "aquatic", "staple", "soup", "breakfast"]);
+  function section(md, heading) {
+    const parts = md.split(/^##\s+/m);
+    return (parts.slice(1).find((x) => heading.test(x.split("\n")[0])) || "").split("\n").slice(1).join("\n").trim();
+  }
+  function number(text) {
+    if (/^[\d.]+$/.test(text)) return Number(text);
+    const digits = { \u96F6: 0, \u4E00: 1, \u4E8C: 2, \u4E24: 2, \u4E09: 3, \u56DB: 4, \u4E94: 5, \u516D: 6, \u4E03: 7, \u516B: 8, \u4E5D: 9 };
+    if (text.includes("\u5341")) {
+      const [a, b] = text.split("\u5341");
+      return (digits[a] || 1) * 10 + (digits[b] || 0);
+    }
+    return digits[text] || 0;
+  }
+  function duration(intro) {
+    const phrases = intro.match(/[^。！？\n]*(?:分钟|小时|刻钟)[^。！？\n]*/g) || [];
+    const text = phrases.at(-1) || "";
+    let numeric = text.replace(/([一二两三四五六七八九十零]+)(?=\s*(?:个)?(?:半)?(?:小时|分钟))/g, (x) => number(x));
+    numeric = numeric.replace(/(?<![\d个])半(?:个)?小时/g, "0.5\u5C0F\u65F6").replace(/一刻钟/g, "15\u5206\u949F");
+    const matches = [...numeric.matchAll(/(\d+(?:\.\d+)?)\s*(?:个)?(半)?\s*(小时|分钟)/g)];
+    const minutes = matches.length ? matches.reduce((sum, m) => sum + (Number(m[1]) + (m[2] ? 0.5 : 0)) * (m[3] === "\u5C0F\u65F6" ? 60 : 1), 0) : null;
+    return { minutes: minutes && minutes <= 1440 ? minutes : null, timeText: text };
+  }
+  function recipeEquipment(title, ingredients, steps) {
+    const body = ingredients + "\n" + steps, tools = [];
+    for (const [name, re] of [["\u7A7A\u6C14\u70B8\u9505", /空气炸锅/], ["\u5FAE\u6CE2\u7089", /微波炉|微波加热/], ["\u70E4\u7BB1", /烤箱/], ["\u9AD8\u538B\u9505", /高压锅|压力锅/], ["\u7535\u996D\u7172", /电饭煲|电饭锅|电炖锅/], ["\u84B8\u9505", /蒸锅|蒸笼|蒸箱/]]) if (re.test(body) || re.test(title)) tools.push(name);
+    if (/炒锅|平底锅|热锅|起锅|锅中|锅内|锅里|煎锅|烧一锅/.test(body) || !tools.length && /[炒煎煮炖炸蒸焯]/.test(steps)) tools.push("\u9505");
+    return [...new Set(tools)];
+  }
+  function prepareRecipes(snapshot) {
+    if (snapshot?.version !== 1 || !Array.isArray(snapshot.recipes) || snapshot.recipes.length < 300) throw Error("\u5B8C\u6574\u83DC\u8C31\u5E93\u4E0D\u53EF\u7528\uFF0C\u8BF7\u91CD\u65B0\u52A0\u8F7D");
+    return snapshot.recipes.map((r) => {
+      const ingredients = section(r.md, /原料|食材/), quantities = section(r.md, /计算|用量/), steps = section(r.md, /操作|做法|步骤/);
+      const intro = r.md.split(/^##\s/m)[0], category = r.path.split("/")[1];
+      const serving = quantities.match(/一份正好够\s*(\d+)\s*个?人/) || quantities.match(/(?:适合|供|为|以|按)?\s*(\d+)\s*人(?:份|食用|食|的)/);
+      const baseServings = serving ? Number(serving[1]) : null;
+      return {
+        ...r,
+        id: r.path,
+        category,
+        categoryName: categoryNames[category] || category,
+        ingredientsText: ingredients,
+        quantitiesText: quantities,
+        stepsText: steps,
+        baseServings,
+        ...duration(intro),
+        equipment: recipeEquipment(r.name, ingredients, steps),
+        advance: /提前[^\n。]*(?:一晚|一天|过夜)|(?:腌制|冷藏|浸泡|静置)[^\n。]*(?:一晚|一夜|过夜)/.test(steps),
+        source: snapshot.source + "/blob/" + snapshot.sourceCommit + "/" + r.path.split("/").map(encodeURIComponent).join("/")
+      };
+    });
+  }
+  function mealPreferences(value) {
+    const p = value && typeof value === "object" ? value : {};
+    return {
+      minutes: ["20", "30", "45", "60", "90", "120", "any"].includes(String(p.minutes)) ? String(p.minutes) : "30",
+      people: ["1", "2", "3", "4"].includes(String(p.people)) ? String(p.people) : "2",
+      equipment: ["all", "pot", "microwave", "airfryer", "any"].includes(p.equipment) ? p.equipment : "all",
+      category: ["dinner", "all", ...Object.keys(categoryNames)].includes(p.category) ? p.category : "dinner",
+      exclude: typeof p.exclude === "string" ? p.exclude : "",
+      pantry: typeof p.pantry === "string" ? p.pantry : ""
+    };
+  }
+  function variants(term) {
+    const memberKeys = Object.entries(groups).filter(([, g]) => g.includes(term)).map(([key]) => key);
+    if (term === "\u8611\u83C7") memberKeys.push("\u9999\u83C7");
+    const keys = [term, ...memberKeys];
+    return [...new Set(keys.flatMap((k) => [k, ...families[k] || []]))].filter((v) => v.length > 1 || !["\u9E21", "\u725B", "\u732A", "\u9C7C", "\u8089", "\u86CB", "\u5976", "\u7C73", "\u9762", "\u6CB9", "\u8C46", "\u83C7"].includes(v));
+  }
+  var groupPatterns = { "\u6D77\u9C9C": /虾|蝦|蟹|蚝|牡蛎|蛤|贝|鲍|鱿|章鱼|墨鱼|鱼|魚/, "\u9C7C\u7C7B": /鱼|魚/, "\u8089\u7C7B": /鸡肉|鸡腿|鸡翅|鸡胸|鸭|鹅|牛肉|牛腩|猪|羊肉|兔肉|五花肉|里脊|排骨|腊肠|火腿|香肠|培根/, "\u8C46\u7C7B": /豆|酱油|生抽|老抽/, "\u4E73\u5236\u54C1": /牛奶|酸奶|奶油|奶酪|黄油|乳酪|炼乳/, "\u575A\u679C": /花生|核桃|腰果|杏仁|榛子|碧根果|开心果|松仁|松子/, "\u5C0F\u9EA6": /小麦|面粉|面条|挂面|面包|吐司|馒头|饺子皮|生抽|老抽|酱油/, "\u7532\u58F3\u7C7B": /虾|蝦|蟹|龙虾/, "\u83CC\u83C7": /菇|木耳|菌/ };
+  function ingredientMatch(text, term) {
+    const t = normalize(text);
+    return groupPatterns[term] ? groupPatterns[term].test(t) : variants(term).some((v) => t.includes(normalize(v)));
+  }
+  function scaleQuantities(recipe, people) {
+    if (!recipe.baseServings) return { text: recipe.quantitiesText || recipe.ingredientsText, note: `\u8BA1\u5212 ${people} \u4EBA\uFF1B\u539F\u6587\u672A\u660E\u786E\u57FA\u51C6\u4EBA\u6570\uFF0C\u4EE5\u4E0B\u4FDD\u7559\u539F\u7528\u91CF\u3002` };
+    const factor = Number(people) / recipe.baseServings;
+    const text = recipe.quantitiesText.split("\n").map((line) => {
+      if (!/^\s*[-*]\s/.test(line)) return line;
+      const clean = line.replace(/\*\s*份数/g, "");
+      if (/[*÷/]|每.*(?:个|只).*\d/.test(clean.replace(/^\s*[-*]\s/, ""))) return line + "\uFF08\u539F\u516C\u5F0F\uFF09";
+      return clean.replace(/(\d+(?:\.\d+)?)(?:\s*[-~至]\s*(\d+(?:\.\d+)?))?\s*(kg|ml|g|克|千克|毫升|升|个|只|颗|根|片|瓣|勺|斤|两)(?!\w)/gi, (_, a, b, u) => `${Math.round(Number(a) * factor * 100) / 100}${b ? "-" + Math.round(Number(b) * factor * 100) / 100 : ""}${u}`);
+    }).filter((line) => !/一份正好够|计划做几份/.test(line)).join("\n");
+    return { text, note: `\u6309\u539F\u6587 ${recipe.baseServings} \u4EBA\u57FA\u51C6\u6298\u7B97\u81F3 ${people} \u4EBA\uFF1B\u590D\u6742\u516C\u5F0F\u4FDD\u7559\uFF0C\u70F9\u996A\u65F6\u95F4\u4E0D\u968F\u4EBA\u6570\u7B49\u6BD4\u7F29\u653E\u3002` };
+  }
+  function planMeals(recipes, value, { offset = 0, recent = [] } = {}) {
+    const p = mealPreferences(value), pantry = parseIngredients(p.pantry), exclude = parseIngredients(p.exclude);
+    const equipment = { all: ["\u9505", "\u5FAE\u6CE2\u7089", "\u7A7A\u6C14\u70B8\u9505"], pot: ["\u9505"], microwave: ["\u5FAE\u6CE2\u7089"], airfryer: ["\u7A7A\u6C14\u70B8\u9505"], any: null }[p.equipment];
+    const has = (m, t) => {
+      let text = (groupPatterns[t] ? "" : m.name) + "\n" + (m.ingredientsText + "\n" + m.quantitiesText).split("\n").filter((l) => !l.includes("\u53EF\u9009")).join("\n");
+      if (t === "\u756A\u8304") text = text.replace(/番茄酱|番茄膏|西红柿酱/g, "");
+      return ingredientMatch(text, t);
+    };
+    const candidatesByCategory = recipes.filter((m) => p.category === "all" || (p.category === "dinner" ? dinnerCategories.has(m.category) : m.category === p.category));
+    const eligible = candidatesByCategory.filter((m) => (p.minutes === "any" || m.minutes !== null && m.minutes <= Number(p.minutes) && !m.advance) && (!equipment || m.equipment.every((x) => equipment.includes(x))) && !exclude.some((t) => ingredientMatch(m.ingredientsText + "\n" + m.quantitiesText + "\n" + m.stepsText, t)));
+    const unavailable = pantry.filter((t) => !eligible.some((m) => has(m, t)));
+    const unknownExclusions = exclude.filter((t) => !aliases.has(normalize(t)) && !recipes.some((m) => has(m, t)));
+    const candidates = eligible.map((m) => ({ ...m, matched: pantry.filter((t) => has(m, t)), titleMatches: pantry.filter((t) => ingredientMatch(m.name, t)).length })).filter((m) => !pantry.length || m.matched.length > 0).sort((a, b) => b.matched.length - a.matched.length || b.titleMatches - a.titleMatches || Number(recent.includes(a.name)) - Number(recent.includes(b.name)) || (p.minutes === "any" ? 0 : Math.abs(Number(p.minutes) - (a.minutes || 0)) - Math.abs(Number(p.minutes) - (b.minutes || 0))) || a.id.localeCompare(b.id, "zh-CN"));
+    if (unknownExclusions.length) return { options: [], total: 0, offset: 0, pantry, exclude, unavailable, unknownExclusions, preferences: p };
+    const start = candidates.length ? Math.max(0, offset) % candidates.length : 0;
+    const selected = Array.from({ length: Math.min(3, candidates.length) }, (_, i) => candidates[(start + i) % candidates.length]);
+    return { options: selected.map((m) => ({ ...m, people: Number(p.people), amounts: scaleQuantities(m, Number(p.people)) })), total: candidates.length, offset: start, pantry, exclude, unavailable, unknownExclusions, preferences: p };
+  }
+
   // apps/_decision/life.js
   var host = document.querySelector('[data-decision="weekend"], [data-decision="meal"]');
   var mode = host?.dataset.decision;
@@ -148,23 +309,10 @@
   var events = { events: [] };
   var options = [];
   var batch = 0;
-  var meals = [
-    { name: "\u756A\u8304\u9E21\u86CB\u996D\uFF0B\u6E05\u7092\u897F\u5170\u82B1", minutes: 25, equipment: ["\u9505"], tags: "\u9E21\u86CB \u5927\u7C73 \u897F\u5170\u82B1 \u756A\u8304", ingredients: [["\u5927\u7C73", 150, "g"], ["\u9E21\u86CB", 3, "\u4E2A"], ["\u756A\u8304", 2, "\u4E2A"], ["\u897F\u5170\u82B1", 300, "g"]], steps: ["\u5927\u7C73\u716E\u996D\uFF1B\u540C\u65F6\u6E05\u6D17\u5E76\u5207\u597D\u756A\u8304\u548C\u897F\u5170\u82B1\u3002", "\u7092\u719F\u9E21\u86CB\u76DB\u51FA\uFF0C\u7092\u8F6F\u756A\u8304\u540E\u653E\u56DE\u9E21\u86CB\uFF0C\u6309\u53E3\u5473\u8C03\u5473\u3002", "\u897F\u5170\u82B1\u712F\u6C34\u540E\u6E05\u7092\uFF0C\u548C\u7C73\u996D\u4E00\u8D77\u5206\u88C5\u3002"] },
-    { name: "\u8C46\u8150\u8611\u83C7\u6C64\u9762", minutes: 20, equipment: ["\u9505"], tags: "\u8C46\u8150 \u5927\u8C46 \u9762\u6761 \u5C0F\u9EA6 \u8611\u83C7 \u9752\u83DC", ingredients: [["\u9762\u6761", 180, "g"], ["\u8C46\u8150", 250, "g"], ["\u8611\u83C7", 150, "g"], ["\u9752\u83DC", 200, "g"]], steps: ["\u5207\u597D\u8C46\u8150\u3001\u8611\u83C7\u548C\u9752\u83DC\uFF0C\u70E7\u4E00\u9505\u6C34\u3002", "\u4E0B\u8611\u83C7\u3001\u8C46\u8150\u716E\u5F00\uFF0C\u518D\u52A0\u5165\u9762\u6761\u6309\u5305\u88C5\u65F6\u95F4\u716E\u719F\u3002", "\u6700\u540E\u52A0\u5165\u9752\u83DC\u716E\u719F\uFF0C\u6309\u53E3\u5473\u8C03\u5473\uFF1B\u4E24\u4EBA\u5206\u98DF\u3002"] },
-    { name: "\u7A7A\u6C14\u70B8\u9505\u9E21\u817F\uFF0B\u571F\u8C46\uFF0B\u9752\u83DC", minutes: 40, equipment: ["\u7A7A\u6C14\u70B8\u9505", "\u9505"], tags: "\u9E21\u8089 \u571F\u8C46 \u9752\u83DC", ingredients: [["\u53BB\u9AA8\u9E21\u817F\u8089", 350, "g"], ["\u571F\u8C46", 400, "g"], ["\u9752\u83DC", 250, "g"]], steps: ["\u9E21\u817F\u548C\u571F\u8C46\u5206\u522B\u5207\u6210\u5408\u9002\u5927\u5C0F\uFF0C\u6309\u53E3\u5473\u8C03\u5473\u3002", "\u6309\u8BBE\u5907\u8BF4\u660E\u5206\u6279\u6216\u5206\u533A\u70F9\u996A\uFF0C\u907F\u514D\u751F\u8089\u6C41\u63A5\u89E6\u5DF2\u719F\u98DF\u7269\uFF1B\u786E\u8BA4\u9E21\u8089\u719F\u900F\u3002", "\u7528\u9505\u716E\u719F\u9752\u83DC\uFF0C\u914D\u9E21\u817F\u548C\u571F\u8C46\u4E00\u8D77\u4E0A\u684C\u3002"] },
-    { name: "\u867E\u4EC1\u852C\u83DC\u7092\u996D", minutes: 20, equipment: ["\u9505"], tags: "\u867E \u7532\u58F3\u7C7B \u7C73\u996D \u80E1\u841D\u535C \u8C4C\u8C46 \u9E21\u86CB", ingredients: [["\u5DF2\u716E\u719F\u7C73\u996D", 350, "g"], ["\u867E\u4EC1", 200, "g"], ["\u9E21\u86CB", 2, "\u4E2A"], ["\u80E1\u841D\u535C\u548C\u8C4C\u8C46", 200, "g"]], steps: ["\u51C6\u5907\u7C73\u996D\u548C\u5207\u597D\u7684\u852C\u83DC\uFF0C\u7092\u719F\u9E21\u86CB\u76DB\u51FA\u3002", "\u5C06\u867E\u4EC1\u548C\u852C\u83DC\u7092\u719F\uFF0C\u518D\u52A0\u5165\u7C73\u996D\u5145\u5206\u7092\u70ED\u3002", "\u653E\u56DE\u9E21\u86CB\uFF0C\u8C03\u5473\u540E\u4E24\u4EBA\u5206\u98DF\u3002"] },
-    { name: "\u9999\u83C7\u9752\u83DC\u8C46\u8150\u996D", minutes: 30, equipment: ["\u9505"], tags: "\u9999\u83C7 \u9752\u83DC \u8C46\u8150 \u5927\u8C46 \u5927\u7C73", ingredients: [["\u5927\u7C73", 150, "g"], ["\u8C46\u8150", 300, "g"], ["\u9999\u83C7", 150, "g"], ["\u9752\u83DC", 250, "g"]], steps: ["\u5148\u716E\u996D\uFF0C\u5207\u597D\u8C46\u8150\u3001\u9999\u83C7\u548C\u9752\u83DC\u3002", "\u8C46\u8150\u714E\u81F3\u8868\u9762\u4E0A\u8272\uFF0C\u52A0\u5165\u9999\u83C7\u4E0E\u5C11\u91CF\u6C34\u70E7\u719F\u3002", "\u9752\u83DC\u53E6\u884C\u7092\u719F\uFF1B\u4E0E\u8C46\u8150\u3001\u7C73\u996D\u4E00\u8D77\u5206\u88C5\u3002"] },
-    { name: "\u91D1\u67AA\u9C7C\u9EC4\u74DC\u996D\u7897", minutes: 15, equipment: ["\u5FAE\u6CE2\u7089"], tags: "\u91D1\u67AA\u9C7C \u9C7C \u9EC4\u74DC \u7C73\u996D \u7389\u7C73", ingredients: [["\u53EF\u76F4\u63A5\u52A0\u70ED\u7C73\u996D", 350, "g"], ["\u5373\u98DF\u91D1\u67AA\u9C7C\u7F50\u5934", 2, "\u7F50"], ["\u9EC4\u74DC", 1, "\u6839"], ["\u5373\u98DF\u7389\u7C73\u7C92", 100, "g"]], steps: ["\u6309\u5305\u88C5\u8BF4\u660E\u5145\u5206\u52A0\u70ED\u7C73\u996D\u3002", "\u9EC4\u74DC\u6E05\u6D17\u5207\u4E01\uFF0C\u91D1\u67AA\u9C7C\u4E0E\u7389\u7C73\u6CA5\u6C34\u3002", "\u5C06\u98DF\u6750\u5206\u6210\u4E24\u7897\uFF0C\u6309\u53E3\u5473\u5C11\u91CF\u8C03\u5473\u3002"] }
-  ];
   var saved = () => {
     const value = read(mode === "meal" ? "meal-plans" : "weekend-plans");
     return Array.isArray(value) ? value.filter((p) => p && typeof p.id === "string" && typeof p.title === "string" && typeof p.text === "string") : [];
   };
-  function mealPreferences(value) {
-    const p = value && typeof value === "object" ? value : {};
-    return { minutes: ["20", "30", "45"].includes(String(p.minutes)) ? String(p.minutes) : "30", people: ["1", "2", "3", "4"].includes(String(p.people)) ? String(p.people) : "2", equipment: ["all", "pot", "microwave"].includes(p.equipment) ? p.equipment : "all", exclude: typeof p.exclude === "string" ? p.exclude : "", pantry: typeof p.pantry === "string" ? p.pantry : "" };
-  }
-  var mealGenerations = 0;
   function mealStatus(message) {
     const el = $("#meal-status", host);
     if (el) el.textContent = message;
@@ -183,33 +331,82 @@
       save(mode === "meal" ? "meal-plans" : "weekend-plans", saved().filter((p) => p.id !== b.dataset.planRemove));
       render();
     });
+    $("#life-backup", host).replaceChildren();
     backupBar($("#life-backup", host), [mode === "meal" ? "meal-plans" : "weekend-plans"], (_, v) => v.every((p) => typeof p.id === "string" && typeof p.title === "string" && typeof p.text === "string" && typeof p.summary === "string"));
   }
-  function renderMeal(message = "") {
-    const pref = mealPreferences(read("meal-preferences", {}));
-    host.innerHTML = `<div class="d-panel"><div class="d-kicker">Dinner, decided</div><h2>\u4ECA\u665A\u83DC\u5355 \xB7 \u9009\u4E00\u4E2A\u5C31\u5F00\u59CB\u505A</h2><p class="d-muted">\u6309\u53EF\u7528\u65F6\u95F4\u3001\u5668\u6750\u548C\u4E0D\u5403\u7684\u98DF\u6750\uFF0C\u7ED9\u51FA\u6700\u591A\u4E09\u4E2A\u5B8C\u6574\u7EC4\u5408\u3002\u4EFD\u91CF\u548C\u65F6\u95F4\u662F\u5BB6\u5EAD\u70F9\u996A\u4F30\u8BA1\uFF0C\u53EF\u81EA\u884C\u8C03\u6574\u3002</p><form id="meal-plan-form" class="d-form">${select("minutes", "\u53EF\u7528\u65F6\u95F4", [["20", "20 \u5206\u949F"], ["30", "30 \u5206\u949F"], ["45", "45 \u5206\u949F"]], pref.minutes || "30")}${select("people", "\u7528\u9910\u4EBA\u6570", [["1", "1 \u4EBA"], ["2", "2 \u4EBA"], ["3", "3 \u4EBA"], ["4", "4 \u4EBA"]], pref.people || "2")}${select("equipment", "\u5668\u6750", [["all", "\u9505\uFF0B\u5FAE\u6CE2\u7089\uFF0B\u7A7A\u6C14\u70B8\u9505"], ["pot", "\u53EA\u6709\u9505"], ["microwave", "\u53EA\u6709\u5FAE\u6CE2\u7089"]], pref.equipment || "all")}${field("exclude", "\u4E0D\u5403\u7684\u98DF\u6750\uFF08\u9017\u53F7\u5206\u9694\uFF09", "text", pref.exclude || "", 'maxlength="200"')}${field("pantry", "\u4F18\u5148\u7528\u6389\uFF08\u98DF\u6750\u5173\u952E\u8BCD\uFF0C\u9017\u53F7\u5206\u9694\uFF09", "text", pref.pantry || "", 'maxlength="200"')}<div class="d-actions"><button type="submit" class="d-primary">\u751F\u6210\u4ECA\u665A\u83DC\u5355</button></div></form><p id="meal-status" class="d-note" role="status" aria-live="polite"></p><div id="meal-options"></div>${history2()}<div id="life-backup"></div></div>`;
-    $("#meal-plan-form", host).onsubmit = (e) => {
-      e.preventDefault();
-      const p = mealPreferences(data(e.target));
-      const stored = save("meal-preferences", p);
-      generateMeals(p);
-      mealGenerations++;
-      mealStatus(`\u5DF2\u751F\u6210\u7B2C ${mealGenerations} \u6B21 \xB7 ${options.length} \u4E2A\u7B26\u5408\u6761\u4EF6\u7684\u83DC\u5355 \xB7 ${p.people} \u4EBA\u4EFD${stored ? "" : " \xB7 \u504F\u597D\u672A\u80FD\u4FDD\u5B58\u5230\u672C\u673A"}`);
-    };
-    bindHistory();
-    generateMeals(pref);
-    mealStatus(message || `\u5DF2\u6309\u5F53\u524D\u6761\u4EF6\u51C6\u5907 ${options.length} \u4E2A\u83DC\u5355\uFF1B\u8C03\u6574\u6761\u4EF6\u540E\u70B9\u51FB\u201C\u751F\u6210\u4ECA\u665A\u83DC\u5355\u201D\u3002`);
+  var recipeLibrary = [];
+  var recipeSnapshot = null;
+  var recipeLoad = null;
+  async function loadMealLibrary() {
+    if (recipeLoad) return recipeLoad;
+    mealStatus("\u6B63\u5728\u8BFB\u53D6\u5B8C\u6574\u83DC\u8C31\u5E93\u2026");
+    recipeLoad = json("apps/meal-orbit/data/recipes.json").then((snapshot) => {
+      recipeLibrary = prepareRecipes(snapshot);
+      recipeSnapshot = snapshot;
+      $("#meal-plan-form button[type=submit]", host).disabled = false;
+      generateMeals(mealPreferences(data($("#meal-plan-form", host))));
+    }).catch((e) => {
+      mealStatus("\u83DC\u8C31\u5E93\u8BFB\u53D6\u5931\u8D25\uFF1A" + e.message + "\u3002\u8BF7\u70B9\u51FB\u201C\u91CD\u65B0\u8BFB\u53D6\u83DC\u8C31\u5E93\u201D\u3002");
+    }).finally(() => {
+      recipeLoad = null;
+    });
+    return recipeLoad;
   }
-  function generateMeals(p) {
-    const ex = p.exclude.split(/[,，、]/).map((x) => x.trim()).filter(Boolean), pan = p.pantry.split(/[,，、]/).map((x) => x.trim()).filter(Boolean), equipment = p.equipment === "pot" ? ["\u9505"] : p.equipment === "microwave" ? ["\u5FAE\u6CE2\u7089"] : ["\u9505", "\u5FAE\u6CE2\u7089", "\u7A7A\u6C14\u70B8\u9505"];
-    const matches = meals.filter((m) => m.minutes <= Number(p.minutes) && m.equipment.every((x) => equipment.includes(x)) && !ex.some((x) => m.tags.includes(x) || m.name.includes(x))).sort((a, b) => pan.filter((x) => b.tags.includes(x)).length - pan.filter((x) => a.tags.includes(x)).length);
-    const last = saved().at(-1)?.title;
-    options = matches.sort((a, b) => Number(a.name === last) - Number(b.name === last)).slice(0, 3).map((m) => ({ ...m, people: Number(p.people), ingredients: m.ingredients.map(([n, q, u]) => [n, q * Number(p.people) / 2, u]) }));
-    $("#meal-options", host).innerHTML = options.length ? `<div class="d-grid">${options.map((m, i) => `<article class="d-inset"><span class="d-pill">\u7EA6 ${m.minutes} \u5206\u949F \xB7 ${m.people} \u4EBA</span><h3>${esc(m.name)}</h3><p class="d-muted">${m.equipment.join("\uFF0B")}${pan.some((x) => m.tags.includes(x)) ? " \xB7 \u7528\u5230\u4F18\u5148\u98DF\u6750" : ""}</p><details open><summary>\u91C7\u8D2D\uFF0F\u5907\u6599\u6E05\u5355</summary>${m.ingredients.map(([n, q, u]) => `<label class="d-check"><input type="checkbox">${n} ${q}${u}</label>`).join("")}</details><ol>${m.steps.map((s) => `<li>${esc(s.replace("\u4E24\u4EBA", m.people + " \u4EBA"))}</li>`).join("")}</ol><div class="d-actions"><button class="d-primary" data-meal-pick="${i}">\u4ECA\u665A\u5C31\u5403\u8FD9\u4E2A</button><button data-meal-copy="${i}">\u590D\u5236\u6E05\u5355</button></div></article>`).join("")}</div>` : '<div class="d-empty">\u73B0\u6709\u83DC\u5355\u6CA1\u6709\u6EE1\u8DB3\u6240\u6709\u6761\u4EF6\u7684\u7EC4\u5408\u3002\u8BF7\u653E\u5BBD\u65F6\u95F4\u6216\u5668\u6750\u6761\u4EF6\uFF1B\u4E0D\u4F1A\u5FFD\u7565\u4F60\u6392\u9664\u7684\u98DF\u6750\u3002</div>';
+  function renderMeal() {
+    const pref = mealPreferences(read("meal-preferences", {}));
+    host.innerHTML = `<div class="d-panel"><div class="d-kicker">Dinner, decided</div><h2>\u4ECA\u665A\u83DC\u5355 \xB7 \u6309\u4F60\u7684\u98DF\u6750\u9009</h2><p class="d-muted">\u4F7F\u7528\u300C\u627E\u98DF\u8C31\u300D\u540C\u4E00\u4EFD HowToCook \u5B8C\u6574\u6570\u636E\u5E93\uFF0C\u4F18\u5148\u63A8\u8350\u7528\u5230\u4F60\u6240\u586B\u98DF\u6750\u7684\u83DC\u3002\u53EF\u4FDD\u5B58\u591A\u9053\u7EC4\u6210\u4ECA\u665A\u83DC\u5355\uFF1B\u7528\u65F6\u4E0E\u505A\u6CD5\u6765\u81EA\u539F\u83DC\u8C31\u3002</p><form id="meal-plan-form" class="d-form">${select("minutes", "\u53EF\u7528\u65F6\u95F4", [["20", "20 \u5206\u949F"], ["30", "30 \u5206\u949F"], ["45", "45 \u5206\u949F"], ["60", "60 \u5206\u949F"], ["90", "90 \u5206\u949F"], ["120", "120 \u5206\u949F"], ["any", "\u4E0D\u9650\u65F6\u95F4"]], pref.minutes)}${select("people", "\u7528\u9910\u4EBA\u6570", [["1", "1 \u4EBA"], ["2", "2 \u4EBA"], ["3", "3 \u4EBA"], ["4", "4 \u4EBA"]], pref.people)}${select("equipment", "\u5668\u6750", [["all", "\u9505\uFF0B\u5FAE\u6CE2\u7089\uFF0B\u7A7A\u6C14\u70B8\u9505"], ["pot", "\u53EA\u6709\u9505"], ["microwave", "\u53EA\u6709\u5FAE\u6CE2\u7089"], ["airfryer", "\u53EA\u6709\u7A7A\u6C14\u70B8\u9505"], ["any", "\u4E0D\u9650\u5668\u6750"]], pref.equipment)}${select("category", "\u60F3\u505A\u4EC0\u4E48", [["dinner", "\u665A\u9910\u83DC\u80B4\u4E0E\u4E3B\u98DF"], ["all", "\u5168\u90E8\u83DC\u8C31"], ["meat_dish", "\u8364\u83DC"], ["vegetable_dish", "\u7D20\u83DC"], ["aquatic", "\u6C34\u4EA7"], ["staple", "\u4E3B\u98DF"], ["soup", "\u6C64"], ["breakfast", "\u65E9\u9910"], ["dessert", "\u751C\u70B9"], ["drink", "\u996E\u54C1"], ["semi-finished", "\u534A\u6210\u54C1"], ["condiment", "\u9171\u6599"]], pref.category)}${field("exclude", "\u4E0D\u5403\u7684\u98DF\u6750", "text", pref.exclude, 'maxlength="200" placeholder="\u4F8B\u5982\uFF1A\u867E\u3001\u9E21\u86CB\u3001\u725B\u5976"')}${field("pantry", "\u4F18\u5148\u7528\u6389\u7684\u98DF\u6750", "text", pref.pantry, 'maxlength="200" placeholder="\u4F8B\u5982\uFF1A\u725B\u8089 \u571F\u8C46\uFF0C\u652F\u6301\u7A7A\u683C\u6216\u9017\u53F7"')}<div class="d-actions"><button type="submit" class="d-primary" disabled>\u751F\u6210\u4ECA\u665A\u83DC\u5355</button><button id="meal-more" type="button" disabled>\u6362\u4E00\u7EC4</button></div></form><p id="meal-status" class="d-note" role="status" aria-live="polite"></p><p id="meal-library" class="d-muted"></p><div id="meal-options"></div><button id="meal-reload" type="button">\u91CD\u65B0\u8BFB\u53D6\u83DC\u8C31\u5E93</button><div id="life-history">${history2()}</div><div id="life-backup"></div></div>`;
+    const form = $("#meal-plan-form", host);
+    form.oninput = () => {
+      $("#meal-options", host).hidden = true;
+      $("#meal-more", host).disabled = true;
+      mealStatus("\u6761\u4EF6\u5DF2\u4FEE\u6539\uFF0C\u8BF7\u70B9\u51FB\u201C\u751F\u6210\u4ECA\u665A\u83DC\u5355\u201D\uFF0C\u6309\u65B0\u6761\u4EF6\u91CD\u65B0\u63A8\u8350\u3002");
+    };
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      const p = mealPreferences(data(form)), key = JSON.stringify(p);
+      const stored = save("meal-preferences", p);
+      generateMeals(p, { next: key === mealKey });
+      if (!stored) mealStatus($("#meal-status", host).textContent + " \xB7 \u504F\u597D\u672A\u80FD\u4FDD\u5B58\u5230\u672C\u673A");
+    };
+    $("#meal-more", host).onclick = () => generateMeals(mealPreferences(data(form)), { next: true });
+    $("#meal-reload", host).onclick = loadMealLibrary;
+    bindHistory();
+    if (recipeLibrary.length) {
+      $("#meal-plan-form button[type=submit]", host).disabled = false;
+      generateMeals(pref);
+    } else loadMealLibrary();
+  }
+  var mealResult = null;
+  var mealKey = "";
+  function generateMeals(p, { next = false } = {}) {
+    const offset = next && mealResult ? mealResult.offset + 3 : 0;
+    if (!recipeLibrary.length) return;
+    mealResult = planMeals(recipeLibrary, p, { offset, recent: saved().slice(-3).map((x) => x.title) });
+    mealKey = JSON.stringify(p);
+    options = mealResult.options;
+    const { total, pantry, exclude, unavailable, unknownExclusions } = mealResult;
+    const equipment = { all: "\u9505\uFF0B\u5FAE\u6CE2\u7089\uFF0B\u7A7A\u6C14\u70B8\u9505", pot: "\u53EA\u6709\u9505", microwave: "\u53EA\u6709\u5FAE\u6CE2\u7089", airfryer: "\u53EA\u6709\u7A7A\u6C14\u70B8\u9505", any: "\u4E0D\u9650\u5668\u6750" }[p.equipment];
+    const notes = [`\u5DF2\u6309 ${p.minutes === "any" ? "\u4E0D\u9650\u65F6\u95F4" : p.minutes + " \u5206\u949F\u5185"} \xB7 ${p.people} \u4EBA\u4EFD \xB7 ${equipment} \u63A8\u8350`, `\u7B26\u5408\u6761\u4EF6 ${total} \u4E2A\uFF0C\u5C55\u793A ${options.length} \u4E2A`];
+    if (pantry.length) notes.push("\u4F18\u5148\u98DF\u6750\uFF1A" + pantry.join("\u3001"));
+    if (exclude.length) notes.push("\u6392\u9664\uFF1A" + exclude.join("\u3001"));
+    if (unavailable.length) notes.push("\u5F53\u524D\u6761\u4EF6\u4E0B\u672A\u5339\u914D\u5230\uFF1A" + unavailable.join("\u3001"));
+    if (unknownExclusions.length) notes.push("\u65E0\u6CD5\u8BC6\u522B\u5FCC\u53E3\uFF1A" + unknownExclusions.join("\u3001") + "\uFF0C\u8BF7\u6362\u6210\u5177\u4F53\u98DF\u6750\u540D\u540E\u91CD\u8BD5");
+    if (total > 0 && total <= 3) notes.push("\u5DF2\u5C55\u793A\u5168\u90E8\u53EF\u9009\u83DC\u5355\uFF1B\u53EF\u653E\u5BBD\u6761\u4EF6\u589E\u52A0\u9009\u62E9");
+    if (next && total > 3) notes.push("\u5DF2\u6362\u4E00\u7EC4");
+    mealStatus(notes.join("\u3002"));
+    $("#meal-library", host).textContent = `\u5B8C\u6574\u83DC\u8C31\u5E93 ${recipeLibrary.length} \u7BC7 \xB7 \u4E0A\u6E38\u66F4\u65B0 ${stamp(recipeSnapshot.updatedAt)} \xB7 \u7528\u65F6\u6309\u539F\u6587\u6982\u8FF0\u7B5B\u9009\uFF0C\u5668\u6750\u6309\u539F\u6587\u8BC6\u522B\uFF1B\u672A\u6807\u6CE8\u7528\u65F6\u7684\u83DC\u8C31\u4EC5\u5728\u201C\u4E0D\u9650\u65F6\u95F4\u201D\u51FA\u73B0\u3002`;
+    $("#meal-more", host).disabled = total <= 3;
+    const target = $("#meal-options", host);
+    target.hidden = false;
+    target.innerHTML = options.length ? `<div class="d-grid">${options.map((m, i) => `<article class="d-inset" data-meal-id="${esc(m.id)}"><span class="d-pill">${m.minutes !== null ? "\u539F\u6587\u7EA6 " + m.minutes + " \u5206\u949F" : "\u539F\u6587\u672A\u6807\u7528\u65F6"} \xB7 \u8BA1\u5212 ${m.people} \u4EBA \xB7 ${esc(m.categoryName)}</span><h3>${esc(m.name)}</h3><p class="d-muted">\u5668\u6750\uFF1A${esc(m.equipment.join("\uFF0B") || "\u539F\u6587\u672A\u63D0\u5230\u4E13\u7528\u52A0\u70ED\u8BBE\u5907")}${m.advance ? " \xB7 \u9700\u63D0\u524D\u814C\u5236\uFF0F\u51C6\u5907" : ""}</p>${m.matched.length ? `<p class="d-note">\u7528\u5230\u4F60\u586B\u5199\u7684\uFF1A${esc(m.matched.join("\u3001"))}</p>` : ""}<details open><summary>\u98DF\u6750\u4E0E\u5DE5\u5177</summary><pre>${esc(m.ingredientsText || "\u8BF7\u67E5\u770B\u539F\u83DC\u8C31")}</pre></details><details><summary>\u7528\u91CF \xB7 \u8BA1\u5212 ${m.people} \u4EBA</summary><p class="d-muted">${esc(m.amounts.note)}</p><pre>${esc(m.amounts.text)}</pre></details><details><summary>\u5B8C\u6574\u505A\u6CD5\u4E0E\u6CE8\u610F\u4E8B\u9879</summary><pre>${esc(m.md)}</pre></details><p>${link(m.source, "HowToCook \u539F\u83DC\u8C31")}</p><div class="d-actions"><button class="d-primary" data-meal-pick="${i}">\u4ECA\u665A\u5C31\u5403\u8FD9\u4E2A</button><button data-meal-copy="${i}">\u590D\u5236\u6E05\u5355</button></div></article>`).join("")}</div>` : `<div class="d-empty">${unknownExclusions.length ? "\u65E0\u6CD5\u8BC6\u522B\u8FD9\u4E9B\u5FCC\u53E3\uFF0C\u8BF7\u4F7F\u7528\u5177\u4F53\u98DF\u6750\u540D\u3002" : pantry.length ? "\u5F53\u524D\u6761\u4EF6\u4E0B\u6CA1\u6709\u80FD\u7528\u5230\u6240\u586B\u98DF\u6750\u7684\u83DC\u8C31\u3002\u53EF\u4EE5\u589E\u52A0\u65F6\u95F4\u3001\u66F4\u6362\u5668\u6750\u6216\u9009\u62E9\u201C\u5168\u90E8\u83DC\u8C31\u201D\uFF1B\u4E0D\u4F1A\u7528\u4E0D\u76F8\u5173\u83DC\u5355\u4EE3\u66FF\u3002" : "\u6CA1\u6709\u6EE1\u8DB3\u6761\u4EF6\u7684\u83DC\u8C31\uFF0C\u8BF7\u8C03\u6574\u65F6\u95F4\u3001\u5668\u6750\u3001\u7C7B\u522B\u6216\u5FCC\u53E3\u3002"}</div>`;
     host.querySelectorAll("[data-meal-pick]").forEach((b) => b.onclick = () => {
-      const m = options[Number(b.dataset.mealPick)], plan = { id: id(), title: m.name, summary: `${m.people} \u4EBA \xB7 ${m.minutes} \u5206\u949F`, at: (/* @__PURE__ */ new Date()).toISOString(), text: mealText(m) };
+      const m = options[Number(b.dataset.mealPick)], plan = { id: id(), title: m.name, summary: `\u8BA1\u5212 ${m.people} \u4EBA \xB7 ${m.minutes !== null ? "\u539F\u6587\u7EA6 " + m.minutes + " \u5206\u949F" : "\u7528\u65F6\u672A\u6807\u6CE8"}`, at: (/* @__PURE__ */ new Date()).toISOString(), text: mealText(m) };
       if (save("meal-plans", [...saved(), plan].slice(-100))) {
-        renderMeal("\u5DF2\u4FDD\u5B58\uFF1A" + m.name + "\u3002\u53EF\u5728\u201C\u5DF2\u9009\u5B89\u6392\u201D\u67E5\u770B\u3002");
+        $("#life-history", host).innerHTML = history2();
+        bindHistory();
+        b.disabled = true;
+        b.textContent = "\u5DF2\u9009\u4E3A\u4ECA\u665A\u83DC\u5355";
+        mealStatus("\u5DF2\u4FDD\u5B58\uFF1A" + m.name + "\u3002\u53EF\u5728\u201C\u5DF2\u9009\u5B89\u6392\u201D\u67E5\u770B\u3002");
         toast("\u5DF2\u4FDD\u5B58\u4ECA\u665A\u83DC\u5355");
       } else mealStatus("\u4FDD\u5B58\u5931\u8D25\uFF1A\u672C\u673A\u5B58\u50A8\u4E0D\u53EF\u7528\uFF0C\u8BF7\u5148\u590D\u5236\u6E05\u5355\u3002");
     });
@@ -217,11 +414,22 @@
   }
   function mealText(m) {
     return `${m.name}
-${m.people} \u4EBA \xB7 \u9884\u8BA1 ${m.minutes} \u5206\u949F
-\u5907\u6599\uFF1A
-${m.ingredients.map(([n, q, u]) => `${n} ${q}${u}`).join("\n")}
-\u6B65\u9AA4\uFF1A
-${m.steps.map((s, i) => `${i + 1}. ${s.replace("\u4E24\u4EBA", m.people + " \u4EBA")}`).join("\n")}`;
+\u8BA1\u5212 ${m.people} \u4EBA \xB7 ${m.minutes !== null ? "\u539F\u6587\u7EA6 " + m.minutes + " \u5206\u949F" : "\u539F\u6587\u672A\u6807\u6CE8\u7528\u65F6"}
+${m.amounts.note}
+
+\u98DF\u6750\u4E0E\u5DE5\u5177\uFF1A
+${m.ingredientsText}
+
+\u7528\u91CF\uFF1A
+${m.amounts.text}
+
+\u505A\u6CD5\uFF1A
+${m.stepsText}
+
+\u6765\u6E90\uFF1A${m.source}
+
+\u5B8C\u6574\u539F\u6587\uFF1A
+${m.md}`;
   }
   function renderWeekend() {
     const pref = read("weekend-preferences", {});
@@ -247,11 +455,11 @@ ${m.steps.map((s, i) => `${i + 1}. ${s.replace("\u4E24\u4EBA", m.people + " \u4E
     }
     const plans = options.map((e) => {
       const start = e.start.length >= 16 ? Number(e.start.slice(11, 13)) * 60 + Number(e.start.slice(14, 16)) : Number(p.start) * 60;
-      let duration = 60;
+      let duration2 = 60;
       if (e.end?.slice(0, 10) === e.start.slice(0, 10) && e.end.length >= 16) {
-        duration = Math.max(60, Math.min(90, Number(e.end.slice(11, 13)) * 60 + Number(e.end.slice(14, 16)) - start));
+        duration2 = Math.max(60, Math.min(90, Number(e.end.slice(11, 13)) * 60 + Number(e.end.slice(14, 16)) - start));
       }
-      const finish = start + duration;
+      const finish = start + duration2;
       const food = restaurant?.name || e.city + " " + e.venue + " \u9644\u8FD1\u9910\u5385";
       const route = "https://www.google.com/maps/dir/?api=1&origin=" + encodeURIComponent("Juanita, Kirkland WA") + "&destination=" + encodeURIComponent(food) + "&waypoints=" + encodeURIComponent(e.venue + ", " + e.city);
       return { e, start, finish, food, route, restaurant, p };
