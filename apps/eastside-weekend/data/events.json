@@ -1,179 +1,8 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-30T19:18:56.708611+00:00",
-  "attemptedAt": "2026-09-30T19:18:56.708611+00:00",
+  "updatedAt": "2026-10-01T20:28:55.085541+00:00",
+  "attemptedAt": "2026-10-01T20:28:55.085541+00:00",
   "events": [
-    {
-      "id": "7b3a3e175268a663",
-      "title": "Seattle Center Sculpture Walk 2026",
-      "start": "2026-09-30",
-      "end": null,
-      "url": "https://www.seattlecenter.com/events/event-calendar/seattle-center-sculpture-walk-2026-x46418",
-      "city": "Seattle",
-      "venue": "Grounds / Public Space · Seattle Center",
-      "cost": "Free",
-      "free": true,
-      "description": "Experience temporary art installations on our grounds throughout the year.",
-      "category": "户外",
-      "lat": 47.6219473,
-      "lon": -122.3517443,
-      "locationExact": true,
-      "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
-      "stale": false
-    },
-    {
-      "id": "8b9013d44262201e",
-      "title": "Wednesday Drum Circle",
-      "start": "2026-09-30T11:30:00",
-      "end": "2026-09-30T12:30:00",
-      "url": "https://experienceredmond.com/event/wednesday-drum-circle/2026-09-30/",
-      "city": "Redmond",
-      "venue": "Redmond Senior & Community Center, 8703 160th Ave NE, Redmond",
-      "cost": "费用未注明",
-      "free": false,
-      "description": "Come and Drum! The Wednesday Drum Circle is a great way to have fun, meet new people and drum the stress away! One of the amazing things science has discovered about drumming is its ability to activate and stimulate the ",
-      "category": "社区活动",
-      "lat": 47.674,
-      "lon": -122.1215,
-      "locationExact": false,
-      "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
-      "stale": false
-    },
-    {
-      "id": "6701ad0b2db62f0f",
-      "title": "Kirkland Wednesday Market",
-      "start": "2026-09-30T15:00:00",
-      "end": null,
-      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Kirkland-Wednesday-Market",
-      "city": "Kirkland",
-      "venue": "Marina Park, 25 Lakeshore Plaza, Kirkland, 98033",
-      "cost": "Free",
-      "free": true,
-      "description": "Bringing local produce and goods to downtown Kirkland all summer long! Marina Park, 25 Lakeshore Plaza, Kirkland 98033",
-      "category": "市集节庆",
-      "lat": 47.675452,
-      "lon": -122.2085618,
-      "locationExact": true,
-      "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
-      "stale": false
-    },
-    {
-      "id": "5b0404af29e78f08",
-      "title": "Beginner Workout Essentials (Fall Into Fun)",
-      "start": "2026-09-30T15:00:00",
-      "end": null,
-      "url": "https://bellevuewa.gov/events/beginner-workout-essentials-fall-fun-0",
-      "city": "Bellevue",
-      "venue": "Bellevue · 具体地点见原文",
-      "cost": "费用未注明",
-      "free": false,
-      "description": "Fall Into Fun is a month-long celebration of connection, belonging and community. Free and low-cost activities activities for all ages and abilities include dance, swimming, karaoke, cultural experiences and more! Browse",
-      "category": "社区活动",
-      "lat": 47.6101,
-      "lon": -122.2015,
-      "locationExact": false,
-      "source": "Bellevue",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
-      "stale": false
-    },
-    {
-      "id": "3b910bacaa7f010a",
-      "title": "Highlands Open Space #1 Park Stewardship Day",
-      "start": "2026-09-30T16:00:00",
-      "end": null,
-      "url": "https://www.kirklandwa.gov/Eventbrite/Highlands-Open-Space-1-Park-Stewardship-Day-1999288977150",
-      "city": "Kirkland",
-      "venue": "Highlands Open Space #1, Northeast 107th Place & 116th Avenue Northeast, Kirkland, 98033",
-      "cost": "Free",
-      "free": true,
-      "description": "Join Green Kirkland for a fun day of forest stewardship at Highlands Open Space #1! Highlands Open Space #1, Northeast 107th Place & 116th Avenue Northeast, Kirkland 98033",
-      "category": "户外",
-      "lat": 47.695324,
-      "lon": -122.186542,
-      "locationExact": true,
-      "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
-      "stale": false
-    },
-    {
-      "id": "f455e118350a12df",
-      "title": "Budget Information Session",
-      "start": "2026-09-30T18:00:00",
-      "end": null,
-      "url": "https://bellevuewa.gov/events/budget-information-session-2",
-      "city": "Bellevue",
-      "venue": "Bellevue · 具体地点见原文",
-      "cost": "费用未注明",
-      "free": false,
-      "description": "Go!",
-      "category": "社区活动",
-      "lat": 47.6101,
-      "lon": -122.2015,
-      "locationExact": false,
-      "source": "Bellevue",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
-      "stale": false
-    },
-    {
-      "id": "4eb1fdbd9e8743a2",
-      "title": "Musingo",
-      "start": "2026-09-30T18:30:00",
-      "end": "2026-09-30T21:00:00",
-      "url": "https://visitkent.com/event/musingo-20/",
-      "city": "Kent",
-      "venue": "Firestarter Bar & Grill, 21008 108th Ave. S.E., Kent",
-      "cost": "Free",
-      "free": true,
-      "description": "Turn up the volume at Firestarter Bar and Grill every Wednesday for Musingo, a high-energy twist on traditional Bingo. Instead of watching for numbers, you’ll listen for iconic song hooks and compete for prizes in a live",
-      "category": "社区活动",
-      "lat": 47.4144198,
-      "lon": -122.1955701,
-      "locationExact": true,
-      "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
-      "stale": false
-    },
-    {
-      "id": "5bcd708e5605c426",
-      "title": "Flatstick Pub Bingo",
-      "start": "2026-09-30T19:00:00",
-      "end": "2026-09-30T21:00:00",
-      "url": "https://experienceredmond.com/event/flatstick-bingo/2026-09-30/",
-      "city": "Redmond",
-      "venue": "Flatstick Pub, 7530 164th Ave NE Suite A108, Redmond",
-      "cost": "费用未注明",
-      "free": false,
-      "description": "Come play bingo with us on Wednesdays from 7-9PM. Bingo is always free and prizes include, Flatstick Gift cards, Brewery swag, Flatstick Swag, and much more. Come join the fun!",
-      "category": "社区活动",
-      "lat": 47.674,
-      "lon": -122.1215,
-      "locationExact": false,
-      "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
-      "stale": false
-    },
-    {
-      "id": "8fce0cdb88c470ff",
-      "title": "Eureka Day: Opening Night",
-      "start": "2026-09-30T19:30:00",
-      "end": null,
-      "url": "https://www.seattlecenter.com/events/event-calendar/eureka-day-opening-night",
-      "city": "Seattle",
-      "venue": "Bagley Wright Theatre · Seattle Center",
-      "cost": "Entry Charge",
-      "free": false,
-      "description": "Jonathan Spector’s popular Tony Award winner serves up a razor‑sharp satire of well‑meaning chaos and shines a light on the shared responsibility that holds a community together.",
-      "category": "社区活动",
-      "lat": 47.6239152,
-      "lon": -122.3536861,
-      "locationExact": true,
-      "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
-      "stale": false
-    },
     {
       "id": "1e6c9925165808c5",
       "title": "Seattle Center Sculpture Walk 2026",
@@ -190,7 +19,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -209,7 +38,7 @@
       "lon": -122.2008008,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -228,7 +57,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -247,7 +76,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -266,7 +95,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -285,7 +114,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -304,7 +133,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -323,7 +152,7 @@
       "lon": -122.353988,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -342,7 +171,7 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -361,7 +190,7 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -380,7 +209,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -399,7 +228,7 @@
       "lon": -122.249413,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -418,7 +247,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -437,7 +266,7 @@
       "lon": -122.2015,
       "locationExact": false,
       "source": "Bellevue",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -456,7 +285,7 @@
       "lon": -122.353988,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -475,7 +304,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -494,7 +323,7 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -513,7 +342,7 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -532,7 +361,7 @@
       "lon": -122.3502714,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -551,7 +380,7 @@
       "lon": -122.351606,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -570,7 +399,7 @@
       "lon": -122.352168,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -589,7 +418,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -608,7 +437,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -627,7 +456,7 @@
       "lon": -122.2350005,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -646,7 +475,7 @@
       "lon": -122.249413,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -665,7 +494,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -684,45 +513,7 @@
       "lon": -122.1750642,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
-      "stale": false
-    },
-    {
-      "id": "72351115057a663c",
-      "title": "Lake Hills Public Space Assessment",
-      "start": "2026-10-03T10:00:00",
-      "end": null,
-      "url": "https://bellevuewa.gov/events/lake-hills-public-space-assessment",
-      "city": "Bellevue",
-      "venue": "Lake Hills - TBD",
-      "cost": "费用未注明",
-      "free": false,
-      "description": "Go!",
-      "category": "社区活动",
-      "lat": 47.6101,
-      "lon": -122.2015,
-      "locationExact": false,
-      "source": "Bellevue",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
-      "stale": false
-    },
-    {
-      "id": "a0e855d0cb92864d",
-      "title": "Mini City Hall and Puget Sound Energy Resource Fair",
-      "start": "2026-10-03T10:00:00",
-      "end": null,
-      "url": "https://bellevuewa.gov/events/mini-city-hall-puget-sound-energy-resource-fair",
-      "city": "Bellevue",
-      "venue": "Bellevue · 具体地点见原文",
-      "cost": "费用未注明",
-      "free": false,
-      "description": "Go!",
-      "category": "市集节庆",
-      "lat": 47.6101,
-      "lon": -122.2015,
-      "locationExact": false,
-      "source": "Bellevue",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -741,7 +532,45 @@
       "lon": -122.2015,
       "locationExact": false,
       "source": "Bellevue",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "stale": false
+    },
+    {
+      "id": "72351115057a663c",
+      "title": "Lake Hills Public Space Assessment",
+      "start": "2026-10-03T10:00:00",
+      "end": null,
+      "url": "https://bellevuewa.gov/events/lake-hills-public-space-assessment",
+      "city": "Bellevue",
+      "venue": "Lake Hills - TBD",
+      "cost": "费用未注明",
+      "free": false,
+      "description": "Go!",
+      "category": "社区活动",
+      "lat": 47.6101,
+      "lon": -122.2015,
+      "locationExact": false,
+      "source": "Bellevue",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "stale": false
+    },
+    {
+      "id": "a0e855d0cb92864d",
+      "title": "Mini City Hall and Puget Sound Energy Resource Fair",
+      "start": "2026-10-03T10:00:00",
+      "end": null,
+      "url": "https://bellevuewa.gov/events/mini-city-hall-puget-sound-energy-resource-fair",
+      "city": "Bellevue",
+      "venue": "Bellevue · 具体地点见原文",
+      "cost": "费用未注明",
+      "free": false,
+      "description": "Go!",
+      "category": "市集节庆",
+      "lat": 47.6101,
+      "lon": -122.2015,
+      "locationExact": false,
+      "source": "Bellevue",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -760,7 +589,26 @@
       "lon": -122.2155708,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "stale": false
+    },
+    {
+      "id": "f58e68609c25d211",
+      "title": "Ostomy Awareness and Vendor Fair",
+      "start": "2026-10-03T11:00:00",
+      "end": null,
+      "url": "https://www.visiteverett.com/Calendar.aspx?EID=3826",
+      "city": "Everett",
+      "venue": "1330 Rockefeller Ave Everett WA 98201",
+      "cost": "费用未注明",
+      "free": false,
+      "description": "Mark your calendar! You really don't want to miss our fourth annual Ostomy Awareness and Vendor Fair on October 3rd…",
+      "category": "市集节庆",
+      "lat": 47.979,
+      "lon": -122.2021,
+      "locationExact": false,
+      "source": "Everett",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -779,7 +627,7 @@
       "lon": -122.2015,
       "locationExact": false,
       "source": "Bellevue",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -798,7 +646,7 @@
       "lon": -122.2015,
       "locationExact": false,
       "source": "Bellevue",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -817,7 +665,7 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -836,7 +684,7 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -855,7 +703,7 @@
       "lon": -122.3502714,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -874,7 +722,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -893,7 +741,7 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -912,7 +760,7 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -931,7 +779,7 @@
       "lon": -122.3502714,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -950,7 +798,7 @@
       "lon": -122.353988,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -969,7 +817,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -988,7 +836,7 @@
       "lon": -122.249413,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1007,7 +855,7 @@
       "lon": -122.351606,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1026,7 +874,7 @@
       "lon": -122.352168,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1045,7 +893,7 @@
       "lon": -122.1928743,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1064,7 +912,7 @@
       "lon": -122.3509426,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1083,7 +931,7 @@
       "lon": -122.3502714,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1102,7 +950,7 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1121,7 +969,7 @@
       "lon": -122.353988,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1140,7 +988,7 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1159,7 +1007,7 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1178,7 +1026,45 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "stale": false
+    },
+    {
+      "id": "0d3aa6c6741cc28d",
+      "title": "Utilities Long-Term Planning Open House",
+      "start": "2026-10-05T15:30:00",
+      "end": null,
+      "url": "https://bellevuewa.gov/events/utilities-long-term-planning-open-house",
+      "city": "Bellevue",
+      "venue": "Bellevue · 具体地点见原文",
+      "cost": "费用未注明",
+      "free": false,
+      "description": "Go!",
+      "category": "社区活动",
+      "lat": 47.6101,
+      "lon": -122.2015,
+      "locationExact": false,
+      "source": "Bellevue",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "stale": false
+    },
+    {
+      "id": "3c45dafdd17a1a97",
+      "title": "Continuing the Conversation: Welcoming Neighbors Through Stories",
+      "start": "2026-10-05T18:00:00",
+      "end": null,
+      "url": "https://bellevuewa.gov/events/continuing-conversation-welcoming-neighbors-through-stories",
+      "city": "Bellevue",
+      "venue": "Bellevue · 具体地点见原文",
+      "cost": "费用未注明",
+      "free": false,
+      "description": "Go!",
+      "category": "社区活动",
+      "lat": 47.6101,
+      "lon": -122.2015,
+      "locationExact": false,
+      "source": "Bellevue",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1197,7 +1083,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1216,7 +1102,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1235,7 +1121,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1254,7 +1140,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1273,7 +1159,7 @@
       "lon": -122.353988,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1292,7 +1178,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1311,7 +1197,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1330,7 +1216,7 @@
       "lon": -122.1955701,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1349,7 +1235,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1368,7 +1254,7 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1387,7 +1273,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1406,7 +1292,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1425,7 +1311,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1444,7 +1330,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1463,7 +1349,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1482,7 +1368,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1501,7 +1387,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1520,7 +1406,7 @@
       "lon": -122.353988,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1539,7 +1425,7 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1558,7 +1444,7 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1577,7 +1463,7 @@
       "lon": -122.353988,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1596,7 +1482,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1615,7 +1501,7 @@
       "lon": -122.249413,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1634,7 +1520,7 @@
       "lon": -122.2012025,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1653,7 +1539,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1672,7 +1558,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1691,7 +1577,7 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1710,7 +1596,26 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "stale": false
+    },
+    {
+      "id": "8692607d7527f086",
+      "title": "Everett Comedy Underground",
+      "start": "2026-10-09T20:00:00",
+      "end": null,
+      "url": "https://www.visiteverett.com/Calendar.aspx?EID=3830",
+      "city": "Everett",
+      "venue": "615 Millwright Lp W Everett WA 98201",
+      "cost": "费用未注明",
+      "free": false,
+      "description": "We're coming to Everett! We will be coming to you live from The Muse Whiskey & Coffee! \r\n\r\nLineup:\r\nAndrea Abbate (HBO, CBS, Sirius XM)\r\nAlex Duffant (Netflix Is A Joke, Hollywood Comedy Store)\r\nMike Masilotti (Dry Bar C",
+      "category": "社区活动",
+      "lat": 47.979,
+      "lon": -122.2021,
+      "locationExact": false,
+      "source": "Everett",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1729,7 +1634,7 @@
       "lon": -122.353988,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1748,7 +1653,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1767,7 +1672,7 @@
       "lon": -122.352168,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1786,7 +1691,7 @@
       "lon": -122.2350005,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1805,7 +1710,7 @@
       "lon": -122.249413,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1824,7 +1729,7 @@
       "lon": -122.2072166,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1843,7 +1748,7 @@
       "lon": -122.3192088,
       "locationExact": true,
       "source": "Lynnwood",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1862,7 +1767,7 @@
       "lon": -122.3524483,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1881,7 +1786,7 @@
       "lon": -122.3509426,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1900,7 +1805,7 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1919,7 +1824,7 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1938,7 +1843,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1957,7 +1862,7 @@
       "lon": -122.215957,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1976,7 +1881,7 @@
       "lon": -122.2073605,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -1995,7 +1900,7 @@
       "lon": -122.353988,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2014,7 +1919,7 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2033,7 +1938,7 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2052,7 +1957,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2071,7 +1976,7 @@
       "lon": -122.249413,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2090,7 +1995,26 @@
       "lon": -122.3524483,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "stale": false
+    },
+    {
+      "id": "caea1ce5a5fca4b4",
+      "title": "Turkfest",
+      "start": "2026-10-11T12:00:00",
+      "end": null,
+      "url": "https://www.seattlecenter.com/events/event-calendar/turkfest-x50557",
+      "city": "Seattle",
+      "venue": "Armory Food & Event Hall · Seattle Center",
+      "cost": "Free",
+      "free": true,
+      "description": "Seattle Center Festál presents Turkfest in partnership with the Turkish American Cultural Association of Washington (TACAWA). The festival boasts a lively marketplace, food, music, dance, and more.",
+      "category": "社区活动",
+      "lat": 47.6215514,
+      "lon": -122.3509426,
+      "locationExact": true,
+      "source": "Seattle",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2109,7 +2033,45 @@
       "lon": -122.1785307,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "stale": false
+    },
+    {
+      "id": "f8dd7434962e8426",
+      "title": "Eureka Day",
+      "start": "2026-10-11T14:00:00",
+      "end": null,
+      "url": "https://www.seattlecenter.com/events/event-calendar/eureka-day-x50637",
+      "city": "Seattle",
+      "venue": "Bagley Wright Theatre · Seattle Center",
+      "cost": "Entry Charge",
+      "free": false,
+      "description": "Jonathan Spector’s popular Tony Award winner serves up a razor‑sharp satire of well‑meaning chaos and shines a light on the shared responsibility that holds a community together.",
+      "category": "社区活动",
+      "lat": 47.6239152,
+      "lon": -122.3536861,
+      "locationExact": true,
+      "source": "Seattle",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "stale": false
+    },
+    {
+      "id": "e3bc9db86f399124",
+      "title": "Everett Philharmonic Concert",
+      "start": "2026-10-11T15:00:00",
+      "end": null,
+      "url": "https://www.visiteverett.com/Calendar.aspx?EID=3831",
+      "city": "Everett",
+      "venue": "2415 Colby Avenue Everett WA 98201",
+      "cost": "费用未注明",
+      "free": false,
+      "description": "Here the Everett Philharmonic Orchestra live at its season opening concert for an iconic afternoon of music by Márquez, Sousa, Tchaikovsky, and Sibelius.",
+      "category": "艺术音乐",
+      "lat": 47.979,
+      "lon": -122.2021,
+      "locationExact": false,
+      "source": "Everett",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2128,7 +2090,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2147,7 +2109,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2166,7 +2128,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2185,7 +2147,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2204,7 +2166,7 @@
       "lon": -122.207315,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2223,7 +2185,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2242,7 +2204,7 @@
       "lon": -122.186542,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2261,7 +2223,7 @@
       "lon": -122.1955701,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2280,7 +2242,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2299,7 +2261,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2318,7 +2280,26 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "stale": false
+    },
+    {
+      "id": "5412ee5dee2aa569",
+      "title": "FREE Community Access Night at Imagine Children’s Museum",
+      "start": "2026-10-15T15:00:00",
+      "end": null,
+      "url": "https://www.visiteverett.com/Calendar.aspx?EID=3822",
+      "city": "Everett",
+      "venue": "1502 Wall Street Everett WA 98201",
+      "cost": "Free",
+      "free": true,
+      "description": "FREE Community Access Night at Imagine Children’s Museum\r\n\r\nThird Thursday of the Month\r\n3 to 7 p.m.\r\n\r\nExperience the fun on Community Access Night!\r\n\r\nCommunity Access Night at Imagine Children's Museum offers families",
+      "category": "社区活动",
+      "lat": 47.979,
+      "lon": -122.2021,
+      "locationExact": false,
+      "source": "Everett",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2337,7 +2318,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2356,7 +2337,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2375,7 +2356,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2394,7 +2375,7 @@
       "lon": -122.312882,
       "locationExact": true,
       "source": "Lynnwood",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2413,7 +2394,7 @@
       "lon": -122.249413,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2432,7 +2413,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2451,7 +2432,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2470,7 +2451,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2489,7 +2470,7 @@
       "lon": -122.2155708,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2508,7 +2489,7 @@
       "lon": -122.1670273,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2527,7 +2508,7 @@
       "lon": -122.1431549,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2546,7 +2527,7 @@
       "lon": -122.2350005,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2565,7 +2546,7 @@
       "lon": -122.249413,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2584,7 +2565,7 @@
       "lon": -122.2012025,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2603,7 +2584,7 @@
       "lon": -122.1750642,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2622,7 +2603,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2641,7 +2622,26 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "stale": false
+    },
+    {
+      "id": "c3cf5c547190a7ef",
+      "title": "Sensory Time at Imagine Children’s Museum",
+      "start": "2026-10-18T09:00:00",
+      "end": null,
+      "url": "https://www.visiteverett.com/Calendar.aspx?EID=3817",
+      "city": "Everett",
+      "venue": "1502 Wall Street Everett WA 98201",
+      "cost": "费用未注明",
+      "free": false,
+      "description": "Sensory Time is a special Sunday program for families with children on the autism spectrum, children with sensory processing disorders and children with other special needs. During Sensory Time, Imagine Children’s Museum",
+      "category": "社区活动",
+      "lat": 47.979,
+      "lon": -122.2021,
+      "locationExact": false,
+      "source": "Everett",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2660,7 +2660,7 @@
       "lon": -122.249413,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2679,7 +2679,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2698,7 +2698,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2717,7 +2717,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2736,7 +2736,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2755,7 +2755,7 @@
       "lon": -122.2936148517231,
       "locationExact": true,
       "source": "Lynnwood",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2774,7 +2774,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2793,7 +2793,7 @@
       "lon": -122.1955701,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2812,7 +2812,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2831,7 +2831,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2850,7 +2850,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2869,7 +2869,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2888,7 +2888,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2907,7 +2907,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2926,7 +2926,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2945,7 +2945,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2964,7 +2964,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -2983,7 +2983,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3002,7 +3002,7 @@
       "lon": -122.249413,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3021,7 +3021,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3040,7 +3040,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3059,7 +3059,7 @@
       "lon": -122.249413,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3078,7 +3078,7 @@
       "lon": -122.1974102,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3097,7 +3097,7 @@
       "lon": -122.2208797,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3116,7 +3116,7 @@
       "lon": -122.2012025,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3135,7 +3135,7 @@
       "lon": -122.315137,
       "locationExact": true,
       "source": "Lynnwood",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3154,7 +3154,7 @@
       "lon": -122.2016063,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3173,7 +3173,7 @@
       "lon": -122.2348432,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3192,7 +3192,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3211,7 +3211,7 @@
       "lon": -122.2381138,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3230,7 +3230,26 @@
       "lon": -122.2348432,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "stale": false
+    },
+    {
+      "id": "7208cc2b0b4166af",
+      "title": "RAGTIME",
+      "start": "2026-10-24T19:30:00",
+      "end": null,
+      "url": "https://www.visiteverett.com/Calendar.aspx?EID=3694",
+      "city": "Everett",
+      "venue": "2710 Wetmore Avenue Everett WA 98201",
+      "cost": "费用未注明",
+      "free": false,
+      "description": "In 1902 New York, anything seemed possible. RAGTIME is a uniquely compelling exploration of America at the turn of the 20th century, weaving together three unforgettable stories: a daring Harlem pianist, a determined Jew",
+      "category": "社区活动",
+      "lat": 47.979,
+      "lon": -122.2021,
+      "locationExact": false,
+      "source": "Everett",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3249,7 +3268,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3268,7 +3287,7 @@
       "lon": -122.249413,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3287,7 +3306,7 @@
       "lon": -122.1928743,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3306,7 +3325,26 @@
       "lon": -122.187596,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "stale": false
+    },
+    {
+      "id": "3a4b343c42cfb182",
+      "title": "RAGTIME",
+      "start": "2026-10-25T19:30:00",
+      "end": null,
+      "url": "https://www.visiteverett.com/Calendar.aspx?EID=3695",
+      "city": "Everett",
+      "venue": "2710 Wetmore Avenue Everett WA 98201",
+      "cost": "费用未注明",
+      "free": false,
+      "description": "In 1902 New York, anything seemed possible. RAGTIME is a uniquely compelling exploration of America at the turn of the 20th century, weaving together three unforgettable stories: a daring Harlem pianist, a determined Jew",
+      "category": "社区活动",
+      "lat": 47.979,
+      "lon": -122.2021,
+      "locationExact": false,
+      "source": "Everett",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3325,7 +3363,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3344,7 +3382,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3363,7 +3401,7 @@
       "lon": -122.2936207,
       "locationExact": true,
       "source": "Lynnwood",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3382,7 +3420,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3401,7 +3439,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3420,7 +3458,7 @@
       "lon": -122.186542,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3439,7 +3477,7 @@
       "lon": -122.1955701,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3458,7 +3496,26 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "stale": false
+    },
+    {
+      "id": "fa4226443cb5f8cd",
+      "title": "RAGTIME",
+      "start": "2026-10-28T19:30:00",
+      "end": null,
+      "url": "https://www.visiteverett.com/Calendar.aspx?EID=3696",
+      "city": "Everett",
+      "venue": "2710 Wetmore Avenue Everett WA 98201",
+      "cost": "费用未注明",
+      "free": false,
+      "description": "In 1902 New York, anything seemed possible. RAGTIME is a uniquely compelling exploration of America at the turn of the 20th century, weaving together three unforgettable stories: a daring Harlem pianist, a determined Jew",
+      "category": "社区活动",
+      "lat": 47.979,
+      "lon": -122.2021,
+      "locationExact": false,
+      "source": "Everett",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3477,7 +3534,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3496,7 +3553,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3515,7 +3572,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3534,7 +3591,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3553,7 +3610,26 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "stale": false
+    },
+    {
+      "id": "73427eccdb7e47db",
+      "title": "RAGTIME",
+      "start": "2026-10-29T19:30:00",
+      "end": null,
+      "url": "https://www.visiteverett.com/Calendar.aspx?EID=3697",
+      "city": "Everett",
+      "venue": "2710 Wetmore Avenue Everett WA 98201",
+      "cost": "费用未注明",
+      "free": false,
+      "description": "In 1902 New York, anything seemed possible. RAGTIME is a uniquely compelling exploration of America at the turn of the 20th century, weaving together three unforgettable stories: a daring Harlem pianist, a determined Jew",
+      "category": "社区活动",
+      "lat": 47.979,
+      "lon": -122.2021,
+      "locationExact": false,
+      "source": "Everett",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3572,7 +3648,7 @@
       "lon": -122.249413,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3591,7 +3667,26 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "stale": false
+    },
+    {
+      "id": "8620499d4c8cdc29",
+      "title": "RAGTIME",
+      "start": "2026-10-30T19:30:00",
+      "end": null,
+      "url": "https://www.visiteverett.com/Calendar.aspx?EID=3698",
+      "city": "Everett",
+      "venue": "2710 Wetmore Avenue Everett WA 98201",
+      "cost": "费用未注明",
+      "free": false,
+      "description": "In 1902 New York, anything seemed possible. RAGTIME is a uniquely compelling exploration of America at the turn of the 20th century, weaving together three unforgettable stories: a daring Harlem pianist, a determined Jew",
+      "category": "社区活动",
+      "lat": 47.979,
+      "lon": -122.2021,
+      "locationExact": false,
+      "source": "Everett",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3610,7 +3705,7 @@
       "lon": -122.1431549,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3629,7 +3724,7 @@
       "lon": -122.249413,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3648,7 +3743,26 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "stale": false
+    },
+    {
+      "id": "17d54e67263fcfd7",
+      "title": "RAGTIME",
+      "start": "2026-10-31T19:30:00",
+      "end": null,
+      "url": "https://www.visiteverett.com/Calendar.aspx?EID=3699",
+      "city": "Everett",
+      "venue": "2710 Wetmore Avenue Everett WA 98201",
+      "cost": "费用未注明",
+      "free": false,
+      "description": "In 1902 New York, anything seemed possible. RAGTIME is a uniquely compelling exploration of America at the turn of the 20th century, weaving together three unforgettable stories: a daring Harlem pianist, a determined Jew",
+      "category": "社区活动",
+      "lat": 47.979,
+      "lon": -122.2021,
+      "locationExact": false,
+      "source": "Everett",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3667,7 +3781,7 @@
       "lon": -122.190352,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3686,7 +3800,7 @@
       "lon": -122.2021,
       "locationExact": false,
       "source": "Everett",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3705,7 +3819,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3724,7 +3838,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3743,7 +3857,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3762,7 +3876,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3781,7 +3895,7 @@
       "lon": -122.1955701,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3800,7 +3914,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3819,7 +3933,7 @@
       "lon": -122.2021,
       "locationExact": false,
       "source": "Everett",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3838,7 +3952,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3857,7 +3971,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3876,7 +3990,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3895,7 +4009,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3914,7 +4028,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3933,7 +4047,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3952,7 +4066,7 @@
       "lon": -122.2021,
       "locationExact": false,
       "source": "Everett",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3971,7 +4085,7 @@
       "lon": -122.2012025,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -3990,7 +4104,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4009,7 +4123,7 @@
       "lon": -122.2021,
       "locationExact": false,
       "source": "Everett",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4028,7 +4142,7 @@
       "lon": -122.1928743,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4047,7 +4161,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4066,7 +4180,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4085,7 +4199,7 @@
       "lon": -122.2021,
       "locationExact": false,
       "source": "Everett",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4104,7 +4218,7 @@
       "lon": -122.2021,
       "locationExact": false,
       "source": "Everett",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4123,7 +4237,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4142,7 +4256,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4161,7 +4275,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4180,7 +4294,26 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "stale": false
+    },
+    {
+      "id": "b78e0ce01ced52a1",
+      "title": "City Hall Holiday Closures for 2026",
+      "start": "2026-11-11T00:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/CMO/City-Hall-Holiday-Closures-for-2026",
+      "city": "Kirkland",
+      "venue": "Kirkland · 具体地点见原文",
+      "cost": "费用未注明",
+      "free": false,
+      "description": "City Hall Holiday Closures for 2026 6 more dates",
+      "category": "社区活动",
+      "lat": 47.6815,
+      "lon": -122.2087,
+      "locationExact": false,
+      "source": "Kirkland",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4199,7 +4332,7 @@
       "lon": -122.207315,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4218,7 +4351,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4237,7 +4370,7 @@
       "lon": -122.1955701,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4256,7 +4389,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4275,7 +4408,7 @@
       "lon": -122.2021,
       "locationExact": false,
       "source": "Everett",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4294,7 +4427,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4313,7 +4446,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4332,7 +4465,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4351,7 +4484,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4370,7 +4503,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4389,7 +4522,7 @@
       "lon": -122.2021,
       "locationExact": false,
       "source": "Everett",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4408,7 +4541,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4427,7 +4560,7 @@
       "lon": -122.2021,
       "locationExact": false,
       "source": "Everett",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4446,7 +4579,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4465,7 +4598,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     },
     {
@@ -4484,7 +4617,64 @@
       "lon": -122.2021,
       "locationExact": false,
       "source": "Everett",
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "stale": false
+    },
+    {
+      "id": "6ac3077113cec1be",
+      "title": "Sensory Time at Imagine Children’s Museum",
+      "start": "2026-11-15T09:00:00",
+      "end": null,
+      "url": "https://www.visiteverett.com/Calendar.aspx?EID=3818",
+      "city": "Everett",
+      "venue": "1502 Wall Street Everett WA 98201",
+      "cost": "费用未注明",
+      "free": false,
+      "description": "Sensory Time is a special Sunday program for families with children on the autism spectrum, children with sensory processing disorders and children with other special needs. During Sensory Time, Imagine Children’s Museum",
+      "category": "社区活动",
+      "lat": 47.979,
+      "lon": -122.2021,
+      "locationExact": false,
+      "source": "Everett",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "stale": false
+    },
+    {
+      "id": "e150212430290f64",
+      "title": "EnGAYging in Sapphistry",
+      "start": "2026-11-15T14:00:00",
+      "end": "2026-11-15T15:00:00",
+      "url": "https://experienceredmond.com/event/engayging-in-sapphistry/2026-11-15/",
+      "city": "Redmond",
+      "venue": "Redmond Library, 15990 NE 85th St, Redmond",
+      "cost": "费用未注明",
+      "free": false,
+      "description": "Pride Across the Bridge and the Redmond Library are co-creating a sapphic-centered book club for queer adults! Whether you’re into queer classics, messy drama, or soft sapphic stories—this space is for you. Join us for s",
+      "category": "社区活动",
+      "lat": 47.674,
+      "lon": -122.1215,
+      "locationExact": false,
+      "source": "Redmond",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "stale": false
+    },
+    {
+      "id": "0406276f4e79af2d",
+      "title": "RAGTIME",
+      "start": "2026-11-15T19:30:00",
+      "end": null,
+      "url": "https://www.visiteverett.com/Calendar.aspx?EID=3710",
+      "city": "Everett",
+      "venue": "2710 Wetmore Avenue Everett WA 98201",
+      "cost": "费用未注明",
+      "free": false,
+      "description": "In 1902 New York, anything seemed possible. RAGTIME is a uniquely compelling exploration of America at the turn of the 20th century, weaving together three unforgettable stories: a daring Harlem pianist, a determined Jew",
+      "category": "社区活动",
+      "lat": 47.979,
+      "lon": -122.2021,
+      "locationExact": false,
+      "source": "Everett",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
       "stale": false
     }
   ],
@@ -4494,9 +4684,9 @@
       "name": "Kirkland 官方活动",
       "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events",
       "ok": true,
-      "count": 27,
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
-      "lastSuccessAt": "2026-09-30T19:18:56.708611+00:00",
+      "count": 26,
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "lastSuccessAt": "2026-10-01T20:28:55.085541+00:00",
       "error": null,
       "optional": false
     },
@@ -4505,9 +4695,9 @@
       "name": "Redmond 官方活动",
       "url": "https://experienceredmond.com/redmond-events/",
       "ok": true,
-      "count": 88,
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
-      "lastSuccessAt": "2026-09-30T19:18:56.708611+00:00",
+      "count": 87,
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "lastSuccessAt": "2026-10-01T20:28:55.085541+00:00",
       "error": null,
       "optional": false
     },
@@ -4517,8 +4707,8 @@
       "url": "https://bellevuewa.gov/calendar",
       "ok": true,
       "count": 8,
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
-      "lastSuccessAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "lastSuccessAt": "2026-10-01T20:28:55.085541+00:00",
       "error": null,
       "optional": false
     },
@@ -4528,8 +4718,8 @@
       "url": "https://www.lynnwoodwa.gov/Community/Events-Calendar",
       "ok": true,
       "count": 5,
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
-      "lastSuccessAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "lastSuccessAt": "2026-10-01T20:28:55.085541+00:00",
       "error": null,
       "optional": false
     },
@@ -4538,9 +4728,9 @@
       "name": "Everett 官方活动",
       "url": "https://www.visiteverett.com/Calendar.aspx",
       "ok": true,
-      "count": 10,
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
-      "lastSuccessAt": "2026-09-30T19:18:56.708611+00:00",
+      "count": 23,
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "lastSuccessAt": "2026-10-01T20:28:55.085541+00:00",
       "error": null,
       "optional": false
     },
@@ -4549,9 +4739,9 @@
       "name": "Kent 官方活动",
       "url": "https://visitkent.com/events/",
       "ok": true,
-      "count": 42,
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
-      "lastSuccessAt": "2026-09-30T19:18:56.708611+00:00",
+      "count": 41,
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "lastSuccessAt": "2026-10-01T20:28:55.085541+00:00",
       "error": null,
       "optional": false
     },
@@ -4561,21 +4751,21 @@
       "url": "https://www.seattlecenter.com/events/event-calendar",
       "ok": true,
       "count": 56,
-      "checkedAt": "2026-09-30T19:18:56.708611+00:00",
-      "lastSuccessAt": "2026-09-30T19:18:56.708611+00:00",
+      "checkedAt": "2026-10-01T20:28:55.085541+00:00",
+      "lastSuccessAt": "2026-10-01T20:28:55.085541+00:00",
       "error": null,
       "optional": false
     }
   ],
   "timezone": "America/Los_Angeles",
-  "through": "2026-11-14",
+  "through": "2026-11-15",
   "refresh": {
     "state": "ok",
-    "lastAttemptAt": "2026-09-30T19:18:56.708611+00:00",
-    "lastCompleteAt": "2026-09-30T19:18:56.708611+00:00",
+    "lastAttemptAt": "2026-10-01T20:28:55.085541+00:00",
+    "lastCompleteAt": "2026-10-01T20:28:55.085541+00:00",
     "failedSources": [],
     "attempts": 1,
     "maxAgeHours": 36,
-    "runId": "36764747753"
+    "runId": "36921812941"
   }
 }
