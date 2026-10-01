@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-30T22:32:17Z",
+  "generated_at": "2026-10-01T22:51:47Z",
   "chart_date": "2026/09/30",
   "weekly_chart": [
     {
@@ -174,7 +174,7 @@
       "is_new": false,
       "title": "愛MUST BE",
       "artist": "櫻坂46",
-      "artwork": "https://www.billboard-japan.com/scale/rankinfo/00000292/202x_image292320.jpg",
+      "artwork": "https://www.billboard-japan.com/scale/jackets/00000168/202x_P2_G4893958W.JPG",
       "url": "https://www.billboard-japan.com/goods/detail/787470",
       "youtube_music_url": "https://music.youtube.com/search?q=%E6%84%9BMUST+BE+%E6%AB%BB%E5%9D%8246"
     },
@@ -770,7 +770,7 @@
       "youtube_music_url": "https://music.youtube.com/search?q=%E6%84%9BMUST+BE+Sakurazaka46",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "https://www.billboard-japan.com/scale/rankinfo/00000292/202x_image292320.jpg",
+      "artwork": "https://www.billboard-japan.com/scale/jackets/00000168/202x_P2_G4893958W.JPG",
       "artwork_checked": true
     },
     {
@@ -887,22 +887,23 @@
       "apple_music_url": "https://music.apple.com/jp/album/%E3%83%AC%E3%83%97%E3%83%AA%E3%82%AB%E3%83%B3%E3%83%88/1519740112?i=1519740249&uo=4"
     },
     {
-      "id": "f5b3036046f66e00",
+      "id": "862d0d667cd095ab",
       "rank": 55,
       "rank_change": "NEW",
       "is_new": true,
-      "title": "DebitBit",
+      "title": "デビットビット",
       "artist": "アボガド6",
       "weeks": 1,
       "peak": 55,
       "streams": "802,538",
       "streams_change": "",
-      "url": "https://www.youtube.com/results?search_query=%E3%82%A2%E3%83%9C%E3%82%AC%E3%83%896+-+DebitBit",
-      "youtube_music_url": "https://music.youtube.com/search?q=DebitBit+%E3%82%A2%E3%83%9C%E3%82%AC%E3%83%896",
+      "url": "https://www.youtube.com/results?search_query=%E3%82%A2%E3%83%9C%E3%82%AC%E3%83%896+-+%E3%83%87%E3%83%93%E3%83%83%E3%83%88%E3%83%93%E3%83%83%E3%83%88",
+      "youtube_music_url": "https://music.youtube.com/search?q=%E3%83%87%E3%83%93%E3%83%83%E3%83%88%E3%83%93%E3%83%83%E3%83%88+%E3%82%A2%E3%83%9C%E3%82%AC%E3%83%896",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": true
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/27/c2/1e/27c21e39-4772-cc21-e142-c198ffc12312/4570216291470_Cover.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/%E3%83%87%E3%83%93%E3%83%83%E3%83%88%E3%83%93%E3%83%83%E3%83%88/6810578319?i=6810578320&uo=4"
     },
     {
       "id": "4892a8ac66a15239",
@@ -1040,22 +1041,22 @@
       "label": "Billboard JAPAN Hot 100",
       "ok": true,
       "count": 30,
-      "checked_at": "2026-09-30T22:32:17Z"
+      "checked_at": "2026-10-01T22:51:47Z"
     },
     "apple_music_weekly_new": {
       "label": "Apple Music Japan · 本周新曲",
       "ok": true,
       "count": 5,
-      "checked_at": "2026-09-30T22:32:17Z",
+      "checked_at": "2026-10-01T22:51:47Z",
       "fallback": "Billboard JAPAN Hot 100 本周新进榜",
-      "error": "RuntimeError: Apple Music Best New Songs parser returned no rows"
+      "error": "RuntimeError: Apple Music Best New Songs heading not found"
     },
     "youtube_japan_recent": {
       "label": "YouTube Japan · 近期热门榜",
       "ok": true,
       "count": 30,
-      "cover_count": 27,
-      "checked_at": "2026-09-30T22:32:17Z",
+      "cover_count": 28,
+      "checked_at": "2026-10-01T22:51:47Z",
       "chart_date": "2026/09/24",
       "endpoint": "https://kworb.net/youtube/insights/jp.html"
     }
