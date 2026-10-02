@@ -41,6 +41,10 @@ function fixture(hash='#music'){
  const first=f.run("cachedChapter('https://www.wenku8.net/shared.htm',false,{stopped:isStopped})");await settle();
  const second=f.run("cachedChapter('https://www.wenku8.net/shared.htm',false)");await settle();stopped=true;release({text:'shared chapter'});
  assert.equal((await second).text,'shared chapter');await first;
+ // Range parsing accepts multiple groups, deduplicates and bounds every chapter.
+ assert.equal(f.run("JSON.stringify(parseChapterRange('1-3，3、5～6',6))"),'[0,1,2,4,5]');
+ for(const input of ['', '0', '3-1', '1-7', '1,', '2.5', '1-999999999999'])assert.throws(()=>f.run(`parseChapterRange(${JSON.stringify(input)},6)`));
+ assert.equal(f.run("chapterRangeLabel([0,1,2,4,5,7])"),'1-3, 5-6, 8');
  // On deep links all lexical state has initialized before the initial route.
  const deep=fixture('');await settle();await settle();assert.match(deep.get('#breadcrumb').textContent,/轻小说/);
  console.log('Frontend logic passed: fresh refresh, service check, disabled-storage reader, stale chapter response, retry backoff, cancellation isolation, deep-link startup.');
