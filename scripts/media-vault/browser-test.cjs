@@ -36,6 +36,20 @@ const assert=require('node:assert/strict');
  assert.equal(await page.getAttribute('html','data-theme'),'light');
  await page.click('#themeToggle');assert.equal(await page.getAttribute('html','data-theme'),'dark');
  await page.reload();assert.equal(await page.getAttribute('html','data-theme'),'dark');await page.click('#themeToggle');
+ // Navigation order and geometry are shared across all tabs.
+ assert.deepEqual(await page.locator('[data-tab]').evaluateAll(es=>es.map(e=>e.dataset.tab)),['novels','music','anime','torrent','video']);
+ const navigationGeometry=()=>page.evaluate(()=>{const rail=document.querySelector('.rail').getBoundingClientRect(),tabs=document.querySelector('#tabs').getBoundingClientRect(),bar=document.querySelector('.topbar').getBoundingClientRect();return {rail:[rail.x,rail.y,rail.width,rail.height],tabsY:tabs.y,bar:[bar.x,bar.y,bar.width,bar.height],direction:getComputedStyle(document.querySelector('#tabs')).flexDirection};});
+ const desktopNavigation=await navigationGeometry();assert.equal(desktopNavigation.direction,'row');
+ // Settings independently resize the novel UI and body, persist, and can reset.
+ await page.click('#displaySettingsOpen');await page.waitForSelector('#displaySettings[open]');
+ await page.focus('#novelUIScale');await page.keyboard.press('End');assert.equal(await page.locator('#novelUIScaleValue').textContent(),'120%');
+ await page.focus('#readerFontSetting');await page.keyboard.press('Home');for(let i=0;i<10;i++)await page.keyboard.press('ArrowRight');
+ assert.equal(await page.locator('#readerFontValue').textContent(),'24 px');assert.equal(await page.locator('#readerText').evaluate(e=>getComputedStyle(e).fontSize),'24px');
+ await page.locator('#displaySettings [data-close]').last().click();await page.reload();
+ await page.click('#displaySettingsOpen');assert.equal(await page.inputValue('#novelUIScale'),'120');assert.equal(await page.inputValue('#readerFontSetting'),'24');
+ await page.screenshot({animations:'disabled',path:'test-results/media-vault/type-settings.png'});
+ await page.click('#displaySettingsReset');assert.equal(await page.inputValue('#novelUIScale'),'100');assert.equal(await page.locator('#readerText').evaluate(e=>getComputedStyle(e).fontSize),'21px');
+ await page.locator('#displaySettings [data-close]').first().click();await page.click('#fontPlus');assert.equal(await page.inputValue('#readerFontSetting'),'22');await page.click('#fontMinus');
  // Replace only wall-clock source spacing; keep fetch, cache, queue and EPUB code real.
  await page.evaluate(()=>{chapterDelay=async()=>{};});
  fs.mkdirSync('test-results/media-vault',{recursive:true});
@@ -98,7 +112,7 @@ const assert=require('node:assert/strict');
  await page.click('#showShelf');await page.click('[data-download-book="0"]');await page.waitForSelector('[data-download-chapter="4"]');await page.uncheck('#downloadSelectAll');assert.ok(await page.locator('#downloadConfirm').isDisabled());await page.check('#downloadSelectAll');assert.equal(await page.locator('#downloadChapterList input:checked').count(),5);await page.press('#downloadSelectAll','Escape');assert.equal(await page.evaluate(()=>novelTasks.length),savedTaskCount);
  await page.click('#showShelf');await openBook(3);await openBook(1);
  await page.screenshot({animations:'disabled',path:'test-results/media-vault/desktop.png'});
- const sizes=await page.evaluate(()=>Object.fromEntries(['.book-select strong','.chapter-row','#readerText','.task-detail'].map(s=>[s,parseFloat(getComputedStyle(document.querySelector(s)).fontSize)])));assert.ok(sizes['.book-select strong']>=18&&sizes['.chapter-row']>=16&&sizes['#readerText']>=22&&sizes['.task-detail']>=14);
+ const sizes=await page.evaluate(()=>Object.fromEntries(['.book-select strong','.chapter-row','#readerText','.task-detail'].map(s=>[s,parseFloat(getComputedStyle(document.querySelector(s)).fontSize)])));assert.ok(sizes['.book-select strong']===17&&sizes['.chapter-row']===15&&sizes['#readerText']===21&&sizes['.task-detail']===13);
  const panes=await page.locator('.novel-layout > *').evaluateAll(es=>es.map(e=>({x:e.getBoundingClientRect().x,width:e.getBoundingClientRect().width})));
  assert.ok(panes[0].x<panes[1].x&&panes[1].x<panes[2].x&&panes[2].width>panes[0].width*2);
  await page.click('#themeToggle');await page.screenshot({animations:'disabled',path:'test-results/media-vault/dark.png'});await page.click('#themeToggle');
@@ -107,7 +121,7 @@ const assert=require('node:assert/strict');
  await page.click('#readerEPUB');await page.waitForSelector('#downloadChapterDialog[open]');await page.screenshot({animations:'disabled',path:'test-results/media-vault/mobile-picker.png'});
  const bounds=await page.locator('#downloadChapterDialog').boundingBox();assert.ok(bounds.x>=0&&bounds.x+bounds.width<=390&&bounds.y>=0&&bounds.y+bounds.height<=844);assert.ok(await page.locator('#downloadConfirm').isVisible());await page.locator('#downloadChapterDialog [data-close]').first().click();
  await page.setViewportSize({width:1440,height:1000});
- await page.click('[data-tab="music"]');await page.waitForSelector('.track');await page.click('#chartRefresh');await page.waitForFunction(()=>!document.querySelector('#chartRefresh').disabled);assert.equal(freshCharts,1);
+ await page.click('[data-tab="music"]');await page.waitForSelector('.track');assert.deepEqual(await navigationGeometry(),desktopNavigation);await page.screenshot({animations:'disabled',path:'test-results/media-vault/music-desktop.png'});await page.click('#chartRefresh');await page.waitForFunction(()=>!document.querySelector('#chartRefresh').disabled);assert.equal(freshCharts,1);
  await page.click('#serviceCheck');await page.waitForFunction(()=>document.querySelector('#serviceStatus').textContent.includes('v3'));
  await page.click('[data-tab="anime"]');await page.waitForSelector('[data-series]');
  if(await page.locator('[data-series]').count()!==36)throw Error('Catalogue pagination failed');
@@ -120,11 +134,14 @@ const assert=require('node:assert/strict');
  if(!await page.locator('#animeNext').isDisabled())throw Error('Last episode page must disable Next');
  if(!(await page.locator('#animeList').textContent()).includes('01'))throw Error('Episode pagination failed');
  await page.click('#animeBack');await page.waitForSelector('[data-series]');
- for(const tab of ['anime','torrent','video']){await page.click(`[data-tab="${tab}"]`);await page.locator('#'+tab).waitFor({state:'visible'});}
- await page.click('#settingsOpen');await page.waitForSelector('#settings[open]');await page.click('[data-close="settings"]');
- await page.setViewportSize({width:390,height:844});await page.click('[data-tab="music"]');
+ for(const tab of ['anime','torrent','video','novels']){await page.click(`[data-tab="${tab}"]`);await page.locator('#'+tab).waitFor({state:'visible'});assert.deepEqual(await navigationGeometry(),desktopNavigation);}
+ await page.click('#displaySettingsOpen');await page.click('#settingsOpen');await page.waitForSelector('#settings[open]');await page.click('[data-close="settings"]');
+ await page.setViewportSize({width:390,height:844});const mobileNavigation=await navigationGeometry();
+ for(const tab of ['music','anime','torrent','video','novels']){await page.click(`[data-tab="${tab}"]`);await page.locator('#'+tab).waitFor({state:'visible'});assert.deepEqual(await navigationGeometry(),mobileNavigation);assert.ok(!await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth));}
+ await page.click('#displaySettingsOpen');await page.screenshot({animations:'disabled',path:'test-results/media-vault/type-settings-mobile.png'});await page.locator('#displaySettings [data-close]').first().click();
+ await page.click('[data-tab="music"]');await page.locator('#music').waitFor({state:'visible'});
  await page.screenshot({animations:'disabled',path:'test-results/media-vault/mobile.png'});
  if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth))throw Error('Mobile horizontal overflow');
  if(errors.length)throw Error(errors.join('\n'));
- console.log('Larger text, checkbox/range chapter picker, selected EPUB contents, desktop/mobile, persisted themes, concurrent jobs, queue cap, cancellation, retry, offline illustrations, TXT, other media: passed');await browser.close();server.close();
+ console.log('Shared top navigation, persisted typography settings, checkbox/range chapter picker, selected EPUB contents, desktop/mobile, persisted themes, concurrent jobs, queue cap, cancellation, retry, offline illustrations, TXT, other media: passed');await browser.close();server.close();
 })().catch(e=>{console.error(e);process.exit(1);});
