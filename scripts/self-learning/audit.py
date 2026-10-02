@@ -13,7 +13,10 @@ for meta in manifest['courses']:
   assert len(l['sections'])>=4 and all(len(s['paragraphs'])>=2 for s in l['sections'])
   assert len(l['walkthrough']['steps'])==3 and l['check']['answer']
   w=l['walkthrough'];check=l['check']
-  computed=sum(len(str(v)) for v in l['body']+[p for s in l['sections'] for p in s['paragraphs']]+[l['example'],l['pitfall']]+l['steps']+[l['criteria'],l['answer'],w['setup']]+w['steps']+[w['result'],check['question'],check['answer']])
+  assert l['guide']['question'] and len(l['guide']['terms'])>=2
+  assert all(t['term'] and len(t['definition'])>=12 for t in l['guide']['terms'])
+  assert all(len(s['keyPoint'])>=12 for s in l['sections'])
+  computed=sum(len(str(v)) for v in l['body']+[p for s in l['sections'] for p in s['paragraphs']]+[s['keyPoint'] for s in l['sections']]+[v for s in l['sections'] for v in (list(s['formula'].values()) if s.get('formula') else [])]+[l['guide']['question']]+[t['definition'] for t in l['guide']['terms']]+[l['example'],l['pitfall']]+l['steps']+[l['criteria'],l['answer'],w['setup']]+w['steps']+[w['result'],check['question'],check['answer']])
   assert computed==l['textCharacters'] and computed>=1100,l['id']
   assert all(r['id'] in ids and r['section'] for r in l['refs'])
   amount.append(computed)

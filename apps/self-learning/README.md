@@ -30,7 +30,7 @@ PT Universe 的中文自学工作台。独立入口：`apps/self-learning/`；�
 
 ## 浏览器数据与迁移
 
-`pt-learning.v1` 保存章节完成、练习记录、笔记与最后位置；`pt-learning.theme` 保存主题。页面明确说明只在当前浏览器保存，支持 JSON 导出与导入；没有自动云同步。
+`pt-learning.v1` 保存章节完成、练习记录、笔记、分节位置、自检回答与最后位置；`pt-learning.theme` 保存主题，`pt-learning.mode` 保存阅读方式。页面明确说明只在当前浏览器保存，支持 JSON 导出与导入；没有自动云同步。旧记录格式继续兼容；导入含最后位置的记录后回到对应章节。
 
 导入先验证整个文件，再合并；同章采用更新的时间戳，非法/未知章节不会改变原记录。笔记与回答用文本输出，避免导入内容成为 HTML。页面支持鼠标、触屏、原生键盘操作及明暗主题，避免依赖 Win/macOS 专有快捷键。
 
@@ -55,3 +55,20 @@ node scripts/self-learning/check.cjs
 参考资料增至57项，为新增讲解加入Python、MDN、OWASP、债券、订单、CPI/PCE、ETF、分散、Godot存档和Raft的直接官方或原始链接。新章核算了复利/回撤、库存天数、DCF桥接与取整、期权到期表、抽牌/掉落概率、暴击期望与EHP。所有价格与利率算例为假设，个股事实依当期原始财报。
 
 内容与数字验证：`python3 scripts/self-learning/audit.py`；浏览器验证：`node scripts/self-learning/check.cjs`（需要Playwright）。
+
+## 2026-10-02 教程体验修订
+
+80章均增加具体问题导入、173条章内术语解释及355条分节关键结论。默认按导读、讲解、案例、练习、复盘和阅读分节推进，保留阅读全文。所有已有教学内容保留，除金融第4章重新写成同一订阅产品贯穿的完整教程。短段落、公式块、证据表和随时可查的术语减轻摘要式密集阅读的问题；字数不在学习流程中作为质量指标展示。
+
+6处确定性教学模型：金融4订阅单位经济，金融6三年DCF，游戏5无放回抽牌，系统7队列积累，安全5对象授权，HCI8不透明sRGB对比度。各模型提供预测任务、可修改参数、计算过程、结果和假设边界；不提供真实价格、自动安全评审或个股目标价。参数不作为已完成状态保存；复制提问上下文包含当前参数与结果。
+
+阅读界面参考以下真实教学网页与设计指南，实际查阅2026-10-02。这里只借鉴教学组织，内容未复制这些网页：
+
+- [Microsoft Learn：Units、Modules与Learning Paths](https://learn.microsoft.com/en-us/training/support/learn-content-types)：将章节拆成可推进的单元，结合讲解和实践，页面更新时间2026-07-29。
+- [JavaScript.info：Loops](https://javascript.info/while-for)：逐步说明机制、示例与独立任务，答案按需展开；经典页面，更新时间2022-06-19，不伪称新材料。
+- [MDN：Basic HTML syntax](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Structuring_content/Basic_HTML_syntax)：通过具体结果连接概念与操作，页面更新时间2026-08-27。
+- [Diátaxis：Tutorials](https://diataxis.fr/tutorials/)：给出明确动作、期望结果和观察提示；讲解、实操和深入资料分别呈现。
+
+当前教学文本131498字符（新增问题、定义、关键结论与公式解释计入；不含导航、标题、reference、代码、表格及互动模型文字）。该统计只防止内容回退，不能代替教学质量判断。
+
+浏览器验证脚本`check.cjs`调用`tutorial-check.cjs`，覆盖80章755个分节步骤、6模型正常与边界参数、术语弹窗和焦点恢复、阅读方式切换、旧/新记录导入、完整复制、打印展开/恢复、360/768/1440px与PT入口。

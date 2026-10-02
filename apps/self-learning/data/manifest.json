@@ -22,7 +22,7 @@
         "03 / 数据库与搜索",
         "04 / 分布式与可靠性"
       ],
-      "teachingCharacters": 34169
+      "teachingCharacters": 37569
     },
     {
       "id": "security",
@@ -43,7 +43,7 @@
         "03 / Web 安全",
         "04 / 工程与 Agent"
       ],
-      "teachingCharacters": 16392
+      "teachingCharacters": 18221
     },
     {
       "id": "hci",
@@ -64,7 +64,7 @@
         "03 / 跨设备与可访问性",
         "04 / 验证与迭代"
       ],
-      "teachingCharacters": 15087
+      "teachingCharacters": 16671
     },
     {
       "id": "games",
@@ -86,7 +86,7 @@
         "04 / 探索与表现",
         "05 / 评估与研究"
       ],
-      "teachingCharacters": 19433
+      "teachingCharacters": 21555
     },
     {
       "id": "finance",
@@ -113,11 +113,14 @@
         "04 / 交易与行为",
         "05 / 组合与研究"
       ],
-      "teachingCharacters": 32922
+      "teachingCharacters": 37482
     }
   ],
-  "contentRevision": "2026-10-02-expanded",
-  "revisionNote": "80章深入版：概念导读、分节讲义、机制与条件、逐步推演、理解自检和实操。金融前三章依据可检索历史摘要重新编写，未声称逐字恢复。",
-  "teachingCharacters": 118003,
-  "referenceCount": 57
+  "contentRevision": "2026-10-02-tutorial",
+  "revisionNote": "80章加入问题导入、术语与关键结论；默认分节学习，保留阅读全文。金融第4章使用连续算例，6处可操作模型均标明假设与边界。",
+  "teachingCharacters": 131498,
+  "referenceCount": 57,
+  "termExplanations": 173,
+  "sectionKeyPoints": 355,
+  "interactiveExamples": 6
 }
