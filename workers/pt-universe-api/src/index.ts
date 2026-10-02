@@ -128,6 +128,18 @@ async function syncRoute(request:Request,env:Env,url:URL){
   if(request.method==='PUT'){
     const body=await request.json<{ciphertext?:string;baseRevision?:number}>();
     if(!body.ciphertext||body.ciphertext.length>2_000_000)return error(request,'同步数据为空或超过 2 MB');
+    if(scope==='todo-dashboard'){
+      // Atomic compare-and-swap protects concurrently edited Todo documents.
+      const base=body.baseRevision;
+      if(typeof base!=='number'||!Number.isSafeInteger(base)||base<0)return error(request,'同步版本无效');
+      const revision=base+1,updatedAt=now();
+      const result=await env.DB.prepare(`INSERT INTO sync_blobs(sync_id,scope,ciphertext,revision,updated_at)
+        SELECT ?,?,?,?,? WHERE ?=0 OR EXISTS(SELECT 1 FROM sync_blobs WHERE sync_id=? AND scope=? AND revision=?)
+        ON CONFLICT(sync_id,scope) DO UPDATE SET ciphertext=excluded.ciphertext,revision=excluded.revision,updated_at=excluded.updated_at
+        WHERE sync_blobs.revision=?`).bind(id,scope,body.ciphertext,revision,updatedAt,base,id,scope,base,base).run();
+      if(result.meta.changes!==1)return error(request,'另一台设备刚刚更新了数据，请再次同步并选择版本',409);
+      return reply(request,{revision,updatedAt});
+    }
     const prior=await env.DB.prepare('SELECT revision FROM sync_blobs WHERE sync_id=? AND scope=?').bind(id,scope).first<{revision:number}>();
     const revision=(prior?.revision||0)+1,updatedAt=now();
     await env.DB.prepare(`INSERT INTO sync_blobs(sync_id,scope,ciphertext,revision,updated_at) VALUES(?,?,?,?,?)

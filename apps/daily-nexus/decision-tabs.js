@@ -1,8 +1,8 @@
 // Keep the two same-origin tools mounted: switching tabs preserves drafts and credentials.
 (()=>{
   'use strict';
-  const routes={'life-desk':'meal','meal-orbit':'meal','investment-desk':'investment','watch-inbox':'muse','signal-audit':'investment'};
-  const frames=['investment','muse','meal'].map(name=>({name,frame:document.getElementById(name+'Frame')}));
+  const routes={'pt-todo-dashboard':'todo','life-desk':'meal','meal-orbit':'meal','investment-desk':'investment','watch-inbox':'muse','signal-audit':'investment'};
+  const frames=['investment','muse','meal','todo'].map(name=>({name,frame:document.getElementById(name+'Frame')}));
   const theme=()=>document.documentElement.dataset.theme||'light';
   function syncTheme(doc,depth=0){
     if(!doc||depth>3)return;
@@ -44,5 +44,5 @@
   addEventListener('nexus-theme-change',()=>frames.forEach(({frame})=>syncTheme(frame.contentDocument)));
   addEventListener('nexus-view-change',e=>activate(e.detail.view));
   const initial=new URL(location.href).searchParams.get('tab');
-  if(['investment','muse','meal'].includes(initial))window.switchNexusView(initial);
+  if(['investment','muse','meal','todo'].includes(initial))window.switchNexusView(initial);
 })();
