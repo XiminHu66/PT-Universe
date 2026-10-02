@@ -1,4 +1,4 @@
-name: Refresh Tsugi data (verified daily fallback)
+name: Refresh Tsugi data (8am verified fallback)
 
 on:
   workflow_dispatch:
@@ -7,11 +7,15 @@ on:
     paths:
       - "apps/tsugi-checker/scraper/**"
       - "apps/tsugi-checker/config/content.json"
+      - ".github/workflows/refresh-tsugi.yml"
   schedule:
-    # Verified daily fallback: 10:35 PST / 11:35 PDT.
-    # Cloudflare remains the primary in-app/manual refresh path; this run keeps
-    # the GitHub Pages snapshot independently fresh once per day.
-    - cron: "35 18 * * *"
+    # Primary daily refresh at 08:00 Pacific time.
+    - cron: "0 8 * * *"
+      timezone: "America/Los_Angeles"
+    # Independent retry. It exits quickly when the 08:00 run already produced
+    # a fresh snapshot, but protects Daily Nexus from a delayed/dropped cron.
+    - cron: "30 8 * * *"
+      timezone: "America/Los_Angeles"
 
 permissions:
   contents: write
@@ -30,13 +34,41 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Decide whether to refresh sources
+        id: refresh
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" || "${{ github.event_name }}" == "push" ]]; then
+            echo "scrape=true" >> "$GITHUB_OUTPUT"
+            echo "reason=manual_or_source_change" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+          from zoneinfo import ZoneInfo
+
+          now = datetime.now(timezone.utc).astimezone(ZoneInfo("America/Los_Angeles"))
+          path = Path("apps/tsugi-checker/data/site-updates.json")
+          try:
+              generated = json.loads(path.read_text(encoding="utf-8")).get("generated_at")
+              refreshed = datetime.fromisoformat(generated.replace("Z", "+00:00")).astimezone(ZoneInfo("America/Los_Angeles"))
+          except Exception:
+              refreshed = None
+          fresh = bool(refreshed and refreshed.date() == now.date() and refreshed.hour >= 8)
+          print(f"scrape={'false' if fresh else 'true'}")
+          print(f"reason={'already_refreshed_after_08_today' if fresh else 'daily_08_refresh_needed'}")
+          PY
+
       - name: Explain refresh mode
         run: |
-          echo "Running verified Tsugi scrape."
+          echo "scrape=${{ steps.refresh.outputs.scrape }}"
+          echo "reason=${{ steps.refresh.outputs.reason }}"
           echo "event=${{ github.event_name }}"
-          echo "Cloudflare generated_at is intentionally not used as a reason to skip this daily fallback."
 
       - name: Set up Python
+        if: steps.refresh.outputs.scrape == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -44,17 +76,20 @@ jobs:
           cache-dependency-path: apps/tsugi-checker/requirements.txt
 
       - name: Install scraper dependencies
+        if: steps.refresh.outputs.scrape == 'true'
         run: |
           python -m pip install -r apps/tsugi-checker/requirements.txt
           python -m playwright install --with-deps chromium
 
       - name: Refresh reading and music feeds
+        if: steps.refresh.outputs.scrape == 'true'
         working-directory: apps/tsugi-checker
         run: |
           python scraper/main.py --skip-games
           python scraper/site_dates.py
 
       - name: Validate refreshed snapshot
+        if: steps.refresh.outputs.scrape == 'true'
         working-directory: apps/tsugi-checker
         run: |
           python - <<'PY'
@@ -80,6 +115,7 @@ jobs:
           PY
 
       - name: Commit refreshed Tsugi data to PT Universe
+        if: steps.refresh.outputs.scrape == 'true'
         run: |
           git config user.name "pt-universe-tsugi-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -93,8 +129,6 @@ jobs:
             echo "No Tsugi data changes"
           else
             git commit -m "data(tsugi): refresh feeds"
-            # Scheduled/rerun jobs may start from an older branch snapshot.
-            # During rebase, prefer this run's freshly generated data on conflicts.
             git pull --rebase -X theirs origin main
             git push origin HEAD:main
           fi
