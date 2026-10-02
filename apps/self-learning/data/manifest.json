@@ -14,14 +14,15 @@
       "color": "#7fb9ff",
       "checkedAt": "2026-10-02",
       "chapterCount": 24,
-      "minutes": 1095,
+      "minutes": 1440,
       "file": "systems.json",
       "modules": [
         "01 / 程序与操作系统",
         "02 / 并发与网络",
         "03 / 数据库与搜索",
         "04 / 分布式与可靠性"
-      ]
+      ],
+      "teachingCharacters": 34169
     },
     {
       "id": "security",
@@ -34,14 +35,15 @@
       "color": "#a8d9ae",
       "checkedAt": "2026-10-02",
       "chapterCount": 12,
-      "minutes": 555,
+      "minutes": 720,
       "file": "security.json",
       "modules": [
         "01 / 安全基础",
         "02 / 身份与授权",
         "03 / Web 安全",
         "04 / 工程与 Agent"
-      ]
+      ],
+      "teachingCharacters": 16392
     },
     {
       "id": "hci",
@@ -54,14 +56,15 @@
       "color": "#d2b2ff",
       "checkedAt": "2026-10-02",
       "chapterCount": 12,
-      "minutes": 540,
+      "minutes": 720,
       "file": "hci.json",
       "modules": [
         "01 / 理解任务",
         "02 / 信息与交互",
         "03 / 跨设备与可访问性",
         "04 / 验证与迭代"
-      ]
+      ],
+      "teachingCharacters": 15087
     },
     {
       "id": "games",
@@ -74,7 +77,7 @@
       "color": "#ffc17f",
       "checkedAt": "2026-10-02",
       "chapterCount": 16,
-      "minutes": 735,
+      "minutes": 960,
       "file": "games.json",
       "modules": [
         "01 / 玩法原型",
@@ -82,7 +85,8 @@
         "03 / 掉落与经济",
         "04 / 探索与表现",
         "05 / 评估与研究"
-      ]
+      ],
+      "teachingCharacters": 19433
     },
     {
       "id": "finance",
@@ -100,7 +104,7 @@
         "note": "此前对话教学至第 4 章；第 3 章讨论库存与 SBC。这里依据找回的课程大纲和摘要重整中文讲义，并非原对话逐字存档。历史教学位置与本页手动完成标记分别记录。"
       },
       "chapterCount": 16,
-      "minutes": 720,
+      "minutes": 1200,
       "file": "finance.json",
       "modules": [
         "01 / 市场与企业",
@@ -108,7 +112,12 @@
         "03 / 宏观与市场",
         "04 / 交易与行为",
         "05 / 组合与研究"
-      ]
+      ],
+      "teachingCharacters": 32922
     }
-  ]
+  ],
+  "contentRevision": "2026-10-02-expanded",
+  "revisionNote": "80章深入版：概念导读、分节讲义、机制与条件、逐步推演、理解自检和实操。金融前三章依据可检索历史摘要重新编写，未声称逐字恢复。",
+  "teachingCharacters": 118003,
+  "referenceCount": 57
 }
