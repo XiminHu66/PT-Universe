@@ -1,0 +1,33 @@
+name: Todo Dashboard validation
+on:
+  pull_request:
+    paths:
+      - 'apps/pt-todo-dashboard/**'
+      - 'scripts/todo/**'
+      - 'apps/daily-nexus/**'
+      - 'workers/pt-universe-api/src/index.ts'
+      - 'workers/pt-universe-api/tests/todo-sync.test.mjs'
+      - '.github/workflows/todo-check.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node scripts/todo/model-test.mjs
+      - run: npm install --no-save --package-lock=false playwright@1.58.2
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/todo/browser-test.cjs
+      - run: npm ci && npm run check && node tests/todo-sync.test.mjs
+        working-directory: workers/pt-universe-api
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: todo-dashboard-screenshots
+          path: /tmp/pt-todo-*.png

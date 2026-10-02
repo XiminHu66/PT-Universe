@@ -1,4 +1,5 @@
 const APPS=[
+ {id:'pt-todo-dashboard',name:'PT Todo Dashboard',icon:'☑',cat:'today',catName:'今日与看板',accent:'#5965db',desc:'项目树、Markdown 工作记录与长期待办并排管理；支持原 worklog.json 导入和 Obsidian 导出。',url:'apps/pt-todo-dashboard/',repo:'https://github.com/XiminHu66/PT-Universe/tree/main/apps/pt-todo-dashboard',tags:['Todo','待办','项目','工作记录','Obsidian','Markdown'],update:'本机自动保存 · 加密跨设备同步'},
  {"id":"investment-desk","name":"Investment Desk · 投资工作台","icon":"↗","cat":"money","catName":"资金与决策","accent":"#256d53","desc":"导入持仓 CSV，自动核对行情与财报，给出买卖候选和参考区间；内置名人公开交易核验。","tags":["股票","财报","持仓","论点"],"update":"行情与财报自动刷新","url":"apps/investment-desk/","repo":"https://github.com/XiminHu66/PT-Universe/tree/main/apps/investment-desk"},
  {"id":"life-desk","name":"Life Desk · 周末与吃饭","icon":"⌖","cat":"life","catName":"生活与饮食","accent":"#208c79","desc":"半日安排、收藏餐厅、今晚菜单和食谱在一页接着用；原 Weekend Atlas 与 Food Orbit 已整合。","tags":["周末","餐厅","食谱","活动"],"update":"每日活动快照 · 实时餐厅查询","url":"apps/life-desk/","repo":"https://github.com/XiminHu66/PT-Universe/tree/main/apps/life-desk"},
  {id:'watch-inbox',name:'Muse Inbox · 每日监视',icon:'◫',cat:'today',catName:'今日与看板',accent:'#a2763c',desc:'接收 Muse 每日监视报告，汇总变化、原始证据、监视失败和建议下一步。',url:'apps/watch-inbox/',repo:'https://github.com/XiminHu66/PT-Universe/tree/main/apps/watch-inbox',tags:['Muse','监视','变化','条件'],update:'Muse 每日投递 · 自动汇总'},
@@ -29,6 +30,7 @@ function buildNav(){
 }
 function card(a){let fav=favorites.includes(a.id);return `<article class="app-card" data-app="${a.id}" style="--accent:${a.accent}"><div class="card-top"><span class="app-symbol">${a.icon}</span><button class="fav ${fav?'on':''}" data-fav="${a.id}">${fav?'★':'☆'}</button></div><h3>${a.name}</h3><p>${a.desc}</p><div class="card-foot"><span class="chip">${a.catName}</span><button class="launch" data-launch="${a.id}">${a.id==='room-workout'?'独立打开 ↗':'打开 →'}</button></div></article>`}
 function render(){
+  document.querySelector('.stat-card strong').textContent=APPS.length;document.querySelector('.side-foot .status b').textContent=APPS.length+' 个模块已接入';
   let pinned=favorites.map(id=>APPS.find(a=>a.id===id)).filter(Boolean);
   $('#favoriteGrid').innerHTML=pinned.length?pinned.map(card).join(''):'<button class="empty pin-empty" id="emptyPinButton">尚未 Pin 常用工具 · 点击选择</button>';
   $('#allApps').innerHTML=CATS.slice(1).map(c=>({c,apps:APPS.filter(a=>a.cat===c.id)})).filter(x=>x.apps.length).map(({c,apps})=>`<section class="category-block" id="category-${c.id}"><h3>${c.icon} ${c.name.toUpperCase()} · ${apps.length}</h3><div class="app-grid">${apps.map(card).join('')}</div></section>`).join('');
