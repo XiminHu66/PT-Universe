@@ -34,7 +34,25 @@ export function restoreParagraphs<T>(paragraphs:T[],params:Params):T[]{
  indices.push(...tail);const restored=[...paragraphs];paragraphs.forEach((p,i)=>{restored[indices[i]]=p;});return restored;
 }
 
-type Block={type:'text'|'image';text?:string;url?:string};
+export type Block={type:'text'|'image';text?:string;url?:string};
+// Match upstream lazy-image normalization before URL parsing (including its
+// duplicated scheme and mathematical-letter hostname fixes).
+export function novelImageURL(raw:string,base:string):string|null {
+ const value=decodeText(raw).trim().replace(/^https:\/\/https:\/\//i,'https://').replace(/𝘣/g,'b');
+ if(!value||/[<>]/.test(value)||value.startsWith('data:'))return null;
+ try{const u=new URL(value,base);if(!['https:','http:'].includes(u.protocol)||u.username||u.password||u.port)return null;u.protocol='https:';return u.href;}catch{return null;}
+}
+export async function readWenkuContent(markup:string,base:string){
+ const blocks:Block[]=[];let text='';
+ const flush=()=>{const value=decodeText(text).trim();if(value)blocks.push({type:'text',text:value});text='';};
+ const cleaned=await new HTMLRewriter().on('#contentdp,script,style',{element(e){e.remove();}}).transform(new Response(markup)).text();
+ await new HTMLRewriter().on('#content',{text(t){text+=t.text;}})
+ .on('#content br',{element(){text+='\n';}})
+ .on('#content img',{element(e){flush();const url=novelImageURL(e.getAttribute('data-src')||e.getAttribute('src')||'',base);if(url)blocks.push({type:'image',url});}})
+ .transform(new Response(cleaned)).text();flush();
+ if(!blocks.length)throw new Error('未识别到正文或插图，来源可能要求登录');
+ return {blocks,text:blocks.filter(b=>b.type==='text').map(b=>b.text).join('\n\n')};
+}
 export async function readBiliChapter(raw:string,load:(url:string)=>Promise<string>){
  const start=new URL(raw);if(!/^\/novel\/\d+\/\d+(?:_\d+)?\.html$/.test(start.pathname))throw new Error('请选择实际章节，卷封面不是正文');
  let next:string|null=start.href,title='',pages=0;const blocks:Block[]=[],seen=new Set<string>(),retried=new Set<string>();
@@ -44,16 +62,16 @@ export async function readBiliChapter(raw:string,load:(url:string)=>Promise<stri
   if(/cf-chl-|just a moment|人机验证/i.test(markup))throw new Error('来源要求浏览器验证，无法获取正文');
   let cleaned=await new HTMLRewriter().on('#acontent div, #acontent ins, #acontent script, #acontent .tp, #acontent .bd, .bcontent div, .bcontent ins, .bcontent script, .bcontent .tp, .bcontent .bd',{element(e){e.remove();}}).transform(new Response(markup)).text();
   cleaned=await new HTMLRewriter().on('#acontent *, .bcontent *',{element(e){if(/^[a-z]\d{4}$/i.test(e.tagName))e.remove();}}).transform(new Response(cleaned)).text();
-  const page:Block[]=[];let paragraph:Block|undefined;let script='',nextLabel='';
+  const page:{blocks:Block[];paragraph:boolean}[]=[];let paragraph:{blocks:Block[];paragraph:boolean}|undefined;let script='',nextLabel='';
   await new HTMLRewriter().on('#atitle',{text(t){if(pages===1)title+=t.text;}})
-   .on('#acontent > p, .bcontent > p',{element(e){paragraph={type:'text',text:''};page.push(paragraph);e.onEndTag(()=>{paragraph=undefined;});},text(t){if(paragraph)paragraph.text+=t.text;}})
-   .on('#acontent img, .bcontent img',{element(e){const src=e.getAttribute('data-src')||e.getAttribute('src');if(src&&!src.startsWith('data:')){const u=new URL(src,current);if(u.protocol==='https:')page.push({type:'image',url:u.href});}}})
+   .on('#acontent > p, .bcontent > p',{element(e){paragraph={blocks:[],paragraph:true};page.push(paragraph);e.onEndTag(()=>{paragraph=undefined;});},text(t){if(paragraph){let b=paragraph.blocks.at(-1);if(!b||b.type!=='text'){b={type:'text',text:''};paragraph.blocks.push(b);}b.text+=t.text;}}})
+   .on('#acontent img, .bcontent img',{element(e){const url=novelImageURL(e.getAttribute('data-src')||e.getAttribute('src')||'',current);if(url){const b:Block={type:'image',url};if(paragraph)paragraph.blocks.push(b);else page.push({blocks:[b],paragraph:false});}}})
    .on('script[src*="chapterlog.js"]',{element(e){script=e.getAttribute('src')||'';}})
    .on('#footlink a.nextlink',{text(t){nextLabel+=t.text;}}).transform(new Response(cleaned)).text();
-  try{assertComplete(page.filter(b=>b.type==='text').map(b=>b.text).join('\n'));}catch(e){if(retried.has(current))throw e;retried.add(current);seen.delete(current);if(pages===1)title='';pages--;next=current;continue;}
-  const textSlots=page.map((b,i)=>b.type==='text'&&b.text?.trim()?i:-1).filter(i=>i>=0);
+  try{assertComplete(page.flatMap(p=>p.blocks).filter(b=>b.type==='text').map(b=>b.text).join('\n'));}catch(e){if(retried.has(current))throw e;retried.add(current);seen.delete(current);if(pages===1)title='';pages--;next=current;continue;}
+  const textSlots=page.map((b,i)=>b.paragraph&&b.blocks.some(x=>x.type==='image'||x.text?.trim())?i:-1).filter(i=>i>=0);
   if(script&&textSlots.length){const id=Number(markup.match(/chapterid\s*:\s*['"](\d+)/)?.[1]);if(!id)throw new Error('缺少章节排序编号');const js=await load(new URL(script,current).href);const sorted=restoreParagraphs(textSlots.map(i=>page[i]),shuffleParams(js,id));textSlots.forEach((slot,i)=>{page[slot]=sorted[i];});}
-  for(const b of page){if(b.type==='text')b.text=decodeText(b.text||'').trim();if(b.type==='image'||b.text)blocks.push(b);}
+  for(const b of page.flatMap(p=>p.blocks)){if(b.type==='text')b.text=decodeText(b.text||'').trim();if(b.type==='image'||b.text)blocks.push(b);}
   const pageLink=markup.match(/url_next\s*:\s*['"]([^'"]+)['"]/)?.[1];next=/下一[页頁]/.test(nextLabel)&&pageLink?new URL(pageLink,current).href:null;
   if(next){const n=new URL(next);if(n.origin!==start.origin||n.pathname.replace(/_\d+(?=\.html$)/,'')!==start.pathname.replace(/_\d+(?=\.html$)/,''))throw new Error('分页指向其他章节，已停止');}
  }

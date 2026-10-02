@@ -1,6 +1,6 @@
 import { animeCatalog, animeEpisodes, novelCatalog } from './media-catalog';
 import { torrentSearch } from './torrent-search';
-import { readBiliChapter, decodeText } from './novel-reader';
+import { readBiliChapter, readWenkuContent, novelImageURL, decodeText } from './novel-reader';
 import { animePlayback, animeStream, ektoplazmSearch } from './media-sources';
 // On-demand metadata and reading; Anime1 uses short-lived playback tickets.
 const novels = new Set(['www.wenku8.net','wenku8.net','www.bilinovel.com','www.bilinovel.net','www.linovelib.com','w.linovelib.com']);
@@ -98,16 +98,12 @@ async function novel(raw:string,chapter=false){
  let markup=await html(u.href,'novel');
  if(/just a moment|cf-chl-|人机验证/i.test(markup))throw new Error('来源要求浏览器验证，请在原站查看；不会绕过验证');
  if(chapter){
-  markup=await new HTMLRewriter().on('#contentdp,script,style',{element(e){e.remove();}}).on('br',{element(e){e.replace('\n');}}).transform(new Response(markup)).text();
-  const body=await select(markup,'#content');const title=(await select(markup,'#title'))[0]?.text;
-  const pictures=(await select(markup,'#content img','src')).filter(x=>x.value).map(x=>({type:'image',url:new URL(x.value,u).href}));
-  if(!body[0]?.text&&!pictures.length)throw new Error('未识别到正文，可能需要登录或站点结构已变化');
-  // select() normalizes whitespace for metadata; preserve paragraph text separately.
-  let text='';await new HTMLRewriter().on('#content',{text(t){text+=t.text;}}).transform(new Response(markup)).text();
-  const decoded=decodeText(text).trim();
-  return {title:title||'章节',text:decoded||'本章为插图，文字版 EPUB 不包含图片。',...(pictures.length?{blocks:[...(decoded?[{type:'text',text:decoded}]:[]),...pictures]}:{}),url:u.href,fetchedAt:stamp()};
+  const title=(await select(markup,'#title'))[0]?.text||'章节';
+  return {title,...await readWenkuContent(markup,u.href),url:u.href,fetchedAt:stamp()};
  }
  const wenku=u.hostname.includes('wenku8');
+ const coverRow=(await select(markup,wenku?'#content table img':'.book-layout img','src'))[0];
+ const cover=coverRow?novelImageURL(coverRow.value,u.href):null;
  let title=(await select(markup,wenku?'#content span b, #title':'.book-title'))[0]?.text||(await select(markup,'title'))[0]?.text||'轻小说';
  let catalog=u.href;
  if(wenku&&!u.pathname.includes('/novel/')){catalog=(await links(markup,'a',u.href)).find(x=>/\/novel\/\d+\/\d+\/(?:index\.htm)?$/.test(new URL(x.url).pathname))?.url||'';}
@@ -118,7 +114,7 @@ async function novel(raw:string,chapter=false){
  if(wenku)title=(await select(markup,'#title'))[0]?.text||title;
  const chapters=(await links(markup,wenku?'.ccss a':'.volume-chapters li.jsChapter a',catalog)).filter(x=>/\.(?:html|htm)(?:$|\?)/.test(x.url));
  if(!chapters.length)throw new Error('目录为空：'+catalog+'；请在原站确认该书可公开阅读');
- return {title,url:u.href,chapters,fetchedAt:stamp(),source:wenku?'轻小说文库':'哔哩轻小说',reader:true};
+ return {title,cover,url:u.href,chapters,fetchedAt:stamp(),source:wenku?'轻小说文库':'哔哩轻小说',reader:true};
 }
 async function novelUpdates(){
  const sources=await Promise.all([...['https://www.wenku8.net/modules/article/toplist.php?sort=lastupdate','https://www.bilinovel.com/']].map(async url=>{try{const m=await html(url,'novel');const items=(await links(m,'a',url)).filter(x=>/\/(book\/\d+\.htm|novel\/\d+\.html)$/.test(x.url));return {url,ok:!!items.length,items:[...new Map(items.map(x=>[x.url,x])).values()].slice(0,30),fetchedAt:stamp(),error:items.length?null:'未识别到更新列表'};}catch(e){return {url,ok:false,items:[],error:String(e),fetchedAt:stamp()};}}));
@@ -134,17 +130,49 @@ async function video(raw:string){
  if(!urls.length)throw new Error('页面没有公开媒体直链；此站点的动态视频需要专用下载引擎解析');
  return {title,formats:urls.map(url=>({url,format:url.split('?')[0].split('.').pop()?.toLowerCase(),label:'公开媒体',direct:true})),fetchedAt:stamp()};
 }
+// Only relay images actually listed by a supported book/chapter. Never accept
+// arbitrary URLs, credentials, private destinations, HTML or SVG responses.
+export function rasterType(b:Uint8Array){
+ if(b.length>=3&&b[0]===255&&b[1]===216&&b[2]===255)return 'image/jpeg';
+ if(b.length>=8&&[137,80,78,71,13,10,26,10].every((v,i)=>b[i]===v))return 'image/png';
+ const head=new TextDecoder().decode(b.slice(0,12));
+ if(/^GIF8[79]a/.test(head))return 'image/gif';
+ if(head.startsWith('RIFF')&&head.slice(8)==='WEBP')return 'image/webp';
+ throw new Error('来源没有返回有效图片，已停止打包以免丢失插图');
+}
+async function novelImage(request:Request,env?:{PT_UNIVERSE_DATA:KVNamespace}):Promise<Response>{
+ const u=new URL(request.url),raw=u.searchParams.get('url')||'',page=mediaURL(u.searchParams.get('page')||'','novel');
+ const cache=await caches.open('novel-images-v1'),key=new Request(u.href),hit=await cache.match(key).catch(()=>null);if(hit)return hit;
+ const metadata=new URL('/api/media/'+(u.searchParams.get('cover')==='1'?'novel':'chapter'),u.origin);metadata.searchParams.set('url',page.href);
+ const chapter=await mediaRoute(new Request(metadata),env);
+ if(!(u.searchParams.get('cover')==='1'?chapter.cover===raw:chapter.blocks?.some((b:any)=>b.type==='image'&&b.url===raw)))throw new Error('图片不在此小说页面中');
+ let target=mediaURL(raw,'public'),response:Response|undefined;
+ for(let depth=0;depth<=3;depth++){
+  await publicHost(target.hostname);
+  response=await fetch(target,{redirect:'manual',signal:AbortSignal.timeout(25000),headers:{'User-Agent':'Mozilla/5.0','Referer':page.origin+'/','Accept':'image/avif,image/webp,image/png,image/jpeg,image/*;q=0.8'}});
+  if(response.status>=300&&response.status<400){await response.body?.cancel();target=mediaURL(new URL(response.headers.get('location')||'',target).href,'public');response=undefined;continue;}break;
+ }
+ if(!response)throw new Error('图片重定向过多');
+ if(!response.ok){await response.body?.cancel();throw new Error('图片来源返回 HTTP '+response.status);}
+ const reader=response.body?.getReader();if(!reader)throw new Error('图片为空');
+ const chunks:Uint8Array[]=[];let size=0;
+ while(true){const {value,done}=await reader.read();if(done)break;size+=value.length;if(size>15_000_000){await reader.cancel();throw new Error('单张插图超过 15 MB');}chunks.push(value);}
+ const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
+ const result=new Response(bytes,{headers:{'Content-Type':rasterType(bytes),'Access-Control-Allow-Origin':'*','Cache-Control':'public,max-age=604800','X-Content-Type-Options':'nosniff'}});
+ await cache.put(key,result.clone()).catch(()=>{});return result;
+}
 export async function mediaRoute(request:Request,env?:{PT_UNIVERSE_DATA:KVNamespace}):Promise<any|null>{
  const u=new URL(request.url);if(!u.pathname.startsWith('/api/media/'))return null;
  if(request.method!=='GET')throw new Error('只支持 GET');
  const route=u.pathname.slice('/api/media/'.length),p=u.searchParams;
- if(route==='health')return {ok:true,version:4,build:'2026-09-29-sources',engineRequired:['torrent TCP/UDP','generic yt-dlp'],time:stamp()};
+ if(route==='health')return {ok:true,version:5,build:'2026-10-02-illustrated-epub',engineRequired:['torrent TCP/UDP','generic yt-dlp'],time:stamp()};
+ if(route==='novel/image')return novelImage(request,env);
  if(route==='stream'){if(!env)throw new Error('缺少播放存储');return animeStream(request,env.PT_UNIVERSE_DATA);}
  if(route==='video'&&new URL(p.get('url')||'https://invalid.example').hostname==='anime1.me'){if(!env)throw new Error('缺少播放存储');return animePlayback(p.get('url')||'',html,env.PT_UNIVERSE_DATA,u.origin);}
  // Refresh skips lookup but replaces the canonical cached value. Cache failures
  // must not turn successfully retrieved content into a broken endpoint.
  const refresh=p.get('refresh')==='1';u.searchParams.delete('refresh');
- const key=new Request(u.href),cache=await caches.open('media-vault-v7');
+ const key=new Request(u.href),cache=await caches.open('media-vault-v8');
  const cached=refresh?null:await cache.match(key).catch(()=>null);if(cached)return cached.json();
  let data:any;
  if(route==='charts')data=await charts(p.get('country')||'jp',p.get('genre')||'0');
