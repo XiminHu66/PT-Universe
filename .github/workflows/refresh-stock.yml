@@ -18,8 +18,13 @@ on:
       - apps/stock-alert/requirements.txt
       - .github/workflows/refresh-stock.yml
   schedule:
-    # Hourly during regular US market hours, offset from :00 to reduce queue delay.
-    - cron: "41 9-15 * * 1-5"
+    # One full pre-market refresh for history, news, options and fundamentals.
+    - cron: "17 8 * * 1-5"
+      timezone: "America/New_York"
+    # Lightweight quotes every 30 minutes around regular US market hours.
+    # Multiple small runs are deliberate: a delayed/dropped GitHub cron no
+    # longer leaves the Daily Nexus investment snapshot stale for the day.
+    - cron: "11,41 9-16 * * 1-5"
       timezone: "America/New_York"
 
 permissions:
@@ -39,25 +44,60 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Decide refresh mode
+        id: mode
+        shell: bash
+        run: |
+          FULL=false
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            FULL=true
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.mode }}" == "full" ]]; then
+            FULL=true
+          elif [[ "${{ github.event_name }}" == "schedule" && "${{ github.event.schedule }}" == "17 8 * * 1-5" ]]; then
+            FULL=true
+          fi
+          echo "full=$FULL" >> "$GITHUB_OUTPUT"
+          echo "event=${{ github.event_name }} schedule=${{ github.event.schedule }} full=$FULL"
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-          cache: pip
+          cache: ${{ steps.mode.outputs.full == 'true' && 'pip' || '' }}
           cache-dependency-path: apps/stock-alert/requirements.txt
 
       - name: Install full market dependencies
-        if: github.event_name != 'workflow_dispatch' || inputs.mode == 'full'
+        if: steps.mode.outputs.full == 'true'
         run: python -m pip install -r apps/stock-alert/requirements.txt
 
       - name: Fetch market history, news and options
-        if: github.event_name != 'workflow_dispatch' || inputs.mode == 'full'
+        if: steps.mode.outputs.full == 'true'
         working-directory: apps/stock-alert
         run: python scripts/fetch_market.py
 
       - name: Fetch lightweight quotes
         working-directory: apps/stock-alert
         run: python scripts/fetch_quotes.py
+
+      - name: Validate quote snapshot
+        working-directory: apps/stock-alert
+        run: |
+          python - <<'PY'
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          data = json.loads(Path('data/quotes.json').read_text(encoding='utf-8'))
+          generated = data.get('generatedAt')
+          symbols = data.get('symbols') or {}
+          successes = int(data.get('successCount') or 0)
+          if not generated or not symbols or successes < 1:
+              raise SystemExit('quote snapshot is missing fresh data')
+          age = datetime.now(timezone.utc) - datetime.fromisoformat(generated.replace('Z', '+00:00'))
+          if age.total_seconds() > 900:
+              raise SystemExit(f'quote snapshot is unexpectedly stale: {generated}')
+          print(f'validated quotes={successes}/{len(symbols)} generatedAt={generated}')
+          PY
 
       - name: Commit refreshed Stock data to PT Universe
         run: |
@@ -68,7 +108,7 @@ jobs:
             echo "No Stock data changes"
           else
             git commit -m "data(stock): refresh market snapshot"
-            git pull --rebase origin main
+            git pull --rebase -X theirs origin main
             git push origin HEAD:main
           fi
 
