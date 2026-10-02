@@ -54,6 +54,6 @@ Daily public snapshots refresh around 08:35 America/Los_Angeles. The refresh wor
 
 ## Self Learning
 
-- [Self Learning · 自学工作台](https://ximinhu66.github.io/PT-Universe/apps/self-learning/) — 系统工程24章、网络安全12章、HCI12章、游戏设计16章、金融投资16章，共80章；中文讲义、练习、毕业项目与有版本记录的参考资料。
+- [Self Learning · 自学工作台](https://ximinhu66.github.io/PT-Universe/apps/self-learning/) — 原五门课程保持；新增嵌入式、独立产品、音频与摄影，共9门120章；中文讲义、互动实验、练习与完整参考资料。
 - 金融课程延续此前16章顺序，历史教学至第4章；本机进度、回答和笔记可导出/导入迁移设备。
 - 资料核对2026-10-02；详见 [课程维护与验证](apps/self-learning/README.md)。

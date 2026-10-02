@@ -5,6 +5,49 @@
  const number=(n,d=0)=>n.toLocaleString('zh-CN',{minimumFractionDigits:d,maximumFractionDigits:d});
  const field=(id,label,value,min,max,step=1)=>({id,label,value,min,max,step});
  const models={
+  'power-budget':{
+   title:'动手算：更新频率如何影响理想续航？',
+   task:'先复现每60秒活跃2秒的例子，再改为30秒。比较数据新鲜度与耗电；数字均为教学假设。',
+   fields:[field('active','活跃电流（mA）',100,0,1000),field('sleep','休眠电流（mA）',1,0,100,0.1),field('activeTime','每周期活跃时间（秒）',2,0,120,0.5),field('period','更新周期（秒）',60,1,3600),field('capacity','可用电池容量（mAh）',1000,100,10000,100)],
+   calculate:({active:a,sleep:s,activeTime:t,period:p,capacity:c})=>{
+    if(t>p)return {error:'活跃时间不能超过整个更新周期。'};
+    const average=(a*t+s*(p-t))/p;
+    if(average<=0)return {error:'零平均电流无法用这个预算模型计算有限续航；请检查教学参数。'};
+    const hours=c/average;
+    return {values:[['平均电流',number(average,2)+' mA'],['理想续航',number(hours,1)+' 小时'],['理想天数',number(hours/24,2)+' 天']],steps:[`活跃占比 = ${t} ÷ ${p} = ${number(t/p*100,2)}%`,`平均电流 = (${a} × ${t} + ${s} × ${p-t}) ÷ ${p} = ${number(average,4)} mA`,`理想续航 = ${c} ÷ ${number(average,4)} = ${number(hours,4)} 小时`],explanation:'增大周期通常减少活跃占比，但数据更新更慢；重连时间、屏幕与板载器件也可能改变实际电流。'};
+   },
+   limit:'电流和容量在同一电压侧；状态电流恒定，容量为假定可用值。忽略转换损耗、温度、老化与无线变化，不能当作真实续航保证。'
+  },
+  'product-margin':{
+   title:'动手算：把自己的支持时间算进去',
+   task:'先预测100名客户的现金与经济结果，再把每客户支持时间从10改到20分钟；观察盈亏平衡变化。',
+   fields:[field('price','月收费（元／客户）',15,0,300),field('variable','变动现金成本（元／客户／月）',4,0,300),field('support','支持时间（分钟／客户／月）',10,0,120),field('hourly','工时估值（元／小时）',30,0,300),field('fixed','固定月成本（元）',1000,0,100000,100),field('customers','客户数（名）',100,0,10000,10),field('cac','每名新客户获客费用（元）',30,0,1000)],
+   calculate:({price:p,variable:v,support:s,hourly:h,fixed:f,customers:n,cac:a})=>{
+    const time=s/60*h,cash=p-v,economic=cash-time;
+    return {values:[['现金月结果',number(n*cash-f,2)+' 元'],['计支持时间的月结果',number(n*economic-f,2)+' 元'],['经济单位贡献',number(economic,2)+' 元']],steps:[`时间估值 = ${s} ÷ 60 × ${h} = ${number(time,2)} 元／客户／月`,`现金贡献 = ${p} − ${v} = ${number(cash,2)} 元；经济贡献 = ${number(cash,2)} − ${number(time,2)} = ${number(economic,2)} 元`,`计时间的结果 = ${n} × ${number(economic,2)} − ${f} = ${number(n*economic-f,2)} 元`],explanation:economic>0?`同类客户与成本不变时，经济盈亏平衡至少 ${number(Math.ceil(f/economic))} 名；静态获客回收 ${number(a/economic,2)} 个月，要求持续付费且贡献不变。`:'经济单位贡献不为正，扩大同类客户无法按此模型覆盖正的固定成本。先审查价格、支持量与交付形式。'};
+   },
+   limit:'统一按月；工时估值为机会成本，不必是现金支出。获客费用仅用于静态回收计算，未从月结果重复扣除；忽略税、退款、扩容与实际留存。'
+  },
+  'audio-alias':{
+   title:'动手算与听：采样后落在哪个频率？',audible:true,
+   task:'以8kHz采样，先预测6kHz纯音的折叠结果，再改7kHz。试听是浏览器生成两种纯音，不是完整录音设备模拟；先降低设备音量。',
+   fields:[field('frequency','原频率（Hz）',6000,20,20000,10),field('sampleRate','模型采样率（样本／秒）',8000,1000,96000,1000)],
+   calculate:({frequency:f,sampleRate:s})=>{
+    const remainder=((f%s)+s)%s,alias=Math.min(remainder,s-remainder);
+    return {values:[['奈奎斯特频率',number(s/2)+' Hz'],['折叠频率',number(alias)+' Hz']],steps:[`原频率对采样率取余：${f} mod ${s} = ${remainder} Hz`,`折入0至半采样率：min(${remainder}, ${s-remainder}) = ${alias} Hz`],explanation:alias===0?'这是零频率折叠关系，特定相位样本可为常数或零；工具不播放直流。':f>=s/2?'原频率处于或超过半采样率；边界与相位也有歧义。均匀理想样本不足以确定原来的连续信号。':'这一纯音在半采样率以内；真实录音仍需检查其他高频、滤波与设备条件。'};
+   },
+   limit:'只算均匀理想采样的单一正弦频率关系，相位可能反转。试听使用浏览器实际采样率，数字振幅0.025、限时3秒，不模拟ADC滤波、噪声和量化，也不校准耳边声压。'
+  },
+  'exposure':{
+   title:'动手算：等亮照片收到了同样多的光吗？',
+   task:'基准f/4、1/125秒、ISO100。把快门改1/250，再把ISO改200，分别看入光、增益和简化亮度。',
+   fields:[field('aperture','光圈f值',4,1,22,0.1),field('shutter','快门分母（1／秒）',125,1,8000),field('iso','ISO',100,50,12800,50)],
+   calculate:({aperture:n,shutter:t,iso:i})=>{
+    const light=(4/n)**2*(125/t),gain=i/100,brightness=light*gain;
+    return {values:[['相对入光',number(light,3)+' 倍'],['简化ISO增益',number(gain,2)+' 倍'],['相对显示亮度',number(brightness,3)+' 倍']],steps:[`入光 = (4 ÷ ${n})² × (125 ÷ ${t}) = ${number(light,6)}`,`入光档位变化 = log₂(${number(light,6)}) = ${number(Math.log2(light),2)} 档`,`显示亮度近似 = 入光 × (${i} ÷ 100) = ${number(brightness,6)}`],explanation:'ISO增益不会增加已经到达的光。两组亮度因子相同，也可能在运动、景深、噪声与高光余量上不同。'};
+   },
+   limit:'同一场景、镜头与条件；参考f/4、1/125秒、ISO100。忽略透过率、噪声、饱和、色调和多帧；这是关系模型，不是具体相机画质预测。'
+  },
   'unit-economics':{
    title:'动手算：客户增多，利润会怎样变化？',
    task:'先预测1000名与2000名客户的结果，再改变客户数。最后试着提高服务成本，观察盈亏平衡点。',
@@ -66,15 +109,46 @@
    limit:'此处是一套明确的示例策略。真实业务可能有分享或跨租户委托，必须单独建模并由服务端执行。'
   }
  };
+ let activeAudio=null,playGeneration=0;
+ function stopAudio(message='已停止。'){
+  playGeneration++;const active=activeAudio;activeAudio=null;if(!active)return;
+  if(active.oscillator&&active.gain&&active.context.state==='running'){
+   const now=active.context.currentTime;active.gain.gain.cancelScheduledValues(now);active.gain.gain.setTargetAtTime(0,now,0.005);try{active.oscillator.stop(now+0.03);}catch{}
+   setTimeout(()=>{if(active.context.state!=='closed')active.context.close().catch(()=>{});},40);
+  }else if(active.context?.state!=='closed')active.context.close().catch(()=>{});
+  if(active.status?.isConnected)active.status.textContent=message;
+ }
+ async function playTone(el,kind){
+  stopAudio();const status=el.querySelector('.audio-status'),inputs=[...el.querySelectorAll('[data-field]')];
+  if(inputs.some(i=>!i.checkValidity()||i.value==='')){status.textContent='先填写有效参数。';return;}
+  const values=Object.fromEntries(inputs.map(i=>[i.dataset.field,Number(i.value)])),r=models['audio-alias'].calculate(values);
+  const remainder=values.frequency%values.sampleRate,alias=Math.min(remainder,values.sampleRate-remainder),frequency=kind==='source'?values.frequency:alias;
+  if(r.error||frequency===0){status.textContent='零频率不播放直流，请换一组参数。';return;}
+  const Context=window.AudioContext||window.webkitAudioContext;if(!Context){status.textContent='此浏览器没有可用的Web Audio，仍可完成数值实验。';return;}
+  let context;const token=playGeneration;
+  try{
+   context=new Context();activeAudio={context,status};await context.resume();
+   if(token!==playGeneration){if(context.state!=='closed')await context.close();return;}
+   if(context.state!=='running'){stopAudio('浏览器尚未允许播放，请重新点击试听。');return;}
+   if(frequency>=context.sampleRate/2){stopAudio('原频率超过此浏览器实际半采样率，停止播放；数值模型仍可用。');return;}
+   const oscillator=context.createOscillator(),gain=context.createGain(),time=context.currentTime;activeAudio.oscillator=oscillator;activeAudio.gain=gain;
+   oscillator.frequency.value=frequency;gain.gain.setValueAtTime(0,time);gain.gain.linearRampToValueAtTime(0.025,time+0.03);gain.gain.setValueAtTime(0.025,time+2.94);gain.gain.linearRampToValueAtTime(0,time+2.99);
+   oscillator.connect(gain);gain.connect(context.destination);oscillator.start(time);oscillator.stop(time+3);
+   status.textContent=`正在播放${kind==='source'?'原频率':'折叠频率'} ${frequency}Hz；浏览器实际采样率 ${context.sampleRate}，3秒自动停止。`;
+   oscillator.onended=()=>{if(activeAudio?.context===context)stopAudio('已在3秒后停止。');};
+  }catch{if(activeAudio?.context===context)stopAudio('未能播放；数值实验仍可继续。');else if(context?.state!=='closed')context?.close().catch(()=>{});}
+ }
  window.LearningExplorers={
   models,
-  render(id){const m=models[id];if(!m)return '';return `<section class="explorer" data-explorer="${id}"><h3>${esc(m.title)}</h3><p>${esc(m.task)}</p><div class="explorer-inputs">${m.fields.map(f=>`<label>${esc(f.label)}<input data-field="${f.id}" aria-label="${esc(f.label)}" type="${f.type||'number'}" ${f.type==='checkbox'?(f.value?'checked':''):`value="${f.value}"`} ${!f.type?`min="${f.min}" max="${f.max}" step="${f.step}"`:''}></label>`).join('')}</div><div class="explorer-output" aria-live="polite" aria-atomic="true"></div><button class="explorer-reset" type="button">恢复示例参数</button><p class="model-limit">模型边界：${esc(m.limit)}</p></section>`;},
+  stopAll:stopAudio,
+  isPlaying:()=>activeAudio?.context?.state==='running',
+  render(id){const m=models[id];if(!m)return '';return `<section class="explorer" data-explorer="${id}"><h3>${esc(m.title)}</h3><p>${esc(m.task)}</p><div class="explorer-inputs">${m.fields.map(f=>`<label>${esc(f.label)}<input data-field="${f.id}" aria-label="${esc(f.label)}" type="${f.type||'number'}" ${f.type==='checkbox'?(f.value?'checked':''):`value="${f.value}"`} ${!f.type?`min="${f.min}" max="${f.max}" step="${f.step}"`:''}></label>`).join('')}</div><div class="explorer-output" aria-live="polite" aria-atomic="true"></div>${m.audible?'<div class="audio-controls"><button type="button" data-tone="source">试听原频率</button><button type="button" data-tone="alias">试听折叠频率</button><button type="button" data-audio-stop>停止声音</button></div><p class="audio-status" role="status">尚未播放；先降低设备音量，再主动点击试听。</p>':''}<button class="explorer-reset" type="button">恢复示例参数</button><p class="model-limit">模型边界：${esc(m.limit)}</p></section>`;},
   bind(root){root.querySelectorAll('[data-explorer]').forEach(el=>{
    const m=models[el.dataset.explorer],inputs=[...el.querySelectorAll('[data-field]')];
-   function update(){const values={};for(const input of inputs){if(!input.checkValidity()||input.value===''){el.querySelector('.explorer-output').innerHTML='<p class="model-error">请填写范围内的有效参数。</p>';return;}values[input.dataset.field]=input.type==='checkbox'?input.checked:input.type==='number'?Number(input.value):input.value;}
+   function update(){if(m.audible)stopAudio('参数已改变，声音已停止。');const values={};for(const input of inputs){if(!input.checkValidity()||input.value===''){el.querySelector('.explorer-output').innerHTML='<p class="model-error">请填写范围内的有效参数。</p>';return;}values[input.dataset.field]=input.type==='checkbox'?input.checked:input.type==='number'?Number(input.value):input.value;}
     const r=m.calculate(values);el.querySelector('.explorer-output').innerHTML=r.error?`<p class="model-error">${esc(r.error)}</p>`:`<div class="model-values">${r.values.map(([k,v])=>`<div><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join('')}</div>${r.sample?`<p class="contrast-sample" style="color:${r.sample.foreground};background:${r.sample.background}">这一段是使用当前颜色的正文示例。</p>`:''}<ol class="model-calculation">${r.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol><p>${esc(r.explanation)}</p>`;
    }
-   inputs.forEach(i=>i.addEventListener('input',update));el.querySelector('.explorer-reset').onclick=()=>{inputs.forEach((i,n)=>{if(i.type==='checkbox')i.checked=m.fields[n].value;else i.value=m.fields[n].value;});update();};update();
+   inputs.forEach(i=>i.addEventListener('input',update));el.querySelector('.explorer-reset').onclick=()=>{inputs.forEach((i,n)=>{if(i.type==='checkbox')i.checked=m.fields[n].value;else i.value=m.fields[n].value;});update();};el.querySelectorAll('[data-tone]').forEach(b=>b.onclick=()=>playTone(el,b.dataset.tone));const stop=el.querySelector('[data-audio-stop]');if(stop)stop.onclick=()=>stopAudio();update();
   });}
  };
 })();

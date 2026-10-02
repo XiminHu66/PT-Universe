@@ -114,13 +114,101 @@
         "05 / 组合与研究"
       ],
       "teachingCharacters": 37482
+    },
+    {
+      "id": "hardware",
+      "title": "嵌入式、电子与IoT",
+      "english": "Embedded Systems, Electronics & IoT",
+      "description": "从低压电路、GPIO、传感器与协议，到非阻塞固件、联网、功耗和可恢复的桌面终端。",
+      "prerequisites": "会基本程序流程即可；先做纸面和Wokwi仿真，实物设备可选。芯片与板卡规格需对应完整型号。",
+      "capstone": "完成一台有数据显示、实体反馈与NFC详细入口的桌面环境终端。",
+      "acceptance": "交付BOM、引脚表、状态机、正常与异常验收、功耗预算和恢复说明；区分模拟与实物证据。",
+      "color": "#edb75c",
+      "checkedAt": "2026-10-02",
+      "teachingCharacters": 13687,
+      "chapterCount": 10,
+      "minutes": 825,
+      "file": "hardware.json",
+      "modules": [
+        "01 / 电路与输入",
+        "02 / 测量与通信",
+        "03 / 固件与联网",
+        "04 / 功耗与交互",
+        "05 / 恢复与原型"
+      ]
+    },
+    {
+      "id": "product",
+      "title": "独立产品与商业化",
+      "english": "Independent Products & Commercialization",
+      "description": "把个人工具推进为明确的产品实验：需求证据、MVP、定位、成本定价、渠道、支付与持续维护。",
+      "prerequisites": "有一个愿意探索的小工具或服务；不要求成立公司、融资或真实收费。教学金额为假设。",
+      "capstone": "完成一次范围有限、可交付且有证据的独立产品实验。",
+      "acceptance": "交付问题卡、任务观察、可用作品、漏斗口径、成本情景、沙盒支付和维护计划；未验证事项明确。",
+      "color": "#ed8d63",
+      "checkedAt": "2026-10-02",
+      "teachingCharacters": 14456,
+      "chapterCount": 10,
+      "minutes": 825,
+      "file": "product.json",
+      "modules": [
+        "01 / 问题与证据",
+        "02 / 范围与渠道",
+        "03 / 成本与交付",
+        "04 / 留存与支付",
+        "05 / 运营与实验"
+      ]
+    },
+    {
+      "id": "audio",
+      "title": "音频、声学与DSP",
+      "english": "Audio, Acoustics & DSP",
+      "description": "从波形、采样和数字余量，到FFT、EQ、动态、空间与公平听音，最后制作可复现的声音实验。",
+      "prerequisites": "比例、简单三角函数与对数可边学边查；先用生成信号，不需购买音频硬件。",
+      "capstone": "交付一项有可调参数、数值检查和受控播放的声音实验室。",
+      "acceptance": "信号配方可复算，峰值和播放生命周期可检验；区分数字模型、听感与真实设备测量。",
+      "color": "#a38fea",
+      "checkedAt": "2026-10-02",
+      "teachingCharacters": 14356,
+      "chapterCount": 10,
+      "minutes": 825,
+      "file": "audio.json",
+      "modules": [
+        "01 / 信号与采样",
+        "02 / 数字与频谱",
+        "03 / 频率与动态",
+        "04 / 空间与听音",
+        "05 / 实时与实验"
+      ]
+    },
+    {
+      "id": "photo",
+      "title": "摄影与计算成像",
+      "english": "Photography & Computational Imaging",
+      "description": "以现有手机或相机练意图、光线、曝光、清晰度和色彩，再建立非破坏编辑、计算处理与网页输出流程。",
+      "prerequisites": "使用现有手机或相机即可；RAW和手动模式均为可选，不要求购买新设备。",
+      "capstone": "完成六至八张有共同意图、拍摄对照和处理记录的摄影系列。",
+      "acceptance": "交付真实作品、联系表、源文件索引、可回退编辑、输出与元数据检查；生成改动和未知条件说明。",
+      "color": "#70b9dd",
+      "checkedAt": "2026-10-02",
+      "teachingCharacters": 13927,
+      "chapterCount": 10,
+      "minutes": 825,
+      "file": "photo.json",
+      "modules": [
+        "01 / 意图与曝光",
+        "02 / 清晰与范围",
+        "03 / 色彩与视角",
+        "04 / 编辑与计算",
+        "05 / 输出与作品"
+      ]
     }
   ],
-  "contentRevision": "2026-10-02-tutorial",
-  "revisionNote": "80章加入问题导入、术语与关键结论；默认分节学习，保留阅读全文。金融第4章使用连续算例，6处可操作模型均标明假设与边界。",
-  "teachingCharacters": 131498,
-  "referenceCount": 57,
-  "termExplanations": 173,
-  "sectionKeyPoints": 355,
-  "interactiveExamples": 6
+  "contentRevision": "2026-10-02-four-courses",
+  "revisionNote": "保留原五门80章；新增嵌入式、独立产品、音频与摄影四门各10章，共120章。新增四处互动实验与四份可运行Python起点，资料标注版本、读法与边界。",
+  "teachingCharacters": 187924,
+  "referenceCount": 96,
+  "termExplanations": 293,
+  "sectionKeyPoints": 515,
+  "interactiveExamples": 10
 }

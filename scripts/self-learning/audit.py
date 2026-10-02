@@ -4,7 +4,7 @@ from pathlib import Path
 root=Path(__file__).resolve().parents[2]/'apps/self-learning/data'
 read=lambda f:json.loads((root/f).read_text())
 manifest=read('manifest.json');sources=read('sources.json');ids={s['id'] for s in sources}
-assert len(manifest['courses'])==5 and len(sources)==len(ids)
+assert len(manifest['courses'])==9 and len(sources)==len(ids)
 assert all(s['url'].startswith('https://') and s['checkedAt']=='2026-10-02' for s in sources)
 count=0;total=0;codes=0
 for meta in manifest['courses']:
@@ -30,7 +30,7 @@ for meta in manifest['courses']:
  assert sum(amount)==meta['teachingCharacters']==c['teachingCharacters']
  total+=sum(amount)
  print(c['title'],len(amount),'chapters;',min(amount),'-',max(amount),'characters')
-assert count==80 and total==manifest['teachingCharacters']
+assert count==120 and total==manifest['teachingCharacters']
 # Independent calculations for numbers in the teaching, not rendered-string mirrors.
 near=lambda x,y,tol=0.005:abs(x-y)<tol
 assert near(1-math.comb(18,5)/math.comb(20,5),0.447368421,1e-9)
@@ -49,4 +49,31 @@ for price,expected in [(90,-4),(105,1),(120,6)]:
  payoff=max(price-100,0)-max(price-110,0)-4
  assert payoff==expected
 assert 10*(1+0.2*(2-1))==12 and 100/(1-0.2)==125
+# Independent new-course calculations: electrical units, monthly economics,
+# exact sample relationships, physical exposure and decoded image memory.
+assert near((3.3-2.0)/270*1000,4.814814815)
+assert near(((3.3-2.0)/270)**2*270,0.006259259,1e-9)
+assert near(3.3/4095*1000,0.80586)
+assert int.from_bytes(bytes([1,2]),'big')==258
+assert int.from_bytes(bytes([1,2]),'little')==513
+assert int.from_bytes(bytes([255,254]),'big',signed=True)==-2
+assert near((100*2+1*58)/60,4.3)
+assert near(1000/4.3/24,9.68992248)
+assert near((100*2+1*28)/30,7.6)
+assert 15-4-(10/60*30)==6
+assert math.ceil(1000/6)==167 and 100*6-1000==-400
+assert near(20*math.log10(0.5),-6.020599913,1e-9)
+assert near(20*math.log10(0.25),-12.041199827,1e-9)
+assert 48000/2048==23.4375
+assert -12+(-4-(-12))/4==-10
+for f,expected in [(6000,2000),(7000,1000),(9000,1000),(8000,0)]:
+ folded=abs((f+4000)%8000-4000)
+ assert folded==expected
+assert near((4/8)**2*(125/250),1/8,1e-9)
+assert (4/8)**2*(125/250)*(800/100)==1
+assert near(4000*3000*4/2**20,45.7763671875,1e-9)
+assert near(1/math.sqrt(4),0.5,1e-9)
+assert manifest['referenceCount']==len(sources)
+assert manifest['termExplanations']==sum(len(l['guide']['terms']) for m in manifest['courses'] for l in read(m['file'])['lessons'])
+assert manifest['sectionKeyPoints']==sum(len(l['sections']) for m in manifest['courses'] for l in read(m['file'])['lessons'])
 print(f'PASS: {count} chapters, {total} teaching characters, {len(sources)} references, {codes} executable labs, independent numeric checks.')
