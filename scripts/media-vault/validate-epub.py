@@ -3,7 +3,7 @@ import sys, zipfile, posixpath, xml.etree.ElementTree as ET
 from pathlib import Path
 from PIL import Image
 from io import BytesIO
-for path in sys.argv[1:] or ['test-results/media-vault/reader.epub','test-results/media-vault/illustrated.epub','test-results/media-vault/book.epub','test-results/media-vault/images-only.epub']:
+for path in sys.argv[1:] or ['test-results/media-vault/reader.epub','test-results/media-vault/illustrated.epub','test-results/media-vault/book.epub','test-results/media-vault/images-only.epub','test-results/media-vault/selected-chapters.epub','test-results/media-vault/selected-range.epub']:
     with zipfile.ZipFile(path) as z:
         assert z.namelist()[0]=='mimetype'
         assert z.getinfo('mimetype').compress_type==zipfile.ZIP_STORED
