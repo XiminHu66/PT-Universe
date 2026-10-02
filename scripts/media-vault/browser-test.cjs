@@ -24,7 +24,7 @@ const assert=require('node:assert/strict');
   if(u.pathname.endsWith('/novel')){const id=Number(u.searchParams.get('url').match(/(\d+)\.htm/)[1]);return route.fulfill({json:{...catalogue[id-1],chapters:Array.from({length:id===5?1:id===7?5:2},(_,i)=>({title:'第 '+(i+1)+' 章 · 小说 '+id,url:'https://www.wenku8.net/novel/'+id+'/'+(i+1)+'.htm'}))}});}
   if(u.pathname.endsWith('/chapter')){const url=u.searchParams.get('url'),id=Number(url.match(/novel\/(\d+)/)[1]);started.add(id);chapterURLs.push(url);if(holdChapters&&id>=2&&id<=5)await chapterGate;
    const image='https://images.example.org/'+(id===6?'failure':id===5?'only':'fixture')+'.png',text='这是小说 '+id+' 的完整测试章节。';
-   return route.fulfill({json:{title:'第 '+url.match(/(\d+)\.htm/)[1]+' 章 · 小说 '+id,url,text:id===5?'':text,blocks:id===5?[{type:'image',url:image}]:[{type:'text',text:text.repeat(8)},{type:'image',url:image},{type:'text',text:'插图之后。'},{type:'image',url:image}]}});
+   return route.fulfill({json:{title:'第 '+url.match(/(\d+)\.htm/)[1]+' 章 · 小说 '+id,url,text:id===5?'':text,blocks:id===5?[{type:'image',url:image}]:[{type:'text',text:'　　'+text.repeat(8)+'\n \n\u00a0\u00a0独立段落。\n\n'},{type:'image',url:image},{type:'text',text:'插图之后。'},{type:'image',url:image}]}});
   }
   if(u.pathname.endsWith('/novel/image')){if(failImage&&u.searchParams.get('url').includes('failure'))return route.fulfill({status:400,json:{error:'图片来源返回 HTTP 403'}});return route.fulfill({contentType:'image/png',body:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAgAAAAMCAIAAADQ/GvKAAAAFElEQVR4nGMM6DnBgA0wYRUd0RIA97sBvJDvBzoAAAAASUVORK5CYII=','base64')});}
   if(u.pathname.endsWith('/anime/episodes'))return route.fulfill({json:{items:[{title:'無職轉生 第 '+(u.searchParams.get('page')==='2'?'01':'12')+' 集',url:'https://anime1.me/30257'}],hasNext:u.searchParams.get('page')!=='2'}});
@@ -59,7 +59,7 @@ const assert=require('node:assert/strict');
  await page.locator('#txtImport').setInputFiles({name:'阅读测试.txt',mimeType:'text/plain',buffer:Buffer.from('第一章\n这是第一段。\n这是第二段。')});
  await page.waitForFunction(()=>document.querySelector('#readerText').textContent.includes('第二段'));
  await page.click('#fontPlus');assert.equal(await page.inputValue('#readerFontSetting'),'22');await page.click('#fontMinus');
- await save('#readerEPUB','reader.epub');
+ await save('#readerEPUB','reader.epub',true);
  await openBook(1);
  await page.waitForFunction(()=>[...document.querySelectorAll('#readerText img')].every(i=>i.complete&&i.naturalWidth>0));
  await save('#readerEPUB','illustrated.epub',true);await save('#bookEPUB','book.epub',true);
@@ -82,11 +82,11 @@ const assert=require('node:assert/strict');
  await page.click('#novelTaskList [data-novel-cancel="'+cancelled+'"]');releaseChapters();holdChapters=false;
  await page.waitForFunction(()=>!novelTasks.some(t=>['queued','running'].includes(t.status)));
  assert.equal(await page.evaluate(id=>novelTasks.find(t=>t.id===id).status,cancelled),'cancelled');
- assert.equal(await page.evaluate(()=>novelTasks.filter(t=>t.status==='ready').length),5);
+ assert.equal(await page.evaluate(()=>novelTasks.filter(t=>t.status==='ready'&&!t.target?.local).length),5);
  const imageOnly=await page.evaluate(()=>novelTasks.find(t=>t.url.endsWith('/5.htm')).id);
  await save('#novelTaskList [data-novel-save="'+imageOnly+'"]','images-only.epub');
  await save('#saveNovelBundle','collection.zip');
- const bundle=await page.evaluate(async()=>{const z=new JSZip();for(const t of novelTasks.filter(t=>t.blob)){const file=await z.loadAsync(await t.blob.arrayBuffer());const chapter=await file.file('OEBPS/'+(t.url.endsWith('/5.htm')||t.indices?.length===1?'chapter':'c0')+'.xhtml').async('string');if(!t.url.endsWith('/5.htm')&&!chapter.includes('小说 '+t.url.match(/(\d+)\.htm/)[1]))return false;}return true;});assert.ok(bundle,'Concurrent books mixed chapter contents');
+ const bundle=await page.evaluate(async()=>{const z=new JSZip();for(const t of novelTasks.filter(t=>t.blob&&!t.target?.local)){const file=await z.loadAsync(await t.blob.arrayBuffer());const chapter=await file.file('OEBPS/'+(t.url.endsWith('/5.htm')||t.indices?.length===1?'chapter':'c0')+'.xhtml').async('string');if(!t.url.endsWith('/5.htm')&&!chapter.includes('小说 '+t.url.match(/(\d+)\.htm/)[1]))return false;}return true;});assert.ok(bundle,'Concurrent books mixed chapter contents');
  // Failure in one illustration cannot create a falsely successful EPUB; retry works.
  await page.fill('#novelURL','测试小说 6');await page.click('#novelSearch button');await page.waitForFunction(()=>document.querySelectorAll('[data-match-download]').length===1);
  await chooseDownload('[data-match-download]');await page.waitForFunction(()=>novelTasks.some(t=>t.status==='error'));
@@ -112,6 +112,25 @@ const assert=require('node:assert/strict');
  const savedTaskCount=await page.evaluate(()=>novelTasks.length);assert.equal(savedTaskCount,before+2);
  await page.click('#showShelf');await page.click('[data-download-book="0"]');await page.waitForSelector('[data-download-chapter="4"]');await page.uncheck('#downloadSelectAll');assert.ok(await page.locator('#downloadConfirm').isDisabled());await page.check('#downloadSelectAll');assert.equal(await page.locator('#downloadChapterList input:checked').count(),5);await page.press('#downloadSelectAll','Escape');assert.equal(await page.evaluate(()=>novelTasks.length),savedTaskCount);
  await page.click('#showShelf');await openBook(3);await openBook(1);
+ // Preview and exported EPUB share the same normalized paragraphs and layout CSS.
+ await page.click('#bookEPUB');await page.click('#downloadShowLayout');await page.click('#epubLoadPreview');await page.waitForFunction(()=>document.querySelector('#epubPreviewStatus').textContent.startsWith('当前章节文字预览'));
+ const preview=page.frameLocator('#epubLayoutPreview');await preview.locator('p').first().waitFor();
+ assert.ok((await preview.locator('p').first().textContent()).startsWith('这是小说 1'));
+ assert.equal(await preview.locator('p').first().evaluate(e=>getComputedStyle(e).textIndent),'0px');
+ assert.equal(await preview.locator('h1').evaluate(e=>getComputedStyle(e).textAlign),'center');
+ await page.screenshot({animations:'disabled',path:'test-results/media-vault/epub-layout-compact.png'});
+ await page.click('#epubPresetIndented');
+ for(const [key,value] of [['lineHeight','1.65'],['paragraphGap','0.2'],['fontScale','110'],['pageMargin','1.2']])await page.locator('#epub-'+key).evaluate((el,v)=>{el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));},value);
+ await page.selectOption('#epub-titleAlign','left');await page.selectOption('#epub-textAlign','justify');
+ await page.waitForFunction(()=>document.querySelector('#epubLayoutPreview').srcdoc.includes('text-align:justify'));await preview.locator('body').waitFor();
+ const previewCSS=await preview.locator('style').textContent();assert.match(previewCSS,/text-indent:2em/);assert.match(previewCSS,/margin:0 0 0.2em/);
+ const pickedLayout=await page.evaluate(()=>({...epubLayout}));await save('#downloadConfirm','styled.epub');
+ const styled=await page.evaluate(async()=>{const t=novelTasks[0],z=await new JSZip().loadAsync(t.blob),text=await z.file('OEBPS/c0.xhtml').async('string'),doc=new DOMParser().parseFromString(text,'application/xhtml+xml');return {id:t.id,layout:t.layout,css:doc.querySelector('style').textContent,paragraphs:[...doc.querySelectorAll('p')].map(p=>p.textContent)};});
+ assert.deepEqual(styled.layout,pickedLayout);assert.equal(styled.css,previewCSS);assert.ok(styled.paragraphs.every(p=>p&&p===p.trim()));assert.ok(styled.paragraphs.includes('独立段落。'));
+ assert.deepEqual(await page.evaluate(()=>JSON.parse(localStorage.getItem('ptu.mv.novelTasks'))[0].layout),pickedLayout);
+ // Stored preferences survive reopening; changes cannot mutate an existing task's layout.
+ await page.click('#bookEPUB');await page.click('#downloadShowLayout');assert.equal(await page.inputValue('#epub-lineHeight'),'1.65');await page.click('#epubPresetLoose');assert.deepEqual(await page.evaluate(id=>novelTasks.find(t=>t.id===id).layout,styled.id),pickedLayout);
+ await page.click('#epubPresetCompact');await page.locator('#downloadChapterDialog [data-close]').first().click();
  await page.screenshot({animations:'disabled',path:'test-results/media-vault/desktop.png'});
  const sizes=await page.evaluate(()=>Object.fromEntries(['.book-select strong','.chapter-row','#readerText','.task-detail'].map(s=>[s,parseFloat(getComputedStyle(document.querySelector(s)).fontSize)])));assert.ok(sizes['.book-select strong']===17&&sizes['.chapter-row']===15&&sizes['#readerText']===21&&sizes['.task-detail']===13);
  const panes=await page.locator('.novel-layout > *').evaluateAll(es=>es.map(e=>({x:e.getBoundingClientRect().x,width:e.getBoundingClientRect().width})));
@@ -120,7 +139,7 @@ const assert=require('node:assert/strict');
  await page.setViewportSize({width:390,height:844});
  for(const pane of ['library','chapters','reading']){await page.click('[data-novel-pane="'+pane+'"]');await page.screenshot({animations:'disabled',path:'test-results/media-vault/mobile-'+pane+'.png'});assert.ok(!await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),'Mobile horizontal overflow');}
  await page.click('#readerEPUB');await page.waitForSelector('#downloadChapterDialog[open]');await page.screenshot({animations:'disabled',path:'test-results/media-vault/mobile-picker.png'});
- const bounds=await page.locator('#downloadChapterDialog').boundingBox();assert.ok(bounds.x>=0&&bounds.x+bounds.width<=390&&bounds.y>=0&&bounds.y+bounds.height<=844);assert.ok(await page.locator('#downloadConfirm').isVisible());await page.locator('#downloadChapterDialog [data-close]').first().click();
+ const bounds=await page.locator('#downloadChapterDialog').boundingBox();assert.ok(bounds.x>=0&&bounds.x+bounds.width<=390&&bounds.y>=0&&bounds.y+bounds.height<=844);assert.ok(await page.locator('#downloadConfirm').isVisible());await page.click('#downloadShowLayout');await page.screenshot({animations:'disabled',path:'test-results/media-vault/epub-layout-mobile.png'});assert.ok(await page.locator('#downloadChapterDialog').evaluate(e=>e.scrollWidth<=e.clientWidth));await page.locator('#downloadChapterDialog [data-close]').first().click();
  await page.setViewportSize({width:1440,height:1000});
  await page.click('[data-tab="music"]');await page.waitForSelector('.track');assert.deepEqual(await navigationGeometry(),desktopNavigation);await page.screenshot({animations:'disabled',path:'test-results/media-vault/music-desktop.png'});await page.click('#chartRefresh');await page.waitForFunction(()=>!document.querySelector('#chartRefresh').disabled);assert.equal(freshCharts,1);
  await page.click('#serviceCheck');await page.waitForFunction(()=>document.querySelector('#serviceStatus').textContent.includes('v3'));
@@ -144,5 +163,5 @@ const assert=require('node:assert/strict');
  await page.screenshot({animations:'disabled',path:'test-results/media-vault/mobile.png'});
  if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth))throw Error('Mobile horizontal overflow');
  if(errors.length)throw Error(errors.join('\n'));
- console.log('Shared top navigation, persisted typography settings, checkbox/range chapter picker, selected EPUB contents, desktop/mobile, persisted themes, concurrent jobs, queue cap, cancellation, retry, offline illustrations, TXT, other media: passed');await browser.close();server.close();
+ console.log('Compact EPUB paragraphs, shared preview/export styles, layout snapshots, top navigation, persisted typography settings, checkbox/range chapter picker, selected EPUB contents, desktop/mobile, persisted themes, concurrent jobs, queue cap, cancellation, retry, offline illustrations, TXT, other media: passed');await browser.close();server.close();
 })().catch(e=>{console.error(e);process.exit(1);});
