@@ -1,8 +1,8 @@
-// Keep the two same-origin tools mounted: switching tabs preserves drafts and credentials.
+// Keep the same-origin tools mounted: switching tabs preserves drafts and credentials.
 (()=>{
   'use strict';
-  const routes={'pt-todo-dashboard':'todo','life-desk':'meal','meal-orbit':'meal','investment-desk':'investment','watch-inbox':'muse','signal-audit':'investment'};
-  const frames=['investment','muse','meal','todo'].map(name=>({name,frame:document.getElementById(name+'Frame')}));
+  const routes={'pt-todo-dashboard':'todo','life-desk':'meal','meal-orbit':'meal'};
+  const frames=['meal','todo'].map(name=>({name,frame:document.getElementById(name+'Frame')})).filter(item=>item.frame);
   const theme=()=>document.documentElement.dataset.theme||'light';
   function syncTheme(doc,depth=0){
     if(!doc||depth>3)return;
@@ -25,9 +25,6 @@
           const slug=u.pathname.match(/\/apps\/([^/]+)/)?.[1],next=routes[slug];
           if(next&&u.searchParams.get('legacy')!=='1'){
             e.preventDefault();window.switchNexusView(next);
-            const target=frames.find(x=>x.name===next).frame;
-            const select=()=>{if(next==='investment'&&(u.searchParams.has('symbol')||slug==='signal-audit'))target.contentWindow.dispatchEvent(new CustomEvent('investment-select',{detail:{symbol:u.searchParams.get('symbol')||'NVDA',tab:slug==='signal-audit'?'audit':u.searchParams.get('tab')||'review'}}))};
-            if(target.contentDocument?.readyState==='complete'&&target.contentDocument.URL!=='about:blank')select();else target.addEventListener('load',select,{once:true});
           }else if(slug==='ask-gpt'||u.searchParams.get('legacy')==='1'){a.target='_blank';a.rel='noopener'}
         },true);
       }
@@ -44,5 +41,5 @@
   addEventListener('nexus-theme-change',()=>frames.forEach(({frame})=>syncTheme(frame.contentDocument)));
   addEventListener('nexus-view-change',e=>activate(e.detail.view));
   const initial=new URL(location.href).searchParams.get('tab');
-  if(['investment','muse','meal','todo'].includes(initial))window.switchNexusView(initial);
+  if(initial)window.switchNexusView(initial);
 })();
