@@ -39,14 +39,8 @@ jobs:
         run: node scripts/media-vault/browser-test.cjs
       - name: Validate generated EPUB structure
         run: |
-          python - <<'PY'
-          import zipfile, xml.etree.ElementTree as ET
-          with zipfile.ZipFile('test-results/media-vault/reader.epub') as z:
-              assert z.namelist()[0] == 'mimetype'
-              assert z.read('mimetype') == b'application/epub+zip'
-              for p in ['META-INF/container.xml','OEBPS/content.opf','OEBPS/chapter.xhtml','OEBPS/nav.xhtml']:
-                  ET.fromstring(z.read(p))
-          PY
+          pip install Pillow
+          python scripts/media-vault/validate-epub.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
