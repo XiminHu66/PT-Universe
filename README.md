@@ -51,3 +51,9 @@ Daily public snapshots refresh around 08:35 America/Los_Angeles. The refresh wor
 - [Media Vault · 万能下载](https://ximinhu66.github.io/PT-Universe/apps/media-vault/) — 轻小说、各国/曲风音乐榜单与 FLAC 音源、动漫、BT 和视频解析。
 - 每日 08:23 PT 起更新元数据，沿用 GitHub Pages + Cloudflare Worker。
 - BT / yt-dlp / 整本 EPUB 需要连接自己的[下载引擎](services/media-engine/README.md)。源站阻挡会显示真实错误。
+
+## Self Learning
+
+- [Self Learning · 自学工作台](https://ximinhu66.github.io/PT-Universe/apps/self-learning/) — 系统工程24章、网络安全12章、HCI12章、游戏设计16章、金融投资16章，共80章；中文讲义、练习、毕业项目与有版本记录的参考资料。
+- 金融课程延续此前16章顺序，历史教学至第4章；本机进度、回答和笔记可导出/导入迁移设备。
+- 资料核对2026-10-02；详见 [课程维护与验证](apps/self-learning/README.md)。

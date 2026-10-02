@@ -1,0 +1,114 @@
+{
+  "version": 1,
+  "checkedAt": "2026-10-02",
+  "policy": "基础概念使用经典材料；软件和安全细节使用维护中的官方资料；前沿研究注明发表状态，不把最新当已验证。课程为本站独立编写，参考阅读不是原材料全文转载。",
+  "courses": [
+    {
+      "id": "systems",
+      "title": "系统工程",
+      "english": "Computer Systems",
+      "description": "从 Python 程序一路走到操作系统、网络、数据库与分布式服务，解释系统为什么工作、为什么失败。",
+      "prerequisites": "会写 Python；系统知识从基础讲起。C 与 Go 仅用于可选大学实验。",
+      "capstone": "构建带持久化、缓存、任务队列和故障恢复的 Mini Job Runtime。",
+      "acceptance": "交付 README、任务状态机、崩溃恢复演示、重复任务测试、p50/p95/p99 延迟报告。",
+      "color": "#7fb9ff",
+      "checkedAt": "2026-10-02",
+      "chapterCount": 24,
+      "minutes": 1095,
+      "file": "systems.json",
+      "modules": [
+        "01 / 程序与操作系统",
+        "02 / 并发与网络",
+        "03 / 数据库与搜索",
+        "04 / 分布式与可靠性"
+      ]
+    },
+    {
+      "id": "security",
+      "title": "网络安全",
+      "english": "Cybersecurity",
+      "description": "围绕你已有的网站、API 与 Agent，理解身份、权限、浏览器边界和供应链风险，并完成一次有证据的应用评审。",
+      "prerequisites": "会基本 HTTP 与 Python；建议先学系统课第 8–10 章。实验使用本机或官方授权靶场。",
+      "capstone": "对一个本机演示 API 做威胁建模、修复与回归验证。",
+      "acceptance": "交付数据流图、风险排序、访问控制测试、输入处理修复、密钥管理与恢复记录。",
+      "color": "#a8d9ae",
+      "checkedAt": "2026-10-02",
+      "chapterCount": 12,
+      "minutes": 555,
+      "file": "security.json",
+      "modules": [
+        "01 / 安全基础",
+        "02 / 身份与授权",
+        "03 / Web 安全",
+        "04 / 工程与 Agent"
+      ]
+    },
+    {
+      "id": "hci",
+      "title": "HCI 与产品设计",
+      "english": "Human–Computer Interaction",
+      "description": "从任务与信息架构到交互、可访问性、用户测试；把“感觉不顺”变成可验证的问题。",
+      "prerequisites": "会使用浏览器和基本网页；不要求画图基础。练习直接应用到 PT Universe。",
+      "capstone": "重设计一个真实工具的关键流程，制作原型并完成两轮使用测试。",
+      "acceptance": "交付任务说明、流程图、两个原型、测试记录、设计取舍与迭代证据。",
+      "color": "#d2b2ff",
+      "checkedAt": "2026-10-02",
+      "chapterCount": 12,
+      "minutes": 540,
+      "file": "hci.json",
+      "modules": [
+        "01 / 理解任务",
+        "02 / 信息与交互",
+        "03 / 跨设备与可访问性",
+        "04 / 验证与迭代"
+      ]
+    },
+    {
+      "id": "games",
+      "title": "游戏设计与系统",
+      "english": "Game Design & Systems",
+      "description": "围绕你的刷宝卡牌游戏，构建有选择感的战斗、奖励、Build、探索与反馈，并用测试验证好不好玩。",
+      "prerequisites": "会 Python 或基本游戏开发；先纸面验证，Godot 实现使用 4.7 文档，进阶图形不作为前置。",
+      "capstone": "做出可玩 10–15 分钟的卡牌刷宝 vertical slice。",
+      "acceptance": "交付三种 Build、十张卡、六个遭遇、一次商店、存档、数值日志和三人测试记录。",
+      "color": "#ffc17f",
+      "checkedAt": "2026-10-02",
+      "chapterCount": 16,
+      "minutes": 735,
+      "file": "games.json",
+      "modules": [
+        "01 / 玩法原型",
+        "02 / 卡牌与战斗",
+        "03 / 掉落与经济",
+        "04 / 探索与表现",
+        "05 / 评估与研究"
+      ]
+    },
+    {
+      "id": "finance",
+      "title": "金融与股票投资",
+      "english": "Finance & Investing",
+      "description": "保留原 16 章顺序，从市场与三大表走到商业模式、估值、宏观、期权、组合风控与真实研究。",
+      "prerequisites": "有基本股票经验；数学使用比例、复利与简单现值。案例金额和价格除明确说明外均为教学假设。",
+      "capstone": "完成一家公司带来源、情景估值与失效条件的投资研究。",
+      "acceptance": "交付财务提取表、SBC与稀释分析、三情景估值、风险与跟踪清单；区分事实与推断。",
+      "color": "#80d5d2",
+      "checkedAt": "2026-10-02",
+      "history": {
+        "through": 4,
+        "resume": 4,
+        "note": "此前对话教学至第 4 章；第 3 章讨论库存与 SBC。这里依据找回的课程大纲和摘要重整中文讲义，并非原对话逐字存档。历史教学位置与本页手动完成标记分别记录。"
+      },
+      "chapterCount": 16,
+      "minutes": 720,
+      "file": "finance.json",
+      "modules": [
+        "01 / 市场与企业",
+        "02 / 估值与利率",
+        "03 / 宏观与市场",
+        "04 / 交易与行为",
+        "05 / 组合与研究"
+      ]
+    }
+  ]
+}
