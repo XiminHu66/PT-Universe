@@ -49,7 +49,7 @@ const assert=require('node:assert/strict');
  await page.click('#displaySettingsOpen');assert.equal(await page.inputValue('#novelUIScale'),'120');assert.equal(await page.inputValue('#readerFontSetting'),'24');
  await page.screenshot({animations:'disabled',path:'test-results/media-vault/type-settings.png'});
  await page.click('#displaySettingsReset');assert.equal(await page.inputValue('#novelUIScale'),'100');assert.equal(await page.locator('#readerText').evaluate(e=>getComputedStyle(e).fontSize),'21px');
- await page.locator('#displaySettings [data-close]').first().click();await page.click('#fontPlus');assert.equal(await page.inputValue('#readerFontSetting'),'22');await page.click('#fontMinus');
+ await page.locator('#displaySettings [data-close]').first().click();
  // Replace only wall-clock source spacing; keep fetch, cache, queue and EPUB code real.
  await page.evaluate(()=>{chapterDelay=async()=>{};});
  fs.mkdirSync('test-results/media-vault',{recursive:true});
@@ -58,6 +58,7 @@ const assert=require('node:assert/strict');
  const openBook=async id=>{await page.fill('#novelURL',bookURL(id));await page.click('#novelSearch button');await page.waitForFunction(id=>document.querySelector('#readerTitle').textContent.includes('小说 '+id)&&document.querySelector('#readerText').textContent.includes('完整测试章节'),id);};
  await page.locator('#txtImport').setInputFiles({name:'阅读测试.txt',mimeType:'text/plain',buffer:Buffer.from('第一章\n这是第一段。\n这是第二段。')});
  await page.waitForFunction(()=>document.querySelector('#readerText').textContent.includes('第二段'));
+ await page.click('#fontPlus');assert.equal(await page.inputValue('#readerFontSetting'),'22');await page.click('#fontMinus');
  await save('#readerEPUB','reader.epub');
  await openBook(1);
  await page.waitForFunction(()=>[...document.querySelectorAll('#readerText img')].every(i=>i.complete&&i.naturalWidth>0));
