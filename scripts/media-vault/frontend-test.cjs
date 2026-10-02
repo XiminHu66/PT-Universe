@@ -45,6 +45,12 @@ function fixture(hash='#music'){
  assert.equal(f.run("JSON.stringify(parseChapterRange('1-3，3、5～6',6))"),'[0,1,2,4,5]');
  for(const input of ['', '0', '3-1', '1-7', '1,', '2.5', '1-999999999999'])assert.throws(()=>f.run(`parseChapterRange(${JSON.stringify(input)},6)`));
  assert.equal(f.run("chapterRangeLabel([0,1,2,4,5,7])"),'1-3, 5-6, 8');
+ // EPUB formatting strips source indentation/blank lines without merging paragraphs.
+ assert.equal(f.run("epubParagraphs('　　甲\\n\\n \\n\\u00a0乙\\r\\n<丙>')"),'<p>甲</p><p>乙</p><p>&lt;丙&gt;</p>');
+ assert.match(f.run('epubStyles(DEFAULT_EPUB_LAYOUT)'),/text-indent:0em/);
+ assert.match(f.run('epubStyles(DEFAULT_EPUB_LAYOUT)'),/margin:0 0 0.5em/);
+ assert.equal(f.run("normalizeEPUBLayout({lineHeight:99,indent:-5,titleAlign:'bad'}).lineHeight"),2.2);
+ assert.equal(f.run("normalizeEPUBLayout({lineHeight:99,indent:-5,titleAlign:'bad'}).indent"),0);
  // On deep links all lexical state has initialized before the initial route.
  const deep=fixture('');await settle();await settle();assert.match(deep.get('#breadcrumb').textContent,/轻小说/);
  console.log('Frontend logic passed: fresh refresh, service check, disabled-storage reader, stale chapter response, retry backoff, cancellation isolation, deep-link startup.');
