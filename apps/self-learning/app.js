@@ -77,7 +77,7 @@ function lesson(c,l){
  function write(patch={}){const previous=state.lessons[l.id]||{};state.lessons[l.id]={...previous,note:$('#note').value,response:$('#response').value,selfCheck:$('#self-check').value,done:$('#done').checked,unit:current,...patch,updatedAt:Date.now()};if(save())$('#save-state').textContent='已保存到本机 · '+new Date().toLocaleTimeString();}
  function display(){
   document.querySelector('.tutorial-reader').dataset.mode=mode;panels.forEach((el,i)=>el.hidden=mode==='guided'&&i!==current);
-  document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
+  document.querySelectorAll('button[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
   document.querySelectorAll('[data-unit-jump]').forEach(b=>{const active=Number(b.dataset.unitJump)===current;b.classList.toggle('active',active);if(active)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current');});
   $('#unit-location').textContent=`${mode==='guided'?'当前':'阅读位置'} ${current+1} / ${total} · ${current===0?'导读':current<=n?'讲解 '+current+'/'+n:units[current].title.split('：')[0]}`;
   $('.unit-track i').style.width=((current+1)/total*100)+'%';
@@ -86,7 +86,7 @@ function lesson(c,l){
  function go(unit,focus=true){window.LearningExplorers.stopAll();current=Math.max(0,Math.min(refsUnit,unit));display();write();if(focus){const target=document.getElementById(units[current].target);target?.scrollIntoView({block:'start',behavior:'instant'});target?.focus({preventScroll:true});}}
  document.querySelectorAll('[data-unit-jump]').forEach(b=>b.onclick=()=>{go(Number(b.dataset.unitJump));if(matchMedia('(max-width:1100px)').matches)$('.chapter-toc').open=false;});
  $('#unit-prev').onclick=()=>go(current-1);$('#unit-next').onclick=()=>go(current+1);
- document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{window.LearningExplorers.stopAll();mode=b.dataset.mode;try{localStorage.setItem('pt-learning.mode',mode)}catch{}display();document.getElementById(units[current].target)?.scrollIntoView({block:'start',behavior:'instant'});});
+ document.querySelectorAll('button[data-mode]').forEach(b=>b.onclick=()=>{window.LearningExplorers.stopAll();mode=b.dataset.mode;try{localStorage.setItem('pt-learning.mode',mode)}catch{}display();document.getElementById(units[current].target)?.scrollIntoView({block:'start',behavior:'instant'});});
  $('#open-notes').onclick=()=>{go(review,false);$('#note').scrollIntoView({block:'center',behavior:'instant'});$('#note').focus({preventScroll:true});};
  const dialog=$('#term-dialog');function showTerms(index){dialog.showModal();if(Number.isInteger(index)){const target=document.getElementById('term-'+index);target?.scrollIntoView({block:'center'});target?.focus({preventScroll:true});}}
  $('#show-terms').onclick=()=>showTerms();$('#close-terms').onclick=()=>dialog.close();dialog.onclick=e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();}};
