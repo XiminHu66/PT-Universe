@@ -22,7 +22,8 @@
         "03 / 数据库与搜索",
         "04 / 分布式与可靠性"
       ],
-      "teachingCharacters": 37569
+      "teachingCharacters": 44477,
+      "figureCount": 27
     },
     {
       "id": "security",
@@ -43,7 +44,8 @@
         "03 / Web 安全",
         "04 / 工程与 Agent"
       ],
-      "teachingCharacters": 18221
+      "teachingCharacters": 21516,
+      "figureCount": 12
     },
     {
       "id": "hci",
@@ -64,7 +66,8 @@
         "03 / 跨设备与可访问性",
         "04 / 验证与迭代"
       ],
-      "teachingCharacters": 16671
+      "teachingCharacters": 19657,
+      "figureCount": 12
     },
     {
       "id": "games",
@@ -86,7 +89,8 @@
         "04 / 探索与表现",
         "05 / 评估与研究"
       ],
-      "teachingCharacters": 21555
+      "teachingCharacters": 25248,
+      "figureCount": 19
     },
     {
       "id": "finance",
@@ -113,7 +117,8 @@
         "04 / 交易与行为",
         "05 / 组合与研究"
       ],
-      "teachingCharacters": 37482
+      "teachingCharacters": 43049,
+      "figureCount": 22
     },
     {
       "id": "hardware",
@@ -125,7 +130,7 @@
       "acceptance": "交付BOM、引脚表、状态机、正常与异常验收、功耗预算和恢复说明；区分模拟与实物证据。",
       "color": "#edb75c",
       "checkedAt": "2026-10-02",
-      "teachingCharacters": 13687,
+      "teachingCharacters": 16159,
       "chapterCount": 10,
       "minutes": 825,
       "file": "hardware.json",
@@ -135,7 +140,8 @@
         "03 / 固件与联网",
         "04 / 功耗与交互",
         "05 / 恢复与原型"
-      ]
+      ],
+      "figureCount": 12
     },
     {
       "id": "product",
@@ -147,7 +153,7 @@
       "acceptance": "交付问题卡、任务观察、可用作品、漏斗口径、成本情景、沙盒支付和维护计划；未验证事项明确。",
       "color": "#ed8d63",
       "checkedAt": "2026-10-02",
-      "teachingCharacters": 14456,
+      "teachingCharacters": 16730,
       "chapterCount": 10,
       "minutes": 825,
       "file": "product.json",
@@ -157,7 +163,8 @@
         "03 / 成本与交付",
         "04 / 留存与支付",
         "05 / 运营与实验"
-      ]
+      ],
+      "figureCount": 12
     },
     {
       "id": "audio",
@@ -169,7 +176,7 @@
       "acceptance": "信号配方可复算，峰值和播放生命周期可检验；区分数字模型、听感与真实设备测量。",
       "color": "#a38fea",
       "checkedAt": "2026-10-02",
-      "teachingCharacters": 14356,
+      "teachingCharacters": 17323,
       "chapterCount": 10,
       "minutes": 825,
       "file": "audio.json",
@@ -179,7 +186,8 @@
         "03 / 频率与动态",
         "04 / 空间与听音",
         "05 / 实时与实验"
-      ]
+      ],
+      "figureCount": 15
     },
     {
       "id": "photo",
@@ -191,7 +199,7 @@
       "acceptance": "交付真实作品、联系表、源文件索引、可回退编辑、输出与元数据检查；生成改动和未知条件说明。",
       "color": "#70b9dd",
       "checkedAt": "2026-10-02",
-      "teachingCharacters": 13927,
+      "teachingCharacters": 16376,
       "chapterCount": 10,
       "minutes": 825,
       "file": "photo.json",
@@ -201,14 +209,17 @@
         "03 / 色彩与视角",
         "04 / 编辑与计算",
         "05 / 输出与作品"
-      ]
+      ],
+      "figureCount": 13
     }
   ],
-  "contentRevision": "2026-10-02-four-courses",
-  "revisionNote": "保留原五门80章；新增嵌入式、独立产品、音频与摄影四门各10章，共120章。新增四处互动实验与四份可运行Python起点，资料标注版本、读法与边界。",
-  "teachingCharacters": 187924,
+  "contentRevision": "2026-10-02-illustrated-all",
+  "revisionNote": "九门120章全部补充专属导入、逐节解释、章节图示与读图边界；保持章节ID、节次和学习记录兼容。",
+  "teachingCharacters": 220535,
   "referenceCount": 96,
-  "termExplanations": 293,
+  "termExplanations": 301,
   "sectionKeyPoints": 515,
-  "interactiveExamples": 10
+  "interactiveExamples": 10,
+  "figureCount": 144,
+  "quantitativeFigures": 29
 }

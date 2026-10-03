@@ -6,10 +6,27 @@ read=lambda f:json.loads((root/f).read_text())
 manifest=read('manifest.json');sources=read('sources.json');ids={s['id'] for s in sources}
 assert len(manifest['courses'])==9 and len(sources)==len(ids)
 assert all(s['url'].startswith('https://') and s['checkedAt']=='2026-10-02' for s in sources)
-count=0;total=0;codes=0
+count=0;total=0;codes=0;figures={}
 for meta in manifest['courses']:
  c=read(meta['file']);count+=len(c['lessons']);amount=[]
  for l in c['lessons']:
+  assert l.get('orientation',{}).get('intro') and l['orientation']['nextQuestion'],l['id']
+  chapter_figures=[f for s in l['sections'] for f in s.get('figures',[])]
+  assert chapter_figures,l['id']+' missing diagram'
+  for f in chapter_figures:
+   assert f['id'] not in figures,f['id']
+   figures[f['id']]=f
+   assert f['kind'] in {'flow','compare','matrix','line','bar','step','wave'}
+   assert f['alt'] and f['caption'] and f['model']
+   assert f['sourceIds'] and all(i in ids for i in f['sourceIds'])
+   if f.get('series'):
+    assert f['xLabel'] and f['yLabel']
+    assert all(math.isfinite(x) for x in f['x'])
+    assert all(a<b for a,b in zip(f['x'],f['x'][1:]))
+    assert all(len(s['values'])==len(f['x']) and all(math.isfinite(v) for v in s['values']) for s in f['series'])
+   elif f['kind']=='matrix':assert all(len(row)==len(f['headers']) for row in f['rows'])
+   elif f['kind']=='wave':assert f['waveMode'] in {'parameters','harmonics','phase','alias'}
+   else:assert len(f['nodes'])>=2 and all(n['label'] and n['detail'] for n in f['nodes'])
   assert len(l['sections'])>=4 and all(len(s['paragraphs'])>=2 for s in l['sections'])
   assert len(l['walkthrough']['steps'])==3 and l['check']['answer']
   w=l['walkthrough'];check=l['check']
@@ -31,6 +48,7 @@ for meta in manifest['courses']:
  total+=sum(amount)
  print(c['title'],len(amount),'chapters;',min(amount),'-',max(amount),'characters')
 assert count==120 and total==manifest['teachingCharacters']
+assert len(figures)==manifest['figureCount']==144
 # Independent calculations for numbers in the teaching, not rendered-string mirrors.
 near=lambda x,y,tol=0.005:abs(x-y)<tol
 assert near(1-math.comb(18,5)/math.comb(20,5),0.447368421,1e-9)
@@ -73,7 +91,21 @@ assert near((4/8)**2*(125/250),1/8,1e-9)
 assert (4/8)**2*(125/250)*(800/100)==1
 assert near(4000*3000*4/2**20,45.7763671875,1e-9)
 assert near(1/math.sqrt(4),0.5,1e-9)
+# Check stored graph values against their declared models independently.
+getgraph=lambda prefix:next(f for key,f in figures.items() if key.startswith(prefix) and f.get('series'))
+for prefix,model in [
+ ('games-05',lambda n:100*(1-math.comb(n-2,5)/math.comb(n,5))),
+ ('games-06',lambda r:100/(1-r/100)),
+ ('games-08',lambda n:100*(1-0.95**n)),
+ ('games-10',lambda d:math.ceil(20/d)),
+ ('finance-07',lambda y:5/(1+y/100)+105/(1+y/100)**2),
+ ('finance-12',lambda s:max(s-100,0)-max(s-110,0)-4),
+ ('hardware-07',lambda t:(100*t+1*(60-t))/60),
+ ('product-05',lambda n:6*n-1000),
+ ('audio-03',lambda a:20*math.log10(a))]:
+ f=getgraph(prefix)
+ assert all(near(y,model(x),1e-8) for x,y in zip(f['x'],f['series'][0]['values'])),prefix
 assert manifest['referenceCount']==len(sources)
 assert manifest['termExplanations']==sum(len(l['guide']['terms']) for m in manifest['courses'] for l in read(m['file'])['lessons'])
 assert manifest['sectionKeyPoints']==sum(len(l['sections']) for m in manifest['courses'] for l in read(m['file'])['lessons'])
-print(f'PASS: {count} chapters, {total} teaching characters, {len(sources)} references, {codes} executable labs, independent numeric checks.')
+print(f'PASS: {count} chapters, {total} teaching characters, {len(sources)} references, {codes} executable labs, {len(figures)} diagram specifications, independent numeric checks.')
