@@ -17,7 +17,7 @@ matchMedia('(min-width:761px)').addEventListener('change',e=>document.querySelec
 matchMedia('(min-width:1101px)').addEventListener('change',e=>document.querySelectorAll('.chapter-toc').forEach(d=>d.open=e.matches));
 function revealChapter(){const aside=$('.outline'),active=$('.chapter-link.active');if(!aside||!active||!aside.querySelector('.course-menu')?.open)return;const list=matchMedia('(max-width:760px)').matches?aside.querySelector('.chapters'):aside,a=active.getBoundingClientRect(),r=list.getBoundingClientRect();if(a.top<r.top||a.bottom>r.bottom)list.scrollTop+=a.top-r.top-(list.clientHeight-a.height)/2;}
 document.addEventListener('toggle',e=>{if(e.target.matches?.('.course-menu')&&e.target.open)revealChapter();},true);
-async function getJSON(file){const res=await fetch('data/'+file+'?v=20261002-illustrated2');if(!res.ok)throw new Error('课程载入失败（HTTP '+res.status+'）');return res.json()}
+async function getJSON(file){const res=await fetch('data/'+file+'?v=20261002-illustrated3');if(!res.ok)throw new Error('课程载入失败（HTTP '+res.status+'）');return res.json()}
 async function getCourse(id){if(!cache.has(id)){const c=manifest.courses.find(c=>c.id===id);if(!c)throw new Error('未找到课程');cache.set(id,await getJSON(c.file));}return cache.get(id)}
 const totalDone=c=>Object.keys(state.lessons).filter(id=>id.startsWith(c.id+'-')&&state.lessons[id]?.done===true).length;
 const resume=c=>{const last=state.last;if(last?.courseId===c.id&&last.lessonId.startsWith(c.id+'-')){const n=Number(last.lessonId.split('-').pop());if(n>=1&&n<=c.chapterCount)return n;}const n=Array.from({length:c.chapterCount},(_,i)=>i+1).find(n=>!state.lessons[c.id+'-'+String(n).padStart(2,'0')]?.done);return c.history?.resume&&totalDone(c)===0?c.history.resume:n||1;};

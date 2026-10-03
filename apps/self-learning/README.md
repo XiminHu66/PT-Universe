@@ -58,7 +58,7 @@ node scripts/self-learning/check.cjs
 
 浏览器测试需要Playwright，可用`CHROMIUM_PATH`指定已装Chromium，或`TEST_BASE`指向测试部署。脚本自建临时HTTP服务，覆盖120章1115个分节、术语、10模型数值与边界、音频生命周期、新旧记录与导出/导入、恶意记录拒绝、完整复制、打印、360/768/1440px排版及PT入口。
 
-发布沿用根目录GitHub Pages工作流。添加课程需更新manifest、sources与对应JSON；当前缓存版本`20261002-illustrated2`。发布时以最新main为基础，只写本项目相关路径，保留并行项目更新。
+发布沿用根目录GitHub Pages工作流。添加课程需更新manifest、sources与对应JSON；当前缓存版本`20261002-illustrated3`。发布时以最新main为基础，只写本项目相关路径，保留并行项目更新。
 
 ## 全课程图示与衔接检查（2026-10-02）
 
