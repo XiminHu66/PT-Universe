@@ -128,8 +128,8 @@ async function syncRoute(request:Request,env:Env,url:URL){
   if(request.method==='PUT'){
     const body=await request.json<{ciphertext?:string;baseRevision?:number}>();
     if(!body.ciphertext||body.ciphertext.length>2_000_000)return error(request,'同步数据为空或超过 2 MB');
-    if(scope==='todo-dashboard'){
-      // Atomic compare-and-swap protects concurrently edited Todo documents.
+    if(scope==='todo-dashboard'||scope==='idea-notes'){
+      // Atomic compare-and-swap protects concurrently edited project and note documents.
       const base=body.baseRevision;
       if(typeof base!=='number'||!Number.isSafeInteger(base)||base<0)return error(request,'同步版本无效');
       const revision=base+1,updatedAt=now();
