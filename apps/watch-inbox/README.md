@@ -37,3 +37,11 @@
 `GET /api/muse/{owner}/reports` 与 `POST /api/muse/{owner}/channel` 需要读取账户令牌。报告不提交到公共仓库。旧通用网页监视保留在 `?legacy=1`。
 
 如果 Muse 既不能 HTTP POST 也不能浏览器投递，需要其邮件或其他出口的额外适配；不能把“每天让用户粘贴”当成自动连接。
+
+## 投递排错（2026-10-05）
+
+浏览器和 Worker 共用 `report-schema.mjs` 校验器。总览 summary 最多 30000 字符；每项 summary 最多 12000 字符，before/after/action 各最多 6000 字符；title 200、id 100、category 80。整份原始与规范化 JSON 仍受 150000 UTF-8 字节限制；中文通常每字 3 字节。没有 2800 字符总长度限制。旧版总览限 6000、每项 summary 4000，且缺字段和超长共用同一个错误；接收实现自最初发布未修改过，不能据此推断 10/3 新增限制。
+
+错误返回明确的 `error`、`code`、`field`，超长另附 `limit`、`actual`。例如 `items[2].title` 缺失，必须补齐该字段，缩短整个报告无效。可选 before/after/action 支持省略、空字符串或 null；必填文本仍严格校验。错误 400 修复对应字段；网络超时/5xx 保留 reportId 重试；409 修订加 -r2。
+
+`403 policy_denied: background action awaiting approval` 是投递工具侧审批拒绝，PT Universe 不能解除。停止重试并在 Muse 批准后台投递，不能切换浏览器绕过审批。只有工具不存在而浏览器投递已获授权时，才选择浏览器方式。重新复制更新后的每日任务指令给 Muse 一次；无需更换现有通道或令牌。

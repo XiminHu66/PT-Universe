@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - workers/pt-universe-api/**
+      - apps/watch-inbox/report-schema.*
       - .github/workflows/deploy-worker.yml
 
 permissions:
@@ -39,6 +40,7 @@ jobs:
       - name: Validate Worker
         run: |
           npm run check
+          node tests/muse.test.mjs
           npm run test:media
           npm run types -- --check
           npx wrangler deploy --dry-run
