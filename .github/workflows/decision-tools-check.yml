@@ -36,6 +36,7 @@ jobs:
       - name: Verify browser flows
         run: |
           python -m http.server 8765 --bind 127.0.0.1 > /tmp/pt-server.log 2>&1 &
+          node scripts/decision/muse-submit-test.cjs
           node scripts/decision/browser-test.cjs
           node scripts/decision/workspace-test.cjs
           node scripts/decision/automatic-test.cjs
