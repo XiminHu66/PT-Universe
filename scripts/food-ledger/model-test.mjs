@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {empty,normalize,merge,navigationUrl,safeUrl,dishesFor} from '../../apps/food-ledger/model.mjs';
+const a={version:1,restaurants:[{id:'r',updatedAt:1,name:'椒 & 味',address:'123 Main St, Bellevue',url:'https://example.com',note:'',deleted:false}],dishes:[{id:'d',updatedAt:2,restaurantId:'r',name:'水煮鱼',rank:'red',date:'2026-10-05',note:'喜欢',deleted:false}]};
+assert.deepEqual(merge(a,empty()),normalize(a));
+const b=structuredClone(a);b.dishes[0].rank='black';b.dishes[0].updatedAt=3;b.dishes.push({...b.dishes[0],id:'d2',updatedAt:4,name:'炒饭',rank:'red'});
+const combined=merge(a,b);assert.equal(combined.dishes.find(x=>x.id==='d').rank,'black');assert.equal(dishesFor(combined,'r').length,2);assert.deepEqual(merge(a,b),merge(b,a));
+const deleted=structuredClone(combined);deleted.dishes[0].deleted=true;deleted.dishes[0].updatedAt=8;assert.equal(dishesFor(merge(deleted,a),'r').length,1);
+assert.equal(new URL(navigationUrl(a.restaurants[0])).searchParams.get('destination'),'椒 & 味 123 Main St, Bellevue');assert.equal(navigationUrl({...a.restaurants[0],address:''}),'');
+for(const v of ['javascript:alert(1)','data:text/html,test','https://u:password@example.com'])assert.equal(safeUrl(v),'');assert.equal(safeUrl('example.com/menu'),'https://example.com/menu');
+assert.throws(()=>normalize({version:2,restaurants:[],dishes:[]}));assert.throws(()=>normalize({...a,dishes:[{...a.dishes[0],restaurantId:'missing'}]}));assert.throws(()=>normalize({...a,restaurants:[...a.restaurants,...a.restaurants]}));
+console.log('Food ledger model passed: navigation encoding, safe links, import integrity, independent edits and deletion merge');

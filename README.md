@@ -57,3 +57,8 @@ Daily public snapshots refresh around 08:35 America/Los_Angeles. The refresh wor
 - [Self Learning · 自学工作台](https://ximinhu66.github.io/PT-Universe/apps/self-learning/) — 原五门课程保持；新增嵌入式、独立产品、音频与摄影，共9门120章；中文讲义、互动实验、练习与完整参考资料。
 - 金融课程延续此前16章顺序，历史教学至第4章；本机进度、回答和笔记可导出/导入迁移设备。
 - 资料核对2026-10-02；详见 [课程维护与验证](apps/self-learning/README.md)。
+
+## 红黑榜
+
+- [红黑榜 · 我的点菜记录](https://ximinhu66.github.io/PT-Universe/apps/food-ledger/) — 独立移动端工具；菜馆与红黑榜菜品记录、地址导航、链接、评价和日期。
+- 自动建立加密云端同步，复用 PT Universe 配对码；支持离线保存、JSON 备份合并与手机/电脑跨设备记录。未加入 Daily Nexus。
