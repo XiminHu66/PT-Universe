@@ -22,5 +22,7 @@ const concurrent=await Promise.all([call('PUT','todo-dashboard',{ciphertext:'b',
 const result=await (await call('GET','todo-dashboard')).json();assert.equal(result.revision,2);assert.ok(['b','c'].includes(result.ciphertext));assert.equal((await call('PUT','todo-dashboard',{ciphertext:'stale',baseRevision:0})).status,409);
 // Preserve the existing preferences scope and isolate it from the new document.
 assert.equal((await call('PUT','all',{ciphertext:'preferences'})).status,200);assert.equal((await (await call('GET','all')).json()).ciphertext,'preferences');assert.equal((await (await call('GET','todo-dashboard')).json()).revision,2);
-console.log('Todo D1 sync passed: authorization, isolation, first-write races, stale revisions and atomic concurrent writes');
+assert.equal((await call('PUT','idea-notes',{ciphertext:'notes',baseRevision:0})).status,200);assert.equal((await call('PUT','idea-notes',{ciphertext:'stale',baseRevision:0})).status,409);
+const noteRace=await Promise.all([call('PUT','idea-notes',{ciphertext:'note-a',baseRevision:1}),call('PUT','idea-notes',{ciphertext:'note-b',baseRevision:1})]);assert.deepEqual(noteRace.map(r=>r.status).sort(),[200,409]);assert.equal((await (await call('GET','todo-dashboard')).json()).revision,2);
+console.log('Todo / Idea Pad D1 sync passed: authorization, isolation, first-write races, stale revisions and atomic concurrent writes');
 }finally{await mf.dispose()}

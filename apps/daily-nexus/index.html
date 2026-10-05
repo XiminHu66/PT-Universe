@@ -530,6 +530,15 @@
     .countdown-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px}.countdown-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}.countdown-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center}.countdown-value{text-align:right;font-weight:850;font-size:20px;white-space:nowrap}.countdown-value small{display:block;color:var(--muted);font-size:10px;font-weight:650;margin-top:3px}.countdown-form{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(78px,.65fr) minmax(74px,.55fr) minmax(98px,.75fr) minmax(122px,.9fr);gap:8px;align-items:end}.maintenance-form{grid-template-columns:minmax(0,1.35fr) minmax(122px,.9fr) minmax(68px,.5fr) minmax(92px,.7fr) minmax(0,1fr)}.countdown-form>*{min-width:0}.countdown-form label{display:grid;gap:5px;color:var(--muted);font-size:10px}.countdown-form .field{width:100%;min-width:0}.countdown-form .nexus-form-actions{grid-column:1/-1}.countdown-section{margin-top:14px}
     @media(max-width:1050px){.nexus-grid,.countdown-columns{grid-template-columns:1fr}.countdown-form,.maintenance-form{grid-template-columns:repeat(2,minmax(0,1fr))}.countdown-form .nexus-form-actions{grid-column:1/-1}.traffic-view-layout{display:block;position:relative}.route-live-drawer{position:absolute;z-index:30;inset:0 0 0 auto;width:min(560px,100%);transform:translateX(102%);border-left:1px solid var(--line);background:var(--panel)}.traffic-view-layout.live-open .route-live-drawer{transform:none}.route-live-shell{min-width:0}}
     @media(max-width:740px){.nexus-workspace{padding:12px}.nexus-pagehead{align-items:stretch;flex-direction:column}.nexus-pagehead .pillbtn{align-self:flex-start}.nexus-stat-row,.countdown-stats{grid-template-columns:1fr 1fr}.nexus-grid{display:block}.nexus-grid>.nexus-panel{margin-bottom:12px}.countdown-form,.maintenance-form{grid-template-columns:1fr}.countdown-form .nexus-form-actions{grid-column:auto}.nexus-panel{padding:14px}.route-eta{font-size:23px}.countdown-value{font-size:17px}}
+
+    /* Idea Pad keeps the existing project document mounted beside notes. */
+    #view-todo{grid-template-rows:42px minmax(0,1fr);gap:8px}#view-todo.active{display:grid}.idea-subnav{display:flex;align-items:center;gap:5px;border-bottom:1px solid var(--line);padding:0 12px}.idea-subnav button{padding:9px 17px;border:0;background:transparent;color:var(--muted);border-radius:9px 9px 0 0;font-size:14px}.idea-subnav button[aria-selected=true]{background:color-mix(in srgb,var(--accent) 12%,var(--panel));color:var(--text);box-shadow:inset 0 -2px var(--accent)}.idea-pane[hidden]{display:none!important}
+    #view-home>.dashboard{grid-template-columns:1.3fr 1fr;grid-template-rows:minmax(285px,1.16fr) minmax(220px,.84fr) 46px}
+    #view-home .discover{grid-column:1/-1;grid-row:3;display:block;min-height:46px;padding:12px 16px;align-self:start;overflow:visible}
+    #discoverPanel>summary{cursor:pointer;list-style:none;margin:0;min-height:20px}#discoverPanel>summary::-webkit-details-marker{display:none}.discover-chevron{transition:transform .15s}#discoverPanel[open] .discover-chevron{transform:rotate(180deg)}.discover-controls{display:flex;justify-content:flex-end;margin:12px 0 6px}.discover-body .discover-grid{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:1fr;min-height:250px;height:250px}.discover-body .discover-source-strip{margin-top:12px}
+    #view-home>.dashboard:has(#discoverPanel[open]){grid-template-rows:minmax(285px,1.16fr) minmax(220px,.84fr) auto;overflow:auto}#discoverPanel[open]{min-height:340px}
+    @media(max-width:1100px){#view-home>.dashboard{grid-template-columns:1.3fr 1fr;grid-template-rows:minmax(285px,1.16fr) minmax(220px,.84fr) 46px}#view-home .homecalendar{grid-column:1;grid-row:1}#view-home .memo{grid-column:2;grid-row:1}#view-home .home-links-card{grid-column:2;grid-row:2}#view-home .upcomingcard{grid-column:1;grid-row:2}}
+    @media(max-width:740px){#view-home>.dashboard{display:block}#view-home .discover{min-height:46px}#discoverPanel[open]{min-height:720px}#discoverPanel .discover-grid{height:auto;min-height:630px;grid-template-columns:1fr;grid-template-rows:repeat(3,minmax(190px,1fr))}.idea-subnav{padding:0 6px}.idea-subnav button{padding:9px 14px}}
   </style>
   <link rel="stylesheet" href="../../pt-bridge.css?v=20260827-1">
 </head>
@@ -539,7 +548,7 @@
   <aside class="sidebar glass">
     <div class="logo" id="appLogo">DN</div>
     <button class="navbtn active" data-view="home"><div><div class="navicon">⌂</div><span>今日</span></div></button>
-    <button class="navbtn" data-view="todo"><div><div class="navicon">☑</div><span>Todo</span></div></button>
+    <button class="navbtn" data-view="todo"><div><div class="navicon">✎</div><span>Idea Pad</span></div></button>
     <button class="navbtn" data-view="board"><div><div class="navicon">▦</div><span>看板</span></div></button>
     <button class="navbtn" data-view="tsugi"><div><div class="navicon">📚</div><span>追更</span></div></button>
     <button class="navbtn" data-view="meal"><div><div class="navicon">🍜</div><span>吃什么</span></div></button>
@@ -643,22 +652,24 @@
         </div>
       </article>
 
-      <article class="card glass discover">
-        <div class="cardhead"><h2>今日发现 · 排行榜</h2><span class="sub"><button class="pillbtn" id="refreshDiscover">刷新榜单</button></span></div>
+      <details class="card glass discover" id="discoverPanel">
+        <summary class="cardhead"><h2>今日发现 · 排行榜</h2><span class="sub">点击展开</span><span class="discover-chevron" aria-hidden="true">⌄</span></summary><div class="discover-body"><div class="discover-controls"><button class="pillbtn" id="refreshDiscover">刷新榜单</button></div>
         <div class="discover-grid">
           <div class="discovery-item"><div class="discover-head"><span class="discover-icon shop">🛠</span><div class="eyebrow">3C 小物榜</div></div><div class="discover-rank-list" id="productRank"><div class="upcoming-empty">整理中…</div></div></div>
           <div class="discovery-item"><div class="discover-head"><span class="discover-icon github">&lt;/&gt;</span><div class="eyebrow">GitHub 新星榜</div></div><div class="discover-rank-list" id="githubRank"><div class="upcoming-empty">抓取中…</div></div></div>
           <div class="discovery-item"><div class="discover-head"><span class="discover-icon vtuber">▶</span><div class="eyebrow">VSPO! 正在直播</div></div><div class="vspo-live-list" id="vtuberRank"><div class="vspo-live-empty">检查成员直播状态…</div></div></div>
         </div>
-        <div class="discover-source-strip"><b>实时榜单</b><span>数据源：</span><a href="https://vspo.jp/" target="_blank" rel="noopener">VSPO! / YouTube</a><span>·</span><a href="https://github.com/explore" target="_blank" rel="noopener">GitHub</a></div>
-      </article>
+        <div class="discover-source-strip"><b>实时榜单</b><span>数据源：</span><a href="https://vspo.jp/" target="_blank" rel="noopener">VSPO! / YouTube</a><span>·</span><a href="https://github.com/explore" target="_blank" rel="noopener">GitHub</a></div></div>
+      </details>
     </div></section>
 
-    <section class="view" id="view-todo" aria-label="PT Todo Dashboard">
-      <div class="embed-frame-wrap">
-        <div class="embed-loading" id="todoLoading"><div><b>PT Todo Dashboard</b><span>正在读取项目与待办…</span></div></div>
-        <iframe class="embed-frame" id="todoFrame" title="PT Todo Dashboard" loading="lazy" data-src="../pt-todo-dashboard/?embedded=nexus" allow="clipboard-write"></iframe>
+    <section class="view" id="view-todo" aria-label="Idea Pad">
+      <nav class="idea-subnav" role="tablist" aria-label="Idea Pad 子板块"><button id="idea-project-tab" role="tab" aria-controls="idea-project-pane" aria-selected="true" data-idea-tab="projects">项目管理</button><button id="idea-notes-tab" role="tab" aria-controls="idea-notes-pane" aria-selected="false" data-idea-tab="notes">随手记</button></nav>
+      <div class="embed-frame-wrap idea-pane" id="idea-project-pane" role="tabpanel" aria-labelledby="idea-project-tab">
+        <div class="embed-loading" id="todoLoading"><div><b>项目管理</b><span>正在读取项目与待办…</span></div></div>
+        <iframe class="embed-frame" id="todoFrame" title="Idea Pad · 项目管理" loading="lazy" data-src="../pt-todo-dashboard/?embedded=nexus" allow="clipboard-write"></iframe>
       </div>
+      <div class="embed-frame-wrap idea-pane" id="idea-notes-pane" role="tabpanel" aria-labelledby="idea-notes-tab" hidden><div class="embed-loading" id="notesLoading"><div><b>随手记</b><span>正在读取页面与笔记…</span></div></div><iframe class="embed-frame" id="notesFrame" title="Idea Pad · 随手记" loading="lazy" data-src="../idea-pad/?embedded=nexus" allow="clipboard-write"></iframe></div>
     </section>
 
     <section class="view" id="view-board">
@@ -2235,7 +2246,7 @@ function migrateUpcomingManual(){
 }
 const DEFAULT_NAV_CONFIG=[
   {view:"home",icon:"⌂",label:"今日"},
-  {view:"todo",icon:"☑",label:"Todo"},
+  {view:"todo",icon:"✎",label:"Idea Pad"},
   {view:"board",icon:"▦",label:"看板"},
   {view:"tsugi",icon:"📚",label:"追更"},
   {view:"meal",icon:"🍜",label:"吃什么"},
@@ -2452,7 +2463,7 @@ function normalizedNavConfig(){
   const seen=new Set(),out=[];
   incoming.forEach(x=>{
     const d=defaults.get(x?.view);if(!d||seen.has(x.view))return;
-    seen.add(x.view);out.push({view:x.view,icon:String(x.icon||d.icon).slice(0,6),label:String(x.label||d.label).slice(0,12)});
+    seen.add(x.view);out.push({view:x.view,icon:String(x.icon||d.icon).slice(0,6),label:String(x.view==='todo'&&['Todo','To-do','PT Todo Dashboard'].includes(x.label)?'Idea Pad':x.label||d.label).slice(0,12)});
   });
   DEFAULT_NAV_CONFIG.forEach(d=>{if(!seen.has(d.view))out.push({...d})});
   return out;
@@ -2516,7 +2527,7 @@ function switchNexusView(view){
   setDeskBoardActive(view==='board');
   if(view==='tsugi')ensureEmbeddedSite('tsugi');
   if(view==='meal')ensureEmbeddedSite('meal');
-  if(view==='todo')ensureEmbeddedSite(view);
+  if(view==='todo')switchIdeaTab(store.get('ideaTab','projects'));
   dispatchEvent(new CustomEvent('nexus-view-change',{detail:{view}}));
   if(view==='music')ensureMusicTab();
   if(view==='focus')renderFocusTasks();
@@ -3069,7 +3080,7 @@ function syncEmbeddedTheme(name,theme=resolvedNexusTheme()){
 }
 function syncEmbeddedThemes(theme=resolvedNexusTheme()){
   syncEmbeddedTheme('tsugi',theme);syncEmbeddedTheme('meal',theme);
-  syncEmbeddedTheme('todo',theme);
+  syncEmbeddedTheme('todo',theme);syncEmbeddedTheme('notes',theme);
   dispatchEvent(new CustomEvent('nexus-theme-change',{detail:{theme}}));
 }
 function ensureEmbeddedSite(name){
@@ -3086,6 +3097,16 @@ function ensureEmbeddedSite(name){
   frame.src=src;
 }
 
+
+function switchIdeaTab(tab){
+  tab=tab==='notes'?'notes':'projects';store.set('ideaTab',tab);
+  document.querySelectorAll('[data-idea-tab]').forEach(b=>{const active=b.dataset.ideaTab===tab;b.setAttribute('aria-selected',String(active));b.tabIndex=active?0:-1});
+  $('#idea-project-pane').hidden=tab!=='projects';$('#idea-notes-pane').hidden=tab!=='notes';ensureEmbeddedSite(tab==='notes'?'notes':'todo');
+}
+for(const button of document.querySelectorAll('[data-idea-tab]')){
+  button.onclick=()=>switchIdeaTab(button.dataset.ideaTab);
+  button.onkeydown=e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();const tab=e.key==='Home'?'projects':e.key==='End'?'notes':button.dataset.ideaTab==='projects'?'notes':'projects';switchIdeaTab(tab);document.querySelector('[data-idea-tab="'+tab+'"]').focus()}};
+}
 
 const DESKBOARD_LINK_KEY='deskboard_extra_links_v1'; // legacy migration source
 const NEXUS_LINK_KEY='daily_nexus_links_v2';
@@ -3851,7 +3872,11 @@ function renderVspoLive(items,unavailable=false){
   host.innerHTML=live.map(x=>`<a class="vspo-live-member" href="${escapeAttr(x.url)}" target="_blank" rel="noopener" aria-label="观看 ${escapeAttr(x.member||"VSPO!")} 的当前直播"><span class="vspo-live-avatar"><span>${escapeHtml((x.member||"V").slice(0,1))}</span>${x.avatar?`<img src="${escapeAttr(x.avatar)}" alt="${escapeAttr(x.member||"VSPO!")}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:""}</span><b>${escapeHtml(x.member||"VSPO!")}</b></a>`).join("");
 }
 function refreshDiscover(force=false){discoverIndex++;renderProductRanking();getGitHubRanking(force);getVspoRanking(force)}
-$("#refreshDiscover").onclick=()=>refreshDiscover(true);$("#refreshFeedsNow").onclick=()=>refreshDiscover(true);refreshDiscover(false);
+let discoverLoaded=false;
+$('#discoverPanel').open=store.get('discoverExpanded',false)===true;
+$('#discoverPanel').addEventListener('toggle',()=>{store.set('discoverExpanded',$('#discoverPanel').open);if($('#discoverPanel').open&&!discoverLoaded){discoverLoaded=true;refreshDiscover(false)}});
+$("#refreshDiscover").onclick=()=>{discoverLoaded=true;refreshDiscover(true)};$("#refreshFeedsNow").onclick=()=>{discoverLoaded=true;refreshDiscover(true)};
+if($('#discoverPanel').open){discoverLoaded=true;refreshDiscover(false)}
 function renderYT(){const y=state.youtube,liveName=$("#liveName"),livePage=$("#livePage");if(liveName)liveName.textContent=y.name||'直播监控';if(livePage)livePage.href=y.id?`https://www.youtube.com/channel/${encodeURIComponent(y.id)}/live`:'https://www.youtube.com';$("#ytName").value=y.name||'';$("#ytId").value=y.id||''}renderYT();$("#saveYT").onclick=()=>{state.youtube={name:$("#ytName").value.trim(),id:$("#ytId").value.trim()};store.set('youtube',state.youtube);renderYT()};if($("#openLive"))$("#openLive").onclick=()=>{if(!state.youtube.id)return;$("#liveModalTitle").textContent=(state.youtube.name||'YouTube')+' · Live';$("#liveFrame").src=`https://www.youtube.com/embed/live_stream?channel=${encodeURIComponent(state.youtube.id)}&autoplay=0&rel=0`;openModal('#liveModal')};
 
 let focusMode='work',focusTotal=25*60,focusSecs=focusTotal,focusRunning=false,focusTimer=null,focusStart=null;$("#focusNote").value=state.focus.note||'';$("#focusNote").oninput=e=>{state.focus.note=e.target.value;store.set('focus',state.focus)};
