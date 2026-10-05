@@ -25,3 +25,32 @@ html[data-theme=light]{--figure-blue:#275bab;--figure-orange:#ad5200;--figure-gr
 .figure-dialog{width:min(1000px,calc(100% - 24px));max-height:92vh;padding:18px}.figure-dialog-tools{position:sticky;top:-18px;z-index:1;background:var(--paper);display:flex;justify-content:flex-end;padding:8px 0}.figure-dialog .lesson-figure{margin:8px 0;border:0;padding:14px}.figure-dialog-content{min-width:0}.formula p{font-size:15px;line-height:1.85}.reader-utilities button,.mode-switch button{font-size:14px}.key-point span,.unit-eyebrow{font-size:12px}.unit-status,#unit-next-label{font-size:13px}
 @media(max-width:760px){.lesson-figure{padding:14px 10px}.figure-top{flex-wrap:wrap;gap:8px}.figure-top h3{flex:1 1 180px;font-size:16px}.figure-expand{font-size:14px}.figure-canvas{margin:14px 0}.lesson-figure figcaption{font-size:15px}.figure-dialog{padding:12px}.figure-dialog .lesson-figure{padding:0}.figure-dialog-tools{top:-12px}.chapter-orientation{font-size:16px}}
 @media print{.figure-expand,.figure-dialog{display:none!important}.lesson-figure{background:white;border-color:#bbb;--figure-surface:#f2f6fc;--figure-border:#bbb;--figure-line:#444;--figure-blue:#275bab;--figure-orange:#ad5200;--figure-green:#177044;--figure-purple:#7940bb;--figure-header:#e5edf8}.figure-canvas svg{color:black}.figure-data[open]{display:block}.lesson-figure figcaption{color:black}}
+
+/* The same worked case is introduced before concepts and continued in place. */
+.case-start{margin:24px 0;padding:22px;border:1px solid var(--figure-border);border-top:3px solid var(--accent);border-radius:9px;background:var(--figure-surface)}
+.case-start h3{margin:6px 0 10px;font-size:20px;line-height:1.6}
+.case-deliverable{display:grid;grid-template-columns:110px minmax(0,1fr);gap:8px;padding:12px 0;margin:16px 0;border-top:1px solid var(--figure-border);border-bottom:1px solid var(--figure-border);font-size:15px}
+.case-deliverable strong{font-size:13px;color:var(--accent)}
+.case-start label,.transfer-example label{font-size:15px;line-height:1.8;font-weight:600;margin:16px 0 8px}
+.short-answer{min-height:90px;font-size:15px;background:var(--paper)}
+.case-path{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:16px}
+.case-path button{display:block;text-align:left;overflow-wrap:anywhere;padding:12px;align-content:start}
+.case-path span{display:block;color:var(--accent);font-weight:650;font-size:14px}
+.case-path small{display:block;font-size:12px;line-height:1.6;margin-top:5px}
+.case-recall{border:0;border-bottom:1px solid var(--line);border-radius:0;padding:0 0 12px;margin:14px 0 22px}
+.case-recall summary{font-size:13px;color:var(--muted);font-weight:500;line-height:1.7}
+.case-recall p{font-size:14px}
+.case-checkpoint{display:grid;grid-template-columns:30px minmax(0,1fr);gap:12px;background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:18px;margin:24px 0}
+.checkpoint-number{width:28px;height:28px;line-height:28px;text-align:center;background:var(--accent);color:var(--bg);border-radius:50%;font-weight:700;font-size:14px}
+.case-checkpoint h3{font-size:16px;margin:4px 0 10px;scroll-margin-top:85px}
+.case-checkpoint p{font-size:16px;margin:8px 0}
+.case-checkpoint .checkpoint-link{font-size:13px;line-height:1.7;color:var(--muted);border-top:1px solid var(--line);padding-top:10px;margin-top:12px}
+.transfer-example{border:1px solid var(--line);border-radius:9px;padding:20px;margin:26px 0;background:var(--bg)}
+.transfer-example h3{font-size:18px;margin:8px 0 16px;line-height:1.8}
+.transfer-example details{background:var(--paper);margin-bottom:0}
+.transfer-example details p{font-size:16px;line-height:1.9}
+.course-plan{padding:20px;background:var(--soft);border-radius:8px;margin-top:24px}
+.course-plan h2{margin-top:0}.course-plan li{margin:12px 0}.course-plan ol{padding-left:24px}
+.lab-observation{border-left:3px solid var(--accent);padding:4px 0 4px 18px;margin:22px 0}.lab-observation h3{font-size:16px}.lab-observation p,.lab-before{font-size:15px}
+@media(max-width:760px){.case-start{padding:16px}.case-start h3{font-size:18px}.case-deliverable{grid-template-columns:1fr;gap:3px}.case-path{grid-template-columns:1fr}.case-path button{display:grid;grid-template-columns:60px minmax(0,1fr);gap:8px;min-height:44px}.case-path small{margin-top:0;font-size:13px}.case-checkpoint{padding:16px 12px;gap:9px;grid-template-columns:26px minmax(0,1fr)}.checkpoint-number{width:25px;height:25px;line-height:25px}.transfer-example{padding:16px}}
+@media print{.case-start,.case-checkpoint,.transfer-example,.course-plan{background:white;color:black;border-color:#bbb;break-inside:avoid}.case-path,.case-recall button,.worked-case .text-button{display:none!important}.case-recall{display:block}.checkpoint-number{background:#eee;color:black}.short-answer{background:white;color:black}}

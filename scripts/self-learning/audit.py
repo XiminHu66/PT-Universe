@@ -29,15 +29,21 @@ for meta in manifest['courses']:
    else:assert len(f['nodes'])>=2 and all(n['label'] and n['detail'] for n in f['nodes'])
   assert len(l['sections'])>=4 and all(len(s['paragraphs'])>=2 for s in l['sections'])
   assert len(l['walkthrough']['steps'])==3 and l['check']['answer']
+  cs=l['caseStudy']
+  assert cs['artifact'] and cs['predict'] and cs['transfer']['question'] and len(cs['transfer']['answer'])>=50,l['id']
+  assert len(cs['placements'])==3 and cs['placements']==sorted(cs['placements'])
+  assert all(type(i) is int and 1<=i<=len(l['sections']) for i in cs['placements'])
   w=l['walkthrough'];check=l['check']
   assert l['guide']['question'] and len(l['guide']['terms'])>=2
   assert all(t['term'] and len(t['definition'])>=12 for t in l['guide']['terms'])
   assert all(len(s['keyPoint'])>=12 for s in l['sections'])
-  computed=sum(len(str(v)) for v in l['body']+[p for s in l['sections'] for p in s['paragraphs']]+[s['keyPoint'] for s in l['sections']]+[v for s in l['sections'] for v in (list(s['formula'].values()) if s.get('formula') else [])]+[l['guide']['question']]+[t['definition'] for t in l['guide']['terms']]+[l['example'],l['pitfall']]+l['steps']+[l['criteria'],l['answer'],w['setup']]+w['steps']+[w['result'],check['question'],check['answer']])
+  computed=sum(len(str(v)) for v in l['body']+[p for s in l['sections'] for p in s['paragraphs']]+[s['keyPoint'] for s in l['sections']]+[v for s in l['sections'] for v in (list(s['formula'].values()) if s.get('formula') else [])]+[l['guide']['question']]+[t['definition'] for t in l['guide']['terms']]+[l['example'],l['pitfall']]+l['steps']+[l['criteria'],l['answer'],w['setup']]+w['steps']+[w['result'],check['question'],check['answer'],cs['artifact'],cs['predict'],cs['transfer']['question'],cs['transfer']['answer']])
+  computed+=sum(len(v) for v in l.get('labGuide',{}).values())
   assert computed==l['textCharacters'] and computed>=1100,l['id']
   assert all(r['id'] in ids and r['section'] for r in l['refs'])
   amount.append(computed)
   if l.get('code'):
+   assert all(l['labGuide'][key] for key in ['before','expect','change'])
    # Only the trusted, checked-in tutorial code; never user import data.
    with tempfile.TemporaryDirectory() as tmp:
     p=Path(tmp)/'lab.py';p.write_text(l['code'])
@@ -45,9 +51,11 @@ for meta in manifest['courses']:
     assert r.returncode==0,(l['id'],r.stderr)
    codes+=1
  assert sum(amount)==meta['teachingCharacters']==c['teachingCharacters']
+ assert len(c['learningProject']['phases'])==3 and c['learningProject']['prepare']
  total+=sum(amount)
  print(c['title'],len(amount),'chapters;',min(amount),'-',max(amount),'characters')
 assert count==120 and total==manifest['teachingCharacters']
+assert manifest['guidedCases']==manifest['transferExamples']==count
 assert len(figures)==manifest['figureCount']==144
 # Independent calculations for numbers in the teaching, not rendered-string mirrors.
 near=lambda x,y,tol=0.005:abs(x-y)<tol
@@ -91,6 +99,19 @@ assert near((4/8)**2*(125/250),1/8,1e-9)
 assert (4/8)**2*(125/250)*(800/100)==1
 assert near(4000*3000*4/2**20,45.7763671875,1e-9)
 assert near(1/math.sqrt(4),0.5,1e-9)
+# New transfer examples use different inputs to check application of the model.
+assert near(1-math.comb(8,3)/math.comb(10,3),0.533333333,1e-8)
+assert near(0.95**10,0.598736939,1e-8)
+assert near(99*10/100+1000/100,19.9,1e-8)
+assert near(200/22000*100,0.909090909,1e-8)
+assert near(365/(600/150),91.25,1e-8)
+assert near(105/1.10,95.454545455,1e-8)
+assert near((103/105-1)*100,-1.904761905,1e-8)
+assert near((3.3-2)/330*1000,3.939393939,1e-8)
+assert near((100*5+1*55)/60,9.25,1e-8)
+assert near(1000/9.25,108.108108108,1e-8)
+assert near(128/44100*1000,2.902494331,1e-8)
+assert near(2000*1500*4/2**20,11.444091797,1e-8)
 # Check stored graph values against their declared models independently.
 getgraph=lambda prefix:next(f for key,f in figures.items() if key.startswith(prefix) and f.get('series'))
 for prefix,model in [

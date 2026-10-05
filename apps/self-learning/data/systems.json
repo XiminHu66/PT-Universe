@@ -42,7 +42,7 @@
           "section": "getpid、getcwd、fsync、replace"
         }
       ],
-      "code": "import os, time\nstart = time.perf_counter()\nprint(\"pid:\", os.getpid(), \"cwd:\", os.getcwd())\nprint(\"elapsed:\", time.perf_counter() - start)",
+      "code": "# Python 3：临时目录复现路径问题，无需准备输入文件\nimport os, sys, tempfile\nfrom pathlib import Path\n\noriginal = Path.cwd()\nprint(\"解释器：\", sys.executable, \"PID：\", os.getpid())\nprint(\"原工作目录：\", original)\ntry:\n    with tempfile.TemporaryDirectory() as tmp:\n        project = Path(tmp) / \"project\"\n        (project / \"data\").mkdir(parents=True)\n        target = project / \"data\" / \"input.txt\"\n        target.write_text(\"hello\", encoding=\"utf-8\")\n        os.chdir(project)\n        first = Path(\"data/input.txt\").read_text(encoding=\"utf-8\")\n        print(\"项目目录读取：\", first)\n        os.chdir(tmp)\n        try:\n            Path(\"data/input.txt\").read_text(encoding=\"utf-8\")\n        except FileNotFoundError:\n            print(\"相对路径失败：FileNotFoundError\")\n        second = target.read_text(encoding=\"utf-8\")\n        assert first == second == \"hello\"\n        print(\"明确路径读取：\", second)\n        os.chdir(original)  # 先离开临时目录，再清理；也适用于Windows\nfinally:\n    os.chdir(original)\n",
       "sections": [
         {
           "title": "源码、解释器与进程是三个层次",
@@ -122,10 +122,10 @@
           "figures": []
         }
       ],
-      "revision": "2026-10-02-illustrated-all",
+      "revision": "2026-10-05-follow-along",
       "walkthrough": {
         "title": "同一个脚本，两种启动结果",
-        "setup": "lab.py读取data/input.txt，文件位于项目目录；从另一个目录启动时出现找不到文件。",
+        "setup": "实验目录中的data/input.txt包含hello；先在项目目录读取，再把工作目录改到上级，观察相同相对路径为何失败。",
         "steps": [
           "先记录os.getcwd()，确认相对路径从工作目录出发，而非脚本目录",
           "记录sys.executable，排除编辑器与终端使用不同Python",
@@ -137,7 +137,7 @@
         "question": "为什么重复启动同一文件会出现两个PID？",
         "answer": "文件只是代码，两次启动创建两个运行实体。操作系统分别管理它们；它们仍可能通过同一文件产生竞争，因此独立变量不代表独立外部效果。"
       },
-      "textCharacters": 2230,
+      "textCharacters": 2542,
       "guide": {
         "question": "保存的Python文件和正在运行的程序，有什么不同？",
         "terms": [
@@ -155,6 +155,24 @@
         "intro": "先把“保存了代码”和“程序正在运行”分开。本章从你熟悉的Python脚本出发，沿执行路径认识操作系统，不需要先学习C。",
         "nextQuestion": "两个线程都给余额加1，为什么结果可能只增加1？",
         "nextTitle": "进程、线程与共享状态"
+      },
+      "caseStudy": {
+        "artifact": "两种启动方式的环境记录",
+        "predict": "文件明明存在，为什么换目录启动就找不到？",
+        "placements": [
+          3,
+          3,
+          4
+        ],
+        "transfer": {
+          "question": "把相对路径改成绝对路径后仍失败，下一步检查什么？",
+          "answer": "先打印实际路径和异常类型。若是权限错误，文件存在也不能读取；若解释器无法启动，尚未执行到文件读取。绝对路径只固定寻址，不能修复所有环境问题。"
+        }
+      },
+      "labGuide": {
+        "before": "脚本会在临时目录建立一份输入，依次模拟项目目录与上级目录启动，再清理临时文件；先预测三次读取的差别。",
+        "expect": "看到“项目目录读取：hello”“相对路径失败：FileNotFoundError”“明确路径读取：hello”；解释器路径和PID依环境不同。",
+        "change": "把data/input.txt的内容改成自己的短文本，确认两次成功读取一致；不要只把异常吞掉而不解释寻址。"
       }
     },
     {
@@ -306,7 +324,7 @@
           "figures": []
         }
       ],
-      "revision": "2026-10-02-illustrated-all",
+      "revision": "2026-10-05-follow-along",
       "walkthrough": {
         "title": "两个人各加一，为什么总数不是二",
         "setup": "共享计数为0，两个执行者都要增加1。为稳定演示，先将读取与写入分成显式阶段。",
@@ -321,7 +339,7 @@
         "question": "换成两个独立进程就完全没有竞态吗？",
         "answer": "局部变量通常隔离，但若它们都读改写同一文件或数据库，仍会丢失更新。同步机制必须保护真正共享的资源，线程锁不能自动保护其他进程。"
       },
-      "textCharacters": 2005,
+      "textCharacters": 2116,
       "guide": {
         "question": "两个线程都给余额加1，为什么结果可能只增加1？",
         "terms": [
@@ -339,6 +357,19 @@
         "intro": "上一章建立了进程概念；这一章问：两项工作同时推进时，哪些数据独立，哪些数据会互相影响？先理解共享，再讨论加速。",
         "nextQuestion": "程序申请的内存为什么不等于机器立即使用的物理内存？",
         "nextTitle": "内存、地址空间与分页"
+      },
+      "caseStudy": {
+        "artifact": "共享计数的交错时间线",
+        "predict": "两次加一，最终值一定是2吗？",
+        "placements": [
+          3,
+          3,
+          3
+        ],
+        "transfer": {
+          "question": "三个执行者都先读到0，再各自写入1，最终是多少？",
+          "answer": "按这个指定交错，最后一次写入仍是1；三次业务意图只留下一个增量。保护整个“读—算—写”后，三者依次读到0、1、2，结果才是3。"
+        }
       }
     },
     {
@@ -450,7 +481,7 @@
           "figures": []
         }
       ],
-      "revision": "2026-10-02-illustrated-all",
+      "revision": "2026-10-05-follow-along",
       "walkthrough": {
         "title": "申请内存与使用内存的区别",
         "setup": "测试进程申请一个较大数组，系统观察值没有立即增加到你预期的大小。",
@@ -465,7 +496,7 @@
         "question": "两进程显示相同虚拟地址，会互相覆盖吗？",
         "answer": "通常不会，它们的页映射独立；只有明确共享映射或外部资源才会共享。虚拟地址数值不是全系统唯一的物理内存标识。"
       },
-      "textCharacters": 1914,
+      "textCharacters": 2041,
       "guide": {
         "question": "程序申请的内存为什么不等于机器立即使用的物理内存？",
         "terms": [
@@ -483,6 +514,19 @@
         "intro": "进程隔离依赖它看到的内存地图。现在从“变量放在哪里”走到虚拟地址、物理页和实际占用，解释为什么申请内存与用掉内存不同。",
         "nextQuestion": "增加任务数量后，为什么CPU没有变快，响应却变慢了？",
         "nextTitle": "CPU 调度与延迟"
+      },
+      "caseStudy": {
+        "artifact": "申请、触页、释放的内存观察表",
+        "predict": "数组逻辑大小能直接当成新增驻留内存吗？",
+        "placements": [
+          1,
+          2,
+          4
+        ],
+        "transfer": {
+          "question": "释放引用后驻留值没有下降，能断言内存泄漏吗？",
+          "answer": "不能。运行时或分配器可能保留空间供复用。重复同样分配与释放，若趋于稳定支持复用解释；持续增长则继续检查存活引用与外部分配，不能仅凭一轮变化定性。"
+        }
       }
     },
     {
@@ -634,7 +678,7 @@
           "figures": []
         }
       ],
-      "revision": "2026-10-02-illustrated-all",
+      "revision": "2026-10-05-follow-along",
       "walkthrough": {
         "title": "十个请求的平均延迟陷阱",
         "setup": "九个请求各10ms，一个1000ms，总耗时1090ms；这是教学小样本。",
@@ -649,7 +693,7 @@
         "question": "任务每秒到达10个、平均停留0.2秒，系统平均多少任务？",
         "answer": "稳定且边界一致时Little定律给L=10×0.2=2。如果队列正无限增长，稳定条件不满足，这个结果不能被当容量承诺。"
       },
-      "textCharacters": 1912,
+      "textCharacters": 2041,
       "guide": {
         "question": "增加任务数量后，为什么CPU没有变快，响应却变慢了？",
         "terms": [
@@ -667,6 +711,19 @@
         "intro": "有了进程和内存，还要有人决定谁能使用CPU。这一章把“慢”拆成等待、计算和排队，给之后的系统实验建立测量口径。",
         "nextQuestion": "程序显示写入成功，断电后文件为什么仍可能丢失？",
         "nextTitle": "文件、缓冲与持久化"
+      },
+      "caseStudy": {
+        "artifact": "请求延迟与阶段耗时表",
+        "predict": "多数请求10ms，平均为什么是109ms？",
+        "placements": [
+          3,
+          3,
+          4
+        ],
+        "transfer": {
+          "question": "100个请求中99个10ms、1个1000ms，均值多少？",
+          "answer": "总和99×10+1000=1990ms，均值19.9ms。最慢请求仍为1000ms；均值下降主要来自样本构成变化，不能据此说慢请求已修复。"
+        }
       }
     },
     {
@@ -778,7 +835,7 @@
           "figures": []
         }
       ],
-      "revision": "2026-10-02-illustrated-all",
+      "revision": "2026-10-05-follow-along",
       "walkthrough": {
         "title": "写到一半时怎样恢复",
         "setup": "原文件是完整记录v1，保存v2时进程可能在任意阶段退出。",
@@ -793,7 +850,7 @@
         "question": "用原子替换能阻止两个进程同时覆盖对方吗？",
         "answer": "不能。两者可能都读v1，再各写完整v2，后者仍覆盖前者。需要锁、版本条件或事务保护读改写链条，文件完整不等于更新正确。"
       },
-      "textCharacters": 1900,
+      "textCharacters": 2031,
       "guide": {
         "question": "程序显示写入成功，断电后文件为什么仍可能丢失？",
         "terms": [
@@ -811,6 +868,19 @@
         "intro": "变量不会自动变成可靠文件。上一章测量等待，这一章问写入到底在哪一步完成，以及程序中断后哪些内容还能恢复。",
         "nextQuestion": "一个自增操作安全，为什么先检查再修改仍可能出错？",
         "nextTitle": "锁、原子操作与竞态"
+      },
+      "caseStudy": {
+        "artifact": "保存阶段与重启结果表",
+        "predict": "写函数返回，能直接说明v2可恢复吗？",
+        "placements": [
+          2,
+          4,
+          4
+        ],
+        "transfer": {
+          "question": "临时v2刚写一半就退出，重启应该接受它吗？",
+          "answer": "先验证完整格式和版本，不把截断临时文件当新主文件。若替换尚未发生，主文件应仍是有效v1；还需按平台持久化契约核对刷新、替换及目录元数据，正常退出测试不等于掉电测试。"
+        }
       }
     },
     {
@@ -917,7 +987,7 @@
           "figures": []
         }
       ],
-      "revision": "2026-10-02-illustrated-all",
+      "revision": "2026-10-05-follow-along",
       "walkthrough": {
         "title": "锁错地方，库存仍会超卖",
         "setup": "库存1，A、B各购买1。代码只在最后扣减处加锁，库存检查在锁外。",
@@ -932,7 +1002,7 @@
         "question": "统一锁顺序解决所有卡住吗？",
         "answer": "它减少特定多锁循环等待，不能处理所有外部等待、回调或线程生命周期问题。仍需画等待关系、限制持锁范围并验证故障路径。"
       },
-      "textCharacters": 1739,
+      "textCharacters": 1864,
       "guide": {
         "question": "一个自增操作安全，为什么先检查再修改仍可能出错？",
         "terms": [
@@ -950,6 +1020,19 @@
         "intro": "第二章展示了丢失更新，第五章说明完整写文件也会丢业务增量。现在用不变量界定需要一起完成的操作，再选择锁或状态所有者。",
         "nextQuestion": "异步下载开了1000个任务，为什么仍会占满内存？",
         "nextTitle": "异步 I/O、事件循环与背压"
+      },
+      "caseStudy": {
+        "artifact": "库存不变量与两请求测试记录",
+        "predict": "只给扣减加锁，为什么仍会超卖？",
+        "placements": [
+          1,
+          2,
+          4
+        ],
+        "transfer": {
+          "question": "库存2，三个请求各买1，正确临界区应产生什么结果？",
+          "answer": "每次在同一锁内检查并扣减：前两次分别把2变1、1变0，第三次读取0后拒绝。最终库存0、成功2笔；只看最终库存而不查订单数量，可能漏掉错误副作用。"
+        }
       }
     },
     {
@@ -1098,7 +1181,7 @@
           "figures": []
         }
       ],
-      "revision": "2026-10-02-illustrated-all",
+      "revision": "2026-10-05-follow-along",
       "walkthrough": {
         "title": "有限队列把过载暴露出来",
         "setup": "生产者每秒100项，消费者合计每秒60项，每项约1KB。",
@@ -1113,7 +1196,7 @@
         "question": "async函数里执行长CPU循环会怎样？",
         "answer": "它会阻塞同一事件循环其他任务，直到出现可让出控制的位置。async不自动并行，需适用执行器或重设计，测量CPU与等待才能选择。"
       },
-      "textCharacters": 1926,
+      "textCharacters": 2232,
       "guide": {
         "question": "异步下载开了1000个任务，为什么仍会占满内存？",
         "terms": [
@@ -1131,6 +1214,24 @@
         "intro": "锁解决共享状态正确性，异步处理解决等待期间的调度。二者不是替代关系；这一章先认识await，再看为什么必须限制积压。",
         "nextQuestion": "浏览器打不开网页，怎样分清DNS、连接和应用问题？",
         "nextTitle": "DNS、IP、端口与连接"
+      },
+      "caseStudy": {
+        "artifact": "队列容量、等待与拒绝记录",
+        "predict": "开更多异步任务能消除每秒40项积压吗？",
+        "placements": [
+          2,
+          2,
+          4
+        ],
+        "transfer": {
+          "question": "空队列容量100，流入100/s、处理60/s，持续稳定时多久装满？",
+          "answer": "按净增40项/s的流体近似，100÷40=2.5秒。装满后必须等待、拒绝或采用明确丢弃策略；容量限制改变过载行为，不会凭空提高消费者吞吐。"
+        }
+      },
+      "labGuide": {
+        "before": "示例只有模拟等待，无需服务器。输入是0到9，两个worker共享容量3的队列；先算每项平方。",
+        "expect": "Done后列出[0, 1, 4, 9, 16, 25, 36, 49, 64, 81]；程序能退出说明结束标记与task_done配合完成。",
+        "change": "把maxsize改1或worker数改1，核对结果仍相同，再分别测等待。这个演示不复现100/s的真实流量测量。"
       }
     },
     {
@@ -1238,7 +1339,7 @@
           "figures": []
         }
       ],
-      "revision": "2026-10-02-illustrated-all",
+      "revision": "2026-10-05-follow-along",
       "walkthrough": {
         "title": "端口错了与路径错了不是同类问题",
         "setup": "本机服务监听127.0.0.1:8000，提供/jobs。",
@@ -1253,7 +1354,7 @@
         "question": "DNS成功能保证页面可用吗？",
         "answer": "不能。地址解析后还需连接、TLS、HTTP和业务授权都成功。每层有独立契约，上一层通过只是缩小排查范围。"
       },
-      "textCharacters": 1906,
+      "textCharacters": 2040,
       "guide": {
         "question": "浏览器打不开网页，怎样分清DNS、连接和应用问题？",
         "terms": [
@@ -1271,6 +1372,19 @@
         "intro": "异步请求需要先知道连向谁。现在把一个网址拆为名字、地址、端口、协议和路径，让“打不开”成为可逐层定位的问题。",
         "nextQuestion": "TCP明明可靠，为什么一次读取不一定拿到完整消息？",
         "nextTitle": "TCP、UDP 与 HTTP 版本"
+      },
+      "caseStudy": {
+        "artifact": "连接失败、404与协议错误对照",
+        "predict": "连接失败和404为什么要分开查？",
+        "placements": [
+          2,
+          3,
+          4
+        ],
+        "transfer": {
+          "question": "请求收到500，应该先查DNS还是处理逻辑？",
+          "answer": "HTTP响应说明至少已有服务或代理接收并返回响应。先查响应来源、请求ID和服务日志，再定位处理或上游错误；500不证明一定是你的应用生成，但与尚未连上的阶段不同。"
+        }
       }
     },
     {
@@ -1373,7 +1487,7 @@
           "figures": []
         }
       ],
-      "revision": "2026-10-02-illustrated-all",
+      "revision": "2026-10-05-follow-along",
       "walkthrough": {
         "title": "两次发送为何只读到一次",
         "setup": "客户端在TCP字节流发送ABC与DEF，接收端一次读到ABCDEF，或者分成AB与CDEF。",
@@ -1388,7 +1502,7 @@
         "question": "HTTP/2使用TCP就完全没有并发收益吗？",
         "answer": "不是。它有应用层多流复用优势，但底层丢包仍可能影响同连接数据推进。区分层次，不能从一种限制推出整个协议无价值。"
       },
-      "textCharacters": 1925,
+      "textCharacters": 2050,
       "guide": {
         "question": "TCP明明可靠，为什么一次读取不一定拿到完整消息？",
         "terms": [
@@ -1406,6 +1520,19 @@
         "intro": "地址与连接确认后，应用仍要约定传什么、如何识别一条消息。这里把传输契约与HTTP语义分开，避免按函数调用次数理解网络。",
         "nextQuestion": "设置了no-cache，为什么浏览器仍可能保存响应？",
         "nextTitle": "HTTP、缓存与 CORS"
+      },
+      "caseStudy": {
+        "artifact": "任意分段下的消息解析记录",
+        "predict": "发送两次，接收端就能读出两条完整消息吗？",
+        "placements": [
+          1,
+          4,
+          4
+        ],
+        "transfer": {
+          "question": "长度前缀声明正文6字节，本次只收到4字节，怎么办？",
+          "answer": "保留已收片段，等足剩余2字节后才交付一条消息。若连接提前结束，报告截断；若长度超上限，拒绝。每次read返回多少字节不能当业务消息长度。"
+        }
       }
     },
     {
@@ -1517,7 +1644,7 @@
           "figures": []
         }
       ],
-      "revision": "2026-10-02-illustrated-all",
+      "revision": "2026-10-05-follow-along",
       "walkthrough": {
         "title": "CORS报错却已经修改了数据",
         "setup": "浏览器从源A向源B发送某类可直接发送的请求，服务修改状态，但响应未允许A读取。",
@@ -1532,7 +1659,7 @@
         "question": "no-cache是否表示永远不存响应？",
         "answer": "通常不是，它要求复用前验证；no-store才涉及禁止存储的意图。需读响应完整策略与实现，不凭名字设计敏感数据缓存。"
       },
-      "textCharacters": 1974,
+      "textCharacters": 2117,
       "guide": {
         "question": "设置了no-cache，为什么浏览器仍可能保存响应？",
         "terms": [
@@ -1550,6 +1677,19 @@
         "intro": "上一章解决消息送达，这一章解决请求语义、复用和浏览器读取权限。同一响应可以到达服务器，却被浏览器禁止交给脚本。",
         "nextQuestion": "加了一个新字段，为什么数据库仍可能保存不合法的关系？",
         "nextTitle": "数据模型与查询工作负载"
+      },
+      "caseStudy": {
+        "artifact": "浏览器提示与服务副作用对照",
+        "predict": "浏览器显示CORS错误，能说明服务没执行吗？",
+        "placements": [
+          3,
+          3,
+          4
+        ],
+        "transfer": {
+          "question": "GET响应命中旧缓存，但修改接口已成功，怎么定位？",
+          "answer": "分别记录修改结果、读取响应头、缓存键和验证器。用可控新请求核对服务器当前版本，再判断是哪层返回旧副本；不能把所有旧显示归因于CORS，写入成功也不会自动清掉所有缓存。"
+        }
       }
     },
     {
@@ -1652,7 +1792,7 @@
           "figures": []
         }
       ],
-      "revision": "2026-10-02-illustrated-all",
+      "revision": "2026-10-05-follow-along",
       "walkthrough": {
         "title": "同一幂等键并发创建任务",
         "setup": "A、B同时提交同用户同幂等键，应用各先查询，都发现不存在。",
@@ -1667,7 +1807,7 @@
         "question": "用户ID和随机任务ID能代替授权吗？",
         "answer": "不能。主键回答是哪条记录，权限回答谁能操作。将可信用户租户范围加入读取和写入，详情、批量与导出都需覆盖。"
       },
-      "textCharacters": 1751,
+      "textCharacters": 1893,
       "guide": {
         "question": "加了一个新字段，为什么数据库仍可能保存不合法的关系？",
         "terms": [
@@ -1685,6 +1825,19 @@
         "intro": "网络接口后面需要稳定的数据模型。先定义要回答的问题，再把任务、执行尝试和事件拆开，以免重试覆盖历史证据。",
         "nextQuestion": "相同SQL第二次更快，是否说明你的改动有效？",
         "nextTitle": "页、缓冲池与局部性"
+      },
+      "caseStudy": {
+        "artifact": "任务键、输入摘要与唯一约束表",
+        "predict": "两个请求都查不到记录，为什么仍需要唯一约束？",
+        "placements": [
+          2,
+          2,
+          4
+        ],
+        "transfer": {
+          "question": "同一用户同一键，第一次输入[2,3]，第二次[2,4]，该返回5吗？",
+          "answer": "不能把不同意图静默合并。第一次记录输入摘要和结果5；第二次在业务唯一键命中后比较摘要，发现不同则拒绝并说明冲突。幂等键同时需要作用域与输入契约。"
+        }
       }
     },
     {
@@ -1791,7 +1944,7 @@
           "figures": []
         }
       ],
-      "revision": "2026-10-02-illustrated-all",
+      "revision": "2026-10-05-follow-along",
       "walkthrough": {
         "title": "热缓存结果不代表冷启动",
         "setup": "同一查询第一次120ms、第二次15ms，代码没有变化。",
@@ -1806,7 +1959,7 @@
         "question": "高命中率能说明查询没有瓶颈吗？",
         "answer": "不能。大量缓存页扫描仍有CPU成本，排序、锁与网络也可能支配时间。结合计划、访问量和阶段耗时定位，不只看一个百分比。"
       },
-      "textCharacters": 1702,
+      "textCharacters": 1839,
       "guide": {
         "question": "相同SQL第二次更快，是否说明你的改动有效？",
         "terms": [
@@ -1824,6 +1977,19 @@
         "intro": "上一章决定数据表达什么，这一章决定它怎样进入内存。认识页与缓存，才能解释同一条SQL第一次和第二次为什么不一样快。",
         "nextQuestion": "给两个字段建了复合索引，为什么仍可能扫描很多记录？",
         "nextTitle": "B+Tree、哈希与 LSM"
+      },
+      "caseStudy": {
+        "artifact": "相同查询的多轮冷热记录",
+        "predict": "第一次120ms、第二次15ms，能说索引快了8倍吗？",
+        "placements": [
+          2,
+          4,
+          4
+        ],
+        "transfer": {
+          "question": "只重启客户端，第二次仍很快，冷读测试成立吗？",
+          "answer": "不成立。数据库缓冲池和操作系统缓存可能还在。记录能控制与不能控制的层，用相同数据、查询计划和多样本比较；若无法可靠清空，就把结果称为当前缓存状态下的测量。"
+        }
       }
     },
     {
@@ -1927,7 +2093,7 @@
           "figures": []
         }
       ],
-      "revision": "2026-10-02-illustrated-all",
+      "revision": "2026-10-05-follow-along",
       "walkthrough": {
         "title": "为列表查询选择索引",
         "setup": "查询某用户最近20个任务，按created_at倒序，数据量十万条。",
@@ -1942,7 +2108,7 @@
         "question": "把每个字段单独建索引会自动最好吗？",
         "answer": "不会。组合筛选与排序可能需要不同结构，多个索引也增加写与空间成本。按工作负载选择，保留没有改善的证据。"
       },
-      "textCharacters": 1842,
+      "textCharacters": 1992,
       "guide": {
         "question": "给两个字段建了复合索引，为什么仍可能扫描很多记录？",
         "terms": [
@@ -1960,6 +2126,19 @@
         "intro": "页解释了读写的单位，索引解释如何少找一些页。以复合键的排序为起点，再比较点查、范围查和写入成本。",
         "nextQuestion": "SQL没有变，为什么数据增多后执行计划会变化？",
         "nextTitle": "查询执行与优化器"
+      },
+      "caseStudy": {
+        "artifact": "查询、计划与索引成本对照",
+        "predict": "为什么最近20个任务需要同时考虑过滤和排序？",
+        "placements": [
+          2,
+          2,
+          3
+        ],
+        "transfer": {
+          "question": "索引(user_id,created_at)能保证所有用户按时间查都一样快吗？",
+          "answer": "不能。无user_id过滤的全局时间查询不匹配相同前导访问条件；可能扫描、排序或采用其他计划。分别看两种查询的实际计划与耗时，不把某一工作负载的收益泛化。"
+        }
       }
     },
     {
@@ -2066,7 +2245,7 @@
           "figures": []
         }
       ],
-      "revision": "2026-10-02-illustrated-all",
+      "revision": "2026-10-05-follow-along",
       "walkthrough": {
         "title": "估计10行，实际十万行",
         "setup": "优化器低估过滤结果，选择看似便宜但实际重复很多次的连接计划。",
@@ -2081,7 +2260,7 @@
         "question": "EXPLAIN ANALYZE一定是无副作用查看吗？",
         "answer": "不是，实际分析通常会执行语句。写入查询只能在合适测试或可回滚环境使用，不能随意在生产试更新。"
       },
-      "textCharacters": 1778,
+      "textCharacters": 1919,
       "guide": {
         "question": "SQL没有变，为什么数据增多后执行计划会变化？",
         "terms": [
@@ -2099,6 +2278,19 @@
         "intro": "有索引也不保证每次都用，SQL也不规定唯一执行顺序。现在从查询目标走到计划，学习为什么优化要同时看估计与真实结果。",
         "nextQuestion": "两位医生分别退出值班，为什么各自的事务都可能通过？",
         "nextTitle": "事务、MVCC 与隔离级别"
+      },
+      "caseStudy": {
+        "artifact": "估计行数、实际行数与修复证据",
+        "predict": "SQL没变，为什么数据分布变化会使计划变慢？",
+        "placements": [
+          2,
+          2,
+          4
+        ],
+        "transfer": {
+          "question": "预计10行实际10000行，误差倍数多少，有何影响？",
+          "answer": "10000÷10=1000倍。若连接内层随外层重复执行，低估可能放大循环与I/O；但倍数本身不是总耗时。查看真实循环、页访问和阶段耗时，再验证统计或索引修改。"
+        }
       }
     },
     {
@@ -2243,7 +2435,7 @@
           "figures": []
         }
       ],
-      "revision": "2026-10-02-illustrated-all",
+      "revision": "2026-10-05-follow-along",
       "walkthrough": {
         "title": "写不同记录也能破坏约束",
         "setup": "值班医生A、B，两者同时看到至少另一人在岗，各把自己改下班。",
@@ -2258,7 +2450,7 @@
         "question": "只重试失败的最后UPDATE是否充分？",
         "answer": "不一定。先前读取和判断可能已过期，应回滚后重跑完整事务。若事务含外部副作用，还必须避免重复，不能无条件重试。"
       },
-      "textCharacters": 1920,
+      "textCharacters": 2047,
       "guide": {
         "question": "两位医生分别退出值班，为什么各自的事务都可能通过？",
         "terms": [
@@ -2276,6 +2468,19 @@
         "intro": "锁保护一次局部更新；数据库事务还要决定多条读写如何一起完成，以及并发读取看到什么。以两位医生的跨行约束认识隔离。",
         "nextQuestion": "服务器没有回确认，为什么不能立即断定数据没保存？",
         "nextTitle": "WAL、检查点与恢复"
+      },
+      "caseStudy": {
+        "artifact": "两会话写偏差与修复记录",
+        "predict": "各自更新不同医生，为什么仍会违反共同约束？",
+        "placements": [
+          2,
+          3,
+          4
+        ],
+        "transfer": {
+          "question": "医生A、B同时下班，各自行锁就一定足够吗？",
+          "answer": "不一定。若两者锁不同记录，仍可能都依据旧快照认为另一人在岗。保护“至少一人在岗”的共同判断，采用适用的共同锁或串行化机制，并测试冲突后完整事务重试。"
+        }
       }
     },
     {
@@ -2387,7 +2592,7 @@
           "figures": []
         }
       ],
-      "revision": "2026-10-02-illustrated-all",
+      "revision": "2026-10-05-follow-along",
       "walkthrough": {
         "title": "数据库提交了，客户端却不知道",
         "setup": "事务持久提交后，服务响应前进程被终止，客户端记录超时。",
@@ -2402,7 +2607,7 @@
         "question": "复制副本是否足以应对误删？",
         "answer": "通常误删也会复制过去，副本与历史备份职责不同。恢复演练要有可用备份、日志和业务验证，并测RPO与RTO。"
       },
-      "textCharacters": 1802,
+      "textCharacters": 1933,
       "guide": {
         "question": "服务器没有回确认，为什么不能立即断定数据没保存？",
         "terms": [
@@ -2420,6 +2625,19 @@
         "intro": "事务提交需要能在故障后恢复。第五章讨论文件完整性，这一章把持久化的恢复依据变成日志，并区分数据丢失与确认丢失。",
         "nextQuestion": "向量索引召回很好，为什么RAG答案仍可能很差？",
         "nextTitle": "向量索引、ANN 与检索评估"
+      },
+      "caseStudy": {
+        "artifact": "提交、响应与恢复的故障矩阵",
+        "predict": "客户端超时，是数据没写入还是确认没收到？",
+        "placements": [
+          3,
+          3,
+          4
+        ],
+        "transfer": {
+          "question": "重试用了新幂等键，WAL能防止第二条业务任务吗？",
+          "answer": "不能。WAL保护数据库恢复契约，不知道两个键代表同一用户意图。第一次可能已持久提交，第二次又创建任务；稳定业务键和原子登记要在应用与数据模型中完成。"
+        }
       }
     },
     {
@@ -2531,7 +2749,7 @@
           "figures": []
         }
       ],
-      "revision": "2026-10-02-illustrated-all",
+      "revision": "2026-10-05-follow-along",
       "walkthrough": {
         "title": "先top10再租户过滤为何漏结果",
         "setup": "全局近邻10项里只有1项属于租户A，而租户A实际有10项相关候选。",
@@ -2546,7 +2764,7 @@
         "question": "Recall@k高能保证RAG答案正确吗？",
         "answer": "不能。还要验证相关性、证据覆盖、生成与引用支持。索引、语义检索、下游回答是不同层，失败可在任一层发生。"
       },
-      "textCharacters": 1830,
+      "textCharacters": 1972,
       "guide": {
         "question": "向量索引召回很好，为什么RAG答案仍可能很差？",
         "terms": [
@@ -2564,6 +2782,19 @@
         "intro": "数据系统开始做相似度检索时，需要区分数学近邻与业务相关。先建立精确基准，再评价ANN少查一些候选付出的代价。",
         "nextQuestion": "论文报告快了很多倍，怎样判断它对你的项目是否有用？",
         "nextTitle": "2025–2026：动态与过滤向量搜索"
+      },
+      "caseStudy": {
+        "artifact": "带过滤的精确基准与ANN评估表",
+        "predict": "全局top-10再过滤，为什么可能不足10条？",
+        "placements": [
+          2,
+          2,
+          4
+        ],
+        "transfer": {
+          "question": "租户精确top-10中找回8条，返回列表共10条，索引召回是多少？",
+          "answer": "按同一租户、同一距离与top-k基准，召回为8/10=80%。另两条即使语义不错也不算找回基准项；语义质量、权限正确性与索引逼近误差分别评估。"
+        }
       }
     },
     {
@@ -2705,7 +2936,7 @@
           "figures": []
         }
       ],
-      "revision": "2026-10-02-illustrated-all",
+      "revision": "2026-10-05-follow-along",
       "walkthrough": {
         "title": "论文更快22倍能否直接迁移",
         "setup": "读到一个动态检索基准的作者报告，自己的系统强过滤、低更新、高维向量。",
@@ -2720,7 +2951,7 @@
         "question": "比较方法时只取各自最快参数公平吗？",
         "answer": "不一定。需要匹配召回或质量目标，并报告内存、构建和更新成本，否则一个漏更多结果的配置可能只是表面更快。"
       },
-      "textCharacters": 1863,
+      "textCharacters": 1999,
       "guide": {
         "question": "论文报告快了很多倍，怎样判断它对你的项目是否有用？",
         "terms": [
@@ -2738,6 +2969,19 @@
         "intro": "上一章建立静态近邻基准。现在加入更新和过滤：用户只允许看一个租户的数据，且文档不断变化，原来的速度结论还成立吗？",
         "nextQuestion": "数据库已更新，为什么缓存有时仍会长期返回旧数据？",
         "nextTitle": "缓存、一致性与失效"
+      },
+      "caseStudy": {
+        "artifact": "论文条件与自有实验的差异卡",
+        "predict": "作者报告更快，能直接证明适合自己的强过滤任务吗？",
+        "placements": [
+          1,
+          3,
+          4
+        ],
+        "transfer": {
+          "question": "方案A快但召回80%，B慢但召回95%，能直接比较速度吗？",
+          "answer": "先设相同目标召回或展示速度—召回曲线，再比较。还要对齐过滤比例、更新量、硬件和预算；不同质量点上的单一速度数字，不能证明同等任务条件下更优。"
+        }
       }
     },
     {
@@ -2853,7 +3097,7 @@
           "figures": []
         }
       ],
-      "revision": "2026-10-02-illustrated-all",
+      "revision": "2026-10-05-follow-along",
       "walkthrough": {
         "title": "删缓存之后旧值又回来了",
         "setup": "A读到数据库v1准备填缓存，B写数据库v2并删除缓存，A随后填入v1。",
@@ -2868,7 +3112,7 @@
         "question": "无界缓存能解决后端慢吗？",
         "answer": "不能，资源会增长且可能积压陈旧内容。还需容量、淘汰、限并发和失败策略，命中率与数据年龄一起看。"
       },
-      "textCharacters": 1689,
+      "textCharacters": 1827,
       "guide": {
         "question": "数据库已更新，为什么缓存有时仍会长期返回旧数据？",
         "terms": [
@@ -2886,6 +3130,19 @@
         "intro": "索引帮助找到数据，缓存通过保留副本减少重复工作。它新增了一个问题：权威数据已更新时，副本什么时候跟上？",
         "nextQuestion": "支付请求超时后重试，为什么可能扣款两次？",
         "nextTitle": "RPC、超时、重试与幂等"
+      },
+      "caseStudy": {
+        "artifact": "旧读回填的缓存时间线",
+        "predict": "数据库更新后删除缓存，旧值为何还会回来？",
+        "placements": [
+          1,
+          2,
+          4
+        ],
+        "transfer": {
+          "question": "TTL为60秒，能保证任何读都只陈旧最多60秒吗？",
+          "answer": "只有在明确的写入时间、失效及回填假设下才能讨论上界。旧读延迟回填可能重新开始TTL；多层缓存和故障也会改变行为。用可控时间线验证自己的契约，而不把TTL当一致性证明。"
+        }
       }
     },
     {
@@ -3024,7 +3281,7 @@
           "figures": []
         }
       ],
-      "revision": "2026-10-02-illustrated-all",
+      "revision": "2026-10-05-follow-along",
       "walkthrough": {
         "title": "重试不应生成新的业务意图",
         "setup": "提交任务后服务已建记录，响应丢失。客户端准备再次提交。",
@@ -3039,7 +3296,7 @@
         "question": "每一层都重试三次有什么风险？",
         "answer": "多层重试可相乘放大底层流量，加剧过载。明确主要重试责任与总预算，统计额外尝试和最终结果，而不只报告成功率。"
       },
-      "textCharacters": 1695,
+      "textCharacters": 1828,
       "guide": {
         "question": "支付请求超时后重试，为什么可能扣款两次？",
         "terms": [
@@ -3057,6 +3314,19 @@
         "intro": "网络超时只说明调用方没有及时拿到结果。现在把重试连接到持久化与业务副作用，避免“再试一次”变成“再扣一次”。",
         "nextQuestion": "主库已写入成功，为什么从副本读不到刚写的内容？",
         "nextTitle": "复制、故障与一致性模型"
+      },
+      "caseStudy": {
+        "artifact": "幂等键、重试预算与尝试日志",
+        "predict": "创建成功但响应丢失，再提交会怎样？",
+        "placements": [
+          1,
+          3,
+          4
+        ],
+        "transfer": {
+          "question": "一次调用最多重试2次，三个调用方层层都重试，最坏有几次底层尝试？",
+          "answer": "若每层含首次共3次且所有尝试都触发下一层，理论上3×3×3=27次。实际会受截止时间和成功短路影响；统一预算并记录层级，避免独立重试放大负载。"
+        }
       }
     },
     {
@@ -3163,7 +3433,7 @@
           "figures": []
         }
       ],
-      "revision": "2026-10-02-illustrated-all",
+      "revision": "2026-10-05-follow-along",
       "walkthrough": {
         "title": "刚保存又读到旧设置",
         "setup": "写主节点得到v2，下一请求被路由到尚未同步的副本，显示v1。",
@@ -3178,7 +3448,7 @@
         "question": "CAP是否表示平时简单三选二？",
         "answer": "不是，它讨论特定定义下网络分区时的限制。正常情况下仍有多维延迟与一致性取舍，不同业务可以采用不同故障策略。"
       },
-      "textCharacters": 1691,
+      "textCharacters": 1811,
       "guide": {
         "question": "主库已写入成功，为什么从副本读不到刚写的内容？",
         "terms": [
@@ -3196,6 +3466,19 @@
         "intro": "单机持久化不能抵御所有故障，于是需要复制。复制带来多个版本，一致性模型负责告诉用户哪些读取顺序可以被承诺。",
         "nextQuestion": "系统选出了新领导者，为什么旧节点仍可能造成外部重复操作？",
         "nextTitle": "共识、领导者与日志"
+      },
+      "caseStudy": {
+        "artifact": "主副本版本与故障读取记录",
+        "predict": "刚保存v2又看到v1，是保存失败吗？",
+        "placements": [
+          1,
+          2,
+          4
+        ],
+        "transfer": {
+          "question": "刷新页面后读到v2，能证明系统线性一致吗？",
+          "answer": "不能。一次副本追上只证明该次读取看见新版本。需要明确所有相关操作的承诺，并构造并发、路由和分区测试；读己之写也比全局线性一致弱，不能混称。"
+        }
       }
     },
     {
@@ -3307,7 +3590,7 @@
           "figures": []
         }
       ],
-      "revision": "2026-10-02-illustrated-all",
+      "revision": "2026-10-05-follow-along",
       "walkthrough": {
         "title": "多数之外的旧领导者",
         "setup": "三节点中旧领导者隔离，另外两者选出新领导者；旧者后来恢复并尝试外部写入。",
@@ -3322,7 +3605,7 @@
         "question": "有共识日志就能保证邮件只发一次吗？",
         "answer": "不能，日志应用与外部邮件之间可能崩溃。需要外部幂等、记录和可检测重复等契约，保证必须说明覆盖哪个效果。"
       },
-      "textCharacters": 1781,
+      "textCharacters": 1917,
       "guide": {
         "question": "系统选出了新领导者，为什么旧节点仍可能造成外部重复操作？",
         "terms": [
@@ -3340,6 +3623,19 @@
         "intro": "上一章提出多副本版本协调，现在问它们如何对日志顺序达成一致。认识任期与多数，避免把“选出领导者”误认为所有副作用都已安全。",
         "nextQuestion": "任务已经执行完成，为什么队列还可能再次交付它？",
         "nextTitle": "队列、租约与任务状态机"
+      },
+      "caseStudy": {
+        "artifact": "任期、日志与外部写入时间线",
+        "predict": "旧领导者恢复后，为什么仍可能造成外部副作用？",
+        "placements": [
+          2,
+          3,
+          4
+        ],
+        "transfer": {
+          "question": "旧者持版本7，新者持8，外部资源只接受不旧于8的写入，会怎样？",
+          "answer": "旧者的7被拒绝，新者的8按资源自身规则接受。关键是资源真正校验版本；仅在集群日志里记任期，或旧者自己发现超时，都不足以限制已发出的外部动作。"
+        }
       }
     },
     {
@@ -3446,7 +3742,7 @@
           "figures": []
         }
       ],
-      "revision": "2026-10-02-illustrated-all",
+      "revision": "2026-10-05-follow-along",
       "walkthrough": {
         "title": "执行后未确认导致重复交付",
         "setup": "消费者已增加外部计数，但在确认队列前终止，任务随后交给新消费者。",
@@ -3461,7 +3757,7 @@
         "question": "租约到期能物理停止旧进程吗？",
         "answer": "不能，它可能暂停后继续运行。需要fencing或适用幂等边界控制影响，不能只相信时间到就没有旧执行者。"
       },
-      "textCharacters": 1801,
+      "textCharacters": 1933,
       "guide": {
         "question": "任务已经执行完成，为什么队列还可能再次交付它？",
         "terms": [
@@ -3479,6 +3775,19 @@
         "intro": "共识关注日志顺序，任务队列关注工作交付。现在把领取、执行和业务完成分开，让崩溃后任务既能重试，又不会悄悄重复结果。",
         "nextQuestion": "怎样证明小型任务系统能恢复，而不是只跑通一次？",
         "nextTitle": "毕业项目：Mini Job Runtime"
+      },
+      "caseStudy": {
+        "artifact": "领取、执行、确认与租约恢复记录",
+        "predict": "队列重投一次，业务效果一定要再做一次吗？",
+        "placements": [
+          1,
+          2,
+          4
+        ],
+        "transfer": {
+          "question": "同一任务被投递3次，稳定键下外部效果只发生1次，记录该怎样写？",
+          "answer": "保留3次交付或尝试和1次业务效果，两者分别计数。后两次命中已有结果而不是新执行；仍检查失败与租约恢复，不能把3次交付改写成从未重复。"
+        }
       }
     },
     {
@@ -3590,7 +3899,7 @@
           "figures": []
         }
       ],
-      "revision": "2026-10-02-illustrated-all",
+      "revision": "2026-10-05-follow-along",
       "walkthrough": {
         "title": "提交、崩溃、恢复的完整验收",
         "setup": "同一任务输入求和[2,3,5]，相同幂等键提交两次，并在执行各阶段终止worker。",
@@ -3605,7 +3914,7 @@
         "question": "能启动系统是否说明恢复成功？",
         "answer": "不能，还需核对确认记录、任务状态、不变量和结果。恢复程序可运行只是第一步，RPO/RTO与数据正确必须通过演练验证。"
       },
-      "textCharacters": 1901,
+      "textCharacters": 2023,
       "guide": {
         "question": "怎样证明小型任务系统能恢复，而不是只跑通一次？",
         "terms": [
@@ -3623,11 +3932,33 @@
         "intro": "这一章把文件、事务、幂等和队列组合成一个小系统。毕业项目不是继续堆概念，而是用一条完整任务路径证明正确性与恢复。",
         "nextQuestion": "如何把这门课的结果复用于自己的项目？",
         "nextTitle": "回到课程总览，复查项目与薄弱环节"
+      },
+      "caseStudy": {
+        "artifact": "小任务系统的完整验收包",
+        "predict": "结果算对10，是否足以证明任务系统完成？",
+        "placements": [
+          2,
+          3,
+          4
+        ],
+        "transfer": {
+          "question": "同键任务两次都返回10，数据库却有两条任务，算通过吗？",
+          "answer": "不算。数值相同只验证计算结果，业务唯一性失败。验收同时核对任务数、状态迁移、尝试记录、恢复行为和性能；每项证据要能对应原先承诺。"
+        }
       }
     }
   ],
   "checkedAt": "2026-10-02",
-  "contentRevision": "2026-10-02-illustrated-all",
-  "teachingCharacters": 44477,
-  "figureCount": 27
+  "contentRevision": "2026-10-05-follow-along",
+  "teachingCharacters": 48007,
+  "figureCount": 27,
+  "learningProject": {
+    "title": "搭建一个能恢复的小任务系统",
+    "prepare": "先准备Python 3、终端和一个可写的实验目录。前几章可先用纸面时间线理解，再运行标明的代码；数据库与网络实验只用本机测试数据。每次保留启动命令、版本和实际输出。",
+    "phases": [
+      "从进程、内存与I/O开始，建立可复现的运行记录。",
+      "用任务表连接索引、事务、恢复、缓存与重试。",
+      "把队列和状态机装成Mini Job Runtime，按故障矩阵验收。"
+    ]
+  }
 }

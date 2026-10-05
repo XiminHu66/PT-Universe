@@ -22,7 +22,7 @@
         "03 / 数据库与搜索",
         "04 / 分布式与可靠性"
       ],
-      "teachingCharacters": 44477,
+      "teachingCharacters": 48007,
       "figureCount": 27
     },
     {
@@ -44,7 +44,7 @@
         "03 / Web 安全",
         "04 / 工程与 Agent"
       ],
-      "teachingCharacters": 21516,
+      "teachingCharacters": 23345,
       "figureCount": 12
     },
     {
@@ -66,7 +66,7 @@
         "03 / 跨设备与可访问性",
         "04 / 验证与迭代"
       ],
-      "teachingCharacters": 19657,
+      "teachingCharacters": 21263,
       "figureCount": 12
     },
     {
@@ -89,7 +89,7 @@
         "04 / 探索与表现",
         "05 / 评估与研究"
       ],
-      "teachingCharacters": 25248,
+      "teachingCharacters": 27540,
       "figureCount": 19
     },
     {
@@ -117,7 +117,7 @@
         "04 / 交易与行为",
         "05 / 组合与研究"
       ],
-      "teachingCharacters": 43049,
+      "teachingCharacters": 45533,
       "figureCount": 22
     },
     {
@@ -130,7 +130,7 @@
       "acceptance": "交付BOM、引脚表、状态机、正常与异常验收、功耗预算和恢复说明；区分模拟与实物证据。",
       "color": "#edb75c",
       "checkedAt": "2026-10-02",
-      "teachingCharacters": 16159,
+      "teachingCharacters": 17762,
       "chapterCount": 10,
       "minutes": 825,
       "file": "hardware.json",
@@ -153,7 +153,7 @@
       "acceptance": "交付问题卡、任务观察、可用作品、漏斗口径、成本情景、沙盒支付和维护计划；未验证事项明确。",
       "color": "#ed8d63",
       "checkedAt": "2026-10-02",
-      "teachingCharacters": 16730,
+      "teachingCharacters": 18043,
       "chapterCount": 10,
       "minutes": 825,
       "file": "product.json",
@@ -176,7 +176,7 @@
       "acceptance": "信号配方可复算，峰值和播放生命周期可检验；区分数字模型、听感与真实设备测量。",
       "color": "#a38fea",
       "checkedAt": "2026-10-02",
-      "teachingCharacters": 17323,
+      "teachingCharacters": 18970,
       "chapterCount": 10,
       "minutes": 825,
       "file": "audio.json",
@@ -199,7 +199,7 @@
       "acceptance": "交付真实作品、联系表、源文件索引、可回退编辑、输出与元数据检查；生成改动和未知条件说明。",
       "color": "#70b9dd",
       "checkedAt": "2026-10-02",
-      "teachingCharacters": 16376,
+      "teachingCharacters": 17570,
       "chapterCount": 10,
       "minutes": 825,
       "file": "photo.json",
@@ -213,13 +213,15 @@
       "figureCount": 13
     }
   ],
-  "contentRevision": "2026-10-02-illustrated-all",
+  "contentRevision": "2026-10-05-follow-along",
   "revisionNote": "九门120章全部补充专属导入、逐节解释、章节图示与读图边界；保持章节ID、节次和学习记录兼容。",
-  "teachingCharacters": 220535,
+  "teachingCharacters": 238033,
   "referenceCount": 96,
   "termExplanations": 301,
   "sectionKeyPoints": 515,
   "interactiveExamples": 10,
   "figureCount": 144,
-  "quantitativeFigures": 29
+  "quantitativeFigures": 29,
+  "guidedCases": 120,
+  "transferExamples": 120
 }
