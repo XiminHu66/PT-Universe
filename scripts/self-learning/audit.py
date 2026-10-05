@@ -6,7 +6,7 @@ read=lambda f:json.loads((root/f).read_text())
 manifest=read('manifest.json');sources=read('sources.json');ids={s['id'] for s in sources}
 assert len(manifest['courses'])==9 and len(sources)==len(ids)
 assert all(s['url'].startswith('https://') and s['checkedAt']=='2026-10-02' for s in sources)
-count=0;total=0;codes=0;figures={}
+count=0;total=0;codes=0;figures={};worked=0
 for meta in manifest['courses']:
  c=read(meta['file']);count+=len(c['lessons']);amount=[]
  for l in c['lessons']:
@@ -27,6 +27,9 @@ for meta in manifest['courses']:
    elif f['kind']=='matrix':assert all(len(row)==len(f['headers']) for row in f['rows'])
    elif f['kind']=='wave':assert f['waveMode'] in {'parameters','harmonics','phase','alias'}
    else:assert len(f['nodes'])>=2 and all(n['label'] and n['detail'] for n in f['nodes'])
+  assert l['revision']==manifest['contentRevision']
+  assert all(s.get('exampleFirst') is True and len(s['paragraphs'][0])>=50 for s in l['sections']),l['id']
+  worked+=len(l['sections'])
   assert len(l['sections'])>=4 and all(len(s['paragraphs'])>=2 for s in l['sections'])
   assert len(l['walkthrough']['steps'])==3 and l['check']['answer']
   cs=l['caseStudy']
@@ -54,6 +57,7 @@ for meta in manifest['courses']:
  assert len(c['learningProject']['phases'])==3 and c['learningProject']['prepare']
  total+=sum(amount)
  print(c['title'],len(amount),'chapters;',min(amount),'-',max(amount),'characters')
+assert worked==manifest['workedSections']==515
 assert count==120 and total==manifest['teachingCharacters']
 assert manifest['guidedCases']==manifest['transferExamples']==count
 assert len(figures)==manifest['figureCount']==144

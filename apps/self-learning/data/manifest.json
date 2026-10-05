@@ -22,8 +22,9 @@
         "03 / 数据库与搜索",
         "04 / 分布式与可靠性"
       ],
-      "teachingCharacters": 48007,
-      "figureCount": 27
+      "teachingCharacters": 47367,
+      "figureCount": 27,
+      "projectTitle": "搭建一个能恢复的小任务系统"
     },
     {
       "id": "security",
@@ -44,8 +45,9 @@
         "03 / Web 安全",
         "04 / 工程与 Agent"
       ],
-      "teachingCharacters": 23345,
-      "figureCount": 12
+      "teachingCharacters": 23195,
+      "figureCount": 12,
+      "projectTitle": "为本机工具做一次有证据的安全评审"
     },
     {
       "id": "hci",
@@ -66,8 +68,9 @@
         "03 / 跨设备与可访问性",
         "04 / 验证与迭代"
       ],
-      "teachingCharacters": 21263,
-      "figureCount": 12
+      "teachingCharacters": 21152,
+      "figureCount": 12,
+      "projectTitle": "把一个工具的关键任务改到容易完成"
     },
     {
       "id": "games",
@@ -89,8 +92,9 @@
         "04 / 探索与表现",
         "05 / 评估与研究"
       ],
-      "teachingCharacters": 27540,
-      "figureCount": 19
+      "teachingCharacters": 27759,
+      "figureCount": 19,
+      "projectTitle": "做一段10—15分钟的卡牌刷宝切片"
     },
     {
       "id": "finance",
@@ -117,8 +121,9 @@
         "04 / 交易与行为",
         "05 / 组合与研究"
       ],
-      "teachingCharacters": 45533,
-      "figureCount": 22
+      "teachingCharacters": 46215,
+      "figureCount": 22,
+      "projectTitle": "写一份可以复算和更新的公司研究"
     },
     {
       "id": "hardware",
@@ -130,7 +135,7 @@
       "acceptance": "交付BOM、引脚表、状态机、正常与异常验收、功耗预算和恢复说明；区分模拟与实物证据。",
       "color": "#edb75c",
       "checkedAt": "2026-10-02",
-      "teachingCharacters": 17762,
+      "teachingCharacters": 17733,
       "chapterCount": 10,
       "minutes": 825,
       "file": "hardware.json",
@@ -141,7 +146,8 @@
         "04 / 功耗与交互",
         "05 / 恢复与原型"
       ],
-      "figureCount": 12
+      "figureCount": 12,
+      "projectTitle": "搭一台能解释状态的桌面环境终端"
     },
     {
       "id": "product",
@@ -153,7 +159,7 @@
       "acceptance": "交付问题卡、任务观察、可用作品、漏斗口径、成本情景、沙盒支付和维护计划；未验证事项明确。",
       "color": "#ed8d63",
       "checkedAt": "2026-10-02",
-      "teachingCharacters": 18043,
+      "teachingCharacters": 18167,
       "chapterCount": 10,
       "minutes": 825,
       "file": "product.json",
@@ -164,7 +170,8 @@
         "04 / 留存与支付",
         "05 / 运营与实验"
       ],
-      "figureCount": 12
+      "figureCount": 12,
+      "projectTitle": "验证一个十张照片生成分享页的小产品"
     },
     {
       "id": "audio",
@@ -176,7 +183,7 @@
       "acceptance": "信号配方可复算，峰值和播放生命周期可检验；区分数字模型、听感与真实设备测量。",
       "color": "#a38fea",
       "checkedAt": "2026-10-02",
-      "teachingCharacters": 18970,
+      "teachingCharacters": 18806,
       "chapterCount": 10,
       "minutes": 825,
       "file": "audio.json",
@@ -187,7 +194,8 @@
         "04 / 空间与听音",
         "05 / 实时与实验"
       ],
-      "figureCount": 15
+      "figureCount": 15,
+      "projectTitle": "搭一个参数可改、结果可核对的声音实验室"
     },
     {
       "id": "photo",
@@ -199,7 +207,7 @@
       "acceptance": "交付真实作品、联系表、源文件索引、可回退编辑、输出与元数据检查；生成改动和未知条件说明。",
       "color": "#70b9dd",
       "checkedAt": "2026-10-02",
-      "teachingCharacters": 17570,
+      "teachingCharacters": 17515,
       "chapterCount": 10,
       "minutes": 825,
       "file": "photo.json",
@@ -210,12 +218,13 @@
         "04 / 编辑与计算",
         "05 / 输出与作品"
       ],
-      "figureCount": 13
+      "figureCount": 13,
+      "projectTitle": "完成一组有意图、有对照的桌面摄影系列"
     }
   ],
-  "contentRevision": "2026-10-05-follow-along",
+  "contentRevision": "2026-10-05-textbook2",
   "revisionNote": "九门120章全部补充专属导入、逐节解释、章节图示与读图边界；保持章节ID、节次和学习记录兼容。",
-  "teachingCharacters": 238033,
+  "teachingCharacters": 237909,
   "referenceCount": 96,
   "termExplanations": 301,
   "sectionKeyPoints": 515,
@@ -223,5 +232,6 @@
   "figureCount": 144,
   "quantitativeFigures": 29,
   "guidedCases": 120,
-  "transferExamples": 120
+  "transferExamples": 120,
+  "workedSections": 515
 }

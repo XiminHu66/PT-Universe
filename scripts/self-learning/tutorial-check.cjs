@@ -47,8 +47,17 @@ let server,browser;
  const visit=async(id,n)=>{await page.goto(base+'apps/self-learning/#/course/'+id+'/'+String(n).padStart(2,'0'));await page.waitForFunction(()=>document.querySelector('.chapter-link.active')?.getAttribute('href')===location.hash);};
  const jump=async(unit)=>{if(!await page.locator('.chapter-toc').evaluate(e=>e.open))await page.locator('.chapter-toc summary').click();await page.locator('[data-unit-jump="'+unit+'"]').click();};
  await page.goto(base+'apps/self-learning/');await page.locator('.course-card').first().waitFor();assert.equal(await page.locator('.course-card').count(),9);
- await page.getByRole('link',{name:'接续第 4 章'}).click();await page.locator('[data-unit="0"]').waitFor();assert.equal(await page.locator('.learning-unit:visible').count(),1);assert.equal(await page.locator('#done').isChecked(),false);assert.match(await page.locator('h1').innerText(),/商业模式/);
- await page.locator('#guess').fill('资本回报要超过资本成本，<b>这是预测</b>');
+ // Old mode preferences must not hide the new continuous edition.
+ await page.evaluate(()=>localStorage.setItem('pt-learning.mode','guided'));
+ await page.getByRole('link',{name:'接续第 4 章'}).click();await page.locator('[data-unit="0"]').waitFor();assert.equal(await page.locator('.learning-unit:visible').count(),11);
+ assert.equal(await page.locator('.reader .chapter-toc').count(),1);assert.equal(await page.locator('.chapter-toc').evaluate(e=>e.open),false);assert.equal(await page.locator('.stage-nav button').count(),4);
+ assert.equal(await page.locator('.edition').innerText(),'教材阅读版 · 2026.10.05');
+ await page.locator('[data-stage-jump="1"]').click();assert.equal(await page.evaluate(()=>document.activeElement.id),'teaching-0');
+ await page.locator('.section-example').first().waitFor();await page.reload();await page.locator('.section-example').first().waitFor();assert.ok(await page.evaluate(()=>scrollY<5));assert.equal(await page.locator('.learning-unit:visible').count(),11);
+ await page.locator('#resume-reading').click();assert.equal(await page.evaluate(()=>document.activeElement.id),'teaching-0');
+ await page.mouse.wheel(0,1000);await page.waitForFunction(()=>JSON.parse(localStorage.getItem('pt-learning.v1')).lessons['finance-04'].unit>1);
+ await page.locator('button[data-mode="guided"]').click();await jump(0);assert.equal(await page.locator('.learning-unit:visible').count(),1);assert.equal(await page.locator('#done').isChecked(),false);assert.match(await page.locator('h1').innerText(),/商业模式/);
+ await page.locator('.prediction summary').click();await page.locator('#guess').fill('资本回报要超过资本成本，<b>这是预测</b>');
  await page.locator('.case-start [data-case-step="1"]').click();
  assert.equal(await page.locator('[data-unit="4"]').isVisible(),true);
  assert.equal(await page.evaluate(()=>document.activeElement.id),'case-step-1');
@@ -73,6 +82,9 @@ let server,browser;
  assert.equal(await page.locator('.case-start').isVisible(),true,l.id+' case before concepts');
  assert.ok((await page.locator('.case-start').innerText()).includes(l.walkthrough.setup));
  assert.equal(await page.locator('.case-path button').count(),3);
+ assert.equal(await page.locator('.section-example').count(),l.sections.length);
+ for(let i=0;i<l.sections.length;i++){const s=l.sections[i],section=page.locator('[data-unit="'+(i+1)+'"]');assert.equal(await section.locator('.section-example p').innerText(),s.paragraphs[0]);assert.ok(await section.evaluate(el=>Boolean(el.querySelector('.section-example').compareDocumentPosition(el.querySelector('.explanation-heading'))&Node.DOCUMENT_POSITION_FOLLOWING)),l.id+' example before explanation');}
+
  assert.equal(await page.locator('.case-checkpoint').count(),3);
  for(let j=0;j<3;j++)assert.equal(await page.locator('#case-step-'+(j+1)).evaluate(el=>Number(el.closest('[data-unit]').dataset.unit)),l.caseStudy.placements[j]);
  assert.equal(await page.locator('.chapter-toc button').count(),l.sections.length+5);for(let unit=0;unit<l.sections.length+5;unit++){assert.equal(await page.locator('.learning-unit:visible').count(),1,l.id+' unit '+unit);assert.equal(await page.locator('[data-unit="'+unit+'"]').isVisible(),true);if(unit>0)assert.equal(await page.evaluate(()=>document.activeElement.id),await page.locator('[data-unit="'+unit+'"] h2').first().getAttribute('id'));if(unit>0&&unit<=l.sections.length)assert.equal(await page.locator('.learning-unit:visible .case-checkpoint').count(),l.caseStudy.placements.filter(n=>n===unit).length,l.id+' in-place case steps');
@@ -122,7 +134,9 @@ let server,browser;
  await page.goto(base+'apps/self-learning/#/references');await page.locator('#ref-results .ref').first().waitFor();assert.equal(await page.locator('#ref-results .ref').count(),sources.length);await page.locator('#ref-course').selectOption('systems');await page.locator('#ref-search').fill('Quake');await page.waitForFunction(()=>document.querySelectorAll('#ref-results .ref').length===1);
  for(const width of [360,768,1440]){await page.setViewportSize({width,height:900});for(const route of ['#/','#/course/finance/04','#/course/systems/01','#/course/hardware/07','#/course/product/05','#/course/audio/02','#/course/photo/02','#/references']){await page.goto(base+'apps/self-learning/'+route);await page.waitForFunction(()=>!document.querySelector('.loading'));assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),'overflow '+width+' '+route);}}
  await page.setViewportSize({width:1440,height:1000});await visit('finance',4);await jump(2);await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:output+'/self-learning-tutorial-desktop.png',fullPage:true});
- await page.locator('button[data-mode="full"]').click();assert.equal(await page.locator('.learning-unit:visible').count(),11);await page.locator('button[data-mode="guided"]').click();
+ await page.locator('button[data-mode="full"]').click();assert.equal(await page.locator('.learning-unit:visible').count(),11);
+ await page.locator('[data-stage-jump="1"]').click();await page.screenshot({path:output+'/self-learning-textbook-example.png',fullPage:false});
+ await page.locator('button[data-mode="guided"]').click();
  await jump(0);await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:output+'/self-learning-case-start.png',fullPage:true});
  await page.locator('.case-start [data-case-step="1"]').click();await page.screenshot({path:output+'/self-learning-case-step.png',fullPage:true});
  await jump(7);await page.locator('.transfer-example summary').click();await page.screenshot({path:output+'/self-learning-transfer-example.png',fullPage:true});
@@ -131,5 +145,5 @@ let server,browser;
  await page.locator('#show-terms').click();await page.locator('#close-terms').click();assert.equal(await page.evaluate(()=>document.activeElement.id),'show-terms');await page.locator('#theme').click();assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),'dark');await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:output+'/self-learning-tutorial-dark.png',fullPage:true});await page.locator('#theme').click();
  await page.evaluate(()=>{window.print=()=>{window.printUnits=document.querySelectorAll('.learning-unit:not([hidden])').length;window.printAnswers=[...document.querySelectorAll('.learning-unit details')].every(d=>d.open);};});await page.locator('#print').click();assert.equal(await page.evaluate(()=>window.printUnits),11);assert.equal(await page.evaluate(()=>window.printAnswers),true);assert.equal(await page.locator('.learning-unit:visible').count(),1);
  await page.setViewportSize({width:1440,height:1000});await page.goto(base+'#/category/learning');await page.locator('#favoriteGrid [data-launch="self-learning"]').waitFor();await page.locator('#favoriteGrid [data-launch="self-learning"]').click();await page.waitForURL('**/apps/self-learning/');await page.locator('.course-card').first().waitFor();assert.equal(await page.locator('.course-card').count(),9);
- assert.deepEqual(errors,[]);console.log('PASS: 120 guided learning flows and case threads, 120 transfer examples, 301 terms, ten interactive models and audio lifecycle, notes/self-check/reading position, old/new imports, responsive layouts, keyboard/modal, print, PT integration.');
+ assert.deepEqual(errors,[]);console.log('PASS: 515 example-first lectures, default continuous edition and reading recovery, 120 guided learning flows and case threads, 120 transfer examples, 301 terms, ten interactive models and audio lifecycle, notes/self-check/reading position, old/new imports, responsive layouts, keyboard/modal, print, PT integration.');
 })().then(async()=>{await browser?.close();server?.close();}).catch(async e=>{console.error(e);await browser?.close();server?.close();process.exitCode=1;});

@@ -54,3 +54,52 @@ html[data-theme=light]{--figure-blue:#275bab;--figure-orange:#ad5200;--figure-gr
 .lab-observation{border-left:3px solid var(--accent);padding:4px 0 4px 18px;margin:22px 0}.lab-observation h3{font-size:16px}.lab-observation p,.lab-before{font-size:15px}
 @media(max-width:760px){.case-start{padding:16px}.case-start h3{font-size:18px}.case-deliverable{grid-template-columns:1fr;gap:3px}.case-path{grid-template-columns:1fr}.case-path button{display:grid;grid-template-columns:60px minmax(0,1fr);gap:8px;min-height:44px}.case-path small{margin-top:0;font-size:13px}.case-checkpoint{padding:16px 12px;gap:9px;grid-template-columns:26px minmax(0,1fr)}.checkpoint-number{width:25px;height:25px;line-height:25px}.transfer-example{padding:16px}}
 @media print{.case-start,.case-checkpoint,.transfer-example,.course-plan{background:white;color:black;border-color:#bbb;break-inside:avoid}.case-path,.case-recall button,.worked-case .text-button{display:none!important}.case-recall{display:block}.checkpoint-number{background:#eee;color:black}.short-answer{background:white;color:black}}
+
+/* Textbook edition: a quiet two-column page, with examples inside the lecture. */
+.lesson-workspace{grid-template-columns:200px minmax(0,870px);gap:40px}
+.tutorial-reader{grid-row:auto;grid-column:auto;padding:36px 44px}
+.tutorial-reader .lesson-copy{max-width:none;font-size:17px;line-height:1.95}
+.tutorial-reader header h1{font-size:34px;margin-top:12px}
+.edition{font-size:11px;color:var(--accent);margin-top:16px;letter-spacing:.06em}
+.reader-controls{display:block;padding:10px 0 0}
+.control-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.stage-nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-top:10px}
+.stage-nav button{border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;color:var(--muted);font-size:12px;padding:10px 4px;min-width:0}
+.stage-nav button[aria-current=step]{border-color:var(--accent);color:var(--accent);font-weight:700}
+.tutorial-reader .learning-unit h2,.case-checkpoint h3{scroll-margin-top:125px}
+.tutorial-reader .chapter-toc{border:1px solid var(--line);padding:12px 16px;margin:12px 0 18px;background:var(--bg)}
+.chapter-toc summary{display:flex;justify-content:space-between;list-style:none;font-size:13px}
+.chapter-toc summary::after{content:'↓';color:var(--accent)}
+.chapter-toc[open] summary::after{content:'↑'}
+.chapter-toc nav{grid-template-columns:1fr 1fr;margin-top:12px}
+.unit-status{align-items:center;margin:12px 0 0;min-height:26px}
+.unit-status button{font-size:12px}
+.tutorial-reader[data-mode=full] .unit-nav{display:none}
+.tutorial-reader[data-mode=full] .learning-unit{padding-top:38px;margin-top:38px}
+.tutorial-reader[data-mode=full] .teaching-section{padding-top:38px;margin-top:38px;border-top:1px solid var(--line)}
+.section-example{border-left:3px solid var(--accent);padding:6px 0 8px 20px;margin:20px 0 24px;background:transparent}
+.section-example h3{font-size:12px;color:var(--accent);font-weight:700;margin:0 0 10px;letter-spacing:.04em}
+.section-example p{margin:0!important;font-size:18px;line-height:1.95}
+.explanation-heading{font-size:14px;color:var(--muted);margin:24px 0 12px}
+.case-start{border:0!important;background:var(--bg)!important;border-radius:8px;padding:22px!important;margin:20px 0!important}
+.case-start h3{font-size:20px!important;margin-top:6px}
+.case-start .unit-eyebrow{display:none}
+.case-deliverable{border:0!important;padding:0!important;background:transparent!important;margin:14px 0!important}
+.prediction{background:var(--paper);margin:18px 0 0}
+.case-path{display:block!important;border-top:1px solid var(--line);padding-top:8px;margin-top:18px!important}
+.case-path button{display:block!important;width:100%;text-align:left;background:transparent!important;border:0!important;border-bottom:1px solid var(--line)!important;border-radius:0!important;padding:13px 0!important}
+.case-path button:last-child{border-bottom:0!important}
+.case-path button span{display:block;font-size:13px!important;font-weight:700;color:var(--accent)}
+.case-path button small{display:block;font-size:13px!important;line-height:1.8;margin-top:6px;color:var(--text)!important}
+.case-checkpoint{background:transparent!important;border:0!important;border-top:1px dashed var(--line)!important;padding:18px 0!important;margin:24px 0!important}
+.checkpoint-link{font-size:12px!important}
+.case-consolidation{font-size:15px}
+.transfer-example{background:transparent!important;padding:0!important;border:0!important}
+.transfer-example h3{font-size:19px;margin:18px 0}
+.course-delivery{border-top:1px solid var(--line);padding-top:14px;margin:4px 0 16px}
+.course-delivery small,.course-delivery strong{display:block}
+.course-delivery strong{font-size:14px;line-height:1.7;margin-top:5px;font-weight:600}
+@media(max-width:1200px){.lesson-workspace{grid-template-columns:185px minmax(0,1fr);gap:24px}.tutorial-reader{padding:28px 30px}}
+@media(max-width:760px){.tutorial-reader{padding:22px 18px}.tutorial-reader header h1{font-size:27px}.tutorial-reader .lesson-copy{font-size:16px;line-height:1.9}.section-example{padding-left:14px}.section-example p{font-size:17px;line-height:1.9}.stage-nav button{font-size:11px;padding:9px 2px}.case-start{padding:16px!important}.chapter-toc nav{grid-template-columns:1fr}.unit-status>button{display:inline-flex}.tutorial-reader[data-mode=full] .learning-unit{padding-top:30px;margin-top:30px}}
+@media print{.chapter-toc{display:none!important}.tutorial-reader{padding:0}.section-example{border-left-color:#333}.section-example h3{color:#333}}
+
