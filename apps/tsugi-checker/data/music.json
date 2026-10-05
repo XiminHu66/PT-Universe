@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-04T18:32:11Z",
+  "generated_at": "2026-10-05T21:50:55Z",
   "chart_date": "2026/09/30",
   "weekly_chart": [
     {
@@ -851,18 +851,18 @@
       "apple_music_url": "https://music.apple.com/jp/album/shine/1591361929?i=1591361931&uo=4"
     },
     {
-      "id": "a01ac829eafebf8a",
+      "id": "e1fd51a9e6ef6548",
       "rank": 42,
       "rank_change": "NEW",
       "is_new": true,
       "title": "DEMON'S SHOT",
-      "artist": "Aiobahn +81",
+      "artist": "Aiobahn",
       "weeks": 1,
       "peak": 42,
       "streams": "986,038",
       "streams_change": "",
-      "url": "https://www.youtube.com/results?search_query=Aiobahn+%2B81+-+DEMON%27S+SHOT",
-      "youtube_music_url": "https://music.youtube.com/search?q=DEMON%27S+SHOT+Aiobahn+%2B81",
+      "url": "https://www.youtube.com/results?search_query=Aiobahn+-+DEMON%27S+SHOT",
+      "youtube_music_url": "https://music.youtube.com/search?q=DEMON%27S+SHOT+Aiobahn",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
       "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/20/a5/ab/20a5ab13-7ae3-4e34-aa40-5eb6e9c421c5/ANTCD-A0000021126.jpg/300x300bb.jpg",
@@ -903,8 +903,9 @@
       "youtube_music_url": "https://music.youtube.com/search?q=%E6%9C%BA%E3%81%95%E3%81%99%E3%82%8B+Haruka+Aoki",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": false
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/a8/1b/6d/a81b6d69-21ea-6bfa-c56e-4473246db5fe/4550758740391_cover.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/%E6%9C%BA%E3%81%95%E3%81%99%E3%82%8B/6792293464?i=6792293588&uo=4"
     },
     {
       "id": "38dc4f16b9ecb5a0",
@@ -939,8 +940,9 @@
       "youtube_music_url": "https://music.youtube.com/search?q=%E5%85%B1%E7%8A%AF+Mrs.+GREEN+APPLE",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": false
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/d9/cc/da/d9ccdae5-6251-b671-dbf3-5b0508dc52ad/26UM1IM13923.rgb.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/%E5%85%B1%E7%8A%AF/6808172946?i=6808172970&uo=4"
     },
     {
       "id": "e073c4954e24b23e",
@@ -993,8 +995,9 @@
       "youtube_music_url": "https://music.youtube.com/search?q=Merry+Go+Round+BTS",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": false
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/86/bc/bc/86bcbc3b-61a3-1222-2b68-ad92e28574a7/26UMGIM32860.rgb.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/merry-go-round/1886377903?i=1886377911&uo=4"
     },
     {
       "id": "e7180a1bdb8c836d",
@@ -1011,8 +1014,9 @@
       "youtube_music_url": "https://music.youtube.com/search?q=SPIN+Kroi",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": false
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/4b/bf/52/4bbf52a7-8cfc-9174-b85d-efc473c6c80a/28688.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/spin/6810484114?i=6810484116&uo=4"
     },
     {
       "id": "2d85d6b7b92d7a75",
@@ -1030,7 +1034,7 @@
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
       "artwork": "",
-      "artwork_checked": false
+      "artwork_checked": true
     }
   ],
   "sources": {
@@ -1038,13 +1042,13 @@
       "label": "Billboard JAPAN Hot 100",
       "ok": true,
       "count": 30,
-      "checked_at": "2026-10-04T18:32:11Z"
+      "checked_at": "2026-10-05T21:50:55Z"
     },
     "apple_music_weekly_new": {
       "label": "Apple Music Japan · 本周新曲",
       "ok": true,
       "count": 5,
-      "checked_at": "2026-10-04T18:32:11Z",
+      "checked_at": "2026-10-05T21:50:55Z",
       "fallback": "Billboard JAPAN Hot 100 本周新进榜",
       "error": "RuntimeError: Apple Music Best New Songs heading not found"
     },
@@ -1052,8 +1056,8 @@
       "label": "YouTube Japan · 近期热门榜",
       "ok": true,
       "count": 30,
-      "cover_count": 23,
-      "checked_at": "2026-10-04T18:32:11Z",
+      "cover_count": 27,
+      "checked_at": "2026-10-05T21:50:55Z",
       "chart_date": "2026/10/01",
       "endpoint": "https://kworb.net/youtube/insights/jp.html"
     }
