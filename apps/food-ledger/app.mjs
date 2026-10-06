@@ -1,8 +1,8 @@
 import {empty,normalize,merge,safeUrl,liveRestaurants,dishesFor,navigationUrl} from './model.mjs';
-import {config,register,parseCode,useConfig,fetchCloud,putCloud} from './sync.mjs';
+import {config,register,parseCode,useConfig,fetchCloud,putCloud} from './sync.mjs?v=20261005-3';
 const KEY='food-ledger.v1',$=s=>document.querySelector(s),esc=v=>String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dishDrafts=new Map();let dishComposing=false;
-let state=empty(),selected='',query='',filter='all',editingRestaurant='',editingDish='',toastTimer,syncTimer,syncBusy=false,syncAgain=false,lastSyncMessage='',storageBlocked=false;
+let state=empty(),selected='',query='',filter='all',editingRestaurant='',editingDish='',toastTimer,syncTimer,syncBusy=false,syncAgain=false,lastSyncMessage='',storageBlocked=false,syncTask=Promise.resolve(false);
 try{const raw=localStorage.getItem(KEY);if(raw)state=normalize(JSON.parse(raw))}catch{storageBlocked=true;$('#save-state').textContent='记录无法读取，请先导出或检查浏览器存储';$('#save-state').classList.add('bad')}
 const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
 const current=()=>state.restaurants.find(r=>r.id===selected&&!r.deleted);
@@ -43,19 +43,24 @@ document.addEventListener('compositionend',e=>{if(e.target.id==='quick-dish-name
 document.addEventListener('keydown',e=>{if(['search','quick-dish-name'].includes(e.target.id)&&e.key==='Enter'&&(e.isComposing||e.keyCode===229))e.preventDefault()});
 document.addEventListener('submit',e=>{if(e.target.id!=='dish-quick')return;e.preventDefault();if(dishComposing)return;const restaurant=current(),name=e.target.elements.name.value.trim();if(!restaurant||restaurant.id!==e.target.dataset.restaurant||!name)return;const rank=e.submitter?.value==='black'?'black':'red',d={id:crypto.randomUUID(),restaurantId:restaurant.id,name,rank,note:'',date:today(),updatedAt:stamp(),deleted:false},next=structuredClone(state),draft=dishDrafts.get(restaurant.id);next.dishes.push(d);dishDrafts.delete(restaurant.id);if(filter!=='all'&&filter!==rank)filter='all';if(change(next)){$('#quick-dish-name')?.focus({preventScroll:true});toast('已加入'+(rank==='red'?'红榜':'黑榜'))}else dishDrafts.set(restaurant.id,draft||name)});
 $('#search').oninput=e=>{query=e.target.value;renderList()};
-$('#settings-open').onclick=()=>{const cfg=config();$('#sync-code').value=cfg?cfg.id+'.'+cfg.token:'';$('#sync-status').textContent=lastSyncMessage||'保存第一条记录时会自动建立加密同步。';$('#settings-dialog').showModal()};
-async function synchronize(override=null){
- if(syncBusy){syncAgain=true;return}if(storageBlocked)return;syncBusy=true;saveMessage('记录已保存在此设备 · 正在同步');
+function updatePairCode(){const cfg=config();$('#sync-current-code').value=cfg?cfg.id+'.'+cfg.token:''}
+$('#settings-open').onclick=()=>{updatePairCode();$('#sync-status').textContent=lastSyncMessage||'保存第一条记录时会自动建立加密同步。';$('#settings-dialog').showModal()};
+function synchronize(override=null){
+ if(syncBusy){if(override)return syncTask.then(()=>synchronize(override));syncAgain=true;return syncTask}if(storageBlocked)return Promise.resolve(false);syncBusy=true;syncTask=performSync(override);return syncTask;
+}
+async function performSync(override){
+ saveMessage('记录已保存在此设备 · 正在同步');
  try{const cfg=override||config()||await register();for(let attempt=0;attempt<4;attempt++){
   const cloud=await fetchCloud(cfg),combined=merge(state,cloud.state||empty());persist(combined);render();
   if(cloud.state&&JSON.stringify(combined)===JSON.stringify(cloud.state)){if(override)useConfig(cfg);saveMessage('已加密同步 · 手机与电脑可连接同一配对码');break}
   try{await putCloud(combined,cloud.revision,cfg);if(override)useConfig(cfg);saveMessage('已加密同步 · 手机与电脑可连接同一配对码');break}catch(e){if(e.status!==409||attempt===3)throw e}
- }const cfgNow=config();if($('#settings-dialog').open&&cfgNow)$('#sync-code').value=cfgNow.id+'.'+cfgNow.token;
- }catch(e){saveMessage('已保存在此设备 · 同步未完成：'+e.message,true)}finally{syncBusy=false;if(syncAgain){syncAgain=false;scheduleSync()}}
+ }updatePairCode();return true;
+ }catch(e){saveMessage('已保存在此设备 · 同步未完成：'+e.message,true);updatePairCode();return false}finally{syncBusy=false;if(syncAgain){syncAgain=false;scheduleSync()}}
 }
-$('#sync-now').onclick=()=>synchronize();$('#sync-connect').onclick=async()=>{try{const cfg=parseCode($('#sync-code').value);if(syncBusy)throw Error('同步正在进行，请稍后再连接');await synchronize(cfg)}catch(e){$('#sync-status').textContent=e.message}};
-$('#sync-copy').onclick=async()=>{try{if(!config())await synchronize();const cfg=config();if(!cfg)throw Error('未能建立同步，请联网后重试');$('#sync-code').value=cfg.id+'.'+cfg.token;await navigator.clipboard.writeText($('#sync-code').value);toast('配对码已复制')}catch(e){toast(e.message||'请手动复制配对码')}};
+$('#sync-now').onclick=()=>synchronize();$('#sync-connect').onclick=async()=>{const button=$('#sync-connect');try{const cfg=parseCode($('#sync-code').value);button.disabled=true;$('#pair-status').textContent=syncBusy?'等待当前同步完成，再连接另一台设备…':'正在连接另一台设备…';const ok=await synchronize(cfg);if(!ok)throw Error(lastSyncMessage);$('#pair-status').textContent='已连接，菜馆和菜品记录已合并。两台设备的「本设备配对码」现在相同。';toast('已连接另一台设备')}catch(e){$('#pair-status').textContent='连接未完成：'+e.message}finally{button.disabled=false}};
+$('#sync-copy').onclick=async()=>{try{if(!await synchronize())throw Error(lastSyncMessage);const cfg=config();if(!cfg)throw Error('未能建立同步，请联网后重试');updatePairCode();try{await navigator.clipboard.writeText($('#sync-current-code').value);toast('本设备配对码已复制')}catch{$('#sync-current-code').focus();$('#sync-current-code').select();toast('请长按或按 Ctrl/Cmd+C 复制已选中的配对码')}}catch(e){toast(e.message||'请联网后重试')}};
 $('#export').onclick=()=>{const raw=storageBlocked?localStorage.getItem(KEY):JSON.stringify(state,null,2);const blob=new Blob([raw||''],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='food-ledger-'+today()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);toast('完整备份已导出')};
 $('#import-open').onclick=()=>$('#import-file').click();$('#import-file').onchange=async e=>{try{const file=e.target.files[0];if(!file)return;if(file.size>8_000_000)throw Error('备份文件超过 8 MB');const imported=normalize(JSON.parse(await file.text()));if(change(merge(state,imported)))toast('备份已合并')}catch(e){toast('导入失败：'+e.message)}finally{e.target.value=''}};
-addEventListener('hashchange',route);addEventListener('online',()=>{if(state.restaurants.length||config())synchronize()});addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&config())synchronize()});addEventListener('storage',e=>{if(e.key===KEY){try{state=merge(state,normalize(JSON.parse(e.newValue||JSON.stringify(empty()))));render();scheduleSync()}catch{toast('另一窗口的记录无法读取，请先备份')}}});
-setInterval(()=>{if(config()&&document.visibilityState==='visible')synchronize()},60000);route();if(config())synchronize();
+const hasSyncData=()=>config()||state.restaurants.length;
+addEventListener('hashchange',route);addEventListener('online',()=>{if(hasSyncData())synchronize()});addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&hasSyncData())synchronize()});addEventListener('storage',e=>{if(e.key===KEY){try{state=merge(state,normalize(JSON.parse(e.newValue||JSON.stringify(empty()))));render();scheduleSync()}catch{toast('另一窗口的记录无法读取，请先备份')}}});
+setInterval(()=>{if(hasSyncData()&&document.visibilityState==='visible')synchronize()},60000);route();if(hasSyncData())synchronize();
