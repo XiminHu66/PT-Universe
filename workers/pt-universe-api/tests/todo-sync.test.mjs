@@ -30,5 +30,11 @@ assert.equal((await call('PUT','food-ledger',{ciphertext:'food',baseRevision:0})
 assert.equal((await call('PUT','food-ledger',{ciphertext:'stale',baseRevision:0})).status,409);
 const foodRace=await Promise.all([call('PUT','food-ledger',{ciphertext:'food-a',baseRevision:1}),call('PUT','food-ledger',{ciphertext:'food-b',baseRevision:1})]);assert.deepEqual(foodRace.map(r=>r.status).sort(),[200,409]);
 assert.equal((await (await call('GET','food-ledger')).json()).revision,2);assert.equal((await (await call('GET','all')).json()).ciphertext,'preferences');
+// Research documents use the same isolated CAS protocol.
+assert.equal((await call('GET','research-workbench',null,'wrong')).status,401);
+assert.equal((await call('PUT','research-workbench',{ciphertext:'research',baseRevision:0})).status,200);
+assert.equal((await call('PUT','research-workbench',{ciphertext:'stale',baseRevision:0})).status,409);
+const researchRace=await Promise.all([call('PUT','research-workbench',{ciphertext:'research-a',baseRevision:1}),call('PUT','research-workbench',{ciphertext:'research-b',baseRevision:1})]);assert.deepEqual(researchRace.map(r=>r.status).sort(),[200,409]);
+assert.equal((await (await call('GET','food-ledger')).json()).revision,2);
 console.log('Todo / Idea Pad D1 sync passed: authorization, isolation, first-write races, stale revisions and atomic concurrent writes');
 }finally{await mf.dispose()}

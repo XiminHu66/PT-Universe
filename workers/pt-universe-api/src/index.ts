@@ -3,6 +3,7 @@ import { investmentRoute } from './investment';
 import { decisionRoute, decisionTick } from './decision';
 import { launch, type Browser, type Page } from '@cloudflare/playwright';
 import { researchRoute } from './research';
+import { workbenchRoute } from './workbench';
 import { mediaRoute } from './media';
 
 type RefreshScope='all'|'sites'|'music'|'games';
@@ -128,7 +129,7 @@ async function syncRoute(request:Request,env:Env,url:URL){
   if(request.method==='PUT'){
     const body=await request.json<{ciphertext?:string;baseRevision?:number}>();
     if(!body.ciphertext||body.ciphertext.length>2_000_000)return error(request,'同步数据为空或超过 2 MB');
-    if(scope==='todo-dashboard'||scope==='idea-notes'||scope==='food-ledger'){
+    if(scope==='todo-dashboard'||scope==='idea-notes'||scope==='food-ledger'||scope==='research-workbench'){
       // Atomic compare-and-swap protects concurrently edited project and note documents.
       const base=body.baseRevision;
       if(typeof base!=='number'||!Number.isSafeInteger(base)||base<0)return error(request,'同步版本无效');
@@ -482,6 +483,7 @@ export default {
       const decision=await decisionRoute(request,env,authenticate);if(decision)return reply(request,decision.body,decision.status||200);
       const media=await mediaRoute(request,env);if(media)return media instanceof Response?media:reply(request,media);
       const research=await researchRoute(request);if(research)return reply(request,research);
+      const workbench=await workbenchRoute(request);if(workbench)return reply(request,workbench);
       const sync=await syncRoute(request,env,url);if(sync)return sync;
       const proxy=await proxyRoute(request,url);if(proxy)return proxy;
       const data=url.pathname.match(/^\/api\/data\/([^/]+\.json)$/);
