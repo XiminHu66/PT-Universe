@@ -24,6 +24,7 @@
   };
   window.nexusSelectLearningTarget=async(courseId,number)=>{if(focusRunning){switchNexusView('focus');nexusNotify('当前专注仍在进行，请先完成或重置这一轮。');return}await choose(courseId,number);if(window.nexusLearningTask?.courseId!==courseId||window.nexusLearningTask?.number!==Number(number))return;switchNexusView('focus');setFocusMinutes(25);document.getElementById('focusToggle').click()};
   addEventListener('message',event=>{const frame=document.getElementById('learningFrame');if(event.origin!==location.origin||event.source!==frame.contentWindow||event.data?.type!=='pt-learning-focus')return;const d=event.data;if(/^[a-z]+$/.test(d.courseId)&&Number.isInteger(d.number)&&d.number>0&&d.number<=100)window.nexusSelectLearningTarget(d.courseId,d.number)});
+  addEventListener('nexus-focus-complete',updateStatus);
   addEventListener('nexus-view-change',event=>{if(event.detail.view==='focus')updateStatus()});
   document.getElementById('learningFocusBadge').onclick=()=>switchNexusView('focus');
   setInterval(()=>{const badge=document.getElementById('learningFocusBadge');badge.hidden=!focusRunning;badge.textContent=`专注中 · ${Math.floor(focusSecs/60)}:${String(focusSecs%60).padStart(2,'0')} · 返回计时`},1000);
