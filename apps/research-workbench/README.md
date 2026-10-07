@@ -87,8 +87,7 @@ cached results. Failed requests require manual retries, with no paid fallback.
 `POST /api/workbench/ai/:sync_id` uses the Worker secret `GEMINI_API_KEY` and the
 fixed previously measured model `gemini-3.5-flash-lite`. `GET` checks configuration
 without generating. Sync authentication alone does not grant quota access:
-`migrations/0011_research_ai.sql` performs a **one-time** enrollment of existing
-saved PT workspaces. Users with a new device must connect the existing pairing
+A short-lived deployment credential enables fixed Worker initialization for a **one-time** enrollment of existing saved PT workspaces. This uses the existing D1 binding and does not require D1 management permissions on the deploy token. `migrations/0011_research_ai.sql` is the equivalent manual migration. Users with a new device must connect the existing pairing
 code; public registration cannot enroll. To authorize another owned sync account,
 an administrator can explicitly insert its ID into `research_ai_accounts`.
 
