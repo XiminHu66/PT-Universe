@@ -7,6 +7,14 @@ assert.throws(()=>validateMeal({recipeIds:['invented'],reason:'x',steps:[]},cand
 assert.throws(()=>validateMeal({recipeIds:['a','a'],reason:'x',steps:[]},candidates));
 assert.equal(validateMeal({recipeIds:['a'],reason:'x',steps:['cook']},candidates).recipeIds[0],'a');
 assert.deepEqual(mapsSources({candidates:[{groundingMetadata:{groundingChunks:[{maps:{title:'bad',uri:'javascript:alert(1)'}},{maps:{title:'good',uri:'https://maps.google.com/x'}}]}}]}).map(s=>s.name),['good']);
+assert.deepEqual(mapsSources({candidates:[{groundingMetadata:{groundingChunks:[
+ {maps:{title:'Review of Juanita Beach Park - Google Maps',uri:'https://maps.google.com/review/1',placeId:'park'}},
+ {maps:{title:'Juanita Beach Park - Google Maps',uri:'https://maps.google.com/maps?cid=123',placeId:'park'}},
+ {maps:{title:'Juanita Beach Park duplicate',uri:'https://maps.google.com/another',placeId:'park'}},
+ {maps:{title:'Cafe',uri:'https://maps.google.com/maps?cid=456'}},
+ {maps:{title:'Cafe duplicate',uri:'https://maps.google.com/maps?cid=456&hl=en'}},
+ {maps:{title:'Review of an unverified place',uri:'https://maps.google.com/review/2'}}
+]}}]}).map(s=>s.name),['Juanita Beach Park - Google Maps','Cafe']);
 const request=body=>new Request('https://worker/api/life/11111111-1111-4111-8111-111111111111/meal',{method:'POST',body:JSON.stringify(body)});
 assert.equal((await lifeAiRoute(request({candidates}),{},async()=>false)).status,401);
 assert.equal((await lifeAiRoute(request({candidates}),{},async()=>true)).status,503);
