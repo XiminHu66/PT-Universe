@@ -8,7 +8,7 @@ const fields = ['question','hypothesis','problem','idea','contribution','archite
 const endpoint = 'https://generativelanguage.googleapis.com/v1beta/';
 const response = (body:unknown, status=200) => ({body,status});
 async function hash(s:string){return [...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(x=>x.toString(16).padStart(2,'0')).join('')}
-async function authorized(request:Request,env:ProbeEnv){
+export async function authorized(request:Request,env:ProbeEnv){
   try {
     const auth=JSON.parse(env.RESEARCH_PROBE_AUTH||'null');
     const bearer=request.headers.get('authorization')?.replace(/^Bearer\s+/i,'')||'';
@@ -17,7 +17,7 @@ async function authorized(request:Request,env:ProbeEnv){
     return diff===0?auth.token:null;
   }catch{return null}
 }
-async function upstream(env:ProbeEnv,path:string,body?:unknown){
+export async function upstream(env:ProbeEnv,path:string,body?:unknown){
   const started=Date.now();
   const key=env.GEMINI_API_KEY!.trim();
   const redact=(s:string)=>s.replaceAll(env.GEMINI_API_KEY!,'[REDACTED]').replaceAll(key,'[REDACTED]').replace(/AQ\.[A-Za-z0-9_.-]{10,}|AIza[A-Za-z0-9_-]{20,}/g,'[REDACTED]').slice(0,240);
