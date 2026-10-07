@@ -42,3 +42,13 @@
 将 `index.html` 放到 GitHub Pages 仓库根目录即可。无需 npm、构建步骤或后端。
 
 如果替换旧版本，只需要覆盖仓库中的 `index.html`。
+
+## Gemini 配餐与地图试验（2026-10-07）
+
+- Life Desk / Daily Nexus 今晚菜单新增 AI 配餐：先用完整菜谱库筛选时间、食材、忌口、器材，再发送至多 18 个候选，只接受候选 ID 中的 1–3 道菜。
+- 餐厅雷达与活动地图新增按需 Google Maps 地点查询。使用英文查询，中文输入/输出分别翻译，最多 3 次调用；每次答案保留 Google Maps 来源与英文原答，无来源直接报错。
+- 不随页面打开、刷新或定时任务调用 Gemini。配餐一次 1 次调用。页面记录模型、用量、耗时；失败保留原有静态工具。
+- API Key 只使用 Worker 的 `GEMINI_API_KEY` Secret。前端沿用 PT 同步凭据或已有后台连接，不接受浏览器传入模型或 Key。
+- 应用试验上限：全局每日 80 次、账号每日 30 次、每分钟 6 次上游调用预算，按洛杉矶日期计算。地图预留 3 次；预算拒绝也可能保守消耗此前预留。
+- 部署提交含 `[life-ai-test]` 时做固定公开菜谱/地点 smoke test，使用临时过期诊断凭据；结果在 Actions 的 `life-ai-probe` artifact。只测选定 Flash 模型，不配置账单、不自动升级计费。测试成功的模型记录在 KV `life-ai:models`；没有可用 Maps 配额时页面明确报错。
+- Maps Grounding 与地图渲染、Places/Routes API 是不同服务。本次保留现有 Leaflet / OSM 地图；不将 LLM 猜测坐标投成精确点，不提供实时车程或实时活动信息。

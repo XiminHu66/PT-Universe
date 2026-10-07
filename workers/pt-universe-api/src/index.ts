@@ -6,6 +6,7 @@ import { researchRoute } from './research';
 import { workbenchRoute } from './workbench';
 import { geminiProbeRoute } from './gemini-probe';
 import { researchAIRoute } from './research-ai';
+import { lifeAiRoute } from './life-ai';
 import { mediaRoute } from './media';
 
 type RefreshScope='all'|'sites'|'music'|'games';
@@ -485,6 +486,7 @@ export default {
       const decision=await decisionRoute(request,env,authenticate);if(decision)return reply(request,decision.body,decision.status||200);
       const media=await mediaRoute(request,env);if(media)return media instanceof Response?media:reply(request,media);
       const research=await researchRoute(request);if(research)return reply(request,research);
+      const lifeAi=await lifeAiRoute(request,env,authenticate);if(lifeAi)return reply(request,lifeAi.body,lifeAi.status);
       const gemini=await geminiProbeRoute(request,env);if(gemini)return reply(request,gemini.body,gemini.status);
       const ai=await researchAIRoute(request,env,authenticate);if(ai)return reply(request,ai.body,ai.status);
       const workbench=await workbenchRoute(request);if(workbench)return reply(request,workbench);

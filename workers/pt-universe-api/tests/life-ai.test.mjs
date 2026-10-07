@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';
+import {build} from 'esbuild';
+const b=await build({entryPoints:['src/life-ai.ts'],bundle:true,format:'esm',platform:'node',write:false});
+const {lifeAiRoute,validateMeal,mapsSources,generate}=await import('data:text/javascript;base64,'+Buffer.from(b.outputFiles[0].text).toString('base64'));
+const candidates=[{id:'a',name:'a',source:'https://example.com',ingredients:'eggs'}];
+assert.throws(()=>validateMeal({recipeIds:['invented'],reason:'x',steps:[]},candidates));
+assert.throws(()=>validateMeal({recipeIds:['a','a'],reason:'x',steps:[]},candidates));
+assert.equal(validateMeal({recipeIds:['a'],reason:'x',steps:['cook']},candidates).recipeIds[0],'a');
+assert.deepEqual(mapsSources({candidates:[{groundingMetadata:{groundingChunks:[{maps:{title:'bad',uri:'javascript:alert(1)'}},{maps:{title:'good',uri:'https://maps.google.com/x'}}]}}]}).map(s=>s.name),['good']);
+const request=body=>new Request('https://worker/api/life/11111111-1111-4111-8111-111111111111/meal',{method:'POST',body:JSON.stringify(body)});
+assert.equal((await lifeAiRoute(request({candidates}),{},async()=>false)).status,401);
+assert.equal((await lifeAiRoute(request({candidates}),{},async()=>true)).status,503);
+const env={GEMINI_API_KEY:'AQ.test-placeholder',DB:{prepare(){return {bind(){return this},async run(){return {meta:{changes:1}}}}}},PT_UNIVERSE_DATA:{async get(){return null}}};
+assert.equal((await lifeAiRoute(request({candidates:[]}),env,async()=>true)).status,400);
+const old=globalThis.fetch;let calls=0;
+try{globalThis.fetch=async(url,init)=>{calls++;const body=JSON.parse(init.body);assert.equal(init.headers['x-goog-api-key'],env.GEMINI_API_KEY);assert.ok(body.generationConfig.maxOutputTokens<=2048);return Response.json({candidates:[{content:{parts:[{text:JSON.stringify({recipeIds:['a'],reason:'搭配',steps:['准备食材']})}]}}],usageMetadata:{totalTokenCount:500}})};
+ const good=await lifeAiRoute(request({candidates}),env,async()=>true);assert.equal(good.status,200);assert.equal(calls,1);assert.ok(!JSON.stringify(good).includes(env.GEMINI_API_KEY));
+ await generate(env,'Find parks','gemini-2.5-flash-lite',true);
+ globalThis.fetch=async()=>Response.json({error:{status:'RESOURCE_EXHAUSTED'}},{status:429});assert.equal((await lifeAiRoute(request({candidates}),env,async()=>true)).status,429);
+ globalThis.fetch=async()=>Response.json({candidates:[{content:{parts:[{text:'{"recipeIds":["invented"],"reason":"bad","steps":[]}'}]}}]});assert.equal((await lifeAiRoute(request({candidates}),env,async()=>true)).status,502);
+ const denied={...env,DB:{prepare(){return {bind(){return this},async run(){return {meta:{changes:0}}}}}}};calls=0;globalThis.fetch=async()=>{calls++;throw Error('should not generate')};assert.equal((await lifeAiRoute(request({candidates}),denied,async()=>true)).status,429);assert.equal(calls,0);
+}finally{globalThis.fetch=old}
+console.log('Life AI: auth, invalid candidates, recipe hallucination, source URLs, single-call meal, quota denial and no key exposure passed');
