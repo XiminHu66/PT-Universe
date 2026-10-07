@@ -540,7 +540,7 @@
     @media(max-width:1100px){#view-home>.dashboard{grid-template-columns:1.3fr 1fr;grid-template-rows:minmax(285px,1.16fr) minmax(220px,.84fr) 46px}#view-home .homecalendar{grid-column:1;grid-row:1}#view-home .memo{grid-column:2;grid-row:1}#view-home .home-links-card{grid-column:2;grid-row:2}#view-home .upcomingcard{grid-column:1;grid-row:2}}
     @media(max-width:740px){#view-home>.dashboard{display:block}#view-home .discover{min-height:46px}#discoverPanel[open]{min-height:720px}#discoverPanel .discover-grid{height:auto;min-height:630px;grid-template-columns:1fr;grid-template-rows:repeat(3,minmax(190px,1fr))}.idea-subnav{padding:0 6px}.idea-subnav button{padding:9px 14px}}
   </style>
-  <link rel="stylesheet" href="home-tools.css?v=20261007-1">
+  <link rel="stylesheet" href="home-tools.css?v=20261007-2">
   <link rel="stylesheet" href="../../pt-bridge.css?v=20260827-1">
 </head>
 <body>
@@ -553,7 +553,6 @@
     <button class="navbtn" data-view="board"><div><div class="navicon">▦</div><span>看板</span></div></button>
     <button class="navbtn" data-view="tsugi"><div><div class="navicon">📚</div><span>追更</span></div></button>
     <button class="navbtn" data-view="meal"><div><div class="navicon">🍜</div><span>吃什么</span></div></button>
-    <button class="navbtn" data-view="learning"><div><div class="navicon">学</div><span>学习</span></div></button>
     <button class="navbtn" data-view="focus"><div><div class="navicon">◎</div><span>专注</span></div></button>
     <button class="navbtn" data-view="countdown"><div><div class="navicon">⏳</div><span>倒数</span></div></button>
     <button class="navbtn" data-view="tools"><div><div class="navicon">⌘</div><span>工具</span></div></button>
@@ -686,7 +685,7 @@
           id="tsugiFrame"
           title="Tsugi Checker"
           loading="lazy"
-          data-src="../tsugi-checker/?v=20260827-coversdrawer1"
+          data-src="../tsugi-checker/?v=20261007-layout2"
           referrerpolicy="strict-origin-when-cross-origin"></iframe>
       </div>
     </section>
@@ -823,7 +822,6 @@
         </div>
       </div>
     </section>
-    <section class="view" id="view-learning"><div class="learning-bar"><span>学习工作台</span><button class="pillbtn" id="learningFocusBadge" hidden></button></div><div class="embed-frame-wrap"><iframe id="learningFrame" class="embed-frame" title="Self Learning 学习工作台" data-src="../self-learning/?embedded=nexus&v=20261007-focus"></iframe></div></section>
     <section class="view" id="view-focus"><div class="workspace">
       <article class="bigcard glass focus-main">
         <div class="section-title"><h2>专注时钟</h2><p id="focusModeLabel">25 分钟工作</p></div>
@@ -2260,7 +2258,6 @@ const DEFAULT_NAV_CONFIG=[
   {view:"board",icon:"▦",label:"看板"},
   {view:"tsugi",icon:"📚",label:"追更"},
   {view:"meal",icon:"🍜",label:"吃什么"},
-  {view:"learning",icon:"学",label:"学习"},
   {view:"focus",icon:"◎",label:"专注"},
   {view:"countdown",icon:"⏳",label:"倒数"},
   {view:"tools",icon:"⌘",label:"工具"},
@@ -2537,7 +2534,6 @@ function switchNexusView(view){
   setDeskBoardActive(view==='board');
   if(view==='tsugi')ensureEmbeddedSite('tsugi');
   if(view==='meal')ensureEmbeddedSite('meal');
-  if(view==='learning')ensureEmbeddedSite('learning');
   if(view==='todo')switchIdeaTab(store.get('ideaTab','projects'));
   dispatchEvent(new CustomEvent('nexus-view-change',{detail:{view}}));
   if(view==='music')ensureMusicTab();
@@ -3091,8 +3087,7 @@ function syncEmbeddedTheme(name,theme=resolvedNexusTheme()){
 }
 function syncEmbeddedThemes(theme=resolvedNexusTheme()){
   syncEmbeddedTheme('tsugi',theme);syncEmbeddedTheme('meal',theme);
-  syncEmbeddedTheme('todo',theme);syncEmbeddedTheme('notes',theme);syncEmbeddedTheme('learning',theme);
-  if(window.__embeddedSiteState?.learning)try{$('#learningFrame').contentWindow.postMessage({type:'pt-universe-theme',theme},location.origin)}catch(_){}
+  syncEmbeddedTheme('todo',theme);syncEmbeddedTheme('notes',theme);
   dispatchEvent(new CustomEvent('nexus-theme-change',{detail:{theme}}));
 }
 function ensureEmbeddedSite(name){
@@ -3103,7 +3098,6 @@ function ensureEmbeddedSite(name){
   embeddedSiteState[name]=true;
   frame.addEventListener("load",()=>{
     syncEmbeddedTheme(name);
-    if(name==='learning')frame.contentWindow.postMessage({type:'pt-universe-theme',theme:resolvedNexusTheme()},location.origin);
     loading?.classList.add("hide");
     setTimeout(()=>{if(loading)loading.style.display="none"},220);
   });
@@ -4121,7 +4115,7 @@ function openModal(sel){$(sel).classList.add('open')}function closeModals(){$$('
 </style>
 <a id="ptu-home-link" href="../../" aria-label="返回 PT Universe"><i aria-hidden="true">‹</i><span>PT Universe</span></a>
 <script src="./decision-tabs.js?v=20261002-nav2"></script>
-<script src="learning-focus.js?v=20261007-1"></script>
+<script src="learning-focus.js?v=20261007-2"></script>
 <script src="../../pt-sync.js?v=20260827-1"></script>
 <script src="../../pt-bridge.js?v=20260827-1"></script>
 </body>

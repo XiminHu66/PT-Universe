@@ -10,3 +10,18 @@
 #games .game-timeline{gap:11px}#games .game-timeline-day{grid-template-columns:120px minmax(0,1fr);gap:10px;margin-bottom:12px}#games .game-timeline-items{gap:5px}#games .timeline-game{grid-template-columns:76px minmax(0,1fr) auto;gap:8px;padding:6px 8px;border-radius:12px;box-shadow:none}#games .timeline-game-cover{width:76px;height:44px;border-radius:8px}#games .timeline-game-copy h4{margin-top:2px;font-size:13px}#games .timeline-game-copy p{margin-top:3px;font-size:10px}#games .game-timeline-date small{margin-top:2px}
 @media(max-width:900px){#music .music-chart-row{grid-template-columns:28px 40px minmax(0,1fr)}#music .music-row-actions{grid-column:3;justify-content:flex-start}#games .game-timeline-items{grid-template-columns:1fr}}
 @media(max-width:700px){#games .game-timeline-day{grid-template-columns:1fr;gap:5px}#music .music-chart-row{gap:6px;padding:7px}#music .music-row-actions{flex-wrap:wrap}#games .timeline-game{grid-template-columns:65px minmax(0,1fr) auto}#games .timeline-game-cover{width:65px;height:40px}.stream-refresh-legend{font-size:11px}}
+
+/* Two columns shorten chart lists without changing their order or controls. */
+#music .music-chart-list,#music .music-new-grid,#music .followed-artists-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+#music .music-chart-row{grid-template-columns:26px 38px minmax(0,1fr);gap:5px 8px;align-items:center}
+#music .music-rank,#music .music-cover{grid-row:span 2}#music .music-cover{width:38px;height:38px}
+#music .music-row-actions{grid-column:3;justify-content:flex-start;flex-wrap:wrap;gap:4px}
+#music .music-track-copy{min-width:0}#music .music-track-copy h4{overflow-wrap:anywhere}
+.stream-tools{display:flex;align-items:center;gap:8px;margin:4px 0 14px}
+.stream-tools .source-refresh-btn{width:auto;min-width:0;flex:1;height:42px;padding:0 10px;border-radius:12px;gap:8px;justify-content:flex-start;box-shadow:none}
+.stream-tools .refresh-button-icon{width:26px;height:26px;border-radius:8px}.stream-tools .refresh-button-copy{display:grid}.stream-tools .refresh-button-label{font-size:12px}
+.stream-tools .theme-btn{width:38px;height:38px;flex:none;border-radius:12px}
+#sourceTools:empty{display:none}#sourceTools .stream-tools{max-width:250px;margin:0 0 14px}
+.main{padding-top:14px}
+@media(max-width:840px){.main{padding-top:12px}}
+@media(max-width:700px){#music .music-chart-list,#music .followed-artists-grid{grid-template-columns:1fr}}

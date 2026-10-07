@@ -23,3 +23,10 @@
   };
   if(state.site)window.renderSiteUpdates();
 })();
+
+/* Mobile navigation stays unobstructed; its refresh controls live on Sources. */
+(()=>{
+  const tools=document.getElementById('streamTools'),source=document.getElementById('sourceTools'),footer=document.querySelector('.sidebar-footer'),mobile=matchMedia('(max-width:840px)');
+  const place=()=>{if(mobile.matches)source.append(tools);else footer.before(tools)};
+  place();mobile.addEventListener('change',place);
+})();
