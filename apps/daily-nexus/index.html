@@ -540,7 +540,7 @@
     @media(max-width:1100px){#view-home>.dashboard{grid-template-columns:1.3fr 1fr;grid-template-rows:minmax(285px,1.16fr) minmax(220px,.84fr) 46px}#view-home .homecalendar{grid-column:1;grid-row:1}#view-home .memo{grid-column:2;grid-row:1}#view-home .home-links-card{grid-column:2;grid-row:2}#view-home .upcomingcard{grid-column:1;grid-row:2}}
     @media(max-width:740px){#view-home>.dashboard{display:block}#view-home .discover{min-height:46px}#discoverPanel[open]{min-height:720px}#discoverPanel .discover-grid{height:auto;min-height:630px;grid-template-columns:1fr;grid-template-rows:repeat(3,minmax(190px,1fr))}.idea-subnav{padding:0 6px}.idea-subnav button{padding:9px 14px}}
   </style>
-  <link rel="stylesheet" href="home-tools.css?v=20261007-4">
+  <link rel="stylesheet" href="home-tools.css?v=20261007-5">
   <link rel="stylesheet" href="../../pt-bridge.css?v=20260827-1">
 </head>
 <body>
@@ -3788,30 +3788,53 @@ function setUpcomingStatus(mode,text){
   if(dot){dot.classList.toggle("loading",mode==="loading");dot.classList.toggle("bad",mode==="bad")}
   if(label)label.textContent=text;
 }
+function validUpcomingLocal(rows){
+  return Array.isArray(rows)?rows.filter(x=>x?.id&&x?.date&&upDateObj(x)).map(x=>({...x,category:"local",manual:false})):[];
+}
 async function fetchSeattleLocalEvents(){
-  const r=await fetch(`${PTU_CLOUD_API}/api/events/seattle?v=${Date.now()}`,{cache:"no-store"});
-  if(!r.ok)throw new Error(`Seattle Center ${r.status}`);
-  const data=await r.json();
-  return Array.isArray(data.items)?data.items.filter(x=>x?.id&&x?.date).map(x=>({...x,category:"local",manual:false})):[];
+  try{
+    const r=await fetchWithTimeout(`${PTU_CLOUD_API}/api/events/seattle?v=${Date.now()}`,6000);
+    if(!r.ok)throw new Error(`Seattle Center ${r.status}`);
+    const data=await r.json(),items=validUpcomingLocal(data.items);
+    if(items.some(x=>upDaysAway(x)>=0&&upDaysAway(x)<=45))return {items,mode:"live"};
+  }catch(_){}
+  // Reuse the independently collected official snapshot on our own origin.
+  const r=await fetchWithTimeout(`../eastside-weekend/data/events.json?v=${Date.now()}`,6000);
+  if(!r.ok)throw new Error(`官方活动快照 ${r.status}`);
+  const data=await r.json(),seen=new Set();
+  const events=(Array.isArray(data.events)?data.events:[]).filter(x=>x?.city==="Seattle"&&x?.start&&x?.url).sort((a,b)=>String(a.start).localeCompare(String(b.start)));
+  const items=[];
+  for(const x of events){
+    const row={id:`seattle-center:${String(x.url).split('/').pop()}`,title:x.title,date:String(x.start).includes('T')?x.start:`${x.start}T12:00:00`,dateKey:String(x.start).slice(0,10),category:"local",source:`Seattle Center · ${x.free?'免费':x.cost||'官方活动'} · ${x.venue||'Seattle Center'}`,url:x.url,manual:false,priority:x.free?113:82};
+    const days=upDaysAway(row),key=String(row.title||row.id).normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim();
+    if(days<0||days>45||seen.has(key)||!upDateObj(row))continue;
+    seen.add(key);items.push(row);
+  }
+  if(!items.length)throw new Error('官方活动快照暂不可用');
+  return {items,mode:"snapshot"};
 }
 async function loadUpcoming(force=false){
   setUpcomingStatus("loading","Seattle Center + 官方展会 · 正在刷新");
-  const cache=store.get("upcomingCacheV4",null);
-  const freshCache=!force&&cache&&Date.now()-cache.time<UPCOMING_CACHE_MS;
-  if(freshCache){
-    upcomingLocal=Array.isArray(cache.local)?cache.local:[];
-    upcomingOfficialDynamic=Array.isArray(cache.dynamic)?cache.dynamic:[];
-    const radar=upcomingWithin(45);
-    setUpcomingStatus("ok",`未来 45 天 · 本地 ${filterUpcoming(radar,"local").length} · 展会 ${filterUpcoming(radar,"event").length} · 关注 ${filterUpcoming(radar,"pinned").length}`);
-    renderUpcomingHome();renderUpcomingModal();return;
-  }
-  let localOk=false;
-  try{upcomingLocal=await fetchSeattleLocalEvents();localOk=true}catch(e){upcomingLocal=cache?.local||[]}
-  try{upcomingOfficialDynamic=await officialLaunchWatchers()}catch(e){upcomingOfficialDynamic=cache?.dynamic||[]}
-  store.set("upcomingCacheV4",{time:Date.now(),local:upcomingLocal,dynamic:upcomingOfficialDynamic});
-  const radar=upcomingWithin(45);
-  setUpcomingStatus(localOk||upcomingLocal.length?"ok":"bad",`未来 45 天 · 本地 ${filterUpcoming(radar,"local").length} · 展会 ${filterUpcoming(radar,"event").length} · 关注 ${filterUpcoming(radar,"pinned").length}${!localOk?" · 本地源使用缓存/精选":""}`);
+  const cache=store.get("upcomingCacheV4",null),savedLocal=validUpcomingLocal(cache?.local);
+  upcomingLocal=savedLocal;upcomingOfficialDynamic=Array.isArray(cache?.dynamic)?cache.dynamic:[];
+  const freshCache=!force&&cache&&Date.now()-cache.time<UPCOMING_CACHE_MS&&savedLocal.some(x=>upDaysAway(x)>=0&&upDaysAway(x)<=45);
+  const showStatus=(ok,mode)=>{
+    const radar=upcomingWithin(45),hint=mode==='snapshot'?' · 官方活动快照':mode==='cache'?' · 已保存活动':'';
+    setUpcomingStatus(ok?"ok":"bad",`未来 45 天 · 本地 ${filterUpcoming(radar,"local").length} · 展会 ${filterUpcoming(radar,"event").length} · 关注 ${filterUpcoming(radar,"pinned").length}${hint}`);
+    renderUpcomingHome();renderUpcomingModal();
+  };
   renderUpcomingHome();renderUpcomingModal();
+  if(freshCache){showStatus(true,cache.localMode||'cache');return}
+  let localOk=false,localMode='cache',dynamicOk=false;
+  try{
+    const result=await fetchSeattleLocalEvents();upcomingLocal=result.items;localMode=result.mode;localOk=true;
+    store.set("upcomingCacheV4",{time:Date.now(),local:upcomingLocal,dynamic:upcomingOfficialDynamic,localMode});
+  }catch(_){}
+  // Show activities as soon as they load; slow convention sources cannot blank the panel.
+  showStatus(localOk||upcomingLocal.length>0,localMode);
+  try{const items=await officialLaunchWatchers();if(items.length){upcomingOfficialDynamic=items;dynamicOk=true}}catch(_){}
+  if(localOk||dynamicOk)store.set("upcomingCacheV4",{time:localOk?Date.now():cache?.time||0,local:upcomingLocal,dynamic:upcomingOfficialDynamic,localMode});
+  showStatus(localOk||upcomingLocal.length>0,localMode);
 }
 function defaultUpcomingLocal(){
   const d=new Date(Date.now()+7*86400000),z=n=>String(n).padStart(2,"0");
