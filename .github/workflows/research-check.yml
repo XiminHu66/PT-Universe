@@ -5,8 +5,10 @@ on:
       - 'apps/research-workbench/**'
       - 'scripts/research/**'
       - 'workers/pt-universe-api/src/workbench.ts'
+      - 'workers/pt-universe-api/src/gemini-probe.ts'
       - 'workers/pt-universe-api/src/index.ts'
       - 'workers/pt-universe-api/tests/workbench.test.mjs'
+      - 'workers/pt-universe-api/tests/gemini-probe.test.mjs'
       - '.github/workflows/research-check.yml'
   workflow_dispatch:
 permissions:
@@ -21,7 +23,7 @@ jobs:
         with:
           node-version: '24'
       - run: node scripts/research/model-test.mjs
-      - run: npm ci && npm run check && node tests/workbench.test.mjs && node tests/todo-sync.test.mjs
+      - run: npm ci && npm run check && node tests/workbench.test.mjs && node tests/gemini-probe.test.mjs && node tests/todo-sync.test.mjs
         working-directory: workers/pt-universe-api
       - run: npm install --no-save --package-lock=false playwright@1.58.2
       - run: npx playwright install --with-deps chromium
