@@ -10,14 +10,14 @@ const DB={prepare(sql){let args=[];return {bind(...x){args=x;return this},async 
   if(sql.startsWith('UPDATE'))records.set(args[1],args[0]);
   return {meta:{changes:1}};
 },async first(){return records.has(args[0])?{result:records.get(args[0])}:null}}}};
-const token='a'.repeat(64),env={DB,GEMINI_API_KEY:'private-test-key',RESEARCH_PROBE_AUTH:JSON.stringify({token,expiresAt:Date.now()+600000})};
+const token='a'.repeat(64),env={DB,GEMINI_API_KEY:'AQ.private-test-placeholder-key',RESEARCH_PROBE_AUTH:JSON.stringify({token,expiresAt:Date.now()+600000})};
 const req=(body,auth=token,method='POST')=>new Request('https://worker/api/workbench/gemini-probe',{method,headers:{authorization:'Bearer '+auth,'content-type':'application/json'},...(method==='POST'?{body:JSON.stringify(body)}:{})});
 const originalFetch=globalThis.fetch;let modelCalls=0;
 try{
   globalThis.fetch=async(input,init)=>{
     const url=String(input);
     if(url.startsWith('https://generativelanguage.googleapis.com/')){
-      assert.equal(init.headers['x-goog-api-key'],env.GEMINI_API_KEY);assert.equal(init.redirect,'error');
+      assert.equal(init.headers['x-goog-api-key'],env.GEMINI_API_KEY);assert.equal(init.redirect,'manual');
       if(!init.body)return Response.json({models:[{name:'models/gemini-2.5-flash',supportedGenerationMethods:['generateContent'],inputTokenLimit:1048576},{name:'models/paid-only-pro',supportedGenerationMethods:['generateContent']}]});
       modelCalls++;const body=JSON.parse(init.body);assert.equal(body.generationConfig.maxOutputTokens,4096);
       return Response.json({usageMetadata:{promptTokenCount:12345,candidatesTokenCount:250,totalTokenCount:12595},candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify({fields:{idea:{value:'图检索方法',quote:'Graph retrieval supports global questions.',paragraphId:'p1'},results:{value:'Unverified score',quote:'Invented evidence',paragraphId:'p1'}}})}]}}]});
@@ -30,6 +30,7 @@ try{
   assert.equal((await geminiProbeRoute(req({phase:'connection'}),{...env,RESEARCH_PROBE_AUTH:JSON.stringify({token,expiresAt:Date.now()-1})})).status,401);
   assert.equal((await geminiProbeRoute(req({},token,'GET'),env)).status,405);
   assert.equal((await geminiProbeRoute(req({phase:'connection'}),{...env,GEMINI_API_KEY:undefined})).status,503);
+  assert.equal((await geminiProbeRoute(req({phase:'connection'}),{...env,GEMINI_API_KEY:'"'+env.GEMINI_API_KEY+'"'})).body.status,'INVALID_KEY_VALUE');
   assert.equal((await geminiProbeRoute(req({phase:'extract',model:'paid-only-pro'}),env)).status,400);
   assert.equal((await geminiProbeRoute(req({phase:'extract',model:'gemini-2.5-flash',extra:'x'.repeat(1000)}),env)).status,413);
   const connection=(await geminiProbeRoute(req({phase:'connection'}),env)).body;
@@ -43,5 +44,9 @@ try{
   globalThis.fetch=async()=>Response.json({error:{status:'RESOURCE_EXHAUSTED',message:'must not expose upstream raw text private-test-key',details:[{violations:[{quotaMetric:'generate_requests_per_model_per_day',quotaId:'FreeTier',quotaDimensions:{model:'gemini-2.5-flash'},quotaValue:'20'}]},{retryDelay:'42s'}]}},{status:429});
   const failure=(await geminiProbeRoute(req({phase:'connection'},token2),env2)).body;
   assert.equal(failure.httpStatus,429);assert.equal(failure.quota[0].value,'20');assert.equal(failure.retryAfter,'42s');assert.ok(!JSON.stringify(failure).includes(env.GEMINI_API_KEY));
+  globalThis.fetch=async()=>{throw new Error('Unsupported redirect mode; '+env.GEMINI_API_KEY)};
+  const token3='c'.repeat(64),env3={...env,RESEARCH_PROBE_AUTH:JSON.stringify({token:token3,expiresAt:Date.now()+600000})};
+  const network=(await geminiProbeRoute(req({phase:'connection'},token3),env3)).body;
+  assert.equal(network.status,'GOOGLE_FETCH_FAILED');assert.ok(!JSON.stringify(network).includes(env.GEMINI_API_KEY));
 }finally{globalThis.fetch=originalFetch}
 console.log('Gemini deployment probe passed: expiring authentication, fixed samples/models, atomic replay protection, token/evidence statistics and sanitized quota errors');

@@ -19,8 +19,14 @@ async function authorized(request:Request,env:ProbeEnv){
 }
 async function upstream(env:ProbeEnv,path:string,body?:unknown){
   const started=Date.now();
-  const r=await fetch(endpoint+path,{method:body?'POST':'GET',headers:{'x-goog-api-key':env.GEMINI_API_KEY!,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),redirect:'error',signal:AbortSignal.timeout(60_000)});
-  const data=await r.json<any>();
+  const key=env.GEMINI_API_KEY!.trim();
+  const redact=(s:string)=>s.replaceAll(env.GEMINI_API_KEY!,'[REDACTED]').replaceAll(key,'[REDACTED]').replace(/AQ\.[A-Za-z0-9_.-]{10,}|AIza[A-Za-z0-9_-]{20,}/g,'[REDACTED]').slice(0,240);
+  let r:Response;
+  try{r=await fetch(endpoint+path,{method:body?'POST':'GET',headers:{'x-goog-api-key':key,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),redirect:'manual',signal:AbortSignal.timeout(60_000)})}
+  catch(e){return {ok:false,status:'GOOGLE_FETCH_FAILED',diagnostic:redact(e instanceof Error?e.message:'Network error'),latencyMs:Date.now()-started}}
+  if(r.status>=300&&r.status<400){await r.body?.cancel();return {ok:false,httpStatus:r.status,status:'GOOGLE_UNEXPECTED_REDIRECT',latencyMs:Date.now()-started}}
+  let data:any;
+  try{data=await r.json<any>()}catch{return {ok:false,httpStatus:r.status,status:'GOOGLE_NON_JSON_RESPONSE',contentType:r.headers.get('content-type'),latencyMs:Date.now()-started}}
   if(!r.ok){
     const details=Array.isArray(data.error?.details)?data.error.details:[];
     return {ok:false,httpStatus:r.status,status:data.error?.status||'UPSTREAM_ERROR',latencyMs:Date.now()-started,
@@ -47,6 +53,7 @@ export async function geminiProbeRoute(request:Request,env:ProbeEnv){
   if(request.method!=='POST')return response({error:'Method not allowed'},405);
   const token=await authorized(request,env);if(!token)return response({error:'Deployment probe authentication required'},401);
   if(!env.GEMINI_API_KEY)return response({ok:false,status:'MISSING_GEMINI_API_KEY'},503);
+  if(!/^(?:AQ\.|AIza)[A-Za-z0-9_.-]+$/.test(env.GEMINI_API_KEY.trim()))return response({ok:false,status:'INVALID_KEY_VALUE',hint:'Store only the API key, without quotes, code fences or internal whitespace'},503);
   if(Number(request.headers.get('content-length'))>512)return response({error:'Request too large'},413);
   const raw=await request.text();if(raw.length>512)return response({error:'Request too large'},413);
   let body:any;try{body=JSON.parse(raw)}catch{return response({error:'Invalid JSON'},400)}
@@ -62,7 +69,7 @@ export async function geminiProbeRoute(request:Request,env:ProbeEnv){
   try{
     if(phase==='connection'){
       const r=await upstream(env,'models?pageSize=1000');
-      result=r.ok?{ok:true,phase,keyConfigured:true,latencyMs:r.latencyMs,models:r.data.models.filter((m:any)=>probeModels.includes(m.name.replace('models/',''))&&m.supportedGenerationMethods?.includes('generateContent')).map((m:any)=>({name:m.name.replace('models/',''),inputTokenLimit:m.inputTokenLimit,outputTokenLimit:m.outputTokenLimit}))}:r;
+      result=r.ok?{ok:true,phase,keyConfigured:true,latencyMs:r.latencyMs,models:(r.data.models||[]).filter((m:any)=>typeof m.name==='string'&&probeModels.includes(m.name.replace('models/',''))&&m.supportedGenerationMethods?.includes('generateContent')).map((m:any)=>({name:m.name.replace('models/',''),inputTokenLimit:m.inputTokenLimit,outputTokenLimit:m.outputTokenLimit}))}:r;
     }else{
       const sample=await probePrompt(phase);
       const config:any={temperature:0,maxOutputTokens:4096,responseMimeType:'application/json'};
