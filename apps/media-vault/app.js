@@ -129,13 +129,15 @@ async function searchNovelTitles(q){
 function findBookAlternatives(){if(!book)return;const q=book.title.split(/[（(]/)[0].replace(/[。.!！]+$/,'');$('#novelURL').value=q;searchNovelTitles(q);}
 function novelImageLink(url,page,cover=false){return API+'novel/image?'+new URLSearchParams({url,page,...(cover?{cover:'1'}:{})});}
 async function epubImage(url,page,cover,options){
- checkStopped(options.stopped);const key='image-v1:'+url,old=await chapterCache(key);if(old)return old;
+ checkStopped(options.stopped);if(options.skipImages?.())return null;const key='image-v1:'+url,old=await chapterCache(key);if(old)return old;
  for(let attempt=0;attempt<3;attempt++){
-  await paceSource(page,'image',options.stopped);checkStopped(options.stopped);
-  try{const r=await fetch(novelImageLink(url,page,cover),{signal:AbortSignal.timeout(60000)});if(!r.ok){const error=await r.json().catch(()=>null);throw new Error(error?.error||'图片 HTTP '+r.status);}
+  await paceSource(page,'image',options.stopped);checkStopped(options.stopped);if(options.skipImages?.())return null;
+  const controller=new AbortController();let timedOut=false;const timer=setTimeout(()=>{timedOut=true;controller.abort();},30000);options.setImageAbort?.(controller);
+  try{const r=await fetch(novelImageLink(url,page,cover),{signal:controller.signal});if(!r.ok){const error=await r.json().catch(()=>null);throw new Error(error?.error||'图片 HTTP '+r.status);}
    let blob=await r.blob();if(!/^image\/(jpeg|png|gif|webp)$/.test(blob.type)||!blob.size)throw new Error('图片响应无效');const bitmap=await createImageBitmap(blob);try{if(blob.type==='image/webp'){const canvas=document.createElement('canvas');canvas.width=bitmap.width;canvas.height=bitmap.height;canvas.getContext('2d').drawImage(bitmap,0,0);blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw new Error('插图转换失败');}}finally{bitmap.close();}
    const value={data:await blob.arrayBuffer(),type:blob.type};await chapterCache(key,value);return value;
-  }catch(e){if(attempt===2||!/429|502|503|504|timeout|fetch|network/i.test(e.message))throw new Error('插图下载失败：'+e.message+'；重试会复用缓存');options.onProgress?.('图片来源繁忙，稍后重试…');await chapterDelay((attempt+1)*6000);}
+  }catch(e){if(options.stopped?.())checkStopped(options.stopped);if(options.skipImages?.())return null;const message=timedOut?'timeout':String(e?.message||e);if(attempt===2||!/429|502|503|504|timeout|fetch|network/i.test(message))throw new Error('插图下载失败：'+message+'；将跳过此图继续打包');options.onProgress?.('图片来源繁忙，稍后重试…');await chapterDelay((attempt+1)*6000);
+  }finally{clearTimeout(timer);options.setImageAbort?.(null);}
  }
 }
 // One formatter supplies both the preview and the exported EPUB.
@@ -232,7 +234,7 @@ $('#downloadConfirm').onclick=()=>{if(!downloadSelection?.indices.size)return;en
 
 function persistNovelTasks(){db.set('novelTasks',novelTasks.filter(t=>!t.target?.local).slice(0,30).map(({id,url,title,from,to,indices,layout,status,progress,detail})=>({id,url,title,from,to,indices,layout,status,progress,detail})));}
 function taskProgressHTML(task){return `<div class="novel-task-progress"><progress max="100" value="${task.progress||0}" aria-label="${esc(task.title)} 下载进度"></progress><span>${Math.floor(task.progress||0)}%</span></div><p class="task-detail">${esc(task.detail)}</p>`;}
-function novelTaskHTML(task){return `<article class="novel-task" data-novel-task="${task.id}" data-status="${task.status}"><strong>${esc(task.title)}</strong><span class="task-state">${({queued:'排队中',running:'下载中',ready:'EPUB 已就绪',error:'下载失败',cancelled:'已取消',interrupted:'可恢复'})[task.status]}</span>${taskProgressHTML(task)}<div class="actions">${task.blob?`<button data-novel-save="${task.id}">保存 EPUB</button>`:''}${['queued','running'].includes(task.status)?`<button data-novel-cancel="${task.id}">取消</button>`:`<button data-novel-retry="${task.id}">重新生成</button><button data-novel-dismiss="${task.id}">移除任务</button>`}</div></article>`;}
+function novelTaskHTML(task){const textOnly=task.status==='running'&&task.canSkipImages&&!task.skipImages?`<button data-novel-text-only="${task.id}">跳过图片并打包文字</button>`:'';return `<article class="novel-task" data-novel-task="${task.id}" data-status="${task.status}"><strong>${esc(task.title)}</strong><span class="task-state">${({queued:'排队中',running:'下载中',ready:'EPUB 已就绪',error:'下载失败',cancelled:'已取消',interrupted:'可恢复'})[task.status]}</span>${taskProgressHTML(task)}<div class="actions">${task.blob?`<button data-novel-save="${task.id}">保存 EPUB</button>`:''}${['queued','running'].includes(task.status)?textOnly+`<button data-novel-cancel="${task.id}">取消</button>`:`<button data-novel-retry="${task.id}">重新生成</button><button data-novel-dismiss="${task.id}">移除任务</button>`}</div></article>`;}
 function novelDownloadHTML(){return novelTasks.length?'<h3>小说下载</h3>'+novelTasks.map(novelTaskHTML).join(''):'';}
 function renderBookProgress(){$$('[data-book-progress]').forEach(el=>{const task=novelTasks.find(t=>t.url===el.dataset.bookProgress&&['queued','running','ready','error'].includes(t.status));el.innerHTML=task?taskProgressHTML(task):'';});}
 function renderNovelDownloads(){
@@ -246,24 +248,25 @@ function enqueueNovel(item,range={}){
  const task={id:crypto.randomUUID(),url:item.url,title:item.title||'正在读取书名',indices,layout,from:range.from||1,to:range.to||null,target:Array.isArray(item.chapters)?{...item,chapters:[...item.chapters]}:null,status:'queued',progress:0,detail:'等待开始',stopped:false,blob:null};novelTasks.unshift(task);persistNovelTasks();renderNovelDownloads();pumpNovelDownloads();return task;
 }
 async function runNovelTask(task){
- task.status='running';task.stopped=false;updateNovelTask(task,'正在读取目录',1);const options={stopped:()=>task.stopped,onProgress:text=>updateNovelTask(task,text),onWait:text=>updateNovelTask(task,text)};
+ task.status='running';task.stopped=false;task.skipImages=false;task.canSkipImages=false;task.imageAbortController=null;updateNovelTask(task,'正在读取目录',1);const options={stopped:()=>task.stopped,skipImages:()=>task.skipImages,setImageAbort:controller=>{task.imageAbortController=controller;},onProgress:text=>updateNovelTask(task,text),onWait:text=>updateNovelTask(task,text)};
  try{const target=task.target||await getBook(task.url);task.target=target;task.title=target.title;const from=task.from,to=task.to||target.chapters.length;
   const indices=task.indices||Array.from({length:Math.max(0,to-from+1)},(_,i)=>from-1+i);
   if(!indices.length||indices.some(i=>!Number.isInteger(i)||i<0||i>=target.chapters.length))throw new Error('章节范围已变化，请重新选择');const chapters=[];
   for(let n=0;n<indices.length;n++){const i=indices[n];checkStopped(options.stopped);updateNovelTask(task,`正文 ${n+1} / ${indices.length} · ${target.chapters[i].title}`,5+60*n/indices.length);const d=target.local?target.chapters[i]:await cachedChapter(target.chapters[i].url,true,options);checkStopped(options.stopped);chapters.push({...d,url:d.url||target.chapters[i].url,title:d.title||target.chapters[i].title});}
-  const rangeLabel=chapterRangeLabel(indices);task.filename=target.title+(indices.length===target.chapters.length?'':`（${rangeLabel.length<48?rangeLabel+'章':indices.length+'章选集'}）`)+'.epub';
+  const rangeLabel=chapterRangeLabel(indices);task.filename=target.title+(indices.length===target.chapters.length?'':`（${rangeLabel.length<48?rangeLabel+'章':indices.length+'章选集'}）`)+'.epub';task.canSkipImages=true;renderNovelDownloads();
   const result=await createBookEPUB(target.title,chapters,{...options,layout:task.layout||DEFAULT_EPUB_LAYOUT,cover:target.cover,page:target.url,download:false,onImages:(done,total)=>updateNovelTask(task,`插图与封面 ${done} / ${total}`,65+30*(total?done/total:1)),onZip:percent=>updateNovelTask(task,'正在打包 EPUB',95+percent*.05)});
-  checkStopped(options.stopped);task.blob=result.blob;task.status='ready';updateNovelTask(task,`${chapters.length} 章 · ${result.images} 张图片 · 可保存 EPUB`,100);
+  checkStopped(options.stopped);task.canSkipImages=false;task.blob=result.blob;task.status='ready';updateNovelTask(task,`${chapters.length} 章 · ${result.images} 张图片${result.skippedImages?` · 跳过 ${result.skippedImages} 张失败图片`:''} · 可保存 EPUB`,100);
   // Keep the file available even when browsers block multiple automatic downloads.
   blobDownload(task.blob,task.filename);task.autoSaveRequested=true;
- }catch(e){task.status=task.stopped?'cancelled':'error';updateNovelTask(task,e.message);}finally{persistNovelTasks();renderNovelDownloads();pumpNovelDownloads();}
+ }catch(e){task.status=task.stopped?'cancelled':'error';updateNovelTask(task,e.message);}finally{task.canSkipImages=false;task.imageAbortController=null;persistNovelTasks();renderNovelDownloads();pumpNovelDownloads();}
 }
 function pumpNovelDownloads(){let available=MAX_NOVEL_DOWNLOADS-novelTasks.filter(t=>t.status==='running').length;for(const task of [...novelTasks].reverse()){if(available<=0)break;if(task.status==='queued'){available--;runNovelTask(task);}}}
 function bindNovelTaskActions(){
- $$('[data-novel-save]').forEach(b=>b.onclick=()=>{const t=novelTasks.find(t=>t.id===b.dataset.novelSave);if(t?.blob)blobDownload(t.blob,t.filename);});
- $$('[data-novel-cancel]').forEach(b=>b.onclick=()=>{const t=novelTasks.find(t=>t.id===b.dataset.novelCancel);if(!t)return;t.stopped=true;if(t.status==='queued')t.status='cancelled';t.detail=t.status==='cancelled'?'已取消':'正在取消…';persistNovelTasks();renderNovelDownloads();pumpNovelDownloads();});
- $$('[data-novel-retry]').forEach(b=>b.onclick=()=>{const t=novelTasks.find(t=>t.id===b.dataset.novelRetry);if(!t||['queued','running'].includes(t.status))return;t.status='queued';t.progress=0;t.stopped=false;t.blob=null;persistNovelTasks();renderNovelDownloads();pumpNovelDownloads();});
- $$('[data-novel-dismiss]').forEach(b=>b.onclick=()=>{const i=novelTasks.findIndex(t=>t.id===b.dataset.novelDismiss);if(i>=0&&!['running','queued'].includes(novelTasks[i].status)){novelTasks.splice(i,1);persistNovelTasks();renderNovelDownloads();}});
+ $('[data-novel-save]').forEach(b=>b.onclick=()=>{const t=novelTasks.find(t=>t.id===b.dataset.novelSave);if(t?.blob)blobDownload(t.blob,t.filename);});
+ $('[data-novel-text-only]').forEach(b=>b.onclick=()=>{const t=novelTasks.find(t=>t.id===b.dataset.novelTextOnly);if(!t||t.status!=='running'||!t.canSkipImages)return;t.skipImages=true;t.imageAbortController?.abort();updateNovelTask(t,'已跳过剩余图片，正在打包已下载正文…');});
+ $('[data-novel-cancel]').forEach(b=>b.onclick=()=>{const t=novelTasks.find(t=>t.id===b.dataset.novelCancel);if(!t)return;t.stopped=true;t.imageAbortController?.abort();if(t.status==='queued')t.status='cancelled';t.detail=t.status==='cancelled'?'已取消':'正在取消…';persistNovelTasks();renderNovelDownloads();pumpNovelDownloads();});
+ $('[data-novel-retry]').forEach(b=>b.onclick=()=>{const t=novelTasks.find(t=>t.id===b.dataset.novelRetry);if(!t||['queued','running'].includes(t.status))return;t.status='queued';t.progress=0;t.stopped=false;t.blob=null;persistNovelTasks();renderNovelDownloads();pumpNovelDownloads();});
+ $('[data-novel-dismiss]').forEach(b=>b.onclick=()=>{const i=novelTasks.findIndex(t=>t.id===b.dataset.novelDismiss);if(i>=0&&!['running','queued'].includes(novelTasks[i].status)){novelTasks.splice(i,1);persistNovelTasks();renderNovelDownloads();}});
 }
 $('#saveNovelBundle').onclick=e=>busy(e.currentTarget,async()=>{const ready=novelTasks.filter(t=>t.blob),zip=new JSZip();for(let i=0;i<ready.length;i++)zip.file(`${i+1}-${ready[i].filename}`,await ready[i].blob.arrayBuffer());blobDownload(await zip.generateAsync({type:'blob'}),'小说下载合集.zip');});
 $('#bookEPUB').onclick=()=>{if(book)openNovelDownload(book);};
@@ -292,22 +295,30 @@ applyTheme(db.get('theme','light')==='dark'?'dark':'light');$('#themeToggle').on
 addEventListener('beforeunload',e=>{if(novelTasks.some(t=>['queued','running'].includes(t.status))){e.preventDefault();e.returnValue='';}});
 
 async function createBookEPUB(title,chapters,options={}){
- const layout=normalizeEPUBLayout(options.layout||epubLayout),zip=new JSZip(),uid=crypto.randomUUID(),images=new Map(),bodies=[];
+ const layout=normalizeEPUBLayout(options.layout||epubLayout),zip=new JSZip(),uid=crypto.randomUUID(),images=new Map(),skippedImages=new Set(),bodies=[];
  zip.file('mimetype','application/epub+zip',{compression:'STORE'});
  const imageTotal=new Set([...(options.cover?[options.cover]:[]),...chapters.flatMap(c=>(c.blocks||[]).filter(b=>b.type==='image').map(b=>b.url))]).size;options.onImages?.(0,imageTotal);
  const stopped=()=>{if(options.stopped?.())throw new Error('已停止打包，已下载的正文和图片已保留');};
+ const imageDone=()=>options.onImages?.(images.size+skippedImages.size,imageTotal);
+ const skipImage=url=>{if(!skippedImages.has(url)){skippedImages.add(url);imageDone();}return null;};
  const addImage=async(url,page,cover=false)=>{
-  stopped();if(images.has(url))return images.get(url);
-  options.onProgress?.(`正在下载第 ${images.size+1} 张图片（插图 / 封面）。请保持页面打开。`);
+  stopped();if(images.has(url))return images.get(url);if(skippedImages.has(url)||options.skipImages?.())return skipImage(url);
+  options.onProgress?.(`正在下载第 ${images.size+skippedImages.size+1} 张图片（插图 / 封面）。卡住时可选择“跳过图片并打包文字”。`);
   stopped();
-  const data=await epubImage(url,page,cover,options);stopped();
-  const item={id:'img'+images.size,path:'images/'+images.size+'.'+({'image/jpeg':'jpg','image/png':'png','image/gif':'gif'}[data.type]),type:data.type};
-  zip.file('OEBPS/'+item.path,data.data);images.set(url,item);options.onImages?.(images.size,imageTotal);return item;
+  try{
+   const data=await epubImage(url,page,cover,options);stopped();if(!data)return skipImage(url);
+   const item={id:'img'+images.size,path:'images/'+images.size+'.'+({'image/jpeg':'jpg','image/png':'png','image/gif':'gif'}[data.type]),type:data.type};
+   zip.file('OEBPS/'+item.path,data.data);images.set(url,item);imageDone();return item;
+  }catch(e){
+   if(options.stopped?.())throw e;
+   options.onProgress?.('插图下载失败，已跳过并继续打包文字：'+e.message);
+   return skipImage(url);
+  }
  };
  let coverImage=null;if(options.cover)coverImage=await addImage(options.cover,options.page,true);
  for(const c of chapters){
   const body=[];for(const b of c.blocks?.length?c.blocks:[{type:'text',text:c.text||''}]){
-   stopped();if(b.type==='image'){const item=await addImage(b.url,c.url);body.push(`<div class="illustration"><img src="${item.path}" alt="插图" /></div>`);}
+   stopped();if(b.type==='image'){const item=await addImage(b.url,c.url);if(item)body.push(`<div class="illustration"><img src="${item.path}" alt="插图" /></div>`);}
    else body.push(epubParagraphs(b.text));
   }bodies.push(body.join(''));
  }
@@ -321,7 +332,7 @@ async function createBookEPUB(title,chapters,options={}){
  if(coverImage)ordered.file('OEBPS/cover.xhtml',page('封面',`<div class="illustration"><img src="${coverImage.path}" alt="封面" /></div>`));
  ordered.file('OEBPS/nav.xhtml',`<?xml version="1.0" encoding="UTF-8"?><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><head><title>目录</title></head><body><nav epub:type="toc"><ol>${chapters.map((c,i)=>`<li><a href="${chapterPath(i)}">${esc(c.title)}</a></li>`).join('')}</ol></nav></body></html>`);
  ordered.file('OEBPS/content.opf',`<?xml version="1.0" encoding="UTF-8"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="uid">urn:uuid:${uid}</dc:identifier><dc:title>${esc(title)}</dc:title><dc:language>zh</dc:language><meta property="dcterms:modified">${new Date().toISOString().replace(/\.\d+Z/,'Z')}</meta>${coverImage?`<meta name="cover" content="${coverImage.id}"/>`:''}</metadata><manifest><item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>${chapters.map((_,i)=>`<item id="c${i}" href="${chapterPath(i)}" media-type="application/xhtml+xml"/>`).join('')}${[...images.values()].map(x=>`<item id="${x.id}" href="${x.path}" media-type="${x.type}"${x===coverImage?' properties="cover-image"':''}/>`).join('')}${coverImage?'<item id="cover" href="cover.xhtml" media-type="application/xhtml+xml"/>':''}</manifest><spine>${coverImage?'<itemref idref="cover"/>':''}${chapters.map((_,i)=>`<itemref idref="c${i}"/>`).join('')}</spine></package>`);
- stopped();options.onProgress?.('正在打包 EPUB…');const blob=await ordered.generateAsync({type:'blob',mimeType:'application/epub+zip'},meta=>options.onZip?.(meta.percent));stopped();if(options.download!==false)blobDownload(blob,title+'.epub');return {images:images.size,blob};
+ stopped();options.onProgress?.('正在打包 EPUB…');const blob=await ordered.generateAsync({type:'blob',mimeType:'application/epub+zip'},meta=>options.onZip?.(meta.percent));stopped();if(options.download!==false)blobDownload(blob,title+'.epub');return {images:images.size,skippedImages:skippedImages.size,blob};
 }
 
 const toSimplified=OpenCC.Converter({from:'tw',to:'cn'}),toTraditional=OpenCC.Converter({from:'cn',to:'tw'});
