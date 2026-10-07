@@ -12,7 +12,15 @@ export async function generate(env:LifeEnv,prompt:string,model=textModel,maps=fa
 }
 export function mapsSources(d:any){
  const chunks=d.candidates?.[0]?.groundingMetadata?.groundingChunks||[];
- return chunks.filter((c:any)=>c.maps?.uri&&c.maps?.title).map((c:any)=>({name:clean(c.maps.title,200),url:clean(c.maps.uri,2000),placeId:clean(c.maps.placeId,200)})).filter((s:any)=>{try{return new URL(s.url).protocol==='https:'}catch{return false}});
+ const seen=new Set<string>(),sources=[];
+ for(const c of chunks){
+  const m=c.maps;if(!m?.uri||!m?.title||/^Review of\s/i.test(m.title.trim()))continue;
+  const s={name:clean(m.title,200),url:clean(m.uri,2000),placeId:clean(m.placeId,200)};
+  let u:URL;try{u=new URL(s.url);if(u.protocol!=='https:')continue}catch{continue}
+  const key=s.placeId||u.searchParams.get('cid')||u.href;
+  if(seen.has(key))continue;seen.add(key);sources.push(s);
+ }
+ return sources;
 }
 export function validateMeal(out:any,candidates:any[]){
  if(!Array.isArray(out?.recipeIds)||out.recipeIds.length<1||out.recipeIds.length>3||new Set(out.recipeIds).size!==out.recipeIds.length||out.recipeIds.some((id:any)=>!candidates.some(c=>c.id===id)))throw Error('INVALID_SELECTION');
