@@ -1,0 +1,33 @@
+name: Research Workbench validation
+on:
+  pull_request:
+    paths:
+      - 'apps/research-workbench/**'
+      - 'scripts/research/**'
+      - 'workers/pt-universe-api/src/workbench.ts'
+      - 'workers/pt-universe-api/src/index.ts'
+      - 'workers/pt-universe-api/tests/workbench.test.mjs'
+      - '.github/workflows/research-check.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node scripts/research/model-test.mjs
+      - run: npm ci && npm run check && node tests/workbench.test.mjs && node tests/todo-sync.test.mjs
+        working-directory: workers/pt-universe-api
+      - run: npm install --no-save --package-lock=false playwright@1.58.2
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/research/browser-test.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: research-workbench-screenshots
+          path: /tmp/pt-research-*.png
