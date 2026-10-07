@@ -50,7 +50,7 @@ nexusIconElement('linkIconFile').addEventListener('change',async event=>{
 for(const id of ['Zoom','X','Y'])nexusIconElement('linkIcon'+id).addEventListener('input',nexusRefreshIcon);
 nexusIconElement('linkIconReset').onclick=()=>{nexusIconElement('linkIconZoom').value=1;nexusIconElement('linkIconX').value=0;nexusIconElement('linkIconY').value=0;nexusRefreshIcon()};
 nexusIconElement('saveLinkIcon').onclick=()=>{
-  if(!nexusIconImage)return;const c=document.createElement('canvas');c.width=c.height=128;nexusDrawIcon(c);
+  if(!nexusIconImage)return;const c=document.createElement('canvas');c.width=192;c.height=128;nexusDrawIcon(c);
   nexusSetDraftIcon({iconImage:c.toDataURL('image/webp',.9),iconCrop:{source:nexusIconSource,zoom:+nexusIconElement('linkIconZoom').value,x:+nexusIconElement('linkIconX').value,y:+nexusIconElement('linkIconY').value}});
 };
 nexusIconElement('clearLinkIcon').onclick=()=>nexusSetDraftIcon({});
