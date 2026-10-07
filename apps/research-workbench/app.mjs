@@ -1,6 +1,6 @@
-import {createResearchFlow} from './workflow.mjs';
-import {FIELDS,TYPES,TOPICS,empty,normalize,merge,safeUrl,identity,classify,relevance,paragraphs,extract,evidenceStatus,upsertPaper,importExtraction,graph,compareMarkdown,canonical} from './model.mjs';
-import {config,register,parseCode,useConfig,fetchCloud,putCloud} from './sync.mjs';
+import {createResearchFlow} from './workflow.mjs?v=2';
+import {FIELDS,TYPES,TOPICS,empty,normalize,merge,safeUrl,identity,classify,relevance,paragraphs,extract,evidenceStatus,upsertPaper,importExtraction,graph,compareMarkdown,canonical} from './model.mjs?v=2';
+import {config,register,parseCode,useConfig,fetchCloud,putCloud} from './sync.mjs?v=2';
 const API='https://pt-universe-api.summer07-nanjolno.workers.dev',KEY='research-workbench.v1',$=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const STATUS={inbox:'Inbox',saved:'Saved',later:'Read Later',deep:'Deep Read',ignored:'Ignored'},NAV=[['discover','◎','开始研究'],['inbox','◫','Research Inbox'],['library','▤','Paper Library'],['compare','⇄','Paper Compare'],['topics','▦','Topic Workspace'],['graph','⌘','Research Graph'],['memory','⌕','Research Memory'],['roadmap','☷','项目路线图']];
 const badge=(label,kind='')=>`<span class="badge ${kind}">${esc(label)}</span>`,link=(url,label)=>safeUrl(url)?`<a href="${esc(url)}" target="_blank" rel="noopener">${esc(label)}</a>`:'';

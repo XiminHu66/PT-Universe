@@ -79,8 +79,8 @@ notes. Reader AI deep reading explains numbered original paragraphs and extracts
 manually edited fields are preserved. Updating original text invalidates the
 previous AI reading guide.
 
-All results persist in the existing encrypted sync schema (backward-compatible
-`researchSessions`, paper `aiRead` and topic `synthesis`). Loading, refreshing,
+All results persist in the existing encrypted sync schema (v1 imports migrate to v2; older open clients reject v2 instead of dropping new fields). The additional
+`researchSessions`, paper `aiRead` and topic `synthesis` fields preserve the new results. Loading, refreshing,
 synchronizing and navigating do not generate content. Identical tasks reuse
 cached results. Failed requests require manual retries, with no paid fallback.
 
