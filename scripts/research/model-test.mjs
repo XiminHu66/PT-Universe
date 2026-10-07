@@ -11,4 +11,5 @@ const other=structuredClone(empty());other.entities.push({id:'method-1',name:'Hy
 const g=graph(state);assert.ok(g.nodes.some(n=>n.type==='Method'));assert.ok(g.edges.every(e=>e.inferred));assert.ok(compareMarkdown([paper,paper]).includes('原文匹配 / 待确认'));
 assert.equal(normalize({...state,dimensions:undefined,comparisonNotes:undefined}).dimensions.length,0);assert.equal(paragraphs('Intro\n\nMethod\n\nResults').length,3);
 assert.throws(()=>normalize({...state,papers:[{...paper,id:'<bad>'}]}));
+assert.equal(normalize({...state,version:1,researchSessions:undefined}).version,2);
 console.log('Research model passed: import dedupe, candidate extraction, evidence match, AI validation, merge/tombstones, graph and export');

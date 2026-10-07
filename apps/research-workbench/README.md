@@ -63,3 +63,52 @@ npx wrangler deploy --dry-run
 ```
 
 浏览器测试覆盖导入 / metadata、规则提取、错误证据不能确认、全文替换重置确认、笔记 / 决策、比较与导出、维度刷新后保留、图和主题、关键词搜索、移动端无横向溢出，以及两端加密配对与刷新。WebMCP 注册 `search_research_records` 和 `import_research_paper`，与可见 UI 共用逻辑并验证输入。
+
+## Guided on-demand research (October 2026)
+
+The default **开始研究** view starts with a topic, first-submission date range,
+optional question, and editable English search terms. Gemini refines the topic
+into directions; arXiv returns up to 40 genuine date-filtered candidates. A
+single on-demand call screens each candidate with relevance, rationale, reading
+focus and uncertainty. Users select up to 12 papers, then one call produces an
+overview, coherent outline, reading order, source-linked comparison, takeaways,
+open questions and candidate entities. Papers, topic synthesis and inferred
+knowledge relations are automatically archived, retaining handwritten topic
+notes. Reader AI deep reading explains numbered original paragraphs and extracts
+15 fields; quote matching and human confirmation remain separate. Confirmed and
+manually edited fields are preserved. Updating original text invalidates the
+previous AI reading guide.
+
+All results persist in the existing encrypted sync schema (v1 imports migrate to v2; older open clients reject v2 instead of dropping new fields). The additional
+`researchSessions`, paper `aiRead` and topic `synthesis` fields preserve the new results. Loading, refreshing,
+synchronizing and navigating do not generate content. Identical tasks reuse
+cached results. Failed requests require manual retries, with no paid fallback.
+
+`POST /api/workbench/ai/:sync_id` uses the Worker secret `GEMINI_API_KEY` and the
+fixed previously measured model `gemini-3.5-flash-lite`. `GET` checks configuration
+without generating. Sync authentication alone does not grant quota access:
+`migrations/0011_research_ai.sql` performs a **one-time** enrollment of existing
+saved PT workspaces. Users with a new device must connect the existing pairing
+code; public registration cannot enroll. To authorize another owned sync account,
+an administrator can explicitly insert its ID into `research_ai_accounts`.
+
+Server reservations limit generation to 100 attempts/day (Pacific date), 8
+requests/minute and a conservative 200k estimated input-token budget/minute
+across enrolled accounts. One in-flight task per account, prompt fingerprints,
+response validation, source-ID filtering and exact-quote checks prevent repeated
+spending and accidental verified claims. Input-length-based token reservations
+are conservative estimates, not measurements of provider quota. Short-lived
+server result cache expires by daily cleanup; local durable archives use the
+existing encrypted sync. There are no scheduled LLM calls.
+
+Additional validation:
+
+```sh
+node scripts/research/guided-browser-test.cjs
+cd workers/pt-universe-api
+node tests/research-ai.test.mjs
+```
+
+Deployment commits tagged `[research-ai-test]` run four live fixed-public-topic
+checks (refine, date-filtered search + screen, synthesis, original-paper deep
+reading), measure tokens, verify deduplication, and remove the temporary account.

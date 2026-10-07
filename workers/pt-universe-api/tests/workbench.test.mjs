@@ -9,4 +9,10 @@ assert.equal(parseFeed('<rss><item><title>A</title><link>https://example.com/a</
 await assert.rejects(()=>workbenchRoute(new Request('https://test/api/workbench/import?q='+encodeURIComponent('https://127.0.0.1/'))),/不支持/);
 await assert.rejects(()=>workbenchRoute(new Request('https://test/api/workbench/import?q='+encodeURIComponent('https://github.com:9000/a/b'))),/不支持/);
 const original=globalThis.fetch;try{globalThis.fetch=async()=>new Response(null,{status:302,headers:{location:'http://169.254.169.254/'}});await assert.rejects(()=>workbenchRoute(new Request('https://test/api/workbench/import?q='+encodeURIComponent('https://arxiv.org/abs/2404.16130'))),/不支持/)}finally{globalThis.fetch=original}
+try{
+ globalThis.fetch=async u=>{const upstream=new URL(String(u));assert.ok(upstream.searchParams.get('search_query').includes('submittedDate:[202404010000 TO 202404302359]'));assert.ok(upstream.searchParams.get('search_query').includes('all:"GraphRAG" OR all:"graph retrieval"'));return new Response(atom)};
+ const search=await workbenchRoute(new Request('https://test/api/workbench/discover?'+new URLSearchParams({q:'GraphRAG | graph retrieval',from:'2024-04-01',to:'2024-04-30'})));
+ assert.equal(search.items.length,1);assert.equal(search.dateBasis,'first submission');
+ await assert.rejects(()=>workbenchRoute(new Request('https://test/api/workbench/discover?q=RAG&from=2024-05-01&to=2024-04-01')),/日期/);
+}finally{globalThis.fetch=original}
 console.log('Research upstreams passed: Atom/RSS metadata, arXiv HTML sections and tables, fixed hosts, redirects');
