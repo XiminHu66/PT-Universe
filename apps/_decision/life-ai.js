@@ -38,8 +38,8 @@ export function mountMapsAI(host,restaurants=false){
   try{
    const d=await runLifeAI('maps',Object.fromEntries(new FormData(form)));if(current!==revision){status.textContent='需求已修改，请重新查询。';return;}
    if(!d.sources?.length)throw Error('未返回可验证地点来源。');
-   result.innerHTML=`<pre class="life-ai-answer">${esc(d.answer)}</pre><div class="life-ai-sources"><b translate="no">Google Maps</b> · 地点来源${d.sources.map((s,i)=>`<p>${i+1}. <a translate="no" href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name)}</a> <a href="${esc('https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent('Juanita, Kirkland WA')+'&destination='+encodeURIComponent(s.name+', '+form.elements.city.value+' WA')+(s.placeId?'&destination_place_id='+encodeURIComponent(s.placeId):''))}" target="_blank" rel="noopener">导航</a></p>`).join('')}</div>${d.translated?'<details><summary>Google Maps 英文原答</summary><pre>'+esc(d.original)+'</pre></details>':''}<button data-ai-copy>复制结果与来源</button>`;
-   status.textContent=metadata(d)+(d.translated?'':' · 中文翻译暂时不可用，显示英文原答');result.querySelector('[data-ai-copy]').onclick=()=>copy(d.answer+'\n\nGoogle Maps\n'+d.sources.map(s=>s.name+' '+s.url).join('\n'));
+   result.innerHTML=`<pre class="life-ai-answer">${esc(d.answer)}</pre><div class="life-ai-sources"><b translate="no">Google Maps</b> · 地点来源${d.sources.map((s,i)=>`<p>${i+1}. <a translate="no" href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name)}</a> <a href="${esc('https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent('Juanita, Kirkland WA')+'&destination='+encodeURIComponent(s.name+', '+form.elements.city.value+' WA')+(s.placeId?'&destination_place_id='+encodeURIComponent(s.placeId):''))}" target="_blank" rel="noopener">导航</a></p>`).join('')}</div><button data-ai-copy>复制结果与来源</button>`;
+   status.textContent=metadata(d)+(d.translated?'':' · 仅展示已返回的地点来源');result.querySelector('[data-ai-copy]').onclick=()=>copy(d.answer+'\n\nGoogle Maps\n'+d.sources.map(s=>s.name+' '+s.url).join('\n'));
   }catch(err){status.textContent=err.message;}finally{buttons.forEach(b=>b.disabled=false);}
  };
 }
