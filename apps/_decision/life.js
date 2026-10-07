@@ -1,4 +1,5 @@
 import {$,esc,link,stamp,read,raw,save,field,select,data,id,json,ask,appURL,backupBar,toast,dateIn,copy,download} from './core.js';
+import {mountMealAI} from './life-ai.js';
 import {planEvents,fresh} from './models.mjs';
 import {prepareRecipes,mealPreferences,planMeals} from './meal-planner.mjs';
 const host=document.querySelector('[data-decision="weekend"], [data-decision="meal"]'),mode=host?.dataset.decision;
@@ -24,6 +25,7 @@ function renderMeal(){
  form.oninput=()=>{ $('#meal-options',host).hidden=true;$('#meal-more',host).disabled=true;mealStatus('条件已修改，请点击“生成今晚菜单”，按新条件重新推荐。'); };
  form.onsubmit=e=>{e.preventDefault();const p=mealPreferences(data(form)),key=JSON.stringify(p);const stored=save('meal-preferences',p);generateMeals(p,{next:key===mealKey});if(!stored)mealStatus($('#meal-status',host).textContent+' · 偏好未能保存到本机');};
  $('#meal-more',host).onclick=()=>generateMeals(mealPreferences(data(form)),{next:true});
+ mountMealAI(host,()=>({recipes:recipeLibrary,preferences:mealPreferences(data(form)),recent:saved().slice(-3).map(p=>p.title)}));
  $('#meal-reload',host).onclick=loadMealLibrary;bindHistory();if(recipeLibrary.length){$('#meal-plan-form button[type=submit]',host).disabled=false;generateMeals(pref)}else loadMealLibrary();
 }
 let mealResult=null,mealKey='';

@@ -141,6 +141,28 @@
     return true;
   }
 
+  // apps/_decision/collector.js
+  var API = "https://pt-universe-api.summer07-nanjolno.workers.dev";
+  var registering = null;
+  async function account(create = false) {
+    let a = read("collector-account", null);
+    if (a) return a;
+    if (!create) return null;
+    if (registering) return registering;
+    registering = (async () => {
+      a = { id: crypto.randomUUID(), token: Array.from(crypto.getRandomValues(new Uint8Array(32)), (b) => b.toString(16).padStart(2, "0")).join("") };
+      const r = await fetch(API + "/api/sync/register", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(a), signal: AbortSignal.timeout(2e4) });
+      if (!r.ok) throw Error("\u540E\u53F0\u8D26\u53F7\u521B\u5EFA\u5931\u8D25 HTTP " + r.status);
+      if (!save("collector-account", a)) throw Error("\u65E0\u6CD5\u4FDD\u5B58\u540E\u53F0\u8FDE\u63A5");
+      return a;
+    })();
+    try {
+      return await registering;
+    } finally {
+      registering = null;
+    }
+  }
+
   // apps/_decision/meal-planner.mjs
   var families = {
     "\u756A\u8304": ["\u897F\u7EA2\u67FF", "\u897F\u7D05\u67FF", "\u8543\u8304", "tomato"],
@@ -302,6 +324,108 @@
     return { options: selected.map((m) => ({ ...m, people: Number(p.people), amounts: scaleQuantities(m, Number(p.people)) })), total: candidates.length, offset: start, pantry, exclude, unavailable, unknownExclusions, preferences: p };
   }
 
+  // apps/_decision/life-ai.js
+  async function runLifeAI(kind, body) {
+    const sync = raw("ptu.sync.config", null), a = sync?.id && sync?.token ? sync : await account(true);
+    const r = await fetch(`${API}/api/life/${a.id}/${kind}`, { method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + a.token }, body: JSON.stringify(body), signal: AbortSignal.timeout(195e3) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw Error(d.error || "AI \u670D\u52A1\u8FD4\u56DE HTTP " + r.status);
+    return d;
+  }
+  var metadata = (d) => `${d.model} \xB7 ${(d.latencyMs / 1e3).toFixed(1)} \u79D2 \xB7 ${d.usage?.reduce((n, x) => n + (x?.totalTokenCount || 0), 0) || 0} tokens \xB7 ${stamp(d.at)}`;
+  function mountMealAI(host2, getState) {
+    const panel = document.createElement("section");
+    panel.className = "d-inset life-ai";
+    panel.innerHTML = '<h3>AI \u914D\u9910 \xB7 \u8BD5\u9A8C</h3><p>\u6309\u4E0A\u65B9\u6761\u4EF6\uFF0C\u4ECE\u5B8C\u6574\u83DC\u8C31\u5E93\u642D\u914D 1\u20133 \u9053\u83DC\uFF0C\u7ED9\u51FA\u7406\u7531\u4E0E\u4E0B\u53A8\u987A\u5E8F\u3002</p><div class="d-actions"><button type="button" class="d-primary" data-ai-run>AI \u642D\u914D\u4ECA\u665A\u83DC\u5355</button></div><p class="d-muted">\u70B9\u51FB\u624D\u8C03\u7528 Gemini\uFF1B\u5F53\u524D\u7B5B\u9009\u6761\u4EF6\u548C\u5019\u9009\u83DC\u8C31\u4F1A\u53D1\u9001\u7ED9\u6A21\u578B\u3002\u70F9\u996A\u987A\u5E8F\u662F\u5EFA\u8BAE\uFF0C\u7528\u91CF\u548C\u505A\u6CD5\u4EE5\u539F\u83DC\u8C31\u4E3A\u51C6\u3002</p><p data-ai-status role="status" aria-live="polite"></p><div data-ai-result></div>';
+    host2.querySelector("#meal-options").before(panel);
+    let revision = 0;
+    host2.querySelector("#meal-plan-form").addEventListener("input", () => {
+      revision++;
+      panel.querySelector("[data-ai-result]").replaceChildren();
+      panel.querySelector("[data-ai-status]").textContent = "\u6761\u4EF6\u5DF2\u4FEE\u6539\uFF0C\u8BF7\u91CD\u65B0\u751F\u6210 AI \u83DC\u5355\u3002";
+    });
+    panel.querySelector("[data-ai-run]").onclick = async (e) => {
+      const button = e.currentTarget, status = panel.querySelector("[data-ai-status]"), result = panel.querySelector("[data-ai-result]");
+      const current = revision;
+      button.disabled = true;
+      status.textContent = "\u6B63\u5728\u7B5B\u9009\u83DC\u8C31\u5E76\u642D\u914D\u83DC\u5355\u2026";
+      result.replaceChildren();
+      try {
+        const { recipes, preferences, recent } = getState(), candidates = [];
+        for (let offset = 0; offset < 18; offset += 3) {
+          const r = planMeals(recipes, preferences, { offset, recent });
+          for (const x of r.options) if (!candidates.some((c) => c.id === x.id)) candidates.push(x);
+          if (candidates.length >= r.total) break;
+        }
+        if (!candidates.length) throw Error("\u6CA1\u6709\u7B26\u5408\u5F53\u524D\u98DF\u6750\u3001\u5668\u6750\u4E0E\u5FCC\u53E3\u6761\u4EF6\u7684\u83DC\u8C31\uFF0C\u8BF7\u5148\u8C03\u6574\u6761\u4EF6\u3002");
+        const d = await runLifeAI("meal", { preferences, candidates: candidates.map((m) => ({ id: m.id, name: m.name, source: m.source, ingredients: m.ingredientsText.slice(0, 650), minutes: m.minutes, equipment: m.equipment, advance: m.advance, steps: m.stepsText.slice(0, 500) })) });
+        if (current !== revision) {
+          status.textContent = "\u6761\u4EF6\u5DF2\u4FEE\u6539\uFF0C\u8BF7\u6309\u65B0\u6761\u4EF6\u91CD\u65B0\u751F\u6210\u3002";
+          return;
+        }
+        const selected = d.recipeIds.map((id2) => candidates.find((m) => m.id === id2));
+        if (selected.some((x) => !x)) throw Error("\u8FD4\u56DE\u7684\u83DC\u5355\u4E0D\u5728\u5019\u9009\u83DC\u8C31\u4E2D\uFF0C\u8BF7\u91CD\u8BD5\u3002");
+        const text = selected.map((m) => m.name + "\n" + m.amounts.note + "\n" + m.amounts.text + "\n" + m.stepsText + "\n\u6765\u6E90\uFF1A" + m.source).join("\n\n") + "\n\n\u642D\u914D\u7406\u7531\uFF1A" + d.reason + "\n\u4E0B\u53A8\u987A\u5E8F\uFF08\u5EFA\u8BAE\uFF09\uFF1A\n" + d.steps.join("\n");
+        result.innerHTML = `<h3>${selected.map((m) => esc(m.name)).join(" \uFF0B ")}</h3><p>${esc(d.reason)}</p><ol>${d.steps.map((s) => "<li>" + esc(s) + "</li>").join("")}</ol>${selected.map((m) => `<details><summary>${esc(m.name)} \xB7 \u539F\u83DC\u8C31</summary><p>${esc(m.amounts.note)}</p><pre>${esc(m.amounts.text + "\n\n" + m.stepsText)}</pre><a href="${esc(m.source)}" target="_blank" rel="noopener">HowToCook \u539F\u6587</a></details>`).join("")}<div class="d-actions"><button data-ai-save>\u4FDD\u5B58\u6574\u4EFD\u83DC\u5355</button><button data-ai-copy>\u590D\u5236\u83DC\u5355\u4E0E\u6E05\u5355</button></div>`;
+        status.textContent = metadata(d);
+        result.querySelector("[data-ai-copy]").onclick = () => copy(text);
+        result.querySelector("[data-ai-save]").onclick = (e2) => {
+          const plans = raw("ptu.decision.meal-plans", []);
+          if (save("meal-plans", [...plans, { id: id(), title: selected.map((m) => m.name).join(" \uFF0B "), summary: "AI \u914D\u9910 \xB7 " + preferences.people + " \u4EBA", text, at: (/* @__PURE__ */ new Date()).toISOString() }].slice(-100))) {
+            e2.currentTarget.disabled = true;
+            e2.currentTarget.textContent = "\u5DF2\u4FDD\u5B58\u81F3\u5DF2\u9009\u5B89\u6392";
+          }
+        };
+      } catch (err) {
+        status.textContent = err.message;
+      } finally {
+        button.disabled = false;
+      }
+    };
+  }
+  function mountMapsAI(host2, restaurants = false) {
+    host2.classList.add("d-root", "life-ai");
+    host2.innerHTML = `<section class="d-panel"><h2>AI \u5730\u56FE\u63A2\u7D22 \xB7 \u8BD5\u9A8C</h2><form class="d-form"><label>\u5730\u533A<select name="city">${["Kirkland", "Bellevue", "Redmond", "Lynnwood", "Everett", "Seattle"].map((c) => "<option>" + c + "</option>").join("")}</select></label><label class="d-wide">\u60F3\u627E\u4EC0\u4E48<textarea name="query" required maxlength="300" placeholder="${restaurants ? "\u4F8B\u5982\uFF1A\u9002\u5408\u4E24\u4E2A\u4EBA\u665A\u996D\u7684\u65E5\u6599\uFF0C\u4F18\u5148\u505C\u8F66\u65B9\u4FBF" : "\u4F8B\u5982\uFF1A\u9002\u5408\u6563\u6B65\u7684\u6E56\u8FB9\u516C\u56ED\uFF0C\u9644\u8FD1\u6709\u5496\u5561\u5E97"}"></textarea></label><div class="d-actions d-wide"><button class="d-primary">\u67E5\u627E\u771F\u5B9E\u5730\u70B9</button><button type="button" data-ai-example>${restaurants ? "\u8BD5\u8BD5\u9644\u8FD1\u665A\u9910" : "\u8BD5\u8BD5\u6563\u6B65\uFF0B\u5496\u5561"}</button></div></form><p class="d-muted">\u4EC5\u70B9\u51FB\u67E5\u8BE2\u65F6\u8FD0\u884C\u3002\u4F7F\u7528 Google Maps \u5730\u70B9\u6765\u6E90\uFF1B\u4E2D\u6587\u9700\u6C42\u4F1A\u7FFB\u8BD1\u540E\u67E5\u8BE2\uFF0C\u518D\u8FD4\u56DE\u4E2D\u6587\u3002\u4E00\u6B21\u6700\u591A 3 \u6B21\u6A21\u578B\u8C03\u7528\u3002\u5B9E\u9645\u8425\u4E1A\u3001\u505C\u8F66\u4E0E\u8F66\u7A0B\u8BF7\u6253\u5F00\u6765\u6E90\u6838\u5BF9\u3002</p><p data-ai-status role="status" aria-live="polite"></p><div data-ai-result></div></section>`;
+    const form = host2.querySelector("form"), status = host2.querySelector("[data-ai-status]"), result = host2.querySelector("[data-ai-result]");
+    let revision = 0;
+    form.addEventListener("input", () => {
+      revision++;
+      result.replaceChildren();
+      status.textContent = "\u9700\u6C42\u5DF2\u4FEE\u6539\uFF0C\u8BF7\u91CD\u65B0\u67E5\u8BE2\u3002";
+    });
+    host2.querySelector("[data-ai-example]").onclick = () => {
+      form.elements.query.value = restaurants ? "Kirkland \u9002\u5408\u4E24\u4E2A\u4EBA\u665A\u996D\u7684\u4E2D\u9910\u6216\u65E5\u6599\uFF0C\u4F18\u5148\u505C\u8F66\u65B9\u4FBF\uFF0C\u7ED9\u6211\u4E09\u4E2A\u9009\u62E9" : "Kirkland \u9002\u5408\u6563\u6B65\u7684\u6E56\u8FB9\u516C\u56ED\uFF0C\u9644\u8FD1\u6709\u5496\u5561\u5E97\uFF0C\u7ED9\u6211\u4E09\u4E2A\u9009\u62E9";
+      revision++;
+      result.replaceChildren();
+      status.textContent = "\u5DF2\u586B\u5165\u793A\u4F8B\uFF0C\u70B9\u51FB\u201C\u67E5\u627E\u771F\u5B9E\u5730\u70B9\u201D\u5F00\u59CB\u3002";
+    };
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const current = revision;
+      const buttons2 = [...form.querySelectorAll("button")];
+      buttons2.forEach((b) => b.disabled = true);
+      status.textContent = "\u6B63\u5728\u67E5\u8BE2 Google Maps \u5730\u70B9\u4E0E\u6765\u6E90\uFF0C\u901A\u5E38\u9700\u8981\u6570\u5341\u79D2\u2026";
+      result.replaceChildren();
+      try {
+        const d = await runLifeAI("maps", Object.fromEntries(new FormData(form)));
+        if (current !== revision) {
+          status.textContent = "\u9700\u6C42\u5DF2\u4FEE\u6539\uFF0C\u8BF7\u91CD\u65B0\u67E5\u8BE2\u3002";
+          return;
+        }
+        if (!d.sources?.length) throw Error("\u672A\u8FD4\u56DE\u53EF\u9A8C\u8BC1\u5730\u70B9\u6765\u6E90\u3002");
+        result.innerHTML = `<pre class="life-ai-answer">${esc(d.answer)}</pre><div class="life-ai-sources"><b translate="no">Google Maps</b> \xB7 \u5730\u70B9\u6765\u6E90${d.sources.map((s, i) => `<p>${i + 1}. <a translate="no" href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name)}</a> <a href="${esc("https://www.google.com/maps/dir/?api=1&origin=" + encodeURIComponent("Juanita, Kirkland WA") + "&destination=" + encodeURIComponent(s.name + ", " + form.elements.city.value + " WA") + (s.placeId ? "&destination_place_id=" + encodeURIComponent(s.placeId) : ""))}" target="_blank" rel="noopener">\u5BFC\u822A</a></p>`).join("")}</div>${d.translated ? "<details><summary>Google Maps \u82F1\u6587\u539F\u7B54</summary><pre>" + esc(d.original) + "</pre></details>" : ""}<button data-ai-copy>\u590D\u5236\u7ED3\u679C\u4E0E\u6765\u6E90</button>`;
+        status.textContent = metadata(d) + (d.translated ? "" : " \xB7 \u4E2D\u6587\u7FFB\u8BD1\u6682\u65F6\u4E0D\u53EF\u7528\uFF0C\u663E\u793A\u82F1\u6587\u539F\u7B54");
+        result.querySelector("[data-ai-copy]").onclick = () => copy(d.answer + "\n\nGoogle Maps\n" + d.sources.map((s) => s.name + " " + s.url).join("\n"));
+      } catch (err) {
+        status.textContent = err.message;
+      } finally {
+        buttons2.forEach((b) => b.disabled = false);
+      }
+    };
+  }
+  var mapHost = document.querySelector("[data-life-ai-maps]");
+  if (mapHost) mountMapsAI(mapHost, mapHost.dataset.lifeAiMaps === "restaurants");
+
   // apps/_decision/life.js
   var host = document.querySelector('[data-decision="weekend"], [data-decision="meal"]');
   var mode = host?.dataset.decision;
@@ -369,6 +493,7 @@
       if (!stored) mealStatus($("#meal-status", host).textContent + " \xB7 \u504F\u597D\u672A\u80FD\u4FDD\u5B58\u5230\u672C\u673A");
     };
     $("#meal-more", host).onclick = () => generateMeals(mealPreferences(data(form)), { next: true });
+    mountMealAI(host, () => ({ recipes: recipeLibrary, preferences: mealPreferences(data(form)), recent: saved().slice(-3).map((p) => p.title) }));
     $("#meal-reload", host).onclick = loadMealLibrary;
     bindHistory();
     if (recipeLibrary.length) {

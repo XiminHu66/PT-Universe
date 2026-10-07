@@ -45,6 +45,7 @@ jobs:
           node scripts/investment/nexus-tabs-test.cjs
           node scripts/decision/nexus-meal-test.cjs
           node scripts/decision/meal-inputs-test.cjs
+          node scripts/decision/life-ai-browser-test.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -67,4 +68,5 @@ jobs:
           node ../../scripts/decision/build-workspace.mjs --check
           node tests/decision.test.mjs
           node tests/muse.test.mjs
+          node tests/life-ai.test.mjs
           node tests/investment.test.mjs
