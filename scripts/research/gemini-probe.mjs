@@ -49,18 +49,20 @@ try{
   report.results.push(connection);
   if(!connection.ok)throw Error('Worker Gemini connection failed: '+(connection.status||connection.workerHttpStatus));
   // Try only allowlisted models that Google actually advertises to this key.
-  const preferred=['gemini-3.8-flash','gemini-2.5-flash','gemini-2.5-flash-lite','gemini-3.5-flash-lite'];
+  const preferred=['gemini-2.5-flash','gemini-3.5-flash-lite','gemini-2.5-flash-lite','gemini-3.8-flash'];
   let selected;
   for(const model of preferred.filter(m=>connection.models.some(x=>x.name===m))){
     const extraction=await probe('extract',model);report.results.push(extraction);
     if(extraction.ok){selected=model;break}
     // Never retry the same generation or stress-test the account to discover limits.
-    if(![400,404,429].includes(extraction.httpStatus))break;
+    if(![400,404,429,503].includes(extraction.httpStatus))break;
   }
   if(selected){
     for(const phase of ['compare','topic'])report.results.push(await probe(phase,selected));
     report.selectedModel=selected;
-  }else report.generationAvailable=false;
+    report.generationAvailable=true;
+    if(report.results.some(x=>['extract','compare','topic'].includes(x.phase)&&x.model===selected&&!x.ok))process.exitCode=1;
+  }else{report.generationAvailable=false;process.exitCode=1}
 }catch(e){report.error=e.message;process.exitCode=1}
 finally{
   if(configured){try{await wrangler(['secret','delete','RESEARCH_PROBE_AUTH']);report.temporaryCredentialRemoved=true}catch{report.temporaryCredentialRemoved=false;report.temporaryCredentialExpiresWithinMinutes=15}}
