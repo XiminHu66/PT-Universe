@@ -1,1 +1,58 @@
 .life-ai{margin-block:16px;font-size:1rem;line-height:1.65;min-width:0}.life-ai h2{font-size:1.35rem}.life-ai h3{font-size:1.1rem}.life-ai p,.life-ai li{overflow-wrap:anywhere}.life-ai pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;max-height:none}.life-ai textarea{width:100%;min-height:86px;font-size:1rem}.life-ai .d-muted{font-size:.875rem}.life-ai [data-ai-status]{font-size:.875rem;white-space:pre-wrap}.life-ai-sources{padding:12px;border:1px solid var(--line);border-radius:12px;margin-block:12px}.life-ai-sources a{display:inline-block;margin-right:12px}.life-ai details{margin-block:10px}.life-ai-answer{padding:14px;border-radius:12px;background:var(--panel)}@media(max-width:600px){.life-ai .d-form{grid-template-columns:1fr}.life-ai button{min-height:44px}.life-ai{margin-inline:0}.life-ai .d-panel{padding:16px}}
+
+/* Place discovery keeps the query, recommendation and action in one visual flow. */
+.life-ai-map .map-discovery{padding:28px;border-radius:22px;box-shadow:0 8px 28px #25363106;overflow:hidden}
+.map-discovery-header{display:flex;align-items:center;gap:16px;margin-bottom:24px;position:static;padding:0;background:none;backdrop-filter:none;z-index:auto}
+.map-discovery-icon{display:grid;place-items:center;flex:0 0 52px;height:52px;border-radius:17px;background:var(--d-soft);color:var(--d-accent)}
+.life-ai-map svg{width:19px;height:19px;flex-shrink:0;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.map-discovery-icon svg{width:26px;height:26px}
+.map-eyebrow{display:block;color:var(--d-muted);font-size:10px;line-height:1.4;font-weight:700;letter-spacing:1.7px;margin-bottom:5px}
+.life-ai-map .map-discovery-header h2{font-size:24px;letter-spacing:-.5px;margin:0 0 5px}
+.life-ai-map .map-discovery-header p{font-size:13px;color:var(--d-muted);margin:0}
+.map-ai-tag,.map-source-tag{border:1px solid var(--d-line);border-radius:30px;white-space:nowrap;color:var(--d-muted);font-size:11px;padding:5px 10px;line-height:1.4}
+.map-ai-tag{margin-left:auto;color:var(--d-accent);background:var(--d-soft);border-color:transparent}
+.map-search-form{display:grid;grid-template-columns:180px minmax(0,1fr);align-items:start;gap:16px;background:var(--d-bg);padding:20px;border:1px solid var(--d-line);border-radius:16px}
+.life-ai-map .map-search-form label{font-size:12px;font-weight:650;gap:8px;color:var(--d-ink)}
+.life-ai-map .map-search-form select,.life-ai-map .map-search-form textarea{background:var(--d-card);border-radius:10px;font-size:15px;font-weight:400;line-height:1.6;padding:11px 13px}
+.life-ai-map .map-search-form textarea{min-height:76px;resize:vertical}
+.life-ai-map .map-search-form textarea::placeholder{color:var(--d-muted);opacity:.8}
+.map-search-actions{grid-column:2;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.life-ai-map .map-search-actions [data-ai-example]{padding:4px 0;min-height:36px;background:transparent;border-color:transparent;color:var(--d-muted);font-weight:500;font-size:12px;text-align:left}
+.life-ai-map .map-search-actions .d-primary{border-radius:10px;min-height:44px;padding-inline:20px;gap:8px}
+.life-ai-map .map-search-actions .d-primary:hover{background:var(--d-accent);color:var(--d-card);filter:brightness(.94)}
+.map-search-note{display:flex;align-items:center;gap:7px;color:var(--d-muted);font-size:11px;margin:12px 2px 0}
+.map-note-dot{height:5px;width:5px;flex-shrink:0;border-radius:50%;background:var(--d-accent);opacity:.6}
+.life-ai-map [data-ai-status]{margin:12px 0 0;color:var(--d-muted);font-size:12px}
+.life-ai-map [data-ai-status]:empty,.life-ai-map [data-ai-status][data-state=success]{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.life-ai-map [data-ai-status][data-state=error]{background:#a13d3710;color:#a13d37;border-radius:10px;padding:12px 14px}
+.map-result-heading{display:flex;justify-content:space-between;align-items:center;gap:14px;margin:28px 0 15px}
+.life-ai-map .map-result-heading h3{font-size:18px;letter-spacing:-.3px;margin:0;line-height:1.5}
+.map-result-heading h3>span{display:inline-grid;place-items:center;min-width:24px;height:24px;margin-left:5px;border-radius:7px;background:var(--d-soft);color:var(--d-accent);font-size:12px;vertical-align:middle}
+.life-ai-map .map-place-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:0;padding:0;border:0;border-radius:0}
+.map-place-card{display:flex;flex-direction:column;min-width:0;border:1px solid var(--d-line);border-radius:16px;background:var(--d-card);padding:18px 18px 0;transition:border-color .18s,box-shadow .18s}
+.map-place-card:hover{border-color:var(--d-accent);box-shadow:0 5px 18px #25363108}
+.map-place-top{display:flex;align-items:center;gap:9px;margin-bottom:17px}
+.map-place-number{display:grid;place-items:center;min-width:27px;height:27px;border-radius:8px;background:var(--d-soft);color:var(--d-accent);font-size:11px;font-weight:700;font-variant-numeric:tabular-nums}
+.map-place-area{color:var(--d-muted);font-size:10px}
+.map-place-top>svg{margin-left:auto;color:var(--d-muted);opacity:.55;width:16px;height:16px}
+.life-ai-map .map-place-card h4{margin:0 0 8px;font:650 17px/1.35 system-ui,-apple-system,'Segoe UI',sans-serif;letter-spacing:-.2px;color:var(--d-ink);overflow-wrap:anywhere}
+.life-ai-map .map-place-summary{font-size:13px;line-height:1.75;color:var(--d-muted);margin:0 0 20px;flex-grow:1}
+.map-place-card footer{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--d-line);margin:0;padding:12px 0;background:transparent;font-size:12px}
+.life-ai-map .life-ai-sources a{margin:0;text-decoration:none}
+.life-ai-map .map-place-source{display:inline-flex;align-items:center;gap:5px;color:var(--d-muted);font-size:12px;min-height:38px}
+.life-ai-map .map-place-navigate{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:38px;min-width:76px;border-radius:9px;padding:7px 10px;background:var(--d-soft);color:var(--d-accent);font-size:12px;font-weight:650}
+.life-ai-map .map-place-navigate:hover{background:var(--d-accent);color:var(--d-card)}
+.map-place-navigate svg{width:15px;height:15px}
+.map-result-footer{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:15px;color:var(--d-muted);font-size:11px}
+.life-ai-map .map-result-footer button{font-size:12px;font-weight:500;padding:7px 11px;min-height:36px;flex-shrink:0}
+.life-ai-map .map-call-details{font-size:11px;color:var(--d-muted);margin:10px 0 0;border-top:1px solid var(--d-line);padding-top:8px}
+.life-ai-map .map-call-details summary{font-size:11px;font-weight:400;min-height:30px}
+.life-ai-map .map-call-details p{margin:8px 0 0;font-size:11px}
+.map-loading{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:22px}
+.map-skeleton{padding:20px;border:1px solid var(--d-line);border-radius:16px;min-height:160px}
+.map-skeleton i{display:block;height:12px;background:var(--d-soft);border-radius:4px;margin-bottom:20px;animation:map-pulse 1.3s ease-in-out infinite alternate}
+.map-skeleton i:first-child{width:28%;height:24px}.map-skeleton i:last-child{width:65%}
+@keyframes map-pulse{to{opacity:.35}}
+@media(prefers-reduced-motion:reduce){.map-skeleton i{animation:none}.map-place-card{transition:none}}
+@media(max-width:900px){.life-ai-map .map-place-grid,.map-loading{grid-template-columns:repeat(2,minmax(0,1fr))}.map-search-form{grid-template-columns:150px minmax(0,1fr)}}
+@media(max-width:600px){.life-ai-map .map-discovery{padding:18px;border-radius:18px}.map-discovery-header{gap:11px;margin-bottom:18px;align-items:flex-start}.map-discovery-icon{flex-basis:40px;height:40px;border-radius:12px}.map-discovery-icon svg{width:22px;height:22px}.life-ai-map .map-discovery-header h2{font-size:20px}.life-ai-map .map-discovery-header p{font-size:12px}.map-ai-tag{display:none}.map-search-form{grid-template-columns:1fr;padding:14px;gap:13px}.life-ai-map .map-search-form select,.life-ai-map .map-search-form textarea{font-size:16px}.map-search-actions{grid-column:1;flex-wrap:wrap;gap:8px}.life-ai-map .map-search-actions .d-primary{padding-inline:13px}.map-search-note{align-items:flex-start;font-size:10px}.map-note-dot{margin-top:6px}.life-ai-map .map-place-grid,.map-loading{grid-template-columns:1fr}.map-result-heading{margin-top:24px;align-items:flex-end;gap:8px}.life-ai-map .map-result-heading h3{font-size:16px}.map-source-tag{font-size:10px;padding:4px 7px}.map-place-card{padding:17px 17px 0}.map-place-top{margin-bottom:12px}.map-result-footer{flex-wrap:wrap;gap:9px}.life-ai-map .map-place-card footer a{min-height:44px}.life-ai-map .map-result-footer button{min-height:40px}}

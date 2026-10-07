@@ -1,5 +1,5 @@
 import {$,esc,link,stamp,read,raw,save,field,select,data,id,json,ask,appURL,backupBar,toast,dateIn,copy,download} from './core.js';
-import {mountMealAI} from './life-ai.js';
+import {mountMealAI} from './life-ai.js?v=20261007-cards2';
 import {planEvents,fresh} from './models.mjs';
 import {prepareRecipes,mealPreferences,planMeals} from './meal-planner.mjs';
 const host=document.querySelector('[data-decision="weekend"], [data-decision="meal"]'),mode=host?.dataset.decision;

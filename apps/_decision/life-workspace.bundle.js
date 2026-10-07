@@ -324,7 +324,7 @@
     return { options: selected.map((m) => ({ ...m, people: Number(p.people), amounts: scaleQuantities(m, Number(p.people)) })), total: candidates.length, offset: start, pantry, exclude, unavailable, unknownExclusions, preferences: p };
   }
 
-  // apps/_decision/life-ai.js
+  // apps/_decision/life-ai.js?v=20261007-cards2
   async function runLifeAI(kind, body) {
     const sync = raw("ptu.sync.config", null), a = sync?.id && sync?.token ? sync : await account(true);
     const r = await fetch(`${API}/api/life/${a.id}/${kind}`, { method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + a.token }, body: JSON.stringify(body), signal: AbortSignal.timeout(195e3) });
@@ -384,19 +384,23 @@
     };
   }
   function mountMapsAI(host2, restaurants = false) {
-    host2.classList.add("d-root", "life-ai");
-    host2.innerHTML = `<section class="d-panel"><h2>AI \u5730\u56FE\u63A2\u7D22 \xB7 \u8BD5\u9A8C</h2><form class="d-form"><label>\u5730\u533A<select name="city">${["Kirkland", "Bellevue", "Redmond", "Lynnwood", "Everett", "Seattle"].map((c) => "<option>" + c + "</option>").join("")}</select></label><label class="d-wide">\u60F3\u627E\u4EC0\u4E48<textarea name="query" required maxlength="300" placeholder="${restaurants ? "\u4F8B\u5982\uFF1A\u9002\u5408\u4E24\u4E2A\u4EBA\u665A\u996D\u7684\u65E5\u6599\uFF0C\u4F18\u5148\u505C\u8F66\u65B9\u4FBF" : "\u4F8B\u5982\uFF1A\u9002\u5408\u6563\u6B65\u7684\u6E56\u8FB9\u516C\u56ED\uFF0C\u9644\u8FD1\u6709\u5496\u5561\u5E97"}"></textarea></label><div class="d-actions d-wide"><button class="d-primary">\u67E5\u627E\u771F\u5B9E\u5730\u70B9</button><button type="button" data-ai-example>${restaurants ? "\u8BD5\u8BD5\u9644\u8FD1\u665A\u9910" : "\u8BD5\u8BD5\u6563\u6B65\uFF0B\u5496\u5561"}</button></div></form><p class="d-muted">\u4EC5\u70B9\u51FB\u67E5\u8BE2\u65F6\u8FD0\u884C\u3002\u4F7F\u7528 Google Maps \u5730\u70B9\u6765\u6E90\uFF1B\u4E2D\u6587\u9700\u6C42\u4F1A\u7FFB\u8BD1\u540E\u67E5\u8BE2\uFF0C\u518D\u8FD4\u56DE\u4E2D\u6587\u3002\u4E00\u6B21\u6700\u591A 3 \u6B21\u6A21\u578B\u8C03\u7528\u3002\u5B9E\u9645\u8425\u4E1A\u3001\u505C\u8F66\u4E0E\u8F66\u7A0B\u8BF7\u6253\u5F00\u6765\u6E90\u6838\u5BF9\u3002</p><p data-ai-status role="status" aria-live="polite"></p><div data-ai-result></div></section>`;
+    const pin = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>';
+    const arrow = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m4 11 16-7-7 16-2-7-7-2Z"/></svg>';
+    host2.classList.add("d-root", "life-ai", "life-ai-map");
+    host2.innerHTML = `<section class="d-panel map-discovery"><header class="map-discovery-header"><div class="map-discovery-icon">${pin}</div><div><span class="map-eyebrow">NEARBY DISCOVERIES</span><h2>${restaurants ? "\u627E\u4E00\u5BB6\uFF0C\u4ECA\u665A\u60F3\u53BB\u7684\u9910\u5385" : "\u53D1\u73B0\u9644\u8FD1\u597D\u53BB\u5904"}</h2><p>\u8BF4\u8BF4\u4F60\u7684\u60F3\u6CD5\uFF0C\u8BA9 AI \u5E2E\u4F60\u627E\u5230\u6709\u5730\u56FE\u6765\u6E90\u7684\u771F\u5B9E\u5730\u70B9\u3002</p></div><span class="map-ai-tag">AI \u63A2\u7D22</span></header><form class="map-search-form"><label class="map-city-label">\u63A2\u7D22\u5730\u533A<select name="city">${["Kirkland", "Bellevue", "Redmond", "Lynnwood", "Everett", "Seattle"].map((c) => "<option>" + c + "</option>").join("")}</select></label><label class="map-query-label">\u60F3\u627E\u4EC0\u4E48<textarea name="query" required maxlength="300" placeholder="${restaurants ? "\u4E24\u4E2A\u4EBA\u7684\u665A\u9910\uFF0C\u60F3\u5403\u65E5\u6599\uFF0C\u505C\u8F66\u65B9\u4FBF\u4E00\u70B9\u2026" : "\u60F3\u53BB\u6E56\u8FB9\u6563\u6563\u6B65\uFF0C\u9644\u8FD1\u6700\u597D\u6709\u4E00\u5BB6\u5496\u5561\u5E97\u2026"}"></textarea></label><div class="map-search-actions"><button type="button" data-ai-example>${restaurants ? "\u8BD5\u8BD5\u9644\u8FD1\u665A\u9910" : "\u8BD5\u8BD5\u6563\u6B65\uFF0B\u5496\u5561"} <span aria-hidden="true">\u2197</span></button><button type="submit" class="d-primary">${pin}\u67E5\u627E\u771F\u5B9E\u5730\u70B9</button></div></form><div class="map-search-note"><span class="map-note-dot" aria-hidden="true"></span><span>\u70B9\u51FB\u624D\u67E5\u8BE2 \xB7 \u8425\u4E1A\u3001\u505C\u8F66\u4E0E\u8F66\u7A0B\u4EE5\u5730\u56FE\u8BE6\u60C5\u4E3A\u51C6</span></div><p data-ai-status role="status" aria-live="polite"></p><div data-ai-result></div></section>`;
     const form = host2.querySelector("form"), status = host2.querySelector("[data-ai-status]"), result = host2.querySelector("[data-ai-result]");
     let revision = 0;
     form.addEventListener("input", () => {
       revision++;
       result.replaceChildren();
+      status.dataset.state = "";
       status.textContent = "\u9700\u6C42\u5DF2\u4FEE\u6539\uFF0C\u8BF7\u91CD\u65B0\u67E5\u8BE2\u3002";
     });
     host2.querySelector("[data-ai-example]").onclick = () => {
       form.elements.query.value = restaurants ? "Kirkland \u9002\u5408\u4E24\u4E2A\u4EBA\u665A\u996D\u7684\u4E2D\u9910\u6216\u65E5\u6599\uFF0C\u4F18\u5148\u505C\u8F66\u65B9\u4FBF\uFF0C\u7ED9\u6211\u4E09\u4E2A\u9009\u62E9" : "Kirkland \u9002\u5408\u6563\u6B65\u7684\u6E56\u8FB9\u516C\u56ED\uFF0C\u9644\u8FD1\u6709\u5496\u5561\u5E97\uFF0C\u7ED9\u6211\u4E09\u4E2A\u9009\u62E9";
       revision++;
       result.replaceChildren();
+      status.dataset.state = "";
       status.textContent = "\u5DF2\u586B\u5165\u793A\u4F8B\uFF0C\u70B9\u51FB\u201C\u67E5\u627E\u771F\u5B9E\u5730\u70B9\u201D\u5F00\u59CB\u3002";
     };
     form.onsubmit = async (e) => {
@@ -404,8 +408,10 @@
       const current = revision;
       const buttons2 = [...form.querySelectorAll("button")];
       buttons2.forEach((b) => b.disabled = true);
-      status.textContent = "\u6B63\u5728\u67E5\u8BE2 Google Maps \u5730\u70B9\u4E0E\u6765\u6E90\uFF0C\u901A\u5E38\u9700\u8981\u6570\u5341\u79D2\u2026";
-      result.replaceChildren();
+      status.dataset.state = "loading";
+      status.textContent = "\u6B63\u5728\u5BFB\u627E\u5408\u9002\u7684\u5730\u70B9\uFF0C\u5E76\u6838\u5BF9\u5730\u56FE\u6765\u6E90\u2026";
+      result.setAttribute("aria-busy", "true");
+      result.innerHTML = '<div class="map-loading" aria-hidden="true">' + Array.from({ length: 3 }, () => '<div class="map-skeleton"><i></i><i></i><i></i></div>').join("") + "</div>";
       try {
         const d = await runLifeAI("maps", Object.fromEntries(new FormData(form)));
         if (current !== revision) {
@@ -413,12 +419,22 @@
           return;
         }
         if (!d.sources?.length) throw Error("\u672A\u8FD4\u56DE\u53EF\u9A8C\u8BC1\u5730\u70B9\u6765\u6E90\u3002");
-        result.innerHTML = `<pre class="life-ai-answer">${esc(d.answer)}</pre><div class="life-ai-sources"><b translate="no">Google Maps</b> \xB7 \u5730\u70B9\u6765\u6E90${d.sources.map((s, i) => `<p>${i + 1}. <a translate="no" href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name)}</a> <a href="${esc("https://www.google.com/maps/dir/?api=1&origin=" + encodeURIComponent("Juanita, Kirkland WA") + "&destination=" + encodeURIComponent(s.name + ", " + form.elements.city.value + " WA") + (s.placeId ? "&destination_place_id=" + encodeURIComponent(s.placeId) : ""))}" target="_blank" rel="noopener">\u5BFC\u822A</a></p>`).join("")}</div><button data-ai-copy>\u590D\u5236\u7ED3\u679C\u4E0E\u6765\u6E90</button>`;
-        status.textContent = metadata(d) + (d.translated ? "" : " \xB7 \u4EC5\u5C55\u793A\u5DF2\u8FD4\u56DE\u7684\u5730\u70B9\u6765\u6E90");
+        const city = form.elements.city.value, blocks = String(d.answer || "").split(/\n\s*\n/);
+        result.innerHTML = `<div class="map-result-heading"><div><span class="map-eyebrow">YOUR SHORTLIST</span><h3>\u8FD9\u4E9B\u5730\u65B9\uFF0C\u53EF\u4EE5\u53BB\u770B\u770B <span>${d.sources.length}</span></h3></div><span class="map-source-tag" translate="no">Google Maps</span></div><div class="life-ai-sources map-place-grid">${d.sources.map((s, i) => {
+          const name = s.name.replace(/\s*[-–—]\s*Google Maps\s*$/i, ""), block = blocks.find((b) => b.startsWith(`${i + 1}. ${s.name}
+`)), summary2 = block ? block.slice(block.indexOf("\n") + 1) : "\u6253\u5F00\u5730\u56FE\u8BE6\u60C5\uFF0C\u4E86\u89E3\u8FD9\u4E2A\u5730\u70B9\u3002";
+          const navigation = "https://www.google.com/maps/dir/?api=1&origin=" + encodeURIComponent("Juanita, Kirkland WA") + "&destination=" + encodeURIComponent(name + ", " + city + " WA") + (s.placeId ? "&destination_place_id=" + encodeURIComponent(s.placeId) : "");
+          return `<article class="map-place-card"><div class="map-place-top"><span class="map-place-number">${String(i + 1).padStart(2, "0")}</span><span class="map-place-area">${esc(city)} \xB7 \u5468\u8FB9\u63A2\u7D22</span>${pin}</div><h4 translate="no">${esc(name)}</h4><p class="map-place-summary">${esc(summary2)}</p><footer><a class="map-place-source" href="${esc(s.url)}" target="_blank" rel="noopener" aria-label="${esc(name)} \xB7 \u5730\u56FE\u8BE6\u60C5">\u5730\u56FE\u8BE6\u60C5 <span aria-hidden="true">\u2197</span></a><a class="map-place-navigate" href="${esc(navigation)}" target="_blank" rel="noopener" aria-label="\u5BFC\u822A\u5230 ${esc(name)}">${arrow}\u5BFC\u822A</a></footer></article>`;
+        }).join("")}</div><div class="map-result-footer"><span>\u5730\u70B9\u6765\u6E90\uFF1A<span translate="no">Google Maps</span> \xB7 AI \u7406\u7531\u4F9B\u53C2\u8003</span><button data-ai-copy>\u590D\u5236\u7ED3\u679C\u4E0E\u6765\u6E90</button></div><details class="map-call-details"><summary>\u672C\u6B21\u67E5\u8BE2\u8BE6\u60C5 \xB7 ${(d.latencyMs / 1e3).toFixed(1)} \u79D2</summary><p>${esc(metadata(d))}</p><p>\u4E2D\u6587\u67E5\u8BE2\u6700\u591A\u4F7F\u7528 3 \u6B21\u6A21\u578B\u8C03\u7528\uFF0C\u9875\u9762\u6253\u5F00\u548C\u5237\u65B0\u4E0D\u4F1A\u81EA\u52A8\u8C03\u7528\u3002</p></details>`;
+        status.dataset.state = "success";
+        status.textContent = `\u627E\u5230 ${d.sources.length} \u4E2A\u6709\u5730\u56FE\u6765\u6E90\u7684\u5730\u70B9\u3002`;
         result.querySelector("[data-ai-copy]").onclick = () => copy(d.answer + "\n\nGoogle Maps\n" + d.sources.map((s) => s.name + " " + s.url).join("\n"));
       } catch (err) {
+        result.replaceChildren();
+        status.dataset.state = "error";
         status.textContent = err.message;
       } finally {
+        result.removeAttribute("aria-busy");
         buttons2.forEach((b) => b.disabled = false);
       }
     };
