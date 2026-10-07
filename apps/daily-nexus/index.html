@@ -3824,15 +3824,15 @@ async function loadUpcoming(force=false){
   };
   renderUpcomingHome();renderUpcomingModal();
   if(freshCache){showStatus(true,cache.localMode||'cache');return}
-  let localOk=false,localMode='cache',dynamicOk=false;
+  let localOk=false,localMode='cache',dynamicOk=false,localTime=cache?.time||0;
   try{
     const result=await fetchSeattleLocalEvents();upcomingLocal=result.items;localMode=result.mode;localOk=true;
-    store.set("upcomingCacheV4",{time:Date.now(),local:upcomingLocal,dynamic:upcomingOfficialDynamic,localMode});
+    localTime=Date.now();store.set("upcomingCacheV4",{time:localTime,local:upcomingLocal,dynamic:upcomingOfficialDynamic,localMode});
   }catch(_){}
   // Show activities as soon as they load; slow convention sources cannot blank the panel.
   showStatus(localOk||upcomingLocal.length>0,localMode);
   try{const items=await officialLaunchWatchers();if(items.length){upcomingOfficialDynamic=items;dynamicOk=true}}catch(_){}
-  if(localOk||dynamicOk)store.set("upcomingCacheV4",{time:localOk?Date.now():cache?.time||0,local:upcomingLocal,dynamic:upcomingOfficialDynamic,localMode});
+  if(localOk||dynamicOk)store.set("upcomingCacheV4",{time:localTime,local:upcomingLocal,dynamic:upcomingOfficialDynamic,localMode});
   showStatus(localOk||upcomingLocal.length>0,localMode);
 }
 function defaultUpcomingLocal(){
