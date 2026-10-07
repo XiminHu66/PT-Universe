@@ -1,0 +1,29 @@
+name: Daily Nexus interaction validation
+on:
+  pull_request:
+    paths:
+      - 'apps/daily-nexus/**'
+      - 'apps/tsugi-checker/**'
+      - 'apps/self-learning/**'
+      - 'scripts/daily-nexus/**'
+      - '.github/workflows/daily-nexus-check.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false playwright@1.58.2
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/daily-nexus/browser-test.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: daily-nexus-screenshots
+          path: /tmp/pt-nexus-*.png
