@@ -1,6 +1,6 @@
 const {chromium}=require(process.env.PT_PLAYWRIGHT||'playwright');
 const assert=require('node:assert/strict');
-const order=['home','todo','board','tsugi','meal','music','focus','countdown','tools','settings'];
+const order=['home','todo','board','tsugi','meal','learning','focus','countdown','tools','settings'];
 const removed=['investment','muse','traffic'];
 const base=process.env.PT_TEST_URL||'http://127.0.0.1:8765/';
 let browser;
@@ -27,6 +27,7 @@ async function navigation(page){return page.locator('.sidebar .navbtn[data-view]
   });
   await page.goto(base+'apps/daily-nexus/',{waitUntil:'domcontentloaded'});
   assert.deepEqual(await navigation(page),order);
+  assert.equal(await page.locator('[data-view=music]').count(),0,'Unused music tab stays out of navigation');
   assert.equal(await page.locator('[data-view=todo] span').innerText(),'我的待办');
   for(const name of removed){
     assert.equal(await page.locator('[data-view='+name+'],#view-'+name).count(),0);

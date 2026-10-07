@@ -540,6 +540,7 @@
     @media(max-width:1100px){#view-home>.dashboard{grid-template-columns:1.3fr 1fr;grid-template-rows:minmax(285px,1.16fr) minmax(220px,.84fr) 46px}#view-home .homecalendar{grid-column:1;grid-row:1}#view-home .memo{grid-column:2;grid-row:1}#view-home .home-links-card{grid-column:2;grid-row:2}#view-home .upcomingcard{grid-column:1;grid-row:2}}
     @media(max-width:740px){#view-home>.dashboard{display:block}#view-home .discover{min-height:46px}#discoverPanel[open]{min-height:720px}#discoverPanel .discover-grid{height:auto;min-height:630px;grid-template-columns:1fr;grid-template-rows:repeat(3,minmax(190px,1fr))}.idea-subnav{padding:0 6px}.idea-subnav button{padding:9px 14px}}
   </style>
+  <link rel="stylesheet" href="home-tools.css?v=20261007-1">
   <link rel="stylesheet" href="../../pt-bridge.css?v=20260827-1">
 </head>
 <body>
@@ -552,7 +553,7 @@
     <button class="navbtn" data-view="board"><div><div class="navicon">▦</div><span>看板</span></div></button>
     <button class="navbtn" data-view="tsugi"><div><div class="navicon">📚</div><span>追更</span></div></button>
     <button class="navbtn" data-view="meal"><div><div class="navicon">🍜</div><span>吃什么</span></div></button>
-    <button class="navbtn" data-view="music"><div><div class="navicon">♫</div><span>音乐</span></div></button>
+    <button class="navbtn" data-view="learning"><div><div class="navicon">学</div><span>学习</span></div></button>
     <button class="navbtn" data-view="focus"><div><div class="navicon">◎</div><span>专注</span></div></button>
     <button class="navbtn" data-view="countdown"><div><div class="navicon">⏳</div><span>倒数</span></div></button>
     <button class="navbtn" data-view="tools"><div><div class="navicon">⌘</div><span>工具</span></div></button>
@@ -609,28 +610,22 @@
       </article>
       <article class="card glass memo">
         <div class="cardhead"><h2>今日备忘</h2><span class="sub" id="memoStatus">自动保存</span></div><textarea id="memo" placeholder="今天别忘了什么？&#10;随手写，内容只保存在这台设备。"></textarea>
-        <div class="memo-foot"><input id="taskInput" placeholder="添加一个小任务…"/><button class="miniadd" id="addTask">＋</button></div><div class="tasks" id="tasks"></div><div class="memo-empty" id="memoEmpty">Tip：小任务会自动出现在「专注」页的目标选择里。</div>
-        <div class="memo-countdown">
-          <div class="memo-countdown-head"><b>最近倒数</b><span>订阅与家庭项目</span><button id="memoCountdownMore" type="button">查看全部</button></div>
+        <div class="memo-task-heading"><b>小任务</b><span id="taskSummary" aria-live="polite"></span></div><div class="memo-foot"><input id="taskInput" aria-label="新任务内容" placeholder="添加一个小任务…"/><button class="miniadd" id="addTask">＋ 添加</button></div><div class="tasks" id="tasks"></div><div class="memo-empty" id="memoEmpty">添加后可随时编辑，也可在「专注」页选为目标。</div>
+      </article>
+      <aside class="home-side-stack" aria-label="倒数与常用链接">
+        <article class="card glass home-countdown-card">
+          <div class="cardhead"><h2>最近倒数</h2><span class="sub"><button id="memoCountdownMore" type="button">查看全部</button></span></div>
           <div class="memo-countdown-list" id="memoCountdownList"></div>
-        </div>
-      </article>
-
-      <article class="card glass home-links-card">
-        <div class="cardhead">
-          <h2>常用链接</h2>
-          <span class="sub"><button class="pillbtn" id="manageHomeLinks">编辑</button></span>
-        </div>
-        <div class="home-links-scroll">
-          <div class="home-link-grid" id="homeCommonLinks"></div>
-          <button class="home-link-more-toggle" id="toggleMoreLinks">
-            <span>更多链接</span><span id="homeMoreCount">0</span><span class="chev">⌄</span>
-          </button>
-          <div class="home-more-links" id="homeMoreLinksWrap" hidden>
-            <div class="home-link-grid" id="homeMoreLinks"></div>
+        </article>
+        <article class="card glass home-links-card">
+          <div class="cardhead"><h2>常用链接</h2><span class="sub"><button class="pillbtn" id="manageHomeLinks">编辑</button></span></div>
+          <div class="home-links-scroll">
+            <div class="home-link-grid" id="homeCommonLinks"></div>
+            <button class="home-link-more-toggle" id="toggleMoreLinks"><span>更多链接</span><span id="homeMoreCount">0</span><span class="chev">⌄</span></button>
+            <div class="home-more-links" id="homeMoreLinksWrap" hidden><div class="home-link-grid" id="homeMoreLinks"></div></div>
           </div>
-        </div>
-      </article>
+        </article>
+      </aside>
       <article class="card glass upcomingcard">
         <div class="cardhead">
           <h2>接下来</h2>
@@ -828,10 +823,12 @@
         </div>
       </div>
     </section>
+    <section class="view" id="view-learning"><div class="learning-bar"><span>学习工作台</span><button class="pillbtn" id="learningFocusBadge" hidden></button></div><div class="embed-frame-wrap"><iframe id="learningFrame" class="embed-frame" title="Self Learning 学习工作台" data-src="../self-learning/?embedded=nexus&v=20261007-focus"></iframe></div></section>
     <section class="view" id="view-focus"><div class="workspace">
       <article class="bigcard glass focus-main">
         <div class="section-title"><h2>专注时钟</h2><p id="focusModeLabel">25 分钟工作</p></div>
         <div class="focus-target"><select class="field" id="focusTaskSelect"><option value="">自由专注</option></select><input class="field" id="focusCustomTask" placeholder="或者输入当前要做的事…"></div>
+        <div class="focus-learning"><div class="focus-learning-head"><b>课程专注</b><button class="pillbtn" id="focusResumeLesson">继续正在学的章节</button></div><div class="focus-learning-select"><select class="field" id="focusCourse" aria-label="专注课程"><option>载入课程…</option></select><select class="field" id="focusLesson" aria-label="专注章节"><option>选择章节</option></select><button class="pillbtn" id="focusOpenLesson" disabled>打开章节 ↗</button></div><p id="focusLearningStatus" role="status"></p></div>
         <div class="focusclock" id="focusClock">25:00</div><div class="focus-progress"><i id="focusProgressBar"></i></div>
         <div class="focusactions"><button class="save" id="focusToggle">开始</button><button class="pillbtn" id="focusReset">重置</button><button class="pillbtn" id="focusBreak">休息 5m</button></div>
         <div class="preset-row"><button data-min="15">15m</button><button data-min="25">25m</button><button data-min="45">45m</button><button data-min="60">60m</button><button data-min="90">90m</button></div>
@@ -1009,10 +1006,10 @@
 </div>
 <div class="modal" id="linksModal"><div class="modalcard glass" style="width:min(960px,96vw)">
   <div class="modaltop"><h3>管理首页链接</h3><button class="iconbtn closeModal">×</button></div>
-  <p class="hint">所有链接都可以修改或替换。「常用」会直接显示在今日首页；「更多」默认收进折叠菜单。↑ ↓ 可调整显示顺序。</p>
+  <p class="hint">所有链接都可以修改或替换。「常用」会直接显示在今日首页；「更多」默认收进折叠菜单。↑ ↓ 可调整显示顺序。点击图标可上传图片、缩放或拖动裁切；右侧输入框也可直接填写 emoji。</p>
   <div class="link-editor-list" id="deskLinkEditor"></div>
   <div class="add-link-row">
-    <div><label>图标</label><input class="field" id="newDeskLinkEmoji" value="🔗" maxlength="4"></div>
+    <div><label>图标</label><div class="link-icon-control"><button type="button" class="link-icon-picker" id="newDeskLinkIcon" aria-label="上传新链接图标">🔗</button><input class="field" id="newDeskLinkEmoji" value="🔗" maxlength="16" aria-label="新链接 emoji 图标"></div></div>
     <div><label>名称</label><input class="field" id="newDeskLinkName" placeholder="网站名称"></div>
     <div><label>网址</label><input class="field" id="newDeskLinkUrl" placeholder="https://example.com/"></div>
     <div><label>位置</label><select class="field" id="newDeskLinkGroup"><option value="common">常用</option><option value="more">更多</option></select></div>
@@ -1020,6 +1017,18 @@
   </div>
   <div style="margin-top:12px"><button class="save" id="saveDeskLinks">保存全部链接</button> <button class="pillbtn" id="resetDeskLinks">恢复默认</button></div>
 </div></div>
+<dialog id="linkIconDialog" class="link-icon-dialog" aria-labelledby="linkIconTitle">
+  <h3 id="linkIconTitle">调整链接图标</h3><p class="hint">拖动图片调整位置，或用滑块缩放、平移。图标会裁成正方形。</p>
+  <label class="icon-upload-label" for="linkIconFile">上传 / 替换图片</label><input id="linkIconFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+  <canvas id="linkIconCanvas" class="link-icon-preview" width="240" height="240" aria-label="图标裁切预览，可拖动平移"></canvas>
+  <div class="link-icon-sliders">
+    <label for="linkIconZoom">缩放<input id="linkIconZoom" type="range" min="1" max="4" step=".05" value="1"><output id="linkIconZoomValue">1.0×</output></label>
+    <label for="linkIconX">水平<input id="linkIconX" type="range" min="-100" max="100" step="1" value="0"><output id="linkIconXValue">0</output></label>
+    <label for="linkIconY">垂直<input id="linkIconY" type="range" min="-100" max="100" step="1" value="0"><output id="linkIconYValue">0</output></label>
+  </div>
+  <p id="linkIconError" role="status"></p><button class="pillbtn" id="linkIconReset" type="button">居中重置</button>
+  <div class="link-icon-actions"><button class="pillbtn" id="clearLinkIcon">改用 emoji</button><button class="pillbtn" id="cancelLinkIcon">取消</button><button class="save" id="saveLinkIcon" disabled>应用图标</button></div>
+</dialog>
 <div class="modal" id="liveModal"><div class="modalcard glass"><div class="modaltop"><h3 id="liveModalTitle">YouTube Live</h3><button class="iconbtn closeModal">×</button></div><iframe class="video" id="liveFrame" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe><p class="hint">若当前没有可嵌入的直播，播放器会显示不可用；可同时使用“频道 ↗”打开频道 Live 页面确认。</p></div></div>
 
 <!-- ===== INTEGRATED DESKBOARD SOURCE · EDIT BELOW ===== -->
@@ -2216,6 +2225,7 @@ async function importConfigFile(ev){
 </template>
 <!-- ===== END INTEGRATED DESKBOARD SOURCE ===== -->
 
+<script src="home-tools.js?v=20261007-1"></script>
 <script>
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const store={get(k,d){try{const v=localStorage.getItem("dn_"+k);return v===null?d:JSON.parse(v)}catch{return d}},set(k,v){try{localStorage.setItem("dn_"+k,JSON.stringify(v));return true}catch(e){console.warn(e);return false}}};
@@ -2250,7 +2260,7 @@ const DEFAULT_NAV_CONFIG=[
   {view:"board",icon:"▦",label:"看板"},
   {view:"tsugi",icon:"📚",label:"追更"},
   {view:"meal",icon:"🍜",label:"吃什么"},
-  {view:"music",icon:"♫",label:"音乐"},
+  {view:"learning",icon:"学",label:"学习"},
   {view:"focus",icon:"◎",label:"专注"},
   {view:"countdown",icon:"⏳",label:"倒数"},
   {view:"tools",icon:"⌘",label:"工具"},
@@ -2527,6 +2537,7 @@ function switchNexusView(view){
   setDeskBoardActive(view==='board');
   if(view==='tsugi')ensureEmbeddedSite('tsugi');
   if(view==='meal')ensureEmbeddedSite('meal');
+  if(view==='learning')ensureEmbeddedSite('learning');
   if(view==='todo')switchIdeaTab(store.get('ideaTab','projects'));
   dispatchEvent(new CustomEvent('nexus-view-change',{detail:{view}}));
   if(view==='music')ensureMusicTab();
@@ -3080,7 +3091,8 @@ function syncEmbeddedTheme(name,theme=resolvedNexusTheme()){
 }
 function syncEmbeddedThemes(theme=resolvedNexusTheme()){
   syncEmbeddedTheme('tsugi',theme);syncEmbeddedTheme('meal',theme);
-  syncEmbeddedTheme('todo',theme);syncEmbeddedTheme('notes',theme);
+  syncEmbeddedTheme('todo',theme);syncEmbeddedTheme('notes',theme);syncEmbeddedTheme('learning',theme);
+  if(window.__embeddedSiteState?.learning)try{$('#learningFrame').contentWindow.postMessage({type:'pt-universe-theme',theme},location.origin)}catch(_){}
   dispatchEvent(new CustomEvent('nexus-theme-change',{detail:{theme}}));
 }
 function ensureEmbeddedSite(name){
@@ -3091,6 +3103,7 @@ function ensureEmbeddedSite(name){
   embeddedSiteState[name]=true;
   frame.addEventListener("load",()=>{
     syncEmbeddedTheme(name);
+    if(name==='learning')frame.contentWindow.postMessage({type:'pt-universe-theme',theme:resolvedNexusTheme()},location.origin);
     loading?.classList.add("hide");
     setTimeout(()=>{if(loading)loading.style.display="none"},220);
   });
@@ -3163,7 +3176,8 @@ function loadUnifiedLinks(){
     emoji:String(x.emoji||'🔗').trim()||'🔗',
     name:String(x.name||'').trim()||deskLinkHost(x.url||''),
     url:normalizeDeskLinkUrl(x.url),
-    group:x.group==='more'?'more':'common'
+    group:x.group==='more'?'more':'common',
+    ...nexusIconFields(x)
   })).filter(x=>x.url);
 }
 function saveUnifiedLinks(rows){
@@ -3171,15 +3185,15 @@ function saveUnifiedLinks(rows){
 }
 function renderHomeLinkCards(host,items){
   if(!host)return;
-  host.innerHTML=items.length?items.map(x=>`<a class="home-link" href="${escapeAttr(x.url)}" target="_blank" rel="noopener">
-    <span class="hli">${escapeHtml(x.emoji||'🔗')}</span>
+  host.innerHTML=items.length?items.map(x=>`<a class="home-link" href="${escapeAttr(x.url)}" target="_blank" rel="noopener" title="${escapeAttr((x.name||deskLinkHost(x.url))+' · '+deskLinkHost(x.url))}">
+    <span class="hli" aria-hidden="true">${nexusIconMarkup(x)}</span>
     <span><b>${escapeHtml(x.name||deskLinkHost(x.url))}</b><small>${escapeHtml(deskLinkHost(x.url))}</small></span>
     <span class="hlgo">›</span>
   </a>`).join(''):'<div class="link-empty" style="grid-column:1/-1">还没有链接。点「编辑」添加。</div>';
 }
 function renderDeskLinks(){
   const rows=loadUnifiedLinks(),common=rows.filter(x=>x.group==='common'),more=rows.filter(x=>x.group==='more');
-  const ordered=[...common,...more],visible=ordered.slice(0,8),overflow=ordered.slice(8);
+  const visible=common.slice(0,8),overflow=[...common.slice(8),...more];
   renderHomeLinkCards($("#homeCommonLinks"),visible);
   renderHomeLinkCards($("#homeMoreLinks"),overflow);
   if($("#homeMoreCount"))$("#homeMoreCount").textContent=overflow.length?`· ${overflow.length}`:'';
@@ -3191,7 +3205,7 @@ function renderDeskLinks(){
 function renderDeskLinkEditor(){
   const host=$("#deskLinkEditor");if(!host)return;
   host.innerHTML=deskLinkDraft.length?deskLinkDraft.map((x,i)=>`<div class="link-edit-row" data-link-row="${i}">
-    <input class="field" data-link-field="emoji" value="${escapeAttr(x.emoji||'🔗')}" maxlength="4" title="图标">
+    <div class="link-icon-control"><button class="link-icon-picker" type="button" data-edit-icon="${i}" aria-label="调整 ${escapeAttr(x.name||'链接')} 图标">${nexusIconMarkup(x)}</button><input class="field" data-link-field="emoji" value="${escapeAttr(x.emoji||'🔗')}" maxlength="16" aria-label="${escapeAttr(x.name||'链接')} emoji 图标"></div>
     <input class="field" data-link-field="name" value="${escapeAttr(x.name||'')}" placeholder="名称">
     <input class="field" data-link-field="url" value="${escapeAttr(x.url||'')}" placeholder="https://...">
     <select class="field" data-link-field="group"><option value="common" ${x.group!=='more'?'selected':''}>常用</option><option value="more" ${x.group==='more'?'selected':''}>更多</option></select>
@@ -3201,6 +3215,8 @@ function renderDeskLinkEditor(){
       <button data-remove-link="${i}" title="删除">×</button>
     </div>
   </div>`).join(''):'<div class="link-empty">还没有链接。</div>';
+  $$('[data-edit-icon]').forEach(b=>b.onclick=()=>nexusOpenIcon(+b.dataset.editIcon));
+  $$('[data-link-field=emoji]').forEach(input=>input.oninput=()=>{const row=input.closest('[data-link-row]'),x=deskLinkDraft[+row.dataset.linkRow];if(!x.iconImage)row.querySelector('[data-edit-icon]').textContent=input.value||'🔗'});
   $$('[data-remove-link]').forEach(b=>b.onclick=()=>{
     syncDeskLinkDraftFromEditor();deskLinkDraft.splice(+b.dataset.removeLink,1);renderDeskLinkEditor()
   });
@@ -3216,6 +3232,7 @@ function syncDeskLinkDraftFromEditor(){
   $$('[data-link-row]').forEach(row=>{
     const i=+row.dataset.linkRow,get=f=>row.querySelector(`[data-link-field="${f}"]`)?.value||'';
     deskLinkDraft[i]={
+      ...nexusIconFields(deskLinkDraft[i]),
       emoji:get('emoji').trim()||'🔗',
       name:get('name').trim(),
       url:get('url').trim(),
@@ -3227,6 +3244,8 @@ function openHomeLinkEditor(){
   deskLinkDraft=cloneLinks(loadUnifiedLinks());renderDeskLinkEditor();openModal('#linksModal');
 }
 $("#manageHomeLinks").onclick=openHomeLinkEditor;
+$("#newDeskLinkIcon").onclick=()=>nexusOpenIcon('new');
+$("#newDeskLinkEmoji").oninput=nexusRefreshNewIcon;
 $("#toggleMoreLinks").onclick=()=>{
   const wrap=$("#homeMoreLinksWrap"),btn=$("#toggleMoreLinks"),scroll=document.querySelector('.home-links-scroll');if(!wrap)return;
   const opening=wrap.hidden;wrap.hidden=!opening;btn?.classList.toggle('open',opening);
@@ -3239,9 +3258,10 @@ $("#addDeskLink").onclick=()=>{
     emoji:$("#newDeskLinkEmoji").value.trim()||'🔗',
     name:$("#newDeskLinkName").value.trim()||deskLinkHost(url),
     url,
-    group:$("#newDeskLinkGroup").value==='more'?'more':'common'
+    group:$("#newDeskLinkGroup").value==='more'?'more':'common',
+    ...nexusIconFields(nexusNewLinkIcon)
   });
-  $("#newDeskLinkEmoji").value='🔗';$("#newDeskLinkName").value='';$("#newDeskLinkUrl").value='';
+  $("#newDeskLinkEmoji").value='🔗';$("#newDeskLinkName").value='';$("#newDeskLinkUrl").value='';nexusNewLinkIcon={};nexusRefreshNewIcon();
   renderDeskLinkEditor();
 };
 $("#saveDeskLinks").onclick=()=>{
@@ -3252,10 +3272,11 @@ $("#saveDeskLinks").onclick=()=>{
       emoji:String(x.emoji||'🔗').trim()||'🔗',
       name:String(x.name||'').trim()||deskLinkHost(url),
       url,
-      group:x.group==='more'?'more':'common'
+      group:x.group==='more'?'more':'common',
+      ...nexusIconFields(x)
     }:null;
   }).filter(Boolean);
-  saveUnifiedLinks(clean);deskLinkDraft=cloneLinks(clean);renderDeskLinks();closeModals();
+  try{saveUnifiedLinks(clean)}catch(e){nexusNotify('链接未保存：本机存储空间不足，请尝试减少图片。');return}deskLinkDraft=cloneLinks(clean);renderDeskLinks();closeModals();nexusNotify('常用链接已保存');
 };
 $("#resetDeskLinks").onclick=()=>{deskLinkDraft=cloneLinks(NEXUS_DEFAULT_LINKS);renderDeskLinkEditor()};
 window.addEventListener('storage',e=>{
@@ -3312,8 +3333,9 @@ async function loadWeather(coords=null){
 loadWeather();
 
 $("#memo").value=state.memo;let memoTimer;$("#memo").oninput=e=>{$("#memoStatus").textContent="保存中…";clearTimeout(memoTimer);memoTimer=setTimeout(()=>{state.memo=e.target.value;store.set("memo",state.memo);$("#memoStatus").textContent="已保存"},300)};
-function renderTasks(){$("#tasks").innerHTML=state.tasks.map((t,i)=>`<button class="taskchip ${t.done?'done':''}" data-i="${i}" title="单击完成，双击删除">${escapeHtml(t.text)}</button>`).join("");$("#memoEmpty").classList.toggle("show",state.tasks.length===0);$$('.taskchip').forEach(el=>{el.onclick=()=>{const i=+el.dataset.i;state.tasks[i].done=!state.tasks[i].done;store.set('tasks',state.tasks);renderTasks()};el.ondblclick=()=>{state.tasks.splice(+el.dataset.i,1);store.set('tasks',state.tasks);renderTasks()}});renderFocusTasks()}
-function addTask(){const v=$("#taskInput").value.trim();if(!v)return;state.tasks.push({text:v,done:false});$("#taskInput").value="";store.set('tasks',state.tasks);renderTasks()}$("#addTask").onclick=addTask;$("#taskInput").onkeydown=e=>{if(e.key==='Enter')addTask()};renderTasks();
+function renderTasks(){nexusRenderTasks()}
+function addTask(){const input=$("#taskInput"),v=input.value.trim();if(!v)return;if(!nexusPersistTasks([...state.tasks,{text:v,done:false}]))return;input.value='';nexusTaskEditing=null;renderTasks();$("#tasks").lastElementChild?.scrollIntoView({block:'nearest'});input.focus()}
+$("#addTask").onclick=addTask;$("#taskInput").onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();addTask()}};renderTasks();
 
 
 
@@ -3879,20 +3901,22 @@ $("#refreshDiscover").onclick=()=>{discoverLoaded=true;refreshDiscover(true)};$(
 if($('#discoverPanel').open){discoverLoaded=true;refreshDiscover(false)}
 function renderYT(){const y=state.youtube,liveName=$("#liveName"),livePage=$("#livePage");if(liveName)liveName.textContent=y.name||'直播监控';if(livePage)livePage.href=y.id?`https://www.youtube.com/channel/${encodeURIComponent(y.id)}/live`:'https://www.youtube.com';$("#ytName").value=y.name||'';$("#ytId").value=y.id||''}renderYT();$("#saveYT").onclick=()=>{state.youtube={name:$("#ytName").value.trim(),id:$("#ytId").value.trim()};store.set('youtube',state.youtube);renderYT()};if($("#openLive"))$("#openLive").onclick=()=>{if(!state.youtube.id)return;$("#liveModalTitle").textContent=(state.youtube.name||'YouTube')+' · Live';$("#liveFrame").src=`https://www.youtube.com/embed/live_stream?channel=${encodeURIComponent(state.youtube.id)}&autoplay=0&rel=0`;openModal('#liveModal')};
 
+let focusSessionTask=null,focusSessionLearning=null;
 let focusMode='work',focusTotal=25*60,focusSecs=focusTotal,focusRunning=false,focusTimer=null,focusStart=null;$("#focusNote").value=state.focus.note||'';$("#focusNote").oninput=e=>{state.focus.note=e.target.value;store.set('focus',state.focus)};
 function renderFocusTasks(){
   const s=$("#focusTaskSelect"),cur=s?.value||'';if(!s)return;
   const normal=state.tasks.filter(t=>!t.done).map(t=>({text:t.text,group:"今日备忘"}));
   const dated=calendarItems(ymdLocal(new Date())).filter(t=>!t.done).map(t=>({text:t.text,group:"今日日历"}));
-  const all=[...normal,...dated];
-  s.innerHTML='<option value="">自由专注</option>'+all.map(t=>`<option value="${escapeAttr(t.text)}">${t.group} · ${escapeHtml(t.text)}</option>`).join('');
+  const learning=window.nexusLearningTask?[{text:window.nexusLearningTask.title,value:window.nexusLearningTask.value,group:'学习课程'}]:[];
+  const all=[...normal,...dated,...learning];
+  s.innerHTML='<option value="">自由专注</option>'+all.map(t=>`<option value="${escapeAttr(t.value||t.text)}">${t.group} · ${escapeHtml(t.text)}</option>`).join('');
   if([...s.options].some(o=>o.value===cur))s.value=cur
 }
-function focusTaskName(){return $("#focusCustomTask").value.trim()||$("#focusTaskSelect").value||'自由专注'}
+function focusTaskName(){const value=$('#focusTaskSelect').value;return $('#focusCustomTask').value.trim()||(value===window.nexusLearningTask?.value?window.nexusLearningTask.title:value)||'自由专注'}
 function renderFocus(){const m=Math.floor(focusSecs/60),s=focusSecs%60;$("#focusClock").textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;$("#focusProgressBar").style.width=((1-focusSecs/focusTotal)*100)+'%';$("#focusModeLabel").textContent=focusMode==='break'?`${Math.round(focusTotal/60)} 分钟休息`:`${Math.round(focusTotal/60)} 分钟工作`;const today=new Date().toDateString(),logs=(state.focus.logs||[]).filter(x=>new Date(x.time).toDateString()===today);$("#focusToday").textContent=logs.length;$("#focusMinutes").textContent=logs.reduce((a,x)=>a+x.minutes,0);$("#focusStreak").textContent=state.focus.streak||0;renderSessionLog()}
-function completeFocus(){if(focusMode==='work'){state.focus.logs=state.focus.logs||[];state.focus.logs.unshift({time:new Date().toISOString(),minutes:Math.round(focusTotal/60),task:focusTaskName()});state.focus.logs=state.focus.logs.slice(0,30);state.focus.streak=(state.focus.streak||0)+1;store.set('focus',state.focus)}focusRunning=false;clearInterval(focusTimer);$("#focusToggle").textContent='开始';renderFocus()}
-function setFocusMinutes(min,mode='work'){focusMode=mode;focusTotal=min*60;focusSecs=focusTotal;focusRunning=false;clearInterval(focusTimer);$("#focusToggle").textContent='开始';renderFocus()}
-$("#focusToggle").onclick=()=>{focusRunning=!focusRunning;$("#focusToggle").textContent=focusRunning?'暂停':'开始';clearInterval(focusTimer);if(focusRunning){focusStart=Date.now();focusTimer=setInterval(()=>{focusSecs=Math.max(0,focusSecs-1);renderFocus();if(!focusSecs)completeFocus()},1000)}};$("#focusReset").onclick=()=>setFocusMinutes(Math.round(focusTotal/60),focusMode);$("#focusBreak").onclick=()=>setFocusMinutes(5,'break');$$('[data-min]').forEach(b=>b.onclick=()=>setFocusMinutes(+b.dataset.min,'work'));
+function completeFocus(){if(focusMode==='work'){state.focus.logs=state.focus.logs||[];state.focus.logs.unshift({time:new Date().toISOString(),minutes:Math.round(focusTotal/60),task:focusSessionTask||focusTaskName(),...(focusSessionLearning?{learning:focusSessionLearning}:{})});state.focus.logs=state.focus.logs.slice(0,30);state.focus.streak=(state.focus.streak||0)+1;store.set('focus',state.focus)}focusRunning=false;clearInterval(focusTimer);$("#focusToggle").textContent='开始';renderFocus();dispatchEvent(new CustomEvent('nexus-focus-complete'))}
+function setFocusMinutes(min,mode='work'){focusSessionTask=null;focusSessionLearning=null;focusMode=mode;focusTotal=min*60;focusSecs=focusTotal;focusRunning=false;clearInterval(focusTimer);$("#focusToggle").textContent='开始';renderFocus()}
+$("#focusToggle").onclick=()=>{focusRunning=!focusRunning;$("#focusToggle").textContent=focusRunning?'暂停':'开始';clearInterval(focusTimer);if(focusRunning){if(!focusSessionTask){focusSessionTask=focusTaskName();focusSessionLearning=!$('#focusCustomTask').value.trim()&&$('#focusTaskSelect').value===window.nexusLearningTask?.value?{courseId:window.nexusLearningTask.courseId,lessonId:window.nexusLearningTask.lessonId}:null}focusStart=Date.now();focusTimer=setInterval(()=>{focusSecs=Math.max(0,focusSecs-1);renderFocus();if(!focusSecs)completeFocus()},1000)}};$("#focusReset").onclick=()=>setFocusMinutes(Math.round(focusTotal/60),focusMode);$("#focusBreak").onclick=()=>setFocusMinutes(5,'break');$$('[data-min]').forEach(b=>b.onclick=()=>setFocusMinutes(+b.dataset.min,'work'));
 function renderSessionLog(){const logs=(state.focus.logs||[]).slice(0,6);$("#sessionLog").innerHTML=logs.length?logs.map(x=>`<div class="session-item"><b>${escapeHtml(x.task)}</b><span>${x.minutes}m · ${new Date(x.time).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})}</span></div>`).join(''):'<div class="muted" style="font-size:11px">完成一轮专注后会记录在这里。</div>'}renderFocus();renderFocusTasks();
 let audioCtx=null,noiseSource=null;
 function stopNoise(){
@@ -4082,7 +4106,7 @@ function updateBgFromControls(){
 $("#bgMode").onchange=updateBgFromControls;$("#saveBg").onclick=()=>{if(!store.set('bg',state.bg))alert('图片数据太大，浏览器无法保存。请换一张更小的图片或使用 URL。');else applyBg()};$("#toggleBg").onclick=()=>{state.bg.enabled=!state.bg.enabled;store.set('bg',state.bg);applyBg()};$("#resetBg").onclick=()=>{state.bg.image='';state.bg.enabled=true;store.set('bg',state.bg);applyBg()};$("#applyBgUrl").onclick=()=>{const u=$("#bgUrl").value.trim();if(!u)return;state.bg.image=u;state.bg.enabled=true;applyBg()};
 $("#bgUpload").onchange=e=>{const f=e.target.files?.[0];if(!f)return;const img=new Image(),reader=new FileReader();reader.onload=()=>{img.onload=()=>{const max=1920,scale=Math.min(1,max/Math.max(img.width,img.height)),w=Math.max(1,Math.round(img.width*scale)),h=Math.max(1,Math.round(img.height*scale)),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);state.bg.image=c.toDataURL('image/jpeg',.82);state.bg.enabled=true;applyBg();if(!store.set('bg',state.bg))alert('图片仍然太大，建议使用图片 URL。')};img.src=reader.result};reader.readAsDataURL(f)};
 
-function openModal(sel){$(sel).classList.add('open')}function closeModals(){$$('.modal').forEach(m=>m.classList.remove('open'));$("#liveFrame").src=''}$$('.closeModal').forEach(b=>b.onclick=closeModals);$$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModals()}));addEventListener('keydown',e=>{if(e.key==='Escape')closeModals()});
+function openModal(sel){$(sel).classList.add('open')}function closeModals(){$$('.modal').forEach(m=>m.classList.remove('open'));$("#liveFrame").src=''}$$('.closeModal').forEach(b=>b.onclick=closeModals);$$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModals()}));addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.getElementById('linkIconDialog').open)closeModals()});
 </script>
 <iframe id="tsugiArtistBridge" src="about:blank" title="Tsugi artist sync" aria-hidden="true" style="display:none"></iframe>
 
@@ -4097,6 +4121,7 @@ function openModal(sel){$(sel).classList.add('open')}function closeModals(){$$('
 </style>
 <a id="ptu-home-link" href="../../" aria-label="返回 PT Universe"><i aria-hidden="true">‹</i><span>PT Universe</span></a>
 <script src="./decision-tabs.js?v=20261002-nav2"></script>
+<script src="learning-focus.js?v=20261007-1"></script>
 <script src="../../pt-sync.js?v=20260827-1"></script>
 <script src="../../pt-bridge.js?v=20260827-1"></script>
 </body>
