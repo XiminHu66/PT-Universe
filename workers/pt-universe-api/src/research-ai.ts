@@ -1,3 +1,4 @@
+import {authorized as authorizeDeployment} from './gemini-probe';
 /** On-demand research tasks: enrolled PT accounts, atomic deduplication, shared quota. */
 const MODEL='gemini-3.5-flash-lite';
 const fieldNames=['question','hypothesis','problem','idea','contribution','architecture','training','dataset','baseline','metrics','results','ablations','limitations','compute','code'];
@@ -5,7 +6,7 @@ const str=(v:any,n=5000)=>typeof v==='string'?v.trim().slice(0,n):'';
 const arr=(v:any)=>Array.isArray(v)?v:[];
 const hash=async(s:string)=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(x=>x.toString(16).padStart(2,'0')).join('');
 const result=(body:any,status=200)=>({body,status});
-type AIEnv=Pick<Env,'DB'> & {GEMINI_API_KEY?:string};
+type AIEnv=Pick<Env,'DB'> & {GEMINI_API_KEY?:string;RESEARCH_PROBE_AUTH?:string};
 export function researchPrompt(body:any){
  const topic=str(body.topic,160),goal=str(body.goal,1000),from=str(body.from,10),to=str(body.to,10);
  if(!topic)throw Error('请输入研究主题');
@@ -54,8 +55,45 @@ export function validateResearchOutput(task:string,out:any,source:any){
  const evidence=(id:string,quote:string)=>{const p=source.papers.find((x:any)=>x.id===id);return !!quote&&[p?.abstract,...Object.values(p?.fields||{}).map((f:any)=>f.quote)].some(t=>typeof t==='string'&&t.replace(/\s+/g,' ').includes(quote.replace(/\s+/g,' ')))};
  return {overview:str(out.overview,10000),outline:arr(out.outline).slice(0,12).map(x=>({title:str(x.title,200),explanation:str(x.explanation,5000),paperIds:refs(x.paperIds)})),readingOrder:arr(out.readingOrder).filter(x=>ids.has(x.paperId)).slice(0,12).map(x=>({paperId:x.paperId,why:str(x.why,1500),focus:str(x.focus,2000)})),comparison:arr(out.comparison).slice(0,10).map(d=>({dimension:str(d.dimension,200),items:arr(d.items).filter(x=>ids.has(x.paperId)).map(x=>({paperId:x.paperId,value:str(x.value,3000),quote:str(x.quote,2000),matched:evidence(x.paperId,str(x.quote,2000))}))})),openQuestions:arr(out.openQuestions).slice(0,12).map(x=>str(x,2000)),takeaways:arr(out.takeaways).slice(0,12).map(x=>str(x,2000)),entities:arr(out.entities).filter(x=>['Method','Model','Dataset','Benchmark','Metric'].includes(x.type)&&str(x.name,300)&&refs(x.paperIds).length).slice(0,60).map(x=>({name:str(x.name,300),type:x.type,paperIds:refs(x.paperIds),quote:str(x.quote,2000)}))};
 }
+export async function researchAIAdmin(request:Request,env:AIEnv){
+ if(request.method!=='POST')return result({error:'Method not allowed'},405);
+ const token=await authorizeDeployment(request,env);if(!token)return result({error:'Deployment authentication required'},401);
+ const raw=await request.text();if(raw.length>400)return result({error:'Invalid admin request'},400);
+ let body:any;try{body=JSON.parse(raw)}catch{return result({error:'Invalid JSON'},400)}
+ if(body.action==='bootstrap'){
+  await env.DB.batch([
+   env.DB.prepare('CREATE TABLE IF NOT EXISTS research_ai_accounts(owner TEXT PRIMARY KEY)'),
+   env.DB.prepare('CREATE TABLE IF NOT EXISTS research_ai_settings(key TEXT PRIMARY KEY,value TEXT)'),
+   env.DB.prepare('CREATE TABLE IF NOT EXISTS research_ai_test_accounts(owner TEXT PRIMARY KEY,token_hash TEXT NOT NULL)'),
+   env.DB.prepare('CREATE TABLE IF NOT EXISTS research_ai_runs(owner TEXT NOT NULL,fingerprint TEXT NOT NULL,day TEXT NOT NULL,status TEXT NOT NULL,created_at INTEGER NOT NULL,attempts INTEGER NOT NULL DEFAULT 1,input_estimate INTEGER NOT NULL DEFAULT 0,result TEXT,PRIMARY KEY(owner,fingerprint))'),
+   env.DB.prepare("INSERT OR IGNORE INTO research_ai_accounts(owner) SELECT DISTINCT sync_id FROM sync_blobs WHERE LENGTH(ciphertext)>100 AND NOT EXISTS(SELECT 1 FROM research_ai_settings WHERE key='enrolled')"),
+   env.DB.prepare("INSERT OR IGNORE INTO research_ai_settings(key,value) VALUES('enrolled',datetime('now'))")
+  ]);
+  const count=await env.DB.prepare('SELECT COUNT(*) AS count FROM research_ai_accounts').first<any>();
+  return result({ok:true,enrolled:count?.count||0,keyConfigured:!!env.GEMINI_API_KEY});
+ }
+ if(!/^[\w-]{36}$/.test(body.owner||''))return result({error:'Invalid test account'},400);
+ if(body.action==='grant-test'){
+  if(await env.DB.prepare('SELECT owner FROM research_ai_accounts WHERE owner=?').bind(body.owner).first())return result({error:'Already enrolled'},409);
+  if(!await env.DB.prepare('SELECT sync_id FROM sync_accounts WHERE sync_id=?').bind(body.owner).first())return result({error:'Test account missing'},404);
+  await env.DB.batch([env.DB.prepare('INSERT INTO research_ai_test_accounts(owner,token_hash) VALUES(?,?)').bind(body.owner,await hash(token)),env.DB.prepare('INSERT INTO research_ai_accounts(owner) VALUES(?)').bind(body.owner)]);
+  return result({ok:true});
+ }
+ if(body.action==='revoke-test'){
+  if(!await env.DB.prepare('SELECT owner FROM research_ai_test_accounts WHERE owner=? AND token_hash=?').bind(body.owner,await hash(token)).first())return result({error:'Not this deployment test account'},403);
+  await env.DB.batch([
+   env.DB.prepare('DELETE FROM research_ai_accounts WHERE owner=?').bind(body.owner),
+   env.DB.prepare('DELETE FROM research_ai_test_accounts WHERE owner=?').bind(body.owner),
+   env.DB.prepare('DELETE FROM research_ai_runs WHERE owner=?').bind(body.owner),
+   env.DB.prepare('DELETE FROM sync_blobs WHERE sync_id=?').bind(body.owner),
+   env.DB.prepare('DELETE FROM sync_accounts WHERE sync_id=?').bind(body.owner)
+  ]);
+  return result({ok:true});
+ }
+ return result({error:'Only fixed bootstrap and temporary test account actions are supported'},400);
+}
 export async function researchAIRoute(request:Request,env:AIEnv,authenticate:(r:Request,e:Env,id:string)=>Promise<boolean>){
- const u=new URL(request.url),match=u.pathname.match(/^\/api\/workbench\/ai\/([\w-]{36})$/);if(!match)return null;
+ const u=new URL(request.url);if(u.pathname==='/api/workbench/ai-admin')return researchAIAdmin(request,env);const match=u.pathname.match(/^\/api\/workbench\/ai\/([\w-]{36})$/);if(!match)return null;
  if(!await authenticate(request,env as Env,match[1]))return result({error:'请在备份与同步中连接 PT Universe 配对码'},401);
  const owner=await env.DB.prepare('SELECT owner FROM research_ai_accounts WHERE owner=?').bind(match[1]).first();
  if(!owner)return result({error:'此配对码尚未启用 AI；请在备份与同步中连接你原有的 PT Universe 配对码。'},403);
