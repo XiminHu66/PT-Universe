@@ -32,6 +32,14 @@ GitHub 卡片展示实时 stars、last push、issues、language、license，并�
 
 ## 后续路线图
 
+### Gemini 部署测试
+
+Worker Secret `GEMINI_API_KEY` 保存模型密钥。`/api/workbench/gemini-probe` 是部署诊断接口，当前不属于页面自动提取功能；只接受固定公开样本与选定有免费层的 Flash 模型，不接受用户 prompt、API Key 或来源 URL。
+
+部署提交信息包含 `[gemini-test]` 时，部署流程运行 `scripts/research/gemini-probe.mjs`：生成一个 15 分钟有效的随机诊断凭据，临时设置 `RESEARCH_PROBE_AUTH`，检测 Google 模型列表，尝试全文提取，并测量两篇摘要比较与主题总结。结束后删除临时凭据；删除失败也会自动到期。每个凭据 / 模型 / 测试步骤用 D1 原子 claim 防止重复调用。不进行压力测试，不自动选择付费模型；Worker 不掌握项目账单层级，因此测试应保持 Google 项目为 Free Tier。
+
+结果记录为 GitHub Actions artifact `research-gemini-probe`，仅包含 Token、延迟、JSON / 引用匹配统计及结构化错误，不含 Gemini 密钥、临时凭据或生成全文。比较与主题样本使用两篇摘要，不能当作完整论文比较的耗时或质量测量。正常响应不提供项目官方 RPM / TPM / RPD 上限，必须以 AI Studio 的项目配额为准；429 返回的 quota violations 可帮助定位限制。
+
 第二阶段：Paper → Implementation（架构、组件、依赖、数据、训练、评估、算力、风险、里程碑）、伪代码与 repo 结构 / 配置建议、implementation checklist；GitHub 组件完整性和复现问题；Reproduction（环境、数据、模型、config、目标 / 实际分数、偏差、artifact）；Experiment（hypothesis、method、dataset、model、prompt、config、result、cost、runtime、Git commit、复现 metadata）；RAG Eval（recall、precision、context relevance、correctness、faithfulness、latency、token cost）；Benchmark（task、metric、baseline、model、result、leaderboard、cost、显著性）。
 
 第三阶段：GraphRAG Inspector（entity extraction、candidate nodes、traversal、node score、edges、filtered nodes、vector retrieval、evidence、answer，对比 Vector / Graph / Hybrid）；Agent Evaluation（input、plan、tool calls/results、output、errors；success、selection、arguments、hallucination、recovery、cost、latency）；Failure Mining（embedding、clustering、taxonomy、人工修正、趋势）；Research Memory（semantic / hybrid retrieval、highlights、backlinks、previous experiments）；Weekly Radar（personalized topics、authors/labs watchlist、GitHub trending、arXiv、去重、反馈，每周选 3–5 篇）；Python SDK（log_run、evaluate、trace、compare、dataset、metrics、experiment、artifact）。
