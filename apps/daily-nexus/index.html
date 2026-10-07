@@ -540,7 +540,7 @@
     @media(max-width:1100px){#view-home>.dashboard{grid-template-columns:1.3fr 1fr;grid-template-rows:minmax(285px,1.16fr) minmax(220px,.84fr) 46px}#view-home .homecalendar{grid-column:1;grid-row:1}#view-home .memo{grid-column:2;grid-row:1}#view-home .home-links-card{grid-column:2;grid-row:2}#view-home .upcomingcard{grid-column:1;grid-row:2}}
     @media(max-width:740px){#view-home>.dashboard{display:block}#view-home .discover{min-height:46px}#discoverPanel[open]{min-height:720px}#discoverPanel .discover-grid{height:auto;min-height:630px;grid-template-columns:1fr;grid-template-rows:repeat(3,minmax(190px,1fr))}.idea-subnav{padding:0 6px}.idea-subnav button{padding:9px 14px}}
   </style>
-  <link rel="stylesheet" href="home-tools.css?v=20261007-3">
+  <link rel="stylesheet" href="home-tools.css?v=20261007-4">
   <link rel="stylesheet" href="../../pt-bridge.css?v=20260827-1">
 </head>
 <body>
@@ -688,7 +688,7 @@
           id="tsugiFrame"
           title="Tsugi Checker"
           loading="lazy"
-          data-src="../tsugi-checker/?v=20261007-notebook"
+          data-src="../tsugi-checker/?v=20261007-visible-time"
           referrerpolicy="strict-origin-when-cross-origin"></iframe>
       </div>
     </section>
@@ -3182,6 +3182,7 @@ function saveUnifiedLinks(rows){
 }
 function renderHomeLinkCards(host,items){
   if(!host)return;
+  host.classList.toggle("home-link-grid-four",items.length>=7);
   host.innerHTML=items.length?items.map(x=>`<a class="home-link" href="${escapeAttr(x.url)}" target="_blank" rel="noopener" title="${escapeAttr((x.name||deskLinkHost(x.url))+' · '+deskLinkHost(x.url))}">
     <span class="hli" aria-hidden="true">${nexusIconMarkup(x)}</span>
     <span><b>${escapeHtml(x.name||deskLinkHost(x.url))}</b><small>${escapeHtml(deskLinkHost(x.url))}</small></span>
