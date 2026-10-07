@@ -8,6 +8,8 @@
   const base=window.renderSiteUpdates;
   window.renderSiteUpdates=function(){
     base();const rows=state.site?.items||[],stamp=state.site?.generated_at||'';
+    const time=document.getElementById('streamLastRefresh'),date=new Date(stamp);
+    if(time){const valid=stamp&&!Number.isNaN(+date);time.textContent=valid?fmt(stamp):'暂无记录';if(valid){time.dateTime=stamp;time.title=new Intl.DateTimeFormat('zh-CN',{dateStyle:'full',timeStyle:'long'}).format(date)}else{time.removeAttribute('datetime');time.removeAttribute('title')}}
     const signature=JSON.stringify(rows.map(token).sort());
     if(rows.length&&(stamp!==batch.stamp||signature!==batch.signature)&&(!batch.stamp||!stamp||!(Date.parse(stamp)<Date.parse(batch.stamp)))){
       const known=new Map(batch.known),fresh=[];
@@ -26,7 +28,7 @@
 
 /* Mobile navigation stays unobstructed; its refresh controls live on Sources. */
 (()=>{
-  const tools=document.getElementById('streamTools'),source=document.getElementById('sourceTools'),footer=document.querySelector('.sidebar-footer'),mobile=matchMedia('(max-width:840px)');
+  const tools=document.getElementById('streamControlGroup'),source=document.getElementById('sourceTools'),footer=document.querySelector('.sidebar-footer'),mobile=matchMedia('(max-width:840px)');
   const place=()=>{if(mobile.matches)source.append(tools);else footer.before(tools)};
   place();mobile.addEventListener('change',place);
 })();

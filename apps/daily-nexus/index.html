@@ -540,7 +540,7 @@
     @media(max-width:1100px){#view-home>.dashboard{grid-template-columns:1.3fr 1fr;grid-template-rows:minmax(285px,1.16fr) minmax(220px,.84fr) 46px}#view-home .homecalendar{grid-column:1;grid-row:1}#view-home .memo{grid-column:2;grid-row:1}#view-home .home-links-card{grid-column:2;grid-row:2}#view-home .upcomingcard{grid-column:1;grid-row:2}}
     @media(max-width:740px){#view-home>.dashboard{display:block}#view-home .discover{min-height:46px}#discoverPanel[open]{min-height:720px}#discoverPanel .discover-grid{height:auto;min-height:630px;grid-template-columns:1fr;grid-template-rows:repeat(3,minmax(190px,1fr))}.idea-subnav{padding:0 6px}.idea-subnav button{padding:9px 14px}}
   </style>
-  <link rel="stylesheet" href="home-tools.css?v=20261007-2">
+  <link rel="stylesheet" href="home-tools.css?v=20261007-3">
   <link rel="stylesheet" href="../../pt-bridge.css?v=20260827-1">
 </head>
 <body>
@@ -591,6 +591,7 @@
 
     <section class="view active" id="view-home"><div class="dashboard">
 
+      <div class="home-top-left" aria-label="日历与接下来">
       <article class="card glass homecalendar">
         <div class="cardhead"><h2>日历</h2><span class="sub">点击日期打开清单</span></div>
         <div class="home-cal-body">
@@ -607,24 +608,6 @@
           </div>
         </div>
       </article>
-      <article class="card glass memo">
-        <div class="cardhead"><h2>今日备忘</h2><span class="sub" id="memoStatus">自动保存</span></div><textarea id="memo" placeholder="今天别忘了什么？&#10;随手写，内容只保存在这台设备。"></textarea>
-        <div class="memo-task-heading"><b>小任务</b><span id="taskSummary" aria-live="polite"></span></div><div class="memo-foot"><input id="taskInput" aria-label="新任务内容" placeholder="添加一个小任务…"/><button class="miniadd" id="addTask">＋ 添加</button></div><div class="tasks" id="tasks"></div><div class="memo-empty" id="memoEmpty">添加后可随时编辑，也可在「专注」页选为目标。</div>
-      </article>
-      <aside class="home-side-stack" aria-label="倒数与常用链接">
-        <article class="card glass home-countdown-card">
-          <div class="cardhead"><h2>最近倒数</h2><span class="sub"><button id="memoCountdownMore" type="button">查看全部</button></span></div>
-          <div class="memo-countdown-list" id="memoCountdownList"></div>
-        </article>
-        <article class="card glass home-links-card">
-          <div class="cardhead"><h2>常用链接</h2><span class="sub"><button class="pillbtn" id="manageHomeLinks">编辑</button></span></div>
-          <div class="home-links-scroll">
-            <div class="home-link-grid" id="homeCommonLinks"></div>
-            <button class="home-link-more-toggle" id="toggleMoreLinks"><span>更多链接</span><span id="homeMoreCount">0</span><span class="chev">⌄</span></button>
-            <div class="home-more-links" id="homeMoreLinksWrap" hidden><div class="home-link-grid" id="homeMoreLinks"></div></div>
-          </div>
-        </article>
-      </aside>
       <article class="card glass upcomingcard">
         <div class="cardhead">
           <h2>接下来</h2>
@@ -645,6 +628,26 @@
           <button id="addUpcomingQuick">＋ 添加</button>
         </div>
       </article>
+      </div>
+      <article class="card glass memo">
+        <div class="cardhead"><h2>备忘本</h2><span class="sub" id="memoStatus">自动保存</span></div><textarea id="memo" placeholder="随手记下想法、计划和待办。&#10;内容自动保存，之后可以接着写。"></textarea>
+        <div class="memo-task-heading"><b>小任务</b><span id="taskSummary" aria-live="polite"></span></div><div class="memo-foot"><input id="taskInput" aria-label="新任务内容" placeholder="添加一个小任务…"/><button class="miniadd" id="addTask">＋ 添加</button></div><div class="tasks" id="tasks"></div><div class="memo-empty" id="memoEmpty">添加后可随时编辑，也可在「专注」页选为目标。</div>
+      </article>
+      <aside class="home-side-stack" aria-label="倒数与常用链接">
+        <article class="card glass home-countdown-card">
+          <div class="cardhead"><h2>最近倒数</h2><span class="sub"><button id="memoCountdownMore" type="button">查看全部</button></span></div>
+          <div class="memo-countdown-list" id="memoCountdownList"></div>
+        </article>
+        <article class="card glass home-links-card">
+          <div class="cardhead"><h2>常用链接</h2><span class="sub"><button class="pillbtn" id="manageHomeLinks">编辑</button></span></div>
+          <div class="home-links-scroll">
+            <div class="home-link-grid" id="homeCommonLinks"></div>
+            <button class="home-link-more-toggle" id="toggleMoreLinks"><span>更多链接</span><span id="homeMoreCount">0</span><span class="chev">⌄</span></button>
+            <div class="home-more-links" id="homeMoreLinksWrap" hidden><div class="home-link-grid" id="homeMoreLinks"></div></div>
+          </div>
+        </article>
+      </aside>
+
 
       <details class="card glass discover" id="discoverPanel">
         <summary class="cardhead"><h2>今日发现 · 排行榜</h2><span class="sub">点击展开</span><span class="discover-chevron" aria-hidden="true">⌄</span></summary><div class="discover-body"><div class="discover-controls"><button class="pillbtn" id="refreshDiscover">刷新榜单</button></div>
@@ -685,7 +688,7 @@
           id="tsugiFrame"
           title="Tsugi Checker"
           loading="lazy"
-          data-src="../tsugi-checker/?v=20261007-layout2"
+          data-src="../tsugi-checker/?v=20261007-notebook"
           referrerpolicy="strict-origin-when-cross-origin"></iframe>
       </div>
     </section>
@@ -826,7 +829,7 @@
       <article class="bigcard glass focus-main">
         <div class="section-title"><h2>专注时钟</h2><p id="focusModeLabel">25 分钟工作</p></div>
         <div class="focus-target"><select class="field" id="focusTaskSelect"><option value="">自由专注</option></select><input class="field" id="focusCustomTask" placeholder="或者输入当前要做的事…"></div>
-        <div class="focus-learning"><div class="focus-learning-head"><b>课程专注</b><button class="pillbtn" id="focusResumeLesson">继续正在学的章节</button></div><div class="focus-learning-select"><select class="field" id="focusCourse" aria-label="专注课程"><option>载入课程…</option></select><select class="field" id="focusLesson" aria-label="专注章节"><option>选择章节</option></select><button class="pillbtn" id="focusOpenLesson" disabled>打开章节 ↗</button></div><p id="focusLearningStatus" role="status"></p></div>
+        <div class="focus-learning"><div class="focus-learning-head"><b>课程专注</b><div class="focus-learning-actions"><a class="pillbtn" id="focusLearningHome" href="../self-learning/" target="_blank" rel="noopener">Self Learning 主页 ↗</a><button class="pillbtn" id="focusResumeLesson">继续正在学的章节</button></div></div><div class="focus-learning-select"><select class="field" id="focusCourse" aria-label="专注课程"><option>载入课程…</option></select><select class="field" id="focusLesson" aria-label="专注章节"><option>选择章节</option></select><button class="pillbtn" id="focusOpenLesson" disabled>打开章节 ↗</button></div><p id="focusLearningStatus" role="status"></p></div>
         <div class="focusclock" id="focusClock">25:00</div><div class="focus-progress"><i id="focusProgressBar"></i></div>
         <div class="focusactions"><button class="save" id="focusToggle">开始</button><button class="pillbtn" id="focusReset">重置</button><button class="pillbtn" id="focusBreak">休息 5m</button></div>
         <div class="preset-row"><button data-min="15">15m</button><button data-min="25">25m</button><button data-min="45">45m</button><button data-min="60">60m</button><button data-min="90">90m</button></div>
