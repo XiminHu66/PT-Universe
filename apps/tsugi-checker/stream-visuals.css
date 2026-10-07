@@ -25,3 +25,7 @@
 .main{padding-top:14px}
 @media(max-width:840px){.main{padding-top:12px}}
 @media(max-width:700px){#music .music-chart-list,#music .followed-artists-grid{grid-template-columns:1fr}}
+
+.stream-control-group{margin:4px 0 14px}.stream-control-group .stream-tools{margin:0}
+.stream-last-refresh{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:11px;line-height:1.5;margin:7px 2px 0}.stream-last-refresh time{font-variant-numeric:tabular-nums;color:var(--text)}
+#sourceTools .stream-control-group{max-width:250px;margin:0 0 14px}#sourceTools .stream-tools{margin:0}
