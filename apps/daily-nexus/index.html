@@ -3826,7 +3826,10 @@ async function loadUpcoming(force=false){
   renderUpcomingHome();renderUpcomingModal();
   if(freshCache){showStatus(true,cache.localMode||'cache');return}
   let localOk=false,localMode='cache',dynamicOk=false;
-  try{const result=await fetchSeattleLocalEvents();upcomingLocal=result.items;localMode=result.mode;localOk=true}catch(_){}
+  try{
+    const result=await fetchSeattleLocalEvents();upcomingLocal=result.items;localMode=result.mode;localOk=true;
+    store.set("upcomingCacheV4",{time:Date.now(),local:upcomingLocal,dynamic:upcomingOfficialDynamic,localMode});
+  }catch(_){}
   // Show activities as soon as they load; slow convention sources cannot blank the panel.
   showStatus(localOk||upcomingLocal.length>0,localMode);
   try{const items=await officialLaunchWatchers();if(items.length){upcomingOfficialDynamic=items;dynamicOk=true}}catch(_){}
