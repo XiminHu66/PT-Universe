@@ -111,3 +111,9 @@ node tests/research-ai.test.mjs
 Deployment commits tagged `[research-ai-test]` run four live fixed-public-topic
 checks (refine, date-filtered search + screen, synthesis, original-paper deep
 reading), measure tokens, verify deduplication, and remove the temporary account.
+
+## Take-home-first research rounds
+
+Confirm the selected papers once to automatically fetch available arXiv key passages and generate per-paper takeaways, evidence excerpts, an outline and comparison in one `digest` request. Failed/unavailable HTML falls back to a clearly labeled abstract. Full text is transient; automatically collected full-text passages are not archived. The session retains concise generated results and quotation/source paragraph references.
+
+`整理` explicitly saves metadata, per-paper takeaways and evidence into Library, the synthesis into Topic Space, and deduplicated candidate entity links into Graph, without a model call. Existing manual fields and notes remain intact. A separate `round` request produces the complete round report with an evidence snapshot (including manually extracted fields); export includes scope, takeaways, evidence and source URLs. Reading and verification remain optional. Refresh/navigation/sync never trigger generation. Schema v3 migrates v1/v2 and protects the new digest/report fields from older clients.
