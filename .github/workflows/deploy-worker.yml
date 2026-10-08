@@ -62,9 +62,14 @@ jobs:
           node --input-type=module <<'JS'
           const api='https://pt-universe-api.summer07-nanjolno.workers.dev/api/hub/';
           for(const route of ['calendar','topics','discover','assets']){
-            const r=await fetch(api+route,{headers:{'user-agent':'PT-Universe deployment verification',origin:'https://ximinhu66.github.io'},signal:AbortSignal.timeout(45000)});
-            const value=await r.json();
-            if(!r.ok||!value.checked_at)throw Error(route+': '+(value.error||r.status));
+            let value;
+            for(let attempt=0;attempt<6;attempt++){
+              const r=await fetch(api+route+'?deployment='+Date.now(),{headers:{'user-agent':'PT-Universe deployment verification',origin:'https://ximinhu66.github.io'},signal:AbortSignal.timeout(45000)});
+              value=await r.json();
+              if(r.ok&&value.checked_at)break;
+              if(attempt===5)throw Error(route+': '+(value.error||r.status));
+              await new Promise(resolve=>setTimeout(resolve,5000));
+            }
             const count=value.items?.length||value.days?.flatMap(d=>d.items).length||0;
             if(!count)throw Error(route+' returned no real entries');
             console.log(route,count,'entries; last successful fetch',value.checked_at);
