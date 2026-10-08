@@ -87,11 +87,12 @@ const assert=require('node:assert/strict');
  await save('#novelTaskList [data-novel-save="'+imageOnly+'"]','images-only.epub');
  await save('#saveNovelBundle','collection.zip');
  const bundle=await page.evaluate(async()=>{const z=new JSZip();for(const t of novelTasks.filter(t=>t.blob&&!t.target?.local)){const file=await z.loadAsync(await t.blob.arrayBuffer());const chapter=await file.file('OEBPS/'+(t.url.endsWith('/5.htm')||t.indices?.length===1?'chapter':'c0')+'.xhtml').async('string');if(!t.url.endsWith('/5.htm')&&!chapter.includes('小说 '+t.url.match(/(\d+)\.htm/)[1]))return false;}return true;});assert.ok(bundle,'Concurrent books mixed chapter contents');
- // Failure in one illustration cannot create a falsely successful EPUB; retry works.
+ // Failed illustrations preserve text with an explicit partial-image receipt; regeneration can restore them.
  await page.fill('#novelURL','测试小说 6');await page.click('#novelSearch button');await page.waitForFunction(()=>document.querySelectorAll('[data-match-download]').length===1);
- await chooseDownload('[data-match-download]');await page.waitForFunction(()=>novelTasks.some(t=>t.status==='error'));
- const failed=await page.evaluate(()=>{const t=novelTasks.find(t=>t.status==='error');return {id:t.id,blob:!!t.blob,detail:t.detail};});assert.equal(failed.blob,false);assert.match(failed.detail,/插图下载失败/);
- failImage=false;await page.click('#novelTaskList [data-novel-retry="'+failed.id+'"]');await page.waitForFunction(id=>novelTasks.find(t=>t.id===id).status==='ready',failed.id);
+ await chooseDownload('[data-match-download]');await page.waitForFunction(()=>novelTasks.some(t=>t.url.endsWith('/6.htm')&&t.status==='ready'));
+ const partial=await page.evaluate(()=>{const t=novelTasks.find(t=>t.url.endsWith('/6.htm')&&t.status==='ready');return {id:t.id,blob:!!t.blob,detail:t.detail};});assert.equal(partial.blob,true);assert.match(partial.detail,/跳过 1 张失败图片/);
+ const partialContents=await page.evaluate(async id=>{const t=novelTasks.find(t=>t.id===id),z=await new JSZip().loadAsync(await t.blob.arrayBuffer());return {chapter:await z.file('OEBPS/c0.xhtml').async('string'),images:Object.keys(z.files).filter(f=>/^OEBPS\/images\/.*\.(png|jpg|jpeg|webp)$/.test(f)).length};},partial.id);assert.match(partialContents.chapter,/小说 6/);assert.equal(partialContents.images,0);
+ failImage=false;await page.click('#novelTaskList [data-novel-retry="'+partial.id+'"]');await page.waitForFunction(id=>novelTasks.find(t=>t.id===id).status==='ready',partial.id);assert.doesNotMatch(await page.evaluate(id=>novelTasks.find(t=>t.id===id).detail,partial.id),/跳过 1 张/);
  // Selecting noncontiguous chapters preserves original order and excludes unselected chapters.
  await openBook(7);const before=await page.evaluate(()=>novelTasks.length);
  await page.click('#bookEPUB');await page.waitForSelector('[data-download-chapter="4"]');assert.equal(await page.locator('#downloadChapterList input:checked').count(),5);

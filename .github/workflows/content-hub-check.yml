@@ -1,0 +1,49 @@
+name: Content hub validation
+on:
+  pull_request:
+    paths:
+      - 'apps/card-lab/**'
+      - 'apps/check-desk/**'
+      - 'apps/shared/**'
+      - 'apps/tsugi-checker/**'
+      - 'apps/daily-nexus/**'
+      - 'workers/pt-universe-api/src/content-hub.ts'
+      - 'workers/pt-universe-api/tests/content-hub*'
+      - 'workers/pt-universe-api/tests/fixtures/hub-*'
+      - 'scripts/content-hub/**'
+      - '.github/workflows/content-hub-check.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sources-and-rules:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: workers/pt-universe-api/package-lock.json
+      - run: npm ci --prefix workers/pt-universe-api
+      - run: npm run check --prefix workers/pt-universe-api
+      - run: node tests/content-hub.test.mjs
+        working-directory: workers/pt-universe-api
+      - run: node scripts/content-hub/engine-test.mjs
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false playwright@1.58.2
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/content-hub/browser-test.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: content-hub-screenshots
+          path: /tmp/pt-hub-*.png

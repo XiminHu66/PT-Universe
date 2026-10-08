@@ -1,6 +1,6 @@
 const {chromium}=require(process.env.PT_PLAYWRIGHT||'playwright');
 const assert=require('node:assert/strict');
-const order=['home','todo','board','tsugi','meal','focus','countdown','tools','settings'];
+const order=['home','todo','board','tsugi','check','meal','focus','countdown','tools','settings'];
 const removed=['investment','muse','traffic','learning'];
 const base=process.env.PT_TEST_URL||'http://127.0.0.1:8765/';
 let browser;
