@@ -1,4 +1,4 @@
-import {normalize} from './model.mjs?v=5';
+import {normalize} from './model.mjs?v=6';
 const API='https://pt-universe-api.summer07-nanjolno.workers.dev',enc=new TextEncoder(),dec=new TextDecoder();
 export const config=()=>{try{return JSON.parse(localStorage.getItem('ptu.sync.config'))}catch{return null}};
 const b64=bytes=>{let s='';for(let i=0;i<bytes.length;i+=8192)s+=String.fromCharCode(...bytes.subarray(i,i+8192));return btoa(s).replaceAll('+','-').replaceAll('/','_').replaceAll('=','')};

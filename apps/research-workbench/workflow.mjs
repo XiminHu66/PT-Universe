@@ -1,5 +1,5 @@
-import {upsertPaper,canonical,importExtraction,evidenceStatus,FIELDS} from './model.mjs?v=5';
-import {config} from './sync.mjs?v=5';
+import {upsertPaper,canonical,importExtraction,evidenceStatus,FIELDS} from './model.mjs?v=6';
+import {config} from './sync.mjs?v=6';
 const API='https://pt-universe-api.summer07-nanjolno.workers.dev';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const today=()=>new Date().toLocaleDateString('en-CA');
