@@ -7,6 +7,21 @@ const arr=(v:any)=>Array.isArray(v)?v:[];
 const hash=async(s:string)=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(x=>x.toString(16).padStart(2,'0')).join('');
 const result=(body:any,status=200)=>({body,status});
 type AIEnv=Pick<Env,'DB'> & {GEMINI_API_KEY?:string;RESEARCH_PROBE_AUTH?:string};
+// Constrain the new multi-paper tasks at generation time, then validate source
+// IDs and quotations independently. A schema never verifies research claims.
+export function researchSchema(task:string){
+ if(!['digest','round'].includes(task))return undefined;
+ const string={type:'string'},list=(items:any)=>({type:'array',items}),object=(properties:any)=>({type:'object',properties,required:Object.keys(properties),additionalProperties:false});
+ const schema:any=object({overview:string,takeaways:list(string),outline:list(object({title:string,explanation:string,paperIds:list(string)})),readingOrder:list(object({paperId:string,why:string,focus:string})),comparison:list(object({dimension:string,items:list(object({paperId:string,value:string,quote:string}))})),openQuestions:list(string),entities:list(object({name:string,type:{type:'string',enum:['Method','Model','Dataset','Benchmark','Metric']},paperIds:list(string),quote:string}))});
+ if(task==='digest'){schema.properties.paperSummaries=list(object({paperId:string,summary:string,takeaways:list(string),evidence:list(object({kind:{type:'string',enum:['idea','results','limitations','compute','dataset','baseline','metrics']},value:string,quote:string,paragraphId:string}))}));schema.required.push('paperSummaries')}
+ return schema;
+}
+export function parseResearchJSON(text:string){
+ // Accept an entire JSON object or a single Markdown JSON fence. Do not repair
+ // quotations or infer missing content; malformed output stays a manual retry.
+ const raw=text.trim().replace(/^```(?:json)?\s*([\s\S]*?)\s*```$/i,'$1');
+ return JSON.parse(raw);
+}
 export function researchPrompt(body:any){
  const topic=str(body.topic,160),goal=str(body.goal,1000),from=str(body.from,10),to=str(body.to,10);
  if(!topic)throw Error('请输入研究主题');
@@ -30,7 +45,7 @@ export function researchPrompt(body:any){
    const digest=raw[i].digest||raw[i].aiDigest;source.papers[i].digest={scope:str(digest?.scope,200),summary:str(digest?.summary,3000),takeaways:arr(digest?.takeaways).slice(0,5).map(x=>str(x,1000)),coverage:digest?.coverage,evidence:arr(digest?.evidence).slice(0,8).map(e=>({kind:str(e.kind,80),value:str(e.value,1500),quote:str(e.quote,2000),paragraphId:str(e.paragraphId,30),matched:e.matched===true}))};
   }
   if(body.task==='screen')task='Screen supplied papers against the topic, goal and date range. Return {summary:string,papers:[{id:string,score:number(0..100),recommendation:"deep"|"skim"|"skip",reason:string,focus:string,caveat:string}]}. Return every supplied ID exactly once. Use only titles and abstracts. Distinguish relevance from quality; unknown reproducibility or results must stay unknown. Do not invent scores or new IDs.';
-  else task='Synthesize ONLY these supplied papers, using extracted fields if present and abstracts otherwise. Explicitly label abstract-only judgments. Return {overview:string,outline:[{title:string,explanation:string,paperIds:string[]}],readingOrder:[{paperId:string,why:string,focus:string}],comparison:[{dimension:string,items:[{paperId:string,value:string,quote:string}]}],openQuestions:string[],takeaways:string[],entities:[{name:string,type:"Method"|"Model"|"Dataset"|"Benchmark"|"Metric",paperIds:string[],quote:string}]}. Use source IDs exactly; every comparison item should quote a supplied abstract or extracted evidence when possible; otherwise leave quote empty. Provide a coherent beginner-friendly outline from problem to methods, evidence, tradeoffs and next experiment. Mark your research questions as suggestions. Extract concise canonical entity names only, never invented relationships or citation links. Do not infer absence from missing details. Include 3–6 comparison dimensions.';
+  else task='Synthesize ONLY these supplied papers, using supplied source paragraphs, digest evidence and extracted fields when present, and abstracts otherwise. Explicitly label abstract-only judgments. Return {overview:string,outline:[{title:string,explanation:string,paperIds:string[]}],readingOrder:[{paperId:string,why:string,focus:string}],comparison:[{dimension:string,items:[{paperId:string,value:string,quote:string}]}],openQuestions:string[],takeaways:string[],entities:[{name:string,type:"Method"|"Model"|"Dataset"|"Benchmark"|"Metric",paperIds:string[],quote:string}]}. Use source IDs exactly; every comparison item should quote a supplied abstract or extracted evidence when possible; otherwise leave quote empty. Provide a coherent beginner-friendly outline from problem to methods, evidence, tradeoffs and next experiment. Mark your research questions as suggestions. Extract concise canonical entity names only, never invented relationships or citation links. Do not infer absence from missing details. Include 3–6 comparison dimensions.';
   if(body.task==='digest')task+=' Also return paperSummaries:[{paperId:string,summary:string,takeaways:string[],evidence:[{kind:"idea"|"results"|"limitations"|"compute"|"dataset"|"baseline"|"metrics",value:string,quote:string,paragraphId:string}]}], exactly one for EVERY supplied paper. Use supplied source paragraphs when present, abstracts otherwise. Focus on 2–4 reusable take home messages per paper: what changes, when useful, tradeoff, concrete supported result. Extract 3–6 critical claims with exact contiguous quotes and source paragraph IDs. Omit unsupported numbers. Evidence may be incomplete because only selected passages are supplied; never claim whole-paper coverage. Avoid requiring original reading; reading order is optional.';
   if(body.task==='round')task+=' This is the FINAL report of this research round. Use supplied digest evidence as well as fields. Preserve conditions, disagreements, strengths, limitations and unknowns. Fields with evidenceMatched false are unverified notes, not established evidence. Treat mismatched quotations as unverified claims; never use them as validated evidence. Prioritize 3–5 actionable take home messages, a clear answer to the research goal, consensus versus disagreements and applicability. Quote ONLY matched supplied evidence or abstracts. Do not fabricate new evidence. Reading is optional verification.';
  }else if(body.task==='deep'){
@@ -118,7 +133,7 @@ export async function researchAIRoute(request:Request,env:AIEnv,authenticate:(r:
  if(!env.GEMINI_API_KEY)return result({error:'后台尚未配置 Gemini'},503);
  const raw=await request.text();if(raw.length>180000)return result({error:'原文过长，请缩小到重点章节'},413);
  let body:any,prepared:any;try{body=JSON.parse(raw);prepared=researchPrompt(body)}catch(e){return result({error:e instanceof Error?e.message:'无效输入'},400)}
- const fingerprint=await hash(MODEL+body.task+prepared.prompt),day=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+ const fingerprint=await hash(MODEL+body.task+(researchSchema(body.task)?JSON.stringify(researchSchema(body.task)):'')+prepared.prompt),day=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
  await env.DB.prepare('CREATE TABLE IF NOT EXISTS research_ai_runs(owner TEXT NOT NULL,fingerprint TEXT NOT NULL,day TEXT NOT NULL,status TEXT NOT NULL,created_at INTEGER NOT NULL,attempts INTEGER NOT NULL DEFAULT 1,input_estimate INTEGER NOT NULL DEFAULT 0,result TEXT,PRIMARY KEY(owner,fingerprint))').run();
  const existing=await env.DB.prepare('SELECT status,result,created_at FROM research_ai_runs WHERE owner=? AND fingerprint=?').bind(match[1],fingerprint).first<any>();
  if(existing?.status==='done')return result({...JSON.parse(existing.result),cached:true});
@@ -128,12 +143,12 @@ export async function researchAIRoute(request:Request,env:AIEnv,authenticate:(r:
  .bind(match[1],fingerprint,day,Date.now(),prepared.prompt.length,day,Date.now()-60000,Date.now()-60000,prepared.prompt.length,match[1],Date.now()-120000,Date.now()-120000).run();
  if(reservation.meta.changes!==1)return result({error:'请稍后再点击；当前有任务运行，或已达到每分钟 8 次 / 每日 100 个任务的保护上限。'},429);
  try{
-  const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,{method:'POST',headers:{'x-goog-api-key':env.GEMINI_API_KEY.trim(),'content-type':'application/json'},redirect:'manual',signal:AbortSignal.timeout(65000),body:JSON.stringify({contents:[{role:'user',parts:[{text:prepared.prompt}]}],generationConfig:{temperature:0.2,maxOutputTokens:10000,responseMimeType:'application/json'}})});
+  const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,{method:'POST',headers:{'x-goog-api-key':env.GEMINI_API_KEY.trim(),'content-type':'application/json'},redirect:'manual',signal:AbortSignal.timeout(65000),body:JSON.stringify({contents:[{role:'user',parts:[{text:prepared.prompt}]}],generationConfig:{temperature:0.2,maxOutputTokens:10000,responseMimeType:'application/json',responseJsonSchema:researchSchema(body.task)}})});
   const data:any=await r.json().catch(()=>null);
   if(!r.ok)throw Object.assign(Error(r.status===429?'Gemini 免费额度暂不可用，请稍后手动重试':r.status===503?'Gemini 暂时繁忙，请稍后手动重试':'Gemini 调用失败，请稍后手动重试'),{status:r.status===429?429:502});
   if(data?.candidates?.[0]?.finishReason!=='STOP')throw Error('模型输出未完成；请减少论文数量或原文长度后重试');
   const text=arr(data?.candidates?.[0]?.content?.parts).filter(x=>!x.thought).map(x=>x.text||'').join('');
-  const output=validateResearchOutput(body.task,JSON.parse(text),prepared.source);
+  const output=validateResearchOutput(body.task,parseResearchJSON(text),prepared.source);
   const payload={output,model:MODEL,usage:data.usageMetadata||{},generatedAt:new Date().toISOString(),cached:false,scope:body.task==='deep'?prepared.source.coverage:body.task==='refine'?'研究方向建议':'摘要与已提取证据'};
   // Source text and generated content remain in the encrypted client archive. Only
   // short-lived retry results are kept here, and expire from cache after one day.
