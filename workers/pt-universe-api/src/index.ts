@@ -8,6 +8,7 @@ import { geminiProbeRoute } from './gemini-probe';
 import { researchAIRoute } from './research-ai';
 import { lifeAiRoute } from './life-ai';
 import { mediaRoute } from './media';
+import { contentHubRoute, hubTick } from './content-hub';
 
 type RefreshScope='all'|'sites'|'music'|'games';
 type RefreshMessage={requestId:string;scope:RefreshScope;source:'manual'|'scheduled';limitKeys?:string[]};
@@ -472,6 +473,7 @@ export default {
     if(request.method==='OPTIONS')return new Response(null,{status:204,headers:cors(request)});
     try{
       if(url.pathname==='/api/health')return reply(request,{ok:true,time:now(),storage:'KV + D1',rssOrbit:'external'});
+      const hub=await contentHubRoute(request,env);if(hub)return reply(request,hub.body,hub.status||200);
       if(url.pathname==='/api/status')return reply(request,await status(env));
       if(url.pathname==='/api/refresh/budget'&&request.method==='GET')return reply(request,await refreshBudget(env));
       if(url.pathname==='/api/analytics'&&request.method==='POST'){
@@ -502,7 +504,7 @@ export default {
     }catch(e){console.error('request_failed',{path:url.pathname,error:String(e)});return error(request,e instanceof Error?e.message:String(e),500)}
   },
   async scheduled(_controller:ScheduledController,env:Env,ctx:ExecutionContext){
-    if(_controller.cron==='*/15 * * * *'){ctx.waitUntil(decisionTick(env));return;}
+    if(_controller.cron==='*/15 * * * *'){ctx.waitUntil(decisionTick(env));ctx.waitUntil(hubTick(env));return;}
     ctx.waitUntil((async()=>{
       const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(new Date());
       const pick=(type:string)=>parts.find(x=>x.type===type)?.value||'',hour=Number(pick('hour'));

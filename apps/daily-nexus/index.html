@@ -552,6 +552,7 @@
     <button class="navbtn" data-view="todo"><div><div class="navicon">✎</div><span>Idea Pad</span></div></button>
     <button class="navbtn" data-view="board"><div><div class="navicon">▦</div><span>看板</span></div></button>
     <button class="navbtn" data-view="tsugi"><div><div class="navicon">📚</div><span>追更</span></div></button>
+    <button class="navbtn" data-view="check"><div><div class="navicon">⌕</div><span>核查台</span></div></button>
     <button class="navbtn" data-view="meal"><div><div class="navicon">🍜</div><span>吃什么</span></div></button>
     <button class="navbtn" data-view="focus"><div><div class="navicon">◎</div><span>专注</span></div></button>
     <button class="navbtn" data-view="countdown"><div><div class="navicon">⏳</div><span>倒数</span></div></button>
@@ -688,8 +689,15 @@
           id="tsugiFrame"
           title="Tsugi Checker"
           loading="lazy"
-          data-src="../tsugi-checker/?v=20261007-visible-time"
+          data-src="../tsugi-checker/?v=20261008-content"
           referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      </div>
+    </section>
+
+    <section class="view" id="view-check">
+      <div class="embed-frame-wrap">
+        <div class="embed-loading" id="checkLoading"><div><b>核查台</b><span>正在打开公开来源与证据档案…</span></div></div>
+        <iframe class="embed-frame" id="checkFrame" title="核查台" loading="lazy" data-src="../check-desk/?embedded=nexus&amp;v=20261008-1" referrerpolicy="strict-origin-when-cross-origin"></iframe>
       </div>
     </section>
 
@@ -2260,6 +2268,7 @@ const DEFAULT_NAV_CONFIG=[
   {view:"todo",icon:"✎",label:"Idea Pad"},
   {view:"board",icon:"▦",label:"看板"},
   {view:"tsugi",icon:"📚",label:"追更"},
+  {view:"check",icon:"⌕",label:"核查台"},
   {view:"meal",icon:"🍜",label:"吃什么"},
   {view:"focus",icon:"◎",label:"专注"},
   {view:"countdown",icon:"⏳",label:"倒数"},
@@ -2536,6 +2545,7 @@ function switchNexusView(view){
   const target=$("#view-"+view);if(target)target.classList.add('active');
   setDeskBoardActive(view==='board');
   if(view==='tsugi')ensureEmbeddedSite('tsugi');
+  if(view==='check')ensureEmbeddedSite('check');
   if(view==='meal')ensureEmbeddedSite('meal');
   if(view==='todo')switchIdeaTab(store.get('ideaTab','projects'));
   dispatchEvent(new CustomEvent('nexus-view-change',{detail:{view}}));
@@ -3090,7 +3100,7 @@ function syncEmbeddedTheme(name,theme=resolvedNexusTheme()){
 }
 function syncEmbeddedThemes(theme=resolvedNexusTheme()){
   syncEmbeddedTheme('tsugi',theme);syncEmbeddedTheme('meal',theme);
-  syncEmbeddedTheme('todo',theme);syncEmbeddedTheme('notes',theme);
+  syncEmbeddedTheme('todo',theme);syncEmbeddedTheme('notes',theme);syncEmbeddedTheme('check',theme);
   dispatchEvent(new CustomEvent('nexus-theme-change',{detail:{theme}}));
 }
 function ensureEmbeddedSite(name){

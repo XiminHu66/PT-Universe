@@ -31,7 +31,7 @@
   <link rel="stylesheet" href="stream-visuals.css?v=20261007-4">
   <link rel="alternate" type="application/atom+xml" title="Tsugi Updates" href="data/feed.xml" />
   <link rel="stylesheet" href="../../pt-bridge.css?v=20260827-1">
-</head>
+<link rel="stylesheet" href="../shared/content.css?v=20261008-1"><style>:is(#works,#topics,#anime,#discovery) h1{font-size:25px;margin:0}:is(#works,#topics,#anime,#discovery) .hub-grid{grid-template-columns:repeat(auto-fill,minmax(205px,1fr))}:is(#works,#topics,#anime,#discovery) .hub-row{color:var(--hub-text)}:is(#works,#topics,#anime,#discovery) .hub-toolbar input:not([type=checkbox]){flex:1}:is(#works,#topics,#anime,#discovery) .hub-status{margin-top:0}:is(#works,#topics,#anime,#discovery) .hub-top{margin-top:4px}@media(max-width:700px){:is(#works,#topics,#anime,#discovery) .hub-grid{grid-template-columns:repeat(2,minmax(0,1fr))}:is(#works,#topics,#anime,#discovery) .hub-toolbar select{max-width:100%}}@media(max-width:840px){.sidebar{display:flex!important;flex-direction:row!important;overflow-x:auto!important;overflow-y:hidden!important;justify-content:flex-start!important;gap:4px!important;scrollbar-width:none}.sidebar-navigation,.sidebar-section,.nav-list{display:contents!important}.sidebar .nav-item{flex:0 0 68px;min-width:68px;min-height:56px}.sidebar .brand,.sidebar .sidebar-footer{display:none!important}} </style></head>
 <body>
   <div class="bg-orb orb-a"></div>
   <div class="bg-orb orb-b"></div>
@@ -71,7 +71,11 @@
             <span class="nav-copy"><span>游戏追踪</span><small>Daily releases</small></span>
             <em id="gameCount">0</em>
           </button>
-          <button class="nav-item" data-tab="sources">
+          <button class="nav-item" data-tab="works"><span class="nav-icon">⌘</span><span class="nav-copy"><span>作品地图</span></span></button>
+<button class="nav-item" data-tab="topics"><span class="nav-icon">◌</span><span class="nav-copy"><span>兴趣话题</span></span></button>
+<button class="nav-item" data-tab="anime"><span class="nav-icon">▶</span><span class="nav-copy"><span>番剧分集</span></span></button>
+<button class="nav-item" data-tab="discovery"><span class="nav-icon">✦</span><span class="nav-copy"><span>发现作品</span></span></button>
+<button class="nav-item" data-tab="sources">
             <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="18" cy="18" r="2"/><path d="m8 11 8-4M8 13l8 4"/></svg></span>
             <span class="nav-copy"><span>来源状态</span><small>Source health</small></span>
           </button>
@@ -292,7 +296,13 @@
         </div>
       </section>
 
-      <section id="sources" class="tab">
+
+<section id="works" class="tab"><div class="hub-top"><div><span class="hub-kicker">WORK ATLAS</span><h1>作品地图</h1></div><button class="hub-btn" id="worksExport">导出收藏</button></div><div class="hub-toolbar"><form id="worksSearch"><input class="hub-input" id="worksQuery" required minlength="2" maxlength="180" placeholder="搜索小说、漫画、动画或游戏"><button class="hub-btn primary" id="worksSearchBtn">查找作品</button></form></div><div class="hub-toolbar" id="worksArchive"></div><p class="hub-status" id="worksStatus">从一个作品开始，查看前传、续集、外传和改编。</p><div id="worksDetail"></div><div class="hub-grid" id="worksResults"></div></section>
+<section id="topics" class="tab"><div class="hub-top"><div><span class="hub-kicker">CONVERSATIONS</span><h1>中文兴趣话题</h1></div><button class="hub-btn" id="topicsRefresh">刷新</button></div><div class="hub-toolbar"><input class="hub-input" id="topicsQuery" placeholder="筛选标题、作品或正文"><select id="topicsSource" class="hub-input"><option value="all">全部来源</option><option value="bangumi">ACG · Bangumi</option><option value="v2ex">数码与生活 · V2EX</option></select><select id="topicsOrder" class="hub-input"><option value="source">来源最新 / 最近活跃</option><option value="replies">回复最多</option></select><label><input type="checkbox" id="topicsUnread"> 只看未读</label></div><details class="hub-note"><summary>屏蔽与隐藏设置</summary><input class="hub-input" id="topicsBlocked" maxlength="300" placeholder="屏蔽关键词，以逗号分隔"><button class="hub-btn" id="topicsRestore">恢复隐藏帖子</button><p>话题标题也可能包含剧透；请先屏蔽不想看到的作品。正文不会自动展开。</p></details><p class="hub-status" id="topicsStatus"></p><div id="topicsList"></div></section>
+<section id="anime" class="tab"><div class="hub-top"><div><span class="hub-kicker">AIRING & PROGRESS</span><h1>番剧分集</h1></div><button class="hub-btn" id="animeRefresh">刷新</button></div><div class="hub-toolbar"><input class="hub-input" id="animeQuery" placeholder="筛选番剧"><select id="animeDay" class="hub-input"><option value="all">全部放送日</option><option value="1">周一</option><option value="2">周二</option><option value="3">周三</option><option value="4">周四</option><option value="5">周五</option><option value="6">周六</option><option value="7">周日</option></select><label><input type="checkbox" id="animeFollowOnly"> 我的关注</label></div><p class="hub-status" id="animeStatus"></p><div class="hub-note">日历按来源放送星期排列；分集日期是资料记录，不代表当前地区的平台已经上线。观看进度自动保存在本机。</div><div class="hub-grid" id="animeGrid"></div></section>
+<section id="discovery" class="tab"><div class="hub-top"><div><span class="hub-kicker">FIND YOUR NEXT STORY</span><h1>新发现与完结作品</h1></div><button class="hub-btn" id="discoveryRefresh">刷新</button></div><div class="hub-toolbar"><input class="hub-input" id="discoveryQuery" placeholder="筛选作品或作者"><select class="hub-input" id="discoveryType"><option value="all">小说 + 漫画</option><option value="novel">小说</option><option value="manga">漫画</option></select><select class="hub-input" id="discoveryMode"><option value="new">本站新发现</option><option value="completed">来源明确完结</option><option value="saved">已收藏</option></select></div><div class="hub-note">首次发现时间不等于出版时间；首次初始化会建立已有作品基线。只有来源明确标记的作品才归入完结，缺失简介和作者不会补写。</div><p class="hub-status" id="discoveryStatus"></p><div class="hub-grid" id="discoveryGrid"></div></section>
+<dialog class="hub-dialog" id="hubEpisodes"><div class="hub-top"><h2 id="episodeTitle"></h2><button class="hub-btn" id="closeEpisodes">关闭</button></div><div id="episodeList"></div></dialog>
+<section id="sources" class="tab">
         <div class="section-head">
           <div><p class="section-kicker">HEALTH CHECK</p><h2>来源状态</h2><p>最近一次 Cloudflare 刷新的抓取结果与成功率。</p></div>
         </div>
@@ -339,7 +349,7 @@
     </main>
   </div>
   <div id="tsugiToast" class="tsugi-toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20261007-searchless"></script>
+  <script src="app.js?v=20261007-searchless"></script><script src="../shared/content.js?v=20261008-1"></script><script src="content-tabs.js?v=20261008-1"></script>
   <script src="stream-visuals.js?v=20261007-3"></script>
   <script src="games.js?v=20260828-metadata1"></script>
   <script src="pc-prices.js?v=2"></script>
