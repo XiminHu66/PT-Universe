@@ -63,12 +63,13 @@ export function createGraphExplorer(ctx){
     {selector:'.connected, .active-edge',style:{width:2.8,'line-color':'#3870b6','target-arrow-color':'#3870b6',opacity:1,label:'data(label)'}},
     {selector:'.active-node',style:{'border-width':4,'border-color':'#123f83','background-blacken':0.08,'z-index':20}},
     {selector:'.pinned',style:{'border-color':'#ca962b','border-width':4}},
-    {selector:'.active-edge',style:{'line-color':'#17877b','target-arrow-color':'#17877b',width:3.5,color:'#167d72'}}
+    {selector:'.active-edge',style:{'line-color':'#17877b','target-arrow-color':'#17877b',width:3.5,color:'#167d72'}},
+    {selector:'.hide-label',style:{label:''}}
    ]});el.graphInstance=cy;
    cy.nodes().filter(n=>pinned.has(n.data('rawId'))).addClass('pinned');
    let labelState='';
    const readableLabels=()=>{if(!cy||cy.destroyed())return;const zoom=cy.zoom(),size=Math.round(Math.min(32,Math.max(16,11/zoom))),state=[size,zoom>=0.7,zoom>=0.5,relationLabels].join(':');if(state===labelState)return;labelState=state;
-    cy.batch(()=>{cy.nodes().forEach(n=>{n.data('label',short(n.data('fullLabel'),n.data('kind')==='Paper'?(zoom<0.7?26:66):48));n.style('font-size',size)});cy.edges().style('font-size',Math.min(26,Math.max(12,11/zoom)));cy.edges().toggleClass('show-label',relationLabels&&(zoom>=0.5||shown.nodes.length<=10))})};
+    cy.batch(()=>{cy.nodes().forEach(n=>{n.data('label',short(n.data('fullLabel'),n.data('kind')==='Paper'?(zoom<0.7?26:66):48));n.style('font-size',size)});cy.edges().style('font-size',Math.min(26,Math.max(12,11/zoom)));cy.edges().toggleClass('show-label',relationLabels&&(zoom>=0.5||shown.nodes.length<=10)).toggleClass('hide-label',!relationLabels)})};
    const zoomUI=()=>{const percent=Math.round(cy.zoom()*100),out=document.querySelector('#graph-zoom-value'),range=document.querySelector('#graph-zoom-range');if(out)out.textContent=percent+'%';if(range)range.value=percent;clearTimeout(labelTimer);labelTimer=setTimeout(readableLabels,140)};
    cy.on('zoom',zoomUI);
    physics=createGraphMotion(cy,d3,{enabled:motion&&layout==='cose',pinned,status:moving});
@@ -84,7 +85,7 @@ export function createGraphExplorer(ctx){
   }catch{if(own===token&&el.isConnected)el.innerHTML='<div class="graph-loading">可视化暂未加载；仍可通过右侧对象索引浏览关系和证据。</div>'}
  }
  function bind(){const root=document.querySelector('.graph-explorer');if(!root)return;const redraw=()=>ctx.render();root.querySelector('#graph-type').onchange=e=>{type=e.target.value;if(type==='Topic')topics=true;focus=false;redraw()};root.querySelector('#graph-origin').onchange=e=>{origin=e.target.value;focus=false;redraw()};root.querySelector('#graph-topics').onchange=e=>{topics=e.target.checked;if(!topics&&type==='Topic')type='';focus=false;redraw()};
-  root.querySelector('#graph-labels').onchange=e=>{relationLabels=e.target.checked;cy?.edges().toggleClass('show-label',relationLabels);};root.querySelector('#graph-zoom-range').oninput=e=>{if(cy){cy.stop();cy.zoom({level:Number(e.target.value)/100,renderedPosition:{x:cy.width()/2,y:cy.height()/2}})}};
+  root.querySelector('#graph-labels').onchange=e=>{relationLabels=e.target.checked;cy?.edges().toggleClass('show-label',relationLabels).toggleClass('hide-label',!relationLabels);};root.querySelector('#graph-zoom-range').oninput=e=>{if(cy){cy.stop();cy.zoom({level:Number(e.target.value)/100,renderedPosition:{x:cy.width()/2,y:cy.height()/2}})}};
   const search=root.querySelector('#graph-search');search.onchange=()=>{term=search.value.trim();focus=false;redraw()};search.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();search.blur()}};
   root.onclick=e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
    if(d.graphEdge){edgeSelect(d.graphEdge);return}
