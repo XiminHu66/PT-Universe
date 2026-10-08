@@ -29,7 +29,7 @@ export function researchPrompt(body:any){
  let source:any,task='';
  if(body.task==='refine'){
   source=context;
-  task='Help narrow this research topic into 3–5 distinct actionable directions. Translate search keywords into English for arXiv. Return {overview:string,directions:[{name:string,question:string,keywords:string[],include:string,exclude:string}],outline:string[]}. Questions are suggested research questions, not established facts. Do not invent papers.';
+  task='Help narrow this research topic into 3–5 distinct actionable directions. Translate search keywords into English for arXiv. Use short searchable core concepts (1–3 words) and established acronyms, not long exact phrases or Boolean operators. Keep evaluation criteria and fine distinctions in include/exclude for later screening. Return {overview:string,directions:[{name:string,question:string,keywords:string[],include:string,exclude:string}],outline:string[]}. Questions are suggested research questions, not established facts. Do not invent papers.';
  }else if(['screen','synthesize','compare','topic','digest','round'].includes(body.task)){
   const limit=body.task==='screen'?40:12;
   const raw=arr(body.papers);if(!raw.length||raw.length>limit)throw Error(`请选择 1–${limit} 篇论文`);
