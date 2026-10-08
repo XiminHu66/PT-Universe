@@ -11,5 +11,9 @@ const other=structuredClone(empty());other.entities.push({id:'method-1',name:'Hy
 const g=graph(state);assert.ok(g.nodes.some(n=>n.type==='Method'));assert.ok(g.edges.every(e=>e.inferred));assert.ok(compareMarkdown([paper,paper]).includes('原文匹配 / 待确认'));
 assert.equal(normalize({...state,dimensions:undefined,comparisonNotes:undefined}).dimensions.length,0);assert.equal(paragraphs('Intro\n\nMethod\n\nResults').length,3);
 assert.throws(()=>normalize({...state,papers:[{...paper,id:'<bad>'}]}));
-assert.equal(normalize({...state,version:1,researchSessions:undefined}).version,2);
+assert.equal(normalize({...state,version:1,researchSessions:undefined}).version,3);
 console.log('Research model passed: import dedupe, candidate extraction, evidence match, AI validation, merge/tombstones, graph and export');
+
+const snapshots=structuredClone(state);snapshots.papers[0].aiDigest={summary:'关键要点',takeaways:['以后复用'],evidence:[{quote:'原文',paragraphId:'p9',matched:true}]};snapshots.researchSessions=[{id:'round-1',updatedAt:Date.now(),topic:'RAG',step:4,report:{overview:'文章要点'},roundSummary:{overview:'完整研究',evidenceAppendix:[{paperId:paper.id,evidence:snapshots.papers[0].aiDigest.evidence}]},organizedAt:1}];const restored=normalize(snapshots);assert.equal(restored.papers[0].aiDigest.takeaways[0],'以后复用');assert.equal(restored.researchSessions[0].roundSummary.evidenceAppendix[0].evidence[0].paragraphId,'p9');assert.equal(normalize({...state,version:2}).version,3);
+
+const {keyPassages,roundInput,exportReport}=await import('../../apps/research-workbench/workflow.mjs');const picked=keyPassages([{id:'p1',section:'Related work',text:'x'.repeat(500)},{id:'p2',section:'Results',text:'result evidence'}],20);assert.equal(picked[0].id,'p2');const compact=roundInput({...paper,fields:ai.fields,digest:restored.papers[0].aiDigest},paper);assert.equal(compact.fields.results.quote,'');assert.ok(exportReport('RAG',restored.researchSessions[0].roundSummary).includes('来源段落：p9'));
