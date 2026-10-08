@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updatedAt": "2026-10-07T23:15:20.967527+00:00",
-  "attemptedAt": "2026-10-07T23:17:35.239294+00:00",
+  "attemptedAt": "2026-10-08T01:17:38.440529+00:00",
   "events": [
     {
       "id": "85219b1c3f952883",
@@ -4827,7 +4827,7 @@
       "url": "https://www.seattlecenter.com/events/event-calendar",
       "ok": false,
       "count": 0,
-      "checkedAt": "2026-10-07T23:17:35.239294+00:00",
+      "checkedAt": "2026-10-08T01:17:38.440529+00:00",
       "lastSuccessAt": "2026-10-07T20:45:56.290068+00:00",
       "error": "No dated upcoming events parsed",
       "optional": false
@@ -4837,13 +4837,13 @@
   "through": "2026-11-21",
   "refresh": {
     "state": "partial",
-    "lastAttemptAt": "2026-10-07T23:17:35.239294+00:00",
+    "lastAttemptAt": "2026-10-08T01:17:38.440529+00:00",
     "lastCompleteAt": "2026-10-07T20:45:56.290068+00:00",
     "failedSources": [
       "Seattle"
     ],
     "attempts": 3,
     "maxAgeHours": 36,
-    "runId": "37701143376"
+    "runId": "37712046543"
   }
 }
