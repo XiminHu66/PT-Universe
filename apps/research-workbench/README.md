@@ -119,3 +119,14 @@ Confirm the selected papers once to automatically fetch available arXiv key pass
 `整理` explicitly saves metadata, per-paper takeaways and evidence into Library, the synthesis into Topic Space, and deduplicated candidate entity links into Graph, without a model call. Existing manual fields and notes remain intact. A separate `round` request produces the complete round report with an evidence snapshot (including manually extracted fields); export includes scope, takeaways, evidence and source URLs. Reading and verification remain optional. Refresh/navigation/sync never trigger generation. Schema v3 migrates v1/v2 and protects the new digest/report fields from older clients.
 
 Search recovery: English keyword groups match all meaningful words with AND, alternatives separated by `|` use OR, and only explicitly quoted input requires a contiguous phrase. Keep date bounds on retries and offer a no-LLM broader-keyword retry on empty results. Changing topic/goal/dates creates a distinct session, preserving previous work; unlimited dates remain empty after rerenders. Upstream arXiv error feeds are surfaced as errors rather than empty results.
+
+## Interactive research graph
+
+Research Graph uses self-hosted Cytoscape.js 3.33.1 (MIT; license in `vendor/`) and loads the renderer only when opening the graph. Force-directed clustering and a directed hierarchy replace the former fixed type columns. Drag nodes or pan/zoom the canvas; selecting a node zooms into its neighborhood, highlights direction-labeled links and opens full names, saved takeaways and grouped incoming/outgoing relationships. A one-hop focus supports continued exploration. Relationship details distinguish manual and inferred links and open associated source paragraphs where available; generated candidates remain unverified.
+
+Keyword/type filters retain direct neighbors for context; origin filters separate manual/candidate edges. Generic Topic links are initially hidden and can be enabled. An accessible object index provides keyboard navigation and a fallback if the renderer cannot load. Large graphs show at most 250 matching objects with an explicit count and filtering guidance. Resizing supports a stacked mobile view. Layout positions and viewport survive ordinary in-session rerenders; they are presentation state, not synchronized research records. Data schema, encrypted sync, add/delete dialogs and JSON export remain unchanged; no graph database or external visualization account is required.
+
+```sh
+node scripts/research/graph-test.mjs
+node scripts/research/graph-browser-test.cjs
+```
