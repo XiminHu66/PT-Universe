@@ -1,0 +1,49 @@
+/* Match the host's light/dark palette rather than placing a second theme inside it. */
+:is(#works,#topics,#anime,#discovery){--hub-panel:var(--panel);--hub-soft:var(--panel-2);--hub-text:var(--text);--hub-muted:var(--muted);--hub-line:var(--line);--hub-accent:var(--accent);--hub-tint:var(--accent-soft);--hub-shadow:none}
+:is(#works,#topics,#anime,#discovery) .hub-top{margin-bottom:18px;align-items:center}
+:is(#works,#topics,#anime,#discovery) .hub-top p{font-size:13px;margin-top:6px;line-height:1.6}
+:is(#works,#topics,#anime,#discovery) .hub-btn.primary{color:#fff}
+#topics .hub-toolbar input:not([type=checkbox]){min-width:180px;width:auto}
+.topics-controls{border:1px solid var(--line);border-radius:16px;padding:14px 16px;background:var(--panel);margin-bottom:18px}
+.topics-controls .hub-toolbar{margin-bottom:0;gap:10px}
+.topics-controls select{font-size:12px;padding:10px;border-radius:9px;max-width:180px}
+.topic-unread{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);white-space:nowrap}
+.topics-bottom{display:flex;align-items:center;gap:16px;margin-top:10px;justify-content:space-between}
+.topics-bottom .hub-status{margin:0!important;min-height:0;font-size:11px}
+.topic-preferences{position:relative;margin:0;padding:0;background:none;font-size:11px;flex:none}
+.topic-preferences summary{cursor:pointer;color:var(--muted)}
+.topic-preferences[open]{padding:10px;max-width:340px}
+.topic-preferences input{width:100%;margin:8px 0}
+.topic-count{font-size:12px;font-weight:500;letter-spacing:0;color:var(--muted);margin-left:7px;vertical-align:middle}
+.topic-list{border:1px solid var(--line);border-radius:17px;background:var(--panel);overflow:hidden}
+.topic-entry{display:grid;grid-template-columns:36px minmax(0,1fr) 44px 24px;gap:14px;padding:18px 20px;align-items:start;position:relative}
+.topic-entry+.topic-entry{border-top:1px solid var(--line)}
+.topic-entry:hover{background:var(--panel-2)}
+.topic-avatar{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;font-size:16px;font-weight:800;background:var(--accent-soft);color:var(--accent);margin-top:2px}
+.topic-avatar.bangumi{background:#f69caa18;color:#dc738c}.topic-avatar.v2ex{background:#4eac9518;color:#4eac95}
+.topic-copy{min-width:0}.topic-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:10px;color:var(--muted);margin-bottom:5px}
+.topic-work{font-size:10px;padding:2px 7px!important;border:1px solid var(--line)!important;border-radius:5px;color:var(--muted);text-overflow:ellipsis;max-width:240px;overflow:hidden;white-space:nowrap}
+.topic-entry h3{margin:0 0 6px;font-size:15px;line-height:1.65;font-weight:650;overflow-wrap:anywhere;color:var(--text)}
+.topic-entry h3 a:hover{color:var(--accent)}.topic-entry.is-read h3{color:var(--muted);font-weight:500}
+.topic-time{color:var(--faint);font-size:10px}.topic-excerpt{color:var(--muted);font-size:12px;line-height:1.6;margin:4px 0 7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.topic-replies{padding-top:11px;text-align:center;display:grid;gap:2px;color:var(--muted);font-size:9px}.topic-replies b{font-size:15px;font-weight:650;color:var(--text-soft)}
+.topic-hide{font-size:20px!important;color:var(--faint);width:24px;padding:0!important;line-height:1;margin-top:8px}
+.topic-hide:hover{color:var(--red)}.topic-spoiler summary{font-size:12px;color:var(--muted);cursor:pointer;padding:5px 0}
+.topic-more{display:flex;margin:18px auto}.topic-more[hidden]{display:none}
+.anime-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.anime-entry{display:grid;grid-template-columns:45px minmax(0,1fr);gap:13px;padding:18px;border:1px solid var(--line);background:var(--panel);border-radius:15px;min-width:0}
+.anime-season{display:grid;align-content:start;gap:3px;justify-items:center;padding:8px 0;border-radius:9px;background:var(--accent-soft);color:var(--accent);font-size:10px;max-height:64px}.anime-season b{font-size:16px}
+.anime-copy{min-width:0}.anime-copy h3{font-size:15px;margin:6px 0;line-height:1.6;overflow-wrap:anywhere}.anime-copy h3 a:hover{color:var(--accent)}.anime-copy p{font-size:11px;color:var(--muted);line-height:1.7;margin:0}.anime-copy p b{color:var(--text-soft);font-weight:650}
+.anime-label{font-size:10px;color:var(--green)}.anime-label.completed{color:var(--muted)}.anime-label.special{color:var(--amber)}
+.anime-actions{grid-column:2;display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:3px}.anime-actions .hub-btn{font-size:11px;padding:7px 10px}.anime-actions .subtle{background:none;border-color:transparent;color:var(--muted);padding-left:0}
+.episode-current{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.episode-current span{color:var(--hub-muted);font-size:12px}.episode-current strong{font-size:18px}.episode-current a{margin-left:auto}
+@media(max-width:900px){.anime-list{grid-template-columns:1fr}.topics-controls .hub-toolbar input:not([type=checkbox]){flex-basis:100%}}
+@media(max-width:600px){.topic-entry{grid-template-columns:28px minmax(0,1fr) 30px 18px;gap:9px;padding:14px 12px}.topic-avatar{width:28px;height:28px;border-radius:8px;font-size:13px}.topic-entry h3{font-size:14px;line-height:1.6}.topic-replies{padding-top:13px}.topic-replies b{font-size:13px}.topic-work{max-width:180px}.topics-controls{padding:12px}.topics-controls select{flex:1;font-size:11px;max-width:none;min-width:0}.topics-bottom{align-items:flex-start}.topics-bottom .hub-status{max-width:65%;line-height:1.6}.topic-excerpt{-webkit-line-clamp:2}.anime-entry{padding:14px;gap:10px}.anime-actions .hub-btn{padding:7px 9px}.episode-current a{margin-left:0}}
+
+:is(#works,#topics,#anime,#discovery) .hub-top>.hub-btn{flex-shrink:0;white-space:nowrap}
+#anime .hub-toolbar>label{display:flex;gap:7px;align-items:center;white-space:nowrap;font-size:12px;color:var(--muted)}
+#anime #animeQuery{min-width:180px}
+@media(max-width:600px){#anime #animeQuery,#discovery #discoveryQuery{flex:1 0 100%;min-width:0;width:100%}#anime .hub-toolbar select{flex:1;min-width:0}#anime .hub-toolbar>label{flex-basis:100%}:is(#works,#topics,#anime,#discovery) .hub-top{align-items:flex-start}.anime-copy h3{margin-top:3px}}
+
+:is(#works,#topics,#anime,#discovery) .hub-toolbar input[type=checkbox]{width:auto;min-width:0;flex:none;margin:0}
+@media(max-width:600px){#topics #topicsQuery{flex:1 0 100%;width:100%;min-width:0}#topics #topicsSource,#topics #topicsOrder{flex:1;min-width:0}#topics .topic-unread{flex:none}}

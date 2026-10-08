@@ -8,6 +8,7 @@ import { geminiProbeRoute } from './gemini-probe';
 import { researchAIRoute } from './research-ai';
 import { lifeAiRoute } from './life-ai';
 import { mediaRoute } from './media';
+import {checkAiRoute} from './check-ai';
 import { contentHubRoute, hubTick } from './content-hub';
 
 type RefreshScope='all'|'sites'|'music'|'games';
@@ -473,6 +474,7 @@ export default {
     if(request.method==='OPTIONS')return new Response(null,{status:204,headers:cors(request)});
     try{
       if(url.pathname==='/api/health')return reply(request,{ok:true,time:now(),storage:'KV + D1',rssOrbit:'external'});
+      const checkAI=await checkAiRoute(request,env,authenticate);if(checkAI)return reply(request,checkAI.body,checkAI.status);
       const hub=await contentHubRoute(request,env);if(hub)return reply(request,hub.body,hub.status||200);
       if(url.pathname==='/api/status')return reply(request,await status(env));
       if(url.pathname==='/api/refresh/budget'&&request.method==='GET')return reply(request,await refreshBudget(env));

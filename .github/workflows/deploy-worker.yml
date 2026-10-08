@@ -43,6 +43,7 @@ jobs:
         run: |
           npm run check
           node tests/content-hub.test.mjs
+          node tests/check-ai.test.mjs
           node tests/muse.test.mjs
           node tests/gemini-probe.test.mjs
           node tests/research-ai.test.mjs
@@ -61,7 +62,7 @@ jobs:
         run: |
           node --input-type=module <<'JS'
           const api='https://pt-universe-api.summer07-nanjolno.workers.dev/api/hub/';
-          for(const route of ['calendar','topics','discover','assets']){
+          for(const route of ['calendar','anime1','topics','discover','assets']){
             let value;
             for(let attempt=0;attempt<6;attempt++){
               const r=await fetch(api+route+'?deployment='+Date.now(),{headers:{'user-agent':'PT-Universe deployment verification',origin:'https://ximinhu66.github.io'},signal:AbortSignal.timeout(45000)});
@@ -75,6 +76,18 @@ jobs:
             console.log(route,count,'entries; last successful fetch',value.checked_at);
           }
           JS
+
+      - name: Verify on-demand Check Desk AI
+        if: contains(github.event.head_commit.message, '[check-ai-test]')
+        run: node ../../scripts/content-hub/live-check-ai.mjs
+
+      - name: Save Check Desk AI verification
+        if: always() && contains(github.event.head_commit.message, '[check-ai-test]')
+        uses: actions/upload-artifact@v4
+        with:
+          name: check-ai-live-verification
+          path: /tmp/check-ai-live.json
+          if-no-files-found: warn
 
       - name: Initialize and verify on-demand research workflow
         env:
