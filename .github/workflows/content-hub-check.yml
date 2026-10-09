@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'apps/card-lab/**'
+      - 'apps/story-hub/**'
       - 'apps/check-desk/**'
       - 'apps/shared/**'
       - 'apps/tsugi-checker/**'
