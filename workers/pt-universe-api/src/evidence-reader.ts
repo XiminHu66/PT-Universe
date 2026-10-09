@@ -1,0 +1,21 @@
+import {parseDocument} from 'htmlparser2';
+import {findAll,textContent} from 'domutils';
+type Obj=Record<string,any>;
+const plain=(v:unknown)=>String(v??'').replace(/\s+/g,' ').trim();
+export function isEvidenceText(text:string){return !!text&&!/^(?:关于我们\s*联系我们|联系我们\s*关于我们|(?:©|&copy;|Copyright\b)|.*All Rights Reserved\b|Stay up to date with\b|This form is for feedback only\b)/i.test(text);}
+export function parseEvidence(html:string,url:string){
+ const doc=parseDocument(html),all=findAll(()=>true,doc.children),titleNode=all.find((n:any)=>n.name==='title'),title=(titleNode?plain(textContent(titleNode)):url).slice(0,300)||url,paragraphs:Obj[]=[],specs:Obj[]=[],seen=new Set<string>();
+ const add=(text:string,origin='body',section='')=>{text=plain(text);if(text.length<8||!isEvidenceText(text)||seen.has(text))return;seen.add(text);for(let i=0;i<text.length&&paragraphs.length<120;i+=1500)paragraphs.push({text:text.slice(i,i+1500),origin,section});};
+ const skip=(n:any)=>['script','style','nav','footer','header','svg','button','form','noscript','iframe','select'].includes(n.name)||n.attribs?.['aria-hidden']==='true'||/display\s*:\s*none/.test(n.attribs?.style||'')||/(?:^|\s)(?:header|footer)(?:\s|$)|related-articles|listing--related|hawk-deal|deal-widget|opacity-0.*h-0|ProductsRelated|RelatedProduct|product-comparison|dropdown-compare|w-imglist-collections|navbar|navigation|dropdown-menu|breadcrumb|CrossSell|newsletter|cookie-banner|social-share|sidebar|advertisement|ad-container/i.test(n.attribs?.class||'');
+ const root=all.find((n:any)=>n.name==='article')||all.find((n:any)=>n.name==='main')||all.find((n:any)=>n.name==='body')||doc;
+ for(const node of all as any[]){if(node.name!=='script'||node.attribs?.type!=='application/ld+json')continue;try{const parsed=JSON.parse(textContent(node)),walk=(n:any)=>{if(!n||typeof n!=='object')return;if(Array.isArray(n)){n.forEach(walk);return;}const types=Array.isArray(n['@type'])?n['@type']:[n['@type']];if(types.includes('Product')){for(const field of ['name','model','sku','mpn','gtin13','gtin14','brand'])if(n[field])specs.push({name:field,value:plain(typeof n[field]==='object'?n[field].name:n[field]),source:url});for(const p of n.additionalProperty||[])if(p.name&&p.value!==undefined)specs.push({name:plain(p.name),value:plain(p.value)+(p.unitText?' '+plain(p.unitText):''),source:url});if(n.description)add(plain(textContent(parseDocument(n.description))),'publisher_metadata');}if(n.articleBody)add(plain(textContent(parseDocument(n.articleBody))),'article_body');if(n['@graph'])walk(n['@graph']);};walk(parsed);}catch{/* malformed publisher metadata */}}
+ let section='';const blocks=new Set(['div','section','article','main','p','li','dt','dd','tr','h1','h2','h3','h4','h5','h6']);
+ const visibleText=(n:any):string=>skip(n)?'':n.type==='text'?n.data:(n.children||[]).map(visibleText).join(' ');
+ const visit=(n:any)=>{if(skip(n))return;if(/^h[1-6]$/.test(n.name||'')){section=plain(visibleText(n));return;}if(n.name==='tr'){const cells=(n.children||[]).filter((c:any)=>['th','td'].includes(c.name)).map((c:any)=>plain(visibleText(c)));if(cells.length===2&&cells[0].length<100&&cells[1].length<500)specs.push({name:cells[0],value:cells[1],source:url});}
+  if(blocks.has(n.name)){let inline='';for(const child of n.children||[]){if(blocks.has(child.name)){if(plain(inline).length>=20||(/\d/.test(inline)&&plain(inline).length>=8))add(inline,'body',section);inline='';visit(child);}else if((child.children||[]).some((c:any)=>blocks.has(c.name))){if(plain(inline).length>=20)add(inline,'body',section);inline='';visit(child);}else inline+=' '+visibleText(child);}if(plain(inline).length>=20||(/\d/.test(inline)&&plain(inline).length>=8))add(inline,'body',section);
+  }else for(const child of n.children||[])visit(child);
+ };visit(root);
+ const meta=all.find((n:any)=>n.name==='meta'&&['description','og:description'].includes(n.attribs?.name||n.attribs?.property));const description=plain(meta?.attribs?.content||'');
+ if(description&&paragraphs.length===0)add(description,'publisher_metadata');
+ return {title,url,excerpt:description||paragraphs[0]?.text||'',paragraphs:paragraphs.map((p,i)=>({...p,id:'p'+(i+1)})),specs:specs.slice(0,60),status:'unverified',retrieved_at:new Date().toISOString(),partial:/paywall-locker|article-paywall/.test(html),method:'发布者正文、标题分区、列表与规格字段；未作语义核实'};
+}

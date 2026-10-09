@@ -9,7 +9,9 @@
     "test:media": "node tests/media.test.mjs && node tests/novel.test.mjs"
   },
   "dependencies": {
-    "@cloudflare/playwright": "^1.3.6"
+    "@cloudflare/playwright": "^1.3.6",
+    "domutils": "^3.2.2",
+    "htmlparser2": "^10.1.0"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
