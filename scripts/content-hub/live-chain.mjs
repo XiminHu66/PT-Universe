@@ -35,7 +35,8 @@ for(const task of cases){
    assert.match(answer,/R2R/i);assert.match(answer,/电阻|resistor/i);assert.match(answer,/NOS|OS.*模式/i);assert.ok(result.coverage.reviews>=1,'No independent review coverage');
   }else{
    assert.ok(result.coverage.reports>=1,'Only social retellings used');assert.ok(new Set(result.sources.map(s=>new URL(s.url).hostname)).size>=2);
-   assert.match(answer,/测试|工况|条件|具体|车型/);assert.match(answer,/不能|不足|无法|不代表|不等于|缺少|泛化/);
+   assert.match(answer,/测试|工况|条件|具体|车型/);const pending=(result.source_conflicts||[]).some(c=>c.unresolved);
+   if(pending){assert.equal(result.output.verdict,'insufficient');assert.match(result.output.summary,/分歧|不一致|矛盾|冲突/);}else assert.match(result.output.summary+' '+result.output.unknowns.join(' '),/不能.{0,30}(?:泛化|推广|确认|证明)|不代表|不等于|无法确认|缺少.{0,10}(?:原始|一手)/);
   }
   entry.semanticPassed=true;
   // Same fingerprint is already persisted. Never retry a generation or change its inputs.
@@ -55,7 +56,7 @@ if(process.env.CHECK_CHAIN_BROWSER==='true'){
   await ctx.addInitScript(a=>localStorage.setItem('ptu.checkdesk.cases',JSON.stringify(a)),archive);
   const page=await ctx.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
   // Wait for Pages to expose this release; GET polling consumes no model quota.
-  let ready=false;for(let i=0;i<24;i++){const html=await (await get(SITE+'apps/check-desk/?release='+Date.now())).text();if(html.includes('app.js?v=20261009-3')){ready=true;break;}await new Promise(r=>setTimeout(r,5000));}assert.ok(ready,'Frontend release not available');
+  let ready=false;for(let i=0;i<24;i++){const html=await (await get(SITE+'apps/check-desk/?release='+Date.now())).text();if(html.includes('app.js?v=20261009-4')){ready=true;break;}await new Promise(r=>setTimeout(r,5000));}assert.ok(ready,'Frontend release not available');
   await page.goto(SITE+'apps/daily-nexus/?view=check');const frame=page.frameLocator('#checkFrame');await frame.locator('#query').waitFor();
   for(const e of archive){await frame.locator('#openArchive').click();await frame.locator('#archiveList .hub-row').filter({hasText:e.query}).locator('[data-load-case]').click();assert.equal(await frame.locator('#aiResult .ai-summary').innerText(),e.ai.output.summary);assert.ok((await frame.locator('#aiResult').innerText()).includes('匹配正文'));assert.equal(await frame.locator('#verdict').inputValue(),'unverified');await frame.locator('.ai-summary').scrollIntoViewIfNeeded();await page.screenshot({path:'/tmp/check-chain-'+(e.mode==='claim'?'claim':e.query.includes('R2R')?'r2r':'neo')+'.png'});}
   assert.deepEqual(errors,[]);report.browserPassed=true;
