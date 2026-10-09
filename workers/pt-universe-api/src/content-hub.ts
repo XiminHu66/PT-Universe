@@ -5,7 +5,7 @@ type Obj = Record<string, any>;
 type HubEnv = Pick<Env, 'PT_UNIVERSE_DATA' | 'DB'>;
 const BGM = 'https://api.bgm.tv';
 const UA = 'PT-Universe/1.0 (+https://github.com/XiminHu66/PT-Universe)';
-const READ_HOSTS = new Set(['anime1.me','bgm.tv','bangumi.tv','api.bgm.tv','www.v2ex.com','kenney.nl','www.kenney.nl','www.bing.com','news.google.com','search.brave.com','lite.duckduckgo.com','duckduckgo.com','www.sina.cn','auto.sina.cn','finance.sina.com.cn','news.qq.com','view.inews.qq.com','www.autohome.com.cn','club.autohome.com.cn','www.dongchedi.com','raw.githubusercontent.com','en.wikipedia.org','zh.wikipedia.org','en.wikipedia.org','www.factcheck.org','factcheck.afp.com','apnews.com','www.reuters.com','www.bbc.com','www.bbc.co.uk','www.snopes.com','www.cpsc.gov','www.sennheiser-hearing.com','www.sennheiser.com','www.fiio.com','www.toppingaudio.com','www.topping.com.cn','www.rtings.com','www.headphones.com','headphones.com','www.gearpatrol.com','guitar.com','www.soundguys.com','www.sonarworks.com','unheardlab.com','www.sennheiser.com','www.sennheiser-hearing.com','www.audiosciencereview.com','www.head-fi.org','www.sony.com','www.apple.com','support.apple.com','www.nintendo.com','store.steampowered.com','api.steampowered.com','www.ithome.com','sspai.com','www.gcores.com','www.theverge.com','www.tomshardware.com','www.engadget.com','www.digitaltrends.com','m.manhuagui.com','www.manhuagui.com','tw.linovelib.com','www.linovelib.com','www.gutenberg.org']);
+const READ_HOSTS = new Set(['anime1.me','bgm.tv','bangumi.tv','api.bgm.tv','www.v2ex.com','kenney.nl','www.kenney.nl','www.bing.com','news.google.com','search.brave.com','lite.duckduckgo.com','duckduckgo.com','www.sina.cn','auto.sina.cn','finance.sina.com.cn','news.qq.com','view.inews.qq.com','www.autohome.com.cn','club.autohome.com.cn','www.dongchedi.com','raw.githubusercontent.com','en.wikipedia.org','zh.wikipedia.org','en.wikipedia.org','www.factcheck.org','factcheck.afp.com','apnews.com','www.reuters.com','www.bbc.com','www.bbc.co.uk','www.snopes.com','www.cpsc.gov','www.elgato.com','help.elgato.com','www.corsair.com','www.sennheiser-hearing.com','www.sennheiser.com','www.fiio.com','www.toppingaudio.com','www.topping.com.cn','www.rtings.com','www.headphones.com','headphones.com','www.gearpatrol.com','guitar.com','www.soundguys.com','www.sonarworks.com','unheardlab.com','www.sennheiser.com','www.sennheiser-hearing.com','www.audiosciencereview.com','www.head-fi.org','www.sony.com','www.apple.com','support.apple.com','www.nintendo.com','store.steampowered.com','api.steampowered.com','www.ithome.com','sspai.com','www.gcores.com','www.theverge.com','www.tomshardware.com','www.engadget.com','www.digitaltrends.com','m.manhuagui.com','www.manhuagui.com','tw.linovelib.com','www.linovelib.com','www.gutenberg.org']);
 const stamp = () => new Date().toISOString();
 export function clean(value:unknown):string {return String(value??'').replace(/<script\b[\s\S]*?<\/script>/gi,' ').replace(/<style\b[\s\S]*?<\/style>/gi,' ').replace(/<[^>]+>/g,' ').replace(/<!\[CDATA\[|\]\]>/g,'').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#(?:39|x27);/g,"'").replace(/&(?:nbsp|middot|bull);/g,' ').replace(/&#(\d+);/g,(_,n)=>Number(n)<=0x10ffff?String.fromCodePoint(Number(n)):'').replace(/\s+/g,' ').trim();}
 export function publicURL(raw:string):URL {const u=new URL(raw);if(u.protocol!=='https:'||u.port||u.username||u.password||!READ_HOSTS.has(u.hostname))throw Error('仅支持已验证的公开来源；不支持此网址');return u;}
@@ -18,10 +18,12 @@ async function download(raw:string,init:RequestInit={}):Promise<string>{
    const r=await fetch(u.href,{...init,redirect:'manual',headers:{'user-agent':UA,accept:'application/json,text/html,application/rss+xml',...init.headers},signal:controller.signal});
    if([301,302,303,307,308].includes(r.status)){u=publicURL(new URL(r.headers.get('location')||'',u).href);continue;}
    if(!r.ok)throw Error(`来源返回 HTTP ${r.status}`);
-   if(Number(r.headers.get('content-length')||0)>2_000_000)throw Error('来源内容过大');
+   // Elgato's public product HTML includes a large embedded application bundle.
+   const maxBytes=u.hostname==='www.elgato.com'?3_000_000:2_000_000;
+   if(Number(r.headers.get('content-length')||0)>maxBytes)throw Error('来源内容过大');
    const reader=r.body?.getReader();if(!reader)return '';
    let bytes=0;const chunks:Uint8Array[]=[];
-   while(true){const part=await reader.read();if(part.done)break;bytes+=part.value.length;if(bytes>2_000_000){await reader.cancel();throw Error('来源内容过大');}chunks.push(part.value);}
+   while(true){const part=await reader.read();if(part.done)break;bytes+=part.value.length;if(bytes>maxBytes){await reader.cancel();throw Error('来源内容过大');}chunks.push(part.value);}
    const all=new Uint8Array(bytes);let pos=0;for(const c of chunks){all.set(c,pos);pos+=c.length;}return new TextDecoder().decode(all);
   }finally{clearTimeout(timer);}
  }throw Error('来源跳转过多');
@@ -31,7 +33,7 @@ async function keyFor(value:string){const b=await crypto.subtle.digest('SHA-256'
 async function cached(env:HubEnv,key:string,seconds:number,loader:()=>Promise<Obj>,force=false){
  const previous=await env.PT_UNIVERSE_DATA.get<Obj>('hub/'+key,'json');
  const coldCompletion=key==='discover-v2'&&previous?.sources?.completed?.ok===false&&!(previous.items||[]).some((x:Obj)=>x.source==='manhuagui-completed');
- const check=key.startsWith('check-v3/'),ttl=check&&!previous?.items?.length?30:seconds;
+ const check=key.startsWith('check-v4/'),ttl=check&&!previous?.items?.length?30:seconds;
  if(previous&&!force&&!coldCompletion&&Date.now()-Date.parse(previous.checked_at||'')<ttl*1000)return {...previous,cached:true};
  try{const loaded=await loader();if(check&&loaded.search_state==='unavailable'){if(previous?.items?.length)return {...previous,cached:true,stale:true,last_attempt_at:stamp(),providers:loaded.providers,errors:loaded.errors,error:'当前搜索来源暂不可用，保留上次成功结果'};return {...loaded,checked_at:stamp(),cached:false,stale:false};}const value={...loaded,checked_at:stamp(),cached:false,stale:false};await env.PT_UNIVERSE_DATA.put('hub/'+key,JSON.stringify(value),{expirationTtl:30*86400});return value;}
  catch(e){if(e instanceof RateError)throw e;if(previous)return {...previous,cached:true,stale:true,error:String(e instanceof Error?e.message:e)};throw e;}
@@ -87,7 +89,7 @@ export function parseWebSearch(html:string){
 export function relevant(row:Obj,q:string){
  const text=simplified(row.title+' '+row.excerpt+' '+row.url).toLowerCase(),compact=text.replace(/[\s-]/g,''),model=q.toLowerCase().match(/[a-z][a-z0-9-]*\d[a-z0-9-]*/g)||[];
  if(model.length)return model.some(t=>compact.includes(t.replace(/-/g,'')));
- const western=(q.toLowerCase().match(/[a-z0-9-]{3,}/g)||[]).filter(t=>!['review','specs','official','pro','max'].includes(t));if(western.some(t=>text.includes(t)))return true;
+ const western=(q.toLowerCase().match(/[a-z0-9-]{3,}/g)||[]).filter(t=>!['review','specs','official','pro','max'].includes(t));if(western.some(t=>text.includes(t)||compact.includes(t.replace(/-/g,''))))return true;
  const chinese=simplified(q).match(/[\u3400-\u9fff]{2,}/g)||[],grams=new Set<string>();for(const run of chinese){if(text.includes(run))return true;for(let i=0;i<run.length-1;i++)grams.add(run.slice(i,i+2));}const hits=[...grams].filter(t=>text.includes(t)).length;return grams.size?hits>=Math.max(2,Math.ceil(grams.size*.25)):western.length===0;
 }
 export const normalizeQuery=(q:string)=>q.trim().replace(/([a-z])\s+(\d)/gi,'$1$2').replace(/\s+/g,' ');
@@ -171,7 +173,7 @@ export async function contentHubRoute(request:Request,env:HubEnv):Promise<{body:
   else if(/^subject\/\d+$/.test(route)){const id=route.split('/')[1];data=await cached(env,route,86400,async()=>{const s=normalizeSubject(await json(BGM+'/v0/subjects/'+id));let relations:Obj[]=[],relation_error='';try{relations=(await json(BGM+'/v0/subjects/'+id+'/subjects')).map(normalizeSubject);}catch(e){relation_error=String(e);}return {subject:s,relations,relation_error,source:'Bangumi 条目关系',source_url:s.url};});}
   else if(/^episodes\/\d+$/.test(route)){const id=route.split('/')[1];data=await cached(env,route,21600,async()=>{const r=await json(BGM+'/v0/episodes?subject_id='+id+'&type=0&limit=100');return {items:(r.data||[]).map((x:Obj)=>({id:x.id,sort:x.sort,title:x.name_cn||x.name,airdate:x.airdate||null,url:`https://bgm.tv/ep/${x.id}`,basis:'Bangumi 记录日期；不证明流媒体已上线'})),total:r.total||0,source:'Bangumi 章节记录'};});}
   else if(route==='check/search'){
-   const q=query(u),mode=u.searchParams.get('mode')==='product'?'product':'claim';data=await cached(env,'check-v3/'+await keyFor(mode+normalizeQuery(q).toLowerCase()),3600,async()=>{
+   const q=query(u),mode=u.searchParams.get('mode')==='product'?'product':'claim';data=await cached(env,'check-v4/'+await keyFor(mode+normalizeQuery(q).toLowerCase()),3600,async()=>{
     await acquire(env,request);const found=await search(q,mode),items:Obj[]=[];
     for(const row of found.rows){const host=new URL(row.url).hostname;items.push({...row,id:await keyFor(row.url),kind:mode==='product'?'product_candidate':'evidence_candidate',host:row.publisher_url?new URL(row.publisher_url).hostname:host,readable:host!=='news.google.com'&&new URL(row.url).protocol==='https:'&&READ_HOSTS.has(host),status:'unverified',retrieved_at:stamp()});}
     const unavailable=!items.length&&found.providers.some(x=>!x.ok);return {query:q,normalized_query:normalizeQuery(q),search_query:found.search_query,providers:found.providers,search_state:items.length?'ready':unavailable?'unavailable':'empty',empty_reason:items.length?'':unavailable?'搜索来源限流或暂不可用，请重新检索；失败不代表说法为假或商品不存在':'暂未匹配到相关来源，试试关键名词、型号或原文链接',mode,items:[...new Map(items.map(x=>[x.url,x])).values()].slice(0,20),errors:found.errors,method:'公开网页与新闻 RSS 候选；不作自动语义核查'};

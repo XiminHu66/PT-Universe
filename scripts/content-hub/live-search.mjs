@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const api='https://pt-universe-api.summer07-nanjolno.workers.dev/api/hub/';
-const checks=[{q:'hd 490 pro',mode:'product',re:/hd[ \-]*490/i},{q:'华为刹车会被踩断',mode:'claim',re:/刹车|制动|踏板/}];
+const checks=[{q:'streamdeck',mode:'product',re:/stream[ \-]*deck/i},{q:'hd 490 pro',mode:'product',re:/hd[ \-]*490/i},{q:'华为刹车会被踩断',mode:'claim',re:/刹车|制动|踏板/}];
 const report=[];
 for(const check of checks){
  let body,response;
