@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-10-08T20:41:50.842502+00:00",
+  "generated_at": "2026-10-09T20:06:38.012769+00:00",
   "retention_days": 14,
-  "purchase_link_count": 56,
+  "purchase_link_count": 54,
   "items": [
     {
       "id": "f8145fb43fbfd038",
@@ -514,6 +514,33 @@
       "discount_percent": 0
     },
     {
+      "id": "8438cacb67fc07db",
+      "stream": "new",
+      "title": "华为鸿蒙电脑 9 月体验报告发布：全新沉浸光感、图库 AI 修图、小艺任务模式等",
+      "summary": "IT之家 10 月 9 日消息，华为官方今日在花粉俱乐部发布了鸿蒙电脑 9 月体验报告，公布了鸿蒙电脑今年 9 月升级多个版本后带来的新变化，包括全新沉浸光感、图库 AI 修图、小艺任务模式、动态壁纸、华为远程分享、超空间存储 / 内存技术、3D 影像壁纸等。 参考IT之家昨日报道， DevEco Studio 也已正式上线鸿蒙 PC 并开启公测 ，一站式鸿蒙应用 AI 开发工具 DevEco Code 与 AI 开发能力套件 DevEco CLI 同步迎来鸿蒙 PC 版首次公测。 据华为官方介绍，此次 DevEco“三件套”公测响应了开发者对鸿蒙电脑开发工具与 AI 辅助研发的需求，可提升从开发、调试到上架的全链路效率。DevEco Studio 支持集成开发与多端调试、DevEco Code 提供一站式 A",
+      "category": "3C 数码",
+      "tags": [
+        "3C 数码",
+        "桌面",
+        "硬盘"
+      ],
+      "language": "zh",
+      "source": "IT之家",
+      "source_url": "https://www.ithome.com/1/011/111.htm",
+      "product_url": "https://www.ithome.com/1/011/111.htm",
+      "link_type": "source",
+      "image_url": "https://img.ithome.com/newsuploadfiles/2026/10/3e252a39-85b8-44cd-b4c9-bac71578c9b9.jpg",
+      "published_at": "2026-10-09T11:48:44+00:00",
+      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
+      "relevance_score": 25.62,
+      "reason": "匹配你的偏好：桌面",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "",
+      "price_value": null,
+      "original_price": "",
+      "discount_percent": 0
+    },
+    {
       "id": "ac3e89bb362c8c71",
       "stream": "new",
       "title": "绿联推出 T9 入耳式耳机：-60dB 深度降噪、70 小时续航，399 元",
@@ -541,33 +568,6 @@
       "discount_percent": 0
     },
     {
-      "id": "45bb34018f01ef8c",
-      "stream": "new",
-      "title": "AOC 推出 34 英寸 G4 宙斯盾带鱼屏显示器：WQHD 200Hz，国补价 1613.7 元",
-      "summary": "IT之家 9 月 25 日消息，冠捷推出了一款新的 AOC G4 宙斯盾系列显示器，型号为 CU34G4H，京东显示为 1793 元，叠加国补后 1613.7 元。 京东 AOC 34 英寸带鱼屏显示器 CU34G4H HVA HDR 出厂校色 21:9 曲面 1500R 电竞 1793 元 直达链接 这款 34 英寸显示器采用 Fast VA 快速液晶面板，有着 WQHD 分辨率、200Hz 刷新率、21:9 比例、1500R 曲率、0.3ms MPRT / 1ms GTG 响应时间，搭配 MBR Sync 自研插帧同步技术，可有效消除运动模糊和拖影，同时兼容 G-Sync 和 FreeSync 技术。 这款显示器拥有 4000:1 静态对比度，覆盖 100% sRGB 色域、95% DCI-P3 色域，支持",
-      "category": "3C 数码",
-      "tags": [
-        "3C 数码",
-        "桌面",
-        "理线"
-      ],
-      "language": "zh",
-      "source": "IT之家",
-      "source_url": "https://www.ithome.com/1/007/160.htm",
-      "product_url": "https://u.jd.com/4gThhJ0",
-      "link_type": "purchase",
-      "image_url": "https://img14.360buyimg.com/pop/jfs/t1/528277/9/8627/259029/6ab37153Fa6e32c7f/008343843864cf72.jpg",
-      "published_at": "2026-09-25T08:26:46+00:00",
-      "fetched_at": "2026-09-25T19:15:12.491560+00:00",
-      "relevance_score": 25.2,
-      "reason": "匹配你的偏好：桌面",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "",
-      "price_value": null,
-      "original_price": "",
-      "discount_percent": 0
-    },
-    {
       "id": "ea27381b2554fe6e",
       "stream": "new",
       "title": "OpenAI 推出 ChatGPT 资料空间、动态页面、协作式幻灯片等 AI 协同工具",
@@ -587,34 +587,6 @@
       "fetched_at": "2026-09-29T19:59:10.040099+00:00",
       "relevance_score": 24.73,
       "reason": "匹配你的偏好：桌面",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "",
-      "price_value": null,
-      "original_price": "",
-      "discount_percent": 0
-    },
-    {
-      "id": "e59a1ca88c3dc3c9",
-      "stream": "new",
-      "title": "Prepare for Apple's New Home Hub With These HomeKit Accessory Deals",
-      "summary": "Apple's new smart home hub is coming next week , expected to allow users to control all of their HomeKit gadgets directly from its rumored 6-inch square display, or via Siri AI. In anticipation of the home hub launch, we've gathered some of the most notable (and discounted) HomeKit and Matter-enabled smart home devices below, all of which you'll be able to c",
-      "category": "桌面",
-      "tags": [
-        "桌面",
-        "dock",
-        "desk",
-        "smart home"
-      ],
-      "language": "en",
-      "source": "MacRumors",
-      "source_url": "https://www.macrumors.com/2026/10/08/homekit-accessory-deals/",
-      "product_url": "https://www.amazon.com/dp/B0FGK5D33V?ref=t_ac_spc_accepted_tile&linkCode=tr1&tag=weeno&linkId=B0FGK5D33V_1791295697650&gaOptInStatus=false&optOutTS=1789061426122",
-      "link_type": "purchase",
-      "image_url": "https://images.macrumors.com/article-new/2026/10/Smart-Home-Deals-Feature.jpg",
-      "published_at": "2026-10-08T18:21:53+00:00",
-      "fetched_at": "2026-10-08T20:41:50.842502+00:00",
-      "relevance_score": 24.61,
-      "reason": "匹配你的偏好：dock",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
       "price": "",
       "price_value": null,
@@ -702,24 +674,25 @@
       "discount_percent": 0
     },
     {
-      "id": "2d09bb24c174ca81",
+      "id": "c32cc86ea8fcd4d3",
       "stream": "new",
-      "title": "聊天、编程、智能体三合一，微软正式发布新版 Copilot“超级应用”",
-      "summary": "IT之家 9 月 25 日消息，今天（25 日）晚间，微软正式发布新版 Copilot“超级应用”。新版 Copilot 把聊天、编程和智能体三类 AI 能力集中到同一个界面中。 微软为其给出的新定位是“ 为工作而生的 AI ”，甚至把 Copilot 与 Office 当年对生产力的影响相提并论。微软 AI 工作业务首席营销官贾里德 · 斯帕塔罗表示：“正如 Office 定义了 PC 时代的工作方式，新 Copilot 旨在定义 AI 时代的工作方式。” 新版 Copilot 分为 Home、Code 和 Autopilot 三个标签页。Home 把 Copilot Chat 和 Cowork 整合到一起，也是用户打开 Copilot 后默认进入的页面。微软还计划在 Home 中加入 Today 功能，以个",
+      "title": "小米推出 REDMI 显示器支架臂：隐藏式理线槽、兼容 VESA 75x75/100×100mm 壁挂，299 元",
+      "summary": "IT之家 10 月 9 日消息，小米现已在有品上架 REDMI 显示器支架臂（ 点此访问 ），该产品将于 10 月 12 日开售，提供 5 年以换代修服务， 首发到手价 299 元 。 据介绍，REDMI 显示器支架臂主体采用 3mm 厚铝合金材质，引入双弹簧专利结构设计，升降过程受力均匀，并通过 30000 次以上疲劳测试，兼顾调节顺滑度与使用耐久性，支持 1.9-9kg 承重，适配 34 英寸及以下显示器。 该支架臂可实现升降、俯仰、旋转、左右及前后五个方向自由调节，前后伸缩范围达 43.5cm，上下升降范围达 30cm， 兼容 75x75mm、100×100mm 两种 VESA 标准安装孔距 。支架臂同时带有隐藏式理线槽设计，配备可手拧螺丝，无需额外工具，单人即可完成安装。 IT之家附产品参数：",
       "category": "桌面",
       "tags": [
-        "桌面"
+        "桌面",
+        "理线"
       ],
       "language": "zh",
       "source": "IT之家",
-      "source_url": "https://www.ithome.com/1/007/230.htm",
-      "product_url": "https://www.ithome.com/1/007/230.htm",
+      "source_url": "https://www.ithome.com/1/011/118.htm",
+      "product_url": "https://www.ithome.com/1/011/118.htm",
       "link_type": "source",
-      "image_url": "https://img.ithome.com/newsuploadfiles/2026/9/a4641a32-71bc-4d56-897a-944b4e20285b.jpg",
-      "published_at": "2026-09-25T12:37:23+00:00",
-      "fetched_at": "2026-09-25T19:15:12.491560+00:00",
-      "relevance_score": 23.89,
-      "reason": "匹配你的偏好：桌面",
+      "image_url": "https://img.ithome.com/newsuploadfiles/2026/10/d5b18a9c-b29e-4a23-b695-642d4ee0a74b.png?x-bce-process=image/format,f_auto",
+      "published_at": "2026-10-09T12:47:50+00:00",
+      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
+      "relevance_score": 23.78,
+      "reason": "匹配你的偏好：理线",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
       "price": "",
       "price_value": null,
@@ -1376,6 +1349,32 @@
       "discount_percent": 0
     },
     {
+      "id": "29a5f0b958a46fbc",
+      "stream": "new",
+      "title": "苹果「果家」发布会定档！至少 6 个新品曝光，HomePad 还能挂墙上？",
+      "summary": "苹果全家桶的风，还是吹到了客厅。 #欢迎关注爱范儿官方微信公众号：爱范儿（微信号：ifanr），更多精彩内容第一时间为您奉上。",
+      "category": "生活",
+      "tags": [
+        "生活",
+        "fan"
+      ],
+      "language": "zh",
+      "source": "爱范儿",
+      "source_url": "https://www.ifanr.com/1683356?utm_source=rss&utm_medium=rss&utm_campaign=",
+      "product_url": "https://www.ifanr.com/1683356?utm_source=rss&utm_medium=rss&utm_campaign=",
+      "link_type": "source",
+      "image_url": "",
+      "published_at": "2026-10-09T07:12:12+00:00",
+      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
+      "relevance_score": 21.85,
+      "reason": "匹配你的偏好：fan",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "",
+      "price_value": null,
+      "original_price": "",
+      "discount_percent": 0
+    },
+    {
       "id": "a162093a4af16177",
       "stream": "new",
       "title": "桌面 AI 超算新选择：英伟达 NVIDIA DGX Spark 64GB 内存版正式发布，4999 美元",
@@ -1685,6 +1684,34 @@
       "discount_percent": 0
     },
     {
+      "id": "e59a1ca88c3dc3c9",
+      "stream": "new",
+      "title": "Prepare for Apple's New Home Hub With These HomeKit Accessory Deals",
+      "summary": "Apple's new smart home hub is coming next week , expected to allow users to control all of their HomeKit gadgets directly from its rumored 6-inch square display, or via Siri AI. In anticipation of the home hub launch, we've gathered some of the most notable (and discounted) HomeKit and Matter-enabled smart home devices below, all of which you'll be able to c",
+      "category": "桌面",
+      "tags": [
+        "桌面",
+        "dock",
+        "desk",
+        "smart home"
+      ],
+      "language": "en",
+      "source": "MacRumors",
+      "source_url": "https://www.macrumors.com/2026/10/08/homekit-accessory-deals/",
+      "product_url": "https://www.amazon.com/dp/B0FGK5D33V?ref=t_ac_spc_accepted_tile&linkCode=tr1&tag=weeno&linkId=B0FGK5D33V_1791295697650&gaOptInStatus=false&optOutTS=1789061426122",
+      "link_type": "purchase",
+      "image_url": "https://images.macrumors.com/article-new/2026/10/Smart-Home-Deals-Feature.jpg",
+      "published_at": "2026-10-08T18:21:53+00:00",
+      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
+      "relevance_score": 21.0,
+      "reason": "匹配你的偏好：dock",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "",
+      "price_value": null,
+      "original_price": "",
+      "discount_percent": 0
+    },
+    {
       "id": "e52d32eb98d537cf",
       "stream": "new",
       "title": "Early launch deals live on Apple’s latest: Series 12, Ultra 4, Beats 360, Mac mini, more",
@@ -1740,6 +1767,32 @@
       "discount_percent": 0
     },
     {
+      "id": "4cac1bc01fb912c3",
+      "stream": "new",
+      "title": "早报｜苹果定档10月13日发布新品/三星手机业务或减产30%/保时捷计划削减9000个岗位",
+      "summary": "· 小米澎程上市 30 天锁单超过 7 万台 · Manus 母公司完成超 5 亿美元新一轮融资 · 小鹏 Robotaxi 定名「小鹏悠游」，下单小程序同步上线 #欢迎关注爱范儿官方微信公众号：爱范儿（微信号：ifanr），更多精彩内容第一时间为您奉上。",
+      "category": "3C 数码",
+      "tags": [
+        "3C 数码",
+        "fan"
+      ],
+      "language": "zh",
+      "source": "爱范儿",
+      "source_url": "https://www.ifanr.com/1683244?utm_source=rss&utm_medium=rss&utm_campaign=",
+      "product_url": "https://www.ifanr.com/1683244?utm_source=rss&utm_medium=rss&utm_campaign=",
+      "link_type": "source",
+      "image_url": "",
+      "published_at": "2026-10-09T00:51:15+00:00",
+      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
+      "relevance_score": 20.79,
+      "reason": "匹配你的偏好：fan，并有 30% 折扣",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "",
+      "price_value": null,
+      "original_price": "",
+      "discount_percent": 30
+    },
+    {
       "id": "c77a591bafa75907",
       "stream": "new",
       "title": "Amazon introduces new Kindle Paperwhite, Colorsoft and entry-level models",
@@ -1792,32 +1845,6 @@
       "discount_percent": 0
     },
     {
-      "id": "eef822f1181054e4",
-      "stream": "new",
-      "title": "早报｜苹果一大波新品曝光，最快下周发布/全球纯汽油车份额首次跌破50%/2599 美元起，Surface Laptop Ultra发布",
-      "summary": "· OpenAI 向 Chat 用户推送 GPT-6，并加入可交互界面 · 月之暗面估值据报升至约 500 亿美元，筹备明年赴港上市 · 2026 年诺贝尔奖陆续公布，目前已有 6 位得主 #欢迎关注爱范儿官方微信公众号：爱范儿（微信号：ifanr），更多精彩内容第一时间为您奉上。",
-      "category": "3C 数码",
-      "tags": [
-        "3C 数码",
-        "fan"
-      ],
-      "language": "zh",
-      "source": "爱范儿",
-      "source_url": "https://www.ifanr.com/1683053?utm_source=rss&utm_medium=rss&utm_campaign=",
-      "product_url": "https://www.ifanr.com/1683053?utm_source=rss&utm_medium=rss&utm_campaign=",
-      "link_type": "source",
-      "image_url": "",
-      "published_at": "2026-10-08T00:14:13+00:00",
-      "fetched_at": "2026-10-08T20:41:50.842502+00:00",
-      "relevance_score": 20.59,
-      "reason": "匹配你的偏好：fan，并有 50% 折扣",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "",
-      "price_value": null,
-      "original_price": "",
-      "discount_percent": 50
-    },
-    {
       "id": "a8dc128c17f73be1",
       "stream": "new",
       "title": "苹果 macOS 27.2 开发者预览版 Beta 3 发布",
@@ -1861,31 +1888,6 @@
       "fetched_at": "2026-10-08T20:41:50.842502+00:00",
       "relevance_score": 20.38,
       "reason": "近期发布的桌面相关新品",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "",
-      "price_value": null,
-      "original_price": "",
-      "discount_percent": 0
-    },
-    {
-      "id": "8de66d5efd2fd81d",
-      "stream": "new",
-      "title": "iPhone Duo：苹果，终究还是对强迫症下手了",
-      "summary": "Matrix首页推荐Matrix是少数派的写作社区，我们主张分享真实的产品体验，有实用价值的经验与思考。我们会不定期挑选Matrix最优质的文章，展示来自用户的最真实的体验和观点。文章代表作者个人观点 ... 查看全文",
-      "category": "3C 数码",
-      "tags": [
-        "3C 数码"
-      ],
-      "language": "zh",
-      "source": "少数派",
-      "source_url": "https://sspai.com/post/115282",
-      "product_url": "https://sspai.com/post/115282",
-      "link_type": "source",
-      "image_url": "",
-      "published_at": "2026-10-08T09:28:11+00:00",
-      "fetched_at": "2026-10-08T20:41:50.842502+00:00",
-      "relevance_score": 20.13,
-      "reason": "近期发布的3C 数码相关新品",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
       "price": "",
       "price_value": null,
@@ -1939,8 +1941,8 @@
       "link_type": "purchase",
       "image_url": "https://cdn.mos.cms.futurecdn.net/HaNGSYtMaKxFENtsfrtsaT-1920-80.jpg",
       "published_at": "2026-10-07T21:20:00+00:00",
-      "fetched_at": "2026-10-08T20:41:50.842502+00:00",
-      "relevance_score": 41.27,
+      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
+      "relevance_score": 41.17,
       "reason": "匹配你的偏好：ssd，并有 37% 折扣",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
       "price": "$299.99",
@@ -2160,7 +2162,7 @@
       "link_type": "purchase",
       "image_url": "https://cdn.mos.cms.futurecdn.net/XqSr2HVpJS99JzhHZfjtPf-1920-80.jpg",
       "published_at": "2026-10-07T20:30:00+00:00",
-      "fetched_at": "2026-10-08T20:41:50.842502+00:00",
+      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
       "relevance_score": 35.0,
       "reason": "匹配你的偏好：ssd",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
@@ -2928,34 +2930,6 @@
       "discount_percent": 30
     },
     {
-      "id": "90c6cfb83ed9812a",
-      "stream": "deals",
-      "title": "This magnetic charging dock keeps your Switch 2 Joy-Con controllers ready around the clock for $15 (Reg. $20)",
-      "summary": "JSAUX Switch 2 Magnetic Joy-Con Charging Dock Buy for $15 (Reg. $20) What we love I own a similar charging station for my Switch 2 Joy-Con controllers and love that they are always topped off and ready to go. This rings especially true when playing party games with others. more…",
-      "category": "桌面",
-      "tags": [
-        "桌面",
-        "dock",
-        "charging station",
-        "controller"
-      ],
-      "language": "en",
-      "source": "9to5Toys",
-      "source_url": "https://9to5toys.com/2026/09/25/jsaux-switch-2-magnetic-joy-con-charging-dock/",
-      "product_url": "https://www.amazon.com/dp/B0FBWPM5FF?tag=toyswalsh-20&psc=1",
-      "link_type": "purchase",
-      "image_url": "https://9to5toys.com/wp-content/uploads/sites/5/2026/09/JSAUX-Switch-2-Magnetic-Joy-Con-Charging-Dock.png?w=1600",
-      "published_at": "2026-09-25T15:57:14+00:00",
-      "fetched_at": "2026-09-27T18:58:54.769828+00:00",
-      "relevance_score": 31.17,
-      "reason": "匹配你的偏好：dock，并有 25% 折扣",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "$15",
-      "price_value": 15.0,
-      "original_price": "$20",
-      "discount_percent": 25
-    },
-    {
       "id": "d26910d4eb21e9b4",
       "stream": "deals",
       "title": "Float two monitors above your desk with this monitor arm for only $28.50 this Prime Day (Save 53%)",
@@ -3090,6 +3064,32 @@
       "discount_percent": 80
     },
     {
+      "id": "9531243bf6bc30c6",
+      "stream": "deals",
+      "title": "Free up your iPhone storage with Cleaner Kit for just $25 (Reg. up to $105)",
+      "summary": "TL;DR : This lifetime subscription to the Cleaner Kit for iOS Premium Plan helps you get rid of duplicate images, compress bulky videos, clean up your contact list, and streamline your calendar , all for just $25. more…",
+      "category": "3C 数码",
+      "tags": [
+        "3C 数码",
+        "storage"
+      ],
+      "language": "en",
+      "source": "9to5Toys",
+      "source_url": "https://9to5toys.com/2026/10/09/free-up-your-iphone-storage-with-cleaner-kit-for-just-25-reg-up-to-105/",
+      "product_url": "https://amzn.to/4z2ZQfn",
+      "link_type": "purchase",
+      "image_url": "https://9to5toys.com/wp-content/uploads/sites/5/2026/10/Cleaner-Kit-for-iOS-Premium-Plan.jpg?quality=82&strip=all&w=1500",
+      "published_at": "2026-10-09T18:28:00+00:00",
+      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
+      "relevance_score": 30.73,
+      "reason": "匹配你的偏好：storage，并有 76% 折扣",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "$25",
+      "price_value": 25.0,
+      "original_price": "$105",
+      "discount_percent": 76
+    },
+    {
       "id": "9f1c8f69741c3e56",
       "stream": "deals",
       "title": "Anchor Hocking 9\" Glass Pie Plate for $4 + pickup",
@@ -3114,6 +3114,32 @@
       "price_value": 4.0,
       "original_price": "$35",
       "discount_percent": 89
+    },
+    {
+      "id": "6cae52da593a2375",
+      "stream": "deals",
+      "title": "Battlestation upgrades start at just $5 in Best Buy’s Techtober Sale: Gaming mice, keyboards, monitors, more nearly 70% off",
+      "summary": "Best Buy’s Techtober Sale is still going strong with loads of deals across Apple gear, PCs, smart TVs, and more . We’ve already highlighted some solid gaming PC and laptop deals separately , and this time we’re zeroing in on the more affordable accessories. There are discounts on keyboards, mice, headsets, controllers, and other battlestation upgrades starti",
+      "category": "桌面",
+      "tags": [
+        "桌面",
+        "controller"
+      ],
+      "language": "en",
+      "source": "9to5Toys",
+      "source_url": "https://9to5toys.com/2026/10/09/battlestation-upgrades-start-at-just-5-in-best-buys-techtober-sale/",
+      "product_url": "https://www.amazon.com/dp/B087LXCTFJ?tag=karthikl-20&th=1",
+      "link_type": "purchase",
+      "image_url": "https://9to5toys.com/wp-content/uploads/sites/5/2026/10/Best-Buy-Techtober-PC-accessories-sale.jpg?quality=82&strip=all&w=1600",
+      "published_at": "2026-10-09T17:55:40+00:00",
+      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
+      "relevance_score": 30.64,
+      "reason": "匹配你的偏好：controller，并有 70% 折扣",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "$5",
+      "price_value": 5.0,
+      "original_price": "",
+      "discount_percent": 70
     },
     {
       "id": "02e840e7ff38cf3c",
@@ -3328,32 +3354,6 @@
       "price_value": 12.99,
       "original_price": "",
       "discount_percent": 68
-    },
-    {
-      "id": "6ded35a093840fae",
-      "stream": "deals",
-      "title": "Woot’s huge video game sale takes up to 70% off controllers from 8BitDo, Razer, and more with deals from just $15",
-      "summary": "Woot has rolled out another fresh gaming sale , with discounts on everything from controllers, keyboards, and other peripherals to Switch 2, PS5, and Xbox games . There are some particularly notable controller deals in the mix from the likes of 8BitDo, Razer, and more , with options for PC, Xbox, Switch, and other platforms. These are already marked down by",
-      "category": "游戏",
-      "tags": [
-        "游戏",
-        "controller"
-      ],
-      "language": "en",
-      "source": "9to5Toys",
-      "source_url": "https://9to5toys.com/2026/09/25/woot-huge-video-game-sale-takes-up-top-70-off-controllers-with-deals-from-15/",
-      "product_url": "https://howl.link/95p5ylg5eqk82",
-      "link_type": "purchase",
-      "image_url": "https://9to5toys.com/wp-content/uploads/sites/5/2026/09/Controller-deals-from-Woot-sale.jpg?quality=82&strip=all&w=1600",
-      "published_at": "2026-09-25T11:06:36+00:00",
-      "fetched_at": "2026-09-25T19:15:12.491560+00:00",
-      "relevance_score": 29.64,
-      "reason": "匹配你的偏好：controller，并有 70% 折扣",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "$15",
-      "price_value": 15.0,
-      "original_price": "",
-      "discount_percent": 70
     },
     {
       "id": "0e3205fee6705275",
@@ -3598,32 +3598,6 @@
       "discount_percent": 49
     },
     {
-      "id": "3f18ff4d58edbebb",
-      "stream": "deals",
-      "title": "Today’s Apple Books and audiobook deals up to 80% off",
-      "summary": "Today’s lineup of the best Apple Books deals is now ready to roll, including titles like 48 Hours, 81 Days Below Zero, A Short History of World War 2: The Greatest Conflict in Human History (Unabridged), A Monstrous Regiment of Women, A Going Concern, A Small Town, and more. On your way down check out the ongoing $120 price drop on AirPods Max 2, M6 Mac mini",
-      "category": "音频",
-      "tags": [
-        "音频",
-        "airpods"
-      ],
-      "language": "en",
-      "source": "9to5Toys",
-      "source_url": "https://9to5toys.com/2026/10/08/apple-books-deals-absolute-zero-and-the-conquest-of-cold/",
-      "product_url": "https://amzn.to/4AU6TIX",
-      "link_type": "purchase",
-      "image_url": "https://9to5toys.com/wp-content/uploads/sites/5/2026/10/Apple-Books-collage-c028f9.webp?w=1600",
-      "published_at": "2026-10-08T20:18:22+00:00",
-      "fetched_at": "2026-10-08T20:41:50.842502+00:00",
-      "relevance_score": 28.93,
-      "reason": "匹配你的偏好：airpods，并有 80% 折扣",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "",
-      "price_value": null,
-      "original_price": "",
-      "discount_percent": 80
-    },
-    {
       "id": "1217d69ace541cbd",
       "stream": "deals",
       "title": "Craftsman V20 3Ah Advanced Battery Starter Kit for $129 w/ free tool worth up to $199 + free shipping",
@@ -3836,6 +3810,32 @@
       "discount_percent": 58
     },
     {
+      "id": "011bbe1683335541",
+      "stream": "deals",
+      "title": "Refurb Samsung Galaxy Buds3 Pro Noise-Cancelling Earbuds for $72 + free shipping",
+      "summary": "Promo code \"COUNTDOWN20\" drops these refurbished Samsung Galaxy Buds3 Pro to $72, down from the $250 original list price, for the best price we've seen in any condition. Unlike the standard Galaxy Buds3, the Pro model pairs a dynamic driver with a planar driver for its two-way speaker system. A one-year Allstate warranty is provided with purchase. The coupon",
+      "category": "音频",
+      "tags": [
+        "音频",
+        "earbud"
+      ],
+      "language": "en",
+      "source": "DealNews",
+      "source_url": "https://www.dealnews.com/products/Samsung/Samsung-Galaxy-Buds3-Pro-Noise-Cancelling-Earbuds/487251.html?iref=rss",
+      "product_url": "https://www.dealnews.com/products/Samsung/Samsung-Galaxy-Buds3-Pro-Noise-Cancelling-Earbuds/487251.html?iref=rss",
+      "link_type": "source",
+      "image_url": "https://d.dlnws.com/64599/1739985314-samsung-wireless-earbuds-charging-case-qus4.jpeg?h=250&w=181",
+      "published_at": "2026-10-09T18:15:06+00:00",
+      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
+      "relevance_score": 26.69,
+      "reason": "匹配你的偏好：earbud，并有 71% 折扣",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "$72",
+      "price_value": 72.0,
+      "original_price": "$250",
+      "discount_percent": 71
+    },
+    {
       "id": "33123090ca5f05f0",
       "stream": "discover",
       "title": "A Walnut Organizer That Claims Your Desk Corner Before the Clutter Does",
@@ -3936,7 +3936,7 @@
       "link_type": "source",
       "image_url": "https://assets.newatlas.com/dims4/default/c1d14e9/2147483647/strip/true/crop/1671x1184+0+0/resize/1355x960!/format/webp/quality/90/?url=https%3A%2F%2Fnewatlas-brightspot.s3.ap-southeast-2.amazonaws.com%2F60%2F41%2F03e91fc64084bfd1d4072c31d55a%2Fbooxpicco-image1.jpeg",
       "published_at": "2026-09-29T15:27:05+00:00",
-      "fetched_at": "2026-10-08T20:41:50.842502+00:00",
+      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
       "relevance_score": 21.0,
       "reason": "来自设计、众筹或独立硬件渠道的潜力3C 数码产品，匹配你的偏好：e-reader",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
@@ -4081,25 +4081,25 @@
       "discount_percent": 0
     },
     {
-      "id": "5f26362fab77e148",
+      "id": "4fbd54cab55ca0f0",
       "stream": "discover",
-      "title": "The Gaming Controller That Refuses to Look Like One",
-      "summary": "The Gaming Controller That Refuses to Look Like One Most gaming controllers are built for an idea of a hand, not an actual one. They’re symmetrical, boxy, covered in ridges meant to accommodate everyone...",
+      "title": "ANBERNIC RG DDS Pairs a 3DS-Inspired Design With Snapdragon Power",
+      "summary": "Playing Nintendo 3DS games on a single-screen retro handheld means fitting both game screens onto one display or switching between them. That can make maps, inventory menus, and touchscreen controls less convenient to use. Price: TBD Where to Buy: ANBERNIC…",
       "category": "游戏",
       "tags": [
         "游戏",
-        "controller"
+        "handheld"
       ],
       "language": "en",
-      "source": "Yanko Design",
-      "source_url": "https://www.yankodesign.com/2026/09/25/the-gaming-controller-that-refuses-to-look-like-one/?utm_source=rss&utm_medium=rss&utm_campaign=the-gaming-controller-that-refuses-to-look-like-one",
-      "product_url": "https://www.yankodesign.com/2026/09/25/the-gaming-controller-that-refuses-to-look-like-one/?utm_source=rss&utm_medium=rss&utm_campaign=the-gaming-controller-that-refuses-to-look-like-one",
+      "source": "The Gadgeteer",
+      "source_url": "https://the-gadgeteer.com/2026/10/09/anbernic-rg-dds-dual-screen-handheld/",
+      "product_url": "https://the-gadgeteer.com/2026/10/09/anbernic-rg-dds-dual-screen-handheld/",
       "link_type": "source",
-      "image_url": "https://www.yankodesign.com/images/design_news/2026/09/the-gaming-controller-that-refuses-to-look-like-one/palmio-01.jpg",
-      "published_at": "2026-09-25T16:20:25+00:00",
-      "fetched_at": "2026-09-25T19:15:12.491560+00:00",
-      "relevance_score": 19.51,
-      "reason": "来自设计、众筹或独立硬件渠道的潜力游戏产品，匹配你的偏好：controller",
+      "image_url": "https://the-gadgeteer.com/wp-content/uploads/2026/10/ANBERNIC-RG-DDS-Dream-Dual-Screen-7.jpeg",
+      "published_at": "2026-10-09T18:30:00+00:00",
+      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
+      "relevance_score": 19.73,
+      "reason": "来自设计、众筹或独立硬件渠道的潜力游戏产品，匹配你的偏好：handheld",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
       "price": "",
       "price_value": null,
@@ -4151,7 +4151,7 @@
       "link_type": "source",
       "image_url": "https://assets.newatlas.com/dims4/default/386fd04/2147483647/strip/true/crop/7008x4672+0+0/resize/1440x960!/format/webp/quality/90/?url=https%3A%2F%2Fnewatlas-brightspot.s3.ap-southeast-2.amazonaws.com%2F12%2F9c%2F4106890d4f53834bb17aa1fd97ec%2Fbenjamin-gallery2.jpg",
       "published_at": "2026-10-05T13:27:00+00:00",
-      "fetched_at": "2026-10-08T20:41:50.842502+00:00",
+      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
       "relevance_score": 19.0,
       "reason": "来自设计、众筹或独立硬件渠道的潜力游戏产品，匹配你的偏好：dock",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
@@ -4239,28 +4239,28 @@
       "discount_percent": 0
     },
     {
-      "id": "9e84d868857c0b47",
+      "id": "3b78d0f133411a5f",
       "stream": "discover",
-      "title": "Brain-sensing headphones know when your focus starts to drift",
-      "summary": "Neurable One hides 12 EEG sensors inside premium ANC headphones to track focus and fatigue, turning brain activity into real-time biofeedback while still working as an everyday pair of wireless headphones. Continue Reading Category: Consumer Tech , Technology Tags: Brain activity , Headphones , Monitoring , EEG , Noise-Canceling , Well-being",
-      "category": "音频",
+      "title": "PocketBook Verta and Verta Color: Just $11 Apart",
+      "summary": "PocketBook’s new Verta and Verta Color e-readers cost just $11 (or €10) apart. The two 6-inch models share most of their features; the main difference is a grayscale screen on the Verta and a color screen on the Verta Color.…",
+      "category": "3C 数码",
       "tags": [
-        "音频",
-        "headphone"
+        "3C 数码",
+        "e-reader"
       ],
       "language": "en",
-      "source": "New Atlas Technology",
-      "source_url": "https://newatlas.com/consumer-tech/neurable-one-eeg-brain-sensing-headphones/",
-      "product_url": "https://newatlas.com/consumer-tech/neurable-one-eeg-brain-sensing-headphones/",
+      "source": "The Gadgeteer",
+      "source_url": "https://the-gadgeteer.com/2026/10/09/pocketbook-verta-verta-color-ereaders/",
+      "product_url": "https://the-gadgeteer.com/2026/10/09/pocketbook-verta-verta-color-ereaders/",
       "link_type": "source",
-      "image_url": "https://assets.newatlas.com/dims4/default/a5024ed/2147483647/strip/true/crop/11648x8736+0+0/resize/1280x960!/format/webp/quality/90/?url=https%3A%2F%2Fnewatlas-brightspot.s3.ap-southeast-2.amazonaws.com%2F1b%2F82%2Fdf89df3d4ca4b06784e50bf62d6d%2Fneurableone-gallery2.jpg",
-      "published_at": "2026-10-08T09:45:09+00:00",
-      "fetched_at": "2026-10-08T20:41:50.842502+00:00",
-      "relevance_score": 17.18,
-      "reason": "来自设计、众筹或独立硬件渠道的潜力音频产品，匹配你的偏好：headphone",
+      "image_url": "https://the-gadgeteer.com/wp-content/uploads/2026/10/Verta-Pocketbook-Reader-1280x888.jpg",
+      "published_at": "2026-10-09T15:30:00+00:00",
+      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
+      "relevance_score": 17.23,
+      "reason": "来自设计、众筹或独立硬件渠道的潜力3C 数码产品，匹配你的偏好：e-reader",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "",
-      "price_value": null,
+      "price": "$11",
+      "price_value": 11.0,
       "original_price": "",
       "discount_percent": 0
     },
@@ -4307,7 +4307,7 @@
       "link_type": "source",
       "image_url": "https://assets.newatlas.com/dims4/default/c9743ee/2147483647/strip/true/crop/1254x836+0+0/resize/1254x836!/format/webp/quality/90/?url=https%3A%2F%2Fnewatlas-brightspot.s3.ap-southeast-2.amazonaws.com%2Faf%2Fe7%2F731fb8304df0aa6a369a7cd6ab63%2Ftdms-neo-is-a-hybrid-headphone-speaker-that-lets-you-enjoy-your-audio-privately-or-with-other-people-all-in-one.jpg",
       "published_at": "2026-10-07T13:27:00+00:00",
-      "fetched_at": "2026-10-08T20:41:50.842502+00:00",
+      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
       "relevance_score": 17.0,
       "reason": "来自设计、众筹或独立硬件渠道的潜力音频产品，匹配你的偏好：headphone",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
@@ -4333,7 +4333,7 @@
       "link_type": "source",
       "image_url": "https://assets.newatlas.com/dims4/default/5f7eb2d/2147483647/strip/true/crop/1200x800+0+0/resize/1200x800!/format/webp/quality/90/?url=https%3A%2F%2Fnewatlas-brightspot.s3.ap-southeast-2.amazonaws.com%2F42%2F8f%2F24bb4990447da2b871b25cefc5bc%2Fyou-cant-see-it-all-but-the-reze-flow-hides-more-than-40-components-in-a-smart-curtain-rod.jpg",
       "published_at": "2026-09-28T12:27:00+00:00",
-      "fetched_at": "2026-10-08T20:41:50.842502+00:00",
+      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
       "relevance_score": 17.0,
       "reason": "来自设计、众筹或独立硬件渠道的潜力生活产品，匹配你的偏好：smart home",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
@@ -4525,6 +4525,32 @@
       "discount_percent": 0
     },
     {
+      "id": "ad82cb9343796954",
+      "stream": "discover",
+      "title": "ModRetro’s $149 Handheld Has Nothing to Hide, Including Its Circuits",
+      "summary": "ModRetro’s $149 Handheld Has Nothing to Hide, Including Its Circuits Retro handhelds have a habit of hiding modern electronics inside shells that pretend time stopped decades ago. ModRetro’s transparent Chromatic does the opposite and pays...",
+      "category": "游戏",
+      "tags": [
+        "游戏",
+        "handheld"
+      ],
+      "language": "en",
+      "source": "Yanko Design",
+      "source_url": "https://www.yankodesign.com/2026/10/09/modretros-149-handheld-has-nothing-to-hide-including-its-circuits/?utm_source=rss&utm_medium=rss&utm_campaign=modretros-149-handheld-has-nothing-to-hide-including-its-circuits",
+      "product_url": "https://www.yankodesign.com/2026/10/09/modretros-149-handheld-has-nothing-to-hide-including-its-circuits/?utm_source=rss&utm_medium=rss&utm_campaign=modretros-149-handheld-has-nothing-to-hide-including-its-circuits",
+      "link_type": "source",
+      "image_url": "https://www.yankodesign.com/images/design_news/2026/10/modretros-149-handheld-has-nothing-to-hide-including-its-circuits/modretro-chromatic-gaming-handheld-transparent-05.jpg",
+      "published_at": "2026-10-09T08:15:24+00:00",
+      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
+      "relevance_score": 16.02,
+      "reason": "来自设计、众筹或独立硬件渠道的潜力游戏产品，匹配你的偏好：handheld",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "$149",
+      "price_value": 149.0,
+      "original_price": "",
+      "discount_percent": 0
+    },
+    {
       "id": "279d9bc7a1865b12",
       "stream": "discover",
       "title": "8BitDo Arcade Controller Pro Puts Fighting-Game Controls at Your Fingertips, Plus Prime Big Deals",
@@ -4656,26 +4682,25 @@
       "discount_percent": 0
     },
     {
-      "id": "781ae013de84475f",
+      "id": "7c6c8462bd5e0505",
       "stream": "discover",
-      "title": "These 3-Gram Dongles Give Your Phone Bluetooth Codecs It Lacks",
-      "summary": "Buying better Bluetooth headphones does not guarantee that your phone, tablet, or laptop can transmit the best codec they support. Sometimes the bottleneck is the source device, particularly when your headphones support LDAC or aptX Adaptive but your phone does…",
-      "category": "3C 数码",
+      "title": "OpenPilot",
+      "summary": "Open-source desktop AI agent for any model you choose Discussion | Link",
+      "category": "桌面",
       "tags": [
-        "3C 数码",
-        "headphone",
-        "dac"
+        "桌面",
+        "desk"
       ],
       "language": "en",
-      "source": "The Gadgeteer",
-      "source_url": "https://the-gadgeteer.com/2026/09/25/ifi-up-play-vs-up-play-max-bluetooth-transmitters/",
-      "product_url": "https://the-gadgeteer.com/2026/09/25/ifi-up-play-vs-up-play-max-bluetooth-transmitters/",
+      "source": "Product Hunt",
+      "source_url": "https://www.producthunt.com/products/openpilot",
+      "product_url": "https://www.producthunt.com/products/openpilot",
       "link_type": "source",
-      "image_url": "https://the-gadgeteer.com/wp-content/uploads/2026/09/IFI-UP-Play-Max-1280x955.jpeg",
-      "published_at": "2026-09-25T14:30:55+00:00",
-      "fetched_at": "2026-09-27T18:58:54.769828+00:00",
-      "relevance_score": 16.0,
-      "reason": "来自设计、众筹或独立硬件渠道的潜力3C 数码产品，匹配你的偏好：headphone",
+      "image_url": "",
+      "published_at": "2026-10-09T05:53:51+00:00",
+      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
+      "relevance_score": 15.63,
+      "reason": "来自设计、众筹或独立硬件渠道的潜力桌面产品，匹配你的偏好：desk",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
       "price": "",
       "price_value": null,
@@ -4727,32 +4752,6 @@
       "fetched_at": "2026-09-27T18:58:54.769828+00:00",
       "relevance_score": 15.39,
       "reason": "来自设计、众筹或独立硬件渠道的潜力桌面产品，匹配你的偏好：desk",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "",
-      "price_value": null,
-      "original_price": "",
-      "discount_percent": 0
-    },
-    {
-      "id": "793a388085532784",
-      "stream": "discover",
-      "title": "This rugged 9.8kg laptop folds out into a three 14-inch screen mobile workstation",
-      "summary": "This rugged 9.8kg laptop folds out into a three 14-inch screen mobile workstation A laptop with three screens sounds excessive until the setting changes. At a desk, it would be an elaborate workstation. In the middle of a...",
-      "category": "3C 数码",
-      "tags": [
-        "3C 数码",
-        "desk"
-      ],
-      "language": "en",
-      "source": "Yanko Design",
-      "source_url": "https://www.yankodesign.com/2026/09/25/this-rugged-9-8kg-laptop-folds-out-into-a-three-14-inch-screen-mobile-workstation/?utm_source=rss&utm_medium=rss&utm_campaign=this-rugged-9-8kg-laptop-folds-out-into-a-three-14-inch-screen-mobile-workstation",
-      "product_url": "https://www.yankodesign.com/2026/09/25/this-rugged-9-8kg-laptop-folds-out-into-a-three-14-inch-screen-mobile-workstation/?utm_source=rss&utm_medium=rss&utm_campaign=this-rugged-9-8kg-laptop-folds-out-into-a-three-14-inch-screen-mobile-workstation",
-      "link_type": "source",
-      "image_url": "https://www.yankodesign.com/images/design_news/2026/09/this-rugged-9-8kg-laptop-folds-out-into-a-three-14-inch-screen-mobile-workstation/durabook-Z14I-DX3-Triple-Screen-Laptop-1.jpg",
-      "published_at": "2026-09-25T15:20:47+00:00",
-      "fetched_at": "2026-09-25T19:15:12.491560+00:00",
-      "relevance_score": 15.35,
-      "reason": "来自设计、众筹或独立硬件渠道的潜力3C 数码产品，匹配你的偏好：desk",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
       "price": "",
       "price_value": null,
@@ -4856,6 +4855,32 @@
       "published_at": "2026-10-04T01:45:32+00:00",
       "fetched_at": "2026-10-04T18:38:27.242304+00:00",
       "relevance_score": 15.19,
+      "reason": "来自设计、众筹或独立硬件渠道的潜力音频产品，匹配你的偏好：headphone",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "",
+      "price_value": null,
+      "original_price": "",
+      "discount_percent": 0
+    },
+    {
+      "id": "9e84d868857c0b47",
+      "stream": "discover",
+      "title": "Brain-sensing headphones know when your focus starts to drift",
+      "summary": "Neurable One hides 12 EEG sensors inside premium ANC headphones to track focus and fatigue, turning brain activity into real-time biofeedback while still working as an everyday pair of wireless headphones. Continue Reading Category: Consumer Tech , Technology Tags: Brain activity , Headphones , Monitoring , EEG , Noise-Canceling , Well-being",
+      "category": "音频",
+      "tags": [
+        "音频",
+        "headphone"
+      ],
+      "language": "en",
+      "source": "New Atlas Technology",
+      "source_url": "https://newatlas.com/consumer-tech/neurable-one-eeg-brain-sensing-headphones/",
+      "product_url": "https://newatlas.com/consumer-tech/neurable-one-eeg-brain-sensing-headphones/",
+      "link_type": "source",
+      "image_url": "https://assets.newatlas.com/dims4/default/a5024ed/2147483647/strip/true/crop/11648x8736+0+0/resize/1280x960!/format/webp/quality/90/?url=https%3A%2F%2Fnewatlas-brightspot.s3.ap-southeast-2.amazonaws.com%2F1b%2F82%2Fdf89df3d4ca4b06784e50bf62d6d%2Fneurableone-gallery2.jpg",
+      "published_at": "2026-10-08T09:45:09+00:00",
+      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
+      "relevance_score": 15.0,
       "reason": "来自设计、众筹或独立硬件渠道的潜力音频产品，匹配你的偏好：headphone",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
       "price": "",
@@ -5070,28 +5095,28 @@
       "discount_percent": 0
     },
     {
-      "id": "22f0bc2de8ed8efd",
+      "id": "6106206c9e46cb3a",
       "stream": "discover",
-      "title": "AFTERSHOCK Built a $14,200 Gaming PC Where 70 Petals Bloom With Heat",
-      "summary": "AFTERSHOCK Built a $14,200 Gaming PC Where 70 Petals Bloom With Heat Every gaming PC eventually reveals itself under load, fans spinning up, temperatures climbing, a quiet admission that something demanding is happening inside the case. Most...",
-      "category": "游戏",
+      "title": "Sorted",
+      "summary": "Your private AI file organizer for Mac Discussion | Link",
+      "category": "生活",
       "tags": [
-        "游戏",
-        "fan"
+        "生活",
+        "organizer"
       ],
       "language": "en",
-      "source": "Yanko Design",
-      "source_url": "https://www.yankodesign.com/2026/09/25/aftershock-built-a-14200-gaming-pc-where-70-petals-bloom-with-heat/?utm_source=rss&utm_medium=rss&utm_campaign=aftershock-built-a-14200-gaming-pc-where-70-petals-bloom-with-heat",
-      "product_url": "https://www.yankodesign.com/2026/09/25/aftershock-built-a-14200-gaming-pc-where-70-petals-bloom-with-heat/?utm_source=rss&utm_medium=rss&utm_campaign=aftershock-built-a-14200-gaming-pc-where-70-petals-bloom-with-heat",
+      "source": "Product Hunt",
+      "source_url": "https://www.producthunt.com/products/sorted-6",
+      "product_url": "https://www.producthunt.com/products/sorted-6",
       "link_type": "source",
-      "image_url": "https://www.yankodesign.com/images/design_news/2026/09/aftershock-built-a-14200-gaming-pc-where-70-petals-bloom-with-heat/aftershock-cherry-blossom-pc-01.jpg",
-      "published_at": "2026-09-25T10:07:08+00:00",
-      "fetched_at": "2026-09-25T19:15:12.491560+00:00",
-      "relevance_score": 14.48,
-      "reason": "来自设计、众筹或独立硬件渠道的潜力游戏产品，匹配你的偏好：fan",
+      "image_url": "",
+      "published_at": "2026-10-08T22:52:23+00:00",
+      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
+      "relevance_score": 14.46,
+      "reason": "来自设计、众筹或独立硬件渠道的潜力生活产品，匹配你的偏好：organizer",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "$14,200",
-      "price_value": 14200.0,
+      "price": "",
+      "price_value": null,
       "original_price": "",
       "discount_percent": 0
     },
@@ -5191,31 +5216,6 @@
       "published_at": "2026-10-02T09:15:21+00:00",
       "fetched_at": "2026-10-02T19:57:20.863771+00:00",
       "relevance_score": 14.22,
-      "reason": "来自设计、众筹或独立硬件渠道的潜力桌面产品",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "",
-      "price_value": null,
-      "original_price": "",
-      "discount_percent": 0
-    },
-    {
-      "id": "a05d5a28064249a7",
-      "stream": "discover",
-      "title": "Keyboards Work for Both Hands, the New Surface Mouse Finally Does Too",
-      "summary": "Keyboards Work for Both Hands, the New Surface Mouse Finally Does Too Most mice quietly assume something about the person using them. Right-handed by default, with a thumb shelf that only makes sense from one side, they’ve...",
-      "category": "桌面",
-      "tags": [
-        "桌面"
-      ],
-      "language": "en",
-      "source": "Yanko Design",
-      "source_url": "https://www.yankodesign.com/2026/09/25/keyboards-work-for-both-hands-the-new-surface-mouse-finally-does-too/?utm_source=rss&utm_medium=rss&utm_campaign=keyboards-work-for-both-hands-the-new-surface-mouse-finally-does-too",
-      "product_url": "https://www.yankodesign.com/2026/09/25/keyboards-work-for-both-hands-the-new-surface-mouse-finally-does-too/?utm_source=rss&utm_medium=rss&utm_campaign=keyboards-work-for-both-hands-the-new-surface-mouse-finally-does-too",
-      "link_type": "source",
-      "image_url": "https://www.yankodesign.com/images/design_news/2026/09/keyboards-work-for-both-hands-the-new-surface-mouse-finally-does-too/surface-mouse-2nd-edition-01.jpg",
-      "published_at": "2026-09-25T08:15:07+00:00",
-      "fetched_at": "2026-09-25T19:15:12.491560+00:00",
-      "relevance_score": 14.17,
       "reason": "来自设计、众筹或独立硬件渠道的潜力桌面产品",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
       "price": "",
@@ -5409,19 +5409,19 @@
     {
       "name": "9to5Toys",
       "ok": true,
-      "item_count": 32,
+      "item_count": 27,
       "error": ""
     },
     {
       "name": "DealNews",
       "ok": true,
-      "item_count": 25,
+      "item_count": 16,
       "error": ""
     },
     {
       "name": "DealNews Editors' Choice",
       "ok": true,
-      "item_count": 25,
+      "item_count": 16,
       "error": ""
     },
     {
@@ -5438,123 +5438,123 @@
     },
     {
       "name": "Dealmoon 数码好价",
-      "ok": false,
-      "item_count": 0,
-      "error": "HTTP Error 503: Service Unavailable"
+      "ok": true,
+      "item_count": 1,
+      "error": ""
     },
     {
       "name": "Dealmoon 家居厨房",
-      "ok": false,
-      "item_count": 0,
-      "error": "HTTP Error 503: Service Unavailable"
+      "ok": true,
+      "item_count": 1,
+      "error": ""
     },
     {
       "name": "中文好价搜索",
-      "ok": false,
-      "item_count": 0,
-      "error": "HTTP Error 503: Service Unavailable"
+      "ok": true,
+      "item_count": 1,
+      "error": ""
     },
     {
       "name": "少数派",
-      "ok": true,
-      "item_count": 5,
-      "error": ""
-    },
-    {
-      "name": "爱范儿",
-      "ok": true,
-      "item_count": 2,
-      "error": ""
-    },
-    {
-      "name": "IT之家",
-      "ok": true,
-      "item_count": 9,
-      "error": ""
-    },
-    {
-      "name": "UNWIRE.HK",
-      "ok": true,
-      "item_count": 1,
-      "error": ""
-    },
-    {
-      "name": "Cool3C",
-      "ok": true,
-      "item_count": 1,
-      "error": ""
-    },
-    {
-      "name": "Engadget",
-      "ok": true,
-      "item_count": 8,
-      "error": ""
-    },
-    {
-      "name": "The Verge",
-      "ok": true,
-      "item_count": 1,
-      "error": ""
-    },
-    {
-      "name": "Tom's Hardware",
-      "ok": true,
-      "item_count": 15,
-      "error": ""
-    },
-    {
-      "name": "MacRumors",
-      "ok": true,
-      "item_count": 8,
-      "error": ""
-    },
-    {
-      "name": "9to5Mac",
-      "ok": true,
-      "item_count": 14,
-      "error": ""
-    },
-    {
-      "name": "中文新品搜索",
-      "ok": false,
-      "item_count": 0,
-      "error": "HTTP Error 503: Service Unavailable"
-    },
-    {
-      "name": "Product Hunt",
-      "ok": true,
-      "item_count": 5,
-      "error": ""
-    },
-    {
-      "name": "New Atlas Technology",
-      "ok": true,
-      "item_count": 19,
-      "error": ""
-    },
-    {
-      "name": "Yanko Design",
       "ok": true,
       "item_count": 4,
       "error": ""
     },
     {
+      "name": "爱范儿",
+      "ok": true,
+      "item_count": 4,
+      "error": ""
+    },
+    {
+      "name": "IT之家",
+      "ok": true,
+      "item_count": 5,
+      "error": ""
+    },
+    {
+      "name": "UNWIRE.HK",
+      "ok": true,
+      "item_count": 0,
+      "error": ""
+    },
+    {
+      "name": "Cool3C",
+      "ok": true,
+      "item_count": 2,
+      "error": ""
+    },
+    {
+      "name": "Engadget",
+      "ok": true,
+      "item_count": 2,
+      "error": ""
+    },
+    {
+      "name": "The Verge",
+      "ok": true,
+      "item_count": 2,
+      "error": ""
+    },
+    {
+      "name": "Tom's Hardware",
+      "ok": true,
+      "item_count": 14,
+      "error": ""
+    },
+    {
+      "name": "MacRumors",
+      "ok": true,
+      "item_count": 6,
+      "error": ""
+    },
+    {
+      "name": "9to5Mac",
+      "ok": true,
+      "item_count": 8,
+      "error": ""
+    },
+    {
+      "name": "中文新品搜索",
+      "ok": true,
+      "item_count": 1,
+      "error": ""
+    },
+    {
+      "name": "Product Hunt",
+      "ok": true,
+      "item_count": 7,
+      "error": ""
+    },
+    {
+      "name": "New Atlas Technology",
+      "ok": true,
+      "item_count": 20,
+      "error": ""
+    },
+    {
+      "name": "Yanko Design",
+      "ok": true,
+      "item_count": 6,
+      "error": ""
+    },
+    {
       "name": "The Gadgeteer",
       "ok": true,
-      "item_count": 11,
+      "item_count": 14,
       "error": ""
     },
     {
       "name": "Crowdfunding Radar",
-      "ok": false,
-      "item_count": 0,
-      "error": "HTTP Error 503: Service Unavailable"
+      "ok": true,
+      "item_count": 32,
+      "error": ""
     },
     {
       "name": "中文潜力新品",
-      "ok": false,
+      "ok": true,
       "item_count": 0,
-      "error": "HTTP Error 503: Service Unavailable"
+      "error": ""
     }
   ]
 }
