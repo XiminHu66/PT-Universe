@@ -9,6 +9,9 @@ assert.throws(()=>validateCheckOutput({...output,evidence:[{text:'Bad',paragraph
 assert.throws(()=>validateCheckOutput({...output,evidence:[{text:'Bad',paragraphRef:'s2:p1'}]},[source],'claim'));
 assert.deepEqual(schema.properties.evidence.items.properties.paragraphRef.enum,['s1:p1']);
 assert.equal(schema.properties.evidence.items.properties.quote,undefined);
+assert.deepEqual(schema.properties.evidence.items.required,['paragraphRef']);
+assert.equal(copiedLabel(), '来源原文摘录');
+function copiedLabel(){return validateCheckOutput({...output,evidence:[{paragraphRef:'s1:p1',text:'An unsupported assertion'}]},[source],'claim').evidence[0].text;}
 assert.equal(checkOutputSchema([{...source,paragraphs:[]}]).properties.evidence.maxItems,0);
 const copied=validateCheckOutput({...output,evidence:[{text:'总结可中文化',paragraphRef:'s1:p1',quote:'A model paraphrase is never used'}]},[source],'claim');
 assert.equal(copied.evidence[0].quote,quote);

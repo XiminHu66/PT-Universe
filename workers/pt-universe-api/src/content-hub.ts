@@ -61,6 +61,7 @@ export function parseDuckSearch(html:string){
  for(let i=0;i<anchors.length;i++){const m=anchors[i],href=m[0].match(/href=["']([^"']+)["']/)?.[1];if(!href)continue;const b=html.slice(m.index!+m[0].length,anchors[i+1]?.index??html.length),url=resultURL(href),excerpt=clean(b.match(/<td\b[^>]*class=["'][^"']*result-snippet[^"']*["'][^>]*>([\s\S]*?)<\/td>/i)?.[1]||'');if(url)rows.push({title:clean(m[1]),url,excerpt:excerpt.slice(0,700),published_at:null});}
  return rows.slice(0,12);
 }
+export function isEvidenceText(text:string){return !!text&&!/^(?:关于我们\s*联系我们|联系我们\s*关于我们|(?:©|&copy;|Copyright\b)|.*All Rights Reserved\b|Stay up to date with\b|This form is for feedback only\b)/i.test(text);}
 export function parseEvidence(html:string,url:string){
  const removed=html.replace(/<(script|style|nav|footer)\b[^>]*>[\s\S]*?<\/\1>/gi,' ');
  const title=clean(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]||url),paragraphs:Obj[]=[],specs:Obj[]=[];
@@ -70,8 +71,9 @@ export function parseEvidence(html:string,url:string){
  }
  for(const m of removed.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)){const cells=[...m[1].matchAll(/<t[hd]\b[^>]*>([\s\S]*?)<\/t[hd]>/gi)].map(x=>clean(x[1]));if(cells.length===2&&cells[0].length<100&&cells[1].length<500)specs.push({name:cells[0],value:cells[1],source:url});}
  for(const m of removed.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)){const t=clean(m[1]);if(t.length>=45&&t.length<=1800)paragraphs.push({text:t});if(paragraphs.length>=35)break;}
+ const body=paragraphs.filter(p=>isEvidenceText(p.text));
  const meta=html.match(/<meta\b[^>]*(?:name|property)=["'](?:description|og:description)["'][^>]*content=["']([^"']*)["']/i)?.[1];
- return {title,url,excerpt:clean(meta||paragraphs[0]?.text||'').slice(0,600),paragraphs:paragraphs.map((p,i)=>({...p,id:'p'+(i+1)})),specs:specs.slice(0,60),status:'unverified',retrieved_at:stamp(),method:'原文段落与发布者结构化字段；未作语义核实'};
+ return {title,url,excerpt:clean(meta||body[0]?.text||'').slice(0,600),paragraphs:body.map((p,i)=>({...p,id:'p'+(i+1)})),specs:specs.slice(0,60),status:'unverified',retrieved_at:stamp(),method:'原文段落与发布者结构化字段；未作语义核实'};
 }
 function query(url:URL){const q=(url.searchParams.get('q')||'').trim();if(q.length<2||q.length>180)throw Error('请输入 2–180 字的查询');return q;}
 export function parseWebSearch(html:string){
@@ -101,7 +103,7 @@ export function parseAnime1(raw:unknown){
  });
 }
 async function collectAnime1(env:HubEnv){return cached(env,'anime1/catalog-v1',1800,async()=>{const items=parseAnime1(await json('https://anime1.me/animelist.json'));if(!items.length)throw Error('Anime1 目录暂不可用');return {items,source:'Anime1 动画目录',source_url:'https://anime1.me/動畫列表',order_basis:'来源目录的最近更新顺序；集数是来源已上架数量，不是已看进度'};});}
-export async function loadPublicEvidence(env:HubEnv,raw:string){publicURL(raw);return cached(env,'read/'+await keyFor(raw),86400,async()=>parseEvidence(await download(raw),raw));}
+export async function loadPublicEvidence(env:HubEnv,raw:string){publicURL(raw);return cached(env,'read-v2/'+await keyFor(raw),86400,async()=>parseEvidence(await download(raw),raw));}
 export function searchTerms(q:string,mode:string){
  const term=normalizeQuery(simplified(q));if(mode==='product'||!/[\u3400-\u9fff]/.test(term))return term;
  const words=term.replace(/会不会|是不是|是真的吗|是否|能不能|到底|为什么|怎么|会被/g,' ').replace(/[吗呢？?]+$/g,'').trim();
@@ -178,7 +180,7 @@ export async function contentHubRoute(request:Request,env:HubEnv):Promise<{body:
     for(const row of found.rows){const host=new URL(row.url).hostname;items.push({...row,id:await keyFor(row.url),kind:mode==='product'?'product_candidate':'evidence_candidate',host:row.publisher_url?new URL(row.publisher_url).hostname:host,readable:host!=='news.google.com'&&new URL(row.url).protocol==='https:'&&READ_HOSTS.has(host),status:'unverified',retrieved_at:stamp()});}
     const unavailable=!items.length&&found.providers.some(x=>!x.ok);return {query:q,normalized_query:normalizeQuery(q),search_query:found.search_query,providers:found.providers,search_state:items.length?'ready':unavailable?'unavailable':'empty',empty_reason:items.length?'':unavailable?'搜索来源限流或暂不可用，请重新检索；失败不代表说法为假或商品不存在':'暂未匹配到相关来源，试试关键名词、型号或原文链接',mode,items:[...new Map(items.map(x=>[x.url,x])).values()].slice(0,20),errors:found.errors,method:'公开网页与新闻 RSS 候选；不作自动语义核查'};
    },u.searchParams.get('refresh')==='1');
-  }else if(route==='check/read'){const raw=u.searchParams.get('url')||'';publicURL(raw);data=await cached(env,'read/'+await keyFor(raw),86400,async()=>{await acquire(env,request);return parseEvidence(await download(raw),raw);});}
+  }else if(route==='check/read'){const raw=u.searchParams.get('url')||'';publicURL(raw);data=await cached(env,'read-v2/'+await keyFor(raw),86400,async()=>{await acquire(env,request);return parseEvidence(await download(raw),raw);});}
   else return {body:{error:'Not found'},status:404};
   return {body:data};
  }catch(e){return {body:{error:e instanceof Error?e.message:String(e)},status:e instanceof RateError?429:400};}
