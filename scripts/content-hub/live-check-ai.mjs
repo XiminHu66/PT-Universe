@@ -1,0 +1,11 @@
+// Explicit release smoke: two model calls, followed by a cache-only repeat.
+import {randomUUID,randomBytes} from 'node:crypto';import {writeFileSync} from 'node:fs';
+const API='https://pt-universe-api.summer07-nanjolno.workers.dev',id=randomUUID(),token=randomBytes(32).toString('hex');
+const headers={'user-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36',origin:'https://ximinhu66.github.io','content-type':'application/json'};
+async function send(path,body,auth=false){const r=await fetch(API+path,{method:'POST',headers:{...headers,...(auth?{authorization:'Bearer '+token}:{})},body:JSON.stringify(body),signal:AbortSignal.timeout(115000)}),d=await r.json();if(!r.ok)throw Error(path+': '+r.status+' '+(d.error||'failed'));return d;}
+await send('/api/sync/register',{id,token});
+const sources=['https://www.soundguys.com/sennheiser-hd-490-pro-review-111184/','https://www.sonarworks.com/blog/reviews/sennheiser-hd-490-pro-studio-headphone-review'];
+const cases=[{mode:'product',query:'hd 490 pro',urls:sources},{mode:'claim',query:'Sennheiser HD 490 Pro is an open-back headphone',urls:sources.slice(0,1)}],reports=[];
+for(const body of cases){const started=Date.now(),r=await send('/api/check/'+id+'/analyze',body,true);if(!r.output?.summary||r.output.humanVerified!==false||!r.sources.length)throw Error('Incomplete '+body.mode+' result');reports.push({mode:body.mode,model:r.model,latencyMs:Date.now()-started,sourceCount:r.sources.length,bodySources:r.sources.filter(s=>s.paragraphs.length).length,verdict:r.output.verdict,summary:r.output.summary,evidence:r.output.evidence,unknowns:r.output.unknowns,cached:r.cached});console.log(body.mode,'AI verified:',r.model,r.sources.length,'sources;',r.output.verdict);}
+const repeat=await send('/api/check/'+id+'/analyze',cases[0],true);if(!repeat.cached)throw Error('Repeat spent a new generation instead of using cache');console.log('Repeat reused cached result');
+writeFileSync('/tmp/check-ai-live.json',JSON.stringify({at:new Date().toISOString(),reports,repeatCached:true},null,2));

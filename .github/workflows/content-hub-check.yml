@@ -8,7 +8,9 @@ on:
       - 'apps/tsugi-checker/**'
       - 'apps/daily-nexus/**'
       - 'workers/pt-universe-api/src/content-hub.ts'
+      - 'workers/pt-universe-api/src/check-ai.ts'
       - 'workers/pt-universe-api/tests/content-hub*'
+      - 'workers/pt-universe-api/tests/check-ai*'
       - 'workers/pt-universe-api/tests/fixtures/hub-*'
       - 'scripts/content-hub/**'
       - '.github/workflows/content-hub-check.yml'
@@ -29,6 +31,8 @@ jobs:
       - run: npm ci --prefix workers/pt-universe-api
       - run: npm run check --prefix workers/pt-universe-api
       - run: node tests/content-hub.test.mjs
+        working-directory: workers/pt-universe-api
+      - run: node tests/check-ai.test.mjs
         working-directory: workers/pt-universe-api
       - run: node scripts/content-hub/engine-test.mjs
   browser:
