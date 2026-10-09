@@ -77,6 +77,18 @@ jobs:
           }
           JS
 
+      - name: Verify Check Desk search against reported queries
+        if: contains(github.event.head_commit.message, '[check-search-test]')
+        run: node ../../scripts/content-hub/live-search.mjs
+
+      - name: Save Check Desk search verification
+        if: always() && contains(github.event.head_commit.message, '[check-search-test]')
+        uses: actions/upload-artifact@v4
+        with:
+          name: check-search-live-verification
+          path: /tmp/check-search-live.json
+          if-no-files-found: warn
+
       - name: Verify on-demand Check Desk AI
         if: contains(github.event.head_commit.message, '[check-ai-test]')
         run: node ../../scripts/content-hub/live-check-ai.mjs
