@@ -11,6 +11,7 @@ on:
       - 'workers/pt-universe-api/src/content-hub.ts'
       - 'workers/pt-universe-api/src/check-ai.ts'
       - 'workers/pt-universe-api/src/check-relevance.ts'
+      - 'workers/pt-universe-api/src/check-conflicts.ts'
       - 'workers/pt-universe-api/src/evidence-reader.ts'
       - 'workers/pt-universe-api/tests/content-hub*'
       - 'workers/pt-universe-api/tests/check-ai*'
