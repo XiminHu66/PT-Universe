@@ -89,6 +89,28 @@ jobs:
           path: /tmp/check-search-live.json
           if-no-files-found: warn
 
+      - name: Install browser for three authorized semantic cases
+        if: contains(github.event.head_commit.message, '[check-chain-test]')
+        run: |
+          npm install --prefix ../.. --no-save --package-lock=false playwright@1.58.2
+          ../../node_modules/.bin/playwright install --with-deps chromium
+
+      - name: Verify three Check Desk cases through search, reading, AI and display
+        if: contains(github.event.head_commit.message, '[check-chain-test]')
+        env:
+          CHECK_CHAIN_BROWSER: 'true'
+        run: node ../../scripts/content-hub/live-chain.mjs
+
+      - name: Save three-case semantic verification
+        if: always() && contains(github.event.head_commit.message, '[check-chain-test]')
+        uses: actions/upload-artifact@v4
+        with:
+          name: check-chain-live-verification
+          path: |
+            /tmp/check-chain-live.json
+            /tmp/check-chain-*.png
+          if-no-files-found: warn
+
       - name: Verify on-demand Check Desk AI
         if: contains(github.event.head_commit.message, '[check-ai-test]')
         run: node ../../scripts/content-hub/live-check-ai.mjs
