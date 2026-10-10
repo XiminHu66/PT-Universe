@@ -1,0 +1,7 @@
+import assert from 'node:assert/strict';
+import {emptyRecipes,normalizeRecipes,mergeRecipes,recipeLink,sourceLabel,liveRecipes} from '../../apps/food-ledger/recipes-model.mjs';
+const r={id:'r',updatedAt:1,name:'番茄炒蛋',url:'https://www.xiachufang.com/recipe/123/',ingredients:['番茄 · 2 个'],steps:['洗净切块'],tags:['会做','会做','回头菜'],note:'少放盐'};
+const a=normalizeRecipes({version:1,recipes:[r]});assert.deepEqual(a.recipes[0].tags,['会做','回头菜']);
+assert.equal(recipeLink('番茄炒蛋'),'');assert.equal(recipeLink('分享菜谱 https://xhslink.com/a/abc 复制到小红书'),'https://xhslink.com/a/abc');assert.equal(recipeLink('www.xiachufang.com/recipe/123/'),'https://www.xiachufang.com/recipe/123/');assert.equal(recipeLink('javascript:alert(1)'),'');assert.equal(sourceLabel(r.url),'下厨房');assert.equal(sourceLabel('https://evil-xiaohongshu.com/a'),'其他来源');
+const b=normalizeRecipes({version:1,recipes:[{...r,updatedAt:2,note:'重新做过'}]});assert.equal(mergeRecipes(a,b).recipes[0].note,'重新做过');assert.deepEqual(mergeRecipes(a,b),mergeRecipes(b,a));assert.deepEqual(mergeRecipes(a,emptyRecipes()),a);
+const deleted=normalizeRecipes({version:1,recipes:[{...r,updatedAt:4,deleted:true}]});assert.equal(liveRecipes(mergeRecipes(deleted,a)).length,0);assert.throws(()=>normalizeRecipes({version:1,recipes:[{...r,ingredients:'bad'}]}));assert.throws(()=>normalizeRecipes({version:1,recipes:[r,r]}));console.log('Recipes: share links, tags, import validation, independent edits and deletion merge passed');

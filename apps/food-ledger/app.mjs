@@ -1,17 +1,20 @@
-import {empty,normalize,merge,safeUrl,liveRestaurants,dishesFor,navigationUrl} from './model.mjs';
-import {config,register,parseCode,useConfig,fetchCloud,putCloud} from './sync.mjs?v=20261005-3';
+import {empty,normalize,merge,safeUrl,liveRestaurants,dishesFor,navigationUrl} from './model.mjs?v=20261010-1';
+import {config,register,parseCode,useConfig,fetchCloud,putCloud} from './sync.mjs?v=20261010-1';
+import {initRecipes} from './recipes.mjs?v=20261010-1';
 const KEY='food-ledger.v1',$=s=>document.querySelector(s),esc=v=>String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dishDrafts=new Map();let dishComposing=false;
 let state=empty(),selected='',query='',filter='all',editingRestaurant='',editingDish='',toastTimer,syncTimer,syncBusy=false,syncAgain=false,lastSyncMessage='',storageBlocked=false,syncTask=Promise.resolve(false);
 try{const raw=localStorage.getItem(KEY);if(raw)state=normalize(JSON.parse(raw))}catch{storageBlocked=true;$('#save-state').textContent='记录无法读取，请先导出或检查浏览器存储';$('#save-state').classList.add('bad')}
+const recipeController=initRecipes({onChange:()=>{saveMessage('已保存在此设备 · 等待同步');scheduleSync()},toast,ensureAccount:async()=>{if(!await synchronize())throw Error(lastSyncMessage);return config()}});
+document.querySelectorAll('[data-food-tab]').forEach(b=>b.onclick=()=>{location.hash=b.dataset.foodTab==='recipes'?'recipes':''});
 const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
 const current=()=>state.restaurants.find(r=>r.id===selected&&!r.deleted);
 function stamp(){return Math.max(Date.now(),...state.restaurants.map(x=>x.updatedAt+1),...state.dishes.map(x=>x.updatedAt+1))}
 function toast(message){clearTimeout(toastTimer);$('#toast').textContent=message;$('#toast').hidden=false;toastTimer=setTimeout(()=>$('#toast').hidden=true,4000)}
-function saveMessage(message,bad=false){$('#save-state').textContent=message;$('#save-state').classList.toggle('bad',bad);lastSyncMessage=message;$('#sync-status').textContent=message}
+function saveMessage(message,bad=false){$('#save-state').textContent=message;$('#save-state').classList.toggle('bad',bad);lastSyncMessage=message;$('#sync-status').textContent=message;$('#recipes-save-state').textContent=message;$('#recipes-save-state').classList.toggle('bad',bad)}
 function persist(next){if(storageBlocked)throw Error('本机记录无法读取，已暂停写入以保留原始数据');const normalized=normalize(next);try{localStorage.setItem(KEY,JSON.stringify(normalized))}catch{throw Error('保存失败：浏览器存储不可用或已满。请先导出备份。')}state=normalized;saveMessage(config()?'已保存在此设备 · 等待同步':'已保存在此设备 · 联网后自动同步');return true}
 function change(next){try{persist(next);render();scheduleSync();return true}catch(e){toast(e.message);return false}}
-function scheduleSync(){clearTimeout(syncTimer);syncTimer=setTimeout(()=>synchronize(),700)}
+function scheduleSync(){if(syncBusy)syncAgain=true;clearTimeout(syncTimer);syncTimer=setTimeout(()=>synchronize(),700)}
 function renderList(){
  const all=liveRestaurants(state),q=query.trim().toLocaleLowerCase();
  const visible=all.filter(r=>!q||[r.name,r.address,r.note,...dishesFor(state,r.id).flatMap(d=>[d.name,d.note])].join(' ').toLocaleLowerCase().includes(q));
@@ -28,7 +31,7 @@ function renderBoard(){
  $('#board').innerHTML=`<div class="restaurant-heading"><button class="mobile-back" data-back>返回菜馆列表</button><div class="detail-top"><div><p class="eyebrow">我的点菜记录</p><h2>${esc(r.name)}</h2></div><div class="detail-tools"><button class="icon-button" data-edit-place aria-label="编辑菜馆">资料</button><button class="icon-button delete" data-delete-place aria-label="删除菜馆">删除</button></div></div><div class="place-info">${r.address?`<a class="address" href="${esc(navigationUrl(r))}" target="_blank" rel="noopener noreferrer" aria-label="Google Maps 导航至 ${esc(r.name)}"><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>${esc(r.address)}</a>`:''}${r.url?`<a class="place-link" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">打开菜馆链接</a>`:''}${r.note?`<p class="place-note">${esc(r.note)}</p>`:''}</div></div><form id="dish-quick" class="dish-quick" data-restaurant="${r.id}"><label class="dish-quick-input"><input id="quick-dish-name" name="name" required maxlength="120" value="${esc(dishDrafts.get(r.id)||'')}" placeholder="输入菜名" aria-label="快速添加菜品" autocomplete="off"></label><div class="quick-ranks"><button type="submit" class="quick-red" data-quick-rank="red" value="red">＋ 红榜</button><button type="submit" class="quick-black" data-quick-rank="black" value="black">＋ 黑榜</button></div></form><div class="board-toolbar"><div class="filters" role="group" aria-label="筛选菜品">${[['all','全部'],['red','红榜'],['black','黑榜']].map(([v,label])=>`<button data-filter="${v}" class="${filter===v?'active':''}" aria-pressed="${filter===v}">${label}</button>`).join('')}</div></div><div class="rank-columns ${filter!=='all'?'single':''}">${rankFilter.map(rank=>rankPanel(rank,ds.filter(d=>d.rank===rank))).join('')}</div>`;
  if(focused){const input=$('#quick-dish-name');input?.focus({preventScroll:true});if(cursor)input?.setSelectionRange(...cursor)}
 }
-function render(){renderList();renderBoard();document.body.classList.toggle('detail-open',Boolean(current())&&Boolean(location.hash))}
+function render(){renderList();renderBoard();document.body.classList.toggle('detail-open',Boolean(current())&&Boolean(location.hash));recipeController.render()}
 function select(id){selected=id;filter='all';location.hash='restaurant/'+id;render();window.scrollTo({top:0})}
 function route(){const id=location.hash.startsWith('#restaurant/')?location.hash.slice(12):'';selected=state.restaurants.some(r=>r.id===id&&!r.deleted)?id:'';render()}
 function openRestaurant(r=null){editingRestaurant=r?.id||'';const f=$('#restaurant-form');f.reset();$('#restaurant-error').textContent='';$('#restaurant-form-title').textContent=r?'编辑菜馆':'记一家菜馆';for(const name of ['name','address','url','note'])f.elements[name].value=r?.[name]||(name==='name'?query.trim():'');$('#restaurant-dialog').showModal();$('#restaurant-name').focus()}
@@ -52,15 +55,15 @@ async function performSync(override){
  saveMessage('记录已保存在此设备 · 正在同步');
  try{const cfg=override||config()||await register();for(let attempt=0;attempt<4;attempt++){
   const cloud=await fetchCloud(cfg),combined=merge(state,cloud.state||empty());persist(combined);render();
-  if(cloud.state&&JSON.stringify(combined)===JSON.stringify(cloud.state)){if(override)useConfig(cfg);saveMessage('已加密同步 · 手机与电脑可连接同一配对码');break}
-  try{await putCloud(combined,cloud.revision,cfg);if(override)useConfig(cfg);saveMessage('已加密同步 · 手机与电脑可连接同一配对码');break}catch(e){if(e.status!==409||attempt===3)throw e}
- }updatePairCode();return true;
+  if(cloud.state&&JSON.stringify(combined)===JSON.stringify(cloud.state))break
+  try{await putCloud(combined,cloud.revision,cfg);break}catch(e){if(e.status!==409||attempt===3)throw e}
+ }await recipeController.synchronize(cfg);if(override)useConfig(cfg);saveMessage(syncAgain?'已保存在此设备 · 等待同步':'已加密同步 · 菜馆与菜谱共用同一配对码');updatePairCode();return true;
  }catch(e){saveMessage('已保存在此设备 · 同步未完成：'+e.message,true);updatePairCode();return false}finally{syncBusy=false;if(syncAgain){syncAgain=false;scheduleSync()}}
 }
-$('#sync-now').onclick=()=>synchronize();$('#sync-connect').onclick=async()=>{const button=$('#sync-connect');try{const cfg=parseCode($('#sync-code').value);button.disabled=true;$('#pair-status').textContent=syncBusy?'等待当前同步完成，再连接另一台设备…':'正在连接另一台设备…';const ok=await synchronize(cfg);if(!ok)throw Error(lastSyncMessage);$('#pair-status').textContent='已连接，菜馆和菜品记录已合并。两台设备的「本设备配对码」现在相同。';toast('已连接另一台设备')}catch(e){$('#pair-status').textContent='连接未完成：'+e.message}finally{button.disabled=false}};
+$('#sync-now').onclick=()=>synchronize();$('#sync-connect').onclick=async()=>{const button=$('#sync-connect');try{const cfg=parseCode($('#sync-code').value);button.disabled=true;$('#pair-status').textContent=syncBusy?'等待当前同步完成，再连接另一台设备…':'正在连接另一台设备…';const ok=await synchronize(cfg);if(!ok)throw Error(lastSyncMessage);$('#pair-status').textContent='已连接，菜馆、菜品和菜谱记录已合并。两台设备的「本设备配对码」现在相同。';toast('已连接另一台设备')}catch(e){$('#pair-status').textContent='连接未完成：'+e.message}finally{button.disabled=false}};
 $('#sync-copy').onclick=async()=>{try{if(!await synchronize())throw Error(lastSyncMessage);const cfg=config();if(!cfg)throw Error('未能建立同步，请联网后重试');updatePairCode();try{await navigator.clipboard.writeText($('#sync-current-code').value);toast('本设备配对码已复制')}catch{$('#sync-current-code').focus();$('#sync-current-code').select();toast('请长按或按 Ctrl/Cmd+C 复制已选中的配对码')}}catch(e){toast(e.message||'请联网后重试')}};
-$('#export').onclick=()=>{const raw=storageBlocked?localStorage.getItem(KEY):JSON.stringify(state,null,2);const blob=new Blob([raw||''],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='food-ledger-'+today()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);toast('完整备份已导出')};
-$('#import-open').onclick=()=>$('#import-file').click();$('#import-file').onchange=async e=>{try{const file=e.target.files[0];if(!file)return;if(file.size>8_000_000)throw Error('备份文件超过 8 MB');const imported=normalize(JSON.parse(await file.text()));if(change(merge(state,imported)))toast('备份已合并')}catch(e){toast('导入失败：'+e.message)}finally{e.target.value=''}};
-const hasSyncData=()=>config()||state.restaurants.length;
+$('#export').onclick=()=>{try{const raw=storageBlocked?localStorage.getItem(KEY):JSON.stringify({...state,recipeCollection:recipeController.snapshot()},null,2);const blob=new Blob([raw||''],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='food-ledger-'+today()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);toast('完整备份已导出')}catch(e){toast('导出失败：'+e.message)}};
+$('#import-open').onclick=()=>$('#import-file').click();$('#import-file').onchange=async e=>{try{const file=e.target.files[0];if(!file)return;if(file.size>8_000_000)throw Error('备份文件超过 8 MB');const backup=JSON.parse(await file.text()),imported=normalize(backup),recipes=backup.recipeCollection?recipeController.validate(backup.recipeCollection):null;if(change(merge(state,imported))){if(recipes&&!recipeController.import(recipes))throw Error('菜馆已导入，菜谱导入失败，请保留备份重试');toast('备份已合并')}}catch(e){toast('导入失败：'+e.message)}finally{e.target.value=''}};
+const hasSyncData=()=>config()||state.restaurants.length||recipeController.hasData();
 addEventListener('hashchange',route);addEventListener('online',()=>{if(hasSyncData())synchronize()});addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&hasSyncData())synchronize()});addEventListener('storage',e=>{if(e.key===KEY){try{state=merge(state,normalize(JSON.parse(e.newValue||JSON.stringify(empty()))));render();scheduleSync()}catch{toast('另一窗口的记录无法读取，请先备份')}}});
 setInterval(()=>{if(hasSyncData()&&document.visibilityState==='visible')synchronize()},60000);route();if(hasSyncData())synchronize();

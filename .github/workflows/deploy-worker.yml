@@ -48,6 +48,8 @@ jobs:
           node tests/gemini-probe.test.mjs
           node tests/research-ai.test.mjs
           node tests/life-ai.test.mjs
+          node tests/food-recipes.test.mjs
+          node tests/todo-sync.test.mjs
           npm run test:media
           npm run types -- --check
           npx wrangler deploy --dry-run

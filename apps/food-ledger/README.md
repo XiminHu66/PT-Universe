@@ -34,3 +34,17 @@ Worker 的 `tests/todo-sync.test.mjs` 同时检查新 scope 的认证、并发�
 `PT_LIVE=1 PT_PLAYWRIGHT=/absolute/path/to/playwright node scripts/food-ledger/live-sync-test.cjs`
 
 覆盖真实账号注册、不同初始账号配对、两端记录合并、双向拉取、刷新和测试记录清理。浏览器回归测试还覆盖同步中粘贴与连接、错误配对码及草稿保留。
+
+## 菜谱收集
+
+- 页面内新增「菜谱收集」tab。粘贴原始链接或分享文字，或直接输入菜谱名收藏；不会自动上传截图。
+- 保存名称、链接、用料清单、按序步骤、个人备注及标签。预设「想做 / 会做 / 回头菜」，可多选并添加自定义标签；支持按标签和菜名、食材搜索。
+- 「读取下厨房」通过后台读取公开移动菜谱页，解析 Recipe JSON-LD 或页面用料/步骤；保留原始来源与作者。验证/登录/超时/缺失内容明确提示，保留输入，可改用截图或手动录入。
+- 小红书保留原始链接，通过可选的 1–6 张 JPG/PNG/WebP 截图识别。图片在设备压缩，只在点击「识别截图」时发送到 Gemini，截图不会写入本机记录或同步。结果先预览，点击「填入菜谱」后仍可编辑再保存；已有用料与步骤的替换需确认。
+- 食材清单勾选表示本次已备好，勾选仅用于当前页面；「复制待买」复制未勾选项。剪贴板不可用时显示可手动复制的清单。
+- 菜谱单独保存于 `food-recipes.v1`，同一配对码下使用独立 `food-recipes` 加密 scope 与原子版本更新，避免旧红黑榜页面覆盖菜谱。完整 JSON 备份新增 `recipeCollection`；旧备份仍兼容。
+- 后台 `/api/food/:account/read-recipe` 与 `/recognize-recipe` 复用同步账号认证；限制来源、请求大小和调用次数，截图结果不补猜原图没有的用量。识别后请核对原文。
+
+验证：`node scripts/food-ledger/recipes-model-test.mjs`；浏览器脚本同时覆盖链接结果预览、截图仅点击时发送、标签、购物清单、两端更新、刷新、草稿保留与备份删除合并；Worker `tests/food-recipes.test.mjs` 和 `tests/todo-sync.test.mjs` 覆盖读取/认证/图像/限额及新 scope 的并发隔离。
+
+正式网页双设备测试：`PT_LIVE=1 PT_PLAYWRIGHT=/absolute/path/to/playwright node scripts/food-ledger/live-recipes-test.cjs`；另设 `PT_OCR=1` 会使用一张自行生成的菜谱截图调用真实 Gemini 一次。创建隔离账号，最后删除测试菜谱，不访问个人账号。

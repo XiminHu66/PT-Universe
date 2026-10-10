@@ -30,6 +30,12 @@ assert.equal((await call('PUT','food-ledger',{ciphertext:'food',baseRevision:0})
 assert.equal((await call('PUT','food-ledger',{ciphertext:'stale',baseRevision:0})).status,409);
 const foodRace=await Promise.all([call('PUT','food-ledger',{ciphertext:'food-a',baseRevision:1}),call('PUT','food-ledger',{ciphertext:'food-b',baseRevision:1})]);assert.deepEqual(foodRace.map(r=>r.status).sort(),[200,409]);
 assert.equal((await (await call('GET','food-ledger')).json()).revision,2);assert.equal((await (await call('GET','all')).json()).ciphertext,'preferences');
+// Recipe documents remain isolated from old food-ledger clients and use CAS.
+assert.equal((await call('GET','food-recipes',null,'wrong')).status,401);
+assert.equal((await call('PUT','food-recipes',{ciphertext:'recipe',baseRevision:0})).status,200);
+const recipeRace=await Promise.all([call('PUT','food-recipes',{ciphertext:'recipe-a',baseRevision:1}),call('PUT','food-recipes',{ciphertext:'recipe-b',baseRevision:1})]);assert.deepEqual(recipeRace.map(r=>r.status).sort(),[200,409]);
+assert.equal((await call('PUT','food-recipes',{ciphertext:'stale',baseRevision:0})).status,409);
+assert.equal((await (await call('GET','food-ledger')).json()).revision,2);
 // Research documents use the same isolated CAS protocol.
 assert.equal((await call('GET','research-workbench',null,'wrong')).status,401);
 assert.equal((await call('PUT','research-workbench',{ciphertext:'research',baseRevision:0})).status,200);

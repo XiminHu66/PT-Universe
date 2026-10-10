@@ -7,6 +7,7 @@ import { workbenchRoute } from './workbench';
 import { geminiProbeRoute } from './gemini-probe';
 import { researchAIRoute } from './research-ai';
 import { lifeAiRoute } from './life-ai';
+import { foodRecipesRoute } from './food-recipes';
 import { mediaRoute } from './media';
 import {checkAiRoute} from './check-ai';
 import { contentHubRoute, hubTick } from './content-hub';
@@ -135,7 +136,7 @@ async function syncRoute(request:Request,env:Env,url:URL){
   if(request.method==='PUT'){
     const body=await request.json<{ciphertext?:string;baseRevision?:number}>();
     if(!body.ciphertext||body.ciphertext.length>2_000_000)return error(request,'同步数据为空或超过 2 MB');
-    if(scope==='todo-dashboard'||scope==='idea-notes'||scope==='food-ledger'||scope==='research-workbench'){
+    if(scope==='todo-dashboard'||scope==='idea-notes'||scope==='food-ledger'||scope==='food-recipes'||scope==='research-workbench'){
       // Atomic compare-and-swap protects concurrently edited project and note documents.
       const base=body.baseRevision;
       if(typeof base!=='number'||!Number.isSafeInteger(base)||base<0)return error(request,'同步版本无效');
@@ -491,6 +492,7 @@ export default {
       const decision=await decisionRoute(request,env,authenticate);if(decision)return reply(request,decision.body,decision.status||200);
       const media=await mediaRoute(request,env);if(media)return media instanceof Response?media:reply(request,media);
       const research=await researchRoute(request);if(research)return reply(request,research);
+      const foodRecipes=await foodRecipesRoute(request,env,authenticate);if(foodRecipes)return reply(request,foodRecipes.body,foodRecipes.status);
       const lifeAi=await lifeAiRoute(request,env,authenticate);if(lifeAi)return reply(request,lifeAi.body,lifeAi.status);
       const gemini=await geminiProbeRoute(request,env);if(gemini)return reply(request,gemini.body,gemini.status);
       const ai=await researchAIRoute(request,env,authenticate);if(ai)return reply(request,ai.body,ai.status);
