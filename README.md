@@ -62,3 +62,7 @@ Daily public snapshots refresh around 08:35 America/Los_Angeles. The refresh wor
 
 - [红黑榜 · 我的点菜记录](https://ximinhu66.github.io/PT-Universe/apps/food-ledger/) — 独立移动端工具；菜馆与红黑榜菜品记录、地址导航、链接、评价和日期。
 - 自动建立加密云端同步，复用 PT Universe 配对码；支持离线保存、JSON 备份合并与手机/电脑跨设备记录。未加入 Daily Nexus。
+- 菜谱收集支持保存原始链接、食材、步骤及“会做”“回头菜”等标签；下厨房链接可尝试提取，小红书截图识别为可选操作。
+- 菜谱收集 → 购物清单：选择 1–20 道菜，合并同名食材及兼容单位的明确用量，保留“适量”和不同单位。单击标记已买，双击或点 × 删除，可撤销最后一次删除、复制待买清单。重新生成会确认替换当前清单和已买标记。
+- 购物清单独立保存在 `food-shopping.v1`，通过 `food-shopping` 范围加密同步，纳入 JSON 备份；支持离线修改后合并标记和删除记录，不改变原菜谱。
+- 验证：`node scripts/food-ledger/shopping-model-test.mjs`、`node scripts/food-ledger/shopping-browser-test.cjs`（需 Playwright Chromium）、Worker 的 `npm run check` 和 `node tests/todo-sync.test.mjs`。线上检查需显式设置 `PT_LIVE=1`，仅创建独立诊断账户。

@@ -36,6 +36,12 @@ assert.equal((await call('PUT','food-recipes',{ciphertext:'recipe',baseRevision:
 const recipeRace=await Promise.all([call('PUT','food-recipes',{ciphertext:'recipe-a',baseRevision:1}),call('PUT','food-recipes',{ciphertext:'recipe-b',baseRevision:1})]);assert.deepEqual(recipeRace.map(r=>r.status).sort(),[200,409]);
 assert.equal((await call('PUT','food-recipes',{ciphertext:'stale',baseRevision:0})).status,409);
 assert.equal((await (await call('GET','food-ledger')).json()).revision,2);
+// Shopping checklists merge independent item updates using an isolated CAS document.
+assert.equal((await call('GET','food-shopping',null,'wrong')).status,401);
+assert.equal((await call('PUT','food-shopping',{ciphertext:'shopping',baseRevision:0})).status,200);
+const shoppingRace=await Promise.all([call('PUT','food-shopping',{ciphertext:'shopping-a',baseRevision:1}),call('PUT','food-shopping',{ciphertext:'shopping-b',baseRevision:1})]);assert.deepEqual(shoppingRace.map(r=>r.status).sort(),[200,409]);
+assert.equal((await call('PUT','food-shopping',{ciphertext:'stale',baseRevision:0})).status,409);
+assert.equal((await (await call('GET','food-recipes')).json()).revision,2);
 // Research documents use the same isolated CAS protocol.
 assert.equal((await call('GET','research-workbench',null,'wrong')).status,401);
 assert.equal((await call('PUT','research-workbench',{ciphertext:'research',baseRevision:0})).status,200);
