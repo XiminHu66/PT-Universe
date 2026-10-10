@@ -1,19 +1,9 @@
-name: Refresh Tsugi data (8am verified fallback)
+name: Refresh Tsugi reading/music (08:30 conditional fallback)
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - "apps/tsugi-checker/scraper/**"
-      - "apps/tsugi-checker/config/content.json"
-      - ".github/workflows/refresh-tsugi.yml"
   schedule:
-    # Primary daily refresh at 08:00 Pacific time.
-    - cron: "0 8 * * *"
-      timezone: "America/Los_Angeles"
-    # Independent retry. It exits quickly when the 08:00 run already produced
-    # a fresh snapshot, but protects Daily Nexus from a delayed/dropped cron.
+    # Cloudflare owns 08:00; GitHub checks at 08:30 only.
     - cron: "30 8 * * *"
       timezone: "America/Los_Angeles"
 
@@ -37,28 +27,39 @@ jobs:
       - name: Decide whether to refresh sources
         id: refresh
         shell: bash
+        env:
+          REFRESH_EVENT: ${{ github.event_name }}
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" || "${{ github.event_name }}" == "push" ]]; then
-            echo "scrape=true" >> "$GITHUB_OUTPUT"
-            echo "reason=manual_or_source_change" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
           python - <<'PY' >> "$GITHUB_OUTPUT"
-          import json
+          import json, os, urllib.request
           from datetime import datetime, timezone
-          from pathlib import Path
           from zoneinfo import ZoneInfo
-
-          now = datetime.now(timezone.utc).astimezone(ZoneInfo("America/Los_Angeles"))
-          path = Path("apps/tsugi-checker/data/site-updates.json")
+          pacific = ZoneInfo("America/Los_Angeles")
+          now = datetime.now(timezone.utc).astimezone(pacific)
+          # Delayed GitHub cron must not cause the unwanted afternoon refresh.
+          if os.environ.get("REFRESH_EVENT") == "schedule" and not (now.hour == 8 and now.minute >= 30 or now.hour == 9 and now.minute < 30):
+              print("scrape=false\nreason=outside_morning_fallback_window")
+              raise SystemExit()
+          if os.environ.get("REFRESH_EVENT") != "schedule":
+              print("scrape=true\nreason=explicit_manual_or_config_change")
+              raise SystemExit()
           try:
-              generated = json.loads(path.read_text(encoding="utf-8")).get("generated_at")
-              refreshed = datetime.fromisoformat(generated.replace("Z", "+00:00")).astimezone(ZoneInfo("America/Los_Angeles"))
-          except Exception:
-              refreshed = None
-          fresh = bool(refreshed and refreshed.date() == now.date() and refreshed.hour >= 8)
-          print(f"scrape={'false' if fresh else 'true'}")
-          print(f"reason={'already_refreshed_after_08_today' if fresh else 'daily_08_refresh_needed'}")
+              request = urllib.request.Request("https://pt-universe-api.summer07-nanjolno.workers.dev/api/status",headers={"User-Agent":"PT-Universe-Fallback/1.0"})
+              with urllib.request.urlopen(request, timeout=20) as response:
+                  status = json.load(response)
+              def fresh(name):
+                  entry = next((x for x in status.get("files", []) if x.get("name") == name), {})
+                  stamp = (entry.get("metadata") or {}).get("updatedAt", "")
+                  dt = datetime.fromisoformat(stamp.replace("Z","+00:00")).astimezone(pacific)
+                  return dt.date() == now.date() and dt.hour >= 8
+              active = any(r.get("scope") in ("all","sites","music") and r.get("status") in ("queued","running") for r in status.get("runs", []))
+              if (fresh("site-updates.json") and fresh("music.json")) or active:
+                  print("scrape=false\nreason=cloudflare_fresh_or_active")
+              else:
+                  print("scrape=true\nreason=cloudflare_missing_morning_snapshot")
+          except Exception as error:
+              # Fail open to the independent GitHub fallback.
+              print("scrape=true\nreason=cloudflare_status_unavailable")
           PY
 
       - name: Explain refresh mode
@@ -87,6 +88,15 @@ jobs:
         run: |
           python scraper/main.py --skip-games
           python scraper/site_dates.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for name in ("site-updates.json","music.json"):
+              path=Path("data")/name
+              snapshot=json.loads(path.read_text(encoding="utf-8"))
+              snapshot["refresh_source"]="github:08:30-fallback" if "${{ github.event_name }}"=="schedule" else "github:manual-or-push"
+              path.write_text(json.dumps(snapshot,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+          PY
 
       - name: Validate refreshed snapshot
         if: steps.refresh.outputs.scrape == 'true'

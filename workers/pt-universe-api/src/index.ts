@@ -12,7 +12,8 @@ import {checkAiRoute} from './check-ai';
 import { contentHubRoute, hubTick } from './content-hub';
 
 type RefreshScope='all'|'sites'|'music'|'games';
-type RefreshMessage={requestId:string;scope:RefreshScope;source:'manual'|'scheduled';limitKeys?:string[]};
+type RefreshOrigin='manual'|'scheduled:08:00'|'scheduled:08:30';
+type RefreshMessage={requestId:string;scope:RefreshScope;source:RefreshOrigin;limitKeys?:string[]};
 type RefreshRunSummary={request_id:string;scope:RefreshScope;status:string;started_at:string|null;completed_at:string|null;error:string|null};
 type RefreshBudget={day:string;officialDailyMs:number;safeDailyMs:number;usedMs:number;reservedMs:number;remainingMs:number;estimatedFullRefreshMs:number;remainingRefreshes:number;reservePercent:number;resetsAt:string;scheduledRunFinished:boolean;inFlightRefreshes:number};
 type Json=Record<string,unknown>;
@@ -95,8 +96,8 @@ async function refreshBudget(env:Env):Promise<RefreshBudget>{
   const [usage,durations,scheduled,active]=await Promise.all([
     env.DB.prepare("SELECT COALESCE(SUM(duration_ms),0) AS total FROM refresh_runs WHERE scope IN ('all','sites','music') AND status IN ('success','failed') AND completed_at >= datetime('now','start of day')").first<{total:number}>(),
     env.DB.prepare("SELECT duration_ms FROM refresh_runs WHERE scope='all' AND status='success' AND duration_ms IS NOT NULL ORDER BY rowid DESC LIMIT 7").all<{duration_ms:number}>(),
-    env.DB.prepare("SELECT COUNT(*) AS total FROM refresh_runs WHERE scope='all' AND source='scheduled' AND status IN ('success','failed') AND completed_at >= datetime('now','start of day')").first<{total:number}>(),
-    env.DB.prepare("SELECT COUNT(*) AS total, SUM(CASE WHEN source='scheduled' THEN 1 ELSE 0 END) AS scheduled FROM refresh_runs WHERE scope IN ('all','sites','music') AND status IN ('queued','running')").first<{total:number;scheduled:number}>()
+    env.DB.prepare("SELECT COUNT(*) AS total FROM refresh_runs WHERE scope='all' AND source LIKE 'scheduled:%' AND status IN ('success','failed') AND completed_at >= datetime('now','start of day')").first<{total:number}>(),
+    env.DB.prepare("SELECT COUNT(*) AS total, SUM(CASE WHEN source LIKE 'scheduled:%' THEN 1 ELSE 0 END) AS scheduled FROM refresh_runs WHERE scope IN ('all','sites','music') AND status IN ('queued','running')").first<{total:number;scheduled:number}>()
   ]);
   const samples=(durations.results||[]).map(row=>Number(row.duration_ms)).filter(value=>Number.isFinite(value)&&value>0);
   const estimatedFullRefreshMs=Math.max(35_000,Math.min(60_000,median(samples)));
@@ -155,7 +156,7 @@ async function syncRoute(request:Request,env:Env,url:URL){
   return error(request,'Method not allowed',405);
 }
 
-async function enqueue(request:Request,env:Env,scope:RefreshScope,source:'manual'|'scheduled'){
+async function enqueue(request:Request,env:Env,scope:RefreshScope,source:'manual'){
   const requestId=crypto.randomUUID(),stamp=now(),limitKeys:string[]=[];
   if(source==='manual'){
     const key=`${scope}:${request.headers.get('cf-connecting-ip')||'unknown'}`;
@@ -376,7 +377,7 @@ async function scrapeLinks(browser:Browser,url:string,source:string,label:string
     return rows.map((x:any,index:number)=>({id:`${source}-${btoa(unescape(encodeURIComponent(x.url))).slice(-24)}`,type,source,source_label:label,title:text(x.title),latest:text(x.latest),updated_text:text(x.updated_text),url:x.url,cover:x.cover,latest_url:'',chapter_count:null,fetched_at:fetchedAt,order:index}));
   }finally{await closeFast(page)}
 }
-async function refreshSites(env:Env,sharedBrowser?:Browser){
+async function refreshSites(env:Env,sharedBrowser?:Browser,source:RefreshOrigin='manual'){
   const cached=await previous<any>(env,'site-updates.json',{items:[],sources:{}});
   const repository=await repositorySnapshot<any>('site-updates.json',{items:[],sources:{}});
   const history=[...(cached.items||[]),...(repository.items||[])];
@@ -396,7 +397,7 @@ async function refreshSites(env:Env,sharedBrowser?:Browser){
     return {generated_at:now(),items:deduped,sources:states};
   };
   const result=sharedBrowser?await scrape(sharedBrowser):await withBrowser(env,scrape);
-  if(!result.items.length)throw new Error('全部漫画/小说源失败');await putData(env,'site-updates.json',result);return {count:result.items.length,sources:result.sources};
+  if(!result.items.length)throw new Error('全部漫画/小说源失败');result.refresh_source=source;await putData(env,'site-updates.json',result);return {count:result.items.length,sources:result.sources};
 }
 
 function musicKey(item:any){return `${normalizedLabel(item?.title)}|${normalizedLabel(item?.artist)}`}
@@ -412,7 +413,7 @@ function mergeMusicHistory(primary:any,secondary:any){
   return {...old,...current,weekly_chart:list('weekly_chart'),recent_chart:list('recent_chart'),new_releases:releases,recent_songs:releases,sources:{...(old.sources||{}),...(current.sources||{})}};
 }
 async function lookupCover(title:string,artist:string){try{const r=await timedFetch(`https://itunes.apple.com/search?term=${encodeURIComponent(`${title} ${artist}`)}&country=JP&media=music&entity=song&limit=3`,{headers:{'user-agent':'PT-Universe/1.0','accept':'application/json'}},6_000);const j=await r.json<any>();const result=(j.results||[]).find((x:any)=>x.artworkUrl100)||j.results?.[0];return result?.artworkUrl100?.replace(/\d+x\d+bb/,'300x300bb')||''}catch{return ''}}
-async function refreshMusic(env:Env,sharedBrowser?:Browser){
+async function refreshMusic(env:Env,sharedBrowser?:Browser,source:RefreshOrigin='manual'){
   const cached=await previous<any>(env,'music.json',{});
   const repository=await repositorySnapshot<any>('music.json',{});
   const old=mergeMusicHistory(cached,repository);
@@ -428,7 +429,7 @@ async function refreshMusic(env:Env,sharedBrowser?:Browser){
     return {...old,generated_at:now(),chart_date:new Date().toISOString().slice(0,10),recent_chart:recent,recent_songs:releases,new_releases:releases,weekly_chart:weekly,sources};
   };
   const result=sharedBrowser?await scrape(sharedBrowser):await withBrowser(env,scrape);
-  if(!result.recent_chart?.length&&!result.weekly_chart?.length)throw new Error('音乐榜单抓取失败');await putData(env,'music.json',result);return {recent:result.recent_chart.length,weekly:result.weekly_chart.length,sources:result.sources};
+  if(!result.recent_chart?.length&&!result.weekly_chart?.length)throw new Error('音乐榜单抓取失败');result.refresh_source=source;await putData(env,'music.json',result);return {recent:result.recent_chart.length,weekly:result.weekly_chart.length,sources:result.sources};
 }
 
 async function refreshGames(env:Env){
@@ -450,15 +451,15 @@ async function refreshGames(env:Env){
   return {...counts,generatedAt:current.generated_at||null,imported,pipeline:'Tsugi 游戏独立每日任务 · 08:00 America/Los_Angeles',qf:'paused',remoteError:remoteError||undefined};
 }
 
-async function runRefresh(env:Env,scope:RefreshScope){
+async function runRefresh(env:Env,scope:RefreshScope,source:RefreshOrigin='manual'){
   const result:Json={};
   if(scope==='all'){
-    await withBrowser(env,async browser=>{result.sites=await refreshSites(env,browser);result.music=await refreshMusic(env,browser)});
+    await withBrowser(env,async browser=>{result.sites=await refreshSites(env,browser,source);result.music=await refreshMusic(env,browser,source)});
     result.games=await refreshGames(env);
-  }else if(scope==='sites')result.sites=await refreshSites(env);
-  else if(scope==='music')result.music=await refreshMusic(env);
+  }else if(scope==='sites')result.sites=await refreshSites(env,undefined,source);
+  else if(scope==='music')result.music=await refreshMusic(env,undefined,source);
   else if(scope==='games')result.games=await refreshGames(env);
-  const state={generated_at:now(),scope,result};await putData(env,'state.json',state);return result;
+  const state={generated_at:now(),scope,refresh_source:source,result};await putData(env,'state.json',state);return result;
 }
 
 async function status(env:Env){
@@ -508,16 +509,51 @@ export default {
   async scheduled(_controller:ScheduledController,env:Env,ctx:ExecutionContext){
     if(_controller.cron==='*/15 * * * *'){ctx.waitUntil(decisionTick(env));ctx.waitUntil(hubTick(env));return;}
     ctx.waitUntil((async()=>{
-      const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(new Date());
-      const pick=(type:string)=>parts.find(x=>x.type===type)?.value||'',hour=Number(pick('hour'));
-      if(hour!==9&&hour!==10)return;
-      const day=`${pick('year')}-${pick('month')}-${pick('day')}`,key=`scheduled:${day}`;
-      const lock=await env.DB.prepare('INSERT OR IGNORE INTO refresh_limits(limit_key,last_requested_at) VALUES(?,?)').bind(key,now()).run();
-      if(!lock.meta.changes)return;
-      const requestId=crypto.randomUUID();await env.DB.prepare('INSERT INTO refresh_runs(request_id,scope,source,status) VALUES(?,?,?,?)').bind(requestId,'all','scheduled','queued').run();await env.REFRESH_QUEUE.send({requestId,scope:'all',source:'scheduled'} satisfies RefreshMessage);
+      // Scheduled UTC cron slots are interpreted in Pacific local time (PST/PDT).
+      const due=new Date(_controller.scheduledTime);
+      const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(due);
+      const pick=(type:string)=>parts.find(x=>x.type===type)?.value||'';
+      const hour=Number(pick('hour')),minute=Number(pick('minute'));
+      if(hour!==8||(minute!==0&&minute!==30))return;
+      const source:RefreshOrigin=minute===0?'scheduled:08:00':'scheduled:08:30';
+      const day=`${pick('year')}-${pick('month')}-${pick('day')}`;
+      const requestId=crypto.randomUUID(),stamp=now();
+      const record=async(status:string,reason:string)=>{
+        await env.DB.prepare('INSERT INTO refresh_runs(request_id,scope,source,status,started_at,completed_at,result_json) VALUES(?,?,?,?,?,?,?)')
+          .bind(requestId,'all',source,status,stamp,now(),JSON.stringify({reason,pacificDay:day,scheduledAt:due.toISOString()})).run();
+      };
+      // A very late callback must not turn into another afternoon refresh.
+      if(Date.now()-due.getTime()>60*60_000){await record('skipped','delayed_past_morning_window');return;}
+      const fresh=async(name:string,check:(snapshot:any)=>boolean)=>{
+        try{
+          const snapshot=safeJson<any>(await env.PT_UNIVERSE_DATA.get('data/'+name),{});
+          const date=Date.parse(snapshot.generated_at||'');
+          if(!Number.isFinite(date)||!check(snapshot))return false;
+          const local=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(new Date(date));
+          const get=(type:string)=>local.find(x=>x.type===type)?.value||'';
+          return `${get('year')}-${get('month')}-${get('day')}`===day && Number(get('hour'))>=8;
+        }catch{return false;}
+      };
+      const [siteFresh,musicFresh]=await Promise.all([
+        fresh('site-updates.json',v=>Array.isArray(v.items)&&v.items.length>0),
+        fresh('music.json',v=>(v.weekly_chart?.length||0)+(v.recent_chart?.length||0)>0)
+      ]);
+      if(siteFresh&&musicFresh){await record('skipped','already_fresh_today');return;}
+      const active=await env.DB.prepare("SELECT request_id FROM refresh_runs WHERE scope IN ('all','sites','music') AND status IN ('queued','running') AND (started_at IS NULL OR started_at >= datetime('now','-15 minutes')) ORDER BY rowid DESC LIMIT 1").first();
+      if(active){await record('skipped','refresh_already_running');return;}
+      const lock=await env.DB.prepare('INSERT OR IGNORE INTO refresh_limits(limit_key,last_requested_at) VALUES(?,?)')
+        .bind(`scheduled:${day}:${minute}`,stamp).run();
+      if(!lock.meta.changes){await record('skipped','slot_already_claimed');return;}
+      await env.DB.prepare('INSERT INTO refresh_runs(request_id,scope,source,status,started_at) VALUES(?,?,?,?,?)')
+        .bind(requestId,'all',source,'queued',stamp).run();
+      try{await env.REFRESH_QUEUE.send({requestId,scope:'all',source} satisfies RefreshMessage)}
+      catch(e){
+        await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,error=? WHERE request_id=?')
+          .bind('failed',now(),String(e),requestId).run();throw e;
+      }
     })());
   },
   async queue(batch:MessageBatch<RefreshMessage>,env:Env){
-    for(const message of batch.messages){const {requestId,scope,limitKeys=[]}=message.body,start=Date.now(),deadline=scope==='all'?225_000:scope==='games'?150_000:scope==='sites'?90_000:scope==='music'?75_000:60_000;try{await env.DB.prepare('UPDATE refresh_runs SET status=?,started_at=? WHERE request_id=?').bind('running',now(),requestId).run();const result=await withDeadline(runRefresh(env,scope),deadline,`${scope} 刷新`);await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,duration_ms=?,result_json=? WHERE request_id=?').bind('success',now(),Date.now()-start,JSON.stringify(result),requestId).run();message.ack()}catch(e){console.error('refresh_failed',{requestId,scope,error:String(e)});await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,duration_ms=?,error=? WHERE request_id=?').bind('failed',now(),Date.now()-start,String(e),requestId).run();for(const key of limitKeys)await env.DB.prepare('DELETE FROM refresh_limits WHERE limit_key=?').bind(key).run();message.ack()}}
+    for(const message of batch.messages){const {requestId,scope,limitKeys=[]}=message.body,start=Date.now(),deadline=scope==='all'?225_000:scope==='games'?150_000:scope==='sites'?90_000:scope==='music'?75_000:60_000;try{await env.DB.prepare('UPDATE refresh_runs SET status=?,started_at=? WHERE request_id=?').bind('running',now(),requestId).run();const result=await withDeadline(runRefresh(env,scope,message.body.source),deadline,`${scope} 刷新`);await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,duration_ms=?,result_json=? WHERE request_id=?').bind('success',now(),Date.now()-start,JSON.stringify(result),requestId).run();message.ack()}catch(e){console.error('refresh_failed',{requestId,scope,error:String(e)});await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,duration_ms=?,error=? WHERE request_id=?').bind('failed',now(),Date.now()-start,String(e),requestId).run();for(const key of limitKeys)await env.DB.prepare('DELETE FROM refresh_limits WHERE limit_key=?').bind(key).run();message.ack()}}
   }
 } satisfies ExportedHandler<Env,RefreshMessage>;
