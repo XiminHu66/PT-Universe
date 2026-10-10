@@ -397,7 +397,7 @@ async function refreshSites(env:Env,sharedBrowser?:Browser,source:RefreshOrigin=
     return {generated_at:now(),items:deduped,sources:states};
   };
   const result=sharedBrowser?await scrape(sharedBrowser):await withBrowser(env,scrape);
-  if(!result.items.length)throw new Error('全部漫画/小说源失败');result.refresh_source=source;await putData(env,'site-updates.json',result);return {count:result.items.length,sources:result.sources};
+  if(!result.items.length)throw new Error('全部漫画/小说源失败');await putData(env,'site-updates.json',{...result,refresh_source:source});return {count:result.items.length,sources:result.sources};
 }
 
 function musicKey(item:any){return `${normalizedLabel(item?.title)}|${normalizedLabel(item?.artist)}`}
@@ -429,7 +429,7 @@ async function refreshMusic(env:Env,sharedBrowser?:Browser,source:RefreshOrigin=
     return {...old,generated_at:now(),chart_date:new Date().toISOString().slice(0,10),recent_chart:recent,recent_songs:releases,new_releases:releases,weekly_chart:weekly,sources};
   };
   const result=sharedBrowser?await scrape(sharedBrowser):await withBrowser(env,scrape);
-  if(!result.recent_chart?.length&&!result.weekly_chart?.length)throw new Error('音乐榜单抓取失败');result.refresh_source=source;await putData(env,'music.json',result);return {recent:result.recent_chart.length,weekly:result.weekly_chart.length,sources:result.sources};
+  if(!result.recent_chart?.length&&!result.weekly_chart?.length)throw new Error('音乐榜单抓取失败');await putData(env,'music.json',{...result,refresh_source:source});return {recent:result.recent_chart.length,weekly:result.weekly_chart.length,sources:result.sources};
 }
 
 async function refreshGames(env:Env){
