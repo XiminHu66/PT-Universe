@@ -6,6 +6,9 @@ on:
     # Daily at 08:00 Pacific; GitHub applies PST/PDT automatically.
     - cron: "0 8 * * *"
       timezone: "America/Los_Angeles"
+    # Retry only when the morning snapshot is still missing.
+    - cron: "30 8 * * *"
+      timezone: "America/Los_Angeles"
 
 permissions:
   contents: write
