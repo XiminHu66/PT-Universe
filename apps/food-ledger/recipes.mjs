@@ -1,6 +1,6 @@
-import {emptyRecipes,presetTags,recipeLink,sourceLabel,lines,normalizeRecipes,mergeRecipes,liveRecipes} from './recipes-model.mjs?v=20261010-2';
-import {fetchDocument,putDocument,extractRecipe} from './sync.mjs?v=20261010-2';
-import {initShopping} from './shopping.mjs?v=20261010-2';
+import {emptyRecipes,presetTags,recipeLink,sourceLabel,lines,normalizeRecipes,mergeRecipes,liveRecipes} from './recipes-model.mjs?v=20261010-3';
+import {fetchDocument,putDocument,extractRecipe} from './sync.mjs?v=20261010-3';
+import {initShopping} from './shopping.mjs?v=20261010-3';
 const KEY='food-recipes.v1',$=s=>document.querySelector(s),esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function initRecipes({onChange,toast,ensureAccount}){
  let state=emptyRecipes(),blocked=false,selected='',query='',tag='',editing='',extractedBy='',warnings=[],author='',images=[],busy=false,pending=null,controller=null;
@@ -11,9 +11,8 @@ export function initRecipes({onChange,toast,ensureAccount}){
  function persist(next){if(blocked)throw Error('菜谱存储无法读取，已暂停保存');const normalized=normalizeRecipes(next);try{localStorage.setItem(KEY,JSON.stringify(normalized))}catch{throw Error('菜谱保存失败，请先导出备份并检查浏览器存储')}state=normalized}
  function change(next){try{persist(next);render();onChange();return true}catch(e){toast(e.message);return false}}
  function render(){
-  shopping.render();
-  const active=location.hash==='#recipes'||location.hash.startsWith('#recipe/');$('#recipes-shell').hidden=!active;$('#food-shell').hidden=active;
-  document.querySelectorAll('[data-food-tab]').forEach(b=>{const yes=(b.dataset.foodTab==='recipes')===active;b.classList.toggle('active',yes);b.setAttribute('aria-selected',String(yes))});
+  const active=location.hash==='#recipes'||location.hash.startsWith('#recipe/'),shoppingActive=location.hash==='#shopping';$('#recipes-shell').hidden=!active;$('#food-shell').hidden=active||shoppingActive;$('#shopping-shell').hidden=!shoppingActive;shopping.render();
+  document.querySelectorAll('[data-food-tab]').forEach(b=>{const yes=b.dataset.foodTab===(shoppingActive?'shopping':active?'recipes':'restaurants');b.classList.toggle('active',yes);b.setAttribute('aria-selected',String(yes))});
   const id=location.hash.startsWith('#recipe/')?location.hash.slice(8):'';selected=state.recipes.some(r=>r.id===id&&!r.deleted)?id:'';document.body.classList.toggle('recipe-detail-open',active&&!!selected);
   const all=liveRecipes(state),tags=[...new Set([...presetTags,...all.flatMap(r=>r.tags)])];if(tag&&!tags.includes(tag))tag='';$('#recipe-count').textContent=all.length;
   $('#recipe-filters').innerHTML=['',...tags].map(t=>`<button type="button" data-recipe-filter="${esc(t)}" class="${tag===t?'active':''}" aria-pressed="${tag===t}">${esc(t)||'全部'}</button>`).join('');

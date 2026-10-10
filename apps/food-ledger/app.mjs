@@ -1,17 +1,17 @@
-import {empty,normalize,merge,safeUrl,liveRestaurants,dishesFor,navigationUrl} from './model.mjs?v=20261010-2';
-import {config,register,parseCode,useConfig,fetchCloud,putCloud} from './sync.mjs?v=20261010-2';
-import {initRecipes} from './recipes.mjs?v=20261010-2';
+import {empty,normalize,merge,safeUrl,liveRestaurants,dishesFor,navigationUrl} from './model.mjs?v=20261010-3';
+import {config,register,parseCode,useConfig,fetchCloud,putCloud} from './sync.mjs?v=20261010-3';
+import {initRecipes} from './recipes.mjs?v=20261010-3';
 const KEY='food-ledger.v1',$=s=>document.querySelector(s),esc=v=>String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dishDrafts=new Map();let dishComposing=false;
 let state=empty(),selected='',query='',filter='all',editingRestaurant='',editingDish='',toastTimer,syncTimer,syncBusy=false,syncAgain=false,lastSyncMessage='',storageBlocked=false,syncTask=Promise.resolve(false);
 try{const raw=localStorage.getItem(KEY);if(raw)state=normalize(JSON.parse(raw))}catch{storageBlocked=true;$('#save-state').textContent='记录无法读取，请先导出或检查浏览器存储';$('#save-state').classList.add('bad')}
 const recipeController=initRecipes({onChange:()=>{saveMessage('已保存在此设备 · 等待同步');scheduleSync()},toast,ensureAccount:async()=>{if(!await synchronize())throw Error(lastSyncMessage);return config()}});
-document.querySelectorAll('[data-food-tab]').forEach(b=>b.onclick=()=>{location.hash=b.dataset.foodTab==='recipes'?'recipes':''});
+document.querySelectorAll('[data-food-tab]').forEach(b=>b.onclick=()=>{location.hash=b.dataset.foodTab==='restaurants'?'':b.dataset.foodTab});
 const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
 const current=()=>state.restaurants.find(r=>r.id===selected&&!r.deleted);
 function stamp(){return Math.max(Date.now(),...state.restaurants.map(x=>x.updatedAt+1),...state.dishes.map(x=>x.updatedAt+1))}
 function toast(message){clearTimeout(toastTimer);$('#toast').textContent=message;$('#toast').hidden=false;toastTimer=setTimeout(()=>$('#toast').hidden=true,4000)}
-function saveMessage(message,bad=false){$('#save-state').textContent=message;$('#save-state').classList.toggle('bad',bad);lastSyncMessage=message;$('#sync-status').textContent=message;$('#recipes-save-state').textContent=message;$('#recipes-save-state').classList.toggle('bad',bad)}
+function saveMessage(message,bad=false){$('#save-state').textContent=message;$('#save-state').classList.toggle('bad',bad);lastSyncMessage=message;$('#sync-status').textContent=message;$('#recipes-save-state').textContent=message;$('#recipes-save-state').classList.toggle('bad',bad);$('#shopping-save-state').textContent=message;$('#shopping-save-state').classList.toggle('bad',bad)}
 function persist(next){if(storageBlocked)throw Error('本机记录无法读取，已暂停写入以保留原始数据');const normalized=normalize(next);try{localStorage.setItem(KEY,JSON.stringify(normalized))}catch{throw Error('保存失败：浏览器存储不可用或已满。请先导出备份。')}state=normalized;saveMessage(config()?'已保存在此设备 · 等待同步':'已保存在此设备 · 联网后自动同步');return true}
 function change(next){try{persist(next);render();scheduleSync();return true}catch(e){toast(e.message);return false}}
 function scheduleSync(){if(syncBusy)syncAgain=true;clearTimeout(syncTimer);syncTimer=setTimeout(()=>synchronize(),700)}
