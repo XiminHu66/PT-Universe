@@ -156,7 +156,7 @@ async function syncRoute(request:Request,env:Env,url:URL){
   return error(request,'Method not allowed',405);
 }
 
-async function enqueue(request:Request,env:Env,scope:RefreshScope,source:'manual'|'scheduled'){
+async function enqueue(request:Request,env:Env,scope:RefreshScope,source:'manual'){
   const requestId=crypto.randomUUID(),stamp=now(),limitKeys:string[]=[];
   if(source==='manual'){
     const key=`${scope}:${request.headers.get('cf-connecting-ip')||'unknown'}`;
