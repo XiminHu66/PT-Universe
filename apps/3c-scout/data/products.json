@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-09T20:06:38.012769+00:00",
+  "generated_at": "2026-10-10T19:16:45.404890+00:00",
   "retention_days": 14,
   "purchase_link_count": 54,
   "items": [
@@ -328,6 +328,33 @@
       "discount_percent": 0
     },
     {
+      "id": "58aa5bf8865a438e",
+      "stream": "new",
+      "title": "铭凡首款无风扇全闪 AI NAS 机型 S5 将于 10 月中下旬国行开售",
+      "summary": "IT之家 10 月 10 日消息，MINISFORUM（铭凡）今日确认，其首款无风扇全闪 AI NAS 机型 S5 将于 10 月中下旬在国行渠道发售 。 S5 由铝合金机身与鳍片组实现纯被动散热设计，质量 1.8kg。其基于英特尔酷睿 3 处理器 304， 提供 5 个 PCIe Gen4 ×1 的 M.2 2280 SSD 盘位 。 这款设备充分利用了 \"Wildcat Lake\" 的扩展性，拥有 Wi-Fi 7、 10GbE RJ-45 、2.5GbE RJ-45、 2 个 USB-C 40Gbps 在内的一系列 I/O。",
+      "category": "桌面",
+      "tags": [
+        "桌面",
+        "nas",
+        "ssd"
+      ],
+      "language": "zh",
+      "source": "IT之家",
+      "source_url": "https://www.ithome.com/1/011/521.htm",
+      "product_url": "https://www.ithome.com/1/011/521.htm",
+      "link_type": "source",
+      "image_url": "https://img.ithome.com/newsuploadfiles/2026/10/ea108f4f-1e0a-4b36-9c6f-367685a8173e.jpg?x-bce-process=image/format,f_auto",
+      "published_at": "2026-10-10T14:14:41+00:00",
+      "fetched_at": "2026-10-10T19:16:45.404890+00:00",
+      "relevance_score": 26.16,
+      "reason": "匹配你的偏好：nas",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "",
+      "price_value": null,
+      "original_price": "",
+      "discount_percent": 0
+    },
+    {
       "id": "3696fb0a885a1c23",
       "stream": "new",
       "title": "QCY 推出 Crossky C70 耳夹式耳机：SQ5 欧姆原声单元、-54dB ENC 降噪深度，399 元",
@@ -375,6 +402,33 @@
       "fetched_at": "2026-09-30T20:01:26.295516+00:00",
       "relevance_score": 26.15,
       "reason": "匹配你的偏好：ssd",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "",
+      "price_value": null,
+      "original_price": "",
+      "discount_percent": 0
+    },
+    {
+      "id": "6e0ff007fba172b3",
+      "stream": "new",
+      "title": "森海 Momentum 5 真无线降噪耳机体验：升级无线传输与空间音频，它依然是那个正统 「森海味」",
+      "summary": "比较喜欢声音表现传统一点、动圈味多一点但不要太强自身风格的用户，森海的 Momentum 5 系列都值得考虑和尝试。 #欢迎关注爱范儿官方微信公众号：爱范儿（微信号：ifanr），更多精彩内容第一时间为您奉上。",
+      "category": "音频",
+      "tags": [
+        "音频",
+        "fan",
+        "耳机"
+      ],
+      "language": "zh",
+      "source": "爱范儿",
+      "source_url": "https://www.ifanr.com/1683383?utm_source=rss&utm_medium=rss&utm_campaign=",
+      "product_url": "https://www.ifanr.com/1683383?utm_source=rss&utm_medium=rss&utm_campaign=",
+      "link_type": "source",
+      "image_url": "",
+      "published_at": "2026-10-10T07:26:24+00:00",
+      "fetched_at": "2026-10-10T19:16:45.404890+00:00",
+      "relevance_score": 26.03,
+      "reason": "匹配你的偏好：fan",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
       "price": "",
       "price_value": null,
@@ -587,6 +641,32 @@
       "fetched_at": "2026-09-29T19:59:10.040099+00:00",
       "relevance_score": 24.73,
       "reason": "匹配你的偏好：桌面",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "",
+      "price_value": null,
+      "original_price": "",
+      "discount_percent": 0
+    },
+    {
+      "id": "a91fdd6cb7759cbf",
+      "stream": "new",
+      "title": "漫步者 HECATE G2000 Bar 电竞音箱上架：四单元声学配置、配可插拔麦克风，首发价 349 元",
+      "summary": "IT之家 10 月 10 日消息，漫步者现已在京东上架 HECATE G2000 Bar 电竞音箱，将于 10 月 16 日发售，定价为 387 元， 首发价 349 元 。 京东 漫步者 HECATE G2000 Bar 音箱 首发价 349 元 直达链接 该音箱提供黑白双色可选，使用机甲风格电竞造型，顶部配备一根可插拔式防啸叫麦克风。前面板提供五款主题贴纸供玩家自由更换。产品内置十二种 RGB 效果，支持彩虹、流光等灯效模式。 该音箱采用两只 56mm 全频单元与两只 60mm 被动辐射器，可实现 THX 7.1.4 空间音效，音箱额定功率为 3W+3W，峰值达 12W。耳机配备的麦克风搭载 AEC 2.0 回音消除技术，可减少外音干扰。 IT之家附产品参数：",
+      "category": "音频",
+      "tags": [
+        "音频",
+        "耳机"
+      ],
+      "language": "zh",
+      "source": "IT之家",
+      "source_url": "https://www.ithome.com/1/011/515.htm",
+      "product_url": "https://u.jd.com/Fa2qtgG",
+      "link_type": "purchase",
+      "image_url": "https://img14.360buyimg.com/pop/jfs/t1/535351/16/11318/73240/6ac9d3e9F403e443e/008332032079a793.jpg",
+      "published_at": "2026-10-10T13:54:33+00:00",
+      "fetched_at": "2026-10-10T19:16:45.404890+00:00",
+      "relevance_score": 24.1,
+      "reason": "匹配你的偏好：耳机",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
       "price": "",
       "price_value": null,
@@ -1221,32 +1301,6 @@
       "discount_percent": 0
     },
     {
-      "id": "fe99ae329dce1d52",
-      "stream": "new",
-      "title": "宜家 Matter 智能家居终于要来了？在中国市场它将如何破局",
-      "summary": "距离宜家首批Matter智能家居产品在海外上市已有大半年的时间，而中国市场则是许久未有消息。直到今年年中，多款宜家智能新品陆续出现在国家CCC认证数据库中，我们才得知：这批主打高性价比、支持新一代智能 ... 查看全文",
-      "category": "生活",
-      "tags": [
-        "生活",
-        "智能家居"
-      ],
-      "language": "zh",
-      "source": "少数派",
-      "source_url": "https://sspai.com/post/114958",
-      "product_url": "https://sspai.com/post/114958",
-      "link_type": "source",
-      "image_url": "",
-      "published_at": "2026-09-26T06:00:00+00:00",
-      "fetched_at": "2026-09-28T21:14:17.640161+00:00",
-      "relevance_score": 22.0,
-      "reason": "匹配你的偏好：智能家居",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "",
-      "price_value": null,
-      "original_price": "",
-      "discount_percent": 0
-    },
-    {
       "id": "0e295ce607443401",
       "stream": "new",
       "title": "Apple will reportedly debut its first touchscreen MacBook in three weeks",
@@ -1342,32 +1396,6 @@
       "fetched_at": "2026-10-08T20:41:50.842502+00:00",
       "relevance_score": 21.86,
       "reason": "匹配你的偏好：桌面",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "",
-      "price_value": null,
-      "original_price": "",
-      "discount_percent": 0
-    },
-    {
-      "id": "29a5f0b958a46fbc",
-      "stream": "new",
-      "title": "苹果「果家」发布会定档！至少 6 个新品曝光，HomePad 还能挂墙上？",
-      "summary": "苹果全家桶的风，还是吹到了客厅。 #欢迎关注爱范儿官方微信公众号：爱范儿（微信号：ifanr），更多精彩内容第一时间为您奉上。",
-      "category": "生活",
-      "tags": [
-        "生活",
-        "fan"
-      ],
-      "language": "zh",
-      "source": "爱范儿",
-      "source_url": "https://www.ifanr.com/1683356?utm_source=rss&utm_medium=rss&utm_campaign=",
-      "product_url": "https://www.ifanr.com/1683356?utm_source=rss&utm_medium=rss&utm_campaign=",
-      "link_type": "source",
-      "image_url": "",
-      "published_at": "2026-10-09T07:12:12+00:00",
-      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
-      "relevance_score": 21.85,
-      "reason": "匹配你的偏好：fan",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
       "price": "",
       "price_value": null,
@@ -1767,32 +1795,6 @@
       "discount_percent": 0
     },
     {
-      "id": "4cac1bc01fb912c3",
-      "stream": "new",
-      "title": "早报｜苹果定档10月13日发布新品/三星手机业务或减产30%/保时捷计划削减9000个岗位",
-      "summary": "· 小米澎程上市 30 天锁单超过 7 万台 · Manus 母公司完成超 5 亿美元新一轮融资 · 小鹏 Robotaxi 定名「小鹏悠游」，下单小程序同步上线 #欢迎关注爱范儿官方微信公众号：爱范儿（微信号：ifanr），更多精彩内容第一时间为您奉上。",
-      "category": "3C 数码",
-      "tags": [
-        "3C 数码",
-        "fan"
-      ],
-      "language": "zh",
-      "source": "爱范儿",
-      "source_url": "https://www.ifanr.com/1683244?utm_source=rss&utm_medium=rss&utm_campaign=",
-      "product_url": "https://www.ifanr.com/1683244?utm_source=rss&utm_medium=rss&utm_campaign=",
-      "link_type": "source",
-      "image_url": "",
-      "published_at": "2026-10-09T00:51:15+00:00",
-      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
-      "relevance_score": 20.79,
-      "reason": "匹配你的偏好：fan，并有 30% 折扣",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "",
-      "price_value": null,
-      "original_price": "",
-      "discount_percent": 30
-    },
-    {
       "id": "c77a591bafa75907",
       "stream": "new",
       "title": "Amazon introduces new Kindle Paperwhite, Colorsoft and entry-level models",
@@ -1895,32 +1897,31 @@
       "discount_percent": 0
     },
     {
-      "id": "e42eee0806ffce2a",
+      "id": "d3d776117447fe9a",
       "stream": "deals",
-      "title": "Woot September Tech Best Sellers: Up to 93% off + free shipping w/ Prime",
-      "summary": "Woot’s September Tech Best Sellers sale features deals on electronics, computers, chargers, headphones, speakers, smart home devices, batteries, phone accessories, laptops, and more, with discounts of up to 93% off. Some standout deals include the OtterBox iPhone cases from $3.99 (down from $39.99) and previous-generation iPads from $100. Prime members recei",
-      "category": "3C 数码",
+      "title": "Woot Open-Box Fall Clearance Deals: Up to 90% off + free shipping w/ Prime",
+      "summary": "A Woot Open Box clearance sale has just gone live, with discounts of up to 90% on a wide mix of open-box electronics, tools, and home goods. It includes a standout deal on the Netgear Nighthawk cable modem at $19.99, which is 90%. The sale spans categories from Milwaukee power tools to designer fragrances and smart home devices, with networking equipment fro",
+      "category": "生活",
       "tags": [
-        "3C 数码",
+        "生活",
         "charger",
-        "headphone",
         "smart home"
       ],
       "language": "en",
       "source": "DealNews Editors' Choice",
-      "source_url": "https://www.dealnews.com/Woot-September-Tech-Best-Sellers-Up-to-93-off-free-shipping-w-Prime/22195071.html?iref=rss",
-      "product_url": "https://www.dealnews.com/Woot-September-Tech-Best-Sellers-Up-to-93-off-free-shipping-w-Prime/22195071.html?iref=rss",
+      "source_url": "https://www.dealnews.com/Woot-Open-Box-Fall-Clearance-Deals-Up-to-90-off-free-shipping-w-Prime/22269647.html?iref=rss",
+      "product_url": "https://www.dealnews.com/Woot-Open-Box-Fall-Clearance-Deals-Up-to-90-off-free-shipping-w-Prime/22269647.html?iref=rss",
       "link_type": "source",
-      "image_url": "https://d.dlnws.com/64599/1789726641-product-trimmed.jpg?h=125&w=107",
-      "published_at": "2026-09-26T09:19:07+00:00",
-      "fetched_at": "2026-09-26T18:36:51.420716+00:00",
-      "relevance_score": 44.45,
-      "reason": "匹配你的偏好：charger，并有 93% 折扣",
+      "image_url": "https://d.dlnws.com/64599/1791648768-1791274357-1791191323-1788334999-1759817601-woot-logo-amazon-company-8edh.png?h=168&w=250",
+      "published_at": "2026-10-10T16:12:55+00:00",
+      "fetched_at": "2026-10-10T19:16:45.404890+00:00",
+      "relevance_score": 41.49,
+      "reason": "匹配你的偏好：charger，并有 90% 折扣",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "",
-      "price_value": null,
+      "price": "$19.99",
+      "price_value": 19.99,
       "original_price": "",
-      "discount_percent": 93
+      "discount_percent": 90
     },
     {
       "id": "88cf3e2e517db4ee",
@@ -2004,6 +2005,61 @@
       "price_value": 10.0,
       "original_price": "",
       "discount_percent": 67
+    },
+    {
+      "id": "34022ae10cb28369",
+      "stream": "deals",
+      "title": "Walmart Deals & More Top 100 Tech Sale: Up to 75% off + free shipping",
+      "summary": "Walmart's Deals & More event has a wide swath of tech offers, from laptops to TVs to audio gear. A Lenovo V14 laptop drops to $699, down from $1,999, while a 65\" VIZIO 4K Smart TV is $228, down from $348. The sale also includes gaming laptops from ASUS, MSI, and Alienware, Samsung tablets, and accessories like portable chargers and Bluetooth speakers. Shippi",
+      "category": "音频",
+      "tags": [
+        "音频",
+        "charger",
+        "desk",
+        "airpods"
+      ],
+      "language": "en",
+      "source": "DealNews Editors' Choice",
+      "source_url": "https://www.dealnews.com/Walmart-Deals-More-Top-100-Tech-Sale-Up-to-75-off-free-shipping/22245987.html?iref=rss",
+      "product_url": "https://www.dealnews.com/Walmart-Deals-More-Top-100-Tech-Sale-Up-to-75-off-free-shipping/22245987.html?iref=rss",
+      "link_type": "source",
+      "image_url": "https://d.dlnws.com/64599/1791189181-product-trimmed.png?h=183&w=250",
+      "published_at": "2026-10-10T14:50:30+00:00",
+      "fetched_at": "2026-10-10T19:16:45.404890+00:00",
+      "relevance_score": 39.26,
+      "reason": "匹配你的偏好：charger，并有 75% 折扣",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "$699",
+      "price_value": 699.0,
+      "original_price": "$1,999",
+      "discount_percent": 75
+    },
+    {
+      "id": "1355b5687f866d87",
+      "stream": "deals",
+      "title": "Open-Box Video Game Outlet at Best Buy: Up to 80% off + free shipping",
+      "summary": "Best Buy's Video Games Outlet includes good prices on open-box consoles, handhelds, and accessories. Open-box items at Best Buy are products that have been returned to a store, and can range from like-new to showing slight cosmetic wear, with the condition reflected in the discount. Brands in the open-box outlet right now include Sony, Microsoft, Nintendo, a",
+      "category": "游戏",
+      "tags": [
+        "游戏",
+        "sony",
+        "handheld"
+      ],
+      "language": "en",
+      "source": "DealNews Editors' Choice",
+      "source_url": "https://www.dealnews.com/Open-Box-Video-Game-Outlet-at-Best-Buy-Up-to-80-off-free-shipping/22256886.html?iref=rss",
+      "product_url": "https://www.dealnews.com/Open-Box-Video-Game-Outlet-at-Best-Buy-Up-to-80-off-free-shipping/22256886.html?iref=rss",
+      "link_type": "source",
+      "image_url": "https://d.dlnws.com/64599/1791388248-aab2e95b-ad9d-4990-a02b-368d274f01f7.webp?h=167&w=250",
+      "published_at": "2026-10-10T14:50:29+00:00",
+      "fetched_at": "2026-10-10T19:16:45.404890+00:00",
+      "relevance_score": 39.26,
+      "reason": "匹配你的偏好：sony，并有 80% 折扣",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "",
+      "price_value": null,
+      "original_price": "",
+      "discount_percent": 80
     },
     {
       "id": "20cb2814ae7e2c78",
@@ -2197,33 +2253,6 @@
       "price_value": null,
       "original_price": "",
       "discount_percent": 50
-    },
-    {
-      "id": "971a09428fb5688f",
-      "stream": "deals",
-      "title": "Best Buy 48-Hour Flash Sale: Up to 60% off + free shipping",
-      "summary": "Best Buy's Flash Sale covers a wide mix of categories, with standouts like the LG 55\" 91A Series QNED evo Mini LED 4K TV at $650, down from $1,300. Apple products are also included, with the MacBook Air 13-inch dropping to $1,199 and AirPods Pro 3 at $200. My Best Buy members get free shipping on all orders, and it's free to join. It runs through Sunday. Sho",
-      "category": "音频",
-      "tags": [
-        "音频",
-        "headphone",
-        "airpods"
-      ],
-      "language": "en",
-      "source": "DealNews Editors' Choice",
-      "source_url": "https://www.dealnews.com/Best-Buy-48-Hour-Flash-Sale-Up-to-60-off-free-shipping/22218328.html?iref=rss",
-      "product_url": "https://www.dealnews.com/Best-Buy-48-Hour-Flash-Sale-Up-to-60-off-free-shipping/22218328.html?iref=rss",
-      "link_type": "source",
-      "image_url": "https://d.dlnws.com/64599/1790416362-ec86529d-938c-49ab-8b80-85c78bd4d428.webp?h=125&w=110",
-      "published_at": "2026-09-26T09:52:47+00:00",
-      "fetched_at": "2026-09-26T18:36:51.420716+00:00",
-      "relevance_score": 34.54,
-      "reason": "匹配你的偏好：headphone，并有 60% 折扣",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "$650",
-      "price_value": 650.0,
-      "original_price": "$1,300",
-      "discount_percent": 60
     },
     {
       "id": "8eb4abbe2e7a2e98",
@@ -2441,6 +2470,33 @@
       "price_value": 15.0,
       "original_price": "$19",
       "discount_percent": 21
+    },
+    {
+      "id": "e93568ce03a5e677",
+      "stream": "deals",
+      "title": "Best Buy Techtober Half-Price (or Better) Deals: At least 50% off everything + free shipping",
+      "summary": "The \"50% Off or More\" section of the Best Buy Techtober Sale includes thousands of items across electronics, gaming, and appliances. Highlights include noise cancelling headphones, small kitchen appliances, and monitors that are all highly-discounted. The sale includes open-box and refurbished tech alongside new products from brands like Apple, Samsung, and",
+      "category": "3C 数码",
+      "tags": [
+        "3C 数码",
+        "headphone",
+        "sony"
+      ],
+      "language": "en",
+      "source": "DealNews Editors' Choice",
+      "source_url": "https://www.dealnews.com/Best-Buy-Techtober-Half-Price-or-Better-Deals-At-least-50-off-everything-free-shipping/22256217.html?iref=rss",
+      "product_url": "https://www.dealnews.com/Best-Buy-Techtober-Half-Price-or-Better-Deals-At-least-50-off-everything-free-shipping/22256217.html?iref=rss",
+      "link_type": "source",
+      "image_url": "https://d.dlnws.com/64599/1791361133-6544378_sd.webp?h=250&w=221",
+      "published_at": "2026-10-10T14:51:16+00:00",
+      "fetched_at": "2026-10-10T19:16:45.404890+00:00",
+      "relevance_score": 33.6,
+      "reason": "匹配你的偏好：headphone，并有 50% 折扣",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "",
+      "price_value": null,
+      "original_price": "",
+      "discount_percent": 50
     },
     {
       "id": "ed2167df0d7b30ae",
@@ -2822,6 +2878,32 @@
       "discount_percent": 53
     },
     {
+      "id": "83a64bde20c70c6a",
+      "stream": "deals",
+      "title": "DSG Ultimate Backpack 5.0 for $9 + free shipping w/ $49",
+      "summary": "For one day only, this DSG Ultimate Backpack 5.0 is $8.97, down from $50 at Dick's Sporting Goods. It includes a padded laptop sleeve, two water bottle pockets, and a 30L main compartment, along with reflective straps for visibility in low light. Shipping is free over $49 or you can pick it up for free, depending on your store. Buy Now at Dick's Sporting Goo",
+      "category": "生活",
+      "tags": [
+        "生活",
+        "organizer"
+      ],
+      "language": "en",
+      "source": "DealNews Editors' Choice",
+      "source_url": "https://www.dealnews.com/DSG-Ultimate-Backpack-5-0-for-9-free-shipping-w-49/22269716.html?iref=rss",
+      "product_url": "https://www.dealnews.com/DSG-Ultimate-Backpack-5-0-for-9-free-shipping-w-49/22269716.html?iref=rss",
+      "link_type": "source",
+      "image_url": "https://d.dlnws.com/64599/1791650717-25qyfadsgltmtbckptrv_seafoam_sage.webp?h=250&w=198",
+      "published_at": "2026-10-10T16:45:25+00:00",
+      "fetched_at": "2026-10-10T19:16:45.404890+00:00",
+      "relevance_score": 31.58,
+      "reason": "匹配你的偏好：organizer，并有 82% 折扣",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "$9",
+      "price_value": 9.0,
+      "original_price": "$50",
+      "discount_percent": 82
+    },
+    {
       "id": "5d5a581f1d0612b9",
       "stream": "deals",
       "title": "AliExpress Halloween Tech Deals: Up to 82% off + extra $2 to $80 off + shipping varies",
@@ -3064,32 +3146,6 @@
       "discount_percent": 80
     },
     {
-      "id": "9531243bf6bc30c6",
-      "stream": "deals",
-      "title": "Free up your iPhone storage with Cleaner Kit for just $25 (Reg. up to $105)",
-      "summary": "TL;DR : This lifetime subscription to the Cleaner Kit for iOS Premium Plan helps you get rid of duplicate images, compress bulky videos, clean up your contact list, and streamline your calendar , all for just $25. more…",
-      "category": "3C 数码",
-      "tags": [
-        "3C 数码",
-        "storage"
-      ],
-      "language": "en",
-      "source": "9to5Toys",
-      "source_url": "https://9to5toys.com/2026/10/09/free-up-your-iphone-storage-with-cleaner-kit-for-just-25-reg-up-to-105/",
-      "product_url": "https://amzn.to/4z2ZQfn",
-      "link_type": "purchase",
-      "image_url": "https://9to5toys.com/wp-content/uploads/sites/5/2026/10/Cleaner-Kit-for-iOS-Premium-Plan.jpg?quality=82&strip=all&w=1500",
-      "published_at": "2026-10-09T18:28:00+00:00",
-      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
-      "relevance_score": 30.73,
-      "reason": "匹配你的偏好：storage，并有 76% 折扣",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "$25",
-      "price_value": 25.0,
-      "original_price": "$105",
-      "discount_percent": 76
-    },
-    {
       "id": "9f1c8f69741c3e56",
       "stream": "deals",
       "title": "Anchor Hocking 9\" Glass Pie Plate for $4 + pickup",
@@ -3114,32 +3170,6 @@
       "price_value": 4.0,
       "original_price": "$35",
       "discount_percent": 89
-    },
-    {
-      "id": "6cae52da593a2375",
-      "stream": "deals",
-      "title": "Battlestation upgrades start at just $5 in Best Buy’s Techtober Sale: Gaming mice, keyboards, monitors, more nearly 70% off",
-      "summary": "Best Buy’s Techtober Sale is still going strong with loads of deals across Apple gear, PCs, smart TVs, and more . We’ve already highlighted some solid gaming PC and laptop deals separately , and this time we’re zeroing in on the more affordable accessories. There are discounts on keyboards, mice, headsets, controllers, and other battlestation upgrades starti",
-      "category": "桌面",
-      "tags": [
-        "桌面",
-        "controller"
-      ],
-      "language": "en",
-      "source": "9to5Toys",
-      "source_url": "https://9to5toys.com/2026/10/09/battlestation-upgrades-start-at-just-5-in-best-buys-techtober-sale/",
-      "product_url": "https://www.amazon.com/dp/B087LXCTFJ?tag=karthikl-20&th=1",
-      "link_type": "purchase",
-      "image_url": "https://9to5toys.com/wp-content/uploads/sites/5/2026/10/Best-Buy-Techtober-PC-accessories-sale.jpg?quality=82&strip=all&w=1600",
-      "published_at": "2026-10-09T17:55:40+00:00",
-      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
-      "relevance_score": 30.64,
-      "reason": "匹配你的偏好：controller，并有 70% 折扣",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "$5",
-      "price_value": 5.0,
-      "original_price": "",
-      "discount_percent": 70
     },
     {
       "id": "02e840e7ff38cf3c",
@@ -3544,6 +3574,34 @@
       "discount_percent": 43
     },
     {
+      "id": "800a8e2c4a954a8b",
+      "stream": "deals",
+      "title": "Ugreen’s 100W 4-port GaN charger drops 27% today",
+      "summary": "A dedicated charging solution is a great way to declutter your desk and keep your essential gadgets charged whenever you need them. If you are looking for one, don’t miss this deal on the Ugreen Nexode 100W GaN wall charger. Currently on sale at 27% off on Amazon, the charging adapter is $39.98, down from its original price of $54.99 . Thanks to its high pow",
+      "category": "桌面",
+      "tags": [
+        "桌面",
+        "charger",
+        "desk",
+        "steam deck"
+      ],
+      "language": "en",
+      "source": "Tom's Hardware",
+      "source_url": "https://www.tomshardware.com/pc-components/ugreens-100w-4-port-gan-charger-drops-27-percent-today-get-100w-of-power-and-four-ports-for-just-usd39-98",
+      "product_url": "https://www.amazon.com/dp/B091Z6JNX4",
+      "link_type": "purchase",
+      "image_url": "https://cdn.mos.cms.futurecdn.net/UF5cbUkyi8diYECxwArNtJ-1920-80.jpg",
+      "published_at": "2026-10-10T16:20:56+00:00",
+      "fetched_at": "2026-10-10T19:16:45.404890+00:00",
+      "relevance_score": 29.01,
+      "reason": "匹配你的偏好：charger，并有 27% 折扣",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "",
+      "price_value": null,
+      "original_price": "",
+      "discount_percent": 27
+    },
+    {
       "id": "fd33b184d0e201b6",
       "stream": "deals",
       "title": "Fall Prime Day brings rare portable SSD deals at up to 40% off: Samsung, SanDisk, Lexar, and more from just $30",
@@ -3785,57 +3843,6 @@
       "discount_percent": 40
     },
     {
-      "id": "7a249cfca98ecccb",
-      "stream": "deals",
-      "title": "Ninja’s multi-function coffee and espresso machines up to $150 off at Amazon, deals from $63",
-      "summary": "Landing as part of the early fall Prime Day sale, Amazon is serving up a number of price drops across the Ninja espresso machine lineup, alongside the brand’s multi-function pod brewers. Delivering up to $150 in savings and deals starting from $63 , you’ll find all of them waiting right here with some additional details down below. more…",
-      "category": "厨房",
-      "tags": [
-        "厨房"
-      ],
-      "language": "en",
-      "source": "9to5Toys",
-      "source_url": "https://9to5toys.com/2026/09/29/ninja-coffee-makers/",
-      "product_url": "https://amzn.to/4rBCg6G",
-      "link_type": "purchase",
-      "image_url": "https://9to5toys.com/wp-content/uploads/sites/5/2026/09/Ninja-Coffee-Brewing-Systems-Roundup-September-29-2026-8b5e16.webp?w=1600",
-      "published_at": "2026-09-29T19:38:13+00:00",
-      "fetched_at": "2026-09-29T19:59:10.040099+00:00",
-      "relevance_score": 28.61,
-      "reason": "厨房分类中折扣力度较高（58%）",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "$63",
-      "price_value": 63.0,
-      "original_price": "$150",
-      "discount_percent": 58
-    },
-    {
-      "id": "011bbe1683335541",
-      "stream": "deals",
-      "title": "Refurb Samsung Galaxy Buds3 Pro Noise-Cancelling Earbuds for $72 + free shipping",
-      "summary": "Promo code \"COUNTDOWN20\" drops these refurbished Samsung Galaxy Buds3 Pro to $72, down from the $250 original list price, for the best price we've seen in any condition. Unlike the standard Galaxy Buds3, the Pro model pairs a dynamic driver with a planar driver for its two-way speaker system. A one-year Allstate warranty is provided with purchase. The coupon",
-      "category": "音频",
-      "tags": [
-        "音频",
-        "earbud"
-      ],
-      "language": "en",
-      "source": "DealNews",
-      "source_url": "https://www.dealnews.com/products/Samsung/Samsung-Galaxy-Buds3-Pro-Noise-Cancelling-Earbuds/487251.html?iref=rss",
-      "product_url": "https://www.dealnews.com/products/Samsung/Samsung-Galaxy-Buds3-Pro-Noise-Cancelling-Earbuds/487251.html?iref=rss",
-      "link_type": "source",
-      "image_url": "https://d.dlnws.com/64599/1739985314-samsung-wireless-earbuds-charging-case-qus4.jpeg?h=250&w=181",
-      "published_at": "2026-10-09T18:15:06+00:00",
-      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
-      "relevance_score": 26.69,
-      "reason": "匹配你的偏好：earbud，并有 71% 折扣",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "$72",
-      "price_value": 72.0,
-      "original_price": "$250",
-      "discount_percent": 71
-    },
-    {
       "id": "33123090ca5f05f0",
       "stream": "discover",
       "title": "A Walnut Organizer That Claims Your Desk Corner Before the Clutter Does",
@@ -3864,6 +3871,34 @@
       "discount_percent": 0
     },
     {
+      "id": "c909d4fa1720077a",
+      "stream": "discover",
+      "title": "UGREEN’s 6-in-1 Steam Deck Dock Brings HDMI 2.1, Ethernet, and Charging to One Stand",
+      "summary": "A Steam Deck can work well as a handheld and as a small desktop or living-room PC, but switching between those uses usually requires a stand, HDMI adapter, charger, Ethernet cable, and USB hub. The UGREEN Steam Deck Dock 6-in-1…",
+      "category": "桌面",
+      "tags": [
+        "桌面",
+        "usb hub",
+        "dock",
+        "charger"
+      ],
+      "language": "en",
+      "source": "The Gadgeteer",
+      "source_url": "https://the-gadgeteer.com/2026/10/09/ugreen-6-in-1-steam-deck-dock/",
+      "product_url": "https://www.amazon.com/dp/B0F249TYWY?tag=r3media07-20",
+      "link_type": "purchase",
+      "image_url": "https://the-gadgeteer.com/wp-content/uploads/2026/10/UGREEN-Steam-Deck-Dock-6-in-1-4K@120Hz-HDMI-2.1-100W-PD-4-1280x720.jpg",
+      "published_at": "2026-10-10T02:30:00+00:00",
+      "fetched_at": "2026-10-10T19:16:45.404890+00:00",
+      "relevance_score": 25.2,
+      "reason": "来自设计、众筹或独立硬件渠道的潜力桌面产品，匹配你的偏好：usb hub",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "",
+      "price_value": null,
+      "original_price": "",
+      "discount_percent": 0
+    },
+    {
       "id": "331c2d4d59790fff",
       "stream": "discover",
       "title": "iFi Audio UP Play Max lets you enjoy high-end wireless headphones in lossless when connected to iPhone",
@@ -3884,6 +3919,34 @@
       "fetched_at": "2026-09-28T21:14:17.640161+00:00",
       "relevance_score": 22.85,
       "reason": "来自设计、众筹或独立硬件渠道的潜力音频产品，匹配你的偏好：headphone",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "",
+      "price_value": null,
+      "original_price": "",
+      "discount_percent": 0
+    },
+    {
+      "id": "0fd162e316219712",
+      "stream": "discover",
+      "title": "4 Mini PCs Worth Comparing Before You Buy on Amazon",
+      "summary": "A mini PC works best when it replaces a desktop that takes up too much room or a laptop that never leaves the desk. The category is crowded with machines that share similar memory and storage numbers but use very…",
+      "category": "3C 数码",
+      "tags": [
+        "3C 数码",
+        "mini pc",
+        "desk",
+        "storage"
+      ],
+      "language": "en",
+      "source": "The Gadgeteer",
+      "source_url": "https://the-gadgeteer.com/2026/10/10/4-mini-pcs-worth-comparing-before-you-buy-on-amazon/",
+      "product_url": "https://the-gadgeteer.com/2026/10/10/4-mini-pcs-worth-comparing-before-you-buy-on-amazon/",
+      "link_type": "source",
+      "image_url": "https://the-gadgeteer.com/wp-content/uploads/2026/10/4-Amazon-Mini-PCs-Worth-Comparing-Before-You-Buy-1280x794.jpg",
+      "published_at": "2026-10-10T11:16:21+00:00",
+      "fetched_at": "2026-10-10T19:16:45.404890+00:00",
+      "relevance_score": 22.67,
+      "reason": "来自设计、众筹或独立硬件渠道的潜力3C 数码产品，匹配你的偏好：mini pc",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
       "price": "",
       "price_value": null,
@@ -3936,7 +3999,7 @@
       "link_type": "source",
       "image_url": "https://assets.newatlas.com/dims4/default/c1d14e9/2147483647/strip/true/crop/1671x1184+0+0/resize/1355x960!/format/webp/quality/90/?url=https%3A%2F%2Fnewatlas-brightspot.s3.ap-southeast-2.amazonaws.com%2F60%2F41%2F03e91fc64084bfd1d4072c31d55a%2Fbooxpicco-image1.jpeg",
       "published_at": "2026-09-29T15:27:05+00:00",
-      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
+      "fetched_at": "2026-10-10T19:16:45.404890+00:00",
       "relevance_score": 21.0,
       "reason": "来自设计、众筹或独立硬件渠道的潜力3C 数码产品，匹配你的偏好：e-reader",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
@@ -4081,25 +4144,51 @@
       "discount_percent": 0
     },
     {
-      "id": "4fbd54cab55ca0f0",
+      "id": "4b6ff7e744bf17dd",
       "stream": "discover",
-      "title": "ANBERNIC RG DDS Pairs a 3DS-Inspired Design With Snapdragon Power",
-      "summary": "Playing Nintendo 3DS games on a single-screen retro handheld means fitting both game screens onto one display or switching between them. That can make maps, inventory menus, and touchscreen controls less convenient to use. Price: TBD Where to Buy: ANBERNIC…",
-      "category": "游戏",
+      "title": "Sony’s $250 phone microphone captures spatial audio, with 4K app support still to come",
+      "summary": "Sony’s ECM-AX10 plugs into a phone’s USB-C port to record the sound around a scene. The $249.99 microphone has four omnidirectional capsules and three recording modes, giving phone filmmakers a way to capture a street performance, a game or a…",
+      "category": "音频",
       "tags": [
-        "游戏",
-        "handheld"
+        "音频",
+        "sony"
       ],
       "language": "en",
       "source": "The Gadgeteer",
-      "source_url": "https://the-gadgeteer.com/2026/10/09/anbernic-rg-dds-dual-screen-handheld/",
-      "product_url": "https://the-gadgeteer.com/2026/10/09/anbernic-rg-dds-dual-screen-handheld/",
+      "source_url": "https://the-gadgeteer.com/2026/10/10/sonys-250-phone-microphone-captures-spatial-audio-with-4k-app-support-still-to-come/",
+      "product_url": "https://the-gadgeteer.com/2026/10/10/sonys-250-phone-microphone-captures-spatial-audio-with-4k-app-support-still-to-come/",
       "link_type": "source",
-      "image_url": "https://the-gadgeteer.com/wp-content/uploads/2026/10/ANBERNIC-RG-DDS-Dream-Dual-Screen-7.jpeg",
-      "published_at": "2026-10-09T18:30:00+00:00",
-      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
-      "relevance_score": 19.73,
-      "reason": "来自设计、众筹或独立硬件渠道的潜力游戏产品，匹配你的偏好：handheld",
+      "image_url": "https://the-gadgeteer.com/wp-content/uploads/2026/10/sony-ecm-ax10-editorial-hero-wide-1280x721.jpg",
+      "published_at": "2026-10-10T19:01:11+00:00",
+      "fetched_at": "2026-10-10T19:16:45.404890+00:00",
+      "relevance_score": 19.96,
+      "reason": "来自设计、众筹或独立硬件渠道的潜力音频产品，匹配你的偏好：sony",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "$250",
+      "price_value": 250.0,
+      "original_price": "",
+      "discount_percent": 0
+    },
+    {
+      "id": "473084fa5a0a2435",
+      "stream": "discover",
+      "title": "7 Smart Home Gadgets to Prepare Your Home for Fall",
+      "summary": "Cooler mornings, earlier sunsets, and wet shoes at the door bring a different set of household chores. Heating needs adjusting, outdoor entrances get darker sooner, and leaks can be harder to spot before water spreads. These seven smart-home gadgets help…",
+      "category": "生活",
+      "tags": [
+        "生活",
+        "smart home"
+      ],
+      "language": "en",
+      "source": "The Gadgeteer",
+      "source_url": "https://the-gadgeteer.com/2026/10/10/smart-home-gadgets-for-fall/",
+      "product_url": "https://the-gadgeteer.com/2026/10/10/smart-home-gadgets-for-fall/",
+      "link_type": "source",
+      "image_url": "https://the-gadgeteer.com/wp-content/uploads/2026/10/7-Smart-Home-Gadgets-to-Prepare-Your-Home-for-Fall-1280x956.jpg",
+      "published_at": "2026-10-10T17:30:00+00:00",
+      "fetched_at": "2026-10-10T19:16:45.404890+00:00",
+      "relevance_score": 19.7,
+      "reason": "来自设计、众筹或独立硬件渠道的潜力生活产品，匹配你的偏好：smart home",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
       "price": "",
       "price_value": null,
@@ -4151,7 +4240,7 @@
       "link_type": "source",
       "image_url": "https://assets.newatlas.com/dims4/default/386fd04/2147483647/strip/true/crop/7008x4672+0+0/resize/1440x960!/format/webp/quality/90/?url=https%3A%2F%2Fnewatlas-brightspot.s3.ap-southeast-2.amazonaws.com%2F12%2F9c%2F4106890d4f53834bb17aa1fd97ec%2Fbenjamin-gallery2.jpg",
       "published_at": "2026-10-05T13:27:00+00:00",
-      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
+      "fetched_at": "2026-10-10T19:16:45.404890+00:00",
       "relevance_score": 19.0,
       "reason": "来自设计、众筹或独立硬件渠道的潜力游戏产品，匹配你的偏好：dock",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
@@ -4213,6 +4302,32 @@
       "discount_percent": 0
     },
     {
+      "id": "125d060e696e02ef",
+      "stream": "discover",
+      "title": "3 reasons this desktop laser has me thinking beyond 3D printing",
+      "summary": "A clear window, a wooden panel, and a custom-engraved faceplate can change the character of a project built around 3D-printed parts. That’s what caught my attention about Bambu Lab’s R1. The company known for its 3D printers now has a…",
+      "category": "桌面",
+      "tags": [
+        "桌面",
+        "desk"
+      ],
+      "language": "en",
+      "source": "The Gadgeteer",
+      "source_url": "https://the-gadgeteer.com/2026/10/10/3-reasons-this-desktop-laser-has-me-thinking-beyond-3d-printing/",
+      "product_url": "https://the-gadgeteer.com/2026/10/10/3-reasons-this-desktop-laser-has-me-thinking-beyond-3d-printing/",
+      "link_type": "source",
+      "image_url": "https://the-gadgeteer.com/wp-content/uploads/2026/10/bambu-lab-r1-and-x2d-workbench-1280x726.jpg",
+      "published_at": "2026-10-10T18:58:58+00:00",
+      "fetched_at": "2026-10-10T19:16:45.404890+00:00",
+      "relevance_score": 17.95,
+      "reason": "来自设计、众筹或独立硬件渠道的潜力桌面产品，匹配你的偏好：desk",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "",
+      "price_value": null,
+      "original_price": "",
+      "discount_percent": 0
+    },
+    {
       "id": "8589e276983864ac",
       "stream": "discover",
       "title": "A full desktop PC is hiding inside this picture frame",
@@ -4235,32 +4350,6 @@
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
       "price": "",
       "price_value": null,
-      "original_price": "",
-      "discount_percent": 0
-    },
-    {
-      "id": "3b78d0f133411a5f",
-      "stream": "discover",
-      "title": "PocketBook Verta and Verta Color: Just $11 Apart",
-      "summary": "PocketBook’s new Verta and Verta Color e-readers cost just $11 (or €10) apart. The two 6-inch models share most of their features; the main difference is a grayscale screen on the Verta and a color screen on the Verta Color.…",
-      "category": "3C 数码",
-      "tags": [
-        "3C 数码",
-        "e-reader"
-      ],
-      "language": "en",
-      "source": "The Gadgeteer",
-      "source_url": "https://the-gadgeteer.com/2026/10/09/pocketbook-verta-verta-color-ereaders/",
-      "product_url": "https://the-gadgeteer.com/2026/10/09/pocketbook-verta-verta-color-ereaders/",
-      "link_type": "source",
-      "image_url": "https://the-gadgeteer.com/wp-content/uploads/2026/10/Verta-Pocketbook-Reader-1280x888.jpg",
-      "published_at": "2026-10-09T15:30:00+00:00",
-      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
-      "relevance_score": 17.23,
-      "reason": "来自设计、众筹或独立硬件渠道的潜力3C 数码产品，匹配你的偏好：e-reader",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "$11",
-      "price_value": 11.0,
       "original_price": "",
       "discount_percent": 0
     },
@@ -4307,7 +4396,7 @@
       "link_type": "source",
       "image_url": "https://assets.newatlas.com/dims4/default/c9743ee/2147483647/strip/true/crop/1254x836+0+0/resize/1254x836!/format/webp/quality/90/?url=https%3A%2F%2Fnewatlas-brightspot.s3.ap-southeast-2.amazonaws.com%2Faf%2Fe7%2F731fb8304df0aa6a369a7cd6ab63%2Ftdms-neo-is-a-hybrid-headphone-speaker-that-lets-you-enjoy-your-audio-privately-or-with-other-people-all-in-one.jpg",
       "published_at": "2026-10-07T13:27:00+00:00",
-      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
+      "fetched_at": "2026-10-10T19:16:45.404890+00:00",
       "relevance_score": 17.0,
       "reason": "来自设计、众筹或独立硬件渠道的潜力音频产品，匹配你的偏好：headphone",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
@@ -4333,7 +4422,7 @@
       "link_type": "source",
       "image_url": "https://assets.newatlas.com/dims4/default/5f7eb2d/2147483647/strip/true/crop/1200x800+0+0/resize/1200x800!/format/webp/quality/90/?url=https%3A%2F%2Fnewatlas-brightspot.s3.ap-southeast-2.amazonaws.com%2F42%2F8f%2F24bb4990447da2b871b25cefc5bc%2Fyou-cant-see-it-all-but-the-reze-flow-hides-more-than-40-components-in-a-smart-curtain-rod.jpg",
       "published_at": "2026-09-28T12:27:00+00:00",
-      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
+      "fetched_at": "2026-10-10T19:16:45.404890+00:00",
       "relevance_score": 17.0,
       "reason": "来自设计、众筹或独立硬件渠道的潜力生活产品，匹配你的偏好：smart home",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
@@ -4547,6 +4636,32 @@
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
       "price": "$149",
       "price_value": 149.0,
+      "original_price": "",
+      "discount_percent": 0
+    },
+    {
+      "id": "4fbd54cab55ca0f0",
+      "stream": "discover",
+      "title": "ANBERNIC RG DDS Pairs a 3DS-Inspired Design With Snapdragon Power",
+      "summary": "Playing Nintendo 3DS games on a single-screen retro handheld means fitting both game screens onto one display or switching between them. That can make maps, inventory menus, and touchscreen controls less convenient to use. Price: TBD Where to Buy: ANBERNIC…",
+      "category": "游戏",
+      "tags": [
+        "游戏",
+        "handheld"
+      ],
+      "language": "en",
+      "source": "The Gadgeteer",
+      "source_url": "https://the-gadgeteer.com/2026/10/09/anbernic-rg-dds-dual-screen-handheld/",
+      "product_url": "https://the-gadgeteer.com/2026/10/09/anbernic-rg-dds-dual-screen-handheld/",
+      "link_type": "source",
+      "image_url": "https://the-gadgeteer.com/wp-content/uploads/2026/10/ANBERNIC-RG-DDS-Dream-Dual-Screen-7.jpeg",
+      "published_at": "2026-10-09T18:30:00+00:00",
+      "fetched_at": "2026-10-10T19:16:45.404890+00:00",
+      "relevance_score": 16.0,
+      "reason": "来自设计、众筹或独立硬件渠道的潜力游戏产品，匹配你的偏好：handheld",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "",
+      "price_value": null,
       "original_price": "",
       "discount_percent": 0
     },
@@ -4863,6 +4978,32 @@
       "discount_percent": 0
     },
     {
+      "id": "0d6fb37f0108dcb0",
+      "stream": "discover",
+      "title": "A $599 Robot Dog That Fits on Your Desk and Works Like LEGO Technic",
+      "summary": "A $599 Robot Dog That Fits on Your Desk and Works Like LEGO Technic A robot dog usually arrives with a trick and a lot of wiring. Q8botOne takes the opposite approach, putting its core electronics onto a central...",
+      "category": "桌面",
+      "tags": [
+        "桌面",
+        "desk"
+      ],
+      "language": "en",
+      "source": "Yanko Design",
+      "source_url": "https://www.yankodesign.com/2026/10/10/a-599-robot-dog-that-fits-on-your-desk-and-works-like-lego-technic/?utm_source=rss&utm_medium=rss&utm_campaign=a-599-robot-dog-that-fits-on-your-desk-and-works-like-lego-technic",
+      "product_url": "https://www.yankodesign.com/2026/10/10/a-599-robot-dog-that-fits-on-your-desk-and-works-like-lego-technic/?utm_source=rss&utm_medium=rss&utm_campaign=a-599-robot-dog-that-fits-on-your-desk-and-works-like-lego-technic",
+      "link_type": "source",
+      "image_url": "https://www.yankodesign.com/images/design_news/2026/10/a-599-robot-dog-that-fits-on-your-desk-and-works-like-lego-technic/q8botone-palm-sized-quadruped-robot-03.jpg",
+      "published_at": "2026-10-10T13:20:51+00:00",
+      "fetched_at": "2026-10-10T19:16:45.404890+00:00",
+      "relevance_score": 15.01,
+      "reason": "来自设计、众筹或独立硬件渠道的潜力桌面产品，匹配你的偏好：desk",
+      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
+      "price": "$599",
+      "price_value": 599.0,
+      "original_price": "",
+      "discount_percent": 0
+    },
+    {
       "id": "9e84d868857c0b47",
       "stream": "discover",
       "title": "Brain-sensing headphones know when your focus starts to drift",
@@ -4879,7 +5020,7 @@
       "link_type": "source",
       "image_url": "https://assets.newatlas.com/dims4/default/a5024ed/2147483647/strip/true/crop/11648x8736+0+0/resize/1280x960!/format/webp/quality/90/?url=https%3A%2F%2Fnewatlas-brightspot.s3.ap-southeast-2.amazonaws.com%2F1b%2F82%2Fdf89df3d4ca4b06784e50bf62d6d%2Fneurableone-gallery2.jpg",
       "published_at": "2026-10-08T09:45:09+00:00",
-      "fetched_at": "2026-10-09T20:06:38.012769+00:00",
+      "fetched_at": "2026-10-10T19:16:45.404890+00:00",
       "relevance_score": 15.0,
       "reason": "来自设计、众筹或独立硬件渠道的潜力音频产品，匹配你的偏好：headphone",
       "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
@@ -5274,160 +5415,31 @@
       "price_value": null,
       "original_price": "",
       "discount_percent": 0
-    },
-    {
-      "id": "84d1b22be4eb9826",
-      "stream": "discover",
-      "title": "Which NVIDIA RTX Spark PC Fits Your Work? The New Laptops and Desktops Buyer’s Guide",
-      "summary": "The most useful RTX Spark comparison starts with how you work. Lenovo’s two Yoga designs put that choice in focus: a conventional creator laptop with room for larger local workloads, or a convertible built around drawing and presenting. From there,…",
-      "category": "桌面",
-      "tags": [
-        "桌面",
-        "desk"
-      ],
-      "language": "en",
-      "source": "The Gadgeteer",
-      "source_url": "https://the-gadgeteer.com/2026/10/07/which-nvidia-rtx-spark-pc-fits-your-work-the-new-laptops-and-desktops-buyers-guide/",
-      "product_url": "https://the-gadgeteer.com/2026/10/07/which-nvidia-rtx-spark-pc-fits-your-work-the-new-laptops-and-desktops-buyers-guide/",
-      "link_type": "source",
-      "image_url": "https://the-gadgeteer.com/wp-content/uploads/2026/10/nvidia-rtx-spark-buyers-guide-exact-press-photos-hero.jpg",
-      "published_at": "2026-10-07T20:46:07+00:00",
-      "fetched_at": "2026-10-08T20:41:50.842502+00:00",
-      "relevance_score": 14.01,
-      "reason": "来自设计、众筹或独立硬件渠道的潜力桌面产品，匹配你的偏好：desk",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "",
-      "price_value": null,
-      "original_price": "",
-      "discount_percent": 0
-    },
-    {
-      "id": "d9ccb6b7e5982fac",
-      "stream": "discover",
-      "title": "7 Prime Big Deal Days Vacuum Deals That Can Make Home Cleaning Easier",
-      "summary": "Pet hair, kitchen spills, and dusty rugs call for different cleaning tools. These seven vacuum picks include five robot vacuum-and-mop systems for routine floor care, a manually operated wet-dry vacuum for hard-floor messes, and a bagless canister vacuum for more…",
-      "category": "生活",
-      "tags": [
-        "生活"
-      ],
-      "language": "en",
-      "source": "The Gadgeteer",
-      "source_url": "https://the-gadgeteer.com/2026/10/07/prime-big-deal-days-vacuum-deals/",
-      "product_url": "https://the-gadgeteer.com/2026/10/07/prime-big-deal-days-vacuum-deals/",
-      "link_type": "source",
-      "image_url": "https://the-gadgeteer.com/wp-content/uploads/2026/10/7-Prime-Big-Deal-Days-Vacuum-Deals-That-Can-Make-Home-Cleaning-Easier-1280x960.jpg",
-      "published_at": "2026-10-07T15:00:39+00:00",
-      "fetched_at": "2026-10-08T20:41:50.842502+00:00",
-      "relevance_score": 14.0,
-      "reason": "来自设计、众筹或独立硬件渠道的潜力生活产品",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "",
-      "price_value": null,
-      "original_price": "",
-      "discount_percent": 0
-    },
-    {
-      "id": "74a9a4d676d4739e",
-      "stream": "discover",
-      "title": "ruOS",
-      "summary": "A cloud desktop where AI agents do the work for you Discussion | Link",
-      "category": "桌面",
-      "tags": [
-        "桌面",
-        "desk"
-      ],
-      "language": "en",
-      "source": "Product Hunt",
-      "source_url": "https://www.producthunt.com/products/ruos",
-      "product_url": "https://www.producthunt.com/products/ruos",
-      "link_type": "source",
-      "image_url": "",
-      "published_at": "2026-10-05T17:07:19+00:00",
-      "fetched_at": "2026-10-06T20:20:19.030075+00:00",
-      "relevance_score": 14.0,
-      "reason": "来自设计、众筹或独立硬件渠道的潜力桌面产品，匹配你的偏好：desk",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "",
-      "price_value": null,
-      "original_price": "",
-      "discount_percent": 0
-    },
-    {
-      "id": "d2134bd2ffc4b1dd",
-      "stream": "discover",
-      "title": "Paw-Paw",
-      "summary": "A tiny desktop pet for your Mac that types along with you Discussion | Link",
-      "category": "桌面",
-      "tags": [
-        "桌面",
-        "desk"
-      ],
-      "language": "en",
-      "source": "Product Hunt",
-      "source_url": "https://www.producthunt.com/products/paw-paw",
-      "product_url": "https://www.producthunt.com/products/paw-paw",
-      "link_type": "source",
-      "image_url": "",
-      "published_at": "2026-10-05T10:12:26+00:00",
-      "fetched_at": "2026-10-08T20:41:50.842502+00:00",
-      "relevance_score": 14.0,
-      "reason": "来自设计、众筹或独立硬件渠道的潜力桌面产品，匹配你的偏好：desk",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "",
-      "price_value": null,
-      "original_price": "",
-      "discount_percent": 0
-    },
-    {
-      "id": "d2c52ae9930efd5a",
-      "stream": "discover",
-      "title": "Three UGREEN charger deals: $9.95 for a phone, $24.99 for a laptop, or $27.99 to share",
-      "summary": "A $9.95 charger with three ports sounds like an easy win until you plug in three devices. With all three connected, UGREEN’s power-allocation diagram rates its 30W model at up to 5W per port. That can work for an overnight…",
-      "category": "3C 数码",
-      "tags": [
-        "3C 数码",
-        "charger"
-      ],
-      "language": "en",
-      "source": "The Gadgeteer",
-      "source_url": "https://the-gadgeteer.com/2026/10/03/three-ugreen-charger-deals-9-95-for-a-phone-24-99-for-a-laptop-or-27-99-to-share/",
-      "product_url": "https://the-gadgeteer.com/2026/10/03/three-ugreen-charger-deals-9-95-for-a-phone-24-99-for-a-laptop-or-27-99-to-share/",
-      "link_type": "source",
-      "image_url": "https://the-gadgeteer.com/wp-content/uploads/2026/10/ugreen-0-ugreen-air-airport-1280x756.jpg",
-      "published_at": "2026-10-03T20:00:00+00:00",
-      "fetched_at": "2026-10-05T22:01:03.691389+00:00",
-      "relevance_score": 14.0,
-      "reason": "来自设计、众筹或独立硬件渠道的潜力3C 数码产品，匹配你的偏好：charger",
-      "price_note": "抓取自标题或摘要；如有差异，请以商家结账页为准",
-      "price": "$9.95",
-      "price_value": 9.95,
-      "original_price": "$27.99",
-      "discount_percent": 64
     }
   ],
   "sources": [
     {
       "name": "9to5Toys",
       "ok": true,
-      "item_count": 27,
+      "item_count": 31,
       "error": ""
     },
     {
       "name": "DealNews",
       "ok": true,
-      "item_count": 16,
+      "item_count": 19,
       "error": ""
     },
     {
       "name": "DealNews Editors' Choice",
       "ok": true,
-      "item_count": 16,
+      "item_count": 20,
       "error": ""
     },
     {
       "name": "The Verge Good Deals",
       "ok": true,
-      "item_count": 4,
+      "item_count": 3,
       "error": ""
     },
     {
@@ -5451,13 +5463,13 @@
     {
       "name": "中文好价搜索",
       "ok": true,
-      "item_count": 1,
+      "item_count": 2,
       "error": ""
     },
     {
       "name": "少数派",
       "ok": true,
-      "item_count": 4,
+      "item_count": 5,
       "error": ""
     },
     {
@@ -5469,7 +5481,7 @@
     {
       "name": "IT之家",
       "ok": true,
-      "item_count": 5,
+      "item_count": 4,
       "error": ""
     },
     {
@@ -5487,31 +5499,31 @@
     {
       "name": "Engadget",
       "ok": true,
-      "item_count": 2,
+      "item_count": 0,
       "error": ""
     },
     {
       "name": "The Verge",
       "ok": true,
-      "item_count": 2,
+      "item_count": 0,
       "error": ""
     },
     {
       "name": "Tom's Hardware",
       "ok": true,
-      "item_count": 14,
+      "item_count": 8,
       "error": ""
     },
     {
       "name": "MacRumors",
       "ok": true,
-      "item_count": 6,
+      "item_count": 8,
       "error": ""
     },
     {
       "name": "9to5Mac",
       "ok": true,
-      "item_count": 8,
+      "item_count": 9,
       "error": ""
     },
     {
@@ -5523,25 +5535,25 @@
     {
       "name": "Product Hunt",
       "ok": true,
-      "item_count": 7,
+      "item_count": 6,
       "error": ""
     },
     {
       "name": "New Atlas Technology",
       "ok": true,
-      "item_count": 20,
+      "item_count": 19,
       "error": ""
     },
     {
       "name": "Yanko Design",
       "ok": true,
-      "item_count": 6,
+      "item_count": 10,
       "error": ""
     },
     {
       "name": "The Gadgeteer",
       "ok": true,
-      "item_count": 14,
+      "item_count": 20,
       "error": ""
     },
     {
