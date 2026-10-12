@@ -4,11 +4,9 @@ on:
   workflow_dispatch:
   schedule:
     # Daily at 08:00 Pacific; GitHub applies PST/PDT automatically.
-    - cron: "0 8 * * *"
-      timezone: "America/Los_Angeles"
+    - cron: "0 15,16 * * *" # 08:00 PDT / PST; guarded by local-time gate
     # Retry only when the morning snapshot is still missing.
-    - cron: "30 8 * * *"
-      timezone: "America/Los_Angeles"
+    - cron: "30 15,16 * * *" # 08:30 PDT / PST; guarded by local-time gate
 
 permissions:
   contents: write
@@ -39,7 +37,7 @@ jobs:
           from pathlib import Path
           from zoneinfo import ZoneInfo
           now=datetime.now(timezone.utc).astimezone(ZoneInfo("America/Los_Angeles"))
-          if os.environ["REFRESH_EVENT"]=="schedule" and not(now.hour==8 or now.hour==9 and now.minute<30):
+          if os.environ["REFRESH_EVENT"]=="schedule" and not(now.hour==8 and now.minute<55):
               print("refresh=false\nreason=late_schedule")
               raise SystemExit()
           path=Path("apps/tsugi-checker/data/game-releases.json")
