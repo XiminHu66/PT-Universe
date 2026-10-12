@@ -83,7 +83,8 @@ def _source_scope(soup, source):
                 if not getattr(node, "select", None):
                     continue
                 links = [a for a in node.select("a[href]") if re.search(r"/(?:comic|h5/details/comic)/", a.get("href") or "", re.I)]
-                if 4 <= len(links) <= 80:
+                work_urls={urlparse(a.get("href") or "").path.rstrip("/") for a in links}
+                if 4 <= len(work_urls) <= 160:
                     return node
         raise RuntimeError("CopyManga latest-update block missing; ranking links are not an update feed")
     return soup

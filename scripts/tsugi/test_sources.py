@@ -16,6 +16,10 @@ class SourceTests(unittest.TestCase):
   finally:main.fetch=previous
  def test_missing_latest_block_cannot_use_rankings(self):
   with self.assertRaises(RuntimeError):parse_site_latest('<h2>排行榜</h2><a href="/comic/a">排行榜作品</a>','https://www.mangacopy.com/','copymanga','CopyManga','manga')
+ def test_update_scope_counts_works_not_repeated_anchors(self):
+  cards=''.join(f'<li><a href="/comic/title{i}">漫画{i}</a><a href="/comic/title{i}">漫画{i}</a><a href="/comic/title{i}">漫画{i}</a></li>' for i in range(48))
+  rows=parse_site_latest('<section><h2>熱門更新</h2>'+cards+'</section>','https://www.mangacopy.com/','copymanga','CopyManga','manga',48)
+  self.assertEqual(len(rows),48)
  def test_failed_details_do_not_count_as_verified(self):
   previous=main.fetch;main.fetch=lambda *a:(_ for _ in ()).throw(RuntimeError('offline'))
   try:
