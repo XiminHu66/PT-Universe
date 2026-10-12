@@ -40,6 +40,7 @@
   });
   addEventListener('nexus-theme-change',()=>frames.forEach(({frame})=>syncTheme(frame.contentDocument)));
   addEventListener('nexus-view-change',e=>activate(e.detail.view));
-  const initial=new URL(location.href).searchParams.get('tab');
+  const params=new URL(location.href).searchParams;
+  const initial=params.get('view')||params.get('tab');
   if(initial)window.switchNexusView(initial);
 })();
