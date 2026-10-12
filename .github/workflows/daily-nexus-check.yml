@@ -6,6 +6,9 @@ on:
       - 'apps/tsugi-checker/**'
       - 'apps/self-learning/**'
       - 'scripts/daily-nexus/**'
+      - 'scripts/tsugi/**'
+      - 'workers/pt-universe-api/src/site-updates.ts'
+      - 'workers/pt-universe-api/src/index.ts'
       - '.github/workflows/daily-nexus-check.yml'
   workflow_dispatch:
 permissions:
@@ -28,3 +31,20 @@ jobs:
         with:
           name: daily-nexus-screenshots
           path: /tmp/pt-nexus-*.png
+  sources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci
+        working-directory: workers/pt-universe-api
+      - run: npm run check && node tests/site-updates.test.mjs
+        working-directory: workers/pt-universe-api
+      - run: python -m pip install -r apps/tsugi-checker/requirements.txt
+      - run: python scripts/tsugi/test_sources.py && python scripts/tsugi/test_refresh_gate.py

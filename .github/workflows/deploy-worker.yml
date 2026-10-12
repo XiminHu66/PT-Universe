@@ -42,6 +42,7 @@ jobs:
       - name: Validate Worker
         run: |
           npm run check
+          node tests/site-updates.test.mjs
           node tests/content-hub.test.mjs
           node tests/check-ai.test.mjs
           node tests/muse.test.mjs
@@ -78,6 +79,18 @@ jobs:
             console.log(route,count,'entries; last successful fetch',value.checked_at);
           }
           JS
+
+      - name: Verify freshly deployed reading scraper and actual chapter data
+        if: contains(github.event.head_commit.message, '[tsugi-verify]')
+        run: node ../../scripts/tsugi/live-verify.mjs
+
+      - name: Save reading scraper live verification
+        if: always() && contains(github.event.head_commit.message, '[tsugi-verify]')
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsugi-live-verification
+          path: /tmp/pt-tsugi-live.json
+          if-no-files-found: warn
 
       - name: Verify Check Desk search against reported queries
         if: contains(github.event.head_commit.message, '[check-search-test]')

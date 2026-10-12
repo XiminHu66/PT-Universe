@@ -52,7 +52,7 @@ def anchor_title(a, source):
     for sel in ("h1","h2","h3","h4",".title",".bookname",".book-name",".name","strong","b"):
         n=a.select_one(sel)
         t=clean(n.get_text(" ")) if n else ""
-        if 2 <= len(t) <= 90 and not NOISE.match(t): return t
+        if 2 <= len(t) <= 90 and not NOISE.match(t) and not re.search(r"\.\.\.|…",t): return t
     img=a.select_one("img")
     if img:
         t=clean(img.get("alt") or img.get("title"))
@@ -83,6 +83,7 @@ def _source_scope(soup, source):
                 links = [a for a in node.select("a[href]") if re.search(r"/(?:comic|h5/details/comic)/", a.get("href") or "", re.I)]
                 if 4 <= len(links) <= 80:
                     return node
+        raise RuntimeError("CopyManga latest-update block missing; ranking links are not an update feed")
     return soup
 
 def _candidate_anchors(soup, source):

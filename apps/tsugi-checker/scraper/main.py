@@ -42,7 +42,9 @@ def fetch_browser_batch(urls, wait_ms=900):
             try:
                 page.goto(url,wait_until='domcontentloaded',timeout=45000)
                 page.wait_for_timeout(wait_ms)
-                out[url]=page.content()
+                html=page.content()
+                if len(html)<500 or 'Site Unavailable' in html: raise RuntimeError('browser returned an unavailable page')
+                out[url]=html
             except Exception as e:
                 out[url]=e
         context.close(); browser.close()
@@ -122,6 +124,10 @@ def enrich_site_rows(found, src):
                 row['cover']=parsed.cover
             if parsed.chapter_count:
                 row['chapter_count']=parsed.chapter_count
+            if row.get('latest') and row['latest'] not in ('最新更新','更新'):
+                row['latest_checked_at']=now()
+            else:
+                raise RuntimeError('detail page has no concrete latest chapter')
         except Exception as e:
             row['enrich_error']=f'{type(e).__name__}: {e}'
             print(f"SITE ENRICH WARN {sid} {row.get('title')}: {e}", file=sys.stderr)
@@ -176,10 +182,13 @@ def refresh_site_updates(content_cfg, generated):
             found=enrich_site_rows(found,src)
             for row in found:
                 row['fetched_at']=generated
+                if row.get('latest') and row['latest'] not in ('最新更新','更新') and not row.get('enrich_error'):
+                    row.setdefault('latest_checked_at',generated)
                 prior=previous_by_key.get(site_row_key(row))
                 if prior: row.update(merge_site_row(row,prior))
             items.extend(found)
-            statuses[sid]={'label':label,'ok':True,'count':len(found),'checked_at':generated}
+            verified=sum(bool(row.get('latest_checked_at')) and not row.get('enrich_error') for row in found)
+            statuses[sid]={'label':label,'ok':True,'count':len(found),'freshCount':len(found),'verifiedChapterCount':verified,'degraded':verified<len(found),'checked_at':generated}
             print(f"SITE {sid}: {len(found)} items")
         except Exception as e:
             fallback=[row for row in previous_rows if row.get('source')==sid][:int(src.get('limit',24))]

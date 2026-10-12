@@ -1,3 +1,4 @@
+import {parseSiteList,parseLatestDetail,sourceIsFresh,SITE_REFRESH_REVISION} from './site-updates';
 import { museRoute } from './muse';
 import { investmentRoute } from './investment';
 import { decisionRoute, decisionTick } from './decision';
@@ -341,6 +342,7 @@ function hasChapter(value:unknown){const cleaned=text(value);return Boolean(clea
 function hasUpdateTime(value:unknown){const cleaned=text(value);return Boolean(cleaned&&!/cloudflare|实时抓取|刚刚抓取/i.test(cleaned))}
 function newerStamp(...values:unknown[]){return values.map(x=>text(x)).filter(Boolean).sort((a,b)=>(Date.parse(b)||0)-(Date.parse(a)||0))[0]||''}
 function mergeSiteItem(current:any,history:any){
+  if(Date.parse(history?.latest_checked_at||'')>Date.parse(current?.latest_checked_at||'')||(!current?.latest_checked_at&&history?.latest_checked_at)) [current,history]=[history,current];
   const currentChapter=hasChapter(current?.latest),latest=currentChapter?current.latest:(hasChapter(history?.latest)?history.latest:(current?.latest||history?.latest||''));
   return {...history,...current,latest,
     cover:current?.cover||history?.cover||'',
@@ -360,22 +362,21 @@ function mergeSiteRows(current:any[],history:any[],limit:number){
 async function scrapeLinks(browser:Browser,url:string,source:string,label:string,type:string,limit:number,patterns:string[]){
   const page=tunePage(await browser.newPage());try{
     await page.goto(url,{waitUntil:'domcontentloaded',timeout:20_000});
-    const rows=await page.locator('a[href]').evaluateAll((els,args)=>{
-      const seen=new Set<string>();
-      return els.map((el:any)=>{
-        const url=el.href||'',container=el.closest('li,article,tr,.book,.item,.card')||el.parentElement||el;
-        const img=container.querySelector('img'),heading=el.querySelector('h1,h2,h3,h4,.title,.name,strong,b')||container.querySelector('h1,h2,h3,h4,.title,.name');
-        let title=(heading?.textContent||img?.getAttribute('alt')||img?.getAttribute('title')||el.getAttribute('title')||el.textContent||'').replace(/\s+/g,' ').trim();
-        if(title.length>100)title=title.split(/[。！？|｜]/)[0].trim().slice(0,100);
-        const context=(container.textContent||'').replace(/\s+/g,' ').trim();
-        const chapter=context.match(/(?:更新至|最新(?:章节|话|話|卷)?|最后更新|最後更新)[：:\s]*([^|｜。！？]{1,48}|第\s*[0-9一二三四五六七八九十百千万零〇两.\-]+\s*[章话話回卷节節])/i);
-        const date=context.match(/20\d{2}[-/.年]\d{1,2}[-/.月]\d{1,2}(?:日)?(?:\s+\d{1,2}:\d{2})?/);
-        const cover=img?.getAttribute('data-src')||img?.getAttribute('data-original')||img?.getAttribute('data-lazy-src')||img?.src||'';
-        return {title,url,cover,latest:chapter?.[1]?.trim()||'',updated_text:date?.[0]||''};
-      }).filter((x:any)=>x.title&&args.patterns.some((p:string)=>x.url.includes(p))&&!seen.has(x.url)&&Boolean(seen.add(x.url))).slice(0,args.limit);
-    },{patterns,limit});
+    await page.locator('a[href]').first().waitFor({timeout:5_000});
+    const rows=source==='linovelib'||source==='copymanga'
+      ?parseSiteList(await page.content(),page.url(),source,label,type,limit)
+      :await page.locator('a[href]').evaluateAll((els,args)=>{
+        const seen=new Set<string>();
+        return els.map((el:any)=>{
+          const url=el.href||'',container=el.closest('li,article,tr,.book,.item,.card')||el.parentElement||el;
+          const img=container.querySelector('img'),heading=el.querySelector('h1,h2,h3,h4,.title,.name,strong,b')||container.querySelector('h1,h2,h3,h4,.title,.name');
+          const title=(heading?.textContent||img?.getAttribute('alt')||el.getAttribute('title')||el.textContent||'').replace(/\s+/g,' ').trim().slice(0,100);
+          const context=(container.textContent||'').replace(/\s+/g,' ').trim(),chapter=context.match(/(?:更新至|最新(?:章节|话|話|卷)?)[：:\s]*([^|｜。！？]{1,48})/i),date=context.match(/20\d{2}[-/.年]\d{1,2}[-/.月]\d{1,2}/);
+          return {title,url,cover:img?.getAttribute('data-src')||img?.getAttribute('data-original')||img?.src||'',latest:chapter?.[1]?.trim()||'',updated_text:date?.[0]||''};
+        }).filter((x:any)=>x.title&&args.patterns.some((p:string)=>x.url.includes(p))&&!seen.has(x.url)&&Boolean(seen.add(x.url))).slice(0,args.limit);
+      },{patterns,limit});
     const fetchedAt=now();
-    return rows.map((x:any,index:number)=>({id:`${source}-${btoa(unescape(encodeURIComponent(x.url))).slice(-24)}`,type,source,source_label:label,title:text(x.title),latest:text(x.latest),updated_text:text(x.updated_text),url:x.url,cover:x.cover,latest_url:'',chapter_count:null,fetched_at:fetchedAt,order:index}));
+    return rows.map((x:any,index:number):any=>({id:`${source}-${btoa(unescape(encodeURIComponent(x.url))).slice(-24)}`,type,source,source_label:label,title:text(x.title),latest:text(x.latest),updated_text:text(x.updated_text),url:x.url,cover:x.cover,latest_url:x.latest_url||'',chapter_count:null,fetched_at:fetchedAt,latest_checked_at:hasChapter(x.latest)?fetchedAt:null,order:index}));
   }finally{await closeFast(page)}
 }
 async function refreshSites(env:Env,sharedBrowser?:Browser,source:RefreshOrigin='manual'){
@@ -391,8 +392,36 @@ async function refreshSites(env:Env,sharedBrowser?:Browser,source:RefreshOrigin=
     const items:any[]=[],states:Record<string,Json>={};
     for(const s of sources){
       const prior=history.filter((x:any)=>x.source===s.id);
-      try{const fresh=await scrapeLinks(browser,s.url,s.id,s.label,s.type,s.limit,s.patterns);if(!fresh.length)throw new Error('来源未返回作品');const rows=mergeSiteRows(fresh,prior,s.limit);items.push(...rows);states[s.id]={label:s.label,ok:true,count:rows.length,chapterCount:rows.filter((x:any)=>hasChapter(x.latest)).length,coverCount:rows.filter((x:any)=>x.cover).length}}
-      catch(e){const fallback=mergeSiteRows([],prior,s.limit);items.push(...fallback);states[s.id]={label:s.label,ok:false,count:fallback.length,error:String(e),fallback:true}}
+      try{
+        const fresh=await scrapeLinks(browser,s.url,s.id,s.label,s.type,s.limit,s.patterns);
+        if(s.id==='linovelib'&&fresh.length<s.limit){
+          const next=await scrapeLinks(browser,'https://tw.linovelib.com/wenku/lastupdate_0_0_0_0_0_0_0_2_0.html',s.id,s.label,s.type,s.limit-fresh.length,s.patterns);
+          const known=new Set(fresh.map((x:any)=>x.url));fresh.push(...next.filter((x:any)=>!known.has(x.url)));
+        }
+        if(!fresh.length)throw new Error('来源未返回作品');
+        if(s.id==='linovelib'||s.id==='copymanga'){
+          let cursor=0;
+          await Promise.all(Array.from({length:4},async()=>{
+            while(cursor<fresh.length){const row=fresh[cursor++];
+              try{
+                const response=await timedFetch(row.url,{headers:{'user-agent':'Mozilla/5.0 (compatible; PT-Universe/1.0)'}},8_000);
+                if(!response.ok)throw Error('HTTP '+response.status);
+                const detail=parseLatestDetail(await response.text(),row.url,s.id);
+                if(!hasChapter(detail.latest))throw Error('详情页没有最新章节');
+                Object.assign(row,detail,{latest_checked_at:now()});
+              }catch(e){row.enrich_error=String(e)}
+            }
+          }));
+          // Browser fallback is bounded; failed HTTP must never promote old chapters as fresh.
+          for(const row of fresh.filter((x:any)=>!x.latest_checked_at).slice(0,6)){
+            const page=tunePage(await browser.newPage());
+            try{await page.goto(row.url,{waitUntil:'domcontentloaded',timeout:8_000});const detail=parseLatestDetail(await page.content(),row.url,s.id);if(hasChapter(detail.latest)){Object.assign(row,detail,{latest_checked_at:now()});delete row.enrich_error}}catch{}finally{await closeFast(page)}
+          }
+        }
+        const verified=fresh.filter((x:any)=>x.latest_checked_at).length,rows=mergeSiteRows(fresh,prior,s.limit);
+        items.push(...rows);states[s.id]={label:s.label,ok:true,count:rows.length,freshCount:fresh.length,verifiedChapterCount:verified,checked_at:now(),degraded:verified<fresh.length,chapterCount:rows.filter((x:any)=>hasChapter(x.latest)).length,coverCount:rows.filter((x:any)=>x.cover).length};
+      }catch(e){const fallback=mergeSiteRows([],prior,s.limit);items.push(...fallback);states[s.id]={label:s.label,ok:false,count:fallback.length,checked_at:now(),error:String(e),fallback:true}}
+
     }
     const deduped=mergeSiteRows(items,[],400);
     return {generated_at:now(),items:deduped,sources:states};
@@ -475,7 +504,7 @@ export default {
     const url=new URL(request.url);
     if(request.method==='OPTIONS')return new Response(null,{status:204,headers:cors(request)});
     try{
-      if(url.pathname==='/api/health')return reply(request,{ok:true,time:now(),storage:'KV + D1',rssOrbit:'external'});
+      if(url.pathname==='/api/health')return reply(request,{ok:true,time:now(),storage:'KV + D1',rssOrbit:'external',refresh_revision:SITE_REFRESH_REVISION});
       const checkAI=await checkAiRoute(request,env,authenticate);if(checkAI)return reply(request,checkAI.body,checkAI.status);
       const hub=await contentHubRoute(request,env);if(hub)return reply(request,hub.body,hub.status||200);
       if(url.pathname==='/api/status')return reply(request,await status(env));
@@ -537,7 +566,7 @@ export default {
         }catch{return false;}
       };
       const [siteFresh,musicFresh]=await Promise.all([
-        fresh('site-updates.json',v=>Array.isArray(v.items)&&v.items.length>0),
+        fresh('site-updates.json',v=>Array.isArray(v.items)&&v.items.length>0&&['manhuagui','linovelib','copymanga'].every(id=>sourceIsFresh(v,id,new Date().toISOString().slice(0,10)))),
         fresh('music.json',v=>(v.weekly_chart?.length||0)+(v.recent_chart?.length||0)>0)
       ]);
       if(siteFresh&&musicFresh){await record('skipped','already_fresh_today');return;}
@@ -556,6 +585,6 @@ export default {
     })());
   },
   async queue(batch:MessageBatch<RefreshMessage>,env:Env){
-    for(const message of batch.messages){const {requestId,scope,limitKeys=[]}=message.body,start=Date.now(),deadline=scope==='all'?225_000:scope==='games'?150_000:scope==='sites'?90_000:scope==='music'?75_000:60_000;try{await env.DB.prepare('UPDATE refresh_runs SET status=?,started_at=? WHERE request_id=?').bind('running',now(),requestId).run();const result=await withDeadline(runRefresh(env,scope,message.body.source),deadline,`${scope} 刷新`);await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,duration_ms=?,result_json=? WHERE request_id=?').bind('success',now(),Date.now()-start,JSON.stringify(result),requestId).run();message.ack()}catch(e){console.error('refresh_failed',{requestId,scope,error:String(e)});await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,duration_ms=?,error=? WHERE request_id=?').bind('failed',now(),Date.now()-start,String(e),requestId).run();for(const key of limitKeys)await env.DB.prepare('DELETE FROM refresh_limits WHERE limit_key=?').bind(key).run();message.ack()}}
+    for(const message of batch.messages){const {requestId,scope,limitKeys=[]}=message.body,start=Date.now(),deadline=scope==='all'?225_000:scope==='games'?150_000:scope==='sites'?210_000:scope==='music'?75_000:60_000;try{await env.DB.prepare('UPDATE refresh_runs SET status=?,started_at=? WHERE request_id=?').bind('running',now(),requestId).run();const result=await withDeadline(runRefresh(env,scope,message.body.source),deadline,`${scope} 刷新`);await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,duration_ms=?,result_json=? WHERE request_id=?').bind('success',now(),Date.now()-start,JSON.stringify(result),requestId).run();message.ack()}catch(e){console.error('refresh_failed',{requestId,scope,error:String(e)});await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,duration_ms=?,error=? WHERE request_id=?').bind('failed',now(),Date.now()-start,String(e),requestId).run();for(const key of limitKeys)await env.DB.prepare('DELETE FROM refresh_limits WHERE limit_key=?').bind(key).run();message.ack()}}
   }
 } satisfies ExportedHandler<Env,RefreshMessage>;
