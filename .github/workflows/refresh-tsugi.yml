@@ -101,6 +101,32 @@ jobs:
               path.write_text(json.dumps(snapshot,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
           PY
 
+      - name: Record CopyManga update-index diagnostics
+        if: always() && steps.refresh.outputs.scrape == 'true'
+        working-directory: apps/tsugi-checker
+        run: |
+          python - <<'PY'
+          import json,sys
+          from bs4 import BeautifulSoup
+          sys.path.insert(0,'scraper')
+          from main import fetch
+          try:
+              html=fetch('https://www.mangacopy.com/','auto')
+              soup=BeautifulSoup(html,'lxml')
+              diagnostic={'title':soup.title.get_text() if soup.title else '', 'headings':[x.get_text(' ',strip=True)[:120] for x in soup.select('h1,h2,h3,h4,h5,h6')][:40], 'update_labels':[str(x)[:120] for x in soup.find_all(string=lambda x:x and '更新' in x)][:20], 'comic_links':len(soup.select('a[href*="/comic/"]')), 'html_length':len(html)}
+          except Exception as e:diagnostic={'error':str(e)}
+          print(json.dumps(diagnostic,ensure_ascii=False))
+          open('/tmp/pt-copy-diagnostics.json','w').write(json.dumps(diagnostic,ensure_ascii=False,indent=2))
+          PY
+      - name: Save update-index diagnostics and refreshed source health
+        if: always() && steps.refresh.outputs.scrape == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsugi-source-diagnostics
+          path: |
+            /tmp/pt-copy-diagnostics.json
+            apps/tsugi-checker/data/site-updates.json
+
       - name: Validate refreshed snapshot
         if: steps.refresh.outputs.scrape == 'true'
         working-directory: apps/tsugi-checker

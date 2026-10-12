@@ -171,7 +171,13 @@ def refresh_site_updates(content_cfg, generated):
             found=[]; seen=set()
             for page_url in page_urls:
                 html=fetch(page_url,src.get('fetch_mode','auto'))
-                rows=parse_site_latest(html,page_url,sid,label,src.get('type','novel'),src.get('limit',24))
+                try:
+                    rows=parse_site_latest(html,page_url,sid,label,src.get('type','novel'),src.get('limit',24))
+                except RuntimeError:
+                    if sid!='copymanga': raise
+                    # A missing update index must not leave every tracked chapter frozen.
+                    rows=[{**row,'latest':'最新更新','latest_url':'','latest_checked_at':None,'discovery_fallback':True} for row in previous_rows if row.get('source')==sid][:int(src.get('limit',24))]
+                    if not rows: raise
                 for row in rows:
                     key=(row.get('source'),row.get('url'))
                     if key in seen: continue
@@ -188,7 +194,7 @@ def refresh_site_updates(content_cfg, generated):
                 if prior: row.update(merge_site_row(row,prior))
             items.extend(found)
             verified=sum(bool(row.get('latest_checked_at')) and not row.get('enrich_error') for row in found)
-            statuses[sid]={'label':label,'ok':True,'count':len(found),'freshCount':len(found),'verifiedChapterCount':verified,'degraded':verified<len(found),'checked_at':generated}
+            statuses[sid]={'label':label,'ok':True,'count':len(found),'freshCount':len(found),'verifiedChapterCount':verified,'degraded':verified<len(found) or any(row.get('discovery_fallback') for row in found),'discovery_mode':'verified-known-works' if any(row.get('discovery_fallback') for row in found) else 'latest-update-index','checked_at':generated}
             print(f"SITE {sid}: {len(found)} items")
         except Exception as e:
             fallback=[row for row in previous_rows if row.get('source')==sid][:int(src.get('limit',24))]

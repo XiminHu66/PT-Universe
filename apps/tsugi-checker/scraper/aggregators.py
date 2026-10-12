@@ -70,18 +70,21 @@ def anchor_title(a, source):
     return raw[:90] if 2 <= len(raw) else ""
 
 def _source_scope(soup, source):
+    if source == 'linovelib':
+        return soup.select_one('.book-ol-normal') or soup
     # CopyManga's home page contains ranking/recommendation links before the latest block.
     # Restrict discovery to the smallest ancestor around the “热门更新 / 熱門更新” heading
     # that contains a meaningful set of comic links. Fall back to the full document if
     # the site changes its markup.
     if source == "copymanga":
-        marker = soup.find(string=re.compile(r"热门更新|熱門更新", re.I))
+        marker = soup.find(string=re.compile(r"热门(?:漫画)?更新|熱門(?:漫畫)?更新|最新更新|最近更新|漫畫更新|漫画更新", re.I))
         if marker:
             for node in [marker.parent, *list(marker.parents)[:7]]:
                 if not getattr(node, "select", None):
                     continue
                 links = [a for a in node.select("a[href]") if re.search(r"/(?:comic|h5/details/comic)/", a.get("href") or "", re.I)]
-                if 4 <= len(links) <= 80:
+                work_urls={urlparse(a.get("href") or "").path.rstrip("/") for a in links}
+                if 4 <= len(work_urls) <= 160:
                     return node
         raise RuntimeError("CopyManga latest-update block missing; ranking links are not an update feed")
     return soup

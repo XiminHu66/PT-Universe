@@ -1,4 +1,4 @@
-import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';import {build} from 'esbuild';
+import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';import {build,transform} from 'esbuild';
 const built=await build({entryPoints:['src/site-updates.ts'],bundle:true,format:'esm',platform:'node',write:false});const S=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
 const li='<li class="book-li"><a href="/novel/5428.html"><img alt="完整小說名稱" data-src="/cover.jpg"><h4>完整小...</h4><p>作品简介</p></a></li>';
 const list=S.parseSiteList('<ul>'+li+li+'</ul>','https://tw.linovelib.com/wenku/','linovelib','BiliNovel','novel',60);assert.equal(list.length,1);assert.equal(list[0].title,'完整小說名稱');assert.equal(list[0].latest,'');assert.equal(list[0].cover,'https://tw.linovelib.com/cover.jpg');
@@ -15,3 +15,13 @@ const newer={...old,latest:'第24話',latest_checked_at:'2026-10-12T15:00:00Z'};
 assert.equal(c.mergeSiteSnapshots([{generated_at:'2026-10-12T16:00:00Z',items:[old]},{generated_at:'2026-10-12T15:10:00Z',items:[newer]}]).items[0].latest,'第24話');
 const unknown={...old};delete unknown.latest_checked_at;assert.equal(c.mergeSiteRow(unknown,newer).latest,'第24話');
 console.log('Latest-section scope, full titles, dedicated chapter/date extraction, failure detection, source quality and stale snapshot merge passed');
+
+// Closing a per-source page must not close the shared browser before the next source.
+const index=fs.readFileSync('src/index.ts','utf8'),browserCode=index.slice(index.indexOf('async function withBrowser<'),index.indexOf('function normalizedUrl('));
+const transformed=await transform(browserCode,{loader:'ts'});
+let openPages=0,closed=false,closedCount=0;
+const fake={async newPage(){if(closed)throw Error('browser closed');openPages++;return {async close(){openPages--;if(!openPages)closed=true}}},async close(){closed=true;closedCount++}};
+const life={launch:async(binding,options)=>{assert.equal(options.keep_alive,60000);return fake},closeFast:async p=>p.close(),setTimeout};vm.createContext(life);vm.runInContext(transformed.code,life);
+const result=await life.withBrowser({BROWSER:{}},async b=>{for(let i=0;i<3;i++){const page=await b.newPage();await page.close()}return 'all sources checked'});
+assert.equal(result,'all sources checked');assert.equal(openPages,0);assert.equal(closedCount,1);
+console.log('Shared browser stays alive across sources and closes on completion');
