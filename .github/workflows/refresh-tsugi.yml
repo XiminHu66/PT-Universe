@@ -4,8 +4,7 @@ on:
   workflow_dispatch:
   schedule:
     # Cloudflare owns 08:00; GitHub checks at 08:30 only.
-    - cron: "30 8 * * *"
-      timezone: "America/Los_Angeles"
+    - cron: "30 15,16 * * *" # 08:30 PDT / PST; local-time gate selects exactly one
 
 permissions:
   contents: write
@@ -37,7 +36,7 @@ jobs:
           pacific = ZoneInfo("America/Los_Angeles")
           now = datetime.now(timezone.utc).astimezone(pacific)
           # Delayed GitHub cron must not cause the unwanted afternoon refresh.
-          if os.environ.get("REFRESH_EVENT") == "schedule" and not (now.hour == 8 and now.minute >= 30 or now.hour == 9 and now.minute < 30):
+          if os.environ.get("REFRESH_EVENT") == "schedule" and not (now.hour == 8 and now.minute >= 30 and now.minute < 55):
               print("scrape=false\nreason=outside_morning_fallback_window")
               raise SystemExit()
           if os.environ.get("REFRESH_EVENT") != "schedule":
