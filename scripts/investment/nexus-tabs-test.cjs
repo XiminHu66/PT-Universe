@@ -45,7 +45,8 @@ async function navigation(page){return page.locator('.sidebar .navbtn[data-view]
   for(const name of removed){
     await page.goto(base+'apps/daily-nexus/?tab='+name,{waitUntil:'domcontentloaded'});
     await page.locator('#view-home.active').waitFor({state:'visible'});
-    assert.equal(new URL(page.url()).searchParams.get('tab'),'home');
+    assert.equal(new URL(page.url()).searchParams.get('tab'),null);
+    assert.equal(new URL(page.url()).searchParams.get('view'),null);
   }
   await page.locator('[data-view=settings]').click();
   await page.locator('#resetNavConfig').click();
