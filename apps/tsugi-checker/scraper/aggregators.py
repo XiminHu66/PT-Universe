@@ -75,7 +75,7 @@ def _source_scope(soup, source):
     # that contains a meaningful set of comic links. Fall back to the full document if
     # the site changes its markup.
     if source == "copymanga":
-        marker = soup.find(string=re.compile(r"热门更新|熱門更新", re.I))
+        marker = soup.find(string=re.compile(r"热门(?:漫画)?更新|熱門(?:漫畫)?更新|最新更新|最近更新|漫畫更新|漫画更新", re.I))
         if marker:
             for node in [marker.parent, *list(marker.parents)[:7]]:
                 if not getattr(node, "select", None):

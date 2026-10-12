@@ -30,7 +30,7 @@ export function parseLatestDetail(html:string,url:string,source:string):Row{
 export function parseSiteList(html:string,base:string,source:string,label:string,type:string,limit:number):Row[]{
  const doc=parseDocument(html);let scope:any=doc;
  if(source==='copymanga'){
-  const marker=nodes(doc).find(n=>['h1','h2','h3','h4','h5','h6','span','p','div','strong','b'].includes(n.name)&&/^(?:热门更新|熱門更新)$/.test(plain(n)));
+  const marker=nodes(doc).find(n=>['h1','h2','h3','h4','h5','h6','span','p','div','strong','b'].includes(n.name)&&/^(?:热门(?:漫画)?更新|熱門(?:漫畫)?更新|最新更新|最近更新|漫畫更新|漫画更新)$/.test(plain(n)));
   for(let n=marker?.parent;n&&n!==doc;n=n.parent){const count=links(n).filter(a=>work(absolute(a.attribs.href,base),source)).length;if(count>=4&&count<=160){scope=n;break}}
   if(scope===doc)throw Error('CopyManga 最新更新区块未找到，不能用排行榜替代');
  }

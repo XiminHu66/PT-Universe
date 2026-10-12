@@ -331,9 +331,11 @@ async function refreshNews(env:Env){
 
 async function withBrowser<T>(env:Env,fn:(browser:Browser)=>Promise<T>){
   let browser:Browser|undefined,lastError:unknown;
-  for(let attempt=0;attempt<3&&!browser;attempt++)try{browser=await launch(env.BROWSER)}catch(e){lastError=e;if(!String(e).includes('429')||attempt===2)throw e;await new Promise(resolve=>setTimeout(resolve,22_000))}
+  for(let attempt=0;attempt<3&&!browser;attempt++)try{browser=await launch(env.BROWSER,{keep_alive:60_000})}catch(e){lastError=e;if(!String(e).includes('429')||attempt===2)throw e;await new Promise(resolve=>setTimeout(resolve,22_000))}
   if(!browser)throw lastError;
-  try{return await fn(browser)}finally{await closeFast(browser)}
+  // Keep one page open for the whole refresh, including the gaps between source pages.
+  const keeper=await browser.newPage();
+  try{return await fn(browser)}finally{await closeFast(keeper);await closeFast(browser)}
 }
 function normalizedUrl(value:unknown){try{const url=new URL(String(value||''));url.hash='';url.search='';return url.href.replace(/\/$/,'')}catch{return String(value||'').replace(/[?#].*$/,'').replace(/\/$/,'')}}
 function normalizedLabel(value:unknown){return text(value).normalize('NFKC').toLowerCase().replace(/[\s\W_]+/gu,'')}
@@ -361,9 +363,14 @@ function mergeSiteRows(current:any[],history:any[],limit:number){
 }
 async function scrapeLinks(browser:Browser,url:string,source:string,label:string,type:string,limit:number,patterns:string[]){
   const page=tunePage(await browser.newPage());try{
-    await page.goto(url,{waitUntil:'domcontentloaded',timeout:20_000});
-    await page.locator('a[href]').first().waitFor({timeout:5_000});
-    const rows=source==='linovelib'||source==='copymanga'
+    // Static work lists are cheaper and avoid a browser session for blocked scripts.
+    let direct:any[]=[];
+    if(source==='linovelib'||source==='copymanga')try{
+      const r=await timedFetch(url,{headers:{'user-agent':'Mozilla/5.0 (compatible; PT-Universe/1.0)'}},10_000);
+      if(r.ok)direct=parseSiteList(await r.text(),url,source,label,type,limit);
+    }catch{}
+    if(!direct.length){await page.goto(url,{waitUntil:'domcontentloaded',timeout:20_000});await page.locator('a[href]').first().waitFor({timeout:5_000});}
+    const rows=direct.length?direct:source==='linovelib'||source==='copymanga'
       ?parseSiteList(await page.content(),page.url(),source,label,type,limit)
       :await page.locator('a[href]').evaluateAll((els,args)=>{
         const seen=new Set<string>();
@@ -393,7 +400,15 @@ async function refreshSites(env:Env,sharedBrowser?:Browser,source:RefreshOrigin=
     for(const s of sources){
       const prior=history.filter((x:any)=>x.source===s.id);
       try{
-        const fresh=await scrapeLinks(browser,s.url,s.id,s.label,s.type,s.limit,s.patterns);
+        let fresh:any[]=[],discoveryError='';
+        try{fresh=await scrapeLinks(browser,s.url,s.id,s.label,s.type,s.limit,s.patterns)}
+        catch(e){
+          if(s.id!=='copymanga')throw e;
+          // Recheck known works individually when the update index is unavailable.
+          discoveryError=String(e);
+          fresh=mergeSiteRows([],prior,s.limit).map((x:any)=>({...x,latest:'',latest_url:'',latest_checked_at:null,enrich_error:undefined}));
+        }
+
         if(s.id==='linovelib'&&fresh.length<s.limit){
           const next=await scrapeLinks(browser,'https://tw.linovelib.com/wenku/lastupdate_0_0_0_0_0_0_0_2_0.html',s.id,s.label,s.type,s.limit-fresh.length,s.patterns);
           const known=new Set(fresh.map((x:any)=>x.url));fresh.push(...next.filter((x:any)=>!known.has(x.url)));
@@ -419,7 +434,7 @@ async function refreshSites(env:Env,sharedBrowser?:Browser,source:RefreshOrigin=
           }
         }
         const verified=fresh.filter((x:any)=>x.latest_checked_at).length,rows=mergeSiteRows(fresh,prior,s.limit);
-        items.push(...rows);states[s.id]={label:s.label,ok:true,count:rows.length,freshCount:fresh.length,verifiedChapterCount:verified,checked_at:now(),degraded:verified<fresh.length,chapterCount:rows.filter((x:any)=>hasChapter(x.latest)).length,coverCount:rows.filter((x:any)=>x.cover).length};
+        items.push(...rows);states[s.id]={label:s.label,ok:true,count:rows.length,freshCount:fresh.length,verifiedChapterCount:verified,checked_at:now(),degraded:Boolean(discoveryError)||verified<fresh.length,discovery_error:discoveryError||undefined,discovery_mode:discoveryError?'verified-known-works':'latest-update-index',chapterCount:rows.filter((x:any)=>hasChapter(x.latest)).length,coverCount:rows.filter((x:any)=>x.cover).length};
       }catch(e){const fallback=mergeSiteRows([],prior,s.limit);items.push(...fallback);states[s.id]={label:s.label,ok:false,count:fallback.length,checked_at:now(),error:String(e),fallback:true}}
 
     }
