@@ -52,7 +52,7 @@ function mergeSiteRow(current,known){
 }
 function siteSortTime(x){
   const raw=meaningfulUpdated(x.updated_text)?x.updated_text:(x.updated_at||x.changed_at||'');
-  const parsed=Date.parse(raw||'');if(Number.isFinite(parsed))return 1e15+parsed;
+  const parsed=Date.parse(raw||'');if(Number.isFinite(parsed))return parsed;
   return Date.parse(x.fetched_at||x._snapshotAt||'')||0;
 }
 function mergeSiteSnapshots(snapshots){

@@ -18,7 +18,7 @@ class SourceTests(unittest.TestCase):
   with self.assertRaises(RuntimeError):parse_site_latest('<h2>排行榜</h2><a href="/comic/a">排行榜作品</a>','https://www.mangacopy.com/','copymanga','CopyManga','manga')
  def test_update_scope_counts_works_not_repeated_anchors(self):
   cards=''.join(f'<li><a href="/comic/title{i}">漫画{i}</a><a href="/comic/title{i}">漫画{i}</a><a href="/comic/title{i}">漫画{i}</a></li>' for i in range(48))
-  rows=parse_site_latest('<section><h2>熱門更新</h2>'+cards+'</section>','https://www.mangacopy.com/','copymanga','CopyManga','manga',48)
+  rows=parse_site_latest('<!-- 熱門更新 --><section><h2>漫畫 推薦</h2><a href="/comic/old">旧推荐</a></section><section><h2><span>熱門</span> <span>更新</span></h2>'+cards+'</section>','https://www.mangacopy.com/','copymanga','CopyManga','manga',48)
   self.assertEqual(len(rows),48)
  def test_failed_details_do_not_count_as_verified(self):
   previous=main.fetch;main.fetch=lambda *a:(_ for _ in ()).throw(RuntimeError('offline'))

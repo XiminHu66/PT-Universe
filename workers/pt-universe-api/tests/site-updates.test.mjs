@@ -4,7 +4,7 @@ const li='<li class="book-li"><a href="/novel/5428.html"><img alt="完整小說�
 const list=S.parseSiteList('<ul>'+li+li+'</ul>','https://tw.linovelib.com/wenku/','linovelib','BiliNovel','novel',60);assert.equal(list.length,1);assert.equal(list[0].title,'完整小說名稱');assert.equal(list[0].latest,'');assert.equal(list[0].cover,'https://tw.linovelib.com/cover.jpg');
 const detail=S.parseLatestDetail('<a class="book-meta book-status" href="/novel/5428/catalog"><div>最后更新 · 2026-10-12</div><div><p>第一章 第24話 偶遇</p></div></a>','https://tw.linovelib.com/novel/5428.html','linovelib');assert.equal(detail.latest,'第一章 第24話 偶遇');assert.equal(detail.updated_text,'2026-10-12');assert.equal(detail.latest_url,'https://tw.linovelib.com/novel/5428/catalog');
 const card=(name,chapter)=>`<li><a href="/comic/${name}"><img alt="${name}" src="/${name}.jpg"><h3>${name}</h3></a><a href="/comic/${name}/chapter/1">第${chapter}話</a><span>2026-10-12</span></li>`;
-const copy=`<section><h2>排行榜</h2>${card('ranking',999)}</section><section><h2>熱門更新</h2><ul>${['aa','bb','cc','dd'].map((x,i)=>card(x,i+1)).join('')}</ul></section>`;
+const copy=`<!-- 熱門更新 --><section><h2>排行榜</h2>${card('ranking',999)}</section><section><h2><span>熱門</span> <span>更新</span></h2><ul>${['aa','bb','cc','dd'].map((x,i)=>card(x,i+1)).join('')}</ul></section>`;
 const copies=S.parseSiteList(copy,'https://www.mangacopy.com/','copymanga','CopyManga','manga',48);assert.equal(copies.length,4);assert.equal(copies[0].latest,'第1話');assert.ok(!copies.some(x=>x.title==='ranking'));assert.equal(copies[1].latest,'第2話');assert.equal(copies[1].updated_text,'2026-10-12');
 assert.throws(()=>S.parseSiteList('<h1>排行榜</h1>'+card('stale',1),'https://www.mangacopy.com/','copymanga','CopyManga','manga',48),/更新区块/);
 assert.equal(S.parseLatestDetail('<title>漫畫-第54話-拷貝漫畫</title><p>最後更新：2026-10-12</p>','https://www.mangacopy.com/comic/a','copymanga').latest,'第54話');assert.deepEqual(S.parseLatestDetail('<title>Site Unavailable</title>','https://www.mangacopy.com/comic/a','copymanga'),{});
@@ -25,3 +25,8 @@ const life={launch:async(binding,options)=>{assert.equal(options.keep_alive,6000
 const result=await life.withBrowser({BROWSER:{}},async b=>{for(let i=0;i<3;i++){const page=await b.newPage();await page.close()}return 'all sources checked'});
 assert.equal(result,'all sources checked');assert.equal(openPages,0);assert.equal(closedCount,1);
 console.log('Shared browser stays alive across sources and closes on completion');
+
+const newlyListed={...newer,url:'https://tw.linovelib.com/novel/5453.html',latest:'',updated_text:'',fetched_at:'2026-10-12T17:00:00Z'};
+const datedHistory={...old,updated_text:'2026-10-09',fetched_at:'2026-10-09T17:00:00Z'};
+assert.equal(c.mergeSiteSnapshots([{generated_at:'2026-10-12T17:00:00Z',items:[datedHistory,newlyListed]}]).items[0].url,newlyListed.url);
+console.log('Newly listed undated works are not buried below dated old history');

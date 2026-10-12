@@ -354,7 +354,7 @@ function mergeSiteItem(current:any,history:any){
     fetched_at:newerStamp(current?.fetched_at,history?.fetched_at)
   };
 }
-function siteItemTime(item:any){const raw=hasUpdateTime(item?.updated_text)?item.updated_text:(item?.updated_at||item?.changed_at||'');const parsed=Date.parse(raw||'');return Number.isFinite(parsed)?1e15+parsed:(Date.parse(item?.fetched_at||'')||0)}
+function siteItemTime(item:any){const raw=hasUpdateTime(item?.updated_text)?item.updated_text:(item?.updated_at||item?.changed_at||'');const parsed=Date.parse(raw||'');return Number.isFinite(parsed)?parsed:(Date.parse(item?.fetched_at||'')||0)}
 function mergeSiteRows(current:any[],history:any[],limit:number){
   const rows=new Map<string,any>();
   current.forEach((row,index)=>{const item={...row,order:row.order??index};rows.set(siteItemKey(item),item)});
@@ -439,7 +439,7 @@ async function refreshSites(env:Env,sharedBrowser?:Browser,source:RefreshOrigin=
 
     }
     const deduped=mergeSiteRows(items,[],400);
-    return {generated_at:now(),items:deduped,sources:states};
+    return {generated_at:now(),items:deduped,sources:states,refresh_revision:SITE_REFRESH_REVISION};
   };
   const result=sharedBrowser?await scrape(sharedBrowser):await withBrowser(env,scrape);
   if(!result.items.length)throw new Error('全部漫画/小说源失败');await putData(env,'site-updates.json',{...result,refresh_source:source});return {count:result.items.length,sources:result.sources};
