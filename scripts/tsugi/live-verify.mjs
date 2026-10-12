@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 const api='https://pt-universe-api.summer07-nanjolno.workers.dev',headers={'user-agent':'Mozilla/5.0 PT-Universe deployment verification',origin:'https://ximinhu66.github.io'};
 const json=async(path,method='GET')=>{const r=await fetch(api+path,{method,headers,signal:AbortSignal.timeout(30000)});const d=await r.json();if(!r.ok)throw Error(path+': '+r.status+' '+JSON.stringify(d));return d};
-const health=await json('/api/health');if(health.refresh_revision!=='2026-10-12-source-verification')throw Error('Site scraper revision not deployed');
+const health=await json('/api/health');if(health.refresh_revision!=='2026-10-12-source-verification3')throw Error('Site scraper revision not deployed');
 const before=await json('/api/data/site-updates.json'),start=Date.now(),queued=await json('/api/refresh/sites','POST');
 console.log('Live site refresh',queued.requestId,queued.status);let run;
 for(let i=0;i<50;i++){

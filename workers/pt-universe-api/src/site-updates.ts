@@ -1,4 +1,4 @@
-export const SITE_REFRESH_REVISION='2026-10-12-source-verification';
+export const SITE_REFRESH_REVISION='2026-10-12-source-verification3';
 import {parseDocument} from 'htmlparser2';
 import {findAll,textContent} from 'domutils';
 type Row=Record<string,any>;
@@ -31,7 +31,7 @@ export function parseSiteList(html:string,base:string,source:string,label:string
  const doc=parseDocument(html);let scope:any=doc;
  if(source==='linovelib')scope=nodes(doc).find(n=>String(n.attribs?.class||'').split(/\s+/).includes('book-ol-normal'))||doc;
  if(source==='copymanga'){
-  const marker=nodes(doc).find(n=>['h1','h2','h3','h4','h5','h6','span','p','div','strong','b'].includes(n.name)&&/^(?:热门(?:漫画)?更新|熱門(?:漫畫)?更新|最新更新|最近更新|漫畫更新|漫画更新)$/.test(plain(n)));
+  const marker=nodes(doc).find(n=>['h1','h2','h3','h4','h5','h6'].includes(n.name)&&/^(?:热门(?:漫画)?更新|熱門(?:漫畫)?更新|最新更新|最近更新|漫畫更新|漫画更新)$/.test(plain(n).replace(/\s+/g,'')));
   for(let n=marker?.parent;n&&n!==doc;n=n.parent){const count=new Set(links(n).map(a=>absolute(a.attribs.href,base)).filter(u=>work(u,source))).size;if(count>=4&&count<=160){scope=n;break}}
   if(scope===doc)throw Error('CopyManga 最新更新区块未找到，不能用排行榜替代');
  }
