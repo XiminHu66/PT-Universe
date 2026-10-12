@@ -70,6 +70,8 @@ def anchor_title(a, source):
     return raw[:90] if 2 <= len(raw) else ""
 
 def _source_scope(soup, source):
+    if source == 'linovelib':
+        return soup.select_one('.book-ol-normal') or soup
     # CopyManga's home page contains ranking/recommendation links before the latest block.
     # Restrict discovery to the smallest ancestor around the “热门更新 / 熱門更新” heading
     # that contains a meaningful set of comic links. Fall back to the full document if
