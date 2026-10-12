@@ -279,6 +279,7 @@ async function renderFollowedArtists(){
 async function runArtistSearch(){const term=$('#artistSearchInput').value.trim();if(!term)return;$('#artistSearchResults').innerHTML='<div class="artist-loading">搜索中…</div>';try{const results=await searchArtists(term);$('#artistSearchResults').innerHTML=results.length?results.map(x=>`<div class="artist-result"><div><strong>${esc(x.artistName)}</strong><small>${esc(x.primaryGenreName||'Music')}</small></div>${artistFollowButton(x.artistName)}</div>`).join(''):'<div class="artist-loading">没有找到艺人</div>';bindArtistFollowButtons()}catch(e){$('#artistSearchResults').innerHTML=`<div class="artist-loading">搜索失败：${esc(e.message)}</div>`}}
 
 
+function gameTodayLocal(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function gameEffectiveDate(x){return x.release_date||x.first_seen||''}
 function gameDateLabel(d,today){
   if(!d)return '日期未定';
@@ -288,14 +289,14 @@ function gameDateLabel(d,today){
 }
 function renderTimelineGame(x){
   const platforms=(x.platforms||[]).join(' / ');const featured=x.featured?'<span class="game-popular-badge">热门</span>':'';const mobile=x.category==='mobile'?'<span class="game-discovery-badge">商店新发现</span>':'';
-  return `<a class="timeline-game ${x.is_today?'today':''}" href="${esc(x.url||'#')}" target="_blank" rel="noopener">
+  return `<a class="timeline-game ${gameEffectiveDate(x)===gameTodayLocal()?'today':''}" href="${esc(x.url||'#')}" target="_blank" rel="noopener">
     ${imageHTML({cover:x.cover,type:'game',className:'timeline-game-cover',placeholderClass:'timeline-game-cover game-cover-placeholder',placeholderText:'GAME'})}
     <div class="timeline-game-copy"><div class="timeline-game-meta"><span>${esc(x.source_label||x.source||'')}</span>${featured}${mobile}</div><h4>${esc(x.title||'未命名游戏')}</h4><p>${esc(platforms||'平台未标注')}</p></div><span class="timeline-open">查看 ↗</span>
   </a>`;
 }
 function renderGameTimeline(rows,label){
   if(!rows.length)return `<div class="empty game-empty"><div>暂无${label}时间线数据。<small>下一次每日 / 手动刷新全部数据后更新。</small></div></div>`;
-  const today=state.games?.date_jst||new Date().toISOString().slice(0,10);const groups=new Map();
+  const today=gameTodayLocal();const groups=new Map();
   rows.forEach(x=>{const d=gameEffectiveDate(x)||'undated';if(!groups.has(d))groups.set(d,[]);groups.get(d).push(x)});
   return [...groups.entries()].sort((a,b)=>a[0].localeCompare(b[0])).map(([d,items])=>`<section class="game-timeline-day ${d===today?'today':''}"><div class="game-timeline-date"><span class="timeline-dot"></span><div><strong>${esc(gameDateLabel(d,today))}</strong><small>${esc(d)}</small></div></div><div class="game-timeline-items">${items.map(renderTimelineGame).join('')}</div></section>`).join('');
 }
@@ -303,8 +304,9 @@ function renderGames(){
   const buckets=state.games?.items||{mobile:[],pc:[],console:[]};const q=state.query.toLowerCase();
   const get=key=>(buckets[key]||[]).filter(x=>!q||`${x.title} ${x.source_label} ${(x.platforms||[]).join(' ')}`.toLowerCase().includes(q));
   const mobile=get('mobile'),pc=get('pc'),consoleRows=get('console');const all=[...(buckets.mobile||[]),...(buckets.pc||[]),...(buckets.console||[])];
-  const past=all.filter(x=>x.timeline_status==='past').length,todayCount=all.filter(x=>x.timeline_status==='today').length,upcoming=all.filter(x=>x.timeline_status==='upcoming').length;const w=state.games?.window||{};
-  $('#gameDate').textContent=state.games?.date_jst?`日本时间 ${state.games.date_jst} · -${w.past_days??7} 天 / +${w.future_days??90} 天`:'等待首次抓取';
+  const today=gameTodayLocal(),past=all.filter(x=>gameEffectiveDate(x)&&gameEffectiveDate(x)<today).length,todayCount=all.filter(x=>gameEffectiveDate(x)===today).length,upcoming=all.filter(x=>gameEffectiveDate(x)>today).length;const w=state.games?.window||{};
+  const age=Date.now()-Date.parse(state.games?.generated_at||'');const stale=Number.isFinite(age)&&age>36*3600000;
+  $('#gameDate').textContent=state.games?.generated_at?`本地今天 ${today} · 数据同步 ${fmt(state.games.generated_at)}${stale?' · ⚠ 数据已过期，正在等待更新':''} · -${w.past_days??7} 天 / +${w.future_days??90} 天`:'等待首次抓取';
   $('#gamePastCount').textContent=past;$('#gameTodayCount').textContent=todayCount;$('#gameUpcomingCount').textContent=upcoming;
   $('#gameMobileGrid').innerHTML=renderGameTimeline(mobile,'手游');$('#gamePcGrid').innerHTML=renderGameTimeline(pc,'PC');$('#gameConsoleGrid').innerHTML=renderGameTimeline(consoleRows,'主机');
 }
@@ -331,4 +333,4 @@ $$('[data-music-view]').forEach(b=>b.onclick=()=>{state.musicView=b.dataset.musi
 $('#search')?.addEventListener('input',e=>{state.query=e.target.value.trim();renderSiteUpdates();renderLibrary();renderLibraryUpdates();renderMusic();renderGames()});
 $('#themeBtn').onclick=()=>applyTheme(document.documentElement.dataset.theme==='light'?'dark':'light');$('#markAllRead').onclick=()=>{[...(state.feed?.updates||[]),...state.localUpdates].forEach(x=>state.read.add(x.id));saveRead();renderLibraryUpdates()};
 $('#artistSearchBtn').onclick=runArtistSearch;$('#artistSearchInput').addEventListener('keydown',e=>{if(e.key==='Enter')runArtistSearch()});$('#refreshArtistsBtn').onclick=renderFollowedArtists;
-applyTheme(document.documentElement.dataset.theme||'dark');load();
+applyTheme(document.documentElement.dataset.theme||'dark');window.addEventListener('focus',()=>{if(state.games)renderGames()});load();
