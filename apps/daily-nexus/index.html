@@ -2539,7 +2539,11 @@ function resetNexusViewScroll(target){
 }
 function switchNexusView(view){
   if(!DEFAULT_NAV_CONFIG.some(item=>item.view===view)||!$("#view-"+view))view="home";
-  $$('.navbtn[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===view));
+  // Keep the URL aligned with the visible tab so F5 cannot restore a stale ?view=check.
+  const url=new URL(location.href);
+  if(view==='home')url.searchParams.delete('view');else url.searchParams.set('view',view);
+  if(url.href!==location.href)history.replaceState(history.state,'',url.href);
+  $('.navbtn[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===view));
   $$('.view').forEach(v=>v.classList.remove('active'));
   const target=$("#view-"+view);if(target)target.classList.add('active');
   setDeskBoardActive(view==='board');
