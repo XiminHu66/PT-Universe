@@ -2,8 +2,15 @@ name: Refresh Tsugi games
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - apps/tsugi-checker/scraper/games.py
+      - apps/tsugi-checker/scraper/run_games.py
+      - apps/tsugi-checker/scraper/steam_pc.py
+      - .github/workflows/refresh-tsugi-games.yml
   schedule:
-    # Daily at 08:00 Pacific; GitHub applies PST/PDT automatically.
+    # Daily at 08:00 Pacific; UTC candidates are selected by the local-time gate.
     - cron: "0 15,16 * * *" # 08:00 PDT / PST; guarded by local-time gate
     # Retry only when the morning snapshot is still missing.
     - cron: "30 15,16 * * *" # 08:30 PDT / PST; guarded by local-time gate

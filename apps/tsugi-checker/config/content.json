@@ -1,5 +1,5 @@
 {
-  "refresh_revision": "2026-08-30-refresh-repair",
+  "refresh_revision": "2026-10-12-source-verification",
   "site_updates": [
     {
       "id": "manhuagui",
@@ -21,7 +21,7 @@
       "chapter_order": "first",
       "limit": 60,
       "enrich": true,
-      "enrich_limit": 24,
+      "enrich_limit": 60,
       "enabled": true,
       "page_urls": [
         "https://tw.linovelib.com/wenku/",
@@ -40,7 +40,7 @@
       "chapter_order": "first",
       "limit": 48,
       "enrich": true,
-      "enrich_limit": 24,
+      "enrich_limit": 48,
       "enabled": true,
       "date_enrich": true
     },

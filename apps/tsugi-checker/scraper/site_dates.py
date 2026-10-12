@@ -113,8 +113,7 @@ def update_linovelib(row: dict, html: str) -> dict:
             and "catalog" not in href.lower()
             and cleaned not in ("目录", "目錄", "书籍目录", "小說目錄")
         ):
-            if not row.get("latest") or row.get("latest") == "最新更新":
-                row["latest"] = cleaned
+            row["latest"] = cleaned
             if href:
                 row["latest_url"] = urljoin(row["url"], href)
             break
