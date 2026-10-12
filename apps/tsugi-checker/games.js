@@ -42,7 +42,7 @@
     const reviewCount=Number(x.review_count||0);
     const review=x.category==='pc'&&reviewCount?`<div class="game-review-note">${countFmt(reviewCount)} 条评价${x.review_positive_percent!=null?` · ${esc(x.review_positive_percent)}% 好评`:''}</div>`:'';
     const rating=x.category==='mobile'&&x.rating?`<div class="game-review-note">${Number(x.rating).toFixed(1)}★${x.rating_count?` · ${countFmt(x.rating_count)} 评分`:''}</div>`:'';
-    return `<a class="timeline-game ${x.is_today?'today':''} ${x.category==='pc'?'pc-rich':''} ${x.heat_level==='high'?'high-heat':''}" href="${esc(x.url||'#')}" target="_blank" rel="noopener">
+    return `<a class="timeline-game ${gameEffectiveDate(x)===gameTodayLocal()?'today':''} ${x.category==='pc'?'pc-rich':''} ${x.heat_level==='high'?'high-heat':''}" href="${esc(x.url||'#')}" target="_blank" rel="noopener">
       ${imageHTML({cover:x.cover,type:'game',className:'timeline-game-cover',placeholderClass:'timeline-game-cover game-cover-placeholder',placeholderText:'GAME'})}
       <div class="timeline-game-copy">
         <div class="timeline-game-meta"><span>${esc(x.source_label||x.source||'')}</span>${heat}${publisherBadge}${rank}${discovery}</div>
@@ -57,7 +57,7 @@
 
   renderGameTimeline=function(rows,label){
     if(!rows.length)return `<div class="empty game-empty"><div>暂无${label}时间线数据。<small>下一次每日 / 手动刷新全部数据后更新。</small></div></div>`;
-    const today=state.games?.date_jst||new Date().toISOString().slice(0,10),groups=new Map();
+    const today=gameTodayLocal(),groups=new Map();
     rows.forEach(x=>{const d=gameEffectiveDate(x)||'undated';if(!groups.has(d))groups.set(d,[]);groups.get(d).push(x)});
     return [...groups.entries()].sort((a,b)=>a[0].localeCompare(b[0])).map(([d,items])=>{
       const sorted=[...items].sort((a,b)=>(Number(b.heat_score||0)-Number(a.heat_score||0))||String(a.title_zh||a.title||'').localeCompare(String(b.title_zh||b.title||''),'zh-CN'));
@@ -77,7 +77,7 @@
 
   function renderPcTimeline(rows){
     if(!rows.length)return `<div class="empty game-empty"><div>暂无 PC 时间线数据。<small>下一次每日 / 手动刷新全部数据后更新。</small></div></div>`;
-    const today=state.games?.date_jst||new Date().toISOString().slice(0,10);
+    const today=gameTodayLocal();
     const todayRows=[],next30=[],later=[],past=[],unknown=[];
     rows.forEach(x=>{
       const diff=gameDays(x,today);
@@ -103,11 +103,13 @@
     const get=key=>(buckets[key]||[]).filter(x=>!q||gameSearchText(x).includes(q));
     const mobile=get('mobile'),pc=get('pc'),consoleRows=get('console');
     const all=[...(buckets.mobile||[]),...(buckets.pc||[]),...(buckets.console||[])];
-    const past=all.filter(x=>x.timeline_status==='past').length;
-    const todayCount=all.filter(x=>x.timeline_status==='today').length;
-    const upcoming=all.filter(x=>x.timeline_status==='upcoming').length;
+    const today=gameTodayLocal();
+    const past=all.filter(x=>gameEffectiveDate(x)&&gameEffectiveDate(x)<today).length;
+    const todayCount=all.filter(x=>gameEffectiveDate(x)===today).length;
+    const upcoming=all.filter(x=>gameEffectiveDate(x)>today).length;
     const w=state.games?.window||{};
-    $('#gameDate').textContent=state.games?.date_jst?`日本时间 ${state.games.date_jst} · -${w.past_days??7} 天 / +${w.future_days??90} 天`:'等待首次抓取';
+    const age=Date.now()-Date.parse(state.games?.generated_at||'');const stale=Number.isFinite(age)&&age>36*3600000;
+    $('#gameDate').textContent=state.games?.generated_at?`本地今天 ${today} · 数据同步 ${fmt(state.games.generated_at)}${stale?' · ⚠ 数据已过期，正在等待更新':''} · -${w.past_days??7} 天 / +${w.future_days??90} 天`:'等待首次抓取';
     $('#gamePastCount').textContent=past;$('#gameTodayCount').textContent=todayCount;$('#gameUpcomingCount').textContent=upcoming;
     $('#gameMobileGrid').innerHTML=renderGameTimeline(mobile,'手游');
     $('#gamePcGrid').innerHTML=renderPcTimeline(pc);
