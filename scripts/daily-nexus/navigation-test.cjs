@@ -17,7 +17,7 @@ for(const view of [...names,'bad-view',...names.slice().reverse()]){
  sandbox.switchNexusView(url.searchParams.get('view')||'home');assert.equal(views.find(x=>x.classList.active).dataset.view,expected);
 }
 assert.ok(calls.some(x=>x[0]==='embedded'&&x[1]==='tsugi'));assert.ok(calls.some(x=>x[0]==='embedded'&&x[1]==='check'));
-const tabs=fs.readFileSync('apps/daily-nexus/decision-tabs.js','utf8');assert.ok(tabs.includes("params.get('view')||params.get('tab')"));
+const tabs=fs.readFileSync('apps/daily-nexus/decision-tabs.js','utf8');assert.ok(tabs.includes("params.get('view')||params.get('tab')"));assert.ok(!tabs.includes('history.replaceState'),'Embedded activation must not rewrite navigation URLs');
 console.log('All '+names.length+' Nexus tabs, active panels, refresh URLs, legacy tab removal and embedded activation passed');
 const app=fs.readFileSync('apps/tsugi-checker/app.js','utf8'),gameCode=app.slice(app.indexOf('function gameTodayLocal()'),app.indexOf('function renderTimelineGame('));
 class Clock extends Date{constructor(...args){super(...(args.length?args:['2026-10-12T16:00:00Z']))}static now(){return +new Clock()}}

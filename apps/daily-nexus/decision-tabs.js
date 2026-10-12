@@ -10,7 +10,7 @@
     for(const child of doc.querySelectorAll('iframe'))try{syncTheme(child.contentDocument,depth+1)}catch{}
   }
   function activate(name){
-    const u=new URL(location.href);u.searchParams.set('tab',name);history.replaceState(null,'',u);
+    // switchNexusView owns the canonical view URL; embedded activation only changes frames.
     for(const {frame,name:own} of frames)try{frame.contentWindow.ptNexusActive=own===name;frame.contentWindow.dispatchEvent(new CustomEvent('nexus-activate',{detail:{active:own===name}}))}catch{}
   }
   for(const {name,frame} of frames){
