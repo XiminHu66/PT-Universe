@@ -1,4 +1,4 @@
-export const SITE_REFRESH_REVISION='2026-10-13-browser-batch1';
+export const SITE_REFRESH_REVISION='2026-10-13-browser-batch2';
 import {parseDocument} from 'htmlparser2';
 import {findAll,textContent} from 'domutils';
 type Row=Record<string,any>;
@@ -18,13 +18,13 @@ export function parseLatestDetail(html:string,url:string,source:string):Row{
    out.updated_text=date(value);out.latest_url=absolute(marker.attribs.href,url);
   }
  }else if(source==='copymanga'){
-  const title=all.find(n=>n.name==='title'),m=title&&plain(title).match(/[-－](第\s*[^-－]{1,48}?(?:话|話|章|回|卷))[-－]/);
+  const title=all.find(n=>n.name==='title'),m=title&&plain(title).match(/[-－]((?:第\s*)?[^-－]{1,80})[-－](?:拷[贝貝]|Copy)/i);
   const latest=links(doc).find(a=>/(?:最新|最后|最後)\s*(?:章节|章節|话|話|更新)/.test(plain(a))&&/第/.test(plain(a)));
-  out.latest=m?.[1]||latest&&plain(latest).match(/第\s*[^|]{1,48}?(?:话|話|章|回|卷)/)?.[0]||'';
+  out.latest=m?.[1]?.trim()||latest&&plain(latest).match(/第\s*[^|]{1,48}?(?:话|話|章|回|卷)/)?.[0]||'';
   const value=plain(doc),dm=value.match(/(?:最后|最後)\s*更新(?:时间|時間|日期)?[：:\s]*(20\d{2}[-/.年]\d{1,2}[-/.月]\d{1,2}(?:日)?)/);
   out.updated_text=dm?.[1]||'';out.latest_url=latest?absolute(latest.attribs.href,url):url;
  }
- if(!out.latest||/^(?:最新更新|更新|目录|目錄)$/.test(out.latest))return {};
+ if(!out.latest||/^(?:最新更新|更新|目录|目錄)$/.test(out.latest)){const title=all.find(n=>n.name==='title');return {diagnostic_title:title?plain(title):'缺少页面标题'}};
  return out;
 }
 export function parseSiteList(html:string,base:string,source:string,label:string,type:string,limit:number):Row[]{

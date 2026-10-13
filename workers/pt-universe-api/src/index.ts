@@ -419,7 +419,7 @@ async function verifySiteChapters(browser:Browser,rows:any[],source:string,index
         const row=batch[i],response=details[i];
         const detail=response?.html?parseLatestDetail(response.html,row.url,source):{};
         if(hasChapter(detail.latest)){Object.assign(row,detail,{latest_checked_at:now()});delete row.enrich_error}
-        else row.enrich_error=response?.error||'详情页没有最新章节';
+        else row.enrich_error=response?.error||'详情页没有最新章节：'+(detail.diagnostic_title||'空白响应');
       }
     }
     // A real page navigation can recover anti-bot or fetch-only failures.
@@ -429,6 +429,7 @@ async function verifySiteChapters(browser:Browser,rows:any[],source:string,index
         await page.goto(row.url,{waitUntil:'commit',timeout:6_000});
         await page.locator(source==='linovelib'?'.book-status':'title').first().waitFor({state:'attached',timeout:4_000});
         const detail=parseLatestDetail(await page.content(),row.url,source);
+        if(!hasChapter(detail.latest))row.enrich_error='详情页没有最新章节：'+(detail.diagnostic_title||'空白响应');
         if(hasChapter(detail.latest)){Object.assign(row,detail,{latest_checked_at:now()});delete row.enrich_error}
       }catch(e){row.enrich_error=String(e)}
     }

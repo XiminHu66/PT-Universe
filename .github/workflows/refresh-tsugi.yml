@@ -172,6 +172,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           npm ci --prefix workers/pt-universe-api
+          node scripts/tsugi/test-snapshot-merge.mjs
           node scripts/tsugi/publish-snapshot.mjs
 
       - name: Commit refreshed Tsugi data to PT Universe
