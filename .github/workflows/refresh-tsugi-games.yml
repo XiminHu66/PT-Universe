@@ -142,7 +142,19 @@ jobs:
             echo "Cloudflare import request returned HTTP $http_code; Pages still carries the new snapshot."
           fi
 
+      - name: Require complete game source health after publishing successful data
+        if: steps.gate.outputs.refresh == 'true'
+        run: |
+          python - <<'PY'
+          import json
+          data=json.load(open('apps/tsugi-checker/data/game-releases.json',encoding='utf-8'))
+          failed={k:v.get('error','source failed') for k,v in data.get('sources',{}).items() if not v.get('ok') or v.get('fallback')}
+          if failed:raise SystemExit('Partial game refresh; successful data was preserved: '+json.dumps(failed,ensure_ascii=False))
+          print('All configured game sources passed')
+          PY
+
   deploy:
+    if: always() && !cancelled()
     needs: refresh
     runs-on: ubuntu-latest
     concurrency:

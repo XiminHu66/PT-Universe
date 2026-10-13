@@ -54,3 +54,5 @@ assert.equal(context.refreshQuality({games:{generatedAt:new Date().toISOString()
 
 assert.equal(S.parseLatestDetail('<title>漫畫-短篇-拷貝漫畫</title>','https://www.mangacopy.com/comic/a','copymanga').latest,'短篇');
 assert.equal(S.parseLatestDetail('<title>漫畫-第54話 完結-拷貝漫畫</title>','https://www.mangacopy.com/comic/a','copymanga').latest,'第54話 完結');
+
+assert.equal(context.refreshQuality({games:{generatedAt:new Date().toISOString(),sources:{taptap_cn_upcoming:{ok:false,error:'No items parsed'}}}}).ok,false);

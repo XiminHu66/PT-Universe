@@ -529,7 +529,7 @@ async function refreshGames(env:Env){
   }catch(e){remoteError=String(e);console.warn('game_snapshot_import_failed',{error:remoteError})}
   const items=current.items||{},counts={mobile:(items.mobile||[]).length,pc:(items.pc||[]).length,console:(items.console||[]).length};
   if(!counts.mobile&&!counts.pc&&!counts.console)throw new Error(remoteError||'游戏快照不可用');
-  return {...counts,generatedAt:current.generated_at||null,imported,pipeline:'Tsugi 游戏独立每日任务 · 08:00 America/Los_Angeles',qf:'paused',remoteError:remoteError||undefined};
+  return {...counts,generatedAt:current.generated_at||null,imported,pipeline:'Tsugi 游戏独立每日任务 · 08:00 America/Los_Angeles',qf:'paused',sources:current.sources||{},remoteError:remoteError||undefined};
 }
 
 async function runRefresh(env:Env,scope:RefreshScope,source:RefreshOrigin='manual'){
@@ -558,6 +558,7 @@ function refreshQuality(result:Json){
   const games=result.games as any;
   if(games?.error)issues.push('games: '+games.error);
   if(games?.remoteError)issues.push('games: '+games.remoteError);
+  for(const [id,state] of Object.entries<any>(games?.sources||{}))if(!state.ok||state.fallback)issues.push(`${id}: ${state.error||'游戏来源抓取失败'}`);
   if(games?.generatedAt&&!samePacificDay(games.generatedAt))issues.push('games: 今日游戏快照尚未同步');
   return {ok:issues.length===0,issues};
 }
