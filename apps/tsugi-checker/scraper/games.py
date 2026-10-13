@@ -351,6 +351,54 @@ def _date_from_month_day(month: int, day: int, today: date) -> date:
     return candidate
 
 
+def _parse_taptap_calendar(soup, url, today_cn, limit):
+    """Read TapTap's indexed Nuxt hydration data without executing page scripts."""
+    script = soup.find("script", id="__NUXT_DATA__")
+    if not script:
+        return []
+    try:
+        values = json.loads(script.string or script.get_text())
+    except (ValueError, TypeError):
+        return []
+    if not isinstance(values, list):
+        return []
+    def ref(index):
+        return values[index] if type(index) is int and 0 <= index < len(values) else None
+    candidates = {}
+    for event in values:
+        if not isinstance(event, dict) or not {"app_card_info", "start_time", "sub_event_type_title"} <= event.keys():
+            continue
+        # The broad event type can also label preloads as releases; use the exact subtype.
+        if ref(event["sub_event_type_title"]) != "首发":
+            continue
+        card = ref(event["app_card_info"])
+        if not isinstance(card, dict):
+            continue
+        try:
+            release = datetime.fromtimestamp(ref(event["start_time"]), timezone.utc).astimezone(CST).date()
+        except (ValueError, TypeError, OverflowError):
+            continue
+        if release < today_cn or release > today_cn + timedelta(days=120):
+            continue
+        appid, title = ref(card.get("id")), ref(card.get("title"))
+        if not isinstance(appid, int) or not isinstance(title, str) or not title.strip():
+            continue
+        href = urljoin(url, f"/app/{appid}")
+        icon = ref(card.get("icon"))
+        cover = ref(icon.get("url")) if isinstance(icon, dict) else ""
+        row = {"id": stable_id("taptap_cn_upcoming", href), "category": "mobile",
+               "source": "taptap_cn_upcoming", "source_label": "TapTap 中国 · 即将首发",
+               "store": "TapTap", "title": title.strip(), "url": href, "cover": cover or "",
+               "platforms": ["移动端"], "release_date": release.isoformat(),
+               "release_text": release.strftime("%m/%d") + " 首发", "region": "CN",
+               "featured": True, "rating": None, "popularity_label": "TapTap 即将上线"}
+        level = ref(event.get("event_level"))
+        rank = (level if isinstance(level, int) else 99, release, appid)
+        if href not in candidates or rank < candidates[href][0]:
+            candidates[href] = (rank, row)
+    return [row for _, row in sorted(candidates.values(), key=lambda pair: pair[0])[:limit]]
+
+
 def fetch_taptap_upcoming(cfg: dict, ua: str):
     """Popular upcoming mainland-China releases from TapTap's release calendar.
 
@@ -361,6 +409,9 @@ def fetch_taptap_upcoming(cfg: dict, ua: str):
     limit = int(cfg.get("limit", 8))
     today_cn = datetime.now(timezone.utc).astimezone(CST).date()
     soup = BeautifulSoup(get_html(url, ua, accept_language="zh-CN,zh;q=0.95"), "lxml")
+    hydrated = _parse_taptap_calendar(soup, url, today_cn, limit)
+    if hydrated:
+        return hydrated
     start_text = soup.find(string=lambda x: x and clean(x) == "即将上线")
     start = start_text.parent if start_text else soup
     current_date = None
