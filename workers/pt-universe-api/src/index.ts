@@ -364,7 +364,7 @@ function mergeSiteRows(current:any[],history:any[],limit:number){
 // Read content as soon as work links exist; analytics/scripts must not block a source.
 async function sourcePage(browser:Browser,url:string,selector:string){
   const page=tunePage(await browser.newPage());
-  await page.route('**/*',route=>['image','media','font'].includes(route.request().resourceType())?route.abort():route.continue());
+  // Keep asset requests inside the browser, avoiding one Worker RPC per resource.
   try{
     await page.goto(url,{waitUntil:'commit',timeout:12_000});
     await page.locator(selector).first().waitFor({state:'attached',timeout:8_000});
@@ -447,6 +447,7 @@ async function refreshSites(env:Env,sharedBrowser?:Browser,source:RefreshOrigin=
     ];
     const items:any[]=[],states:Record<string,Json>={};
     for(const s of sources){
+      console.log('refresh_source_started',{source:s.id});
       const prior=history.filter((x:any)=>x.source===s.id);
       try{
         let fresh:any[]=[],discoveryError='';
@@ -472,6 +473,7 @@ async function refreshSites(env:Env,sharedBrowser?:Browser,source:RefreshOrigin=
         const verified=fresh.filter((x:any)=>x.latest_checked_at).length,rows=mergeSiteRows(fresh,prior,s.limit);
         items.push(...rows);states[s.id]={label:s.label,ok:true,count:rows.length,freshCount:fresh.length,discoveredCount,verifiedChapterCount:verified,checked_at:now(),degraded:Boolean(discoveryError)||verified<fresh.length,discovery_error:discoveryError||undefined,discovery_mode:discoveryError?'verified-known-works':'latest-update-index',unverified:fresh.filter((x:any)=>!x.latest_checked_at).map((x:any)=>({title:x.title,url:x.url,error:x.enrich_error||'最新章节未核实'})),chapterCount:rows.filter((x:any)=>hasChapter(x.latest)).length,coverCount:rows.filter((x:any)=>x.cover).length};
       }catch(e){const fallback=mergeSiteRows([],prior,s.limit);items.push(...fallback);states[s.id]={label:s.label,ok:false,count:fallback.length,checked_at:now(),error:String(e),fallback:true}}
+      console.log('refresh_source_completed',{source:s.id,state:states[s.id]});
 
     }
     const deduped=mergeSiteRows(items,[],400);
