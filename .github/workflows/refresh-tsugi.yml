@@ -222,11 +222,14 @@ jobs:
           for key in ['manhuagui','linovelib','copymanga']:
               v=sites.get('sources',{}).get(key,{})
               if not (v.get('ok') and not v.get('degraded') and not v.get('fallback') and fresh(v.get('checked_at')) and v.get('verifiedChapterCount',0)>0 and v.get('verifiedChapterCount')==v.get('freshCount')):failures.append(key+': chapters incomplete or stale')
+          for key,count in [('linovelib',60),('copymanga',48)]:
+              if sites.get('sources',{}).get(key,{}).get('freshCount')!=count:failures.append(key+': expected '+str(count)+' checked works')
           for key in ['billboard_japan','youtube_japan_recent']:
               v=music.get('sources',{}).get(key,{})
               if not (v.get('ok') and not v.get('fallback') and fresh(v.get('checked_at') or music.get('generated_at'))):failures.append(key+': music source unavailable or stale')
           if not fresh(games.get('generated_at')):failures.append('games: snapshot not refreshed after 08:00')
-          for key,v in games.get('sources',{}).items():
+          for key in ['appstore','googleplay','taptap_cn_new','taptap_cn_upcoming','steam_popular_new','steam_popular_upcoming','famitsu']:
+              v=games.get('sources',{}).get(key,{})
               if not v.get('ok') or v.get('fallback'):failures.append(key+': game source failed')
           report['failures']=failures
           body=json.dumps(report,ensure_ascii=False,indent=2);print(body)
