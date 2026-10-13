@@ -1,7 +1,13 @@
 import fs from 'node:fs';
 const api='https://pt-universe-api.summer07-nanjolno.workers.dev',headers={'user-agent':'Mozilla/5.0 PT-Universe deployment verification',origin:'https://ximinhu66.github.io'};
 const json=async(path,method='GET')=>{const r=await fetch(api+path,{method,headers,signal:AbortSignal.timeout(30000)});const d=await r.json();if(!r.ok)throw Error(path+': '+r.status+' '+JSON.stringify(d));return d};
-const health=await json('/api/health');if(health.refresh_revision!=='2026-10-13-browser-batch2')throw Error('Site scraper revision not deployed');
+let health;
+for(let attempt=0;attempt<36;attempt++){
+ health=await json('/api/health?deployment='+Date.now());
+ if(health.refresh_revision==='2026-10-13-browser-batch2')break;
+ if(attempt===35)throw Error('Site scraper revision did not propagate: '+health.refresh_revision);
+ await new Promise(r=>setTimeout(r,5000));
+}
 console.log('Allowing the deployed queue consumer to settle before the live refresh');
 for(let i=0;i<2;i++)await new Promise(r=>setTimeout(r,35000));
 const before=await json('/api/data/site-updates.json'),start=Date.now(),queued=await json('/api/refresh/sites','POST');
