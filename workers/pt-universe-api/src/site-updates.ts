@@ -1,4 +1,4 @@
-export const SITE_REFRESH_REVISION='2026-10-13-browser-batch2';
+export const SITE_REFRESH_REVISION='2026-10-13-browser-batch3';
 import {parseDocument} from 'htmlparser2';
 import {findAll,textContent} from 'domutils';
 type Row=Record<string,any>;
