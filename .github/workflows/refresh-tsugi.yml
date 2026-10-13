@@ -200,6 +200,40 @@ jobs:
           echo "::error::Fallback published available sources, but source verification is incomplete. Inspect tsugi-source-diagnostics."
           exit 1
 
+      - name: Verify served morning snapshots and record completeness
+        if: always() && github.event_name == 'schedule'
+        run: |
+          python - <<'PY'
+          import json,os,urllib.request
+          from datetime import datetime,timezone
+          from zoneinfo import ZoneInfo
+          pacific=ZoneInfo('America/Los_Angeles');today=datetime.now(timezone.utc).astimezone(pacific).date()
+          def read(name):
+              url='https://pt-universe-api.summer07-nanjolno.workers.dev/api/data/'+name+'?morning_verification='+datetime.now(timezone.utc).isoformat()
+              with urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'PT-Universe morning verification'}),timeout=30) as r:return json.load(r)
+          def fresh(stamp):
+              try:
+                  d=datetime.fromisoformat(stamp.replace('Z','+00:00')).astimezone(pacific)
+                  return d.date()==today and d.hour>=8
+              except (ValueError,TypeError,AttributeError):return False
+          sites,music,games=[read(name) for name in ['site-updates.json','music.json','game-releases.json']]
+          report={'reading':sites.get('sources',{}),'music':music.get('sources',{}),'games':games.get('sources',{}),'origins':{name:v.get('refresh_source') for name,v in [('reading',sites),('music',music),('games',games)]}}
+          failures=[]
+          for key in ['manhuagui','linovelib','copymanga']:
+              v=sites.get('sources',{}).get(key,{})
+              if not (v.get('ok') and not v.get('degraded') and not v.get('fallback') and fresh(v.get('checked_at')) and v.get('verifiedChapterCount',0)>0 and v.get('verifiedChapterCount')==v.get('freshCount')):failures.append(key+': chapters incomplete or stale')
+          for key in ['billboard_japan','youtube_japan_recent']:
+              v=music.get('sources',{}).get(key,{})
+              if not (v.get('ok') and not v.get('fallback') and fresh(v.get('checked_at') or music.get('generated_at'))):failures.append(key+': music source unavailable or stale')
+          if not fresh(games.get('generated_at')):failures.append('games: snapshot not refreshed after 08:00')
+          for key,v in games.get('sources',{}).items():
+              if not v.get('ok') or v.get('fallback'):failures.append(key+': game source failed')
+          report['failures']=failures
+          body=json.dumps(report,ensure_ascii=False,indent=2);print(body)
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:f.write('## Served morning source verification\n\n```json\n'+body+'\n```\n')
+          if failures:raise SystemExit('Morning verification incomplete: '+'; '.join(failures))
+          PY
+
   deploy:
     needs: refresh
     if: always() && needs.refresh.result != 'cancelled'
