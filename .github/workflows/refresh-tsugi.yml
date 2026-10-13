@@ -155,7 +155,7 @@ jobs:
           for source in ('manhuagui','linovelib','copymanga'):
               entry=site.get('sources',{}).get(source,{})
               print(f"source={source} ok={entry.get('ok')} verified_chapters={entry.get('verifiedChapterCount',0)} degraded={entry.get('degraded')} error={entry.get('error','')}")
-              if not entry.get('ok') or not entry.get('verifiedChapterCount'):
+              if not entry.get('ok') or entry.get('fallback') or entry.get('degraded') or not entry.get('verifiedChapterCount') or entry.get('verifiedChapterCount')!=entry.get('freshCount'):
                   raise SystemExit(f'{source}: no newly verified chapters; refusing stale-success deployment')
           print(f'validated site_rows={len(rows)} songs={len(songs)} generated_at={generated}')
           PY
