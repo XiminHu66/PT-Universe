@@ -1,4 +1,5 @@
-import {parseSiteList,parseLatestDetail,sourceIsFresh,SITE_REFRESH_REVISION} from './site-updates';
+import {sourceIsFresh,SITE_REFRESH_REVISION} from './site-updates';
+import {browserSiteList,browserChapterBatch} from './browser-site-parser';
 import { museRoute } from './muse';
 import { investmentRoute } from './investment';
 import { decisionRoute, decisionTick } from './decision';
@@ -373,17 +374,10 @@ async function sourcePage(browser:Browser,url:string,selector:string){
 }
 async function scrapeLinks(browser:Browser,url:string,source:string,label:string,type:string,limit:number,_patterns:string[]){
   let rows:any[]=[],lastError:unknown;
-  // Prefer the actual update index, including on the mobile manga site.
-  try{
-    const r=await timedFetch(url,{headers:{'user-agent':'Mozilla/5.0'}},8_000);
-    if(r.ok)rows=parseSiteList(await r.text(),url,source,label,type,limit);
-  }catch(e){lastError=e}
-  if(!rows.length){
-    for(let attempt=0;attempt<2&&!rows.length;attempt++){
-      let page:Page|undefined;
-      try{page=await sourcePage(browser,url,'a[href*="'+(source==='linovelib'?'/novel/':'/comic/')+'"]');rows=parseSiteList(await page.content(),page.url(),source,label,type,limit)}
-      catch(e){lastError=e}finally{if(page)await closeFast(page)}
-    }
+  for(let attempt=0;attempt<2&&!rows.length;attempt++){
+    let page:Page|undefined;
+    try{page=await sourcePage(browser,url,'a[href*="'+(source==='linovelib'?'/novel/':'/comic/')+'"]');rows=await page.evaluate(browserSiteList,{url,source,label,type,limit})}
+    catch(e){lastError=e}finally{if(page)await closeFast(page)}
   }
   if(!rows.length)throw lastError||Error('来源未返回作品');
   const fetchedAt=now();
@@ -398,26 +392,10 @@ async function verifySiteChapters(browser:Browser,rows:any[],source:string,index
     for(let offset=0;offset<rows.length;offset+=10){
       if(Date.now()-started>60_000){for(const row of rows.slice(offset))row.enrich_error='来源核验超时，等待兜底';break}
       const batch=rows.slice(offset,offset+10);
-      const details=await page.evaluate(async(urls:string[])=>{
-        const results:{url:string;html?:string;error?:string}[]=new Array(urls.length);let cursor=0;
-        const pause=(ms:number)=>new Promise(r=>setTimeout(r,ms));
-        await Promise.all(Array.from({length:2},async()=>{
-          while(cursor<urls.length){const i=cursor++,url=urls[i];
-            for(let attempt=0;attempt<2;attempt++){
-              try{
-                const r=await fetch(url,{credentials:'same-origin',signal:AbortSignal.timeout(6_000)});
-                if((r.status===429||r.status>=500)&&attempt===0){await r.body?.cancel();await pause(1_500);continue}
-                if(!r.ok){await r.body?.cancel();throw Error('HTTP '+r.status)}
-                results[i]={url,html:await r.text()};break;
-              }catch(e){results[i]={url,error:String(e)};break}
-            }
-            await pause(200);
-          }
-        }));return results;
-      },batch.map(x=>x.url));
+      const details=await page.evaluate(browserChapterBatch,{urls:batch.map(x=>x.url),source});
       for(let i=0;i<batch.length;i++){
         const row=batch[i],response=details[i];
-        const detail=response?.html?parseLatestDetail(response.html,row.url,source):{};
+        const detail=response?.detail||{};
         if(hasChapter(detail.latest)){Object.assign(row,detail,{latest_checked_at:now()});delete row.enrich_error}
         else row.enrich_error=response?.error||'详情页没有最新章节：'+(detail.diagnostic_title||'空白响应');
       }
@@ -428,7 +406,7 @@ async function verifySiteChapters(browser:Browser,rows:any[],source:string,index
       try{
         await page.goto(row.url,{waitUntil:'commit',timeout:6_000});
         await page.locator(source==='linovelib'?'.book-status':'title').first().waitFor({state:'attached',timeout:4_000});
-        const detail=parseLatestDetail(await page.content(),row.url,source);
+        const detail=(await page.evaluate(browserChapterBatch,{urls:[],source,currentUrl:row.url}))[0]?.detail||{};
         if(!hasChapter(detail.latest))row.enrich_error='详情页没有最新章节：'+(detail.diagnostic_title||'空白响应');
         if(hasChapter(detail.latest)){Object.assign(row,detail,{latest_checked_at:now()});delete row.enrich_error}
       }catch(e){row.enrich_error=String(e)}
@@ -474,6 +452,11 @@ async function refreshSites(env:Env,sharedBrowser?:Browser,source:RefreshOrigin=
         items.push(...rows);states[s.id]={label:s.label,ok:true,count:rows.length,freshCount:fresh.length,discoveredCount,verifiedChapterCount:verified,checked_at:now(),degraded:Boolean(discoveryError)||verified<fresh.length,discovery_error:discoveryError||undefined,discovery_mode:discoveryError?'verified-known-works':'latest-update-index',unverified:fresh.filter((x:any)=>!x.latest_checked_at).map((x:any)=>({title:x.title,url:x.url,error:x.enrich_error||'最新章节未核实'})),chapterCount:rows.filter((x:any)=>hasChapter(x.latest)).length,coverCount:rows.filter((x:any)=>x.cover).length};
       }catch(e){const fallback=mergeSiteRows([],prior,s.limit);items.push(...fallback);states[s.id]={label:s.label,ok:false,count:fallback.length,checked_at:now(),error:String(e),fallback:true}}
       console.log('refresh_source_completed',{source:s.id,state:states[s.id]});
+      // Save each completed source before continuing: a platform CPU termination
+      // cannot roll back already verified novels/manga.
+      const pending=sources.filter(x=>!states[x.id]);
+      const partialStates={...states,...Object.fromEntries(pending.map(x=>[x.id,{...(cached.sources?.[x.id]||{}),ok:false,fallback:true,degraded:true,error:'本轮来源核验尚未完成'}]))};
+      await putData(env,'site-updates.json',{generated_at:now(),items:mergeSiteRows([...items,...history.filter(x=>pending.some(p=>p.id===x.source))],[],400),sources:partialStates,refresh_revision:SITE_REFRESH_REVISION,refresh_source:source});
 
     }
     const deduped=mergeSiteRows(items,[],400);
