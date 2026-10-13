@@ -40,7 +40,7 @@ vm.createContext(context);vm.runInContext(verificationJS.code,context);
 const novels=Array.from({length:60},(_,i)=>({url:`https://tw.linovelib.com/novel/${i}.html`,latest_checked_at:null}));
 await context.verifySiteChapters({},novels,'linovelib','https://tw.linovelib.com/wenku/');
 assert.equal(batches,6);assert.equal(detailCloses,1);assert.ok(novels.every(x=>x.latest==='最新章'&&x.latest_checked_at));
-const qualityCode=index.slice(index.indexOf('function refreshQuality('),index.indexOf('async function status('));
+const qualityCode=index.slice(index.indexOf('function samePacificDay('),index.indexOf('async function status('));
 const qualityJS=await transform(qualityCode,{loader:'ts'});vm.runInContext(qualityJS.code,context);
 assert.equal(context.refreshQuality({sites:{sources:{linovelib:{ok:true,degraded:true}}}}).ok,false);
 assert.equal(context.refreshQuality({games:{remoteError:'Too many subrequests'}}).ok,false);
@@ -48,3 +48,6 @@ assert.equal(context.refreshQuality({music:{error:'source failed'}}).ok,false);
 assert.equal(context.refreshQuality({sites:{sources:{a:{ok:true}}},music:{sources:{b:{ok:true}}}}).ok,true);
 assert.equal(S.parseSiteList('<li><a href="/comic/123/"><img alt="漫画标题"><span>漫画标题</span></a><a href="/comic/123/456.html">第10话更新于：2026-10-13</a></li>','https://m.manhuagui.com/update/','manhuagui','漫画柜','manga',60)[0].latest,'第10话');
 console.log('60 chapters use six browser batches; partial source failures cannot be green; clean manga chapters');
+
+assert.equal(context.refreshQuality({games:{generatedAt:'2000-01-01T00:00:00Z'}}).ok,false);
+assert.equal(context.refreshQuality({games:{generatedAt:new Date().toISOString()}}).ok,true);

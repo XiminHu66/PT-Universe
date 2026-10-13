@@ -5,11 +5,14 @@ on:
   push:
     branches: [main]
     paths:
+      - apps/tsugi-checker/config/content.json
       - apps/tsugi-checker/scraper/games.py
       - apps/tsugi-checker/scraper/run_games.py
       - apps/tsugi-checker/scraper/steam_pc.py
       - .github/workflows/refresh-tsugi-games.yml
   schedule:
+    # Warm the snapshot before 08:00, avoiding the busiest cron minute.
+    - cron: "17 14,15 * * *" # 07:17 PDT / PST, local-time guarded
     # Daily at 08:00 Pacific; UTC candidates are selected by the local-time gate.
     - cron: "0 15,16 * * *" # 08:00 PDT / PST; guarded by local-time gate
     # Retry only when the morning snapshot is still missing.
@@ -44,14 +47,14 @@ jobs:
           from pathlib import Path
           from zoneinfo import ZoneInfo
           now=datetime.now(timezone.utc).astimezone(ZoneInfo("America/Los_Angeles"))
-          if os.environ["REFRESH_EVENT"]=="schedule" and not(now.hour==8 and now.minute<55):
+          if os.environ["REFRESH_EVENT"]=="schedule" and not(((now.hour==7 and now.minute>=17) or now.hour in (8,9))):
               print("refresh=false\nreason=late_schedule")
               raise SystemExit()
           path=Path("apps/tsugi-checker/data/game-releases.json")
           try:
               data=json.loads(path.read_text())
               generated=datetime.fromisoformat(data["generated_at"].replace("Z","+00:00")).astimezone(ZoneInfo("America/Los_Angeles"))
-              fresh=generated.date()==now.date() and generated.hour>=8 and sum(len(data.get("items",{}).get(k,[])) for k in ("pc","mobile","console"))>0
+              fresh=generated.date()==now.date() and generated.hour>=(7 if now.hour==7 else 8) and sum(len(data.get("items",{}).get(k,[])) for k in ("pc","mobile","console"))>0
           except Exception:
               fresh=False
           should_refresh=os.environ["REFRESH_EVENT"]!="schedule" or not fresh

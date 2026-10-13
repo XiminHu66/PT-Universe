@@ -546,6 +546,7 @@ async function runRefresh(env:Env,scope:RefreshScope,source:RefreshOrigin='manua
   const state={generated_at:now(),scope,refresh_source:source,result};await putData(env,'state.json',state);return result;
 }
 
+function samePacificDay(stamp:string){const day=(date:Date)=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(date);return Number.isFinite(Date.parse(stamp))&&day(new Date(stamp))===day(new Date())}
 function refreshQuality(result:Json){
   const issues:string[]=[];
   for(const group of ['sites','music']){
@@ -556,7 +557,7 @@ function refreshQuality(result:Json){
   const games=result.games as any;
   if(games?.error)issues.push('games: '+games.error);
   if(games?.remoteError)issues.push('games: '+games.remoteError);
-  if(games?.generatedAt&&Date.now()-Date.parse(games.generatedAt)>30*3600_000)issues.push('games: 游戏快照已过期');
+  if(games?.generatedAt&&!samePacificDay(games.generatedAt))issues.push('games: 今日游戏快照尚未同步');
   return {ok:issues.length===0,issues};
 }
 async function status(env:Env){
@@ -636,15 +637,18 @@ export default {
         fresh('site-updates.json',v=>Array.isArray(v.items)&&v.items.length>0&&['manhuagui','linovelib','copymanga'].every(id=>sourceIsFresh(v,id,new Date().toISOString().slice(0,10)))),
         fresh('music.json',v=>(v.weekly_chart?.length||0)+(v.recent_chart?.length||0)>0)
       ]);
-      if(siteFresh&&musicFresh){await record('skipped','already_fresh_today');return;}
+      const gameSnapshot=safeJson<any>(await env.PT_UNIVERSE_DATA.get('data/game-releases.json'),{});
+      const gameFresh=samePacificDay(gameSnapshot.generated_at||'');
+      if(siteFresh&&musicFresh&&gameFresh){await record('skipped','already_fresh_today');return;}
+      const scope:RefreshScope=siteFresh&&musicFresh?'games':'all';
       const active=await env.DB.prepare("SELECT request_id FROM refresh_runs WHERE scope IN ('all','sites','music') AND status IN ('queued','running') AND (started_at IS NULL OR started_at >= datetime('now','-15 minutes')) ORDER BY rowid DESC LIMIT 1").first();
       if(active){await record('skipped','refresh_already_running');return;}
       const lock=await env.DB.prepare('INSERT OR IGNORE INTO refresh_limits(limit_key,last_requested_at) VALUES(?,?)')
         .bind(`scheduled:${day}:${minute}`,stamp).run();
       if(!lock.meta.changes){await record('skipped','slot_already_claimed');return;}
       await env.DB.prepare('INSERT INTO refresh_runs(request_id,scope,source,status,started_at) VALUES(?,?,?,?,?)')
-        .bind(requestId,'all',source,'queued',stamp).run();
-      try{await env.REFRESH_QUEUE.send({requestId,scope:'all',source} satisfies RefreshMessage)}
+        .bind(requestId,scope,source,'queued',stamp).run();
+      try{await env.REFRESH_QUEUE.send({requestId,scope,source} satisfies RefreshMessage)}
       catch(e){
         await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,error=? WHERE request_id=?')
           .bind('failed',now(),String(e),requestId).run();throw e;
