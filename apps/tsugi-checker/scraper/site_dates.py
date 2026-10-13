@@ -126,7 +126,7 @@ def update_copymanga(row: dict, html: bytes) -> dict:
         row["updated_text"] = date
 
     title_text = " ".join(soup.title.stripped_strings) if soup.title else ""
-    m = re.search(r"-(第\s*[^-]{1,48}?(?:话|話|章|回|卷))-", title_text)
+    m = re.search(r"[-－]([^－-]{1,80})[-－](?:拷[贝貝]|Copy)", title_text)
     if m:
         row["latest"] = m.group(1).strip()
     return row

@@ -7,7 +7,7 @@ const card=(name,chapter)=>`<li><a href="/comic/${name}"><img alt="${name}" src=
 const copy=`<!-- 熱門更新 --><section><h2>排行榜</h2>${card('ranking',999)}</section><section><h2><span>熱門</span> <span>更新</span></h2><ul>${['aa','bb','cc','dd'].map((x,i)=>card(x,i+1)).join('')}</ul></section>`;
 const copies=S.parseSiteList(copy,'https://www.mangacopy.com/','copymanga','CopyManga','manga',48);assert.equal(copies.length,4);assert.equal(copies[0].latest,'第1話');assert.ok(!copies.some(x=>x.title==='ranking'));assert.equal(copies[1].latest,'第2話');assert.equal(copies[1].updated_text,'2026-10-12');
 assert.throws(()=>S.parseSiteList('<h1>排行榜</h1>'+card('stale',1),'https://www.mangacopy.com/','copymanga','CopyManga','manga',48),/更新区块/);
-assert.equal(S.parseLatestDetail('<title>漫畫-第54話-拷貝漫畫</title><p>最後更新：2026-10-12</p>','https://www.mangacopy.com/comic/a','copymanga').latest,'第54話');assert.deepEqual(S.parseLatestDetail('<title>Site Unavailable</title>','https://www.mangacopy.com/comic/a','copymanga'),{});
+assert.equal(S.parseLatestDetail('<title>漫畫-第54話-拷貝漫畫</title><p>最後更新：2026-10-12</p>','https://www.mangacopy.com/comic/a','copymanga').latest,'第54話');assert.equal(S.parseLatestDetail('<title>Site Unavailable</title>','https://www.mangacopy.com/comic/a','copymanga').latest,undefined);
 const state={sources:{copymanga:{ok:true,checked_at:'2026-10-12T15:01:00Z'}}};assert.equal(S.sourceIsFresh(state,'copymanga','2026-10-12'),true);state.sources.copymanga.degraded=true;assert.equal(S.sourceIsFresh(state,'copymanga','2026-10-12'),false);assert.equal(S.sourceIsFresh({sources:{copymanga:{ok:true}}},'copymanga','2026-10-12'),false);
 const app=fs.readFileSync('../../apps/tsugi-checker/app.js','utf8');const from=app.indexOf('function normText('),to=app.indexOf('function songKey(');const c={Date,URL,location:{href:'https://ximinhu66.github.io/PT-Universe/apps/tsugi-checker/'}};vm.createContext(c);vm.runInContext(app.slice(app.indexOf('function normalizeUrl('),app.indexOf('function workKey('))+app.slice(from,to),c);
 const old={source:'linovelib',url:'https://tw.linovelib.com/novel/5428.html',title:'書',latest:'第1話',latest_checked_at:'2026-10-09T15:00:00Z'};
@@ -40,7 +40,7 @@ vm.createContext(context);vm.runInContext(verificationJS.code,context);
 const novels=Array.from({length:60},(_,i)=>({url:`https://tw.linovelib.com/novel/${i}.html`,latest_checked_at:null}));
 await context.verifySiteChapters({},novels,'linovelib','https://tw.linovelib.com/wenku/');
 assert.equal(batches,6);assert.equal(detailCloses,1);assert.ok(novels.every(x=>x.latest==='最新章'&&x.latest_checked_at));
-const qualityCode=index.slice(index.indexOf('function refreshQuality('),index.indexOf('async function status('));
+const qualityCode=index.slice(index.indexOf('function samePacificDay('),index.indexOf('async function status('));
 const qualityJS=await transform(qualityCode,{loader:'ts'});vm.runInContext(qualityJS.code,context);
 assert.equal(context.refreshQuality({sites:{sources:{linovelib:{ok:true,degraded:true}}}}).ok,false);
 assert.equal(context.refreshQuality({games:{remoteError:'Too many subrequests'}}).ok,false);
@@ -48,3 +48,9 @@ assert.equal(context.refreshQuality({music:{error:'source failed'}}).ok,false);
 assert.equal(context.refreshQuality({sites:{sources:{a:{ok:true}}},music:{sources:{b:{ok:true}}}}).ok,true);
 assert.equal(S.parseSiteList('<li><a href="/comic/123/"><img alt="漫画标题"><span>漫画标题</span></a><a href="/comic/123/456.html">第10话更新于：2026-10-13</a></li>','https://m.manhuagui.com/update/','manhuagui','漫画柜','manga',60)[0].latest,'第10话');
 console.log('60 chapters use six browser batches; partial source failures cannot be green; clean manga chapters');
+
+assert.equal(context.refreshQuality({games:{generatedAt:'2000-01-01T00:00:00Z'}}).ok,false);
+assert.equal(context.refreshQuality({games:{generatedAt:new Date().toISOString()}}).ok,true);
+
+assert.equal(S.parseLatestDetail('<title>漫畫-短篇-拷貝漫畫</title>','https://www.mangacopy.com/comic/a','copymanga').latest,'短篇');
+assert.equal(S.parseLatestDetail('<title>漫畫-第54話 完結-拷貝漫畫</title>','https://www.mangacopy.com/comic/a','copymanga').latest,'第54話 完結');

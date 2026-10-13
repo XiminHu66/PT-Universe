@@ -191,7 +191,7 @@ async function enqueue(request:Request,env:Env,scope:RefreshScope,source:'manual
     }
     await env.DB.prepare('INSERT INTO refresh_limits(limit_key,last_requested_at) VALUES(?,?) ON CONFLICT(limit_key) DO UPDATE SET last_requested_at=excluded.last_requested_at').bind(key,stamp).run();limitKeys.push(key);
   }
-  await env.DB.prepare('INSERT INTO refresh_runs(request_id,scope,source,status) VALUES(?,?,?,?)').bind(requestId,scope,source,'queued').run();
+  await env.DB.prepare('INSERT INTO refresh_runs(request_id,scope,source,status,started_at) VALUES(?,?,?,?,?)').bind(requestId,scope,source,'queued',stamp).run();
   await env.REFRESH_QUEUE.send({requestId,scope,source,limitKeys} satisfies RefreshMessage);
   return reply(request,{requestId,scope,status:'queued',budget:scope==='all'||scope==='sites'||scope==='music'?await refreshBudget(env):null},202);
 }
@@ -419,7 +419,7 @@ async function verifySiteChapters(browser:Browser,rows:any[],source:string,index
         const row=batch[i],response=details[i];
         const detail=response?.html?parseLatestDetail(response.html,row.url,source):{};
         if(hasChapter(detail.latest)){Object.assign(row,detail,{latest_checked_at:now()});delete row.enrich_error}
-        else row.enrich_error=response?.error||'详情页没有最新章节';
+        else row.enrich_error=response?.error||'详情页没有最新章节：'+(detail.diagnostic_title||'空白响应');
       }
     }
     // A real page navigation can recover anti-bot or fetch-only failures.
@@ -429,6 +429,7 @@ async function verifySiteChapters(browser:Browser,rows:any[],source:string,index
         await page.goto(row.url,{waitUntil:'commit',timeout:6_000});
         await page.locator(source==='linovelib'?'.book-status':'title').first().waitFor({state:'attached',timeout:4_000});
         const detail=parseLatestDetail(await page.content(),row.url,source);
+        if(!hasChapter(detail.latest))row.enrich_error='详情页没有最新章节：'+(detail.diagnostic_title||'空白响应');
         if(hasChapter(detail.latest)){Object.assign(row,detail,{latest_checked_at:now()});delete row.enrich_error}
       }catch(e){row.enrich_error=String(e)}
     }
@@ -546,6 +547,7 @@ async function runRefresh(env:Env,scope:RefreshScope,source:RefreshOrigin='manua
   const state={generated_at:now(),scope,refresh_source:source,result};await putData(env,'state.json',state);return result;
 }
 
+function samePacificDay(stamp:string){const day=(date:Date)=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(date);return Number.isFinite(Date.parse(stamp))&&day(new Date(stamp))===day(new Date())}
 function refreshQuality(result:Json){
   const issues:string[]=[];
   for(const group of ['sites','music']){
@@ -556,7 +558,7 @@ function refreshQuality(result:Json){
   const games=result.games as any;
   if(games?.error)issues.push('games: '+games.error);
   if(games?.remoteError)issues.push('games: '+games.remoteError);
-  if(games?.generatedAt&&Date.now()-Date.parse(games.generatedAt)>30*3600_000)issues.push('games: 游戏快照已过期');
+  if(games?.generatedAt&&!samePacificDay(games.generatedAt))issues.push('games: 今日游戏快照尚未同步');
   return {ok:issues.length===0,issues};
 }
 async function status(env:Env){
@@ -636,15 +638,19 @@ export default {
         fresh('site-updates.json',v=>Array.isArray(v.items)&&v.items.length>0&&['manhuagui','linovelib','copymanga'].every(id=>sourceIsFresh(v,id,new Date().toISOString().slice(0,10)))),
         fresh('music.json',v=>(v.weekly_chart?.length||0)+(v.recent_chart?.length||0)>0)
       ]);
-      if(siteFresh&&musicFresh){await record('skipped','already_fresh_today');return;}
-      const active=await env.DB.prepare("SELECT request_id FROM refresh_runs WHERE scope IN ('all','sites','music') AND status IN ('queued','running') AND (started_at IS NULL OR started_at >= datetime('now','-15 minutes')) ORDER BY rowid DESC LIMIT 1").first();
+      const gameSnapshot=safeJson<any>(await env.PT_UNIVERSE_DATA.get('data/game-releases.json'),{});
+      const gameFresh=samePacificDay(gameSnapshot.generated_at||'');
+      if(siteFresh&&musicFresh&&gameFresh){await record('skipped','already_fresh_today');return;}
+      const scope:RefreshScope=siteFresh&&musicFresh?'games':'all';
+      await env.DB.prepare("UPDATE refresh_runs SET status='failed',completed_at=?,error='Stale queue session reclaimed before scheduled recovery' WHERE status IN ('queued','running') AND (started_at IS NULL OR datetime(started_at)<datetime('now','-6 minutes'))").bind(now()).run();
+      const active=await env.DB.prepare("SELECT request_id FROM refresh_runs WHERE scope IN ('all','sites','music') AND status IN ('queued','running') AND datetime(started_at) >= datetime('now','-6 minutes') ORDER BY rowid DESC LIMIT 1").first();
       if(active){await record('skipped','refresh_already_running');return;}
       const lock=await env.DB.prepare('INSERT OR IGNORE INTO refresh_limits(limit_key,last_requested_at) VALUES(?,?)')
         .bind(`scheduled:${day}:${minute}`,stamp).run();
       if(!lock.meta.changes){await record('skipped','slot_already_claimed');return;}
       await env.DB.prepare('INSERT INTO refresh_runs(request_id,scope,source,status,started_at) VALUES(?,?,?,?,?)')
-        .bind(requestId,'all',source,'queued',stamp).run();
-      try{await env.REFRESH_QUEUE.send({requestId,scope:'all',source} satisfies RefreshMessage)}
+        .bind(requestId,scope,source,'queued',stamp).run();
+      try{await env.REFRESH_QUEUE.send({requestId,scope,source} satisfies RefreshMessage)}
       catch(e){
         await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,error=? WHERE request_id=?')
           .bind('failed',now(),String(e),requestId).run();throw e;

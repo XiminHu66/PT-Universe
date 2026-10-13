@@ -118,7 +118,7 @@ def enrich_site_rows(found, src):
             # chapter is present in the server-rendered <title> and update date text.
             if sid == 'copymanga':
                 title_text=' '.join(soup.title.stripped_strings) if soup.title else ''
-                m=re.search(r'-(第\s*[^-]{1,36}?(?:话|話|章|回|卷))-', title_text)
+                m=re.search(r'[-－]([^－-]{1,80})[-－](?:拷[贝貝]|Copy)', title_text)
                 if m: row['latest']=m.group(1).strip()
                 page_text=' '.join(soup.stripped_strings)
                 dm=re.search(r'(?:最后|最後)更新[：:\s]*(20\d{2}[-/.]\d{1,2}[-/.]\d{1,2})', page_text)
