@@ -3,7 +3,7 @@ import {browserSiteList,browserChapterBatch} from './browser-site-parser';
 import { museRoute } from './muse';
 import { investmentRoute } from './investment';
 import { decisionRoute, decisionTick } from './decision';
-import { launch, type Browser, type Page } from '@cloudflare/playwright';
+import { launch, limits as browserLimits, history as browserHistory, type Browser, type Page } from '@cloudflare/playwright';
 import { researchRoute } from './research';
 import { workbenchRoute } from './workbench';
 import { geminiProbeRoute } from './gemini-probe';
@@ -330,6 +330,13 @@ async function refreshNews(env:Env){
   const value={generated_at:now(),items:items.sort((a:any,b:any)=>Date.parse(b.published_at)-Date.parse(a.published_at)),sources:states};await putData(env,'acg-news.json',value);return {count:items.length,sources:states};
 }
 
+async function browserPlatformStatus(env:Env){
+  const [quota,closed]=await Promise.all([browserLimits(env.BROWSER),browserHistory(env.BROWSER)]);
+  const utcStart=new Date();utcStart.setUTCHours(0,0,0,0);
+  const recent=closed.filter(s=>s.endTime>=+utcStart).map(s=>({startTime:s.startTime,endTime:s.endTime,durationMs:Math.max(0,s.endTime-Math.max(s.startTime,+utcStart)),closeReason:s.closeReasonText}));
+  return {checked_at:now(),allowedBrowserAcquisitions:quota.allowedBrowserAcquisitions,timeUntilNextAllowedBrowserAcquisition:quota.timeUntilNextAllowedBrowserAcquisition,activeSessions:quota.activeSessions.length,maxConcurrentSessions:quota.maxConcurrentSessions,recentClosedUsageMs:recent.reduce((n,s)=>n+s.durationMs,0),recentSessions:recent,resetsAt:new Date(+utcStart+86400000).toISOString()};
+}
+
 async function withBrowser<T>(env:Env,fn:(browser:Browser)=>Promise<T>){
   let browser:Browser|undefined,lastError:unknown;
   for(let attempt=0;attempt<3&&!browser;attempt++)try{browser=await launch(env.BROWSER,{keep_alive:60_000})}catch(e){lastError=e;if(!String(e).includes('429')||attempt===2)throw e;await new Promise(resolve=>setTimeout(resolve,22_000))}
@@ -563,6 +570,7 @@ export default {
       const checkAI=await checkAiRoute(request,env,authenticate);if(checkAI)return reply(request,checkAI.body,checkAI.status);
       const hub=await contentHubRoute(request,env);if(hub)return reply(request,hub.body,hub.status||200);
       if(url.pathname==='/api/status')return reply(request,await status(env));
+      if(url.pathname==='/api/refresh/browser-status')return reply(request,await browserPlatformStatus(env));
       if(url.pathname==='/api/refresh/budget'&&request.method==='GET')return reply(request,await refreshBudget(env));
       if(url.pathname==='/api/analytics'&&request.method==='POST'){
         const body=await request.json<{path?:string}>();const path=String(body.path||'').slice(0,180);
