@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-13T17:07:00Z",
+  "generated_at": "2026-10-13T17:44:03Z",
   "seen": {
     "b242f954157ba1ca": {
       "first_seen": "2026-08-14",
@@ -2610,6 +2610,24 @@
       "last_seen": "2026-10-14",
       "title": "我叫MT：崛起",
       "source": "taptap_cn_new"
+    },
+    "a9eda68ab27fc542": {
+      "first_seen": "2026-10-14",
+      "last_seen": "2026-10-14",
+      "title": "秩序：新曙光",
+      "source": "taptap_cn_upcoming"
+    },
+    "262fd859226735fa": {
+      "first_seen": "2026-10-14",
+      "last_seen": "2026-10-14",
+      "title": "绿梦：时空之声",
+      "source": "taptap_cn_upcoming"
+    },
+    "20ce49404ff4b7b3": {
+      "first_seen": "2026-10-14",
+      "last_seen": "2026-10-14",
+      "title": "无限大",
+      "source": "taptap_cn_upcoming"
     }
   }
 }
