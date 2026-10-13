@@ -191,7 +191,7 @@ async function enqueue(request:Request,env:Env,scope:RefreshScope,source:'manual
     }
     await env.DB.prepare('INSERT INTO refresh_limits(limit_key,last_requested_at) VALUES(?,?) ON CONFLICT(limit_key) DO UPDATE SET last_requested_at=excluded.last_requested_at').bind(key,stamp).run();limitKeys.push(key);
   }
-  await env.DB.prepare('INSERT INTO refresh_runs(request_id,scope,source,status) VALUES(?,?,?,?)').bind(requestId,scope,source,'queued').run();
+  await env.DB.prepare('INSERT INTO refresh_runs(request_id,scope,source,status,started_at) VALUES(?,?,?,?,?)').bind(requestId,scope,source,'queued',stamp).run();
   await env.REFRESH_QUEUE.send({requestId,scope,source,limitKeys} satisfies RefreshMessage);
   return reply(request,{requestId,scope,status:'queued',budget:scope==='all'||scope==='sites'||scope==='music'?await refreshBudget(env):null},202);
 }
@@ -642,7 +642,8 @@ export default {
       const gameFresh=samePacificDay(gameSnapshot.generated_at||'');
       if(siteFresh&&musicFresh&&gameFresh){await record('skipped','already_fresh_today');return;}
       const scope:RefreshScope=siteFresh&&musicFresh?'games':'all';
-      const active=await env.DB.prepare("SELECT request_id FROM refresh_runs WHERE scope IN ('all','sites','music') AND status IN ('queued','running') AND (started_at IS NULL OR started_at >= datetime('now','-15 minutes')) ORDER BY rowid DESC LIMIT 1").first();
+      await env.DB.prepare("UPDATE refresh_runs SET status='failed',completed_at=?,error='Stale queue session reclaimed before scheduled recovery' WHERE status IN ('queued','running') AND (started_at IS NULL OR datetime(started_at)<datetime('now','-6 minutes'))").bind(now()).run();
+      const active=await env.DB.prepare("SELECT request_id FROM refresh_runs WHERE scope IN ('all','sites','music') AND status IN ('queued','running') AND datetime(started_at) >= datetime('now','-6 minutes') ORDER BY rowid DESC LIMIT 1").first();
       if(active){await record('skipped','refresh_already_running');return;}
       const lock=await env.DB.prepare('INSERT OR IGNORE INTO refresh_limits(limit_key,last_requested_at) VALUES(?,?)')
         .bind(`scheduled:${day}:${minute}`,stamp).run();
