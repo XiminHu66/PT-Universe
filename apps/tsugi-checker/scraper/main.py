@@ -40,7 +40,8 @@ def fetch_browser_batch(urls, wait_ms=900):
         page=context.new_page()
         for url in urls:
             try:
-                page.goto(url,wait_until='domcontentloaded',timeout=45000)
+                page.goto(url,wait_until='commit',timeout=12000)
+                page.locator('a[href]').first.wait_for(state='attached',timeout=6000)
                 page.wait_for_timeout(wait_ms)
                 html=page.content()
                 if len(html)<500 or 'Site Unavailable' in html: raise RuntimeError('browser returned an unavailable page')
@@ -81,9 +82,16 @@ def enrich_site_rows(found, src):
     batch={}
     if mode == 'browser':
         batch=fetch_browser_batch([row.get('url') for row in found[:limit]], wait_ms=int(src.get('detail_wait_ms',900)))
+    if sid == 'copymanga' and mode != 'browser':
+        # Reuse one browser only for failed direct pages; never launch Chromium 48 times.
+        failed=[]
+        for row in found[:limit]:
+            try: batch[row['url']]=fetch_requests(row['url'])
+            except Exception: failed.append(row['url'])
+        batch.update(fetch_browser_batch(failed, wait_ms=350))
     for row in found[:limit]:
         try:
-            detail=batch.get(row['url']) if mode == 'browser' else fetch(row['url'], mode)
+            detail=batch.get(row['url']) if mode == 'browser' or sid == 'copymanga' else fetch(row['url'], mode)
             if isinstance(detail, Exception): raise detail
             if not detail: raise RuntimeError('empty detail page')
             item={
@@ -184,6 +192,10 @@ def refresh_site_updates(content_cfg, generated):
                     seen.add(key); found.append(row)
                 if len(found)>=int(src.get('limit',24)): break
             found=found[:int(src.get('limit',24))]
+            if sid == 'copymanga':
+                known={site_row_key(r) for r in found}
+                found.extend({**r,'latest_checked_at':None} for r in previous_rows if r.get('source')==sid and site_row_key(r) not in known)
+                found=found[:int(src.get('limit',24))]
             if not found: raise RuntimeError('no latest items detected')
             found=enrich_site_rows(found,src)
             for row in found:

@@ -1,4 +1,5 @@
 import sys,unittest
+from unittest.mock import patch
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'apps/tsugi-checker/scraper'))
 from aggregators import parse_site_latest
@@ -21,9 +22,8 @@ class SourceTests(unittest.TestCase):
   rows=parse_site_latest('<!-- 熱門更新 --><section><h2>漫畫 推薦</h2><a href="/comic/old">旧推荐</a></section><section><h2><span>熱門</span> <span>更新</span></h2>'+cards+'</section>','https://www.mangacopy.com/','copymanga','CopyManga','manga',48)
   self.assertEqual(len(rows),48)
  def test_failed_details_do_not_count_as_verified(self):
-  previous=main.fetch;main.fetch=lambda *a:(_ for _ in ()).throw(RuntimeError('offline'))
-  try:
+  with patch.object(main,'fetch_requests',side_effect=RuntimeError('offline')), patch.object(main,'fetch_browser_batch',return_value={'https://www.mangacopy.com/comic/a':RuntimeError('offline')}):
    rows=[{'id':'x','title':'漫画','url':'https://www.mangacopy.com/comic/a','latest':'最新更新'}]
    main.enrich_site_rows(rows,{'id':'copymanga','enrich':True,'detail_delay':0});self.assertIn('enrich_error',rows[0]);self.assertNotIn('latest_checked_at',rows[0])
-  finally:main.fetch=previous
+
 if __name__=='__main__':unittest.main()
