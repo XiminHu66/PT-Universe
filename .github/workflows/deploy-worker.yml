@@ -80,6 +80,14 @@ jobs:
           }
           JS
 
+      - name: Capture production refresh Worker logs
+        if: contains(github.event.head_commit.message, '[tsugi-verify]')
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          timeout 300s npx wrangler tail --format json --search refresh > /tmp/pt-tsugi-worker.log 2>&1 &
+
       - name: Verify freshly deployed reading scraper and actual chapter data
         if: contains(github.event.head_commit.message, '[tsugi-verify]')
         run: node ../../scripts/tsugi/live-verify.mjs
@@ -89,7 +97,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tsugi-live-verification
-          path: /tmp/pt-tsugi-live.json
+          path: |
+            /tmp/pt-tsugi-live.json
+            /tmp/pt-tsugi-worker.log
           if-no-files-found: warn
 
       - name: Verify Check Desk search against reported queries

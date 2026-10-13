@@ -45,7 +45,7 @@ jobs:
           pacific = ZoneInfo("America/Los_Angeles")
           now = datetime.now(timezone.utc).astimezone(pacific)
           # Delayed GitHub cron must not cause the unwanted afternoon refresh.
-          if os.environ.get("REFRESH_EVENT") == "schedule" and not (now.hour == 8 and now.minute >= 30 and now.minute < 55):
+          if os.environ.get("REFRESH_EVENT") == "schedule" and not (((now.hour == 8 and now.minute >= 30) or now.hour == 9)):
               print("scrape=false\nreason=outside_morning_fallback_window")
               raise SystemExit()
           if os.environ.get("REFRESH_EVENT") != "schedule":
@@ -128,6 +128,8 @@ jobs:
             apps/tsugi-checker/data/site-updates.json
 
       - name: Validate refreshed snapshot
+        id: quality
+        continue-on-error: true
         if: steps.refresh.outputs.scrape == 'true'
         working-directory: apps/tsugi-checker
         run: |
@@ -158,6 +160,20 @@ jobs:
           print(f'validated site_rows={len(rows)} songs={len(songs)} generated_at={generated}')
           PY
 
+      - name: Install Cloudflare publisher
+        if: steps.refresh.outputs.scrape == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Publish fallback snapshots directly to Cloudflare
+        if: steps.refresh.outputs.scrape == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npm ci --prefix workers/pt-universe-api
+          node scripts/tsugi/publish-snapshot.mjs
+
       - name: Commit refreshed Tsugi data to PT Universe
         if: steps.refresh.outputs.scrape == 'true'
         run: |
@@ -177,8 +193,15 @@ jobs:
             git push origin HEAD:main
           fi
 
+      - name: Report incomplete fallback after publishing successful sources
+        if: steps.refresh.outputs.scrape == 'true' && steps.quality.outcome == 'failure'
+        run: |
+          echo "::error::Fallback published available sources, but source verification is incomplete. Inspect tsugi-source-diagnostics."
+          exit 1
+
   deploy:
     needs: refresh
+    if: always() && needs.refresh.result != 'cancelled'
     runs-on: ubuntu-latest
     concurrency:
       group: pages

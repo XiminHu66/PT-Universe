@@ -14,7 +14,7 @@ import {checkAiRoute} from './check-ai';
 import { contentHubRoute, hubTick } from './content-hub';
 
 type RefreshScope='all'|'sites'|'music'|'games';
-type RefreshOrigin='manual'|'scheduled:08:00'|'scheduled:08:30';
+type RefreshOrigin='manual'|'scheduled:08:00'|'scheduled:08:05'|'scheduled:08:30';
 type RefreshMessage={requestId:string;scope:RefreshScope;source:RefreshOrigin;limitKeys?:string[]};
 type RefreshRunSummary={request_id:string;scope:RefreshScope;status:string;started_at:string|null;completed_at:string|null;error:string|null};
 type RefreshBudget={day:string;officialDailyMs:number;safeDailyMs:number;usedMs:number;reservedMs:number;remainingMs:number;estimatedFullRefreshMs:number;remainingRefreshes:number;reservePercent:number;resetsAt:string;scheduledRunFinished:boolean;inFlightRefreshes:number};
@@ -96,9 +96,9 @@ function median(values:number[]){
 }
 async function refreshBudget(env:Env):Promise<RefreshBudget>{
   const [usage,durations,scheduled,active]=await Promise.all([
-    env.DB.prepare("SELECT COALESCE(SUM(duration_ms),0) AS total FROM refresh_runs WHERE scope IN ('all','sites','music') AND status IN ('success','failed') AND completed_at >= datetime('now','start of day')").first<{total:number}>(),
+    env.DB.prepare("SELECT COALESCE(SUM(duration_ms),0) AS total FROM refresh_runs WHERE scope IN ('all','sites','music') AND status IN ('success','partial','failed') AND completed_at >= datetime('now','start of day')").first<{total:number}>(),
     env.DB.prepare("SELECT duration_ms FROM refresh_runs WHERE scope='all' AND status='success' AND duration_ms IS NOT NULL ORDER BY rowid DESC LIMIT 7").all<{duration_ms:number}>(),
-    env.DB.prepare("SELECT COUNT(*) AS total FROM refresh_runs WHERE scope='all' AND source LIKE 'scheduled:%' AND status IN ('success','failed') AND completed_at >= datetime('now','start of day')").first<{total:number}>(),
+    env.DB.prepare("SELECT COUNT(*) AS total FROM refresh_runs WHERE scope='all' AND source LIKE 'scheduled:%' AND status IN ('success','partial','failed') AND completed_at >= datetime('now','start of day')").first<{total:number}>(),
     env.DB.prepare("SELECT COUNT(*) AS total, SUM(CASE WHEN source LIKE 'scheduled:%' THEN 1 ELSE 0 END) AS scheduled FROM refresh_runs WHERE scope IN ('all','sites','music') AND status IN ('queued','running')").first<{total:number;scheduled:number}>()
   ]);
   const samples=(durations.results||[]).map(row=>Number(row.duration_ms)).filter(value=>Number.isFinite(value)&&value>0);
@@ -361,29 +361,77 @@ function mergeSiteRows(current:any[],history:any[],limit:number){
   history.forEach((row,index)=>{const key=siteItemKey(row);if(!key)return;rows.set(key,rows.has(key)?mergeSiteItem(rows.get(key),row):{...row,order:current.length+index})});
   return [...rows.values()].sort((a,b)=>siteItemTime(b)-siteItemTime(a)||(Number(a.order)||0)-(Number(b.order)||0)).slice(0,limit);
 }
-async function scrapeLinks(browser:Browser,url:string,source:string,label:string,type:string,limit:number,patterns:string[]){
-  const page=tunePage(await browser.newPage());try{
-    // Static work lists are cheaper and avoid a browser session for blocked scripts.
-    let direct:any[]=[];
-    if(source==='linovelib'||source==='copymanga')try{
-      const r=await timedFetch(url,{headers:{'user-agent':'Mozilla/5.0 (compatible; PT-Universe/1.0)'}},10_000);
-      if(r.ok)direct=parseSiteList(await r.text(),url,source,label,type,limit);
-    }catch{}
-    if(!direct.length){await page.goto(url,{waitUntil:'domcontentloaded',timeout:20_000});await page.locator('a[href]').first().waitFor({timeout:5_000});}
-    const rows=direct.length?direct:source==='linovelib'||source==='copymanga'
-      ?parseSiteList(await page.content(),page.url(),source,label,type,limit)
-      :await page.locator('a[href]').evaluateAll((els,args)=>{
-        const seen=new Set<string>();
-        return els.map((el:any)=>{
-          const url=el.href||'',container=el.closest('li,article,tr,.book,.item,.card')||el.parentElement||el;
-          const img=container.querySelector('img'),heading=el.querySelector('h1,h2,h3,h4,.title,.name,strong,b')||container.querySelector('h1,h2,h3,h4,.title,.name');
-          const title=(heading?.textContent||img?.getAttribute('alt')||el.getAttribute('title')||el.textContent||'').replace(/\s+/g,' ').trim().slice(0,100);
-          const context=(container.textContent||'').replace(/\s+/g,' ').trim(),chapter=context.match(/(?:更新至|最新(?:章节|话|話|卷)?)[：:\s]*([^|｜。！？]{1,48})/i),date=context.match(/20\d{2}[-/.年]\d{1,2}[-/.月]\d{1,2}/);
-          return {title,url,cover:img?.getAttribute('data-src')||img?.getAttribute('data-original')||img?.src||'',latest:chapter?.[1]?.trim()||'',updated_text:date?.[0]||''};
-        }).filter((x:any)=>x.title&&args.patterns.some((p:string)=>x.url.includes(p))&&!seen.has(x.url)&&Boolean(seen.add(x.url))).slice(0,args.limit);
-      },{patterns,limit});
-    const fetchedAt=now();
-    return rows.map((x:any,index:number):any=>({id:`${source}-${btoa(unescape(encodeURIComponent(x.url))).slice(-24)}`,type,source,source_label:label,title:text(x.title),latest:text(x.latest),updated_text:text(x.updated_text),url:x.url,cover:x.cover,latest_url:x.latest_url||'',chapter_count:null,fetched_at:fetchedAt,latest_checked_at:hasChapter(x.latest)?fetchedAt:null,order:index}));
+// Read content as soon as work links exist; analytics/scripts must not block a source.
+async function sourcePage(browser:Browser,url:string,selector:string){
+  const page=tunePage(await browser.newPage());
+  await page.route('**/*',route=>['image','media','font'].includes(route.request().resourceType())?route.abort():route.continue());
+  try{
+    await page.goto(url,{waitUntil:'commit',timeout:12_000});
+    await page.locator(selector).first().waitFor({state:'attached',timeout:8_000});
+    return page;
+  }catch(e){await closeFast(page);throw e}
+}
+async function scrapeLinks(browser:Browser,url:string,source:string,label:string,type:string,limit:number,_patterns:string[]){
+  let rows:any[]=[],lastError:unknown;
+  // Prefer the actual update index, including on the mobile manga site.
+  try{
+    const r=await timedFetch(url,{headers:{'user-agent':'Mozilla/5.0'}},8_000);
+    if(r.ok)rows=parseSiteList(await r.text(),url,source,label,type,limit);
+  }catch(e){lastError=e}
+  if(!rows.length){
+    for(let attempt=0;attempt<2&&!rows.length;attempt++){
+      let page:Page|undefined;
+      try{page=await sourcePage(browser,url,'a[href*="'+(source==='linovelib'?'/novel/':'/comic/')+'"]');rows=parseSiteList(await page.content(),page.url(),source,label,type,limit)}
+      catch(e){lastError=e}finally{if(page)await closeFast(page)}
+    }
+  }
+  if(!rows.length)throw lastError||Error('来源未返回作品');
+  const fetchedAt=now();
+  return rows.map((x:any,index:number):any=>({id:`${source}-${btoa(unescape(encodeURIComponent(x.url))).slice(-24)}`,type,source,source_label:label,title:text(x.title),latest:text(x.latest),updated_text:text(x.updated_text),url:x.url,cover:x.cover,latest_url:x.latest_url||'',chapter_count:null,fetched_at:fetchedAt,latest_checked_at:hasChapter(x.latest)?fetchedAt:null,order:index}));
+}
+async function verifySiteChapters(browser:Browser,rows:any[],source:string,indexUrl:string){
+  // Fetch from the browser's same-origin session: 60 novels must not consume the
+  // Worker's 50 external-subrequest quota or starve later sources and games.
+  const started=Date.now();
+  const page=await sourcePage(browser,indexUrl,'a[href]');
+  try{
+    for(let offset=0;offset<rows.length;offset+=10){
+      if(Date.now()-started>60_000){for(const row of rows.slice(offset))row.enrich_error='来源核验超时，等待兜底';break}
+      const batch=rows.slice(offset,offset+10);
+      const details=await page.evaluate(async(urls:string[])=>{
+        const results:{url:string;html?:string;error?:string}[]=new Array(urls.length);let cursor=0;
+        const pause=(ms:number)=>new Promise(r=>setTimeout(r,ms));
+        await Promise.all(Array.from({length:2},async()=>{
+          while(cursor<urls.length){const i=cursor++,url=urls[i];
+            for(let attempt=0;attempt<2;attempt++){
+              try{
+                const r=await fetch(url,{credentials:'same-origin',signal:AbortSignal.timeout(6_000)});
+                if((r.status===429||r.status>=500)&&attempt===0){await r.body?.cancel();await pause(1_500);continue}
+                if(!r.ok){await r.body?.cancel();throw Error('HTTP '+r.status)}
+                results[i]={url,html:await r.text()};break;
+              }catch(e){results[i]={url,error:String(e)};break}
+            }
+            await pause(200);
+          }
+        }));return results;
+      },batch.map(x=>x.url));
+      for(let i=0;i<batch.length;i++){
+        const row=batch[i],response=details[i];
+        const detail=response?.html?parseLatestDetail(response.html,row.url,source):{};
+        if(hasChapter(detail.latest)){Object.assign(row,detail,{latest_checked_at:now()});delete row.enrich_error}
+        else row.enrich_error=response?.error||'详情页没有最新章节';
+      }
+    }
+    // A real page navigation can recover anti-bot or fetch-only failures.
+    for(const row of rows.filter(x=>!x.latest_checked_at)){
+      if(Date.now()-started>85_000)break;
+      try{
+        await page.goto(row.url,{waitUntil:'commit',timeout:6_000});
+        await page.locator(source==='linovelib'?'.book-status':'title').first().waitFor({state:'attached',timeout:4_000});
+        const detail=parseLatestDetail(await page.content(),row.url,source);
+        if(hasChapter(detail.latest)){Object.assign(row,detail,{latest_checked_at:now()});delete row.enrich_error}
+      }catch(e){row.enrich_error=String(e)}
+    }
   }finally{await closeFast(page)}
 }
 async function refreshSites(env:Env,sharedBrowser?:Browser,source:RefreshOrigin='manual'){
@@ -414,27 +462,14 @@ async function refreshSites(env:Env,sharedBrowser?:Browser,source:RefreshOrigin=
           const known=new Set(fresh.map((x:any)=>x.url));fresh.push(...next.filter((x:any)=>!known.has(x.url)));
         }
         if(!fresh.length)throw new Error('来源未返回作品');
+        const discoveredCount=fresh.length;
         if(s.id==='linovelib'||s.id==='copymanga'){
-          let cursor=0;
-          await Promise.all(Array.from({length:4},async()=>{
-            while(cursor<fresh.length){const row=fresh[cursor++];
-              try{
-                const response=await timedFetch(row.url,{headers:{'user-agent':'Mozilla/5.0 (compatible; PT-Universe/1.0)'}},8_000);
-                if(!response.ok)throw Error('HTTP '+response.status);
-                const detail=parseLatestDetail(await response.text(),row.url,s.id);
-                if(!hasChapter(detail.latest))throw Error('详情页没有最新章节');
-                Object.assign(row,detail,{latest_checked_at:now()});
-              }catch(e){row.enrich_error=String(e)}
-            }
-          }));
-          // Browser fallback is bounded; failed HTTP must never promote old chapters as fresh.
-          for(const row of fresh.filter((x:any)=>!x.latest_checked_at).slice(0,6)){
-            const page=tunePage(await browser.newPage());
-            try{await page.goto(row.url,{waitUntil:'domcontentloaded',timeout:8_000});const detail=parseLatestDetail(await page.content(),row.url,s.id);if(hasChapter(detail.latest)){Object.assign(row,detail,{latest_checked_at:now()});delete row.enrich_error}}catch{}finally{await closeFast(page)}
-          }
+          // Retained tracked works are checked too, even when absent from the latest index.
+          fresh=mergeSiteRows(fresh,prior,s.limit).map((row:any)=>({...row,latest_checked_at:null}));
+          await verifySiteChapters(browser,fresh,s.id,s.url);
         }
         const verified=fresh.filter((x:any)=>x.latest_checked_at).length,rows=mergeSiteRows(fresh,prior,s.limit);
-        items.push(...rows);states[s.id]={label:s.label,ok:true,count:rows.length,freshCount:fresh.length,verifiedChapterCount:verified,checked_at:now(),degraded:Boolean(discoveryError)||verified<fresh.length,discovery_error:discoveryError||undefined,discovery_mode:discoveryError?'verified-known-works':'latest-update-index',chapterCount:rows.filter((x:any)=>hasChapter(x.latest)).length,coverCount:rows.filter((x:any)=>x.cover).length};
+        items.push(...rows);states[s.id]={label:s.label,ok:true,count:rows.length,freshCount:fresh.length,discoveredCount,verifiedChapterCount:verified,checked_at:now(),degraded:Boolean(discoveryError)||verified<fresh.length,discovery_error:discoveryError||undefined,discovery_mode:discoveryError?'verified-known-works':'latest-update-index',unverified:fresh.filter((x:any)=>!x.latest_checked_at).map((x:any)=>({title:x.title,url:x.url,error:x.enrich_error||'最新章节未核实'})),chapterCount:rows.filter((x:any)=>hasChapter(x.latest)).length,coverCount:rows.filter((x:any)=>x.cover).length};
       }catch(e){const fallback=mergeSiteRows([],prior,s.limit);items.push(...fallback);states[s.id]={label:s.label,ok:false,count:fallback.length,checked_at:now(),error:String(e),fallback:true}}
 
     }
@@ -499,14 +534,31 @@ async function refreshGames(env:Env){
 async function runRefresh(env:Env,scope:RefreshScope,source:RefreshOrigin='manual'){
   const result:Json={};
   if(scope==='all'){
-    await withBrowser(env,async browser=>{result.sites=await refreshSites(env,browser,source);result.music=await refreshMusic(env,browser,source)});
-    result.games=await refreshGames(env);
+    // Games are independent and must not inherit browser/detail quota failures.
+    try{result.games=await refreshGames(env)}catch(e){result.games={error:String(e)}}
+    await withBrowser(env,async browser=>{
+      try{result.sites=await refreshSites(env,browser,source)}catch(e){result.sites={error:String(e)}}
+      try{result.music=await refreshMusic(env,browser,source)}catch(e){result.music={error:String(e)}}
+    });
   }else if(scope==='sites')result.sites=await refreshSites(env,undefined,source);
   else if(scope==='music')result.music=await refreshMusic(env,undefined,source);
   else if(scope==='games')result.games=await refreshGames(env);
   const state={generated_at:now(),scope,refresh_source:source,result};await putData(env,'state.json',state);return result;
 }
 
+function refreshQuality(result:Json){
+  const issues:string[]=[];
+  for(const group of ['sites','music']){
+    if((result[group] as any)?.error)issues.push(group+': '+(result[group] as any).error);
+    const sources=(result[group] as any)?.sources||{};
+    for(const [id,state] of Object.entries<any>(sources))if(!state.ok||state.fallback||state.degraded)issues.push(`${id}: ${state.error||state.discovery_error||'部分章节待核实'}`);
+  }
+  const games=result.games as any;
+  if(games?.error)issues.push('games: '+games.error);
+  if(games?.remoteError)issues.push('games: '+games.remoteError);
+  if(games?.generatedAt&&Date.now()-Date.parse(games.generatedAt)>30*3600_000)issues.push('games: 游戏快照已过期');
+  return {ok:issues.length===0,issues};
+}
 async function status(env:Env){
   await env.DB.prepare("UPDATE refresh_runs SET status='failed',completed_at=?,error='Refresh session exceeded six minutes and was reclaimed' WHERE status='running' AND datetime(started_at) < datetime('now','-6 minutes')").bind(now()).run();
   const rows=await env.DB.prepare('SELECT request_id,scope,source,status,started_at,completed_at,duration_ms,error,result_json FROM refresh_runs ORDER BY rowid DESC LIMIT 20').all();
@@ -560,8 +612,8 @@ export default {
       const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(due);
       const pick=(type:string)=>parts.find(x=>x.type===type)?.value||'';
       const hour=Number(pick('hour')),minute=Number(pick('minute'));
-      if(hour!==8||(minute!==0&&minute!==30))return;
-      const source:RefreshOrigin=minute===0?'scheduled:08:00':'scheduled:08:30';
+      if(hour!==8||![0,5,30].includes(minute))return;
+      const source:RefreshOrigin=minute===0?'scheduled:08:00':minute===5?'scheduled:08:05':'scheduled:08:30';
       const day=`${pick('year')}-${pick('month')}-${pick('day')}`;
       const requestId=crypto.randomUUID(),stamp=now();
       const record=async(status:string,reason:string)=>{
@@ -600,6 +652,6 @@ export default {
     })());
   },
   async queue(batch:MessageBatch<RefreshMessage>,env:Env){
-    for(const message of batch.messages){const {requestId,scope,limitKeys=[]}=message.body,start=Date.now(),deadline=scope==='all'?225_000:scope==='games'?150_000:scope==='sites'?210_000:scope==='music'?75_000:60_000;try{await env.DB.prepare('UPDATE refresh_runs SET status=?,started_at=? WHERE request_id=?').bind('running',now(),requestId).run();const result=await withDeadline(runRefresh(env,scope,message.body.source),deadline,`${scope} 刷新`);await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,duration_ms=?,result_json=? WHERE request_id=?').bind('success',now(),Date.now()-start,JSON.stringify(result),requestId).run();message.ack()}catch(e){console.error('refresh_failed',{requestId,scope,error:String(e)});await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,duration_ms=?,error=? WHERE request_id=?').bind('failed',now(),Date.now()-start,String(e),requestId).run();for(const key of limitKeys)await env.DB.prepare('DELETE FROM refresh_limits WHERE limit_key=?').bind(key).run();message.ack()}}
+    for(const message of batch.messages){const {requestId,scope,limitKeys=[]}=message.body,start=Date.now(),deadline=scope==='all'?225_000:scope==='games'?150_000:scope==='sites'?210_000:scope==='music'?75_000:60_000;try{await env.DB.prepare('UPDATE refresh_runs SET status=?,started_at=? WHERE request_id=?').bind('running',now(),requestId).run();const result=await withDeadline(runRefresh(env,scope,message.body.source),deadline,`${scope} 刷新`);await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,duration_ms=?,result_json=? WHERE request_id=?').bind(refreshQuality(result).ok?'success':'partial',now(),Date.now()-start,JSON.stringify({...result,quality:refreshQuality(result)}),requestId).run();console.log('refresh_completed',{requestId,scope,quality:refreshQuality(result)});message.ack()}catch(e){console.error('refresh_failed',{requestId,scope,error:String(e)});await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,duration_ms=?,error=? WHERE request_id=?').bind('failed',now(),Date.now()-start,String(e),requestId).run();for(const key of limitKeys)await env.DB.prepare('DELETE FROM refresh_limits WHERE limit_key=?').bind(key).run();message.ack()}}
   }
 } satisfies ExportedHandler<Env,RefreshMessage>;

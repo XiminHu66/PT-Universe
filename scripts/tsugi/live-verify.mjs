@@ -1,17 +1,17 @@
 import fs from 'node:fs';
 const api='https://pt-universe-api.summer07-nanjolno.workers.dev',headers={'user-agent':'Mozilla/5.0 PT-Universe deployment verification',origin:'https://ximinhu66.github.io'};
 const json=async(path,method='GET')=>{const r=await fetch(api+path,{method,headers,signal:AbortSignal.timeout(30000)});const d=await r.json();if(!r.ok)throw Error(path+': '+r.status+' '+JSON.stringify(d));return d};
-const health=await json('/api/health');if(health.refresh_revision!=='2026-10-12-source-verification3')throw Error('Site scraper revision not deployed');
+const health=await json('/api/health');if(health.refresh_revision!=='2026-10-13-browser-batch1')throw Error('Site scraper revision not deployed');
 console.log('Allowing the deployed queue consumer to settle before the live refresh');
 for(let i=0;i<2;i++)await new Promise(r=>setTimeout(r,35000));
 const before=await json('/api/data/site-updates.json'),start=Date.now(),queued=await json('/api/refresh/sites','POST');
 console.log('Live site refresh',queued.requestId,queued.status);let run;
 for(let i=0;i<50;i++){
  const status=await json('/api/status');run=status.runs.find(r=>r.request_id===queued.requestId);
- if(run&&['success','failed'].includes(run.status))break;
+ if(run&&['success','partial','failed'].includes(run.status))break;
  await new Promise(r=>setTimeout(r,5000));
 }
-if(!run||run.status!=='success')throw Error('Site refresh did not succeed: '+JSON.stringify(run));
+if(!run||!['success','partial'].includes(run.status))throw Error('Site refresh did not succeed: '+JSON.stringify(run));
 const required=['manhuagui','linovelib','copymanga'];
 let site;
 // D1 completion is immediate; distributed KV can still return the preceding value.

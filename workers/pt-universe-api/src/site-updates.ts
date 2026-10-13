@@ -1,4 +1,4 @@
-export const SITE_REFRESH_REVISION='2026-10-12-source-verification3';
+export const SITE_REFRESH_REVISION='2026-10-13-browser-batch1';
 import {parseDocument} from 'htmlparser2';
 import {findAll,textContent} from 'domutils';
 type Row=Record<string,any>;
@@ -47,7 +47,7 @@ export function parseSiteList(html:string,base:string,source:string,label:string
   const title=(/\.\.\.|…/.test(raw)||!raw?img?.attribs.alt||img?.attribs.title:raw)||img?.attribs.alt||'';
   if(title.length<2)continue;
   const context=plain(card),m=context.match(/(?:更新至|最新(?:章节|章節|话|話|卷)?)[：:\s]*([^|]{1,60})/),chapter=links(card).find(n=>n!==a&&/第\s*\S+?(?:章|话|話|回|卷)/.test(plain(n)));
-  const latest=chapter?plain(chapter):m?.[1]?.trim()||'';
+  const latest=(chapter?plain(chapter):m?.[1]?.trim()||'').replace(/(?:更新[于於]|最後更新|最后更新)[：:\s]*.*$/,'').trim();
   seen.add(url);rows.push({type,source,source_label:label,title,latest,updated_text:date(context),url,cover:absolute(img?.attribs['data-src']||img?.attribs['data-original']||img?.attribs.src||'',base),latest_url:chapter?absolute(chapter.attribs.href,base):'',order:rows.length});
   if(rows.length>=limit)break;
  }
