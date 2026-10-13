@@ -35,7 +35,7 @@ console.log('Newly listed undated works are not buried below dated old history')
 const verification=index.slice(index.indexOf('async function verifySiteChapters('),index.indexOf('async function refreshSites('));
 const verificationJS=await transform(verification,{loader:'ts'});
 let batches=0,detailCloses=0;
-const context={Date,sourcePage:async()=>({evaluate:async(fn,urls)=>{batches++;assert.ok(urls.length<=10);return urls.map(url=>({url,html:'<a href="/novel/1/catalog"><div>最后更新 · 2026-10-13</div><p>最新章</p></a>'}))}}),parseLatestDetail:S.parseLatestDetail,hasChapter:v=>Boolean(v),now:()=>new Date().toISOString(),closeFast:async()=>detailCloses++};
+const context={Date,browserChapterBatch:()=>{},sourcePage:async()=>({evaluate:async(fn,urls)=>{batches++;assert.ok(urls.urls.length<=10);return urls.urls.map(url=>({url,detail:{latest:'最新章'}}))}}),parseLatestDetail:S.parseLatestDetail,hasChapter:v=>Boolean(v),now:()=>new Date().toISOString(),closeFast:async()=>detailCloses++};
 vm.createContext(context);vm.runInContext(verificationJS.code,context);
 const novels=Array.from({length:60},(_,i)=>({url:`https://tw.linovelib.com/novel/${i}.html`,latest_checked_at:null}));
 await context.verifySiteChapters({},novels,'linovelib','https://tw.linovelib.com/wenku/');
@@ -56,3 +56,25 @@ assert.equal(S.parseLatestDetail('<title>漫畫-短篇-拷貝漫畫</title>','ht
 assert.equal(S.parseLatestDetail('<title>漫畫-第54話 完結-拷貝漫畫</title>','https://www.mangacopy.com/comic/a','copymanga').latest,'第54話 完結');
 
 assert.equal(context.refreshQuality({games:{generatedAt:new Date().toISOString(),sources:{taptap_cn_upcoming:{ok:false,error:'No items parsed'}}}}).ok,false);
+
+// Run the exact Browser Run callbacks against HTML fixtures; no HTML is returned to the Worker.
+const {DOMParser}=await import('linkedom');
+const browserBuilt=await build({entryPoints:['src/browser-site-parser.ts'],bundle:true,format:'esm',platform:'node',write:false});
+const B=await import('data:text/javascript;base64,'+Buffer.from(browserBuilt.outputFiles[0].text).toString('base64'));
+const savedFetch=globalThis.fetch,savedParser=globalThis.DOMParser;
+globalThis.DOMParser=DOMParser;
+try{
+ globalThis.fetch=async()=>new Response('<html><head><title>書</title></head><body><a href="/novel/1/catalog"><div>最后更新 · 2026-10-13</div><p>第60章</p></a>'+('<!-- ignored -->'.repeat(15000))+'</body></html>');
+ const result=await B.browserChapterBatch({urls:['https://tw.linovelib.com/novel/1.html'],source:'linovelib'});
+ assert.equal(result[0].detail.latest,'第60章');assert.equal(result[0].detail.updated_text,'2026-10-13');assert.ok(JSON.stringify(result).length<500);assert.equal(result[0].html,undefined);
+ globalThis.fetch=async()=>new Response('<html><head><title>漫畫-短篇 完結-拷貝漫畫</title></head><body>最後更新：2026-10-13</body></html>');
+ const manga=await B.browserChapterBatch({urls:['https://www.mangacopy.com/comic/a'],source:'copymanga'});assert.equal(manga[0].detail.latest,'短篇 完結');
+ globalThis.fetch=async()=>new Response('<html><head><title>Site Unavailable</title></head><body>blocked</body></html>');
+ assert.equal((await B.browserChapterBatch({urls:['https://www.mangacopy.com/comic/a'],source:'copymanga'}))[0].detail.latest,undefined);
+ globalThis.fetch=async()=>new Response('<html><body>'+copy+'</body></html>');
+ const browserCopies=await B.browserSiteList({url:'https://www.mangacopy.com/',source:'copymanga',label:'CopyManga',type:'manga',limit:48});
+ assert.equal(browserCopies.length,4);assert.equal(browserCopies[0].latest,'第1話');assert.ok(!browserCopies.some(x=>x.title==='ranking'));
+ globalThis.fetch=async()=>new Response('<html><body><ul class="book-ol-normal">'+li+'</ul></body></html>');
+ const browserNovels=await B.browserSiteList({url:'https://tw.linovelib.com/wenku/',source:'linovelib',label:'BiliNovel',type:'novel',limit:60});assert.equal(browserNovels[0].title,'完整小說名稱');
+}finally{globalThis.fetch=savedFetch;globalThis.DOMParser=savedParser}
+console.log('Browser-side parsing preserves chapter/date semantics and returns only compact records');
