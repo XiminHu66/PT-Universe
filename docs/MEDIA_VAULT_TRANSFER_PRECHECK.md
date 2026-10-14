@@ -45,6 +45,37 @@ Public limited-session approval: https://github.com/XiminHu66/PT-Universe/action
 Public temporary streaming gate: https://github.com/XiminHu66/PT-Universe/actions/runs/38627920548
 Public revocation and final shutdown: https://github.com/XiminHu66/PT-Universe/actions/runs/38628475426
 
+## Interrupted-transfer and process-loss recovery acceptance
+
+Durable relay state now stores only the transfer ID, hashed ticket digest, month, expected size, attempted/confirmed byte counters, deadline and terminal outcome. No media bytes are written to Durable Object storage, D1, R2, KV, Actions artifacts or a cloud file archive. A 120-second idle alarm settles stalled transfers, and failed ledger settlement schedules a retry. Atomic ticket redemption now happens inside the initialized relay, preventing recovery from misclassifying a newly claimed ticket.
+
+On relay process loss, a fresh instance settles its durable checkpoint and rejects reuse of the old ticket. Ordinary interruption counts bytes accepted by the forwarding pipeline, not bytes saved to disk. If a process dies with an unconfirmed frame in flight, recovery conservatively counts its attempted upper bound (at most one 256 KiB frame above confirmed bytes). An active ticket lost between claim and checkpoint uses its full reserved upper bound. These conservative recovery values protect the application budget; they are not a measurement of the user's saved bytes or the Oracle tenancy's actual billing. All settlement paths use the active-ticket guard so duplicate callbacks or restarts cannot credit twice.
+
+SQLite-backed fault injection covers confirmed and in-flight process loss, claim/checkpoint orphan recovery, idle alarms, automatic consumer cancellation, ledger failure followed by process loss, terminal outcome preservation, and concurrent redemption. The four Worker test groups and ten agent tests passed.
+
+A real process-loss test paused the existing small MP4 after its first acknowledged 262,144-byte frame, sent SIGKILL to only the hybrid agent, and recreated that agent with its fault hook removed. Recovery sources stayed available. The HTTP consumer received a truncated response; reserved bytes returned to zero, and the old ticket returned HTTP 403. A new ticket transferred the complete 2,848,208-byte MP4 with the source SHA-256.
+
+A separate consumer cancellation received 16,384 bytes before aborting. The forwarding pipeline had accepted one 262,144-byte frame, which was counted; the remaining reservation was released. A new ticket again transferred the complete MP4 with the matching source hash. Successful retries download the file from the beginning.
+
+The first two diagnostic runs exposed that a normal TransformStream did not preserve the manually supplied physical HTTP Content-Length: the 262,144-byte truncated response could end as normal EOF. The relay now uses the Workers native FixedLengthStream, and live checks verify the physical source length and an explicit interrupted-body error. Reference: https://developers.cloudflare.com/workers/runtime-apis/response/
+
+| Successful recovery case | Bytes counted | Reservation after settlement |
+| --- | ---: | ---: |
+| Agent process loss after first acknowledged frame | 262,144 | 0 |
+| Full retry after process loss | 2,848,208 | 0 |
+| Consumer cancellation after first frame | 262,144 | 0 |
+| Full retry after cancellation | 2,848,208 | 0 |
+| Total for the successful acceptance run | 6,220,704 | 0 |
+
+The two earlier diagnostic interruptions added 524,288 bytes in total and remain in the ledger. Starting from the previous 9,066,216-byte total, all runs in this stage added 6,744,992 bytes; the final counter is 15,811,208.
+
+Both streaming switches were restored to OFF. Final live checks confirmed transferred_bytes=15811208, reserved_bytes=0 and tracking=not_active; the temporary acceptance sessions were revoked. The fault watcher and rollback timer were stopped, and test-only runtime flags were removed. All three retained source files still matched their earlier sizes and hashes after shutdown. Production pages and public application ports were unchanged. Both PRs remain drafts.
+
+Public recovery acceptance, latest successful attempt: https://github.com/XiminHu66/PT-Universe/actions/runs/38631781348
+Public final shutdown: https://github.com/XiminHu66/PT-Universe/actions/runs/38632971815
+
 ## Pending original release gates
 
-Continue active-transfer interruption and process-loss recovery, stale reservation recovery, cancellation/backpressure/rate limits, larger files, retention cleanup, source coverage and final frontend browser integration. User-device Windows saving remains a separate environment check. Do not merge or deploy the production frontend based solely on small-file acceptance.
+Real VPS agent process loss and HTTP-consumer interruption are verified. Relay process reconstruction, orphan recovery and alarm handling have SQLite-backed fault-injection coverage; no claim is made that an actual Cloudflare host was forcibly terminated. Native-browser interrupted-save handling and user-device Windows saving remain separate environment checks.
+
+Continue backpressure/rate-limit stress, larger files, retention cleanup, source coverage and final frontend browser integration. Do not merge or deploy the production frontend based solely on these bounded test passes.
