@@ -119,8 +119,8 @@ export async function issueFileTicket(env,data,session=null){
   const digest=await hash(token);
   try {
    const ops=[
-    env.DB.prepare("INSERT INTO mv_hybrid_tickets(digest,job_id,relative_path,bytes,month,expires_at,status) SELECT ?,?,?,?,?,?,'new' FROM mv_hybrid_transfer_usage WHERE month=? AND transferred_bytes+reserved_bytes+?<=? AND (SELECT COUNT(*) FROM mv_hybrid_tickets WHERE status='new' AND expires_at>?)<6"+(session?" AND EXISTS(SELECT 1 FROM mv_hybrid_browser_sessions WHERE digest=? AND status='approved' AND expires_at>? AND issued_tickets<6)":''))
-     .bind(digest,data.id,data.path,f.bytes,m,expires,m,f.bytes,transferBudget(env),now,...(session?[session.digest,now]:[])),
+    env.DB.prepare("INSERT INTO mv_hybrid_tickets(digest,job_id,relative_path,bytes,month,expires_at,status) SELECT ?,?,?,?,?,?,'new' FROM mv_hybrid_transfer_usage WHERE month=? AND transferred_bytes+reserved_bytes+?<=? AND (SELECT COUNT(*) FROM mv_hybrid_tickets WHERE status='new' AND expires_at>?)<6 AND EXISTS(SELECT 1 FROM mv_hybrid_jobs WHERE id=? AND status='complete')"+(session?" AND EXISTS(SELECT 1 FROM mv_hybrid_browser_sessions WHERE digest=? AND status='approved' AND expires_at>? AND issued_tickets<6)":''))
+     .bind(digest,data.id,data.path,f.bytes,m,expires,m,f.bytes,transferBudget(env),now,data.id,...(session?[session.digest,now]:[])),
     env.DB.prepare("UPDATE mv_hybrid_transfer_usage SET reserved_bytes=reserved_bytes+?,updated_at=? WHERE month=? AND EXISTS(SELECT 1 FROM mv_hybrid_tickets WHERE digest=? AND status='new')").bind(f.bytes,now,m,digest)
    ];
    if(session){

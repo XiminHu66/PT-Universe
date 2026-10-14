@@ -56,7 +56,7 @@ export class MediaRelay {
    if(!ID.test(jobId||'')||!ID.test(id||'')||!path||path.length>300||!Number.isSafeInteger(size)||size<=0||size>12*1024**3||!/^\d{4}-\d{2}$/.test(period||'')||!(/^[0-9a-f]{64}$/).test(digest||''))return new Response('Invalid stream request',{status:400});
    // Claim in the relay, after constructor recovery, so a concurrent bootstrap
    // cannot mistake a freshly redeemed ticket for a lost-process orphan.
-   const marked=await this.env.DB.prepare("UPDATE mv_hybrid_tickets SET status='active' WHERE digest=? AND status='new' AND expires_at>?").bind(digest,Date.now()).run();
+   const marked=await this.env.DB.prepare("UPDATE mv_hybrid_tickets SET status='active' WHERE digest=? AND status='new' AND expires_at>? AND EXISTS(SELECT 1 FROM mv_hybrid_jobs WHERE id=mv_hybrid_tickets.job_id AND status='complete')").bind(digest,Date.now()).run();
    if(!marked.meta?.changes)return new Response('Ticket unavailable',{status:403});
    const agents=this.agents();
    if(this.transfers.size||this.starting)return new Response('Transfer already running',{status:429,headers:{'Retry-After':'2'}});

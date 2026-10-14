@@ -23,6 +23,44 @@ async function usage(){return DB.prepare('SELECT * FROM mv_hybrid_transfer_usage
 async function reset(size=4){await sql([{sql:'DELETE FROM mv_hybrid_tickets'},{sql:'DELETE FROM mv_hybrid_transfer_usage'},{sql:'DELETE FROM mv_hybrid_files'},{sql:'INSERT INTO mv_hybrid_files(job_id,relative_path,name,bytes) VALUES(?,?,?,?)',args:[id,path,'sample.epub',size]}],true)}
 try{
  await DB.prepare("INSERT INTO mv_hybrid_jobs(id,kind,request_json,status,created_at,updated_at) VALUES(?,'novel','{}','complete',0,0)").bind(id).run();
+ // Real SQLite expiry: no early deletion, pending/active protection,
+ // transaction rollback, idempotency, and issuance/expiry serialization.
+ async function expire(token=env.MEDIA_AGENT_TOKEN,job=id){return handle(new Request(base+'/agent/expire',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({id:job})}),env)}
+ await reset();
+ assert.equal((await expire(env.MEDIA_OWNER_TOKEN)).status,401);
+ assert.equal((await expire('',id)).status,401);
+ assert.equal((await expire(env.MEDIA_AGENT_TOKEN,'invalid')).status,400);
+ assert.equal((await expire(env.MEDIA_AGENT_TOKEN,'f'.repeat(24))).status,404);
+ await DB.prepare("UPDATE mv_hybrid_jobs SET updated_at=? WHERE id=?").bind(Date.now(),id).run();
+ assert.equal((await expire()).status,409,'24-hour cloud age floor must hold');
+ await DB.prepare("UPDATE mv_hybrid_jobs SET updated_at=0 WHERE id=?").bind(id).run();
+ let live=await ticket();assert.equal(live.status,200);
+ assert.equal((await expire()).status,409,'Unredeemed valid ticket retains source');
+ await DB.prepare("UPDATE mv_hybrid_tickets SET status='active'").run();
+ assert.equal((await expire()).status,409,'Active transfer retains source');
+ assert.equal((await DB.prepare('SELECT COUNT(*) AS n FROM mv_hybrid_files').first()).n,1);
+ await DB.prepare("UPDATE mv_hybrid_tickets SET status='new',expires_at=0").run();
+ failAt=1;assert.equal((await expire()).status,500,'Injected D1 failure must roll back expiry');
+ assert.equal((await DB.prepare('SELECT status FROM mv_hybrid_jobs WHERE id=?').bind(id).first()).status,'complete');
+ assert.equal((await usage()).reserved_bytes,4);
+ const other='e'.repeat(24);
+ await DB.prepare("INSERT INTO mv_hybrid_jobs(id,kind,request_json,status,created_at,updated_at) VALUES(?,'novel','{}','complete',0,0)").bind(other).run();
+ await DB.prepare("INSERT INTO mv_hybrid_tickets(digest,job_id,relative_path,bytes,month,expires_at,status) VALUES(?,?,?,2,?,?,'new')").bind('e'.repeat(64),other,'generated/other.epub',period,Date.now()+60000).run();
+ await DB.prepare('UPDATE mv_hybrid_transfer_usage SET reserved_bytes=6,transferred_bytes=7').run();
+ const expirations=await Promise.all(Array.from({length:8},()=>expire()));assert.ok(expirations.every(r=>r.status===200));
+ assert.equal((await usage()).reserved_bytes,2,'Release only selected expired tickets once');assert.equal((await usage()).transferred_bytes,7);
+ assert.equal((await DB.prepare('SELECT COUNT(*) AS n FROM mv_hybrid_files WHERE job_id=?').bind(id).first()).n,0);
+ assert.equal((await ticket()).status,409,'Expired job cannot issue tickets');
+ assert.equal((await handle(new Request(base+'/agent/report',{method:'POST',headers:{Authorization:'Bearer '+env.MEDIA_AGENT_TOKEN},body:JSON.stringify({id,status:'complete',files:[{path,size:4}]})}),env)).status,409,'Late completion cannot revive expired metadata');
+ await DB.prepare('DELETE FROM mv_hybrid_tickets WHERE job_id=?').bind(other).run();await DB.prepare('DELETE FROM mv_hybrid_jobs WHERE id=?').bind(other).run();
+ await DB.prepare("UPDATE mv_hybrid_jobs SET status='complete',updated_at=0 WHERE id=?").bind(id).run();await reset();
+ const [racedTicket,racedExpiry]=await Promise.all([ticket(),expire()]);
+ assert.ok(!(racedTicket.status===200&&racedExpiry.status===200),'Issuance and expiry cannot both win');
+ assert.ok([200,409].includes(racedExpiry.status));
+ if(racedExpiry.status===200)assert.equal((await usage())?.reserved_bytes||0,0);
+ else assert.equal((await usage()).reserved_bytes,4);
+ await DB.prepare("UPDATE mv_hybrid_jobs SET status='complete',updated_at=0 WHERE id=?").bind(id).run();
+ console.log('PASS real SQLite retention: 24-hour floor, active/pending protection, atomic metadata invalidation, rollback, idempotent exact reservation release and issuance race');
  await reset(20*1024*1024);
  const window={...env,MEDIA_STREAM_TEST_UNTIL:String(Date.now()+60000)};
  assert.equal((await request('/download-ticket',{id,path},env.MEDIA_OWNER_TOKEN,window)).status,413);

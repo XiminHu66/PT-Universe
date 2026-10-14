@@ -6,7 +6,7 @@ on:
         description: Metadata operation
         type: choice
         default: verify
-        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer]
+        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention]
       pair_code:
         description: Browser pairing request ID
         type: string
@@ -114,6 +114,13 @@ jobs:
           LARGE_JOB_ID: ${{ inputs.previous_jobs }}
           EXPECTED_SHA256: ${{ inputs.pair_code }}
         run: node workers/media-vault-hybrid/live-large.mjs
+      - name: Retention age floor and role isolation with all sources preserved
+        if: inputs.operation == 'retention'
+        env:
+          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+          AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
+          RETENTION_JOB_IDS: ${{ inputs.previous_jobs }}
+        run: node workers/media-vault-hybrid/live-retention.mjs
       - name: Real metadata lifecycle and restart acceptance
         if: inputs.operation == 'verify'
         env:
