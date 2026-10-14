@@ -6,7 +6,7 @@ on:
         description: Metadata operation
         type: choice
         default: verify
-        options: [deploy, verify, samples, prepare, stream-on, stream-off]
+        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer]
       previous_jobs:
         description: Four prior accepted job IDs (restart-only retry)
         type: string
@@ -59,6 +59,12 @@ jobs:
         env:
           OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
         run: node workers/media-vault-hybrid/live-samples.mjs
+      - name: Real bounded file streaming and ledger acceptance
+        if: inputs.operation == 'transfer'
+        env:
+          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+          SAMPLE_JOB_IDS: ${{ inputs.previous_jobs }}
+        run: node workers/media-vault-hybrid/live-transfer.mjs
       - name: Real metadata lifecycle and restart acceptance
         if: inputs.operation == 'verify'
         env:
