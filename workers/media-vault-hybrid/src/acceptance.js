@@ -27,4 +27,5 @@ async function load(){const d=await api('/acceptance/session');if(d.status!=='ap
 $('#start').onclick=async()=>{try{const d=await api('/acceptance/pair',{});$('#pairCode').textContent=d.pair_code;$('#start').disabled=true;status('配对请求已生成，等待 Owner 批准。');pollTimer=setInterval(()=>load().catch(e=>{clearInterval(pollTimer);status(e.message)}),3000)}catch(e){status(e.message)}};
 $('#refresh').onclick=async()=>{try{const d=await api('/acceptance/session');quota(d);status('额度已核对：本轮新增 '+(d.quota.transferred_bytes-before.transferred_bytes)+' 字节，预留 '+d.quota.reserved_bytes+' 字节。')}catch(e){status(e.message)}};
 $('#replay').onclick=async()=>{try{const r=await fetch('/download?ticket='+encodeURIComponent(lastTicket),{cache:'no-store',signal:AbortSignal.timeout(10000)});if(r.status!==403){await r.body?.cancel();throw Error('票据复用检查失败：HTTP '+r.status)}status('PASS 一次性票据复用返回 HTTP 403。');await load()}catch(e){status(e.message)}};
+load().catch(()=>{});
 </script></html>`;

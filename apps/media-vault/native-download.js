@@ -49,7 +49,9 @@ export function createNativeSaver(options) {
     url.searchParams.set('ticket',data.ticket);url.searchParams.set('attempt',attempt);
     current={attempt,file};
     const anchor=doc.createElement('a');anchor.href=url.href;anchor.target=frame.name;
-    anchor.download=file.name;anchor.referrerPolicy='no-referrer';doc.body.append(anchor);
+    // Content-Disposition supplies the filename. A download attribute would
+    // bypass iframe rendering of a pre-stream HTTP error in Chrome.
+    anchor.referrerPolicy='no-referrer';doc.body.append(anchor);
     try{anchor.click();}finally{anchor.remove();}
     options.onTicket?.(data.ticket);
     notify({phase:'handed-off',file,message:'已交给浏览器保存 '+file.name+'；完成或取消请查看浏览器下载列表。'});

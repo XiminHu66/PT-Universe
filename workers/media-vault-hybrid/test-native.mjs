@@ -18,7 +18,7 @@ assert.equal(calls.length,1,'only ticket metadata is fetched');assert.equal(call
 assert.equal(calls[0].options.credentials,'same-origin');assert.equal(calls[0].options.redirect,'error');
 assert.deepEqual(JSON.parse(calls[0].options.body),{id:file.id,path:file.path});
 const anchor=h.clicks[0],frame=h.nodes.find(n=>n.tag==='iframe'),navigation=new URL(anchor.href);
-assert.equal(anchor.target,frame.name);assert.equal(anchor.download,file.name);assert.equal(anchor.referrerPolicy,'no-referrer');assert.equal(anchor.rel,undefined,'noopener must not turn the named frame into a popup');
+assert.equal(anchor.target,frame.name);assert.equal(anchor.download,undefined,'attachment headers supply filenames and permit HTML error navigation');assert.equal(anchor.referrerPolicy,'no-referrer');assert.equal(anchor.rel,undefined,'noopener must not turn the named frame into a popup');
 assert.equal(navigation.pathname,'/download');assert.equal(navigation.searchParams.get('ticket'),token);
 assert.match(navigation.searchParams.get('attempt'),/^[a-f0-9]{32}$/);assert.ok(!h.states.some(s=>s.phase==='complete'));
 const message={type:'mv-native-download-error',attempt:navigation.searchParams.get('attempt'),status:429,retry_after:2};
