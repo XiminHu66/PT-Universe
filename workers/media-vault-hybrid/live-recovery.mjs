@@ -11,19 +11,19 @@ async function settled(){for(let n=0;n<90;n++){const q=await api('/quota');if(q.
 const id=ids[2],{files}=await api('/jobs/files?id='+id);assert.equal(files.length,1);const f=files[0];assert.match(f.name,/\.mp4$/);assert.equal(f.size,2848208);
 const expected='05bd857af7f70bf51b6aac1144046973bf3325c9101a554bc27dc9607dbbd8f5';
 const baseline=await api('/quota');console.log('RECOVERY_BASELINE '+JSON.stringify({transferred_bytes:baseline.transferred_bytes,reserved_bytes:baseline.reserved_bytes}));assert.equal(baseline.reserved_bytes,0);let full=0,partial=0;
-async function open(){
+async function open(fault=false){
  for(let n=0;n<20;n++){
   const {ticket}=await api('/download-ticket',{id,path:f.path});
   const r=await fetch(base+'/download?ticket='+ticket,{signal:AbortSignal.timeout(180000),headers:{'User-Agent':'PTUniverseAcceptance/0.1'}});
-  if(r.status===200)return {r,ticket};await r.body?.cancel();assert.equal(r.status,503);await pause(2000);
+  if(r.status===200||(fault&&r.status===502))return {r,ticket};await r.body?.cancel();assert.equal(r.status,503);await pause(2000);
  }
  throw Error('Recovered outbound agent unavailable');
 }
 async function noReplay(ticket){const r=await fetch(base+'/download?ticket='+ticket,{signal:AbortSignal.timeout(10000)});assert.equal(r.status,403);await r.body?.cancel();}
 // VPS watcher kills the agent after precisely the first acknowledged WS frame.
-let {r,ticket}=await open(),bytes=0,failed=false;
-try{for await(const chunk of r.body){bytes+=chunk.length}}catch{failed=true;}
-console.log('FAULT_OBSERVATION '+JSON.stringify({failed,received_bytes:bytes,expected_bytes:f.size}));
+let {r,ticket}=await open(true),bytes=0,failed=false;
+if(r.status===502){failed=true;await r.body?.cancel()}else{try{for await(const chunk of r.body){bytes+=chunk.length}}catch{failed=true}}
+console.log('FAULT_OBSERVATION '+JSON.stringify({failed,http_status:r.status,received_bytes:bytes,expected_bytes:f.size}));
 assert.ok(failed&&bytes<f.size,'Expected a truncated HTTP transfer from process loss');
 let q=await settled();assert.equal(q.transferred_bytes-baseline.transferred_bytes,262144,'Process-loss ledger must match the acknowledged frame');partial+=262144;await noReplay(ticket);
 console.log('RECOVERY_PROOF '+JSON.stringify({case:'agent-process-loss',received_bytes:bytes,charged_bytes:262144,reserved_bytes:0,replay_http:403}));
