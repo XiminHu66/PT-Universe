@@ -260,7 +260,10 @@ jobs:
           enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
+          name: tsugi-reading-pages-${{ github.run_attempt }}
           path: .
       - name: Deploy the latest PT Universe
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: tsugi-reading-pages-${{ github.run_attempt }}

@@ -78,3 +78,27 @@ try{
  const browserNovels=await B.browserSiteList({url:'https://tw.linovelib.com/wenku/',source:'linovelib',label:'BiliNovel',type:'novel',limit:60});assert.equal(browserNovels[0].title,'完整小說名稱');
 }finally{globalThis.fetch=savedFetch;globalThis.DOMParser=savedParser}
 console.log('Browser-side parsing preserves chapter/date semantics and returns only compact records');
+
+const productionTitles=JSON.parse(fs.readFileSync('tests/fixtures/copy-production-titles.json','utf8'));
+const htmlTitle=value=>'<html><head><title>'+value.replaceAll('&','&amp;').replaceAll('<','&lt;')+'</title></head><body>最後更新：2026-10-14</body></html>';
+for(const row of productionTitles)assert.equal(S.parseLatestDetail(htmlTitle(row.title),row.url,'copymanga').latest,row.chapter);
+globalThis.DOMParser=DOMParser;globalThis.fetch=async url=>new Response(htmlTitle(productionTitles.find(x=>x.url===url).title));
+try{
+ const rows=await B.browserChapterBatch({urls:productionTitles.map(x=>x.url),source:'copymanga'});
+ assert.equal(rows.length,48);for(let i=0;i<48;i++)assert.equal(rows[i].detail.latest,productionTitles[i].chapter);
+}finally{globalThis.fetch=savedFetch;globalThis.DOMParser=savedParser}
+assert.equal(S.parseLatestDetail('<title>作品-在线阅读 - 拷貝漫畫</title>','https://www.mangacopy.com/comic/a','copymanga').latest,undefined);
+console.log('All 48 actual production CopyManga titles and named chapters passed both parsers');
+const healthContext={Date,Intl};vm.createContext(healthContext);vm.runInContext(app.slice(app.indexOf('function sourceMorningFresh('),app.indexOf('function renderSources(')),healthContext);
+const nowDate=new Date('2026-10-14T16:00:00Z');
+assert.equal(healthContext.sourceHealthBadge({ok:true,checked_at:'2026-10-13T17:44:03Z'},null,nowDate).stale,true);
+assert.equal(healthContext.sourceHealthBadge({ok:true,checked_at:'2026-10-14T15:31:00Z'},null,nowDate).stale,false);
+assert.equal(healthContext.sourceHealthBadge({ok:true,fallback:'Billboard',checked_at:'2026-10-14T15:31:00Z'},null,nowDate).degraded,true);
+assert.equal(healthContext.sourceMorningFresh('2026-10-13T15:30:00Z',new Date('2026-10-14T14:00:00Z')),true);
+console.log('Yesterday snapshots and fallback sources cannot be displayed as healthy current data');
+const budgetCode=index.slice(index.indexOf('function median('),index.indexOf('async function syncRoute('));
+const budgetJS=await transform(budgetCode,{loader:'ts'}),utcStart=new Date();utcStart.setUTCHours(0,0,0,0);
+const budgetContext={Date,DEFAULT_FULL_REFRESH_MS:50000,SAFE_BROWSER_DAILY_MS:300000,OFFICIAL_BROWSER_DAILY_MS:600000,browserHistory:async()=>[{startTime:+utcStart+3000,endTime:+utcStart+303000},{startTime:+utcStart+500000,endTime:+utcStart+748895},{startTime:+utcStart-100000,endTime:+utcStart-1000}]};vm.createContext(budgetContext);vm.runInContext(budgetJS.code,budgetContext);
+const budget=await budgetContext.refreshBudget({BROWSER:{},DB:{prepare:()=>({first:async()=>({total:0,scheduled:0}),all:async()=>({results:[]})})}});
+assert.equal(budget.platformUsedMs,548895);assert.equal(budget.usedMs,548895);assert.equal(budget.remainingRefreshes,0);
+console.log('Aborted browser sessions are counted even when the D1 run has no recorded duration');

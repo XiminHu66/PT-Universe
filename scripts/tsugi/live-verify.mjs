@@ -4,7 +4,7 @@ const json=async(path,method='GET')=>{const r=await fetch(api+path,{method,heade
 let health;
 for(let attempt=0;attempt<36;attempt++){
  health=await json('/api/health?deployment='+Date.now());
- if(health.refresh_revision==='2026-10-13-browser-batch4')break;
+ if(health.refresh_revision==='2026-10-14-title-quality1')break;
  if(attempt===35)throw Error('Site scraper revision did not propagate: '+health.refresh_revision);
  await new Promise(r=>setTimeout(r,5000));
 }
