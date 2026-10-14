@@ -21,6 +21,16 @@ const jid=/^[0-9a-f]{24}$/;
 const ready=e=>e?.ENABLE_DIRECT_STREAM==='true'&&!!e?.RELAY&&!!e?.DB;
 const room=e=>e.RELAY.get(e.RELAY.idFromName('media-vault-private'));
 export async function transportRoute(request,env){
+ const response=await transportCore(request,env);
+ if(!response||response.status===101)return response;
+ const origin=request.headers.get('Origin');
+ if(origin!=='https://ximinhu66.github.io')return response;
+ const headers=new Headers(response.headers);
+ headers.set('Access-Control-Allow-Origin','https://ximinhu66.github.io');
+ headers.set('Vary','Origin');
+ return new Response(response.body,{status:response.status,headers});
+}
+async function transportCore(request,env){
  const u=new URL(request.url),p=u.pathname;
  if(!['/download-ticket','/download','/agent/ws'].includes(p))return null;
  if(!ready(env))return fail(503,'Direct local-computer transfer relay is not enabled; no cloud media storage fallback');
