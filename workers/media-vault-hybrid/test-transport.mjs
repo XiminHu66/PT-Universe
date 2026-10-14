@@ -23,6 +23,14 @@ async function usage(){return DB.prepare('SELECT * FROM mv_hybrid_transfer_usage
 async function reset(size=4){await sql([{sql:'DELETE FROM mv_hybrid_tickets'},{sql:'DELETE FROM mv_hybrid_transfer_usage'},{sql:'DELETE FROM mv_hybrid_files'},{sql:'INSERT INTO mv_hybrid_files(job_id,relative_path,name,bytes) VALUES(?,?,?,?)',args:[id,path,'sample.epub',size]}],true)}
 try{
  await DB.prepare("INSERT INTO mv_hybrid_jobs(id,kind,request_json,status,created_at,updated_at) VALUES(?,'novel','{}','complete',0,0)").bind(id).run();
+ await reset(20*1024*1024);
+ const window={...env,MEDIA_STREAM_TEST_UNTIL:String(Date.now()+60000)};
+ assert.equal((await request('/download-ticket',{id,path},env.MEDIA_OWNER_TOKEN,window)).status,413);
+ assert.equal((await request('/download-ticket',{id,path},env.MEDIA_OWNER_TOKEN,{...window,MEDIA_STREAM_TEST_LARGE_JOB:'b'.repeat(24)})).status,413);
+ assert.equal((await request('/download-ticket',{id,path},env.MEDIA_OWNER_TOKEN,{...window,MEDIA_STREAM_TEST_UNTIL:'1',MEDIA_STREAM_TEST_LARGE_JOB:id})).status,503);
+ assert.equal((await request('/download-ticket',{id,path},env.MEDIA_OWNER_TOKEN,{...window,MEDIA_STREAM_TEST_LARGE_JOB:id})).status,200);
+ await reset(32*1024*1024+1);
+ assert.equal((await request('/download-ticket',{id,path},env.MEDIA_OWNER_TOKEN,{...window,MEDIA_STREAM_TEST_LARGE_JOB:id})).status,413);
  await reset();
  assert.equal((await request('/download-ticket',{id,path},env.MEDIA_AGENT_TOKEN)).status,401);
  assert.equal((await request('/download-ticket',{id,path},env.MEDIA_OWNER_TOKEN,{...env,ENABLE_DIRECT_STREAM:'false'})).status,503);

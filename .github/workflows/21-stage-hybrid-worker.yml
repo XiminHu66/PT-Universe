@@ -6,7 +6,7 @@ on:
         description: Metadata operation
         type: choice
         default: verify
-        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow]
+        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer]
       pair_code:
         description: Browser pairing request ID
         type: string
@@ -34,7 +34,7 @@ jobs:
         with:
           node-version: '24'
       - name: Test and deploy only dedicated hybrid metadata Worker
-        if: inputs.operation == 'deploy' || inputs.operation == 'prepare' || inputs.operation == 'stream-on' || inputs.operation == 'stream-off'
+        if: inputs.operation == 'deploy' || inputs.operation == 'prepare' || inputs.operation == 'stream-on' || inputs.operation == 'large-on' || inputs.operation == 'stream-off'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -72,7 +72,7 @@ jobs:
           AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
         run: node workers/media-vault-hybrid/live-stream-off.mjs
       - name: Verify temporary stream gate and role isolation
-        if: inputs.operation == 'stream-on'
+        if: inputs.operation == 'stream-on' || inputs.operation == 'large-on'
         env:
           OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
           AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
@@ -101,6 +101,19 @@ jobs:
           AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
           SAMPLE_JOB_IDS: ${{ inputs.previous_jobs }}
         run: node workers/media-vault-hybrid/live-flow.mjs
+      - name: Prepare one bounded larger video while streaming OFF
+        if: inputs.operation == 'large-sample'
+        env:
+          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+          LARGE_JOB_ID: ${{ inputs.previous_jobs }}
+        run: node workers/media-vault-hybrid/live-large-sample.mjs
+      - name: Real selected larger file and long paced consumer
+        if: inputs.operation == 'large-transfer'
+        env:
+          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+          LARGE_JOB_ID: ${{ inputs.previous_jobs }}
+          EXPECTED_SHA256: ${{ inputs.pair_code }}
+        run: node workers/media-vault-hybrid/live-large.mjs
       - name: Real metadata lifecycle and restart acceptance
         if: inputs.operation == 'verify'
         env:

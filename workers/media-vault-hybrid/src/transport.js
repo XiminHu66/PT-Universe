@@ -99,7 +99,10 @@ export async function issueFileTicket(env,data,session=null){
   if(j?.status!=='complete')return fail(409,'Job not completed');
   const f=await env.DB.prepare('SELECT bytes,name FROM mv_hybrid_files WHERE job_id=? AND relative_path=?').bind(data.id,data.path).first();
   if(!f||!Number.isSafeInteger(f.bytes)||f.bytes<=0||f.bytes>12*1024**3)return fail(404,'File not found or size invalid');
-  if(env.MEDIA_STREAM_TEST_UNTIL&&f.bytes>10*1024*1024)return fail(413,'Temporary acceptance allows only small files');
+  if(env.MEDIA_STREAM_TEST_UNTIL&&f.bytes>10*1024*1024){
+    const permitted=!session&&Number(env.MEDIA_STREAM_TEST_UNTIL)>Date.now()&&jid.test(env.MEDIA_STREAM_TEST_LARGE_JOB||'')&&data.id===env.MEDIA_STREAM_TEST_LARGE_JOB&&f.bytes<=32*1024*1024;
+    if(!permitted)return fail(413,'Temporary acceptance file exceeds selected test scope');
+  }
   let permit;
   try{permit=await room(env).fetch('https://private/ticket-permit')}catch{return fail(503,'Ticket request limiter unavailable')}
   if(permit.status===429)return fail(429,'Ticket request rate exceeded; maximum twelve per minute',permit.headers.get('Retry-After')||60);
