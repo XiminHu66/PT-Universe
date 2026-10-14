@@ -60,6 +60,14 @@ try{
  if(racedExpiry.status===200)assert.equal((await usage())?.reserved_bytes||0,0);
  else assert.equal((await usage()).reserved_bytes,4);
  await DB.prepare("UPDATE mv_hybrid_jobs SET status='complete',updated_at=0 WHERE id=?").bind(id).run();
+ for(const terminal of ['error','cancelled']){
+  await reset();await DB.prepare('UPDATE mv_hybrid_jobs SET status=?,updated_at=? WHERE id=?').bind(terminal,Date.now(),id).run();
+  assert.equal((await expire()).status,409,'Recent terminal failure/cancellation must retain source');
+  await DB.prepare('UPDATE mv_hybrid_jobs SET updated_at=0 WHERE id=?').bind(id).run();
+  assert.equal((await expire()).status,200,'Aged terminal failure/cancellation can expire');
+  assert.equal((await DB.prepare('SELECT COUNT(*) AS n FROM mv_hybrid_files WHERE job_id=?').bind(id).first()).n,0);
+ }
+ await DB.prepare("UPDATE mv_hybrid_jobs SET status='complete',updated_at=0 WHERE id=?").bind(id).run();
  console.log('PASS real SQLite retention: 24-hour floor, active/pending protection, atomic metadata invalidation, rollback, idempotent exact reservation release and issuance race');
  await reset(20*1024*1024);
  const window={...env,MEDIA_STREAM_TEST_UNTIL:String(Date.now()+60000)};

@@ -139,7 +139,7 @@ export async function handle(request,env){
       // Serialize expiry against both issuance and redemption in D1. A pending
       // or active transfer keeps its source; an expired job cannot issue anew.
       await env.DB.batch([
-        env.DB.prepare("UPDATE mv_hybrid_jobs SET status='expired',updated_at=?,lease_until=0,error='Temporary source expired; submit again' WHERE id=? AND status='complete' AND updated_at<=? AND NOT EXISTS(SELECT 1 FROM mv_hybrid_tickets WHERE job_id=? AND (status='active' OR (status='new' AND expires_at>?)))").bind(now,o.id,now-24*3600000,o.id,now),
+        env.DB.prepare("UPDATE mv_hybrid_jobs SET status='expired',updated_at=?,lease_until=0,error='Temporary source expired; submit again' WHERE id=? AND status IN ('complete','error','cancelled') AND updated_at<=? AND NOT EXISTS(SELECT 1 FROM mv_hybrid_tickets WHERE job_id=? AND (status='active' OR (status='new' AND expires_at>?)))").bind(now,o.id,now-24*3600000,o.id,now),
         env.DB.prepare("UPDATE mv_hybrid_transfer_usage SET reserved_bytes=MAX(0,reserved_bytes-(SELECT COALESCE(SUM(bytes),0) FROM mv_hybrid_tickets WHERE job_id=? AND month=mv_hybrid_transfer_usage.month AND status='new' AND expires_at<=?)),updated_at=? WHERE EXISTS(SELECT 1 FROM mv_hybrid_jobs WHERE id=? AND status='expired')").bind(o.id,now,now,o.id),
         env.DB.prepare("UPDATE mv_hybrid_tickets SET status='expired' WHERE job_id=? AND status='new' AND expires_at<=? AND EXISTS(SELECT 1 FROM mv_hybrid_jobs WHERE id=? AND status='expired')").bind(o.id,now,o.id),
         env.DB.prepare("DELETE FROM mv_hybrid_files WHERE job_id=? AND EXISTS(SELECT 1 FROM mv_hybrid_jobs WHERE id=? AND status='expired')").bind(o.id,o.id)

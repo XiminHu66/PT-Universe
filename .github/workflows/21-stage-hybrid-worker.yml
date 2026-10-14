@@ -6,7 +6,7 @@ on:
         description: Metadata operation
         type: choice
         default: verify
-        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention]
+        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership]
       pair_code:
         description: Browser pairing request ID
         type: string
@@ -121,6 +121,12 @@ jobs:
           AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
           RETENTION_JOB_IDS: ${{ inputs.previous_jobs }}
         run: node workers/media-vault-hybrid/live-retention.mjs
+      - name: Controlled BitTorrent WebSeed source with streaming OFF
+        if: inputs.operation == 'ownership'
+        env:
+          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+          FIXTURE_REF: ${{ github.sha }}
+        run: node workers/media-vault-hybrid/live-ownership.mjs
       - name: Real metadata lifecycle and restart acceptance
         if: inputs.operation == 'verify'
         env:
