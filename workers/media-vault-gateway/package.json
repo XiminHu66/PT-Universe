@@ -1,0 +1,1 @@
+{"name":"pt-media-vault-vpc-gateway","private":true,"type":"module","scripts":{"test":"node test.mjs"}}
