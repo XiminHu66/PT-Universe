@@ -145,7 +145,7 @@ const assert=require('node:assert/strict');
  await page.fill('#chapterImportText','这是从已经登录的原站复制的完整第二章正文。'.repeat(5));await page.click('#chapterImportSave');
  await page.waitForFunction(id=>novelTasks.find(t=>t.id===id).status==='ready',recoveryID);assert.equal(recoveryChapterCalls,1);
  const recovered=await page.evaluate(async id=>{const t=novelTasks.find(t=>t.id===id),zip=await new JSZip().loadAsync(t.blob);return {first:await zip.file('OEBPS/c0.xhtml').async('string'),second:await zip.file('OEBPS/c1.xhtml').async('string')};},recoveryID);
- assert.match(recovered.first,/小说 8/);assert.match(recovered.second,/完整第二章正文/);await save('#novelTaskList [data-novel-save="'+recoveryID+'"]','recovered.epub');await page.setViewportSize({width:1440,height:1000});
+ assert.match(recovered.first,/小说 8/);assert.match(recovered.second,/完整第二章正文/);await page.setViewportSize({width:1440,height:1000});await save('#novelTaskList [data-novel-save="'+recoveryID+'"]','recovered.epub');await page.setViewportSize({width:1440,height:1000});
  await page.screenshot({animations:'disabled',path:'test-results/media-vault/desktop.png'});
  const sizes=await page.evaluate(()=>Object.fromEntries(['.book-select strong','.chapter-row','#readerText','.task-detail'].map(s=>[s,parseFloat(getComputedStyle(document.querySelector(s)).fontSize)])));assert.ok(sizes['.book-select strong']===17&&sizes['.chapter-row']===15&&sizes['#readerText']===21&&sizes['.task-detail']===13);
  const panes=await page.locator('.novel-layout > *').evaluateAll(es=>es.map(e=>({x:e.getBoundingClientRect().x,width:e.getBoundingClientRect().width})));
