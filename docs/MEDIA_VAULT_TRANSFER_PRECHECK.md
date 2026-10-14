@@ -102,8 +102,31 @@ Both streaming switches were restored to OFF. Final checks reported transferred_
 Public flow-control acceptance: https://github.com/XiminHu66/PT-Universe/actions/runs/38635711894/job/116098222556
 Public final shutdown for this stage: https://github.com/XiminHu66/PT-Universe/actions/runs/38632971815/job/116098748718
 
+## Selected larger file and long paced receiver (2026-10-14)
+
+The isolated test window admitted one Owner-selected video job above the existing 10 MiB acceptance cap, with a hard 32 MiB ceiling on both Worker and VPS. The larger-file exception required the exact job ID and a future 20-minute test deadline. Browser pairing was not enabled for this window; session tickets retain their small-file scope. Defaults remain streaming OFF.
+
+The normal authenticated video job prepared the public Samplelib 30-second MP4 (https://samplelib.com/mp4/sample-30s.mp4), rather than inserting synthetic completed-job metadata. Its actual size was 21,657,943 bytes and its VPS SHA-256 was `500afe4eeb535c5ecd1c205e18be8c3db97dce216088e57fdad8e08a3a4028c3`. The initial preparation script incorrectly rejected the job API's successful HTTP 202; it was corrected to accept successful statuses and reused the already-submitted job, avoiding a duplicate source download.
+
+| Case | Observed result |
+| --- | --- |
+| Normal larger-file receiver | 21,657,943 bytes in 29,391 ms; full source hash matched |
+| Long paced receiver | 21,657,943 bytes in 204,306 ms; 339 bounded reads; full source hash matched |
+| Both completed tickets | Replay HTTP 403; reservations zero after each transfer |
+| Transfer ledger | 18,975,868 → 62,291,754; exact delta 43,315,886 bytes |
+| Receiver process RSS | Baseline 81,276,928 bytes; observed peak 101,519,360 bytes |
+| VPS sampling (76 observations) | Agent PID 1 RSS peak 32,784,384 bytes; adapter PID 1 RSS peak 33,800,192 bytes |
+| VPS root free space | Minimum 39,789,051,904 bytes, above the 21 GiB floor |
+
+The receiver hashed bounded slices without collecting the complete file or writing a media artifact. This verifies a progressing transfer lasting longer than the 120-second idle timeout; it does not test a 120-second stall, GiB-scale files, maximum concurrency, Cloudflare process RSS, or user-device Windows saving. Earlier stalled-reader/alarm behavior remains separately covered by fault injection.
+
+Worker tests, eleven Agent unit tests, workflow YAML parsing and shell syntax checks passed. Post-test shutdown verified streaming OFF at both ends, authenticated metadata polling, revoked browser sessions, removal of all temporary runtime parameters, stopped resource/fault services and rollback timer, transferred_bytes=62291754, reserved_bytes=0 and tracking=not_active. All four VPS sources retained their full sizes and hashes after shutdown; the capped recovery copy remains subject to the existing 24-hour retention policy. No media archive, new public application port, production frontend deployment or PR merge occurred.
+
+Public larger-file acceptance: https://github.com/XiminHu66/PT-Universe/actions/runs/38638351556/job/116107218452
+Public shutdown for this stage: https://github.com/XiminHu66/PT-Universe/actions/runs/38632971815/job/116109541790
+
 ## Pending original release gates
 
 Real VPS agent process loss, HTTP-consumer interruption and bounded small-file concurrency/rate control are verified. Relay reconstruction, orphan recovery, alarm handling and slow-reader ACK behavior have fault-injection coverage. No claim is made that an actual Cloudflare host was forcibly terminated or that this small-file run proves maximum-size memory/performance limits.
 
-Continue larger-file and longer-duration slow-consumer validation, retention cleanup, source coverage and final frontend browser integration. Native-browser interrupted-save handling and user-device Windows saving remain separate environment checks. Do not merge or deploy the production frontend based solely on these bounded passes.
+The selected 21.66 MB file and 204-second paced receiver are now verified. Continue retention cleanup, source coverage and final frontend browser integration; GiB-scale and maximum-load testing remain outside these bounded results. Native-browser interrupted-save handling and user-device Windows saving remain separate environment checks. Do not merge or deploy the production frontend based solely on these bounded passes.
