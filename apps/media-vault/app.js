@@ -401,6 +401,7 @@ async function loadTransferBudget(){
   label.textContent='剩余 '+bytes(remain)+' / '+bytes(cap)+' · '+String(q.period||'本月');
   detail.textContent='已传输 '+bytes(used)+' · 已预留 '+bytes(reserved)+' · 预计剩余 '+bytes(remain)+'。这是应用自设软预算，并非 Cloudflare/GitHub 官方剩余额度；仅在服务端确认传输字节后计入。';
  }catch(err){
+  if(SCOPED_PREVIEW){label.textContent='临时会话或额度暂不可读取';detail.textContent='请打开临时配对入口检查会话状态；未确认的数据不显示为剩余额度。';progress.value=0;return;}
   label.textContent='传输额度尚无法读取';
   detail.textContent='混合下载网关尚未启用，或服务器暂时不可用；不显示猜测的剩余额度。';
   progress.value=0;
@@ -450,7 +451,7 @@ let previousScopedStatus='unpaired';
 function showScopedState(state){
  if(!SCOPED_PREVIEW)return;
  const approved=state.status==='approved'&&!state.unverified;
- $('#scopedPairCode').textContent=state.pair_code||'尚未生成';
+ $('#scopedPairCode').textContent=state.pair_code||(approved?'当前会话已批准':'尚未生成');
  $('#scopedExpiry').textContent=state.expires_at?'到期时间：'+new Date(state.expires_at).toLocaleTimeString():'';
  $('#settingsStatus').textContent=state.message||({pending:'等待 Owner 批准。请保留此页面，刷新后可恢复当前请求。',approved:'仅允许查看和保存三个指定文件，最多签发六张票据。',unpaired:'申请临时配对即可开始；无需输入长期密钥。',expired:'配对已失效，请重新申请。',closed:'限时联调窗口已关闭。'}[state.status]||'正在核对临时会话…');
  $('#scopedSessionLabel').textContent=approved?'已授权 · 三个指定文件':state.status==='pending'?'等待批准':'尚未授权';
@@ -463,13 +464,13 @@ function showScopedState(state){
   $('#torrentTasks').innerHTML=empty('请先完成临时配对，再查看已批准文件。');
   $('#mvTransferBudgetText').textContent='临时会话未授权，额度暂不可读取';$('#mvTransferBudgetMeta').textContent='配对后显示服务端实际统计；不是云服务商账单。';$('#mvTransferBudgetProgress').value=0;
  }
- const newlyApproved=approved&&previousScopedStatus!=='approved';previousScopedStatus=approved?'approved':state.status;
+ const newlyApproved=approved&&previousScopedStatus!=='approved';previousScopedStatus=approved?'approved':state.unverified?'unverified':state.status;
  if(newlyApproved)void loadTasks();
 }
 if(SCOPED_PREVIEW){
  $('#scopedOpen').onclick=openSettings;
- $('#scopedPair').onclick=e=>busy(e.currentTarget,async()=>{await (await scopedReady).pair();});
- $('#scopedLogout').onclick=e=>busy(e.currentTarget,async()=>{await (await scopedReady).logout();});
+ $('#scopedPair').onclick=e=>busy(e.currentTarget,async()=>{await (await scopedReady).pair();}).finally(async()=>showScopedState((await scopedReady).current()));
+ $('#scopedLogout').onclick=e=>busy(e.currentTarget,async()=>{await (await scopedReady).logout();}).finally(async()=>showScopedState((await scopedReady).current()));
  for(const id of ['engineURL','engineToken','engineSave'])if($('#'+id))$('#'+id).disabled=true;
  $('#settingsOpen').textContent='临时浏览器配对';$('#torrentConnect').textContent='临时浏览器配对 →';
  for(const form of document.querySelectorAll('form')){for(const control of form.querySelectorAll('input,select,button'))control.disabled=true;}

@@ -44,6 +44,7 @@ export function createNativeSaver(options) {
     if(!response.ok||data.error)throw error(response.status,response.headers.get('Retry-After')||data.retry_after);
     if(!/^[a-zA-Z0-9_-]{32,128}$/.test(data.ticket||''))throw Error('下载票据格式无效，请重新请求保存。');
     if(signal?.aborted)throw Error('已停止请求下载票据。');
+    if(disposed)throw Error('下载连接已变化，请重新打开文件列表。');
     if(!frame){frame=doc.createElement('iframe');frame.name='mv-native-'+win.crypto.randomUUID();frame.title='文件下载通道';frame.hidden=true;frame.referrerPolicy='no-referrer';doc.body.append(frame);}
     const attempt=win.crypto.randomUUID().replaceAll('-',''),url=new URL('download',base);
     url.searchParams.set('ticket',data.ticket);url.searchParams.set('attempt',attempt);

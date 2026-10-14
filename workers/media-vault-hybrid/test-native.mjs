@@ -32,6 +32,9 @@ h.saver.dispose();assert.equal(h.listeners.size,0);await assert.rejects(h.saver.
 let release,fetches=0;
 const delayed=harness(()=>{fetches++;return new Promise(r=>{release=r})});
 const saving=delayed.saver.save(file);await assert.rejects(delayed.saver.save(file),/正在请求/);assert.equal(fetches,1);release(success());await saving;
+let finishLate;const leaving=harness(()=>new Promise(r=>finishLate=r));
+const lateSave=leaving.saver.save(file);leaving.saver.dispose();finishLate(success());
+await assert.rejects(lateSave,/连接已变化/);assert.equal(leaving.clicks.length,0,'logout/disposal before ticket response must prevent native handoff');
 for(const code of [401,403,404,409,429,503,502]){
  const failed=harness(async()=>new Response('{"error":"<secret server detail>"}',{status:code,headers:{'Retry-After':'5'}}));
  await assert.rejects(failed.saver.save(file),e=>e.status===code&&e.retryAfter===5&&!e.message.includes('secret'));

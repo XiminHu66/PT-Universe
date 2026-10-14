@@ -29,6 +29,10 @@ assert.equal(cookieRace.calls.filter(x=>x.url.endsWith('/logout')).length,1,'sec
 resolvePair(json(pending));await assert.rejects(pair,/会话已变化/);await exit;
 assert.deepEqual(cookieRace.calls.map(x=>new URL(x.url).pathname),['/acceptance/logout','/acceptance/pair','/acceptance/logout']);assert.equal(cookieRace.client.current().status,'unpaired');
 const failed=setup(async()=>json({},503));await assert.rejects(failed.client.logout());assert.equal(failed.client.current().status,'logout-failed');await assert.rejects(failed.client.read('/jobs'),/请先完成/);
+let networkHealthy=true;const transient=setup(async()=>networkHealthy?json(approved):json({},503));
+await transient.client.refresh();networkHealthy=false;await assert.rejects(transient.client.refresh());
+assert.equal(transient.client.current().unverified,true,'temporary metadata failure invalidates current UI confidence');
+networkHealthy=true;await transient.client.refresh();assert.equal(transient.client.current().unverified,undefined,'recovery emits freshly verified scope');transient.client.dispose();
 const noCookie=setup(async url=>url.endsWith('/logout')?json({},403):json(pending));await noCookie.client.pair();assert.equal(noCookie.client.current().status,'pending','expired/missing cookie can request a new pairing');
 response={...approved,files:[]};await assert.rejects(a.client.refresh(),e=>e.status===403);assert.equal(a.client.current().files,undefined);
 let resolveOnce;const concurrent=setup(()=>new Promise(r=>resolveOnce=r));const one=concurrent.client.refresh(),two=concurrent.client.refresh();assert.equal(concurrent.calls.length,1);resolveOnce(json(approved));await Promise.all([one,two]);
