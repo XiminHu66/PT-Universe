@@ -1,5 +1,6 @@
 import {OCI_REFERENCE_BYTES,transferBudget,streamingEnabled} from './limits.js';
 import {acceptancePage} from './acceptance.js';
+import {browserSessionRoute} from './browser-session.js';
 // Control plane only; stores tasks, metadata and REAL transfer ledger in D1.
 // All media bytes will use a separate, not-yet-enabled live streaming channel.
 // No R2, KV media storage, GitHub artifact uploads or arbitrary fetch/proxy.
@@ -61,6 +62,8 @@ export async function handle(request,env){
   if(origin && origin!==CORS_ORIGIN&&origin!==new URL(request.url).origin)return denied(origin);
   const u=new URL(request.url),path=u.pathname;
   if(path==='/acceptance'&&request.method==='GET')return acceptancePage(env);
+  const browserSession=await browserSessionRoute(request,env);
+  if(browserSession)return browserSession;
   if(request.method==='OPTIONS'){
     if(origin!==CORS_ORIGIN)return denied(origin);
     const h=new Headers({'Access-Control-Allow-Origin':CORS_ORIGIN,'Access-Control-Allow-Methods':'GET,POST,OPTIONS','Access-Control-Allow-Headers':'Authorization,Content-Type','Access-Control-Max-Age':'600','Cache-Control':'no-store'});

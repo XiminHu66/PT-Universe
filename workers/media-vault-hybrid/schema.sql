@@ -21,3 +21,13 @@ CREATE TABLE IF NOT EXISTS mv_hybrid_tickets (
   bytes INTEGER NOT NULL, month TEXT NOT NULL,
   expires_at INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'new'
 );
+-- Temporary test-browser capability metadata; never raw credentials or media.
+CREATE TABLE IF NOT EXISTS mv_hybrid_browser_sessions (
+  digest TEXT PRIMARY KEY, pair_code TEXT NOT NULL UNIQUE,
+  expires_at INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'pending',
+  job_ids_json TEXT NOT NULL DEFAULT '[]', issued_tickets INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS mv_hybrid_browser_tickets (
+  digest TEXT PRIMARY KEY, session_digest TEXT NOT NULL
+);
+
