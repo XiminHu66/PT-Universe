@@ -38,6 +38,8 @@ const assert=require('node:assert/strict');
  await page.reload();assert.equal(await page.getAttribute('html','data-theme'),'dark');await page.click('#themeToggle');
  // Navigation order and geometry are shared across all tabs.
  assert.deepEqual(await page.locator('[data-tab]').evaluateAll(es=>es.map(e=>e.dataset.tab)),['novels','music','anime','torrent','video','manga']);
+ // The transfer widget must never invent cloud-provider allowance while disconnected.
+ await page.click('#queueOpen');await page.locator('#mvTransferBudget').waitFor({state:'visible'});assert.match(await page.locator('#mvTransferBudgetText').textContent(),/尚未连接/);assert.match(await page.locator('#mvTransferBudgetMeta').textContent(),/不是云服务商账单/);await page.locator('#queue [data-close]').first().click();
  const navigationGeometry=()=>page.evaluate(()=>{const rail=document.querySelector('.rail').getBoundingClientRect(),tabs=document.querySelector('#tabs').getBoundingClientRect(),bar=document.querySelector('.topbar').getBoundingClientRect();return {rail:[rail.x,rail.y,rail.width,rail.height],tabsY:tabs.y,bar:[bar.x,bar.y,bar.width,bar.height],direction:getComputedStyle(document.querySelector('#tabs')).flexDirection};});
  const desktopNavigation=await navigationGeometry();assert.equal(desktopNavigation.direction,'row');
  // Settings independently resize the novel UI and body, persist, and can reset.
