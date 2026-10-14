@@ -35,4 +35,10 @@ class SourceTests(unittest.TestCase):
     main.enrich_site_rows(rows,{'id':'copymanga','enrich':True,'detail_delay':0})
     self.assertEqual(rows[0]['latest'],expected);self.assertNotIn('enrich_error',rows[0]);self.assertTrue(rows[0]['latest_checked_at'])
 
+ def test_recovered_chapter_merge_does_not_restore_old_error(self):
+  prior={'latest':'第1話','enrich_error':'previous scan failed'}
+  current={'latest':'第2話','latest_checked_at':'2026-10-14T17:27:28Z'}
+  self.assertNotIn('enrich_error',main.merge_site_row(current,prior))
+  self.assertEqual(main.merge_site_row({**current,'enrich_error':'new failure'},prior)['enrich_error'],'new failure')
+
 if __name__=='__main__':unittest.main()
