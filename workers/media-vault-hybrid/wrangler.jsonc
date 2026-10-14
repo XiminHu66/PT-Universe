@@ -1,0 +1,13 @@
+{
+  "$schema": "../pt-universe-api/node_modules/wrangler/config-schema.json",
+  "name": "pt-media-hybrid",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-13",
+  "workers_dev": true,
+  "observability": {"enabled": false},
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "pt-universe-db",
+    "database_id": "86805c79-d903-46cd-b0e2-c079c1a7fc1a"
+  }]
+}
