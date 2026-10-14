@@ -30,7 +30,7 @@ function statement(sql,args){
  } 
  }
 }
-const env={MEDIA_OWNER_TOKEN:'a'.repeat(64),MEDIA_AGENT_TOKEN:'b'.repeat(64),DB:{prepare(sql){return{bind(...args){return statement(sql,args)}}}}};
+const env={MEDIA_OWNER_TOKEN:'a'.repeat(64),MEDIA_AGENT_TOKEN:'b'.repeat(64),DB:{prepare(sql){return{bind(...args){return statement(sql,args)},first(){return statement(sql,[]).first()},all(){return statement(sql,[]).all()},run(){return statement(sql,[]).run()}}}}};
 const base='https://pt-media-hybrid.example.workers.dev';
 async function req(path,opts={},environment=env){return handle(new Request(base+path,opts),environment)}
 function auth(token=env.MEDIA_OWNER_TOKEN){return {'Authorization':'Bearer '+token, 'Origin':'https://ximinhu66.github.io'}}
