@@ -57,12 +57,12 @@ try {
  await delay(25000);assert.equal((await row(cancel)).status,'cancelled');
  assert.equal((await files(cancel)).length,0);console.log('PASS running cancellation persisted',cancel);
  }
- // Eight politely spaced chapter reads give the operator a real restart window.
- // Completion timing is independently checked against Docker StartedAt on VPS.
- const restart=await create([1,2,3,4,5,6,7,8]);ids.push(restart);
+ // Pre-arm the VPS test before submitting this two-chapter task. It observes
+ // the new durable mapping and immediately restarts only the metadata process.
+ const restart=await create([1,2]);ids.push(restart);
  await wait(restart,['running']);
  console.log('RESTART_WINDOW_OPEN',restart);
- console.log('Restart ONLY the metadata agent with Oracle acceptance operation=restart now.');
+ console.log('Pre-armed Oracle acceptance will restart ONLY the metadata agent.');
  await delay(90000);
  const recovered=await wait(restart,['complete']);
  assert.ok(recovered.completed>1000);assert.equal((await files(restart)).length,1);
