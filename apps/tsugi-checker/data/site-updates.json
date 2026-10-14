@@ -1,6 +1,19 @@
 {
-  "generated_at": "2026-10-14T17:24:20Z",
+  "generated_at": "2026-10-14T17:34:07Z",
   "items": [
+    {
+      "id": "7232908f83fbe2e8",
+      "type": "manga",
+      "source": "copymanga",
+      "source_label": "拷贝漫画 · CopyManga",
+      "title": "狗狗的小鎮日記",
+      "latest": "第10卷",
+      "updated_text": "2026-10-15",
+      "url": "https://www.mangacopy.com/comic/gougoudexiaozhenriji",
+      "cover": "https://sg.mangafunb.fun/g/gougoudexiaozhenriji/cover/1761251032.jpg.328x422.jpg",
+      "latest_checked_at": "2026-10-14T17:37:38Z",
+      "fetched_at": "2026-10-14T17:34:07Z"
+    },
     {
       "id": "a7b1b7e93e222e4e",
       "type": "manga",
@@ -11,8 +24,10 @@
       "updated_text": "2026-10-15",
       "url": "https://www.mangacopy.com/comic/mokemokerihefuwengongfang",
       "cover": "https://sm.mangafunb.fun/m/mokemokerihefuwengongfang/cover/1787426225.jpg.328x422.jpg",
-      "latest_checked_at": "2026-10-14T17:27:25Z",
-      "fetched_at": "2026-10-14T17:24:20Z"
+      "latest_checked_at": "2026-10-14T17:37:39Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://www.mangacopy.com/comic/mokemokerihefuwengongfang",
+      "chapter_count": null
     },
     {
       "id": "399f8e3c7055b1d0",
@@ -24,8 +39,10 @@
       "updated_text": "2026-10-15",
       "url": "https://www.mangacopy.com/comic/jiazhuangwoshimeiyuxiaojie",
       "cover": "https://sj.mangafunb.fun/j/jiazhuangwoshimeiyuxiaojie/cover/1669651512.jpg.328x422.jpg",
-      "latest_checked_at": "2026-10-14T17:27:25Z",
-      "fetched_at": "2026-10-14T17:24:20Z"
+      "latest_checked_at": "2026-10-14T17:37:39Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://www.mangacopy.com/comic/jiazhuangwoshimeiyuxiaojie",
+      "chapter_count": null
     },
     {
       "id": "da6a10424adef137",
@@ -37,8 +54,10 @@
       "updated_text": "2026-10-15",
       "url": "https://www.mangacopy.com/comic/xuedihuaweiyuanjunwang",
       "cover": "https://sx.mangafunb.fun/x/xuedihuaweiyuanjunwang/cover/1762500654.jpg.328x422.jpg",
-      "latest_checked_at": "2026-10-14T17:27:25Z",
-      "fetched_at": "2026-10-14T17:24:20Z"
+      "latest_checked_at": "2026-10-14T17:37:39Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://www.mangacopy.com/comic/xuedihuaweiyuanjunwang",
+      "chapter_count": null
     },
     {
       "id": "494ea1a1abd80fcd",
@@ -50,8 +69,10 @@
       "updated_text": "2026-10-15",
       "url": "https://www.mangacopy.com/comic/jiejiedepengyoutakasewaka",
       "cover": "https://sj.mangafunb.fun/j/jiejiedepengyoutakasewaka/cover/1709294620.jpg.328x422.jpg",
-      "latest_checked_at": "2026-10-14T17:27:25Z",
-      "fetched_at": "2026-10-14T17:24:20Z"
+      "latest_checked_at": "2026-10-14T17:37:39Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://www.mangacopy.com/comic/jiejiedepengyoutakasewaka",
+      "chapter_count": null
     },
     {
       "id": "7d822bfd36143f72",
@@ -63,8 +84,10 @@
       "updated_text": "2026-10-15",
       "url": "https://www.mangacopy.com/comic/ciweisuonikexdcjinshujuntuan",
       "cover": "https://sc.mangafunb.fun/c/ciweisuonikexdcjinshujuntuan/cover/1791395486.jpg.328x422.jpg",
-      "latest_checked_at": "2026-10-14T17:27:26Z",
-      "fetched_at": "2026-10-14T17:24:20Z"
+      "latest_checked_at": "2026-10-14T17:37:39Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://www.mangacopy.com/comic/ciweisuonikexdcjinshujuntuan",
+      "chapter_count": null
     },
     {
       "id": "5524667252f495df",
@@ -76,8 +99,10 @@
       "updated_text": "2026-10-14",
       "url": "https://m.manhuagui.com/comic/47288/",
       "cover": "https://cf.mhgui.com/cpic/m/47288.jpg",
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:24:20Z"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://m.manhuagui.com/comic/47288/",
+      "chapter_count": null
     },
     {
       "id": "e14f4b1f2ae8e8d2",
@@ -89,8 +114,10 @@
       "updated_text": "2026-10-14",
       "url": "https://m.manhuagui.com/comic/9414/",
       "cover": "https://cf.mhgui.com/cpic/m/9414_96.jpg",
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:24:20Z"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://m.manhuagui.com/comic/9414/",
+      "chapter_count": null
     },
     {
       "id": "cc34b8efd49aa327",
@@ -102,8 +129,10 @@
       "updated_text": "2026-10-14",
       "url": "https://m.manhuagui.com/comic/48937/",
       "cover": "https://cf.mhgui.com/cpic/m/48937_54.jpg",
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:24:20Z"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://m.manhuagui.com/comic/48937/",
+      "chapter_count": null
     },
     {
       "id": "81d29552b78bc5eb",
@@ -115,8 +144,10 @@
       "updated_text": "2026-10-14",
       "url": "https://m.manhuagui.com/comic/38431/",
       "cover": "https://cf.mhgui.com/cpic/m/38431.jpg",
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:24:20Z"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://m.manhuagui.com/comic/38431/",
+      "chapter_count": null
     },
     {
       "id": "39e19522e1a3f186",
@@ -128,8 +159,10 @@
       "updated_text": "2026-10-14",
       "url": "https://m.manhuagui.com/comic/61792/",
       "cover": "https://cf.mhgui.com/cpic/m/61792.jpg",
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:24:20Z"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://m.manhuagui.com/comic/61792/",
+      "chapter_count": null
     },
     {
       "id": "beed0c82b8781653",
@@ -141,8 +174,10 @@
       "updated_text": "2026-10-14",
       "url": "https://m.manhuagui.com/comic/60751/",
       "cover": "https://cf.mhgui.com/cpic/m/60751.jpg",
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:24:20Z"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://m.manhuagui.com/comic/60751/",
+      "chapter_count": null
     },
     {
       "id": "7d6bf7d5d63e0761",
@@ -154,8 +189,8 @@
       "updated_text": "2026-10-14",
       "url": "https://m.manhuagui.com/comic/1750/",
       "cover": "https://cf.mhgui.com/cpic/m/1750.jpg",
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:24:20Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:34:07Z",
       "latest_url": "https://m.manhuagui.com/comic/1750/",
       "chapter_count": null
     },
@@ -169,8 +204,8 @@
       "updated_text": "2026-10-14",
       "url": "https://m.manhuagui.com/comic/48813/",
       "cover": "https://cf.mhgui.com/cpic/m/48813.jpg",
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:24:20Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:34:07Z",
       "latest_url": "https://m.manhuagui.com/comic/48813/",
       "chapter_count": null
     },
@@ -184,8 +219,10 @@
       "updated_text": "2026-10-14",
       "url": "https://m.manhuagui.com/comic/60543/",
       "cover": "https://cf.mhgui.com/cpic/m/60543.jpg",
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:24:20Z"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://m.manhuagui.com/comic/60543/",
+      "chapter_count": null
     },
     {
       "id": "e0b24683a03d9d81",
@@ -197,8 +234,8 @@
       "updated_text": "2026-10-14",
       "url": "https://m.manhuagui.com/comic/37878/",
       "cover": "https://cf.mhgui.com/cpic/m/37878.jpg",
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:24:20Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:34:07Z",
       "latest_url": "https://m.manhuagui.com/comic/37878/",
       "chapter_count": null
     },
@@ -212,8 +249,8 @@
       "updated_text": "2026-10-14",
       "url": "https://m.manhuagui.com/comic/46511/",
       "cover": "https://cf.mhgui.com/cpic/m/46511_28.jpg",
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:24:20Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:34:07Z",
       "latest_url": "https://m.manhuagui.com/comic/46511/",
       "chapter_count": null
     },
@@ -227,8 +264,10 @@
       "updated_text": "2026-10-14",
       "url": "https://m.manhuagui.com/comic/61435/",
       "cover": "https://cf.mhgui.com/cpic/m/61435.jpg",
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:24:20Z"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://m.manhuagui.com/comic/61435/",
+      "chapter_count": null
     },
     {
       "id": "2d72c1a58929da5e",
@@ -240,8 +279,10 @@
       "updated_text": "2026-10-14",
       "url": "https://m.manhuagui.com/comic/52182/",
       "cover": "https://cf.mhgui.com/cpic/m/52182.jpg",
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:24:20Z"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://m.manhuagui.com/comic/52182/",
+      "chapter_count": null
     },
     {
       "id": "d4986569f16ab3f0",
@@ -253,8 +294,10 @@
       "updated_text": "2026-10-14",
       "url": "https://m.manhuagui.com/comic/40678/",
       "cover": "https://cf.mhgui.com/cpic/m/40678_28.jpg",
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:24:20Z"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://m.manhuagui.com/comic/40678/",
+      "chapter_count": null
     },
     {
       "id": "bf6a6562c8d673ac",
@@ -266,8 +309,10 @@
       "updated_text": "2026-10-14",
       "url": "https://m.manhuagui.com/comic/36831/",
       "cover": "https://cf.mhgui.com/cpic/m/36831.jpg",
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:24:20Z"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://m.manhuagui.com/comic/36831/",
+      "chapter_count": null
     },
     {
       "id": "393d0ff17564680b",
@@ -279,8 +324,10 @@
       "updated_text": "2026-10-14",
       "url": "https://m.manhuagui.com/comic/23333/",
       "cover": "https://cf.mhgui.com/cpic/m/23333.jpg",
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:24:20Z"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://m.manhuagui.com/comic/23333/",
+      "chapter_count": null
     },
     {
       "id": "4a6877dbcad1a9db",
@@ -292,8 +339,10 @@
       "updated_text": "2026-10-14",
       "url": "https://m.manhuagui.com/comic/56248/",
       "cover": "https://cf.mhgui.com/cpic/m/56248.jpg",
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:24:20Z"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://m.manhuagui.com/comic/56248/",
+      "chapter_count": null
     },
     {
       "id": "87f527c2bba18c81",
@@ -305,8 +354,10 @@
       "updated_text": "2026-10-14",
       "url": "https://m.manhuagui.com/comic/30444/",
       "cover": "https://cf.mhgui.com/cpic/m/30444.jpg",
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:24:20Z"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://m.manhuagui.com/comic/30444/",
+      "chapter_count": null
     },
     {
       "id": "e39a9660380a6e5e",
@@ -318,8 +369,10 @@
       "updated_text": "2026-10-14",
       "url": "https://m.manhuagui.com/comic/33433/",
       "cover": "https://cf.mhgui.com/cpic/m/33433.jpg",
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:24:20Z"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://m.manhuagui.com/comic/33433/",
+      "chapter_count": null
     },
     {
       "id": "8a8a4de190b3d1da",
@@ -331,8 +384,10 @@
       "updated_text": "2026-10-14",
       "url": "https://m.manhuagui.com/comic/49946/",
       "cover": "https://cf.mhgui.com/cpic/m/49946.jpg",
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:24:20Z"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://m.manhuagui.com/comic/49946/",
+      "chapter_count": null
     },
     {
       "id": "4bc6eddc25d8387b",
@@ -344,8 +399,10 @@
       "updated_text": "2026-10-14",
       "url": "https://www.mangacopy.com/comic/budaodefeiwen",
       "cover": "https://sb.mangafunb.fun/b/budaodefeiwen/cover/1784573394.jpeg.328x422.jpg",
-      "latest_checked_at": "2026-10-14T17:27:26Z",
-      "fetched_at": "2026-10-14T17:24:20Z"
+      "latest_checked_at": "2026-10-14T17:37:40Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://www.mangacopy.com/comic/budaodefeiwen",
+      "chapter_count": null
     },
     {
       "id": "19c67cfbb2c7565c",
@@ -357,8 +414,10 @@
       "updated_text": "2026-10-14",
       "url": "https://www.mangacopy.com/comic/yixingdazhanchaorenzhushenzhizhan",
       "cover": "https://sy.mangafunb.fun/y/yixingdazhanchaorenzhushenzhizhan/cover/1791912681.jpg.328x422.jpg",
-      "latest_checked_at": "2026-10-14T17:27:26Z",
-      "fetched_at": "2026-10-14T17:24:20Z"
+      "latest_checked_at": "2026-10-14T17:37:40Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://www.mangacopy.com/comic/yixingdazhanchaorenzhushenzhizhan",
+      "chapter_count": null
     },
     {
       "id": "2c0f66a21edc75c3",
@@ -370,8 +429,10 @@
       "updated_text": "2026-10-14",
       "url": "https://www.mangacopy.com/comic/yuguaiwuyiqizhiyudesjilieren",
       "cover": "https://sy.mangafunb.fun/y/yuguaiwuyiqizhiyudesjilieren/cover/1753027158.jpg.328x422.jpg",
-      "latest_checked_at": "2026-10-14T17:27:26Z",
-      "fetched_at": "2026-10-14T17:24:20Z"
+      "latest_checked_at": "2026-10-14T17:37:40Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://www.mangacopy.com/comic/yuguaiwuyiqizhiyudesjilieren",
+      "chapter_count": null
     },
     {
       "id": "f8a673860ed2416b",
@@ -383,8 +444,10 @@
       "updated_text": "2026-10-14",
       "url": "https://www.mangacopy.com/comic/shikuangdixiahcneglivedungeon",
       "cover": "https://ss.mangafunb.fun/s/shikuangdixiahcneglivedungeon/cover/1651128455.jpg.328x422.jpg",
-      "latest_checked_at": "2026-10-14T17:27:26Z",
-      "fetched_at": "2026-10-14T17:24:20Z"
+      "latest_checked_at": "2026-10-14T17:37:40Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://www.mangacopy.com/comic/shikuangdixiahcneglivedungeon",
+      "chapter_count": null
     },
     {
       "id": "012b153c9c1ee309",
@@ -396,8 +459,10 @@
       "updated_text": "2026-10-14",
       "url": "https://www.mangacopy.com/comic/qiuyuzhilian",
       "cover": "https://sq.mangafunb.fun/q/qiuyuzhilian/cover/1772636564.jpg.328x422.jpg",
-      "latest_checked_at": "2026-10-14T17:27:27Z",
-      "fetched_at": "2026-10-14T17:24:20Z"
+      "latest_checked_at": "2026-10-14T17:37:40Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://www.mangacopy.com/comic/qiuyuzhilian",
+      "chapter_count": null
     },
     {
       "id": "a92d182e2da8cd75",
@@ -409,8 +474,10 @@
       "updated_text": "2026-10-14",
       "url": "https://www.mangacopy.com/comic/xingjiandashi",
       "cover": "https://sx.mangafunb.fun/x/xingjiandashi/cover/1706159996.jpg.328x422.jpg",
-      "latest_checked_at": "2026-10-14T17:27:27Z",
-      "fetched_at": "2026-10-14T17:24:20Z"
+      "latest_checked_at": "2026-10-14T17:37:40Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://www.mangacopy.com/comic/xingjiandashi",
+      "chapter_count": null
     },
     {
       "id": "ace374dc2d47e895",
@@ -422,8 +489,10 @@
       "updated_text": "2026-10-14",
       "url": "https://www.mangacopy.com/comic/nishiqiandazheyouaresiugger",
       "cover": "https://sn.mangafunb.fun/n/nishiqiandazheyouaresiugger/cover/1776100633.jpg.328x422.jpg",
-      "latest_checked_at": "2026-10-14T17:27:27Z",
-      "fetched_at": "2026-10-14T17:24:20Z"
+      "latest_checked_at": "2026-10-14T17:37:41Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_url": "https://www.mangacopy.com/comic/nishiqiandazheyouaresiugger",
+      "chapter_count": null
     },
     {
       "id": "copymanga-ZW1vZHVvcnVxaW5nd2FuZw==",
@@ -437,8 +506,8 @@
       "cover": "https://sx.mangafunb.fun/x/xiaoemoduoruqingwang/cover/1788034106.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/xiaoemoduoruqingwang",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:27Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:41Z",
       "order": 0
     },
     {
@@ -453,8 +522,8 @@
       "cover": "https://sg.mangafunb.fun/g/guowangdarendaizhe150gqinzitashangdamaoxian/cover/1788373331.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/guowangdarendaizhe150gqinzitashangdamaoxian",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:27Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:41Z",
       "order": 2
     },
     {
@@ -469,8 +538,8 @@
       "cover": "https://sq.mangafunb.fun/q/qishidedashenguan/cover/1779649113.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/qishidedashenguan",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:28Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:41Z",
       "order": 3
     },
     {
@@ -485,8 +554,8 @@
       "cover": "https://ss.mangafunb.fun/s/sishiqidazhan/cover/1651029979.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/sishiqidazhan",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:28Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:41Z",
       "order": 4
     },
     {
@@ -501,8 +570,8 @@
       "cover": "https://sw.mangafunb.fun/w/weirekonjian/cover/1650986117.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/weirekonjian",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:28Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:42Z",
       "order": 5
     },
     {
@@ -517,10 +586,9 @@
       "cover": "https://sg.mangafunb.fun/g/glowupshowxrkmxtgfmhhj/cover/1789971649.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/glowupshowxrkmxtgfmhhj",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:28Z",
-      "order": 1,
-      "enrich_error": "详情页没有最新章节"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:42Z",
+      "order": 1
     },
     {
       "id": "copymanga-b21pYy93YW5nZ3Vvd2Vpc2hp",
@@ -534,8 +602,8 @@
       "cover": "https://sw.mangafunb.fun/w/wangguoweishi/cover/1786390848.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/wangguoweishi",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:30Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:42Z",
       "order": 1
     },
     {
@@ -550,10 +618,9 @@
       "cover": "https://sz.mangafunb.fun/z/zairangwokangkangchongzhiban/cover/1661003840.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/zairangwokangkangchongzhiban",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:28Z",
-      "order": 6,
-      "enrich_error": "详情页没有最新章节"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:42Z",
+      "order": 6
     },
     {
       "id": "copymanga-c2h1c2hpeXVhbnp1b2Jhbg==",
@@ -567,10 +634,9 @@
       "cover": "https://sm.mangafunb.fun/m/maopailianjinshushiyuanzuoban/cover/1763277898.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/maopailianjinshushiyuanzuoban",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:29Z",
-      "order": 8,
-      "enrich_error": "详情页没有最新章节"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:42Z",
+      "order": 8
     },
     {
       "id": "copymanga-YW5odWF4aWFvZHVhbnBpYW4=",
@@ -584,10 +650,9 @@
       "cover": "https://sb.mangafunb.fun/b/baalbuddymanhuaxiaoduanpian/cover/1681756017.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/baalbuddymanhuaxiaoduanpian",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:29Z",
-      "order": 20,
-      "enrich_error": "详情页没有最新章节"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:43Z",
+      "order": 20
     },
     {
       "id": "copymanga-bWFuaHVhbGlhb2ppZWZnbw==",
@@ -601,10 +666,9 @@
       "cover": "https://sc.mangafunb.fun/c/congmanhualiaojiefgo/cover/1651009905.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/congmanhualiaojiefgo",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:29Z",
-      "order": 21,
-      "enrich_error": "详情页没有最新章节"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:43Z",
+      "order": 21
     },
     {
       "id": "copymanga-dW96aWppbmdkaWFuemh1enVv",
@@ -618,10 +682,9 @@
       "cover": "https://sn.mangafunb.fun/n/naizhiweizuozijingdianzhuzuo/cover/1764187485.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/naizhiweizuozijingdianzhuzuo",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:29Z",
-      "order": 22,
-      "enrich_error": "详情页没有最新章节"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:43Z",
+      "order": 22
     },
     {
       "id": "copymanga-aWZhbmNhaXlpaml1bWVpd2Vp",
@@ -635,10 +698,9 @@
       "cover": "https://ss.mangafunb.fun/s/shiguangliushifancaiyijiumeiwei/cover/1742017171.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/shiguangliushifancaiyijiumeiwei",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:29Z",
-      "order": 23,
-      "enrich_error": "详情页没有最新章节"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:43Z",
+      "order": 23
     },
     {
       "id": "copymanga-ZG9uZ2J1bGlhbmhlcGlhbg==",
@@ -652,8 +714,8 @@
       "cover": "https://sy.mangafunb.fun/y/youxirenshengdongbulianhepian/cover/1651553451.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/youxirenshengdongbulianhepian",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:30Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:43Z",
       "order": 3
     },
     {
@@ -668,8 +730,8 @@
       "cover": "https://sy.mangafunb.fun/y/yishijienvpujianglinzaiwojia/cover/1765204232.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/yishijienvpujianglinzaiwojia",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:30Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:44Z",
       "order": 4
     },
     {
@@ -684,8 +746,8 @@
       "cover": "https://sm.mangafunb.fun/m/mememedemiemiemime/cover/1765529835.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/mememedemiemiemime",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:30Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:44Z",
       "order": 5
     },
     {
@@ -700,10 +762,9 @@
       "cover": "https://sr.mangafunb.fun/r/ranshaobajian/cover/1731146719.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/ranshaobajian",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:30Z",
-      "order": 14,
-      "enrich_error": "Error: Too many subrequests by single Worker invocation. To configure this limit, refer to https://developers.cloudflare.com/workers/wrangler/configuration/#limits"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:44Z",
+      "order": 14
     },
     {
       "id": "copymanga-b21pYy9tZXNtbGxzenp4dmVy",
@@ -717,10 +778,9 @@
       "cover": "https://sm.mangafunb.fun/m/mesmllszzxver/cover/1714544612.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/mesmllszzxver",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:31Z",
-      "order": 15,
-      "enrich_error": "Error: Too many subrequests by single Worker invocation. To configure this limit, refer to https://developers.cloudflare.com/workers/wrangler/configuration/#limits"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:44Z",
+      "order": 15
     },
     {
       "id": "copymanga-aWVqaWV4aWFuZ3lhb3h4eA==",
@@ -734,10 +794,9 @@
       "cover": "https://sl.mangafunb.fun/l/lingjiadajiejiexiangyaoxxx/cover/1733080583.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/lingjiadajiejiexiangyaoxxx",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:31Z",
-      "order": 16,
-      "enrich_error": "Error: Too many subrequests by single Worker invocation. To configure this limit, refer to https://developers.cloudflare.com/workers/wrangler/configuration/#limits"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:44Z",
+      "order": 16
     },
     {
       "id": "copymanga-b21pYy9qaWVwYW96aGVudGFu",
@@ -751,10 +810,9 @@
       "cover": "https://sj.mangafunb.fun/j/jiepaozhentan/cover/1788203079.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/jiepaozhentan",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:31Z",
-      "order": 17,
-      "enrich_error": "Error: Too many subrequests by single Worker invocation. To configure this limit, refer to https://developers.cloudflare.com/workers/wrangler/configuration/#limits"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:45Z",
+      "order": 17
     },
     {
       "id": "copymanga-dWFuZ2h1bmRpbmdxaXV0dQ==",
@@ -768,10 +826,9 @@
       "cover": "https://sh.mangafunb.fun/h/huanghundingqiutu/cover/1764942708.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/huanghundingqiutu",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:31Z",
-      "order": 18,
-      "enrich_error": "Error: Too many subrequests by single Worker invocation. To configure this limit, refer to https://developers.cloudflare.com/workers/wrangler/configuration/#limits"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:45Z",
+      "order": 18
     },
     {
       "id": "copymanga-b21pYy94aXpob25neWFucmVu",
@@ -785,10 +842,9 @@
       "cover": "https://sx.mangafunb.fun/x/xizhongyanren/cover/1781117921.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/xizhongyanren",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:31Z",
-      "order": 19,
-      "enrich_error": "Error: Too many subrequests by single Worker invocation. To configure this limit, refer to https://developers.cloudflare.com/workers/wrangler/configuration/#limits"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:45Z",
+      "order": 19
     },
     {
       "id": "copymanga-b3VibGVoZWxpeGJsb3Nzb20=",
@@ -802,10 +858,9 @@
       "cover": "https://sd.mangafunb.fun/d/doublehelixblossom/cover/1766034897.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/doublehelixblossom",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:32Z",
-      "order": 24,
-      "enrich_error": "Error: Too many subrequests by single Worker invocation. To configure this limit, refer to https://developers.cloudflare.com/workers/wrangler/configuration/#limits"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:45Z",
+      "order": 24
     },
     {
       "id": "copymanga-c2hhb252emh1aWxpZXpoZQ==",
@@ -819,10 +874,9 @@
       "cover": "https://sm.mangafunb.fun/m/mofashaonvzhuiliezhe/cover/1739166983.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/mofashaonvzhuiliezhe",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:32Z",
-      "order": 25,
-      "enrich_error": "Error: Too many subrequests by single Worker invocation. To configure this limit, refer to https://developers.cloudflare.com/workers/wrangler/configuration/#limits"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:45Z",
+      "order": 25
     },
     {
       "id": "copymanga-b21pYy9udnlvdXlpbnZ5b3U=",
@@ -836,10 +890,9 @@
       "cover": "https://sn.mangafunb.fun/n/nvyouyinvyou/cover/1778502181.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/nvyouyinvyou",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:32Z",
-      "order": 26,
-      "enrich_error": "Error: Too many subrequests by single Worker invocation. To configure this limit, refer to https://developers.cloudflare.com/workers/wrangler/configuration/#limits"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:46Z",
+      "order": 26
     },
     {
       "id": "copymanga-dmVyZGFpZXJucHlobHpkcw==",
@@ -853,10 +906,9 @@
       "cover": "https://sg.mangafunb.fun/g/guanyunverdaiernpyhlzds/cover/1759946552.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/guanyunverdaiernpyhlzds",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:32Z",
-      "order": 27,
-      "enrich_error": "Error: Too many subrequests by single Worker invocation. To configure this limit, refer to https://developers.cloudflare.com/workers/wrangler/configuration/#limits"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:46Z",
+      "order": 27
     },
     {
       "id": "copymanga-Yy94aWVlbW9udmRlbW9kaWFu",
@@ -870,10 +922,9 @@
       "cover": "https://sx.mangafunb.fun/x/xieemonvdemodian/cover/1763529104.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/xieemonvdemodian",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:32Z",
-      "order": 28,
-      "enrich_error": "Error: Too many subrequests by single Worker invocation. To configure this limit, refer to https://developers.cloudflare.com/workers/wrangler/configuration/#limits"
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:46Z",
+      "order": 28
     },
     {
       "id": "copymanga-Yy9mZW5zaGVubGllc2hvdQ==",
@@ -887,8 +938,8 @@
       "cover": "https://sf.mangafunb.fun/f/fenshenlieshou/cover/1663427288.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/fenshenlieshou",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:33Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:46Z",
       "order": 33
     },
     {
@@ -903,8 +954,8 @@
       "cover": "https://sf.mangafunb.fun/f/fanpaiqianjindebufashiqing/cover/1764075163.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/fanpaiqianjindebufashiqing",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:33Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:46Z",
       "order": 34
     },
     {
@@ -919,8 +970,8 @@
       "cover": "https://sg.mangafunb.fun/g/gougouriji/cover/1776967650.jpg.328x422.jpg",
       "latest_url": "https://www.mangacopy.com/comic/gougouriji",
       "chapter_count": null,
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_checked_at": "2026-10-14T17:27:33Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
+      "latest_checked_at": "2026-10-14T17:37:46Z",
       "order": 35
     },
     {
@@ -933,8 +984,8 @@
       "updated_text": "2026-10-13",
       "url": "https://www.mangacopy.com/comic/sjxycjdsh",
       "cover": "https://ss.mangafunb.fun/s/sjxycjdsh/cover/1692005934.png.328x422.jpg",
-      "latest_checked_at": "2026-10-14T17:27:33Z",
-      "fetched_at": "2026-10-14T17:24:20Z",
+      "latest_checked_at": "2026-10-14T17:37:47Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
       "latest_url": "https://www.mangacopy.com/comic/sjxycjdsh",
       "chapter_count": null,
       "order": 36
@@ -949,12 +1000,11 @@
       "updated_text": "2026-10-13",
       "url": "https://www.mangacopy.com/comic/suolayumowuzhijia",
       "cover": "https://ss.mangafunb.fun/s/suolayumowuzhijia/cover/1651564797.jpg.328x422.jpg",
-      "fetched_at": "2026-10-14T17:24:20Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
       "latest_url": "https://www.mangacopy.com/comic/suolayumowuzhijia",
       "chapter_count": null,
-      "latest_checked_at": "2026-10-14T17:27:33Z",
-      "order": 37,
-      "enrich_error": "详情页没有最新章节"
+      "latest_checked_at": "2026-10-14T17:37:47Z",
+      "order": 37
     },
     {
       "id": "copymanga-YWljYW5iaW5namluamlhbmc=",
@@ -966,8 +1016,8 @@
       "updated_text": "2026-10-13",
       "url": "https://www.mangacopy.com/comic/pingchengbaicanbingjinjiang",
       "cover": "https://sp.mangafunb.fun/p/pingchengbaicanbingjinjiang/cover/1735042284.jpg.328x422.jpg",
-      "latest_checked_at": "2026-10-14T17:27:33Z",
-      "fetched_at": "2026-10-14T17:24:20Z",
+      "latest_checked_at": "2026-10-14T17:37:47Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
       "latest_url": "https://www.mangacopy.com/comic/pingchengbaicanbingjinjiang",
       "chapter_count": null,
       "order": 38
@@ -982,8 +1032,8 @@
       "updated_text": "2026-10-13",
       "url": "https://www.mangacopy.com/comic/dileigeligao",
       "cover": "https://sd.mangafunb.fun/d/dileigeligao/cover/1730610427.jpg.328x422.jpg",
-      "latest_checked_at": "2026-10-14T17:27:34Z",
-      "fetched_at": "2026-10-14T17:24:20Z",
+      "latest_checked_at": "2026-10-14T17:37:47Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
       "latest_url": "https://www.mangacopy.com/comic/dileigeligao",
       "chapter_count": null,
       "order": 39
@@ -998,28 +1048,11 @@
       "updated_text": "2026-10-13",
       "url": "https://www.mangacopy.com/comic/zanglongzhejie",
       "cover": "https://sz.mangafunb.fun/z/zanglongzhejie/cover/1713968062.jpg.328x422.jpg",
-      "fetched_at": "2026-10-14T17:24:20Z",
+      "fetched_at": "2026-10-14T17:34:07Z",
       "latest_url": "https://www.mangacopy.com/comic/zanglongzhejie",
       "chapter_count": null,
-      "latest_checked_at": "2026-10-14T17:27:34Z",
-      "order": 40,
-      "enrich_error": "详情页没有最新章节"
-    },
-    {
-      "id": "copymanga-d29kZWxhbmdqdW5kYXJlbg==",
-      "type": "manga",
-      "source": "copymanga",
-      "source_label": "拷贝漫画 · CopyManga",
-      "title": "啊，我的郎君大人",
-      "latest": "第12话",
-      "updated_text": "2026-10-13",
-      "url": "https://www.mangacopy.com/comic/awodelangjundaren",
-      "cover": "https://sa.mangafunb.fun/a/awodelangjundaren/cover/1783564437.webp.328x422.jpg",
-      "latest_checked_at": "2026-10-14T17:27:34Z",
-      "fetched_at": "2026-10-14T17:24:20Z",
-      "latest_url": "https://www.mangacopy.com/comic/awodelangjundaren",
-      "chapter_count": null,
-      "order": 41
+      "latest_checked_at": "2026-10-14T17:37:47Z",
+      "order": 40
     },
     {
       "id": "linovelib-L25vdmVsLzQwMjMuaHRtbA==",
@@ -2028,7 +2061,7 @@
       "verifiedChapterCount": 20,
       "degraded": false,
       "discovery_mode": "latest-update-index",
-      "checked_at": "2026-10-14T17:24:20Z",
+      "checked_at": "2026-10-14T17:34:07Z",
       "date_complete": 20,
       "date_missing": 0
     },
@@ -2045,17 +2078,17 @@
       "unverified": [],
       "chapterCount": 60,
       "coverCount": 60,
-      "preserved_from": "scheduled:08:30"
+      "preserved_from": "github:manual-or-push"
     },
     "copymanga": {
       "label": "拷贝漫画 · CopyManga",
       "ok": true,
       "count": 48,
       "freshCount": 48,
-      "verifiedChapterCount": 28,
-      "degraded": true,
+      "verifiedChapterCount": 48,
+      "degraded": false,
       "discovery_mode": "latest-update-index",
-      "checked_at": "2026-10-14T17:24:20Z",
+      "checked_at": "2026-10-14T17:34:07Z",
       "date_complete": 48,
       "date_missing": 0
     }
