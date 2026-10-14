@@ -1,6 +1,6 @@
+import {transferBudget} from './limits.js';
 // Session-only file transfer: source bytes travel VPS -> outbound WebSocket
 // -> Durable Object TransformStream -> browser. D1 stores ONLY byte counts.
-const BUDGET=10*1024*1024*1024; // user-defined application safety cap, NOT provider quota
 const hex=b=>Array.from(b).map(n=>n.toString(16).padStart(2,'0')).join('');
 const newToken=()=>hex(crypto.getRandomValues(new Uint8Array(32)));
 const month=()=>new Date().toISOString().slice(0,7);
@@ -60,7 +60,7 @@ async function transportCore(request,env){
    await env.DB.prepare('UPDATE mv_hybrid_transfer_usage SET reserved_bytes=MAX(0,reserved_bytes-?) WHERE month=?').bind(Number(exp.total),m).run();
   }
   const reserved=await env.DB.prepare('UPDATE mv_hybrid_transfer_usage SET reserved_bytes=reserved_bytes+?,updated_at=? WHERE month=? AND transferred_bytes+reserved_bytes+?<=?')
-   .bind(f.bytes,now,m,f.bytes,BUDGET).run();
+   .bind(f.bytes,now,m,f.bytes,transferBudget(env)).run();
   if(!reserved.meta?.changes)return fail(429,'Monthly application transfer budget reached');
   const token=newToken();
   try {
