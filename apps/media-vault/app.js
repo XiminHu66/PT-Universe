@@ -389,6 +389,7 @@ async function loadTransferBudget(){
  if(!engine){label.textContent='尚未连接混合下载服务。';detail.textContent='此处只显示 Media Vault 自设的每月文件传输预算，不是云服务商账单。';progress.value=0;return;}
  try{
   const q=await callEngine('/quota');
+  if(q.tracking!=='active')throw new Error('Direct transfer bridge not yet active');
   const cap=Number(q.limit_bytes),used=Number(q.transferred_bytes),reserved=Number(q.reserved_bytes||0);
   const remain=Number(q.remaining_bytes);
   if(![cap,used,reserved,remain].every(Number.isSafeInteger)||cap<=0||used<0||reserved<0||remain<0||used+reserved+remain>cap+1)
