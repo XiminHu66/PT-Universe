@@ -12,7 +12,7 @@ async function request(path,body,auth=true){const r=await fetch(api+path,{method
 async function task(task,data){const r=await request('/api/workbench/ai/'+id,{task,...data});if(r.status!==200)throw Error(task+' failed HTTP '+r.status+': '+r.data.error);assert.ok(r.data.output);report.results.push({task,model:r.data.model,usage:r.data.usage,scope:r.data.scope,cached:r.data.cached});return r.data.output}
 try{
  await secret(['secret','put','RESEARCH_PROBE_AUTH'],JSON.stringify({token:deployToken,expiresAt:Date.now()+15*60000}));configured=true;
- let initialized;for(let i=0;i<10;i++){initialized=await admin('bootstrap');if(initialized.status===200)break;await new Promise(r=>setTimeout(r,2000))}
+ let initialized;for(let i=0;i<24;i++){initialized=await admin('bootstrap');if(initialized.status===200)break;if(![401,503].includes(initialized.status))break;await new Promise(r=>setTimeout(r,5000))}
  assert.equal(initialized.status,200);assert.equal(initialized.data.keyConfigured,true);report.bootstrap=initialized.data;
  if(process.env.RESEARCH_RUN_SMOKE!=='false'){
  assert.equal((await request('/api/workbench/ai/'+id,{task:'refine',topic:'GraphRAG'},false)).status,401);

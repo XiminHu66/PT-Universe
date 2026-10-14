@@ -41,12 +41,12 @@ export async function browserChapterBatch(input:{urls:string[];source:string;cur
    const marker=anchors.find(a=>/(?:最后|最後)\s*更新/.test(plain(a)));
    if(marker){const value=plain(marker);out.latest=plain(marker.querySelector('p'))||value.replace(/^(?:最后|最後)\s*更新(?:时间|時間|日期)?[·：:\s]*20\d{2}[-/.年]\d{1,2}[-/.月]\d{1,2}(?:日)?\s*/,'');out.updated_text=value.match(/20\d{2}[-/.年]\d{1,2}[-/.月]\d{1,2}(?:日)?(?:\s+\d{1,2}:\d{2})?/)?.[0]||'';out.latest_url=new URL(marker.getAttribute('href'),url).href;}
   }else{
-   const m=String(doc.title||'').match(/[-－]([^－-]{1,80})[-－](?:拷[贝貝]|Copy)/i);
+   const m=(String(doc.title||'').match(/(?:漫畫|漫画)[-－](.{1,160}?)[-－](?:連載中|连载中|已完[結结]|完[結结]|連載|连载|Completed|Ongoing)(?:[-－]|$)/i)||String(doc.title||'').match(/[-－]([^－-]{1,80})[-－]\s*(?:拷[贝貝]|Copy)/i));
    const latest=anchors.find(a=>/(?:最新|最后|最後)\s*(?:章节|章節|话|話|更新)/.test(plain(a))&&/第/.test(plain(a)));
    out.latest=m?.[1]?.trim()||latest&&plain(latest).match(/第\s*[^|]{1,48}?(?:话|話|章|回|卷)/)?.[0]||'';
    out.updated_text=plain(doc.body).match(/(?:最后|最後)\s*更新(?:时间|時間|日期)?[：:\s]*(20\d{2}[-/.年]\d{1,2}[-/.月]\d{1,2}(?:日)?)/)?.[1]||'';out.latest_url=latest?new URL(latest.getAttribute('href'),url).href:url;
   }
-  return out.latest&&!/^(?:最新更新|更新|目录|目錄)$/.test(out.latest)?out:{diagnostic_title:String(doc.title||'缺少页面标题')};
+  return out.latest&&!/^(?:最新更新|更新|目录|目錄|在线阅读|在線閱讀|連載中|连载中|已完結|已完结)$/.test(out.latest)?out:{diagnostic_title:String(doc.title||'缺少页面标题')};
  };
  if(input.currentUrl)return [{url:input.currentUrl,detail:parse((globalThis as any).document,input.currentUrl)}];
  const results:any[]=new Array(input.urls.length);let cursor=0;

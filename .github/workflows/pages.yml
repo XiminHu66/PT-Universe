@@ -50,7 +50,10 @@ jobs:
           enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
+          name: pt-universe-pages-${{ github.run_attempt }}
           path: .
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: pt-universe-pages-${{ github.run_attempt }}

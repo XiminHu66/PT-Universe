@@ -307,18 +307,30 @@ function renderGames(){
   const get=key=>(buckets[key]||[]).filter(x=>!q||`${x.title} ${x.source_label} ${(x.platforms||[]).join(' ')}`.toLowerCase().includes(q));
   const mobile=get('mobile'),pc=get('pc'),consoleRows=get('console');const all=[...(buckets.mobile||[]),...(buckets.pc||[]),...(buckets.console||[])];
   const today=gameTodayLocal(),past=all.filter(x=>gameEffectiveDate(x)&&gameEffectiveDate(x)<today).length,todayCount=all.filter(x=>gameEffectiveDate(x)===today).length,upcoming=all.filter(x=>gameEffectiveDate(x)>today).length;const w=state.games?.window||{};
-  const age=Date.now()-Date.parse(state.games?.generated_at||'');const stale=Number.isFinite(age)&&age>36*3600000;
+  const age=Date.now()-Date.parse(state.games?.generated_at||'');const stale=!sourceMorningFresh(state.games?.generated_at);
   $('#gameDate').textContent=state.games?.generated_at?`本地今天 ${today} · 数据同步 ${fmt(state.games.generated_at)}${stale?' · ⚠ 数据已过期，正在等待更新':''} · -${w.past_days??7} 天 / +${w.future_days??90} 天`:'等待首次抓取';
   $('#gamePastCount').textContent=past;$('#gameTodayCount').textContent=todayCount;$('#gameUpcomingCount').textContent=upcoming;
   $('#gameMobileGrid').innerHTML=renderGameTimeline(mobile,'手游');$('#gamePcGrid').innerHTML=renderGameTimeline(pc,'PC');$('#gameConsoleGrid').innerHTML=renderGameTimeline(consoleRows,'主机');
 }
 
+function sourceMorningFresh(stamp,nowDate=new Date()){
+  const checked=new Date(stamp||'');if(!Number.isFinite(+checked))return false;
+  const parts=d=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(d);
+  const key=p=>p.filter(x=>['year','month','day'].includes(x.type)).map(x=>x.value).join('-');
+  const hour=p=>Number(p.find(x=>x.type==='hour')?.value||0);
+  const current=parts(nowDate),prior=parts(new Date(+nowDate-86400000)),seen=parts(checked);
+  return hour(current)<8?(key(seen)===key(current)||(key(seen)===key(prior)&&hour(seen)>=8)):(key(seen)===key(current)&&hour(seen)>=8);
+}
+function sourceHealthBadge(s,stamp,nowDate=new Date()){
+  const checked=s.checked_at||stamp;
+  return {ok:s.ok===true,degraded:Boolean(s.degraded||s.fallback),stale:!sourceMorningFresh(checked,nowDate),checked_at:checked,error:s.error||'',fallback:s.fallback};
+}
 function renderSources(){
   const personal=Object.entries(state.feed?.sources||{}).map(([id,s])=>({group:'云端书架',id,label:s.label||id,ok:(s.failed||0)===0,count:s.ok||0,total:s.total||0,error:s.failed?`${s.failed} 个失败`:''}));
-  const siteAllowed=enabledSourceIds('site_updates');const site=Object.entries(state.site?.sources||{}).filter(([id])=>!siteAllowed.size||siteAllowed.has(id)).map(([id,s])=>({group:'更新流',id,degraded:s.degraded,label:s.label||id,ok:s.ok!==false,count:s.count||0,total:s.count||0,error:s.error||''}));
-  const music=Object.entries(state.music?.sources||{}).map(([id,s])=>({group:'音乐追踪',id,label:s.label||id,ok:s.ok!==false,count:s.count||0,total:s.count||0,error:s.error||''}));
-  const games=Object.entries(state.games?.sources||{}).map(([id,s])=>({group:'游戏追踪',id,label:s.label||id,ok:s.ok!==false,count:s.count||0,total:s.count||0,error:s.error||''}));
-  const entries=[...personal,...site,...music,...games];$('#sourceStatus').innerHTML=entries.length?entries.map(s=>`<article class="source-card"><div class="source-top"><div><span class="section-kicker">${esc(s.group)}</span><h3>${esc(s.label)}</h3></div><i class="status-dot ${s.ok?'':'err'}"></i></div><strong>${s.count}<span style="color:var(--faint);font-size:.48em;font-weight:600"> ${s.group==='云端书架'?`/ ${s.total}`:'items'}</span></strong><p>${s.ok?(s.degraded?'作品列表已更新，部分章节沿用历史，等待复核':'抓取正常'):esc(s.error||'抓取失败')}</p></article>`).join(''):`<div class="empty">暂无来源状态。</div>`;
+  const siteAllowed=enabledSourceIds('site_updates');const site=Object.entries(state.site?.sources||{}).filter(([id])=>!siteAllowed.size||siteAllowed.has(id)).map(([id,s])=>({group:'更新流',id,label:s.label||id,count:s.count||0,total:s.freshCount||s.count||0,verified:s.verifiedChapterCount,...sourceHealthBadge(s,state.site?.generated_at)}));
+  const music=Object.entries(state.music?.sources||{}).map(([id,s])=>({group:'音乐追踪',id,label:s.label||id,count:s.count||0,total:s.count||0,...sourceHealthBadge(s,state.music?.generated_at)}));
+  const games=Object.entries(state.games?.sources||{}).map(([id,s])=>({group:'游戏追踪',id,label:s.label||id,count:s.count||0,total:s.count||0,...sourceHealthBadge(s,state.games?.generated_at)}));
+  const entries=[...personal,...site,...music,...games];$('#sourceStatus').innerHTML=entries.length?entries.map(s=>`<article class="source-card"><div class="source-top"><div><span class="section-kicker">${esc(s.group)}</span><h3>${esc(s.label)}</h3></div><i class="status-dot ${!s.ok?'err':s.stale||s.degraded?'warn':''}"></i></div><strong>${s.verified===undefined?s.count:s.verified}<span style="color:var(--faint);font-size:.48em;font-weight:600"> ${s.verified!==undefined?`/ ${s.total} 已核实`:s.group==='云端书架'?`/ ${s.total}`:'items'}</span></strong><p>${s.ok?(s.stale?`今日尚未更新 · 上次核验 ${fmt(s.checked_at)}`:s.degraded?(s.fallback?`正在使用备用来源：${s.fallback===true?'历史数据':esc(s.fallback)}`:'部分章节尚未核实，保留历史数据'):'抓取正常'):esc(s.error||'抓取失败')}</p></article>`).join(''):`<div class="empty">暂无来源状态。</div>`;
 }
 function updateStats(){
   const remote=(state.library?.items||[]).filter(x=>x.enabled!==false);const remoteKeys=remoteLibraryKeys();const local=state.localLibrary.filter(x=>!remoteKeys.has(workKey(x)));const site=(state.site?.items||[]).filter(x=>{const ids=enabledSourceIds('site_updates');return !ids.size||ids.has(x.source)});
