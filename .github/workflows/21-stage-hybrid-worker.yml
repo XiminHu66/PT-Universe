@@ -41,8 +41,15 @@ jobs:
               exit 1
             fi
           done
-          if [[ "${#OWNER}" -lt 32 || "${#AGENT}" -lt 32 || "$OWNER" == "$AGENT" ]]; then
-            echo "::error::Owner and agent credentials must be distinct and at least 32 chars."
+          owner_ok=false; agent_ok=false; distinct=false
+          [[ "${#OWNER}" -ge 32 ]] && owner_ok=true
+          [[ "${#AGENT}" -ge 32 ]] && agent_ok=true
+          [[ "$OWNER" != "$AGENT" ]] && distinct=true
+          echo "OWNER at least 32 chars: $owner_ok"
+          echo "AGENT at least 32 chars: $agent_ok"
+          echo "OWNER differs from AGENT: $distinct"
+          if [[ "$owner_ok" != true || "$agent_ok" != true || "$distinct" != true ]]; then
+            echo "::error::Secret validation failed; no Cloudflare or D1 changes made."
             exit 1
           fi
           echo "Secret presence and separation: PASS (values not logged)."
