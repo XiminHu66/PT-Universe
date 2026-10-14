@@ -3,7 +3,6 @@ on:
   pull_request:
     paths:
       - apps/media-vault/**
-      - workers/media-vault-gateway/**
       - workers/media-vault-hybrid/**
       - scripts/media-vault/**
       - services/media-engine/**
@@ -29,7 +28,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: npm test --prefix workers/media-vault-gateway
       - run: npm test --prefix workers/media-vault-hybrid
       - run: node --check workers/media-vault-hybrid/src/index.js
       - run: node --check workers/media-vault-hybrid/src/transport.js
