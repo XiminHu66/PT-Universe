@@ -95,8 +95,15 @@ jobs:
           const url='https://pt-media-hybrid.summer07-nanjolno.workers.dev';
           const owner=process.env.OWNER;
           const h={Authorization:'Bearer '+owner,Origin:'https://ximinhu66.github.io'};
-          let r=await fetch(url+'/health',{signal:AbortSignal.timeout(12000)});
-          if(r.status!==401)throw Error('Unauthenticated health is not protected');
+          let r;
+          for(let attempt=1;attempt<=7;attempt++){
+            r=await fetch(url+'/health',{signal:AbortSignal.timeout(12000)});
+            console.log('anonymous health HTTP status:',r.status,'attempt',attempt);
+            if(r.status===401)break;
+            if(r.status===200)throw Error('SECURITY: anonymous health unexpectedly accessible');
+            if(attempt===7)throw Error('Anonymous endpoint never returned 401 (last HTTP '+r.status+')');
+            await new Promise(resolve=>setTimeout(resolve,4000));
+          }
           r=await fetch(url+'/health',{headers:h,signal:AbortSignal.timeout(12000)});
           const data=await r.json();
           if(!r.ok||!data.ok||data.streaming!=='not-live')throw Error('Hybrid staging health did not verify streaming OFF');
