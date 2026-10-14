@@ -72,10 +72,38 @@ The two earlier diagnostic interruptions added 524,288 bytes in total and remain
 Both streaming switches were restored to OFF. Final live checks confirmed transferred_bytes=15811208, reserved_bytes=0 and tracking=not_active; the temporary acceptance sessions were revoked. The fault watcher and rollback timer were stopped, and test-only runtime flags were removed. All three retained source files still matched their earlier sizes and hashes after shutdown. Production pages and public application ports were unchanged. Both PRs remain drafts.
 
 Public recovery acceptance, latest successful attempt: https://github.com/XiminHu66/PT-Universe/actions/runs/38631781348
-Public final shutdown: https://github.com/XiminHu66/PT-Universe/actions/runs/38632971815
+Public shutdown at the interrupted-transfer stage: https://github.com/XiminHu66/PT-Universe/actions/runs/38632971815/job/116088978071
+
+## Bounded backpressure, concurrency and rate acceptance
+
+The relay admits one connected outbound agent and one active file transfer. A second agent receives HTTP 409 with Retry-After: 5. A competing download receives HTTP 429 with Retry-After: 2; its own ticket reservation is released while the active transfer's reservation stays intact. The relay remains busy until it has sent the terminal acknowledgement.
+
+Only one media frame may wait for acknowledgement at a time. A premature second frame fails the transfer instead of accumulating a writable queue or overwriting the pending byte bound. Slow-reader ACK withholding and premature-frame handling have direct relay regression coverage.
+
+Validated authenticated file-ticket requests share a persisted rolling limit of twelve permits per sixty seconds. Only timestamps are stored; the rate count survives relay reconstruction. SQL permits at most six unexpired, unredeemed tickets globally, with reservation changes in the same transaction. The metadata job queue now inserts conditionally so concurrent submissions cannot exceed five pending jobs. SQLite tests passed twenty concurrent ticket requests, rate-window reset/reconstruction, concurrent expiry and twelve concurrent metadata-job submissions. Metadata-job flood testing ran only in the local SQLite fixture and did not create new source downloads.
+
+Real deployed acceptance used the existing small MP4 and EPUB only:
+
+| Case | Observed result |
+| --- | --- |
+| Duplicate authenticated agent | HTTP 409; existing connection preserved |
+| Simultaneous redemption of one ticket | Exactly one HTTP 200 and one HTTP 403 |
+| Competing download during the MP4 stream | HTTP 429, Retry-After: 2; 2,848,208 active reserved bytes preserved |
+| Paced MP4 consumer | 34 reads, 5,335 ms; complete size/hash matched; reservation zero |
+| Fourteen concurrent valid ticket requests | Six issued, eight HTTP 429; retry hints present; rate gate activated |
+| Redemption of all six issued EPUB tickets | All complete sizes/hashes matched; every used ticket replay rejected |
+
+The successful run transferred exactly 3,164,660 bytes: one MP4 plus six copies of the existing EPUB. The cumulative counter increased from 15,811,208 to 18,975,868, with reserved_bytes=0. No new media sources were fetched and no media archive or Actions artifact was created. This is bounded small-file flow-control acceptance, not a measurement of long-duration or maximum-size transfer performance.
+
+One initial deployment check saw enabled health followed by an OFF-route response at another request boundary. The stream-on verification now requires two complete consecutive bundles to agree on health, quota tracking and both wrong-role refusals. The corrected live gate passed before the VPS stream was enabled.
+
+Both streaming switches were restored to OFF. Final checks reported transferred_bytes=18975868, reserved_bytes=0 and tracking=not_active. Temporary sessions were revoked; test-only runtime flags, the fault watcher and rollback timer were cleared. All three source copies retained their earlier sizes and hashes after shutdown. Production frontend pages and public application ports were unchanged; both PRs remain drafts.
+
+Public flow-control acceptance: https://github.com/XiminHu66/PT-Universe/actions/runs/38635711894/job/116098222556
+Public final shutdown for this stage: https://github.com/XiminHu66/PT-Universe/actions/runs/38632971815/job/116098748718
 
 ## Pending original release gates
 
-Real VPS agent process loss and HTTP-consumer interruption are verified. Relay process reconstruction, orphan recovery and alarm handling have SQLite-backed fault-injection coverage; no claim is made that an actual Cloudflare host was forcibly terminated. Native-browser interrupted-save handling and user-device Windows saving remain separate environment checks.
+Real VPS agent process loss, HTTP-consumer interruption and bounded small-file concurrency/rate control are verified. Relay reconstruction, orphan recovery, alarm handling and slow-reader ACK behavior have fault-injection coverage. No claim is made that an actual Cloudflare host was forcibly terminated or that this small-file run proves maximum-size memory/performance limits.
 
-Continue backpressure/rate-limit stress, larger files, retention cleanup, source coverage and final frontend browser integration. Do not merge or deploy the production frontend based solely on these bounded test passes.
+Continue larger-file and longer-duration slow-consumer validation, retention cleanup, source coverage and final frontend browser integration. Native-browser interrupted-save handling and user-device Windows saving remain separate environment checks. Do not merge or deploy the production frontend based solely on these bounded passes.
