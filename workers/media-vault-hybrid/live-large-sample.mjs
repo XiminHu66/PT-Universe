@@ -1,11 +1,14 @@
 import assert from 'node:assert/strict';
 const base='https://pt-media-hybrid.summer07-nanjolno.workers.dev';
 const headers={Authorization:'Bearer '+process.env.OWNER,'Content-Type':'application/json'};
-async function api(route,body){const r=await fetch(base+route,{method:body?'POST':'GET',headers,body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(25000)});assert.equal(r.status,200,'Metadata HTTP '+r.status);return r.json()}
+async function api(route,body){const r=await fetch(base+route,{method:body?'POST':'GET',headers,body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(25000)});assert.ok(r.ok,'Metadata HTTP '+r.status);return r.json()}
 assert.equal((await api('/health')).streaming,'not-live');
+const source='https://samplelib.com/mp4/sample-30s.mp4';
 let id=process.env.LARGE_JOB_ID||'';
+if(!id){const existing=(await api('/jobs')).jobs.filter(j=>j.url===source&&!['error','cancelled'].includes(j.status)).sort((a,b)=>b.created-a.created)[0];id=existing?.id||'';}
 if(id)assert.match(id,/^[a-f0-9]{24}$/);
-else {id=(await api('/jobs',{kind:'video',url:'https://samplelib.com/mp4/sample-30s.mp4'})).id;console.log('LARGE_JOB_ID='+id)}
+else {id=(await api('/jobs',{kind:'video',url:source})).id;}
+console.log('LARGE_JOB_ID='+id);
 let complete=false;
 try{
  for(let i=0;i<100;i++){
