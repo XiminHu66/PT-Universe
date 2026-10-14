@@ -1,10 +1,6 @@
 name: "21 - Stage Media Vault hybrid Worker (manual; streaming OFF)"
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/21-stage-hybrid-worker.yml'
 
 permissions:
   contents: read
@@ -33,9 +29,10 @@ jobs:
           CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
           AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
+          D1_API: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
         run: |
           set -euo pipefail
-          for key in CF_API CF_ACCOUNT OWNER AGENT; do
+          for key in CF_API CF_ACCOUNT OWNER AGENT D1_API; do
             if [[ -z "${!key}" ]]; then
               echo "::error::Required GitHub Actions secret missing. See the Media Vault hybrid setup guide."
               exit 1
@@ -60,7 +57,7 @@ jobs:
           npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/wrangler.jsonc --dry-run --outdir /tmp/pt-mv-hybrid-stage
       - name: Apply only additive Media Vault D1 metadata tables
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
