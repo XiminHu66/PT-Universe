@@ -8,7 +8,7 @@ Task completion and file metadata commit together. Transfer ticket expiry, reser
 
 Backend filenames containing brackets or Unicode are accepted within the existing safe file roots. This fixes completed video tasks being reported without a usable file. Directory traversal and symlink escape checks remain covered by regression tests.
 
-Temporary test streaming has a deadline, a small-file cap and automatic shutdown protection. Tests cover expired-window refusal and cancellation of an already connected relay. The standalone test page uses existing owner authentication and does not persist credentials.
+Temporary test streaming has a deadline, a small-file cap and automatic shutdown protection. Tests cover expired-window refusal and cancellation of an already connected relay. The standalone test page uses a short-lived, fixed-file browser session. Existing Owner authorization approves its public request ID inside the server-side workflow; no Owner credential is exported or entered into the page. The browser cookie is Secure, HttpOnly and SameSite=Strict; only its digest is stored in metadata.
 
 ## Real small-file server transfer acceptance
 
@@ -28,8 +28,23 @@ Both streaming switches were restored to OFF. Live checks confirmed unavailable 
 
 Public shutdown evidence (latest attempt): https://github.com/XiminHu66/PT-Universe/actions/runs/38623901247
 
+## Real native-browser small-file saving acceptance
+
+The user explicitly approved the temporary pairing mechanism: three fixed test files, an approval lifetime of at most 15 minutes, at most six one-use tickets, and no Owner or Agent capabilities. Role isolation, same-origin checks, hashed session storage, expiry, concurrent caps and scoped revocation passed the SQLite-backed regression group.
+
+A controlled remote Chrome browser used the standalone acceptance page to download the same EPUB, CBZ and MP4 files through native download events. Each event returned a completed saved-file path. The actual saved bytes were read from disk and matched the VPS source sizes and SHA-256 values in the table above. EPUB mimetype/ZIP integrity, CBZ page order/attribution/ZIP integrity and MP4 file signature also passed. This proves native saving in the controlled Chrome environment; it does not claim that files were written to the user's Windows computer.
+
+The new browser transfer increased the byte ledger by exactly 4,533,108 bytes, from 4,533,108 to 9,066,216. Outstanding reservations returned to zero. Replay of the last native-download ticket returned HTTP 403.
+
+Both streaming switches were restored to OFF. The server-side revocation workflow succeeded, the existing browser's acceptance API returned HTTP 404, and the test page was disabled. Final live gate checks reported transferred_bytes=9066216, reserved_bytes=0 and tracking=not_active. The three VPS recovery copies remained present with identical hashes after shutdown. No production frontend deployment or public application port change occurred. Both PRs remain drafts.
+
+The agent startup verification initially failed with exit 141 because grep's early exit closed a pipe while pipefail was active. The check now consumes complete log output. A large synthetic log check and the rerun passed; startup connection, automatic rollback, source integrity and shutdown checks all completed.
+
+Public temporary-session preparation: https://github.com/XiminHu66/PT-Universe/actions/runs/38626988140
+Public limited-session approval: https://github.com/XiminHu66/PT-Universe/actions/runs/38627785722
+Public temporary streaming gate: https://github.com/XiminHu66/PT-Universe/actions/runs/38627920548
+Public revocation and final shutdown: https://github.com/XiminHu66/PT-Universe/actions/runs/38628475426
+
 ## Pending original release gates
 
-Native-browser saving remains unverified because the secure owner credential request was declined. No browser credential entry was repeated or bypassed. When browser authentication is available, resume the original EPUB/CBZ/MP4 native-save gate with local size/hash verification.
-
-Then continue active-transfer interruption and process-loss recovery, stale reservation recovery, cancellation/backpressure/rate limits, larger files, retention cleanup, source coverage and final frontend browser integration. Do not merge or deploy the production frontend based solely on the server transfer pass.
+Continue active-transfer interruption and process-loss recovery, stale reservation recovery, cancellation/backpressure/rate limits, larger files, retention cleanup, source coverage and final frontend browser integration. User-device Windows saving remains a separate environment check. Do not merge or deploy the production frontend based solely on small-file acceptance.
