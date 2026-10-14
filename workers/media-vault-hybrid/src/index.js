@@ -1,6 +1,8 @@
 // Control plane only; stores tasks, metadata and REAL transfer ledger in D1.
 // All media bytes will use a separate, not-yet-enabled live streaming channel.
 // No R2, KV media storage, GitHub artifact uploads or arbitrary fetch/proxy.
+import {transportRoute} from './transport.js';
+export {MediaRelay} from './relay.js';
 const CORS_ORIGIN='https://ximinhu66.github.io';
 const BUDGET_BYTES=10*1024*1024*1024; // app-defined monthly safety budget; NOT provider allowance
 const active=new Set(['queued','running','waiting','active']);
@@ -62,19 +64,21 @@ export async function handle(request,env){
     const h=new Headers({'Access-Control-Allow-Origin':CORS_ORIGIN,'Access-Control-Allow-Methods':'GET,POST,OPTIONS','Access-Control-Allow-Headers':'Authorization,Content-Type','Access-Control-Max-Age':'600','Cache-Control':'no-store'});
     return new Response(null,{status:204,headers:h});
   }
+  const direct=await transportRoute(request,env);
+  if(direct)return direct;
   const agent=path.startsWith('/agent/');
   if(!tokenIs(request,agent?env.MEDIA_AGENT_TOKEN:env.MEDIA_OWNER_TOKEN))return denied(origin,401,'Authorization required');
   try {
     requireDb(env);
     if(path==='/health'&&request.method==='GET')
-      return reply({ok:true,version:'hybrid-staging-0.1',mode:'outbound-control',storage:'D1 metadata only',streaming:'not-live'},200,origin);
+      return reply({ok:true,version:'hybrid-staging-0.1',mode:'outbound-control',storage:'D1 metadata only',streaming:env.ENABLE_DIRECT_STREAM==='true'&&!!env.RELAY?'enabled':'not-live'},200,origin);
     if(path==='/quota'&&request.method==='GET'){
       const m=month();
       const row=await env.DB.prepare('SELECT transferred_bytes,reserved_bytes FROM mv_hybrid_transfer_usage WHERE month=?').bind(m).first();
       const delivered=Number(row?.transferred_bytes||0),reserved=Number(row?.reserved_bytes||0);
       return reply({period:m,limit_bytes:BUDGET_BYTES,transferred_bytes:delivered,reserved_bytes:reserved,
         remaining_bytes:Math.max(0,BUDGET_BYTES-delivered-reserved),
-        tracking:'not_active',kind:'self_imposed_monthly_budget',
+        tracking:env.ENABLE_DIRECT_STREAM==='true'&&!!env.RELAY?'active':'not_active',kind:'self_imposed_monthly_budget',
         note:'No provider real-time bandwidth quota; media relay is not yet enabled'},200,origin);
     }
     if(path==='/jobs'&&request.method==='GET'){
