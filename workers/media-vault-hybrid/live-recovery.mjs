@@ -1,7 +1,7 @@
 // Real interruption acceptance. Media is hashed in memory, never persisted.
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-process.on('uncaughtException',error=>{console.error('::error::Recovery acceptance failed',error.name);process.exit(1)});
+process.on('uncaughtException',error=>{console.error('::error::Recovery acceptance failed',error.name,error.name==='AssertionError'?error.message.replace(/[a-f0-9]{64}/g,'[digest]'):'network or runtime error');process.exit(1)});
 const base='https://pt-media-hybrid.summer07-nanjolno.workers.dev';
 const ids=(process.env.SAMPLE_JOB_IDS||'').split(',');assert.equal(ids.length,3);assert.ok(ids.every(x=>/^[a-f0-9]{24}$/.test(x)));
 const headers={Authorization:'Bearer '+process.env.OWNER,'Content-Type':'application/json','User-Agent':'PTUniverseAcceptance/0.1'};
@@ -10,7 +10,7 @@ async function api(route,body){const r=await fetch(base+route,{method:body?'POST
 async function settled(){for(let n=0;n<90;n++){const q=await api('/quota');if(q.reserved_bytes===0)return q;await pause(1000)}throw Error('Interrupted transfer did not settle');}
 const id=ids[2],{files}=await api('/jobs/files?id='+id);assert.equal(files.length,1);const f=files[0];assert.match(f.name,/\.mp4$/);assert.equal(f.size,2848208);
 const expected='05bd857af7f70bf51b6aac1144046973bf3325c9101a554bc27dc9607dbbd8f5';
-const baseline=await api('/quota');assert.equal(baseline.reserved_bytes,0);let full=0,partial=0;
+const baseline=await api('/quota');console.log('RECOVERY_BASELINE '+JSON.stringify({transferred_bytes:baseline.transferred_bytes,reserved_bytes:baseline.reserved_bytes}));assert.equal(baseline.reserved_bytes,0);let full=0,partial=0;
 async function open(){
  for(let n=0;n<20;n++){
   const {ticket}=await api('/download-ticket',{id,path:f.path});
@@ -23,6 +23,7 @@ async function noReplay(ticket){const r=await fetch(base+'/download?ticket='+tic
 // VPS watcher kills the agent after precisely the first acknowledged WS frame.
 let {r,ticket}=await open(),bytes=0,failed=false;
 try{for await(const chunk of r.body){bytes+=chunk.length}}catch{failed=true;}
+console.log('FAULT_OBSERVATION '+JSON.stringify({failed,received_bytes:bytes,expected_bytes:f.size}));
 assert.ok(failed&&bytes>0&&bytes<f.size,'Expected a real truncated transfer from process loss');
 let q=await settled();assert.equal(q.transferred_bytes-baseline.transferred_bytes,262144,'Process-loss ledger must match the acknowledged frame');partial+=262144;await noReplay(ticket);
 console.log('RECOVERY_PROOF '+JSON.stringify({case:'agent-process-loss',received_bytes:bytes,charged_bytes:262144,reserved_bytes:0,replay_http:403}));
