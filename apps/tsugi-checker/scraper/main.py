@@ -149,6 +149,8 @@ def site_row_key(row):
 
 def merge_site_row(current, previous):
     out={**previous, **current}
+    if current.get('latest_checked_at') and not current.get('enrich_error'):
+        out.pop('enrich_error',None)
     latest=str(current.get('latest') or '').strip()
     if not latest or latest in ('最新更新','更新'):
         out['latest']=previous.get('latest') or latest

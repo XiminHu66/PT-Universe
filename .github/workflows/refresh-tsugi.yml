@@ -127,7 +127,22 @@ jobs:
             /tmp/pt-copy-diagnostics.json
             apps/tsugi-checker/data/site-updates.json
 
-      - name: Validate refreshed snapshot
+      - name: Install Cloudflare publisher
+        if: steps.refresh.outputs.scrape == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Publish fallback snapshots directly to Cloudflare
+        if: steps.refresh.outputs.scrape == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npm ci --prefix workers/pt-universe-api
+          node scripts/tsugi/test-snapshot-merge.mjs
+          node scripts/tsugi/publish-snapshot.mjs
+
+      - name: Validate final merged snapshot
         id: quality
         continue-on-error: true
         if: steps.refresh.outputs.scrape == 'true'
@@ -159,21 +174,6 @@ jobs:
                   raise SystemExit(f'{source}: no newly verified chapters; refusing stale-success deployment')
           print(f'validated site_rows={len(rows)} songs={len(songs)} generated_at={generated}')
           PY
-
-      - name: Install Cloudflare publisher
-        if: steps.refresh.outputs.scrape == 'true'
-        uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-      - name: Publish fallback snapshots directly to Cloudflare
-        if: steps.refresh.outputs.scrape == 'true'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          npm ci --prefix workers/pt-universe-api
-          node scripts/tsugi/test-snapshot-merge.mjs
-          node scripts/tsugi/publish-snapshot.mjs
 
       - name: Commit refreshed Tsugi data to PT Universe
         if: steps.refresh.outputs.scrape == 'true'
