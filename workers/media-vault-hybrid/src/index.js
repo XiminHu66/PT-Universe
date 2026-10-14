@@ -1,10 +1,10 @@
+import {OCI_REFERENCE_BYTES,transferBudget} from './limits.js';
 // Control plane only; stores tasks, metadata and REAL transfer ledger in D1.
 // All media bytes will use a separate, not-yet-enabled live streaming channel.
 // No R2, KV media storage, GitHub artifact uploads or arbitrary fetch/proxy.
 import {transportRoute} from './transport.js';
 export {MediaRelay} from './relay.js';
 const CORS_ORIGIN='https://ximinhu66.github.io';
-const BUDGET_BYTES=10*1024*1024*1024; // app-defined monthly safety budget; NOT provider allowance
 const active=new Set(['queued','running','waiting','active']);
 const statuses=new Set(['queued','running','waiting','active','complete','error','cancelled']);
 const kinds=new Set(['novel','manga','torrent','video']);
@@ -76,8 +76,9 @@ export async function handle(request,env){
       const m=month();
       const row=await env.DB.prepare('SELECT transferred_bytes,reserved_bytes FROM mv_hybrid_transfer_usage WHERE month=?').bind(m).first();
       const delivered=Number(row?.transferred_bytes||0),reserved=Number(row?.reserved_bytes||0);
-      return reply({period:m,limit_bytes:BUDGET_BYTES,transferred_bytes:delivered,reserved_bytes:reserved,
-        remaining_bytes:Math.max(0,BUDGET_BYTES-delivered-reserved),
+      return reply({period:m,limit_bytes:transferBudget(env),transferred_bytes:delivered,reserved_bytes:reserved,
+        remaining_bytes:Math.max(0,transferBudget(env)-delivered-reserved),
+        official_oci_reference_bytes:OCI_REFERENCE_BYTES,official_oci_usage_bytes:null,official_oci_remaining_bytes:null,
         tracking:env.ENABLE_DIRECT_STREAM==='true'&&!!env.RELAY?'active':'not_active',kind:'self_imposed_monthly_budget',
         note:'No provider real-time bandwidth quota; media relay is not yet enabled'},200,origin);
     }
