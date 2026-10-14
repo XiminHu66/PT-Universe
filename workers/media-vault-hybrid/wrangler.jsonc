@@ -5,6 +5,9 @@
   "compatibility_date": "2026-10-13",
   "workers_dev": true,
   "observability": {"enabled": false},
+  "vars": {"ENABLE_DIRECT_STREAM": "false"},
+  "durable_objects": {"bindings": [{"name": "RELAY", "class_name": "MediaRelay"}]},
+  "exports": {"MediaRelay": {"type": "durable-object", "storage": "sqlite"}},
   "d1_databases": [{
     "binding": "DB",
     "database_name": "pt-universe-db",
