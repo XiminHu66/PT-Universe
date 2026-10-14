@@ -1,4 +1,5 @@
-import {OCI_REFERENCE_BYTES,transferBudget} from './limits.js';
+import {OCI_REFERENCE_BYTES,transferBudget,streamingEnabled} from './limits.js';
+import {acceptancePage} from './acceptance.js';
 // Control plane only; stores tasks, metadata and REAL transfer ledger in D1.
 // All media bytes will use a separate, not-yet-enabled live streaming channel.
 // No R2, KV media storage, GitHub artifact uploads or arbitrary fetch/proxy.
@@ -57,8 +58,9 @@ function rowFormat(row){return {id:row.id,kind:row.kind,url:JSON.parse(row.reque
 function requireDb(env){if(!env.DB)throw new Error('D1 missing')}
 export async function handle(request,env){
   const origin=request.headers.get('Origin');
-  if(origin && origin!==CORS_ORIGIN)return denied(origin);
+  if(origin && origin!==CORS_ORIGIN&&origin!==new URL(request.url).origin)return denied(origin);
   const u=new URL(request.url),path=u.pathname;
+  if(path==='/acceptance'&&request.method==='GET')return acceptancePage(env);
   if(request.method==='OPTIONS'){
     if(origin!==CORS_ORIGIN)return denied(origin);
     const h=new Headers({'Access-Control-Allow-Origin':CORS_ORIGIN,'Access-Control-Allow-Methods':'GET,POST,OPTIONS','Access-Control-Allow-Headers':'Authorization,Content-Type','Access-Control-Max-Age':'600','Cache-Control':'no-store'});
@@ -71,7 +73,7 @@ export async function handle(request,env){
   try {
     requireDb(env);
     if(path==='/health'&&request.method==='GET')
-      return reply({ok:true,version:'hybrid-staging-0.1',mode:'outbound-control',storage:'D1 metadata only',streaming:env.ENABLE_DIRECT_STREAM==='true'&&!!env.RELAY?'enabled':'not-live'},200,origin);
+      return reply({ok:true,version:'hybrid-staging-0.1',mode:'outbound-control',storage:'D1 metadata only',streaming:streamingEnabled(env)?'enabled':'not-live'},200,origin);
     if(path==='/quota'&&request.method==='GET'){
       const m=month();
       const row=await env.DB.prepare('SELECT transferred_bytes,reserved_bytes FROM mv_hybrid_transfer_usage WHERE month=?').bind(m).first();
@@ -79,8 +81,8 @@ export async function handle(request,env){
       return reply({period:m,limit_bytes:transferBudget(env),transferred_bytes:delivered,reserved_bytes:reserved,
         remaining_bytes:Math.max(0,transferBudget(env)-delivered-reserved),
         official_oci_reference_bytes:OCI_REFERENCE_BYTES,official_oci_usage_bytes:null,official_oci_remaining_bytes:null,
-        tracking:env.ENABLE_DIRECT_STREAM==='true'&&!!env.RELAY?'active':'not_active',kind:'self_imposed_monthly_budget',
-        note:'No provider real-time bandwidth quota; media relay is not yet enabled'},200,origin);
+        tracking:streamingEnabled(env)?'active':'not_active',kind:'self_imposed_monthly_budget',
+        note:streamingEnabled(env)?'Application streaming budget; not provider real-time bandwidth quota':'No provider real-time bandwidth quota; media relay is not enabled'},200,origin);
     }
     if(path==='/jobs'&&request.method==='GET'){
       const result=await env.DB.prepare('SELECT * FROM mv_hybrid_jobs ORDER BY created_at DESC LIMIT 40').all();

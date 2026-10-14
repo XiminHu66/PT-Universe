@@ -1,4 +1,4 @@
-import {transferBudget} from './limits.js';
+import {transferBudget,streamingEnabled} from './limits.js';
 // Session-only file transfer: source bytes travel VPS -> outbound WebSocket
 // -> Durable Object TransformStream -> browser. D1 stores ONLY byte counts.
 const hex=b=>Array.from(b).map(n=>n.toString(16).padStart(2,'0')).join('');
@@ -18,7 +18,7 @@ function json(obj,status=200){return new Response(JSON.stringify(obj),{status,he
 const fail=(status,message)=>json({error:message},status);
 const pathPattern=/^(aria|video|generated)\/[a-zA-Z0-9][a-zA-Z0-9._/ -]{0,220}$/;
 const jid=/^[0-9a-f]{24}$/;
-const ready=e=>e?.ENABLE_DIRECT_STREAM==='true'&&!!e?.RELAY&&!!e?.DB;
+const ready=e=>streamingEnabled(e)&&!!e?.DB;
 const room=e=>e.RELAY.get(e.RELAY.idFromName('media-vault-private'));
 export async function transportRoute(request,env){
  const response=await transportCore(request,env);

@@ -62,6 +62,10 @@ r=await result(await req('/agent/report',{method:'POST',headers:auth(env.MEDIA_A
 r=await result(await req('/download-ticket',{method:'POST',headers:{...auth(),'Content-Type':'application/json'},body:'{}'}));assert.equal(r.status,503,'no streaming fallback to cloud storage allowed');
 r=await result(await req('/jobs',{method:'POST',headers:{...auth(),'Content-Type':'application/json'},body:JSON.stringify({kind:'video',url:'https://127.0.0.1/internal'})}));assert.equal(r.status,400);
 r=await result(await req('/jobs',{headers:{...auth(),Origin:'https://evil.example'}}));assert.equal(r.status,403);
+r=await result(await req('/health',{headers:{...auth(),Origin:base}}));assert.equal(r.status,200,'authenticated same-origin acceptance UI');
+r=await result(await req('/health',{headers:auth()},{...env,ENABLE_DIRECT_STREAM:'true',RELAY:{},MEDIA_STREAM_TEST_UNTIL:String(Date.now()-1000)}));assert.equal(r.body.streaming,'not-live','test deadline closes health gate');
+r=await result(await req('/download-ticket',{method:'POST',headers:auth(),body:'{}'},{...env,ENABLE_DIRECT_STREAM:'true',RELAY:{},MEDIA_STREAM_TEST_UNTIL:String(Date.now()-1000)}));assert.equal(r.status,503,'test deadline closes new transfers');
+assert.equal((await req('/acceptance')).status,404,'acceptance UI disabled by default');
 r=await req('/jobs',{method:'OPTIONS',headers:{Origin:'https://ximinhu66.github.io'}});
 assert.equal(r.status,204);
 console.log('PASS token isolation, lease IDs, cancellation visibility, terminal guards, completion validation, atomic D1 report API, quota OFF and CORS');

@@ -1,0 +1,12 @@
+import {readFile,writeFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const config=JSON.parse(await readFile(new URL('./wrangler.jsonc',import.meta.url),'utf8'));
+assert.equal(config.name,'pt-media-hybrid');assert.equal(config.vars.ENABLE_DIRECT_STREAM,'false');
+const operation=process.env.OPERATION;
+assert.ok(['deploy','prepare','stream-on','stream-off'].includes(operation));
+config.vars.ENABLE_DIRECT_STREAM=operation==='stream-on'?'true':'false';
+config.vars.ENABLE_ACCEPTANCE_UI=['prepare','stream-on'].includes(operation)?'true':'false';
+config.vars.MEDIA_ACCEPTANCE_UNTIL=String(['prepare','stream-on'].includes(operation)?Date.now()+30*60*1000:0);
+config.vars.MEDIA_STREAM_TEST_UNTIL=String(operation==='stream-on'?Date.now()+20*60*1000:0);
+await writeFile(new URL('./test-window.json',import.meta.url),JSON.stringify(config,null,2));
+console.log('Configured isolated test operation',operation,'with automatic request gate expiry');

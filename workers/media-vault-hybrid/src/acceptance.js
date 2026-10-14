@@ -1,0 +1,27 @@
+// Temporary test UI on the dedicated service. No production frontend deployment.
+// Credentials stay in page memory; no cookies/storage, credential echo or uploads.
+export function acceptancePage(env){
+ if(env.ENABLE_ACCEPTANCE_UI!=='true'||Number(env.MEDIA_ACCEPTANCE_UNTIL)<=Date.now()||!Number.isSafeInteger(Number(env.MEDIA_ACCEPTANCE_UNTIL)))return new Response('Test page unavailable',{status:404});
+ const nonce=Array.from(crypto.getRandomValues(new Uint8Array(16)),x=>x.toString(16).padStart(2,'0')).join('');
+ return new Response(page.replaceAll('__NONCE__',nonce),{headers:{
+  'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Robots-Tag':'noindex','X-Content-Type-Options':'nosniff',
+  'Content-Security-Policy':"default-src 'none'; script-src 'nonce-"+nonce+"'; style-src 'unsafe-inline'; connect-src 'self'; frame-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+ }});
+}
+const page=String.raw`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Media Vault 小文件验收</title>
+<style>body{max-width:900px;margin:48px auto;padding:0 24px;font:17px/1.7 system-ui;color:#172033;background:#f5f7fa}section{padding:24px;margin:20px 0;border:1px solid #ccd5df;border-radius:12px;background:white}input,button{font:inherit;padding:10px;border:1px solid #99aabb;border-radius:6px}button{cursor:pointer}table{width:100%;text-align:left}td,th{padding:12px;border-bottom:1px solid #ddd}#status{white-space:pre-wrap}small{color:#556}</style>
+<h1>Media Vault 小文件验收</h1><p>独立测试服务 · EPUB / CBZ / MP4 · 浏览器原生保存</p>
+<section id="login"><form id="loginForm"><label for="ownerToken">Owner 访问密钥</label><br><input id="ownerToken" name="owner_token" type="password" autocomplete="current-password" required minlength="32"><button type="submit">连接测试服务</button></form><p><small>使用已配置的 Owner 密钥。密钥仅在本页内存使用，不写入浏览器存储。</small></p></section>
+<section id="tests" hidden><h2>已认证的测试文件</h2><table><thead><tr><th>文件</th><th>字节</th><th>保存</th></tr></thead><tbody id="files"></tbody></table><p><button id="refresh">核对传输额度</button> <button id="replay" disabled>验证上次票据不能复用</button> <button id="disconnect">断开并清除密钥</button></p><p id="quota"></p></section>
+<section><strong>验收状态</strong><p id="status">等待 Owner 认证。</p><p>文件保存完成以浏览器下载结果与本地哈希核对为准；流式 ACK 不代表磁盘保存完成。</p></section>
+<iframe name="acceptance-download" title="下载通道" hidden></iframe>
+<script nonce="__NONCE__">
+'use strict';let credential='',lastTicket='',before=null,totalExpected=0;
+const $=s=>document.querySelector(s);const status=s=>$('#status').textContent=s;
+async function api(path,body){const r=await fetch(path,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+credential,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store',signal:AbortSignal.timeout(30000)});const d=await r.json();if(!r.ok)throw Error('HTTP '+r.status+': '+(d.error||'请求失败'));return d;}
+async function quota(){const q=await api('/quota');if(!before)before=q;$('#quota').textContent='状态 '+q.tracking+' · 已传输 '+q.transferred_bytes+' 字节 · 预留 '+q.reserved_bytes+' 字节 · 本轮新增 '+(q.transferred_bytes-before.transferred_bytes)+' 字节 · 已请求保存 '+totalExpected+' 字节';return q;}
+$('#loginForm').onsubmit=async e=>{e.preventDefault();credential=$('#ownerToken').value;$('#ownerToken').value='';try{const health=await api('/health');const ids=(new URLSearchParams(location.search).get('jobs')||'').split(',');if(ids.length!==3||ids.some(x=>!/^[a-f0-9]{24}$/.test(x)))throw Error('需要三个已完成测试任务');$('#files').replaceChildren();for(const id of ids){const d=await api('/jobs/files?id='+id);if(d.files.length!==1)throw Error('测试任务必须恰好有一个文件');const f=d.files[0];if(!/\.(epub|cbz|mp4)$/i.test(f.name)||!Number.isSafeInteger(f.size)||f.size<1||f.size>10*1024*1024)throw Error('仅允许小于 10 MiB 的测试文件');const tr=document.createElement('tr');for(const text of [f.name,String(f.size)]){const td=document.createElement('td');td.textContent=text;tr.append(td)}const td=document.createElement('td'),button=document.createElement('button');button.textContent='保存 '+f.name.split('.').at(-1).toUpperCase();button.onclick=async()=>{button.disabled=true;try{const d=await api('/download-ticket',{id,path:f.path});lastTicket=d.ticket;const a=document.createElement('a');a.href='/download?ticket='+encodeURIComponent(d.ticket);a.target='acceptance-download';a.download=f.name;a.rel='noreferrer';document.body.append(a);a.click();a.remove();totalExpected+=f.size;$('#replay').disabled=false;status('已交给浏览器保存 '+f.name+'。请等待下载完成后核对额度。')}catch(e){status(e.message)}finally{button.disabled=false}};td.append(button);tr.append(td);$('#files').append(tr)}$('#login').hidden=true;$('#tests').hidden=false;await quota();status('Owner 认证成功 · 文件流 '+health.streaming+' · 三个测试文件准备完成。')}catch(e){credential='';status(e.message)}};
+$('#refresh').onclick=async()=>{try{const q=await quota();status('额度已核对：本轮新增 '+(q.transferred_bytes-before.transferred_bytes)+' 字节，预留 '+q.reserved_bytes+' 字节。')}catch(e){status(e.message)}};
+$('#replay').onclick=async()=>{try{const r=await fetch('/download?ticket='+encodeURIComponent(lastTicket),{cache:'no-store',signal:AbortSignal.timeout(10000)});if(r.status!==403){await r.body?.cancel();throw Error('票据复用检查失败：HTTP '+r.status)}status('PASS 一次性票据复用返回 HTTP 403。');await quota()}catch(e){status(e.message)}};
+$('#disconnect').onclick=()=>{credential='';lastTicket='';$('#tests').hidden=true;$('#login').hidden=false;status('已断开，内存密钥已清除。')};
+</script></html>`;

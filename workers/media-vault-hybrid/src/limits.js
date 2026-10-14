@@ -5,3 +5,9 @@ export function transferBudget(env) {
   const gib = Number.isSafeInteger(configured) && configured >= 5 && configured <= 1000 ? configured : 100;
   return gib * 1024 ** 3;
 }
+export function streamingEnabled(env){
+ const until=env?.MEDIA_STREAM_TEST_UNTIL;
+ return env?.ENABLE_DIRECT_STREAM==='true'&&!!env?.RELAY&&
+  (until===undefined||(Number.isSafeInteger(Number(until))&&Number(until)>Date.now()));
+}
+
