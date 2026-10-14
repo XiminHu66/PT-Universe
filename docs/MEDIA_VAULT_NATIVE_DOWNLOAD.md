@@ -47,7 +47,10 @@ revokes paired sessions and releases their unused reservations.
 
 The shared module has been exercised using native EPUB, CBZ and MP4 downloads in
 remote Chrome, with exact source hashes, container/signature checks, transfer
-accounting and single-use rejection. This does not demonstrate a save on the
+accounting and single-use rejection. Real pre-stream offline errors reached the
+page, recovery used a fresh ticket for a hash-checked save, and the session
+ticket cap returned a bounded retry message. Refreshing an approved page restored
+its still-valid scoped session. This does not demonstrate a save on the
 user's Windows computer or a full production application login flow.
 
 The production settings dialog still uses the existing private-engine connection
