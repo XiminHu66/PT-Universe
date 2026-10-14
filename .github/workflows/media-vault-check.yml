@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - apps/media-vault/**
+      - workers/media-vault-gateway/**
       - scripts/media-vault/**
       - services/media-engine/**
       - workers/pt-universe-api/**
@@ -27,6 +28,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - run: npm test --prefix workers/media-vault-gateway
       - run: npm ci --prefix workers/pt-universe-api
       - run: node scripts/media-vault/frontend-test.cjs
       - run: npm run test:media --prefix workers/pt-universe-api
