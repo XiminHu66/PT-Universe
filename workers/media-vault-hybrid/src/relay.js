@@ -1,6 +1,6 @@
 // Media remains ephemeral. Durable state contains ONLY ticket digests and counters.
 const decoder=new TextDecoder(),CHUNK_MAX=256*1024,ID=/^[0-9a-f]{24}$/;
-const CHECKPOINT='transfer-counts',IDLE_MS=120000;
+const CHECKPOINT='transfer-counts',IDLE_MS=120000,RATE_KEY='ticket-permits',RATE_WINDOW=60000,RATE_MAX=12;
 export class MediaRelay {
  constructor(ctx,env){
   this.ctx=ctx;this.env=env;this.transfers=new Map();this.starting=false;this.serial=Promise.resolve();
@@ -34,8 +34,18 @@ export class MediaRelay {
  async fetch(request){
   await this.ready;
   const u=new URL(request.url);
+  if(u.pathname==='/ticket-permit'){
+   return this.exclusive(async()=>{
+    const now=Date.now(),saved=await this.ctx.storage.get(RATE_KEY);
+    const times=(Array.isArray(saved)?saved:[]).filter(t=>Number.isSafeInteger(t)&&t>now-RATE_WINDOW);
+    if(times.length>=RATE_MAX)return new Response('Ticket request rate exceeded',{status:429,headers:{'Retry-After':String(Math.max(1,Math.ceil((times[0]+RATE_WINDOW-now)/1000)))}});
+    times.push(now);await this.ctx.storage.put(RATE_KEY,times);
+    return new Response(null,{status:204});
+   });
+  }
   if(u.pathname==='/agent-connect'){
    if(request.headers.get('Upgrade')!=='websocket')return new Response('WebSocket required',{status:426});
+   if(this.agents().length)return new Response('Agent already connected',{status:409,headers:{'Retry-After':'5'}});
    const pair=new WebSocketPair(),client=pair[0],server=pair[1];
    this.ctx.acceptWebSocket(server,['media-agent']);
    return new Response(null,{status:101,webSocket:client});
@@ -49,7 +59,8 @@ export class MediaRelay {
    const marked=await this.env.DB.prepare("UPDATE mv_hybrid_tickets SET status='active' WHERE digest=? AND status='new' AND expires_at>?").bind(digest,Date.now()).run();
    if(!marked.meta?.changes)return new Response('Ticket unavailable',{status:403});
    const agents=this.agents();
-   if(agents.length!==1||this.transfers.size||this.starting)return new Response('Agent unavailable or transfer already running',{status:503});
+   if(this.transfers.size||this.starting)return new Response('Transfer already running',{status:429,headers:{'Retry-After':'2'}});
+   if(agents.length!==1)return new Response('Agent unavailable',{status:503});
    this.starting=true;
    const {readable,writable}=new FixedLengthStream(size),writer=writable.getWriter();
    const s={writer,jobId,path,size,name,period,digest,bytes:0,attempted:0,deadline:Date.now()+IDLE_MS,agent:agents[0]};
@@ -83,10 +94,11 @@ export class MediaRelay {
   await this.checkpoint(id,s,s.outcome);
   await this.credit(s,s.bytes,s.outcome);
   await this.ctx.storage.delete(CHECKPOINT);await this.ctx.storage.deleteAlarm();
-  this.transfers.delete(id);
   if(s.outcome==='complete')await s.writer.close().catch(()=>{});
   else await s.writer.abort('Delivery interrupted').catch(()=>{});
   try{s.agent.send(JSON.stringify(s.outcome==='complete'?{type:'delivered',id,job_id:s.jobId,path:s.path,bytes:s.bytes}:{type:'delivery-failed',id}));}catch{}
+  // Keep the agent busy until its terminal message has been sent.
+  this.transfers.delete(id);
  }
  async alarm(){
   await this.ready;
@@ -111,6 +123,10 @@ export class MediaRelay {
   if(b.byteLength<=24||b.byteLength>24+CHUNK_MAX)return;
   const id=decoder.decode(b.subarray(0,24)),s=this.transfers.get(id);
   if(!ID.test(id)||!s||s.agent!==ws||s.settling||s.outcome)return;
+  // Stop-and-wait protocol: a second frame before ACK is a violation, never
+  // a reason to queue more media or overwrite the unconfirmed byte bound.
+  if(s.writing){await this.settle(id,false);return;}
+  s.writing=true;
   if(s.bytes+b.byteLength-24>s.size){await this.settle(id,false);return;}
   try{
    const allowed=await this.exclusive(async()=>{
@@ -124,7 +140,7 @@ export class MediaRelay {
     s.bytes+=b.byteLength-24;await this.checkpoint(id,s);
     ws.send(JSON.stringify({type:'ack',id,bytes:s.bytes}));
    });
-  }catch{await this.settle(id,false);}
+  }catch{await this.settle(id,false);}finally{s.writing=false;}
  }
  async webSocketClose(ws){await this.ready;for(const [id,s] of this.transfers)if(s.agent===ws)await this.settle(id,false);}
  async webSocketError(ws){await this.webSocketClose(ws);}

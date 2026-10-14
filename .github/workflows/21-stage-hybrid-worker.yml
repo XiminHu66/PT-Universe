@@ -6,7 +6,7 @@ on:
         description: Metadata operation
         type: choice
         default: verify
-        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery]
+        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow]
       pair_code:
         description: Browser pairing request ID
         type: string
@@ -94,6 +94,12 @@ jobs:
           OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
           SAMPLE_JOB_IDS: ${{ inputs.previous_jobs }}
         run: node workers/media-vault-hybrid/live-recovery.mjs
+      - name: Real bounded backpressure concurrency and rate acceptance
+        if: inputs.operation == 'flow'
+        env:
+          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+          SAMPLE_JOB_IDS: ${{ inputs.previous_jobs }}
+        run: node workers/media-vault-hybrid/live-flow.mjs
       - name: Real metadata lifecycle and restart acceptance
         if: inputs.operation == 'verify'
         env:

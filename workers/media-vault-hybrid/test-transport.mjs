@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
 import {createInterface} from 'node:readline';
+import {handle} from './src/index.js';
 import {transportRoute} from './src/transport.js';
 import {MediaRelay} from './src/relay.js';
 import {relayContext} from './test-state.mjs';
@@ -14,7 +15,7 @@ function sql(ops,batch=false,fail_at=null){return new Promise((resolve,reject)=>
 function statement(query,args=[]){return {sql:query,args,bind(...args){return statement(query,args)},async run(){return (await sql([this]))[0]},async first(){return (await sql([this]))[0].results[0]||null},async all(){return (await sql([this]))[0]}}}
 const DB={prepare:statement,async batch(ops){const inject=failAt;failAt=null;return sql(ops,true,inject)}};
 const id='a'.repeat(24),path='video/ptmv-'+id+' [中文样本].mp4',period=new Date().toISOString().slice(0,7);
-const env={DB,ENABLE_DIRECT_STREAM:'true',MEDIA_OWNER_TOKEN:'o'.repeat(64),MEDIA_AGENT_TOKEN:'a'.repeat(64),MEDIA_TRANSFER_MONTHLY_LIMIT_GIB:'5',RELAY:{idFromName(){return 'test'},get(){return {fetch:async()=>new Response('offline',{status:503})}}}};
+const env={DB,ENABLE_DIRECT_STREAM:'true',MEDIA_OWNER_TOKEN:'o'.repeat(64),MEDIA_AGENT_TOKEN:'a'.repeat(64),MEDIA_TRANSFER_MONTHLY_LIMIT_GIB:'5',RELAY:{idFromName(){return 'test'},get(){return {fetch:async url=>url.endsWith('/ticket-permit')?new Response(null,{status:204}):new Response('offline',{status:503})}}}};
 const base='https://unit.invalid';
 function request(route,body,token=env.MEDIA_OWNER_TOKEN,environment=env){return transportRoute(new Request(base+route,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined}),environment)}
 async function ticket(){const r=await request('/download-ticket',{id,path});return {status:r.status,...await r.json()}}
@@ -36,7 +37,7 @@ try{
  await reset();t=await ticket();await DB.prepare('UPDATE mv_hybrid_tickets SET expires_at=0').run();
  assert.equal((await request('/download?ticket='+t.ticket)).status,403);
  const expired=await Promise.all(Array.from({length:8},()=>ticket()));
- assert.ok(expired.every(x=>x.status===200));assert.equal((await usage()).reserved_bytes,32,'concurrent expiry releases once');
+ assert.equal(expired.filter(x=>x.status===200).length,6);assert.equal(expired.filter(x=>x.status===429).length,2);assert.equal((await usage()).reserved_bytes,24,'concurrent expiry releases once');
  await reset();
  // Expiry batch runs first; inject a failure into issuance's second statement.
  const originalBatch=DB.batch;let calls=0;
@@ -135,6 +136,49 @@ try{
  assert.deepEqual(claims.map(r=>r.status).sort(),[200,403]);
  crashId=agent.sent.at(-1).id;await claims.find(r=>r.status===200).body.cancel();await current.webSocketClose(agent);
  assert.equal((await usage()).reserved_bytes,0);
+ // Slow-reader ACK withholding, a competing download, and reservation isolation.
+ await reset();context=relayContext(agent);current=new MediaRelay(context,{DB});agent.sent=[];
+ t=await ticket();crashResponse=await request('/download?ticket='+t.ticket);crashReader=crashResponse.body.getReader();crashId=agent.sent.at(-1).id;
+ frame=current.webSocketMessage(agent,new Uint8Array([...new TextEncoder().encode(crashId),80,75]).buffer);
+ for(let n=0;n<100&&context.values.get('transfer-counts')?.attempted!==2;n++)await new Promise(r=>setTimeout(r,1));
+ assert.ok(!agent.sent.some(x=>x.type==='ack'),'slow reader must withhold ACK');
+ const busyTicket=await ticket(),busyResponse=await request('/download?ticket='+busyTicket.ticket);
+ assert.equal(busyResponse.status,429);assert.equal(busyResponse.headers.get('Retry-After'),'2');
+ assert.equal((await usage()).reserved_bytes,4,'busy redemption releases only its own reservation');
+ assert.equal((await request('/download?ticket='+busyTicket.ticket)).status,403);
+ await crashReader.read();await frame;assert.equal(agent.sent.at(-1).type,'ack');
+ await crashReader.cancel();await current.webSocketClose(agent);
+ assert.equal((await usage()).transferred_bytes,2);assert.equal((await usage()).reserved_bytes,0);
+ // A premature second frame cannot build an unbounded writable queue.
+ await reset();context=relayContext(agent);current=new MediaRelay(context,{DB});agent.sent=[];
+ t=await ticket();crashResponse=await request('/download?ticket='+t.ticket);crashReader=crashResponse.body.getReader();crashId=agent.sent.at(-1).id;
+ frame=current.webSocketMessage(agent,new Uint8Array([...new TextEncoder().encode(crashId),80,75]).buffer);
+ for(let n=0;n<100&&context.values.get('transfer-counts')?.attempted!==2;n++)await new Promise(r=>setTimeout(r,1));
+ const violation=current.webSocketMessage(agent,new Uint8Array([...new TextEncoder().encode(crashId),3,4]).buffer);
+ for(let n=0;n<100&&!current.transfers.get(crashId)?.outcome;n++)await new Promise(r=>setTimeout(r,1));
+ assert.ok(!context.values.has('transfer-counts')||context.values.get('transfer-counts').attempted===2,'second frame must not overwrite the pending bound');
+ await crashReader.cancel();await violation;await frame;
+assert.equal((await usage()).reserved_bytes,0);
+ assert.ok(!agent.sent.some(x=>x.type==='ack'),'protocol violation cannot ACK queued frames');
+ // Rate permits are serialized and survive a fresh object, while the pending cap
+ // is conditional SQL in the same issuance transaction as the reservation.
+ await reset();context=relayContext(agent);current=new MediaRelay(context,{DB});
+ const originalNow=Date.now;let clock=originalNow();Date.now=()=>clock;
+ try{
+  const burst=await Promise.all(Array.from({length:20},()=>ticket()));
+  assert.equal(burst.filter(x=>x.status===200).length,6);assert.equal(burst.filter(x=>x.status===429).length,14);
+  assert.equal((await usage()).reserved_bytes,24);assert.equal(context.values.get('ticket-permits').length,12);
+  current=new MediaRelay(relayContext(agent,context.values),{DB});await current.ready;
+  const limited=await request('/download-ticket',{id,path});assert.equal(limited.status,429);assert.equal(limited.headers.get('Retry-After'),'60');
+  clock+=60001;assert.equal((await current.fetch(new Request('https://private/ticket-permit'))).status,204);
+  await DB.prepare("UPDATE mv_hybrid_tickets SET expires_at=0 WHERE status='new'").run();
+  const refreshed=await Promise.all(Array.from({length:8},()=>ticket()));assert.equal(refreshed.filter(x=>x.status===200).length,6);
+  assert.equal((await usage()).reserved_bytes,24,'new window and concurrent expiry do not double-release');
+ }finally{Date.now=originalNow;}
+ // Metadata job capacity also stays at five under concurrent submission.
+ const jobs=await Promise.all(Array.from({length:12},()=>handle(new Request(base+'/jobs',{method:'POST',headers:{Authorization:'Bearer '+env.MEDIA_OWNER_TOKEN,'Content-Type':'application/json'},body:JSON.stringify({kind:'novel',url:'https://www.wenku8.net/book/3551.htm',indices:[0]})}),env)));
+ assert.equal(jobs.filter(x=>x.status===202).length,5);assert.equal(jobs.filter(x=>x.status===429).length,7);
+ console.log('PASS flow-control fault tests: slow ACK, busy isolation, premature-frame rejection, twelve-per-minute durable rate cap, six pending tickets, atomic five-job capacity');
  console.log('PASS real SQLite recovery fault injection: confirmed/in-flight process loss, orphan claims, idle alarms, automatic cancel, durable terminal retry, concurrent redemption; metadata only');
  console.log('PASS real SQLite ticket transactions: OFF gate, token isolation, one-use, expiry concurrency, rollback, budget race, offline/missing-file release, exact-once stream accounting');
 }finally{process.stdin.end();lines.close()}

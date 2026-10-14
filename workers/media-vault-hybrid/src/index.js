@@ -98,7 +98,8 @@ export async function handle(request,env){
       if(count>=5)return denied(origin,429,'Queue full; maximum five pending jobs');
       const id=Array.from(crypto.getRandomValues(new Uint8Array(12))).map(x=>x.toString(16).padStart(2,'0')).join('');
       const now=Date.now();
-      await env.DB.prepare("INSERT INTO mv_hybrid_jobs(id,kind,request_json,status,created_at,updated_at) VALUES(?,?,?,'queued',?,?)").bind(id,o.kind,JSON.stringify(o),now,now).run();
+      const inserted=await env.DB.prepare("INSERT INTO mv_hybrid_jobs(id,kind,request_json,status,created_at,updated_at) SELECT ?,?,?,'queued',?,? WHERE (SELECT COUNT(*) FROM mv_hybrid_jobs WHERE status IN ('queued','running','waiting','active'))<5").bind(id,o.kind,JSON.stringify(o),now,now).run();
+      if(!inserted.meta?.changes)return denied(origin,429,'Queue full; maximum five pending jobs');
       return reply({id,status:'queued'},202,origin);
     }
     if(path==='/jobs/files'&&request.method==='GET'){

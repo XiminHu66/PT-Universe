@@ -14,8 +14,8 @@ async function hash(text){
  const raw=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text));
  return hex(new Uint8Array(raw));
 }
-function json(obj,status=200){return new Response(JSON.stringify(obj),{status,headers:{'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});}
-const fail=(status,message)=>json({error:message},status);
+function json(obj,status=200,headers={}){return new Response(JSON.stringify(obj),{status,headers:{'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff',...headers}});}
+const fail=(status,message,retry)=>json({error:message,...(retry?{retry_after:Number(retry)}:{})},status,retry?{'Retry-After':String(retry)}:{});
 const pathPattern=/^(aria|video|generated)\/[a-zA-Z0-9][a-zA-Z0-9._/ \[\]()\u0080-\uffff-]{0,220}$/u;
 const jid=/^[0-9a-f]{24}$/;
 const ready=e=>streamingEnabled(e)&&!!e?.DB;
@@ -72,7 +72,8 @@ async function transportCore(request,env){
   if(res?.status===403)return fail(403,'Ticket expired or already redeemed');
   if(!res||res.status!==200){
    await releaseTicket(env,digest,t.month);
-   return fail(503,'Download agent offline or busy; request another ticket');
+   if(res?.status===429)return fail(429,'Download agent busy; request another ticket after the retry delay',res.headers.get('Retry-After')||2);
+   return fail(503,'Download agent offline; request another ticket');
   }
   const headers=new Headers(res.headers);
   headers.set('Referrer-Policy','no-referrer');
@@ -99,6 +100,10 @@ export async function issueFileTicket(env,data,session=null){
   const f=await env.DB.prepare('SELECT bytes,name FROM mv_hybrid_files WHERE job_id=? AND relative_path=?').bind(data.id,data.path).first();
   if(!f||!Number.isSafeInteger(f.bytes)||f.bytes<=0||f.bytes>12*1024**3)return fail(404,'File not found or size invalid');
   if(env.MEDIA_STREAM_TEST_UNTIL&&f.bytes>10*1024*1024)return fail(413,'Temporary acceptance allows only small files');
+  let permit;
+  try{permit=await room(env).fetch('https://private/ticket-permit')}catch{return fail(503,'Ticket request limiter unavailable')}
+  if(permit.status===429)return fail(429,'Ticket request rate exceeded; maximum twelve per minute',permit.headers.get('Retry-After')||60);
+  if(permit.status!==204)return fail(503,'Ticket request limiter unavailable');
   const m=month(),now=Date.now();
   const expires=session?Math.min(now+120000,session.expires_at):now+120000;
   await env.DB.prepare('INSERT OR IGNORE INTO mv_hybrid_transfer_usage(month,transferred_bytes,reserved_bytes,updated_at) VALUES(?,0,0,?)').bind(m,now).run();
@@ -111,8 +116,8 @@ export async function issueFileTicket(env,data,session=null){
   const digest=await hash(token);
   try {
    const ops=[
-    env.DB.prepare("INSERT INTO mv_hybrid_tickets(digest,job_id,relative_path,bytes,month,expires_at,status) SELECT ?,?,?,?,?,?,'new' FROM mv_hybrid_transfer_usage WHERE month=? AND transferred_bytes+reserved_bytes+?<=?"+(session?" AND EXISTS(SELECT 1 FROM mv_hybrid_browser_sessions WHERE digest=? AND status='approved' AND expires_at>? AND issued_tickets<6)":''))
-     .bind(digest,data.id,data.path,f.bytes,m,expires,m,f.bytes,transferBudget(env),...(session?[session.digest,now]:[])),
+    env.DB.prepare("INSERT INTO mv_hybrid_tickets(digest,job_id,relative_path,bytes,month,expires_at,status) SELECT ?,?,?,?,?,?,'new' FROM mv_hybrid_transfer_usage WHERE month=? AND transferred_bytes+reserved_bytes+?<=? AND (SELECT COUNT(*) FROM mv_hybrid_tickets WHERE status='new' AND expires_at>?)<6"+(session?" AND EXISTS(SELECT 1 FROM mv_hybrid_browser_sessions WHERE digest=? AND status='approved' AND expires_at>? AND issued_tickets<6)":''))
+     .bind(digest,data.id,data.path,f.bytes,m,expires,m,f.bytes,transferBudget(env),now,...(session?[session.digest,now]:[])),
     env.DB.prepare("UPDATE mv_hybrid_transfer_usage SET reserved_bytes=reserved_bytes+?,updated_at=? WHERE month=? AND EXISTS(SELECT 1 FROM mv_hybrid_tickets WHERE digest=? AND status='new')").bind(f.bytes,now,m,digest)
    ];
    if(session){
@@ -120,7 +125,7 @@ export async function issueFileTicket(env,data,session=null){
     ops.push(env.DB.prepare("UPDATE mv_hybrid_browser_sessions SET issued_tickets=issued_tickets+1 WHERE digest=? AND EXISTS(SELECT 1 FROM mv_hybrid_tickets WHERE digest=? AND status='new')").bind(session.digest,digest));
    }
    const issued=await env.DB.batch(ops);
-   if(!issued[0].meta?.changes)return fail(429,'Application transfer budget or bounded test ticket limit reached');
+   if(!issued[0].meta?.changes)return fail(429,'Application transfer budget or outstanding/session ticket limit reached',5);
   }catch(e){
    return fail(503,'Failed to issue file ticket');
   }
