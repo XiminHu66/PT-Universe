@@ -1,0 +1,48 @@
+name: "Hybrid metadata lifecycle acceptance (streaming OFF)"
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Metadata operation
+        type: choice
+        default: verify
+        options: [deploy, verify]
+permissions:
+  contents: read
+concurrency:
+  group: pt-media-hybrid-cloud-stage
+  cancel-in-progress: false
+jobs:
+  metadata:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    steps:
+      - name: Checkout isolated hybrid staging branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: feat/media-vault-vps-engine-ready
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - name: Test and deploy only dedicated hybrid metadata Worker
+        if: inputs.operation == 'deploy'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          grep -q '"ENABLE_DIRECT_STREAM": "false"' workers/media-vault-hybrid/wrangler.jsonc
+          npm ci --prefix workers/pt-universe-api
+          npm test --prefix workers/media-vault-hybrid
+          npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/wrangler.jsonc
+      - name: Real metadata lifecycle and restart acceptance
+        if: inputs.operation == 'verify'
+        env:
+          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+          AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "$OWNER" && test -n "$AGENT"
+          node workers/media-vault-hybrid/live-metadata.mjs
+

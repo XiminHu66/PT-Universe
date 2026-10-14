@@ -107,6 +107,10 @@ export async function handle(request,env){
     if(path==='/jobs/cancel'&&request.method==='POST'){
       const o=await jsonBody(request);
       if(!jobIdPattern.test(o.id||''))return denied(origin,400,'Invalid job ID');
+      const row=await env.DB.prepare('SELECT status FROM mv_hybrid_jobs WHERE id=?').bind(o.id).first();
+      if(!row)return denied(origin,404,'Job not found');
+      if(row.status==='cancelled')return reply({ok:true},200,origin);
+      if(!active.has(row.status))return denied(origin,409,'Job already finished');
       await env.DB.prepare("UPDATE mv_hybrid_jobs SET status='cancelled',updated_at=? WHERE id=? AND status IN ('queued','running','waiting','active')").bind(Date.now(),o.id).run();
       return reply({ok:true},200,origin);
     }
@@ -114,6 +118,13 @@ export async function handle(request,env){
       const o=await jsonBody(request);
       if(!validUrl(o.url,'video'))return denied(origin,400,'Invalid HTTPS video URL');
       return reply({title:'yt-dlp · queued extraction',formats:[{id:'best',label:'最佳可用',format:'auto',note:'Source support is not guaranteed'}]},200,origin);
+    }
+    if(path==='/agent/job'&&request.method==='GET'){
+      const id=u.searchParams.get('id');
+      if(!jobIdPattern.test(id||''))return denied(origin,400,'Invalid job ID');
+      const row=await env.DB.prepare('SELECT status FROM mv_hybrid_jobs WHERE id=?').bind(id).first();
+      if(!row)return denied(origin,404,'Job not found');
+      return reply({id,status:row.status},200,origin);
     }
     if(path==='/agent/lease'&&request.method==='POST'){
       const now=Date.now();
@@ -123,7 +134,7 @@ export async function handle(request,env){
       if(!row)return reply({job:null},200,origin);
       const result=await env.DB.prepare("UPDATE mv_hybrid_jobs SET status='running',lease_until=?,updated_at=? WHERE id=? AND status='queued'").bind(now+180000,now,row.id).run();
       if(!result.meta?.changes)return reply({job:null},200,origin);
-      return reply({job:{id:row.id,...JSON.parse(row.request_json)}},200,origin);
+      return reply({job:{...JSON.parse(row.request_json),id:row.id}},200,origin);
     }
     if(path==='/agent/report'&&request.method==='POST'){
       const o=await jsonBody(request);
@@ -134,15 +145,20 @@ export async function handle(request,env){
       const row=await env.DB.prepare('SELECT status FROM mv_hybrid_jobs WHERE id=?').bind(o.id).first();
       if(!row)return denied(origin,404,'Job not found');
       if(row.status==='cancelled')return denied(origin,409,'Job cancelled');
-      const sql="UPDATE mv_hybrid_jobs SET status=?,updated_at=?,lease_until=?,completed_bytes=?,total_bytes=?,detail=?,error=? WHERE id=?";
-      await env.DB.prepare(sql).bind(o.status,Date.now(),o.status==='running'?Date.now()+180000:0,done,total,String(o.title||'').slice(0,180),String(o.error||'').slice(0,150),o.id).run();
-      if(o.status==='complete'&&Array.isArray(o.files)){
-        if(o.files.length>80)return denied(origin,400,'Too many files');
-        for(const f of o.files){
-          if(!ticketPath.test(f.path||'')||!Number.isSafeInteger(f.size)||f.size<=0||f.size>12*1024**3)continue;
-          await env.DB.prepare('INSERT OR REPLACE INTO mv_hybrid_files(job_id,relative_path,name,bytes) VALUES(?,?,?,?)').bind(o.id,f.path,String(f.name||f.path).slice(0,220),f.size).run();
-        }
+      if(row.status==='complete'||row.status==='error'){
+        if(row.status===o.status)return reply({ok:true,terminal:true},200,origin);
+        return denied(origin,409,'Job already finished');
       }
+      if(row.status!=='running')return denied(origin,409,'Job has not been leased');
+      const files=o.status==='complete'?o.files:[];
+      if(!Array.isArray(files)||files.length>80||(o.status==='complete'&&files.length===0))return denied(origin,400,'Completed job requires valid files');
+      if(files.some(f=>!f||!ticketPath.test(f.path||'')||f.path.split('/').includes('..')||!Number.isSafeInteger(f.size)||f.size<=0||f.size>12*1024**3))return denied(origin,400,'Invalid file metadata');
+      const ops=files.map(f=>env.DB.prepare("INSERT OR REPLACE INTO mv_hybrid_files(job_id,relative_path,name,bytes) SELECT ?,?,?,? WHERE EXISTS(SELECT 1 FROM mv_hybrid_jobs WHERE id=? AND status='running')").bind(o.id,f.path,String(f.name||f.path).slice(0,220),f.size,o.id));
+      const sql="UPDATE mv_hybrid_jobs SET status=?,updated_at=?,lease_until=?,completed_bytes=?,total_bytes=?,detail=?,error=? WHERE id=? AND status='running'";
+      ops.push(env.DB.prepare(sql).bind(o.status,Date.now(),o.status==='running'?Date.now()+180000:0,done,total,String(o.title||'').slice(0,180),String(o.error||'').slice(0,150),o.id));
+      // D1 batch commits file metadata and the terminal status atomically.
+      const results=await env.DB.batch(ops);
+      if(!results.at(-1)?.meta?.changes)return denied(origin,409,'Job state changed');
       return reply({ok:true},200,origin);
     }
     if(path==='/download-ticket'&&request.method==='POST')
@@ -155,3 +171,4 @@ export async function handle(request,env){
   }
 }
 export default {fetch:handle};
+
