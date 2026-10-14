@@ -1,0 +1,23 @@
+-- Independent Media Vault hybrid control plane: metadata ONLY. NEVER store file bytes.
+CREATE TABLE IF NOT EXISTS mv_hybrid_jobs (
+  id TEXT PRIMARY KEY, kind TEXT NOT NULL, request_json TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'queued', created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL, lease_until INTEGER NOT NULL DEFAULT 0,
+  completed_bytes INTEGER NOT NULL DEFAULT 0, total_bytes INTEGER NOT NULL DEFAULT 0,
+  detail TEXT NOT NULL DEFAULT '', error TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS mv_hybrid_recent ON mv_hybrid_jobs(created_at DESC);
+CREATE TABLE IF NOT EXISTS mv_hybrid_files (
+  job_id TEXT NOT NULL, relative_path TEXT NOT NULL, name TEXT NOT NULL,
+  bytes INTEGER NOT NULL, PRIMARY KEY(job_id,relative_path)
+);
+CREATE TABLE IF NOT EXISTS mv_hybrid_transfer_usage (
+  month TEXT PRIMARY KEY, transferred_bytes INTEGER NOT NULL DEFAULT 0,
+  reserved_bytes INTEGER NOT NULL DEFAULT 0,
+  updated_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS mv_hybrid_tickets (
+  digest TEXT PRIMARY KEY, job_id TEXT NOT NULL, relative_path TEXT NOT NULL,
+  bytes INTEGER NOT NULL, month TEXT NOT NULL,
+  expires_at INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'new'
+);
