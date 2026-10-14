@@ -1,5 +1,6 @@
 import {OCI_REFERENCE_BYTES,transferBudget,streamingEnabled} from './limits.js';
 import {acceptancePage} from './acceptance.js';
+import {nativeDownloadModule,nativeDownloadFailure} from './native-download.js';
 import {browserSessionRoute} from './browser-session.js';
 // Control plane only; stores tasks, metadata and REAL transfer ledger in D1.
 // All media bytes will use a separate, not-yet-enabled live streaming channel.
@@ -62,6 +63,7 @@ export async function handle(request,env){
   if(origin && origin!==CORS_ORIGIN&&origin!==new URL(request.url).origin)return denied(origin);
   const u=new URL(request.url),path=u.pathname;
   if(path==='/acceptance'&&request.method==='GET')return acceptancePage(env);
+  if(path==='/acceptance/native-download.js'&&request.method==='GET')return nativeDownloadModule(env);
   const browserSession=await browserSessionRoute(request,env);
   if(browserSession)return browserSession;
   if(request.method==='OPTIONS'){
@@ -70,7 +72,7 @@ export async function handle(request,env){
     return new Response(null,{status:204,headers:h});
   }
   const direct=await transportRoute(request,env);
-  if(direct)return direct;
+  if(direct)return nativeDownloadFailure(request,direct);
   const agent=path.startsWith('/agent/');
   if(!tokenIs(request,agent?env.MEDIA_AGENT_TOKEN:env.MEDIA_OWNER_TOKEN))return denied(origin,401,'Authorization required');
   try {

@@ -406,7 +406,23 @@ async function loadTransferBudget(){
 async function loadTasks(){void loadTransferBudget();if(!engine){$('#torrentTasks').innerHTML=empty('尚未连接引擎。连接后显示实际进度、速度和文件列表。');renderQueue();return;}try{const d=await callEngine('/jobs');engineJobs=d.jobs;$('#engineStatus').textContent='● 引擎已连接';$('#torrentTasks').innerHTML=engineJobs.length?engineJobs.map(taskHTML).join(''):empty('下载队列为空');renderQueue();bindTasks();}catch(e){$('#engineStatus').textContent='引擎连接失败';$('#torrentTasks').innerHTML=empty(e.message);}}
 function renderQueue(){$('#queueList').innerHTML=novelDownloadHTML()+engineJobs.map(taskHTML).join('')+history.slice(0,30).map(x=>`<div class="task-row"><strong>${esc(x.title)}</strong><p class="caption">${esc(x.status)} · ${date(x.time)}</p></div>`).join('')||empty('暂无任务。');$('#queueCount').textContent=novelTasks.filter(t=>['queued','running'].includes(t.status)).length+engineJobs.filter(x=>['running','queued','active','waiting'].includes(x.status)).length;bindTasks();bindNovelTaskActions();}
 function bindTasks(){$$('[data-job-files]').forEach(b=>b.onclick=()=>busy(b,()=>showJobFiles(b.dataset.jobFiles)));$$('[data-job-cancel]').forEach(b=>b.onclick=()=>busy(b,async()=>{await callEngine('/jobs/cancel',{id:b.dataset.jobCancel});loadTasks();}));}
-async function showJobFiles(id){const d=await callEngine('/jobs/files?id='+encodeURIComponent(id));$('#filesTitle').textContent='已完成文件';$('#filesList').innerHTML=d.files.map((f,i)=>`<div class="file-row"><strong>${esc(f.name)}</strong><p>${bytes(f.size)}</p><button data-engine-file="${i}">↓ 保存到本机</button></div>`).join('')||empty('没有可下载文件');if(!$('#files').open)$('#files').showModal();$$('[data-engine-file]').forEach(b=>b.onclick=()=>busy(b,async()=>{const f=d.files[+b.dataset.engineFile];const ticket=await callEngine('/download-ticket',{id,path:f.path});downloadURL(engine.url+'/download?ticket='+encodeURIComponent(ticket.ticket),f.name);}));}
+let nativeEngineSaver=null,nativeEngineConfig=null;
+async function showJobFiles(id){
+ const config=engine,d=await callEngine('/jobs/files?id='+encodeURIComponent(id),null,config);
+ const {createNativeSaver}=await import('./native-download.js');
+ if(engine!==config)throw Error('下载连接已变化，请重新打开文件列表。');
+ if(nativeEngineConfig!==config){
+  nativeEngineSaver?.dispose();nativeEngineConfig=config;
+  nativeEngineSaver=createNativeSaver({baseURL:config.url,headers:{Authorization:'Bearer '+config.token},
+   fetch:(...args)=>{if(engine!==config)throw Error('下载连接已变化');return fetch(...args);},
+   onState:state=>{notice(state.message,state.phase==='error');if(state.phase==='handed-off')addHistory(state.file.name,'已交给浏览器保存');}});
+ }
+ $('#filesTitle').textContent='已完成文件';
+ $('#filesList').innerHTML=d.files.map((f,i)=>`<div class="file-row"><strong>${esc(f.name)}</strong><p>${bytes(f.size)}</p><button data-engine-file="${i}">↓ 保存到本机</button></div>`).join('')||empty('没有可下载文件');
+ if(!$('#files').open)$('#files').showModal();
+ $$('[data-engine-file]').forEach(b=>b.onclick=()=>busy(b,()=>nativeEngineSaver.save({...d.files[+b.dataset.engineFile],id})));
+}
+
 $('#queueOpen').onclick=()=>{renderQueue();$('#queue').showModal();loadTasks();void loadTransferBudget();};$('#queueRefresh').onclick=e=>busy(e.currentTarget,loadTasks);$('#torrentRefresh').onclick=e=>busy(e.currentTarget,loadTasks);setInterval(()=>{if(engine&&!document.hidden&&(location.hash==='#torrent'||$('#queue').open))loadTasks();},6000);
 const snapshotReady=fetch('data/snapshot.json',{cache:'no-cache',signal:AbortSignal.timeout(8000)}).then(r=>r.ok?r.json():null).then(d=>{snapshot=d;}).catch(()=>{});
 if(engine)callEngine('/health').then(()=>{$('#engineStatus').textContent='● 引擎已连接';}).catch(()=>{$('#engineStatus').textContent='引擎连接失败';});
