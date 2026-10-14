@@ -52,6 +52,7 @@ async function transportCore(request,env){
   if(j?.status!=='complete')return fail(409,'Job not completed');
   const f=await env.DB.prepare('SELECT bytes,name FROM mv_hybrid_files WHERE job_id=? AND relative_path=?').bind(data.id,data.path).first();
   if(!f||!Number.isSafeInteger(f.bytes)||f.bytes<=0||f.bytes>12*1024**3)return fail(404,'File not found or size invalid');
+  if(env.MEDIA_STREAM_TEST_UNTIL&&f.bytes>10*1024*1024)return fail(413,'Temporary acceptance allows only small files');
   const m=month(),now=Date.now();
   await env.DB.prepare('INSERT OR IGNORE INTO mv_hybrid_transfer_usage(month,transferred_bytes,reserved_bytes,updated_at) VALUES(?,0,0,?)').bind(m,now).run();
   // A D1 batch is a transaction: concurrent expiry checks cannot release twice.
