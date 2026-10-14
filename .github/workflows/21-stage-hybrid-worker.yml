@@ -98,6 +98,7 @@ jobs:
         if: inputs.operation == 'flow'
         env:
           OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+          AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
           SAMPLE_JOB_IDS: ${{ inputs.previous_jobs }}
         run: node workers/media-vault-hybrid/live-flow.mjs
       - name: Real metadata lifecycle and restart acceptance

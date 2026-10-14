@@ -138,6 +138,7 @@ try{
  assert.equal((await usage()).reserved_bytes,0);
  // Slow-reader ACK withholding, a competing download, and reservation isolation.
  await reset();context=relayContext(agent);current=new MediaRelay(context,{DB});agent.sent=[];
+ const duplicateAgent=await current.fetch(new Request('https://private/agent-connect',{headers:{Upgrade:'websocket'}}));assert.equal(duplicateAgent.status,409);assert.equal(duplicateAgent.headers.get('Retry-After'),'5');
  t=await ticket();crashResponse=await request('/download?ticket='+t.ticket);crashReader=crashResponse.body.getReader();crashId=agent.sent.at(-1).id;
  frame=current.webSocketMessage(agent,new Uint8Array([...new TextEncoder().encode(crashId),80,75]).buffer);
  for(let n=0;n<100&&context.values.get('transfer-counts')?.attempted!==2;n++)await new Promise(r=>setTimeout(r,1));

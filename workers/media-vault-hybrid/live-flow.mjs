@@ -1,6 +1,7 @@
 // Bounded real flow acceptance. Hash existing files in memory; no media archive.
 import assert from 'node:assert/strict';
-import {createHash} from 'node:crypto';
+import {createHash,randomBytes} from 'node:crypto';
+import {request as httpsRequest} from 'node:https';
 process.on('uncaughtException',error=>{console.error('::error::Flow acceptance failed',error.name,error.name==='AssertionError'?error.message.replace(/[a-f0-9]{64}/g,'[digest]'):'network or runtime error');process.exit(1)});
 const base='https://pt-media-hybrid.summer07-nanjolno.workers.dev',ids=(process.env.SAMPLE_JOB_IDS||'').split(',');assert.equal(ids.length,3);assert.ok(ids.every(x=>/^[a-f0-9]{24}$/.test(x)));
 const headers={Authorization:'Bearer '+process.env.OWNER,'Content-Type':'application/json','User-Agent':'PTUniverseAcceptance/0.1'};
@@ -13,6 +14,14 @@ async function download(ticket){return fetch(base+'/download?ticket='+ticket,{si
 async function replay(ticket){const r=await download(ticket);assert.equal(r.status,403);await r.body?.cancel();}
 const epub=(await ok('/jobs/files?id='+ids[0])).files[0],mp4=(await ok('/jobs/files?id='+ids[2])).files[0];assert.equal(epub.size,52742);assert.equal(mp4.size,2848208);
 const before=await quota();assert.equal(before.reserved_bytes,0);let total=0;
+assert.ok((process.env.AGENT||'').length>=32);
+const duplicateAgent=await new Promise((resolve,reject)=>{
+ const req=httpsRequest(base+'/agent/ws',{headers:{Authorization:'Bearer '+process.env.AGENT,Upgrade:'websocket',Connection:'Upgrade','Sec-WebSocket-Version':'13','Sec-WebSocket-Key':randomBytes(16).toString('base64')}},res=>{res.resume();res.on('end',()=>resolve({status:res.statusCode,retry:Number(res.headers['retry-after']||0)}))});
+ req.on('upgrade',(_res,socket)=>{socket.destroy();reject(new Error('Unexpected duplicate agent connection'))});req.on('error',reject);req.setTimeout(15000,()=>req.destroy(new Error('Duplicate agent check timeout')));req.end();
+});
+assert.equal(duplicateAgent.status,409);assert.equal(duplicateAgent.retry,5);
+console.log('FLOW_PROOF '+JSON.stringify({case:'duplicate-agent',http:409,retry_after:5,existing_agent_preserved:true}));
+
 const first=await ok('/download-ticket',{id:ids[2],path:mp4.path});
 const pair=await Promise.all([download(first.ticket),download(first.ticket)]);assert.deepEqual(pair.map(r=>r.status).sort(),[200,403],'Simultaneous redemption must admit exactly one consumer');await pair.find(r=>r.status===403).body.cancel();
 const main=pair.find(r=>r.status===200);assert.equal(main.headers.get('Content-Length'),String(mp4.size));
