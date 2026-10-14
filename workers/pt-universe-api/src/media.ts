@@ -165,14 +165,14 @@ export async function mediaRoute(request:Request,env?:{PT_UNIVERSE_DATA:KVNamesp
  const u=new URL(request.url);if(!u.pathname.startsWith('/api/media/'))return null;
  if(request.method!=='GET')throw new Error('只支持 GET');
  const route=u.pathname.slice('/api/media/'.length),p=u.searchParams;
- if(route==='health')return {ok:true,version:5,build:'2026-10-02-illustrated-epub',engineRequired:['torrent TCP/UDP','generic yt-dlp'],time:stamp()};
+ if(route==='health')return {ok:true,version:6,build:'2026-10-14-novel-recovery',engineRequired:['torrent TCP/UDP','generic yt-dlp'],time:stamp()};
  if(route==='novel/image')return novelImage(request,env);
  if(route==='stream'){if(!env)throw new Error('缺少播放存储');return animeStream(request,env.PT_UNIVERSE_DATA);}
  if(route==='video'&&new URL(p.get('url')||'https://invalid.example').hostname==='anime1.me'){if(!env)throw new Error('缺少播放存储');return animePlayback(p.get('url')||'',html,env.PT_UNIVERSE_DATA,u.origin);}
  // Refresh skips lookup but replaces the canonical cached value. Cache failures
  // must not turn successfully retrieved content into a broken endpoint.
  const refresh=p.get('refresh')==='1';u.searchParams.delete('refresh');
- const key=new Request(u.href),cache=await caches.open('media-vault-v8');
+ const key=new Request(u.href),cache=await caches.open('media-vault-v9');
  const cached=refresh?null:await cache.match(key).catch(()=>null);if(cached)return cached.json();
  let data:any;
  if(route==='charts')data=await charts(p.get('country')||'jp',p.get('genre')||'0');

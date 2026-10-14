@@ -17,6 +17,13 @@ try{
  const url='https://www.bilinovel.com/novel/1/2.html';
  const bili=await fixture({kind:'bili',url,pages:{[url]:'<div id="atitle">Chapter</div><div id="acontent"><p>Before<img src="placeholder" data-src="https://https://images.example.org/𝘣.png">After</p><img src="//images.example.org/two.jpg"></div><div id="footlink"><a class="nextlink">下一页</a></div><script>url_next:"/novel/1/2_2.html"</script>',[url.replace('.html','_2.html')]:'<div id="acontent"><p><img src="/three.jpg"></p></div>'}});
  assert.deepEqual(bili.blocks.map(b=>b.type),['text','image','text','image','image']);assert.equal(bili.blocks[1].url,'https://images.example.org/b.png');assert.equal(bili.pages,2);
+ // Never export a truncated chapter when a later page is empty, or diagnose all empties as login.
+ const failed=async pages=>{const r=await mf.dispatchFetch('https://local/fixture',{method:'POST',body:JSON.stringify({kind:'bili',url,pages})});assert.equal(r.status,400);return (await r.json()).error;};
+ const firstPage='<div id="acontent"><p>First page body</p></div><div id="footlink"><a class="nextlink">下一页</a></div><script>url_next:"/novel/1/2_2.html"</script>';
+ const emptyError=await failed({[url]:firstPage,[url.replace('.html','_2.html')]:'<html><body></body></html>'});assert.match(emptyError,/没有获取到正文/);assert.doesNotMatch(emptyError,/登录/);
+ assert.match(await failed({[url]:'<html><h1>Site Unavailable</h1></html>'}),/暂时不可用/);
+ assert.match(await failed({[url]:'<form><input type="password"></form>'}),/需要登录/);
+ assert.match(await failed({[url]:'<html>Just a moment cf-chl-test</html>'}),/浏览器验证/);
  const image=path=>'https://local/api/media/novel/image?'+new URLSearchParams({page:'https://www.wenku8.net/novel/0/1/2.htm',url:path});
  const good=await mf.dispatchFetch(image('https://images.example.org/page.png'));assert.equal(good.status,200);assert.equal(good.headers.get('content-type'),'image/png');assert.equal(good.headers.get('access-control-allow-origin'),'*');assert.deepEqual(new Uint8Array(await good.arrayBuffer()),png);
  const count=imageCalls;assert.equal((await mf.dispatchFetch(image('https://images.example.org/page.png'))).status,200);assert.equal(imageCalls,count);

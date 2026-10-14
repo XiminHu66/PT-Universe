@@ -11,7 +11,7 @@ const assert=require('node:assert/strict');
  const browser=await chromium.launch(options),page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
  const snapshot=JSON.parse(fs.readFileSync('apps/media-vault/data/snapshot.json','utf8'));
- let freshCharts=0,holdChapters=false,releaseChapters,failImage=true;
+ let freshCharts=0,holdChapters=false,releaseChapters,failImage=true,recoveryChapterCalls=0;
  const chapterGate=new Promise(resolve=>releaseChapters=resolve),started=new Set(),chapterURLs=[];
  const bookURL=id=>'https://www.wenku8.net/book/'+id+'.htm';
  const bookTitle=id=>id===1?'贵族千金只愿意亲近我':id===7?'章节选择样本':'测试小说 '+id;
@@ -23,6 +23,7 @@ const assert=require('node:assert/strict');
   if(u.pathname.endsWith('/novel/catalog'))return route.fulfill({json:{items:catalogue}});
   if(u.pathname.endsWith('/novel')){const id=Number(u.searchParams.get('url').match(/(\d+)\.htm/)[1]);return route.fulfill({json:{...catalogue[id-1],chapters:Array.from({length:id===5?1:id===7?5:2},(_,i)=>({title:'第 '+(i+1)+' 章 · 小说 '+id,url:'https://www.wenku8.net/novel/'+id+'/'+(i+1)+'.htm'}))}});}
   if(u.pathname.endsWith('/chapter')){const url=u.searchParams.get('url'),id=Number(url.match(/novel\/(\d+)/)[1]);started.add(id);chapterURLs.push(url);if(holdChapters&&id>=2&&id<=5)await chapterGate;
+   if(id===8&&url.endsWith('/2.htm')){recoveryChapterCalls++;return route.fulfill({status:500,json:{error:'来源需要登录；请打开原站并补入本章正文'}});}
    const image='https://images.example.org/'+(id===6?'failure':id===5?'only':'fixture')+'.png',text='这是小说 '+id+' 的完整测试章节。';
    return route.fulfill({json:{title:'第 '+url.match(/(\d+)\.htm/)[1]+' 章 · 小说 '+id,url,text:id===5?'':text,blocks:id===5?[{type:'image',url:image}]:[{type:'text',text:'　　'+text.repeat(8)+'\n \n\u00a0\u00a0独立段落。\n\n'},{type:'image',url:image},{type:'text',text:'插图之后。'},{type:'image',url:image}]}});
   }
@@ -132,6 +133,19 @@ const assert=require('node:assert/strict');
  // Stored preferences survive reopening; changes cannot mutate an existing task's layout.
  await page.click('#bookEPUB');await page.click('#downloadShowLayout');assert.equal(await page.inputValue('#epub-lineHeight'),'1.65');await page.click('#epubPresetLoose');assert.deepEqual(await page.evaluate(id=>novelTasks.find(t=>t.id===id).layout,styled.id),pickedLayout);
  await page.click('#epubPresetCompact');await page.locator('#downloadChapterDialog [data-close]').first().click();
+ // Recover a real queue item through its visible dialog, retaining earlier chapters and EPUB structure.
+ await page.evaluate(()=>enqueueNovel({title:'登录章节恢复样本',url:'https://www.wenku8.net/book/8.htm',chapters:[{title:'第一章',url:'https://www.wenku8.net/novel/8/1.htm'},{title:'第二章',url:'https://www.wenku8.net/novel/8/2.htm'}]}));
+ await page.waitForFunction(()=>novelTasks.find(t=>t.url.endsWith('/8.htm'))?.status==='error');
+ const recoveryID=await page.evaluate(()=>novelTasks.find(t=>t.url.endsWith('/8.htm')).id);assert.equal(recoveryChapterCalls,1);
+ await save('#novelTaskList [data-novel-partial="'+recoveryID+'"]','partial-text.epub');
+ await page.click('#novelTaskList [data-novel-import="'+recoveryID+'"]');await page.locator('#chapterImportDialog[open]').waitFor();
+ assert.equal(await page.getAttribute('#chapterImportSource','href'),'https://www.wenku8.net/novel/8/2.htm');
+ await page.screenshot({animations:'disabled',path:'test-results/media-vault/chapter-recovery-desktop.png'});
+ await page.setViewportSize({width:390,height:844});assert.ok(await page.locator('#chapterImportDialog').evaluate(e=>e.scrollWidth<=e.clientWidth));await page.screenshot({animations:'disabled',path:'test-results/media-vault/chapter-recovery-mobile.png'});
+ await page.fill('#chapterImportText','这是从已经登录的原站复制的完整第二章正文。'.repeat(5));await page.click('#chapterImportSave');
+ await page.waitForFunction(id=>novelTasks.find(t=>t.id===id).status==='ready',recoveryID);assert.equal(recoveryChapterCalls,1);
+ const recovered=await page.evaluate(async id=>{const t=novelTasks.find(t=>t.id===id),zip=await new JSZip().loadAsync(t.blob);return {first:await zip.file('OEBPS/c0.xhtml').async('string'),second:await zip.file('OEBPS/c1.xhtml').async('string')};},recoveryID);
+ assert.match(recovered.first,/小说 8/);assert.match(recovered.second,/完整第二章正文/);await page.setViewportSize({width:1440,height:1000});await save('#novelTaskList [data-novel-save="'+recoveryID+'"]','recovered.epub');await page.setViewportSize({width:1440,height:1000});
  await page.screenshot({animations:'disabled',path:'test-results/media-vault/desktop.png'});
  const sizes=await page.evaluate(()=>Object.fromEntries(['.book-select strong','.chapter-row','#readerText','.task-detail'].map(s=>[s,parseFloat(getComputedStyle(document.querySelector(s)).fontSize)])));assert.ok(sizes['.book-select strong']===17&&sizes['.chapter-row']===15&&sizes['#readerText']===21&&sizes['.task-detail']===13);
  const panes=await page.locator('.novel-layout > *').evaluateAll(es=>es.map(e=>({x:e.getBoundingClientRect().x,width:e.getBoundingClientRect().width})));
