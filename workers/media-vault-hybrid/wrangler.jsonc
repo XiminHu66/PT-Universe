@@ -5,7 +5,7 @@
   "compatibility_date": "2026-10-13",
   "workers_dev": true,
   "observability": {"enabled": false},
-  "vars": {"ENABLE_DIRECT_STREAM": "false"},
+  "vars": {"ENABLE_DIRECT_STREAM": "false", "MEDIA_TRANSFER_MONTHLY_LIMIT_GIB": "100"},
   "durable_objects": {"bindings": [{"name": "RELAY", "class_name": "MediaRelay"}]},
   "exports": {"MediaRelay": {"type": "durable-object", "storage": "sqlite"}},
   "d1_databases": [{
