@@ -14,7 +14,12 @@ function empty(text){return `<div class="empty"><p>${esc(text)}</p></div>`;}
 function date(s){return s?new Date(s).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'尚无成功更新';}
 function bytes(n){return n>=1e9?(n/1e9).toFixed(2)+' GB':n>=1e6?(n/1e6).toFixed(1)+' MB':n>=1e3?(n/1e3).toFixed(1)+' KB':(n||0)+' B';}
 async function busy(button,fn){if(button)button.disabled=true;try{return await fn();}catch(e){notice(e.message,true);}finally{if(button)button.disabled=false;}}
-async function api(path,params={}){let r;try{r=await fetch(API+path+'?'+new URLSearchParams(params),{signal:AbortSignal.timeout(path==='health'?10000:45000),cache:'no-store'});}catch(e){throw new Error(e.name==='TimeoutError'?'来源响应超时，请重试；已缓存的章节仍可阅读。':'无法连接媒体服务，请点击右上角“检测连接”查看状态。');}const raw=await r.text();let d;try{d=JSON.parse(raw);}catch{throw new Error('接口返回 HTTP '+r.status+'，请稍后重试');}if(!r.ok||d.error)throw new Error(d.error||'接口暂不可用');return d;}
+async function api(path,params={}){
+ let r,raw;try{r=await fetch(API+path+'?'+new URLSearchParams(params),{signal:AbortSignal.timeout(path==='health'?10000:path==='chapter'?120000:45000),cache:'no-store'});raw=await r.text();}
+ catch(e){const error=new Error(e.name==='TimeoutError'?'来源响应超时，已缓存的章节仍可阅读。':'无法连接媒体服务，已缓存的章节仍保留。');error.transient=true;throw error;}
+ let d;try{d=JSON.parse(raw);}catch{const error=new Error('接口返回 HTTP '+r.status+'，请稍后重试');error.transient=r.ok||[408,429,500,502,503,504,522,524].includes(r.status);throw error;}
+ if(!r.ok||d.error){const error=new Error(d.error||'接口暂不可用');error.transient=[408,429,500,502,503,504,522,524].includes(r.status);throw error;}return d;
+}
 async function callEngine(path,body,config=engine){if(!config)throw new Error('此功能需要下载引擎。点击右上角“设置 → 下载引擎设置” 连接自己的电脑或 NAS。');const r=await fetch(config.url+path,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+config.token,...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(path.includes('novel')?90000:65000)});const d=await r.json();if(!r.ok||d.error)throw new Error(d.error||'引擎请求失败');return d;}
 function addHistory(title,status){history=[{title,status,time:new Date().toISOString()},...history].slice(0,80);db.set('history',history);$('#queueCount').textContent=engineJobs.filter(x=>['running','queued','active','waiting'].includes(x.status)).length||history.length;}
 function downloadURL(url,title){
@@ -69,7 +74,7 @@ async function showArchive(item){$('#files').showModal();$('#filesTitle').textCo
 
 // Novel workbench: reading state and each download job are independent.
 let readerRequest=0,bookRequest=0,novelCatalogItems=null,novelSearchRequest=0;
-const bookCatalogs=new Map(),chapterRequests=new Map(),sourceSlots=new Map();
+const bookCatalogs=new Map(),chapterRequests=new Map(),sourceSlots=new Map(),sessionChapters=new Map();
 let chapterDelay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const novelTasks=db.get('novelTasks',[]).map(t=>({...t,status:'interrupted',detail:'上次任务已结束；可复用缓存重新生成',blob:null}));
 const MAX_NOVEL_DOWNLOADS=3;
@@ -80,14 +85,20 @@ async function paceSource(url,kind,stopped){
  const origin=new URL(url).origin,key=kind+':'+origin,interval=kind==='image'?(url.includes('wenku8')?900:6000):(url.includes('wenku8')?3100:4200);
  const slot=(sourceSlots.get(key)||Promise.resolve()).catch(()=>{}).then(async()=>{checkStopped(stopped);const previous=sourceSlots.get(key+':time')||0,wait=Math.max(0,previous+interval-Date.now());if(wait)await chapterDelay(wait);checkStopped(stopped);sourceSlots.set(key+':time',Date.now());});sourceSlots.set(key,slot);await slot;
 }
+function retryChapter(error){
+ const message=String(error.message||error);
+ if(/登录|登錄|验证|驗證|排序|编号|編號|分页|分頁|请选择|其他章节|HTTP (?:401|403|404)\b/.test(message))return false;
+ return error.transient||/HTTP (?:408|429|5\d\d)\b|超时|连接媒体服务|fetch|network|未识别到正文|没有获取到正文|没有返回完整正文|暂时不可用|加载失败|加載失敗/i.test(message);
+}
+async function chapterWait(ms,options={}){for(let remaining=ms;remaining>0;remaining-=1000){checkStopped(options.stopped);await chapterDelay(Math.min(1000,remaining));}checkStopped(options.stopped);}
 async function cachedChapter(url,paced=false,options={}){
- checkStopped(options.stopped);const key='v4:'+url,old=await chapterCache(key);if(old)return old;
- if(chapterRequests.has(url))return chapterRequests.get(url);
- const request=(async()=>{for(let attempt=0;attempt<3;attempt++){
-  if(paced)await paceSource(url,'chapter');
-  try{const d=await api('chapter',{url});if(!d.text?.trim()&&!d.blocks?.some(b=>b.type==='image'))throw new Error('来源没有返回完整正文');await chapterCache(key,d);return d;}
-  catch(e){if(attempt===2||!/HTTP (429|502|503|504)\b/.test(e.message))throw e;options.onWait?.('来源暂时限流，正在等待重试');await chapterDelay((attempt+1)*15000);}
- }})();chapterRequests.set(url,request);try{return await request;}finally{chapterRequests.delete(url);}
+ checkStopped(options.stopped);const key='v5:'+url,old=sessionChapters.get(url)||await chapterCache(key);if(old){sessionChapters.set(url,old);return old;}
+ if(chapterRequests.has(url)){const pending=chapterRequests.get(url);pending.shared=true;const d=await pending;checkStopped(options.stopped);return d;}
+ const request=(async()=>{for(let attempt=0;attempt<5;attempt++){
+  checkStopped(()=>options.stopped?.()&&!chapterRequests.get(url)?.shared);if(paced)await paceSource(url,'chapter');
+  try{const d=await api('chapter',{url,...(attempt?{refresh:'1'}:{})});if(!d.text?.trim()&&!d.blocks?.some(b=>b.type==='image'))throw new Error('来源没有返回完整正文');sessionChapters.set(url,d);await chapterCache(key,d);return d;}
+  catch(e){if(attempt===4||!retryChapter(e))throw e;const wait=/429/.test(e.message)?(attempt+1)*15000:Math.min(30000,3000*2**attempt);options.onWait?.(`连接或来源暂时异常，${wait/1000} 秒后自动重试（${attempt+1}/4）；已下载章节保留`);await chapterWait(wait,{...options,stopped:()=>options.stopped?.()&&!chapterRequests.get(url)?.shared});}
+ }})();request.shared=false;chapterRequests.set(url,request);try{const d=await request;checkStopped(options.stopped);return d;}finally{chapterRequests.delete(url);}
 }
 function setNovelPane(pane){$('.novel-layout').dataset.pane=pane;$$('[data-novel-pane]').forEach(b=>{b.classList.toggle('active',b.dataset.novelPane===pane);b.setAttribute('aria-pressed',String(b.dataset.novelPane===pane));});}
 function libraryMode(mode){$('#bookshelf').hidden=mode!=='shelf';$('#novelMatches').hidden=mode!=='matches';$('#showShelf').classList.toggle('active',mode==='shelf');$('#showMatches').classList.toggle('active',mode==='matches');setNovelPane('library');}
@@ -111,12 +122,12 @@ async function openNovel(url,button){
 function renderChapters(){if(!book)return;const query=$('#chapterFilter').value.trim();$('#chapterList').innerHTML=book.chapters.map((c,i)=>({c,i})).filter(({c})=>!query||normalizeTitle(c.title).includes(normalizeTitle(query))).map(({c,i})=>`<button class="chapter-row${i===chapterIndex?' active':''}" data-chapter="${i}" aria-current="${i===chapterIndex?'true':'false'}"><span>${String(i+1).padStart(2,'0')}</span><strong>${esc(c.title)}</strong>${i===chapterIndex?'<i>阅读中</i>':''}</button>`).join('')||'<div class="pane-empty">没有匹配的章节</div>';$$('[data-chapter]').forEach(b=>b.onclick=()=>busy(b,()=>readChapter(+b.dataset.chapter)));}
 async function readChapter(index){
  if(!book||index<0||index>=book.chapters.length)return;const request=++readerRequest,target=book,c=target.chapters[index];chapterIndex=index;readerChapter=null;readerContent='';
- $('#readerTitle').textContent=c.title;$('#readerActions').hidden=false;$('#readerPrev').disabled=$('#readerNext').disabled=$('#readerNextBottom').disabled=true;$('#readerDownload').disabled=$('#readerEPUB').disabled=true;$('#readerRetry').hidden=$('#readerAlternative').hidden=true;$('#readerText').textContent='正在读取完整章节与插图…';$('#readerPosition').textContent=`${index+1} / ${target.chapters.length}`;$('#readerSource').href=c.url;renderChapters();setNovelPane('reading');
+ $('#readerTitle').textContent=c.title;$('#readerActions').hidden=false;$('#readerPrev').disabled=$('#readerNext').disabled=$('#readerNextBottom').disabled=true;$('#readerDownload').disabled=$('#readerEPUB').disabled=true;$('#readerRetry').hidden=$('#readerAlternative').hidden=$('#readerImportChapter').hidden=true;$('#readerText').textContent='正在读取完整章节与插图…';$('#readerPosition').textContent=`${index+1} / ${target.chapters.length}`;$('#readerSource').href=c.url;renderChapters();setNovelPane('reading');
  try{const d=await cachedChapter(c.url);if(request!==readerRequest)return;readerContent=d.text||'';readerChapter={...d,url:d.url||c.url};readerName=d.title||c.title;$('#readerTitle').textContent=readerName;$('#readerDownload').disabled=!readerContent;$('#readerEPUB').disabled=false;
  $('#readerText').innerHTML=d.blocks?.length?d.blocks.map(b=>b.type==='image'?`<figure><img loading="lazy" src="${href(novelImageLink(b.url,d.url||c.url))}" alt="章节插图"><figcaption hidden>图片加载失败。<button class="retry-image">重试图片</button></figcaption></figure>`:String(b.text||'').split(/\n+/).map(t=>`<p>${esc(t)}</p>`).join('')).join(''):String(d.text||'').split(/\n+/).map(t=>`<p>${esc(t)}</p>`).join('');
  $$('#readerText img').forEach(img=>{const caption=img.nextElementSibling;img.onerror=()=>{caption.hidden=false;};img.onload=()=>{caption.hidden=true;};caption.querySelector('button').onclick=()=>{img.src=img.src;};});$('#readerScroll').scrollTop=0;
  const progress=db.get('progress',{});progress[target.url]=index;db.set('progress',progress);const item=shelf.find(x=>x.url===target.url);if(item){item.lastReadIndex=index;item.lastReadTitle=c.title;item.time=new Date().toISOString();db.set('shelf',shelf);}renderShelf();$('#readingHint').textContent='已保存阅读进度 · '+c.title;
- }catch(e){if(request!==readerRequest)return;$('#readerText').innerHTML=`<div class="pane-empty">${esc(e.message)}</div>`;$('#readerRetry').hidden=$('#readerAlternative').hidden=false;throw e;
+ }catch(e){if(request!==readerRequest)return;$('#readerText').innerHTML=`<div class="pane-empty">${esc(e.message)}</div>`;$('#readerRetry').hidden=$('#readerAlternative').hidden=$('#readerImportChapter').hidden=false;throw e;
  }finally{if(request===readerRequest){$('#readerPrev').disabled=index===0;$('#readerNext').disabled=$('#readerNextBottom').disabled=index===target.chapters.length-1;}}
 }
 async function searchNovelTitles(q){
@@ -232,9 +243,9 @@ $('#downloadApplyRange').onclick=applyDownloadRange;
 $('#downloadRange').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();applyDownloadRange();}};
 $('#downloadConfirm').onclick=()=>{if(!downloadSelection?.indices.size)return;enqueueNovel(downloadSelection.target,{indices:[...downloadSelection.indices].sort((a,b)=>a-b)});$('#downloadChapterDialog').close();};
 
-function persistNovelTasks(){db.set('novelTasks',novelTasks.filter(t=>!t.target?.local).slice(0,30).map(({id,url,title,from,to,indices,layout,status,progress,detail})=>({id,url,title,from,to,indices,layout,status,progress,detail})));}
+function persistNovelTasks(){db.set('novelTasks',novelTasks.filter(t=>!t.target?.local).slice(0,30).map(({id,url,title,from,to,indices,layout,status,progress,detail,failedChapter})=>({id,url,title,from,to,indices,layout,status,progress,detail,failedChapter})));}
 function taskProgressHTML(task){return `<div class="novel-task-progress"><progress max="100" value="${task.progress||0}" aria-label="${esc(task.title)} 下载进度"></progress><span>${Math.floor(task.progress||0)}%</span></div><p class="task-detail">${esc(task.detail)}</p>`;}
-function novelTaskHTML(task){const textOnly=task.status==='running'&&task.canSkipImages&&!task.skipImages?`<button data-novel-text-only="${task.id}">跳过图片并打包文字</button>`:'';return `<article class="novel-task" data-novel-task="${task.id}" data-status="${task.status}"><strong>${esc(task.title)}</strong><span class="task-state">${({queued:'排队中',running:'下载中',ready:'EPUB 已就绪',error:'下载失败',cancelled:'已取消',interrupted:'可恢复'})[task.status]}</span>${taskProgressHTML(task)}<div class="actions">${task.blob?`<button data-novel-save="${task.id}">保存 EPUB</button>`:''}${['queued','running'].includes(task.status)?textOnly+`<button data-novel-cancel="${task.id}">取消</button>`:`<button data-novel-retry="${task.id}">重新生成</button><button data-novel-dismiss="${task.id}">移除任务</button>`}</div></article>`;}
+function novelTaskHTML(task){const active=['queued','running'].includes(task.status),textOnly=task.status==='running'&&task.canSkipImages&&!task.skipImages?`<button data-novel-text-only="${task.id}">跳过图片并打包文字</button>`:'';return `<article class="novel-task" data-novel-task="${task.id}" data-status="${task.status}"><strong>${esc(task.title)}</strong><span class="task-state">${({queued:'排队中',running:'下载中',ready:'EPUB 已就绪',error:'下载暂停',cancelled:'已取消',interrupted:'可恢复'})[task.status]}</span>${taskProgressHTML(task)}<div class="actions">${task.blob?`<button data-novel-save="${task.id}">保存 EPUB</button>`:''}${active?textOnly+`<button data-novel-cancel="${task.id}">取消</button>`:`<button data-novel-retry="${task.id}">从缓存继续</button>${task.failedChapter?`<a href="${href(task.failedChapter.url)}" target="_blank" rel="noopener">打开失败章节 ↗</a><button data-novel-import="${task.id}">补入此章正文</button>`:''}${task.completedChapters?.length?`<button data-novel-partial="${task.id}">保存已获取 ${task.completedChapters.length} 章</button>`:''}<button data-novel-dismiss="${task.id}">移除任务</button>`}</div></article>`;}
 function novelDownloadHTML(){return novelTasks.length?'<h3>小说下载</h3>'+novelTasks.map(novelTaskHTML).join(''):'';}
 function renderBookProgress(){$$('[data-book-progress]').forEach(el=>{const task=novelTasks.find(t=>t.url===el.dataset.bookProgress&&['queued','running','ready','error'].includes(t.status));el.innerHTML=task?taskProgressHTML(task):'';});}
 function renderNovelDownloads(){
@@ -248,20 +259,22 @@ function enqueueNovel(item,range={}){
  const task={id:crypto.randomUUID(),url:item.url,title:item.title||'正在读取书名',indices,layout,from:range.from||1,to:range.to||null,target:Array.isArray(item.chapters)?{...item,chapters:[...item.chapters]}:null,status:'queued',progress:0,detail:'等待开始',stopped:false,blob:null};novelTasks.unshift(task);persistNovelTasks();renderNovelDownloads();pumpNovelDownloads();return task;
 }
 async function runNovelTask(task){
- task.status='running';task.stopped=false;task.skipImages=false;task.canSkipImages=false;task.imageAbortController=null;updateNovelTask(task,'正在读取目录',1);const options={stopped:()=>task.stopped,skipImages:()=>task.skipImages,setImageAbort:controller=>{task.imageAbortController=controller;},onProgress:text=>updateNovelTask(task,text),onWait:text=>updateNovelTask(task,text)};
+ task.status='running';task.stopped=false;task.skipImages=false;task.canSkipImages=false;task.failedChapter=null;task.completedChapters=[];task.imageAbortController=null;updateNovelTask(task,'正在读取目录',1);const options={stopped:()=>task.stopped,skipImages:()=>task.skipImages,setImageAbort:controller=>{task.imageAbortController=controller;},onProgress:text=>updateNovelTask(task,text),onWait:text=>updateNovelTask(task,text)};
  try{const target=task.target||await getBook(task.url);task.target=target;task.title=target.title;const from=task.from,to=task.to||target.chapters.length;
   const indices=task.indices||Array.from({length:Math.max(0,to-from+1)},(_,i)=>from-1+i);
   if(!indices.length||indices.some(i=>!Number.isInteger(i)||i<0||i>=target.chapters.length))throw new Error('章节范围已变化，请重新选择');const chapters=[];
-  for(let n=0;n<indices.length;n++){const i=indices[n];checkStopped(options.stopped);updateNovelTask(task,`正文 ${n+1} / ${indices.length} · ${target.chapters[i].title}`,5+60*n/indices.length);const d=target.local?target.chapters[i]:await cachedChapter(target.chapters[i].url,true,options);checkStopped(options.stopped);chapters.push({...d,url:d.url||target.chapters[i].url,title:d.title||target.chapters[i].title});}
+  for(let n=0;n<indices.length;n++){const i=indices[n];checkStopped(options.stopped);task.failedChapter=target.chapters[i];updateNovelTask(task,`正文 ${n+1} / ${indices.length} · ${target.chapters[i].title}`,5+60*n/indices.length);const d=target.local?target.chapters[i]:await cachedChapter(target.chapters[i].url,true,options);checkStopped(options.stopped);chapters.push({...d,url:d.url||target.chapters[i].url,title:d.title||target.chapters[i].title});task.completedChapters=chapters;task.failedChapter=null;}
   const rangeLabel=chapterRangeLabel(indices);task.filename=target.title+(indices.length===target.chapters.length?'':`（${rangeLabel.length<48?rangeLabel+'章':indices.length+'章选集'}）`)+'.epub';task.canSkipImages=true;renderNovelDownloads();
   const result=await createBookEPUB(target.title,chapters,{...options,layout:task.layout||DEFAULT_EPUB_LAYOUT,cover:target.cover,page:target.url,download:false,onImages:(done,total)=>updateNovelTask(task,`插图与封面 ${done} / ${total}`,65+30*(total?done/total:1)),onZip:percent=>updateNovelTask(task,'正在打包 EPUB',95+percent*.05)});
   checkStopped(options.stopped);task.canSkipImages=false;task.blob=result.blob;task.status='ready';updateNovelTask(task,`${chapters.length} 章 · ${result.images} 张图片${result.skippedImages?` · 跳过 ${result.skippedImages} 张失败图片`:''} · 可保存 EPUB`,100);
   // Keep the file available even when browsers block multiple automatic downloads.
   blobDownload(task.blob,task.filename);task.autoSaveRequested=true;
- }catch(e){task.status=task.stopped?'cancelled':'error';updateNovelTask(task,e.message);}finally{task.canSkipImages=false;task.imageAbortController=null;persistNovelTasks();renderNovelDownloads();pumpNovelDownloads();}
+ }catch(e){task.status=task.stopped?'cancelled':'error';updateNovelTask(task,(task.failedChapter?task.failedChapter.title+'：':'')+e.message+(task.completedChapters.length?`；已保留 ${task.completedChapters.length} 章，可继续或先保存已获取部分`:''));}finally{task.canSkipImages=false;task.imageAbortController=null;persistNovelTasks();renderNovelDownloads();pumpNovelDownloads();}
 }
 function pumpNovelDownloads(){let available=MAX_NOVEL_DOWNLOADS-novelTasks.filter(t=>t.status==='running').length;for(const task of [...novelTasks].reverse()){if(available<=0)break;if(task.status==='queued'){available--;runNovelTask(task);}}}
 function bindNovelTaskActions(){
+ document.querySelectorAll('[data-novel-import]').forEach(b=>b.onclick=()=>{const t=novelTasks.find(t=>t.id===b.dataset.novelImport);if(t?.failedChapter)openChapterImport(t.failedChapter,t);});
+ document.querySelectorAll('[data-novel-partial]').forEach(b=>b.onclick=e=>busy(e.currentTarget,async()=>{const t=novelTasks.find(t=>t.id===b.dataset.novelPartial);if(!t?.completedChapters?.length)return;const chapters=[...t.completedChapters],title=t.title+`（部分·${chapters.length}章）`;const result=await createBookEPUB(title,chapters,{layout:t.layout,skipImages:()=>true,download:false});blobDownload(result.blob,title+'.epub');notice(`已保存 ${chapters.length} 章文字版；剩余章节仍可继续下载。`);}));
  document.querySelectorAll('[data-novel-save]').forEach(b=>b.onclick=()=>{const t=novelTasks.find(t=>t.id===b.dataset.novelSave);if(t?.blob)blobDownload(t.blob,t.filename);});
  document.querySelectorAll('[data-novel-text-only]').forEach(b=>b.onclick=()=>{const t=novelTasks.find(t=>t.id===b.dataset.novelTextOnly);if(!t||t.status!=='running'||!t.canSkipImages)return;t.skipImages=true;t.imageAbortController?.abort();updateNovelTask(t,'已跳过剩余图片，正在打包已下载正文…');});
  document.querySelectorAll('[data-novel-cancel]').forEach(b=>b.onclick=()=>{const t=novelTasks.find(t=>t.id===b.dataset.novelCancel);if(!t)return;t.stopped=true;t.imageAbortController?.abort();if(t.status==='queued')t.status='cancelled';t.detail=t.status==='cancelled'?'已取消':'正在取消…';persistNovelTasks();renderNovelDownloads();pumpNovelDownloads();});
@@ -269,6 +282,27 @@ function bindNovelTaskActions(){
  document.querySelectorAll('[data-novel-dismiss]').forEach(b=>b.onclick=()=>{const i=novelTasks.findIndex(t=>t.id===b.dataset.novelDismiss);if(i>=0&&!['running','queued'].includes(novelTasks[i].status)){novelTasks.splice(i,1);persistNovelTasks();renderNovelDownloads();}});
 }
 $('#saveNovelBundle').onclick=e=>busy(e.currentTarget,async()=>{const ready=novelTasks.filter(t=>t.blob),zip=new JSZip();for(let i=0;i<ready.length;i++)zip.file(`${i+1}-${ready[i].filename}`,await ready[i].blob.arrayBuffer());blobDownload(await zip.generateAsync({type:'blob'}),'小说下载合集.zip');});
+let chapterImport=null;
+function openChapterImport(chapter,task=null){
+ chapterImport={chapter:{...chapter},task};$('#chapterImportTitle').textContent=chapter.title||'补入章节正文';$('#chapterImportSource').href=chapter.url;$('#chapterImportText').value='';$('#chapterImportStatus').textContent='';$('#chapterImportSave').textContent=task?'保存并继续下载':'保存并读取此章';$('#chapterImportDialog').showModal();
+}
+async function saveImportedChapter(chapter,text){
+ const u=new URL(chapter.url);if(!/^(?:www\.)?(?:wenku8\.net|bilinovel\.(?:com|net)|linovelib\.com)$/.test(u.hostname)&&u.hostname!=='w.linovelib.com')throw new Error('章节来源不支持');
+ if(!['https:','http:'].includes(u.protocol)||u.username||u.password||u.port)throw new Error('章节链接无效');
+ text=String(text||'').trim();if(text.length<30||text.length>8e6)throw new Error('请粘贴完整正文（至少 30 字，最多 8 MB）');
+ if(/(?:内容|內容).{0,8}(?:加载|加載).{0,8}(?:失败|失敗)/.test(text))throw new Error('复制的内容仍包含加载失败提示，请先在原站确认完整正文');
+ const d={title:chapter.title||'章节',text,blocks:text.split(/\n+/).map(t=>t.trim()).filter(Boolean).map(text=>({type:'text',text})),url:chapter.url,imported:true,fetchedAt:new Date().toISOString()};
+ sessionChapters.set(chapter.url,d);await chapterCache('v5:'+chapter.url,d);return d;
+}
+$('#chapterImportSave').onclick=e=>busy(e.currentTarget,async()=>{
+ const selection=chapterImport;if(!selection)return;
+ try{await saveImportedChapter(selection.chapter,$('#chapterImportText').value);$('#chapterImportDialog').close();const task=selection.task;
+ if(task&&!['running','queued'].includes(task.status)&&novelTasks.includes(task)){task.status='queued';task.stopped=false;task.blob=null;persistNovelTasks();renderNovelDownloads();pumpNovelDownloads();}
+ else if(book?.chapters[chapterIndex]?.url===selection.chapter.url)await readChapter(chapterIndex);
+ notice('正文已保存在本机；补入的这一章按文字版导出。');}catch(error){$('#chapterImportStatus').textContent=error.message;}
+});
+$('#chapterImportFile').onchange=async e=>{const file=e.target.files[0];if(!file)return;if(file.size>8e6){$('#chapterImportStatus').textContent='TXT 最大支持 8 MB';return;}$('#chapterImportText').value=await file.text();e.target.value='';};
+$('#readerImportChapter').onclick=()=>{if(book?.chapters[chapterIndex])openChapterImport(book.chapters[chapterIndex]);};
 $('#bookEPUB').onclick=()=>{if(book)openNovelDownload(book);};
 $('#bookContinue').onclick=e=>busy(e.currentTarget,()=>readChapter(Math.min(db.get('progress',{})[book.url]||0,book.chapters.length-1)));
 $('#novelSearch').onsubmit=e=>{e.preventDefault();const q=$('#novelURL').value.trim();if(/^https?:\/\//i.test(q))openNovel(q,e.submitter);else busy(e.submitter,()=>searchNovelTitles(q));};

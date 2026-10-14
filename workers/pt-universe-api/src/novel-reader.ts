@@ -11,6 +11,12 @@ export function arithmetic(expression:string):number {
  const n=sum();if(i!==tokens.length||!Number.isSafeInteger(n))throw new Error('参数无效');return n;
 }
 export function assertComplete(text:string){if(/(?:内容|內容)[\s\S]{0,8}(?:加载|加載)[\s\S]{0,8}(?:失败|失敗)/.test(text))throw new Error('此来源返回“内容加载失败”，未取得完整正文。可重试，或按书名选择其他版本继续阅读和导出');}
+export function assertReadableMarkup(markup:string){
+ if(/cf-chl-|just a moment|人机验证|人機驗證/i.test(markup))throw new Error('来源要求浏览器验证，请在原站完成验证后补入本章正文');
+ if(/Site Unavailable|Unable to access this site|Service Unavailable|Bad Gateway/i.test(markup))throw new Error('来源暂时不可用，未取得正文，可自动重试');
+ const hasContent=/\bid\s*=\s*["'](?:acontent|content)["']|\bclass\s*=\s*["'][^"']*\bbcontent\b/i.test(markup);
+ if(!hasContent&&(/<input\b[^>]*type\s*=\s*["']?password\b/i.test(markup)||/(?:请|請|需要|必須|必须)[^<\n]{0,15}(?:登录|登錄)[^<\n]{0,25}(?:阅读|閱讀|查看|正文)/.test(markup)))throw new Error('来源需要登录；本地登录不会传给下载服务，请打开原站并补入本章正文');
+}
 type Params={fixed:number;seed:number;a:number;c:number;mod:number};
 export function shuffleParams(js:string,id:number):Params {
  const seedRE=/var\s+[_$a-zA-Z0-9]+\s*=\s*[^;]*?Number\s*\(\s*[_$a-zA-Z0-9]+\s*\)\s*,\s*([^,)]+?)\s*\)\s*,\s*([^,)]+?)\s*\)\s*,/g;
@@ -43,6 +49,7 @@ export function novelImageURL(raw:string,base:string):string|null {
  try{const u=new URL(value,base);if(!['https:','http:'].includes(u.protocol)||u.username||u.password||u.port)return null;u.protocol='https:';return u.href;}catch{return null;}
 }
 export async function readWenkuContent(markup:string,base:string){
+ assertReadableMarkup(markup);
  const blocks:Block[]=[];let text='';
  const flush=()=>{const value=decodeText(text).trim();if(value)blocks.push({type:'text',text:value});text='';};
  const cleaned=await new HTMLRewriter().on('#contentdp,script,style',{element(e){e.remove();}}).transform(new Response(markup)).text();
@@ -50,7 +57,7 @@ export async function readWenkuContent(markup:string,base:string){
  .on('#content br',{element(){text+='\n';}})
  .on('#content img',{element(e){flush();const url=novelImageURL(e.getAttribute('data-src')||e.getAttribute('src')||'',base);if(url)blocks.push({type:'image',url});}})
  .transform(new Response(cleaned)).text();flush();
- if(!blocks.length)throw new Error('未识别到正文或插图，来源可能要求登录');
+ if(!blocks.length)throw new Error('未识别到正文或插图；可能是页面未完整加载或来源结构变化，请重试或补入本章正文');
  return {blocks,text:blocks.filter(b=>b.type==='text').map(b=>b.text).join('\n\n')};
 }
 export async function readBiliChapter(raw:string,load:(url:string)=>Promise<string>){
@@ -59,7 +66,7 @@ export async function readBiliChapter(raw:string,load:(url:string)=>Promise<stri
  while(next&&pages<16){
   if(seen.has(next))throw new Error('章节分页循环');seen.add(next);const current:string=next;let markup=await load(current);pages++;
 
-  if(/cf-chl-|just a moment|人机验证/i.test(markup))throw new Error('来源要求浏览器验证，无法获取正文');
+  assertReadableMarkup(markup);
   let cleaned=await new HTMLRewriter().on('#acontent div, #acontent ins, #acontent script, #acontent .tp, #acontent .bd, .bcontent div, .bcontent ins, .bcontent script, .bcontent .tp, .bcontent .bd',{element(e){e.remove();}}).transform(new Response(markup)).text();
   cleaned=await new HTMLRewriter().on('#acontent *, .bcontent *',{element(e){if(/^[a-z]\d{4}$/i.test(e.tagName))e.remove();}}).transform(new Response(cleaned)).text();
   const page:{blocks:Block[];paragraph:boolean}[]=[];let paragraph:{blocks:Block[];paragraph:boolean}|undefined;let script='',nextLabel='';
@@ -68,6 +75,7 @@ export async function readBiliChapter(raw:string,load:(url:string)=>Promise<stri
    .on('#acontent img, .bcontent img',{element(e){const url=novelImageURL(e.getAttribute('data-src')||e.getAttribute('src')||'',current);if(url){const b:Block={type:'image',url};if(paragraph)paragraph.blocks.push(b);else page.push({blocks:[b],paragraph:false});}}})
    .on('script[src*="chapterlog.js"]',{element(e){script=e.getAttribute('src')||'';}})
    .on('#footlink a.nextlink',{text(t){nextLabel+=t.text;}}).transform(new Response(cleaned)).text();
+  if(!page.flatMap(p=>p.blocks).some(b=>b.type==='image'||b.text?.trim()))throw new Error('没有获取到正文或插图；页面未完整加载或来源结构变化，请重试或补入本章正文');
   try{assertComplete(page.flatMap(p=>p.blocks).filter(b=>b.type==='text').map(b=>b.text).join('\n'));}catch(e){if(retried.has(current))throw e;retried.add(current);seen.delete(current);if(pages===1)title='';pages--;next=current;continue;}
   const textSlots=page.map((b,i)=>b.paragraph&&b.blocks.some(x=>x.type==='image'||x.text?.trim())?i:-1).filter(i=>i>=0);
   if(script&&textSlots.length){const id=Number(markup.match(/chapterid\s*:\s*['"](\d+)/)?.[1]);if(!id)throw new Error('缺少章节排序编号');const js=await load(new URL(script,current).href);const sorted=restoreParagraphs(textSlots.map(i=>page[i]),shuffleParams(js,id));textSlots.forEach((slot,i)=>{page[slot]=sorted[i];});}
@@ -77,6 +85,6 @@ export async function readBiliChapter(raw:string,load:(url:string)=>Promise<stri
  }
  if(next)throw new Error('章节超过 16 页，请分段读取');
  assertComplete(blocks.filter(b=>b.type==='text').map(b=>b.text).join('\n'));
- if(!blocks.length)throw new Error('没有获取到正文或插图，来源可能要求登录');
+ if(!blocks.length)throw new Error('没有获取到正文或插图；请重试或补入本章正文');
  return {title:decodeText(title).trim(),text:blocks.filter(b=>b.type==='text').map(b=>b.text).join('\n\n'),blocks,pages,url:raw,fetchedAt:new Date().toISOString()};
 }
