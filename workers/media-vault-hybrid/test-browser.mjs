@@ -48,6 +48,36 @@ try{
  assert.equal((await usage()).reserved_bytes,4,'revoke must preserve unrelated Owner ticket reservations');
  assert.equal((await request('/acceptance/session',{cookie})).status,403);
  assert.equal((await request('/download?ticket='+stillNew)).status,403,'revoked scoped ticket is unusable');
+ // Browser logout must preserve another browser, an Owner ticket and any
+ // already-active transfer reservation. Repetition cannot double-release.
+ async function approvedBrowser(){
+  const r=await request('/acceptance/pair',{body:{}}),cookie=r.headers.get('Set-Cookie').split(';')[0],code=(await r.json()).pair_code;
+  assert.equal((await request('/acceptance/approve',{body:{code,ids},token:env.MEDIA_OWNER_TOKEN})).status,200);return cookie;
+ }
+ const cookieA=await approvedBrowser(),cookieB=await approvedBrowser();
+ const ticketFor=cookie=>request('/acceptance/ticket',{cookie,body:{id:ids[0],path:'generated/'+ids[0]+'.epub'}});
+ const browserA1=(await (await ticketFor(cookieA)).json()).ticket;
+ const browserA2=(await (await ticketFor(cookieA)).json()).ticket;
+ const browserB1=(await (await ticketFor(cookieB)).json()).ticket;
+ const hashed=async t=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t))),x=>x.toString(16).padStart(2,'0')).join('');
+ await DB.prepare("UPDATE mv_hybrid_tickets SET status='active' WHERE digest=?").bind(await hashed(browserA1)).run();
+ assert.equal((await usage()).reserved_bytes,16);
+ assert.equal((await request('/acceptance/logout',{cookie:cookieA,body:{},origin:'https://foreign.invalid'})).status,403);
+ assert.equal((await request('/acceptance/logout',{body:{},token:env.MEDIA_OWNER_TOKEN})).status,403);
+ assert.equal((await request('/acceptance/logout',{cookie:cookieA})).status,405);
+ const loggedOut=await request('/acceptance/logout',{cookie:cookieA,body:{},environment:{...env,ENABLE_ACCEPTANCE_UI:'false'}});
+ assert.equal(loggedOut.status,200,'logout remains available after the window closes');assert.match(loggedOut.headers.get('Set-Cookie'),/Max-Age=0/);
+ assert.equal((await usage()).reserved_bytes,12,'only this browser unused ticket is released');
+ assert.equal((await DB.prepare('SELECT status FROM mv_hybrid_tickets WHERE digest=?').bind(await hashed(browserA1)).first()).status,'active');
+ assert.equal((await request('/acceptance/session',{cookie:cookieA})).status,403);
+ assert.equal((await request('/acceptance/session',{cookie:cookieB})).status,200);
+ assert.equal((await request('/download?ticket='+browserA2)).status,403);
+ assert.equal((await request('/acceptance/logout',{cookie:cookieA,body:{}})).status,200);
+ assert.equal((await usage()).reserved_bytes,12,'repeat logout is idempotent');
+ assert.equal((await request('/download?ticket='+browserB1,{cookie:cookieB})).status,503);
+ assert.equal((await usage()).reserved_bytes,8,'unrelated browser ticket still reaches normal offline release');
+ assert.equal((await request('/acceptance/logout',{cookie:cookieB,body:{}})).status,200);
+ console.log('PASS real SQLite single-browser logout: same-origin cookie scope, closed-window availability, idempotence, expired unused tickets, other browser/Owner and active reservations preserved');
  const flood=await Promise.all(Array.from({length:16},()=>request('/acceptance/pair',{body:{}})));
  assert.equal(flood.filter(x=>x.status===201).length,10);assert.equal(flood.filter(x=>x.status===429).length,6,'pending-session cap is atomic');
  const exp=flood.find(x=>x.status===201),expiredCookie=exp.headers.get('Set-Cookie').split(';')[0],expiredCode=(await exp.json()).pair_code;

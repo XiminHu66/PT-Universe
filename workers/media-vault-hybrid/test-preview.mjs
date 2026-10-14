@@ -1,0 +1,47 @@
+import assert from 'node:assert/strict';
+import {createScopedConnection} from '../../apps/media-vault/scoped-session.js';
+import {previewRoute} from './src/preview.js';
+const origin='https://test.invalid',ids=['a','b','c'].map(x=>x.repeat(24));let clock=1000;
+const pending={status:'pending',pair_code:'a'.repeat(16),expires_at:10000};
+const approved={status:'approved',expires_at:10000,streaming:'enabled',quota:{limit_bytes:100,transferred_bytes:10,reserved_bytes:2,remaining_bytes:88,tracking:'active'},files:ids.map((id,i)=>({id,path:'generated/'+id+['.epub','.cbz','.mp4'][i],name:id+['.epub','.cbz','.mp4'][i],size:i+1}))};
+function setup(handler){
+ const calls=[],states=[],timers=new Map();let timerId=0;
+ const client=createScopedConnection({origin,now:()=>clock,onState:s=>states.push(s),setTimeout:(f,ms)=>{timers.set(++timerId,{f,ms});return timerId;},clearTimeout:id=>timers.delete(id),fetch:async(url,options)=>{calls.push({url,options});return handler(url,options,calls.length);}});
+ return {client,calls,states,timers};
+}
+const json=(d,status=200)=>new Response(JSON.stringify(d),{status});
+const h=setup(async()=>json(pending));await h.client.refresh();assert.equal(h.client.current().pair_code,pending.pair_code,'pending pairing survives refresh');
+assert.equal(h.timers.size,1);assert.equal(h.timers.values().next().value.ms,3000);h.client.dispose();assert.equal(h.timers.size,0);
+let response=approved;
+const a=setup(async()=>json(response));assert.equal((await a.client.read('/jobs')).jobs.length,3);assert.deepEqual(await a.client.read('/quota'),approved.quota);
+assert.deepEqual((await a.client.read('/jobs/files?id='+ids[1])).files,[approved.files[1]]);
+for(const path of ['/jobs/cancel','/resolve','https://evil.invalid/jobs','/agent/lease','/jobs/files?id='+'d'.repeat(24),'/jobs/files?id='+ids[0]+'&other=1'])await assert.rejects(a.client.read(path),e=>e.status===403);
+await assert.rejects(a.client.read('/jobs',{kind:'video'}),e=>e.status===403);
+for(const call of a.calls){assert.equal(new URL(call.url).origin,origin);assert.equal(call.options.credentials,'same-origin');assert.equal(call.options.redirect,'error');assert.ok(!('Authorization' in call.options.headers));}
+clock=10000;const expiry=a.timers.values().next().value;expiry.f();assert.equal(a.client.current().status,'expired');assert.equal(a.client.current().files,undefined,'expiry drops all file metadata');clock=1000;
+let releases=[];
+const race=setup(async(url)=>url.endsWith('/session')?new Promise(resolve=>releases.push(resolve)):json({ok:true}));
+const read=race.client.refresh();await Promise.resolve();await race.client.logout();releases[0](json(approved));await assert.rejects(read,/会话已变化/);assert.equal(race.client.current().status,'unpaired','stale GET cannot restore logged-out state');
+let resolvePair,pairStarted;const started=new Promise(r=>pairStarted=r);
+const cookieRace=setup(async url=>{if(url.endsWith('/pair')){pairStarted();return new Promise(r=>resolvePair=r);}return json({ok:true});});
+const pair=cookieRace.client.pair();await started;const exit=cookieRace.client.logout();
+assert.equal(cookieRace.calls.filter(x=>x.url.endsWith('/logout')).length,1,'second logout waits for pairing cookie response');
+resolvePair(json(pending));await assert.rejects(pair,/会话已变化/);await exit;
+assert.deepEqual(cookieRace.calls.map(x=>new URL(x.url).pathname),['/acceptance/logout','/acceptance/pair','/acceptance/logout']);assert.equal(cookieRace.client.current().status,'unpaired');
+const failed=setup(async()=>json({},503));await assert.rejects(failed.client.logout());assert.equal(failed.client.current().status,'logout-failed');await assert.rejects(failed.client.read('/jobs'),/请先完成/);
+const noCookie=setup(async url=>url.endsWith('/logout')?json({},403):json(pending));await noCookie.client.pair();assert.equal(noCookie.client.current().status,'pending','expired/missing cookie can request a new pairing');
+response={...approved,files:[]};await assert.rejects(a.client.refresh(),e=>e.status===403);assert.equal(a.client.current().files,undefined);
+let resolveOnce;const concurrent=setup(()=>new Promise(r=>resolveOnce=r));const one=concurrent.client.refresh(),two=concurrent.client.refresh();assert.equal(concurrent.calls.length,1);resolveOnce(json(approved));await Promise.all([one,two]);
+const env={ENABLE_ACCEPTANCE_UI:'true',MEDIA_ACCEPTANCE_UNTIL:String(Date.now()+60000)};
+const req=path=>new Request(origin+path);
+assert.equal(previewRoute(req('/acceptance/app/'),{}).status,404);
+assert.equal(previewRoute(req('/acceptance/app/'),{...env,MEDIA_ACCEPTANCE_UNTIL:'0'}).status,404);
+assert.equal(previewRoute(req('/acceptance/app/constructor'),env).status,404);
+assert.equal(previewRoute(req('/acceptance/app/data/snapshot.json'),env).status,404,'no data archive or arbitrary assets exposed');
+const page=previewRoute(req('/acceptance/app/'),env),html=await page.text();assert.equal(page.status,200);assert.match(html,/data-hybrid-preview="true"/);
+for(const id of ['scopedPair','scopedLogout','filesList','queueList','mvTransferBudget'])assert.ok(html.includes('id="'+id+'"'));
+assert.ok(!html.includes('访问密钥'));assert.ok(!html.includes('src="../../pt-sync.js"'));assert.ok(!html.includes('src="../../pt-bridge.js"'));
+assert.match(page.headers.get('Content-Security-Policy'),/connect-src 'self'/);assert.equal(page.headers.get('Cache-Control'),'no-store');
+for(const name of ['app.js','style.css','novels.css','scoped-session.js','native-download.js'])assert.equal(previewRoute(req('/acceptance/app/'+name),env).status,200);
+for(const x of [a,race,cookieRace,failed,noCookie,concurrent])x.client.dispose();
+console.log('PASS complete-page scoped preview: fixed read-only metadata, pending/approved refresh, expiry, stale response isolation, serialized cookie mutations, failed logout lockout, no-token requests and gated source-matched assets');

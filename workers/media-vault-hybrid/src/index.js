@@ -1,6 +1,7 @@
 import {OCI_REFERENCE_BYTES,transferBudget,streamingEnabled} from './limits.js';
 import {acceptancePage} from './acceptance.js';
 import {nativeDownloadModule,nativeDownloadFailure} from './native-download.js';
+import {previewRoute} from './preview.js';
 import {browserSessionRoute} from './browser-session.js';
 // Control plane only; stores tasks, metadata and REAL transfer ledger in D1.
 // All media bytes will use a separate, not-yet-enabled live streaming channel.
@@ -62,6 +63,7 @@ export async function handle(request,env){
   const origin=request.headers.get('Origin');
   if(origin && origin!==CORS_ORIGIN&&origin!==new URL(request.url).origin)return denied(origin);
   const u=new URL(request.url),path=u.pathname;
+  const preview=previewRoute(request,env);if(preview)return preview;
   if(path==='/acceptance'&&request.method==='GET')return acceptancePage(env);
   if(path==='/acceptance/native-download.js'&&request.method==='GET')return nativeDownloadModule(env);
   const browserSession=await browserSessionRoute(request,env);

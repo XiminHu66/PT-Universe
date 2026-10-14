@@ -1,1 +1,1 @@
-{"name":"pt-media-hybrid","private":true,"type":"module","scripts":{"test":"node build-native.mjs --check && node test.mjs && node test-relay.mjs && node test-transport.mjs && node test-browser.mjs && node test-native.mjs"}}
+{"name":"pt-media-hybrid","private":true,"type":"module","scripts":{"test":"node build-native.mjs --check && node build-preview.mjs --check && node test.mjs && node test-relay.mjs && node test-transport.mjs && node test-browser.mjs && node test-native.mjs && node test-preview.mjs"}}
