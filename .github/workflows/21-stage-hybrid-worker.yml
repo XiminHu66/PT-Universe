@@ -7,6 +7,10 @@ on:
         type: choice
         default: verify
         options: [deploy, verify]
+      previous_jobs:
+        description: Four prior accepted job IDs (restart-only retry)
+        type: string
+        required: false
 permissions:
   contents: read
 concurrency:
@@ -41,6 +45,7 @@ jobs:
         env:
           OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
           AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
+          PREVIOUS_JOB_IDS: ${{ inputs.previous_jobs }}
         run: |
           set -euo pipefail
           test -n "$OWNER" && test -n "$AGENT"

@@ -35,8 +35,11 @@ assert.equal((await call('/jobs','GET',undefined,agent)).status,401);
 assert.equal((await call('/agent/lease','POST',{},headers)).status,401);
 assert.equal((await call('/health','GET',undefined,{...headers,Origin:'https://untrusted.example'})).status,403);
 const before=await call('/quota');assert.equal(before.data.tracking,'not_active');
-const ids=[];
+const previous=process.env.PREVIOUS_JOB_IDS||'';
+if(previous)assert.match(previous,/^[a-f0-9]{24}(,[a-f0-9]{24}){3}$/);
+const ids=previous?previous.split(','):[];
 try {
+ if(!previous){
  const queued=await create([1]);ids.push(queued);
  assert.equal((await call('/jobs/cancel','POST',{id:queued})).status,200);
  assert.equal((await row(queued)).status,'cancelled');assert.equal((await files(queued)).length,0);
@@ -53,7 +56,10 @@ try {
  await wait(cancel,['running']);assert.equal((await call('/jobs/cancel','POST',{id:cancel})).status,200);
  await delay(25000);assert.equal((await row(cancel)).status,'cancelled');
  assert.equal((await files(cancel)).length,0);console.log('PASS running cancellation persisted',cancel);
- const restart=await create([1,2,3,4,5]);ids.push(restart);
+ }
+ // Eight politely spaced chapter reads give the operator a real restart window.
+ // Completion timing is independently checked against Docker StartedAt on VPS.
+ const restart=await create([1,2,3,4,5,6,7,8]);ids.push(restart);
  await wait(restart,['running']);
  console.log('RESTART_WINDOW_OPEN',restart);
  console.log('Restart ONLY the metadata agent with Oracle acceptance operation=restart now.');
