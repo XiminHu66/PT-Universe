@@ -1,6 +1,7 @@
 // Real interruption acceptance. Media is hashed in memory, never persisted.
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
+process.on('uncaughtException',error=>{console.error('::error::Recovery acceptance failed',error.name);process.exit(1)});
 const base='https://pt-media-hybrid.summer07-nanjolno.workers.dev';
 const ids=(process.env.SAMPLE_JOB_IDS||'').split(',');assert.equal(ids.length,3);assert.ok(ids.every(x=>/^[a-f0-9]{24}$/.test(x)));
 const headers={Authorization:'Bearer '+process.env.OWNER,'Content-Type':'application/json','User-Agent':'PTUniverseAcceptance/0.1'};
