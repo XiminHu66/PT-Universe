@@ -54,20 +54,21 @@ async function transportCore(request,env){
   if(!f||!Number.isSafeInteger(f.bytes)||f.bytes<=0||f.bytes>12*1024**3)return fail(404,'File not found or size invalid');
   const m=month(),now=Date.now();
   await env.DB.prepare('INSERT OR IGNORE INTO mv_hybrid_transfer_usage(month,transferred_bytes,reserved_bytes,updated_at) VALUES(?,0,0,?)').bind(m,now).run();
-  const exp=await env.DB.prepare("SELECT COALESCE(SUM(bytes),0) AS total FROM mv_hybrid_tickets WHERE month=? AND status='new' AND expires_at<?").bind(m,now).first();
-  if(Number(exp?.total||0)>0){
-   await env.DB.prepare("UPDATE mv_hybrid_tickets SET status='expired' WHERE month=? AND status='new' AND expires_at<?").bind(m,now).run();
-   await env.DB.prepare('UPDATE mv_hybrid_transfer_usage SET reserved_bytes=MAX(0,reserved_bytes-?) WHERE month=?').bind(Number(exp.total),m).run();
-  }
-  const reserved=await env.DB.prepare('UPDATE mv_hybrid_transfer_usage SET reserved_bytes=reserved_bytes+?,updated_at=? WHERE month=? AND transferred_bytes+reserved_bytes+?<=?')
-   .bind(f.bytes,now,m,f.bytes,transferBudget(env)).run();
-  if(!reserved.meta?.changes)return fail(429,'Monthly application transfer budget reached');
+  // A D1 batch is a transaction: concurrent expiry checks cannot release twice.
+  await env.DB.batch([
+   env.DB.prepare("UPDATE mv_hybrid_transfer_usage SET reserved_bytes=MAX(0,reserved_bytes-(SELECT COALESCE(SUM(bytes),0) FROM mv_hybrid_tickets WHERE month=? AND status='new' AND expires_at<=?)),updated_at=? WHERE month=?").bind(m,now,now,m),
+   env.DB.prepare("UPDATE mv_hybrid_tickets SET status='expired' WHERE month=? AND status='new' AND expires_at<=?").bind(m,now)
+  ]);
   const token=newToken();
+  const digest=await hash(token);
   try {
-   await env.DB.prepare('INSERT INTO mv_hybrid_tickets(digest,job_id,relative_path,bytes,month,expires_at,status) VALUES(?,?,?,?,?,?,'+"'new'"+')')
-    .bind(await hash(token),data.id,data.path,f.bytes,m,now+120000).run();
+   const issued=await env.DB.batch([
+    env.DB.prepare("INSERT INTO mv_hybrid_tickets(digest,job_id,relative_path,bytes,month,expires_at,status) SELECT ?,?,?,?,?,?,'new' FROM mv_hybrid_transfer_usage WHERE month=? AND transferred_bytes+reserved_bytes+?<=?")
+     .bind(digest,data.id,data.path,f.bytes,m,now+120000,m,f.bytes,transferBudget(env)),
+    env.DB.prepare("UPDATE mv_hybrid_transfer_usage SET reserved_bytes=reserved_bytes+?,updated_at=? WHERE month=? AND EXISTS(SELECT 1 FROM mv_hybrid_tickets WHERE digest=? AND status='new')").bind(f.bytes,now,m,digest)
+   ]);
+   if(!issued[0].meta?.changes)return fail(429,'Monthly application transfer budget reached');
   }catch(e){
-   await env.DB.prepare('UPDATE mv_hybrid_transfer_usage SET reserved_bytes=MAX(0,reserved_bytes-?) WHERE month=?').bind(f.bytes,m).run();
    return fail(503,'Failed to issue file ticket');
   }
   return json({ticket:token,expires_in:120},200);
@@ -79,17 +80,17 @@ async function transportCore(request,env){
   const digest=await hash(token);
   const t=await env.DB.prepare("SELECT job_id,relative_path,bytes,month FROM mv_hybrid_tickets WHERE digest=? AND status='new' AND expires_at>?").bind(digest,Date.now()).first();
   if(!t)return fail(403,'Ticket expired or already redeemed');
-  const marked=await env.DB.prepare("UPDATE mv_hybrid_tickets SET status='active' WHERE digest=? AND status='new'").bind(digest).run();
+  const marked=await env.DB.prepare("UPDATE mv_hybrid_tickets SET status='active' WHERE digest=? AND status='new' AND expires_at>?").bind(digest,Date.now()).run();
   if(!marked.meta?.changes)return fail(403,'Ticket already used');
   const file=await env.DB.prepare('SELECT name FROM mv_hybrid_files WHERE job_id=? AND relative_path=?').bind(t.job_id,t.relative_path).first();
-  if(!file)return fail(404,'File metadata unavailable');
+  if(!file){await releaseTicket(env,digest,t.month);return fail(404,'File metadata unavailable');}
   const transfer=hex(crypto.getRandomValues(new Uint8Array(12)));
-  const q=new URLSearchParams({job:t.job_id,path:t.relative_path,transfer,size:String(t.bytes),name:file.name,month:t.month});
+  const q=new URLSearchParams({job:t.job_id,path:t.relative_path,transfer,size:String(t.bytes),name:file.name,month:t.month,digest});
   let res;
   try{res=await room(env).fetch('https://private/stream?'+q.toString());}
   catch{res=null}
   if(!res||res.status!==200){
-   await env.DB.prepare('UPDATE mv_hybrid_transfer_usage SET reserved_bytes=MAX(0,reserved_bytes-?) WHERE month=?').bind(t.bytes,t.month).run();
+   await releaseTicket(env,digest,t.month);
    return fail(503,'Download agent offline or busy; request another ticket');
   }
   const headers=new Headers(res.headers);
@@ -100,3 +101,10 @@ async function transportCore(request,env){
  }
  return null;
 }
+async function releaseTicket(env,digest,period){
+ await env.DB.batch([
+  env.DB.prepare("UPDATE mv_hybrid_transfer_usage SET reserved_bytes=MAX(0,reserved_bytes-(SELECT COALESCE(SUM(bytes),0) FROM mv_hybrid_tickets WHERE digest=? AND status='active')),updated_at=? WHERE month=?").bind(digest,Date.now(),period),
+  env.DB.prepare("UPDATE mv_hybrid_tickets SET status='failed' WHERE digest=? AND status='active'").bind(digest)
+ ]);
+}
+

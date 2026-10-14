@@ -17,14 +17,15 @@ export class MediaRelay {
    const jobId=u.searchParams.get('job'),path=u.searchParams.get('path'),id=u.searchParams.get('transfer');
    const size=Number(u.searchParams.get('size')),name=u.searchParams.get('name')||'download.bin';
    const period=u.searchParams.get('month');
+   const digest=u.searchParams.get('digest');
    if(!ID.test(jobId||'')||!ID.test(id||'')||!path||path.length>300||
-      !Number.isSafeInteger(size)||size<=0||size>12*1024**3||!/^\d{4}-\d{2}$/.test(period||''))
+      !Number.isSafeInteger(size)||size<=0||size>12*1024**3||!/^\d{4}-\d{2}$/.test(period||'')||!(/^[0-9a-f]{64}$/).test(digest||''))
       return new Response('Invalid stream request',{status:400});
    const agents=this.agents();
    if(agents.length!==1||this.transfers.size)return new Response('Agent unavailable or transfer already running',{status:503});
    const {readable,writable}=new TransformStream();
    const writer=writable.getWriter();
-   this.transfers.set(id,{writer,jobId,path,size,name,period,bytes:0,agent:agents[0]});
+   this.transfers.set(id,{writer,jobId,path,size,name,period,digest,bytes:0,agent:agents[0]});
    try{agents[0].send(JSON.stringify({type:'pull',id,job_id:jobId,path,size}));}
    catch{this.transfers.delete(id);await writer.abort().catch(()=>{});return new Response('Agent unavailable',{status:503});}
    const safeName=name.replace(/[^a-zA-Z0-9._ -]/g,'_').slice(0,130)||'download.bin';
@@ -39,13 +40,22 @@ export class MediaRelay {
  async settle(id,success){
   const s=this.transfers.get(id);
   if(!s)return;
+  if(s.settling)return s.settling;
+  s.settling=this.settleTransfer(id,s,success);
+  try{await s.settling;}finally{s.settling=null;}
+ }
+ async settleTransfer(id,s,success){
+  const delivered=Math.min(s.bytes,s.size);
+  // Count delivered stream bytes, even for interrupted transfers.
+  await this.env.DB.batch([
+   this.env.DB.prepare("UPDATE mv_hybrid_transfer_usage SET transferred_bytes=transferred_bytes+?,reserved_bytes=MAX(0,reserved_bytes-?),updated_at=? WHERE month=? AND EXISTS(SELECT 1 FROM mv_hybrid_tickets WHERE digest=? AND status='active')")
+    .bind(delivered,s.size,Date.now(),s.period,s.digest),
+   this.env.DB.prepare("UPDATE mv_hybrid_tickets SET status=? WHERE digest=? AND status='active'").bind(success?'complete':'failed',s.digest)
+  ]);
+  // Retain in-memory settlement state if the ledger transaction fails.
   this.transfers.delete(id);
   if(success)await s.writer.close().catch(()=>{});
   else await s.writer.abort('Delivery interrupted').catch(()=>{});
-  const delivered=Math.min(s.bytes,s.size);
-  // Count delivered stream bytes, even for interrupted transfers.
-  await this.env.DB.prepare('UPDATE mv_hybrid_transfer_usage SET transferred_bytes=transferred_bytes+?,reserved_bytes=MAX(0,reserved_bytes-?),updated_at=? WHERE month=?')
-   .bind(delivered,s.size,Date.now(),s.period).run();
   try{s.agent.send(JSON.stringify(success?{type:'delivered',id,job_id:s.jobId,path:s.path,bytes:delivered}:{type:'delivery-failed',id}));}catch{}
  }
  async webSocketMessage(ws,message){
@@ -62,7 +72,7 @@ export class MediaRelay {
   if(b.byteLength<=24||b.byteLength>24+CHUNK_MAX)return;
   const id=decoder.decode(b.subarray(0,24));
   const s=this.transfers.get(id);
-  if(!ID.test(id)||!s||s.agent!==ws)return;
+  if(!ID.test(id)||!s||s.agent!==ws||s.settling)return;
   if(s.bytes+b.byteLength-24>s.size){await this.settle(id,false);return;}
   try{
     // Respect browser backpressure. Never buffer the full file in Worker RAM.
@@ -74,3 +84,4 @@ export class MediaRelay {
  async webSocketClose(ws){for(const [id,s] of this.transfers)if(s.agent===ws)await this.settle(id,false);}
  async webSocketError(ws){for(const [id,s] of this.transfers)if(s.agent===ws)await this.settle(id,false);}
 }
+

@@ -40,6 +40,12 @@ jobs:
           npm ci --prefix workers/pt-universe-api
           npm test --prefix workers/media-vault-hybrid
           npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/wrangler.jsonc
+      - name: Verify live streaming remains OFF and ledger unchanged
+        if: inputs.operation == 'deploy'
+        env:
+          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+          AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
+        run: node workers/media-vault-hybrid/live-stream-off.mjs
       - name: Real metadata lifecycle and restart acceptance
         if: inputs.operation == 'verify'
         env:

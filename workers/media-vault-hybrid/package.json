@@ -1,1 +1,1 @@
-{"name":"pt-media-hybrid","private":true,"type":"module","scripts":{"test":"node test.mjs && node test-relay.mjs"}}
+{"name":"pt-media-hybrid","private":true,"type":"module","scripts":{"test":"node test.mjs && node test-relay.mjs && node test-transport.mjs"}}
