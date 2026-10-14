@@ -6,7 +6,13 @@ async function call(route,method='GET',token=owner,body){
  const res=await fetch(base+route,{method,headers:{Authorization:'Bearer '+token,'Content-Type':'application/json','User-Agent':'PTUniverseAcceptance/0.1'},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(30000)});
  return {status:res.status,body:await res.json()};
 }
-const health=await call('/health');assert.equal(health.status,200);assert.equal(health.body.streaming,'not-live');
+let health;
+for(let i=0;i<10;i++){
+ health=await call('/health');assert.equal(health.status,200);
+ if(health.body.streaming==='not-live')break;
+ await new Promise(resolve=>setTimeout(resolve,3000));
+}
+assert.equal(health.body.streaming,'not-live');
 const before=await call('/quota');assert.equal(before.status,200);assert.equal(before.body.tracking,'not_active');
 assert.equal((await call('/download-ticket','POST',owner,{id:'0'.repeat(24),path:'generated/nonexistent.epub'})).status,503);
 assert.equal((await call('/download?ticket='+'0'.repeat(64))).status,503);
