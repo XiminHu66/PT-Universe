@@ -1,15 +1,16 @@
 import assert from 'node:assert/strict';
 import {MediaRelay} from './src/relay.js';
+import {relayContext} from './test-state.mjs';
 const agent={readyState:1,sent:[],send(x){this.sent.push(JSON.parse(x))}};
 let credited=null;
 const db={
  async batch(ops){return Promise.all(ops.map(op=>op.run()))},
- prepare(sql){return {bind(...args){return {async run(){
+ prepare(sql){return {async all(){return {results:[]}},bind(...args){return {async run(){
   if(sql.startsWith('UPDATE mv_hybrid_transfer_usage'))credited={sql,args};
   return {meta:{changes:1}};
  }}}}}
 };
-const relay=new MediaRelay({getWebSockets(label){assert.equal(label,'media-agent');return [agent]}},{DB:db});
+const relay=new MediaRelay(relayContext(agent),{DB:db});
 const id='a'.repeat(24),job='b'.repeat(24);
 const path='generated/'+job+'.epub';
 const params=new URLSearchParams({job,path,transfer:id,size:'4',name:'中文.epub',month:'2026-10',digest:'c'.repeat(64)});

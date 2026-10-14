@@ -6,7 +6,7 @@ on:
         description: Metadata operation
         type: choice
         default: verify
-        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve]
+        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery]
       pair_code:
         description: Browser pairing request ID
         type: string
@@ -88,6 +88,12 @@ jobs:
           OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
           SAMPLE_JOB_IDS: ${{ inputs.previous_jobs }}
         run: node workers/media-vault-hybrid/live-transfer.mjs
+      - name: Real bounded interruption and process-loss recovery
+        if: inputs.operation == 'recovery'
+        env:
+          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+          SAMPLE_JOB_IDS: ${{ inputs.previous_jobs }}
+        run: node workers/media-vault-hybrid/live-recovery.mjs
       - name: Real metadata lifecycle and restart acceptance
         if: inputs.operation == 'verify'
         env:

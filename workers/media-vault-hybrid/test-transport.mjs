@@ -3,6 +3,7 @@ import {spawn} from 'node:child_process';
 import {createInterface} from 'node:readline';
 import {transportRoute} from './src/transport.js';
 import {MediaRelay} from './src/relay.js';
+import {relayContext} from './test-state.mjs';
 import {transferBudget} from './src/limits.js';
 
 const process=spawn('python3',[new URL('./test-sqlite.py',import.meta.url).pathname],{stdio:['pipe','pipe','inherit']});
@@ -10,7 +11,7 @@ const pending=new Map();let sequence=0,failAt=null;
 const lines=createInterface({input:process.stdout});
 lines.on('line',line=>{const value=JSON.parse(line),handler=pending.get(value.id);pending.delete(value.id);value.error?handler.reject(new Error(value.error)):handler.resolve(value.results)});
 function sql(ops,batch=false,fail_at=null){return new Promise((resolve,reject)=>{const id=++sequence;pending.set(id,{resolve,reject});process.stdin.write(JSON.stringify({id,ops,batch,fail_at})+'\n')})}
-function statement(query,args=[]){return {sql:query,args,bind(...args){return statement(query,args)},async run(){return (await sql([this]))[0]},async first(){return (await sql([this]))[0].results[0]||null}}}
+function statement(query,args=[]){return {sql:query,args,bind(...args){return statement(query,args)},async run(){return (await sql([this]))[0]},async first(){return (await sql([this]))[0].results[0]||null},async all(){return (await sql([this]))[0]}}}
 const DB={prepare:statement,async batch(ops){const inject=failAt;failAt=null;return sql(ops,true,inject)}};
 const id='a'.repeat(24),path='video/ptmv-'+id+' [中文样本].mp4',period=new Date().toISOString().slice(0,7);
 const env={DB,ENABLE_DIRECT_STREAM:'true',MEDIA_OWNER_TOKEN:'o'.repeat(64),MEDIA_AGENT_TOKEN:'a'.repeat(64),MEDIA_TRANSFER_MONTHLY_LIMIT_GIB:'5',RELAY:{idFromName(){return 'test'},get(){return {fetch:async()=>new Response('offline',{status:503})}}}};
@@ -49,7 +50,7 @@ try{
  assert.equal((await usage()).reserved_bytes,transferBudget(env),'concurrent issuance stays within budget');
  await reset();
  const agent={readyState:1,sent:[],send(raw){this.sent.push(JSON.parse(raw))}};
- const relay=new MediaRelay({getWebSockets(){return [agent]}},{DB});
+ const relay=new MediaRelay(relayContext(agent),{DB});
  env.RELAY.get=()=>({fetch:url=>relay.fetch(new Request(url))});
  t=await ticket();const response=await request('/download?ticket='+t.ticket);assert.equal(response.status,200);
  assert.equal((await request('/download?ticket='+t.ticket)).status,403);
@@ -81,5 +82,59 @@ try{
  const retryEnd=Promise.all([relay.settle(retryId,true),relay.settle(retryId,true)]);
  assert.equal((await retryReader.read()).done,true);await retryEnd;
  assert.equal((await usage()).transferred_bytes,4);assert.equal((await usage()).reserved_bytes,0);
+ // Process loss after a confirmed chunk: boot from metadata, no old writer.
+ await reset();
+ let context=relayContext(agent),current=new MediaRelay(context,{DB});
+ env.RELAY.get=()=>({fetch:url=>current.fetch(new Request(url))});
+ t=await ticket();let crashResponse=await request('/download?ticket='+t.ticket),crashReader=crashResponse.body.getReader(),crashId=agent.sent.at(-1).id;
+ let frame=current.webSocketMessage(agent,new Uint8Array([...new TextEncoder().encode(crashId),80,75]).buffer);
+ await crashReader.read();await frame;
+ const saved=context.values.get('transfer-counts');
+ assert.equal(saved.bytes,2);assert.equal(saved.attempted,2);
+ assert.deepEqual(Object.keys(saved).sort(),['attempted','bytes','deadline','digest','id','period','size'].sort(),'persistent checkpoint stores only identifiers and counters');
+ current=new MediaRelay(relayContext(agent,context.values),{DB});await current.ready;
+ assert.equal((await usage()).transferred_bytes,2);assert.equal((await usage()).reserved_bytes,0);
+ assert.equal((await request('/download?ticket='+t.ticket)).status,403);
+ await crashReader.cancel();
+ // Loss during a pending write charges at most its one unconfirmed frame.
+ await reset();context=relayContext(agent);let lost=new MediaRelay(context,{DB});current=lost;
+ t=await ticket();crashResponse=await request('/download?ticket='+t.ticket);crashReader=crashResponse.body.getReader();crashId=agent.sent.at(-1).id;
+ frame=lost.webSocketMessage(agent,new Uint8Array([...new TextEncoder().encode(crashId),80,75]).buffer);
+ for(let n=0;n<100&&context.values.get('transfer-counts')?.attempted!==2;n++)await new Promise(r=>setTimeout(r,1));
+ assert.equal(context.values.get('transfer-counts').bytes,0);
+ current=new MediaRelay(relayContext(agent,context.values),{DB});await current.ready;
+ assert.equal((await usage()).transferred_bytes,2,'unconfirmed attempted bytes use conservative bound');assert.equal((await usage()).reserved_bytes,0);
+ await crashReader.cancel();await frame;
+ assert.equal((await usage()).transferred_bytes,2,'late failure does not double-credit');
+ // A claim/save crash has no checkpoint: count its reserved upper bound once.
+ await reset();t=await ticket();await DB.prepare("UPDATE mv_hybrid_tickets SET status='active'").run();
+ current=new MediaRelay(relayContext(agent),{DB});await current.ready;
+ assert.equal((await usage()).transferred_bytes,4);assert.equal((await usage()).reserved_bytes,0);
+ current=new MediaRelay(relayContext(agent),{DB});await current.ready;assert.equal((await usage()).transferred_bytes,4);
+ // No chunks or close event: durable alarm aborts the idle writer.
+ await reset();context=relayContext(agent);current=new MediaRelay(context,{DB});
+ t=await ticket();crashResponse=await request('/download?ticket='+t.ticket);crashReader=crashResponse.body.getReader();crashId=agent.sent.at(-1).id;
+ current.transfers.get(crashId).deadline=0;await current.alarm();
+ await assert.rejects(crashReader.read());assert.equal((await usage()).reserved_bytes,0);assert.equal((await usage()).transferred_bytes,0);
+ // Real consumer cancellation propagates through write failure, without manual settle.
+ await reset();context=relayContext(agent);current=new MediaRelay(context,{DB});
+ t=await ticket();crashResponse=await request('/download?ticket='+t.ticket);crashReader=crashResponse.body.getReader();crashId=agent.sent.at(-1).id;
+ await crashReader.cancel();await current.webSocketMessage(agent,new Uint8Array([...new TextEncoder().encode(crashId),80,75]).buffer);
+ assert.equal((await usage()).reserved_bytes,0);assert.equal((await usage()).transferred_bytes,0);
+ // D1 outage followed by object loss preserves the terminal success decision.
+ await reset();context=relayContext(agent);current=new MediaRelay(context,{DB});
+ t=await ticket();crashResponse=await request('/download?ticket='+t.ticket);crashReader=crashResponse.body.getReader();crashId=agent.sent.at(-1).id;
+ frame=current.webSocketMessage(agent,new Uint8Array([...new TextEncoder().encode(crashId),80,75,3,4]).buffer);await crashReader.read();await frame;
+ failAt=1;await assert.rejects(current.settle(crashId,true),/Injected database failure/);assert.ok(context.alarmAt);
+ current=new MediaRelay(relayContext(agent,context.values),{DB});await current.ready;
+ assert.equal((await usage()).transferred_bytes,4);assert.equal((await usage()).reserved_bytes,0);
+ assert.equal((await DB.prepare('SELECT status FROM mv_hybrid_tickets').first()).status,'complete');await crashReader.cancel();
+ // Concurrent redemption is claimed atomically inside the recovered relay.
+ await reset();current=new MediaRelay(relayContext(agent),{DB});t=await ticket();
+ const claims=await Promise.all([request('/download?ticket='+t.ticket),request('/download?ticket='+t.ticket)]);
+ assert.deepEqual(claims.map(r=>r.status).sort(),[200,403]);
+ crashId=agent.sent.at(-1).id;await claims.find(r=>r.status===200).body.cancel();await current.webSocketClose(agent);
+ assert.equal((await usage()).reserved_bytes,0);
+ console.log('PASS real SQLite recovery fault injection: confirmed/in-flight process loss, orphan claims, idle alarms, automatic cancel, durable terminal retry, concurrent redemption; metadata only');
  console.log('PASS real SQLite ticket transactions: OFF gate, token isolation, one-use, expiry concurrency, rollback, budget race, offline/missing-file release, exact-once stream accounting');
 }finally{process.stdin.end();lines.close()}

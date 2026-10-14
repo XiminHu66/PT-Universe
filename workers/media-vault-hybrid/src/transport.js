@@ -62,15 +62,14 @@ async function transportCore(request,env){
    const session=await env.DB.prepare("SELECT digest FROM mv_hybrid_browser_sessions WHERE digest=? AND status='approved' AND expires_at>?").bind(link.session_digest,Date.now()).first();
    if(!session)return fail(403,'Test session expired or revoked');
   }
-  const marked=await env.DB.prepare("UPDATE mv_hybrid_tickets SET status='active' WHERE digest=? AND status='new' AND expires_at>?").bind(digest,Date.now()).run();
-  if(!marked.meta?.changes)return fail(403,'Ticket already used');
   const file=await env.DB.prepare('SELECT name FROM mv_hybrid_files WHERE job_id=? AND relative_path=?').bind(t.job_id,t.relative_path).first();
-  if(!file){await releaseTicket(env,digest,t.month);return fail(404,'File metadata unavailable');}
+  if(!file){await expireUnclaimedTicket(env,digest,t.month);return fail(404,'File metadata unavailable');}
   const transfer=hex(crypto.getRandomValues(new Uint8Array(12)));
   const q=new URLSearchParams({job:t.job_id,path:t.relative_path,transfer,size:String(t.bytes),name:file.name,month:t.month,digest});
   let res;
   try{res=await room(env).fetch('https://private/stream?'+q.toString());}
   catch{res=null}
+  if(res?.status===403)return fail(403,'Ticket expired or already redeemed');
   if(!res||res.status!==200){
    await releaseTicket(env,digest,t.month);
    return fail(503,'Download agent offline or busy; request another ticket');
@@ -85,10 +84,11 @@ async function transportCore(request,env){
 }
 async function releaseTicket(env,digest,period){
  await env.DB.batch([
-  env.DB.prepare("UPDATE mv_hybrid_transfer_usage SET reserved_bytes=MAX(0,reserved_bytes-(SELECT COALESCE(SUM(bytes),0) FROM mv_hybrid_tickets WHERE digest=? AND status='active')),updated_at=? WHERE month=?").bind(digest,Date.now(),period),
-  env.DB.prepare("UPDATE mv_hybrid_tickets SET status='failed' WHERE digest=? AND status='active'").bind(digest)
+  env.DB.prepare("UPDATE mv_hybrid_transfer_usage SET reserved_bytes=MAX(0,reserved_bytes-(SELECT COALESCE(SUM(bytes),0) FROM mv_hybrid_tickets WHERE digest=? AND status IN ('new','active'))),updated_at=? WHERE month=?").bind(digest,Date.now(),period),
+  env.DB.prepare("UPDATE mv_hybrid_tickets SET status='failed' WHERE digest=? AND status IN ('new','active')").bind(digest)
  ]);
 }
+const expireUnclaimedTicket=releaseTicket;
 
 
 export async function issueFileTicket(env,data,session=null){
