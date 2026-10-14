@@ -1,7 +1,7 @@
-import {createNativeSaver} from '../../../apps/media-vault/native-download.js';
+import nativeDownloadSource from './native-download-source.js';
 export function nativeDownloadModule(env){
  if(env.ENABLE_ACCEPTANCE_UI!=='true'||!Number.isSafeInteger(Number(env.MEDIA_ACCEPTANCE_UNTIL))||Number(env.MEDIA_ACCEPTANCE_UNTIL)<=Date.now())return new Response('Test module unavailable',{status:404});
- return new Response('export const createNativeSaver = '+createNativeSaver.toString()+';',{headers:{'Content-Type':'text/javascript; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
+ return new Response(nativeDownloadSource,{headers:{'Content-Type':'text/javascript; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 }
 // Only explicit native navigations receive this bridge. API callers keep JSON.
 // It reports a bounded status/delay and attempt ID, never a ticket or raw error.
