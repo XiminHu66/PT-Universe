@@ -1,5 +1,6 @@
 // Temporary test UI on the dedicated service. No production frontend deployment.
-// Credentials stay in page memory; no cookies/storage, credential echo or uploads.
+// Owner credentials stay server-side; browser auth uses a scoped HttpOnly cookie.
+// One-use tickets stay in page memory; no credential echo or media uploads.
 export function acceptancePage(env){
  if(env.ENABLE_ACCEPTANCE_UI!=='true'||Number(env.MEDIA_ACCEPTANCE_UNTIL)<=Date.now()||!Number.isSafeInteger(Number(env.MEDIA_ACCEPTANCE_UNTIL)))return new Response('Test page unavailable',{status:404});
  const nonce=Array.from(crypto.getRandomValues(new Uint8Array(16)),x=>x.toString(16).padStart(2,'0')).join('');
