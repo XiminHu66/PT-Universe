@@ -35,6 +35,7 @@ jobs:
       - run: node --check workers/media-vault-hybrid/src/transport.js
       - run: node --check workers/media-vault-hybrid/src/relay.js
       - run: npm ci --prefix workers/pt-universe-api
+      - run: npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/wrangler.jsonc --dry-run --outdir /tmp/pt-media-hybrid-dryrun
       - run: node scripts/media-vault/frontend-test.cjs
       - run: npm run test:media --prefix workers/pt-universe-api
       - run: npm run check --prefix workers/pt-universe-api
