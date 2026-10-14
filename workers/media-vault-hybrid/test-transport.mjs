@@ -12,7 +12,7 @@ lines.on('line',line=>{const value=JSON.parse(line),handler=pending.get(value.id
 function sql(ops,batch=false,fail_at=null){return new Promise((resolve,reject)=>{const id=++sequence;pending.set(id,{resolve,reject});process.stdin.write(JSON.stringify({id,ops,batch,fail_at})+'\n')})}
 function statement(query,args=[]){return {sql:query,args,bind(...args){return statement(query,args)},async run(){return (await sql([this]))[0]},async first(){return (await sql([this]))[0].results[0]||null}}}
 const DB={prepare:statement,async batch(ops){const inject=failAt;failAt=null;return sql(ops,true,inject)}};
-const id='a'.repeat(24),path='generated/'+id+'.epub',period=new Date().toISOString().slice(0,7);
+const id='a'.repeat(24),path='video/ptmv-'+id+' [中文样本].mp4',period=new Date().toISOString().slice(0,7);
 const env={DB,ENABLE_DIRECT_STREAM:'true',MEDIA_OWNER_TOKEN:'o'.repeat(64),MEDIA_AGENT_TOKEN:'a'.repeat(64),MEDIA_TRANSFER_MONTHLY_LIMIT_GIB:'5',RELAY:{idFromName(){return 'test'},get(){return {fetch:async()=>new Response('offline',{status:503})}}}};
 const base='https://unit.invalid';
 function request(route,body,token=env.MEDIA_OWNER_TOKEN,environment=env){return transportRoute(new Request(base+route,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined}),environment)}

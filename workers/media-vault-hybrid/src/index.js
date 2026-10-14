@@ -10,7 +10,7 @@ const active=new Set(['queued','running','waiting','active']);
 const statuses=new Set(['queued','running','waiting','active','complete','error','cancelled']);
 const kinds=new Set(['novel','manga','torrent','video']);
 const jobIdPattern=/^[0-9a-f]{24}$/;
-const ticketPath=/^(?:aria|video|generated)\/[a-zA-Z0-9][a-zA-Z0-9._/ -]{0,220}$/;
+const ticketPath=/^(?:aria|video|generated)\/[a-zA-Z0-9][a-zA-Z0-9._/ \[\]()\u0080-\uffff-]{0,220}$/u;
 
 function equal(a,b){
   if(typeof a!=='string'||typeof b!=='string'||a.length!==b.length)return false;
