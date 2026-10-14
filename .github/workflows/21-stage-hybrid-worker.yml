@@ -1,10 +1,6 @@
 name: "21 - Stage Media Vault hybrid Worker (manual; streaming OFF)"
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/21-stage-hybrid-worker.yml'
 
 permissions:
   contents: read
