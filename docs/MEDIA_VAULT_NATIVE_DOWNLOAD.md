@@ -55,7 +55,8 @@ user's Windows computer or a full production application login flow.
 
 The production settings dialog still uses the existing private-engine connection
 contract. The temporary same-origin cookie must not be copied into that dialog
-or treated as cross-site production authentication. A permanent browser access
-design, complete staged application acceptance and production publication remain
-separate gates. Existing source-specific compatibility and retention limitations
-continue to apply; see `MEDIA_VAULT_RETENTION.md`.
+or treated as cross-site production authentication. The bounded complete-page
+file flow is now covered in `MEDIA_VAULT_SCOPED_PREVIEW.md`. Permanent browser
+access, broader task submission and production publication remain separate
+gates. Existing source-specific compatibility and retention limitations continue
+to apply; see `MEDIA_VAULT_RETENTION.md`.
