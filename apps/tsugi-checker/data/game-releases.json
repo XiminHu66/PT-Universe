@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-14T17:00:42Z",
+  "generated_at": "2026-10-14T17:24:33Z",
   "date_jst": "2026-10-15",
   "window": {
     "past_days": 7,
@@ -29,8 +29,8 @@
         "days_from_today": -6,
         "is_today": false,
         "timeline_status": "past",
-        "rating": 3.06218,
-        "rating_count": 579,
+        "rating": 3.05843,
+        "rating_count": 599,
         "heat_label": "有讨论度",
         "heat_labels": [
           "有讨论度"
@@ -148,8 +148,8 @@
         "days_from_today": -5,
         "is_today": false,
         "timeline_status": "past",
-        "rating": 4.83333,
-        "rating_count": 12,
+        "rating": 4.84615,
+        "rating_count": 13,
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
@@ -202,8 +202,8 @@
         "days_from_today": -5,
         "is_today": false,
         "timeline_status": "past",
-        "rating": 5,
-        "rating_count": 4,
+        "rating": 4.59999,
+        "rating_count": 5,
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
@@ -333,8 +333,8 @@
         "days_from_today": -5,
         "is_today": false,
         "timeline_status": "past",
-        "rating": 4.66667,
-        "rating_count": 3,
+        "rating": 4.59999,
+        "rating_count": 5,
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
@@ -426,33 +426,6 @@
         ],
         "heat_level": "medium",
         "heat_score": 76.0
-      },
-      {
-        "id": "a9eda68ab27fc542",
-        "category": "mobile",
-        "source": "taptap_cn_upcoming",
-        "source_label": "TapTap 中国 · 即将首发",
-        "store": "TapTap",
-        "title": "秩序：新曙光",
-        "url": "https://www.taptap.cn/app/242783",
-        "cover": "https://img-tc.tapimg.com/market/images/c00a412cfa822e8877942b32ef012a8a.png/_tap_appicon.jpg",
-        "platforms": [
-          "移动端"
-        ],
-        "release_date": "2026-10-14",
-        "release_text": "10/14 首发",
-        "region": "CN",
-        "featured": true,
-        "rating": null,
-        "popularity_label": "TapTap 即将上线",
-        "first_seen": "2026-10-14",
-        "days_from_today": 0,
-        "is_today": true,
-        "timeline_status": "today",
-        "heat_label": "",
-        "heat_labels": [],
-        "heat_level": "none",
-        "heat_score": 0.0
       },
       {
         "id": "67cad1b415783949",
@@ -656,17 +629,17 @@
         "tags": [
           "动作"
         ],
-        "review_count": 1688,
-        "review_positive": 1351,
-        "review_negative": 337,
+        "review_count": 1710,
+        "review_positive": 1367,
+        "review_negative": 343,
         "review_positive_percent": 80,
-        "review_score_desc": "特别好评",
+        "review_score_desc": "多半好评",
         "heat_label": "有讨论度",
         "heat_labels": [
           "有讨论度"
         ],
         "heat_level": "medium",
-        "heat_score": 61.32,
+        "heat_score": 61.43,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -793,8 +766,8 @@
           "独立",
           "角色扮演"
         ],
-        "review_count": 1841,
-        "review_positive": 1745,
+        "review_count": 1856,
+        "review_positive": 1760,
         "review_negative": 96,
         "review_positive_percent": 95,
         "review_score_desc": "特别好评",
@@ -804,7 +777,7 @@
           "知名发行商"
         ],
         "heat_level": "medium",
-        "heat_score": 80.04,
+        "heat_score": 80.11,
         "notable_publisher": true,
         "notable_publisher_name": "Team17"
       },
@@ -998,9 +971,9 @@
           "模拟",
           "抢先体验"
         ],
-        "review_count": 1396,
-        "review_positive": 1017,
-        "review_negative": 379,
+        "review_count": 1401,
+        "review_positive": 1023,
+        "review_negative": 378,
         "review_positive_percent": 73,
         "review_score_desc": "多半好评",
         "heat_label": "有讨论度",
@@ -1008,7 +981,7 @@
           "有讨论度"
         ],
         "heat_level": "medium",
-        "heat_score": 59.76,
+        "heat_score": 59.79,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1029,15 +1002,15 @@
         "featured": true,
         "popularity_label": "Steam 热门",
         "steam_appid": "4235370",
-        "review_count": 228,
-        "review_positive": 179,
+        "review_count": 232,
+        "review_positive": 183,
         "review_negative": 49,
         "review_positive_percent": 79,
         "review_score_desc": "多半好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 44.84,
+        "heat_score": 44.98,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1071,15 +1044,15 @@
           "模拟",
           "抢先体验"
         ],
-        "review_count": 133,
-        "review_positive": 129,
+        "review_count": 134,
+        "review_positive": 130,
         "review_negative": 4,
         "review_positive_percent": 97,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 40.41,
+        "heat_score": 40.48,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1113,15 +1086,15 @@
           "独立",
           "策略"
         ],
-        "review_count": 161,
-        "review_positive": 150,
+        "review_count": 162,
+        "review_positive": 151,
         "review_negative": 11,
         "review_positive_percent": 93,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 41.98,
+        "heat_score": 42.03,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1535,15 +1508,15 @@
           "角色扮演",
           "抢先体验"
         ],
-        "review_count": 50,
-        "review_positive": 48,
+        "review_count": 51,
+        "review_positive": 49,
         "review_negative": 2,
         "review_positive_percent": 96,
         "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 32.44,
+        "heat_score": 32.6,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1710,15 +1683,15 @@
           "角色扮演",
           "抢先体验"
         ],
-        "review_count": 19,
-        "review_positive": 18,
+        "review_count": 20,
+        "review_positive": 19,
         "review_negative": 1,
         "review_positive_percent": 95,
         "review_score_desc": "好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 24.72,
+        "heat_score": 25.12,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1752,15 +1725,15 @@
           "独立",
           "模拟"
         ],
-        "review_count": 18,
-        "review_positive": 15,
+        "review_count": 19,
+        "review_positive": 16,
         "review_negative": 3,
-        "review_positive_percent": 83,
+        "review_positive_percent": 84,
         "review_score_desc": "好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 24.3,
+        "heat_score": 24.72,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1797,15 +1770,15 @@
           "模拟",
           "体育"
         ],
-        "review_count": 18,
-        "review_positive": 17,
-        "review_negative": 1,
-        "review_positive_percent": 94,
-        "review_score_desc": "好评",
+        "review_count": 51,
+        "review_positive": 46,
+        "review_negative": 5,
+        "review_positive_percent": 90,
+        "review_score_desc": "特别好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 24.3,
+        "heat_score": 32.6,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1842,9 +1815,9 @@
           "独立",
           "角色扮演"
         ],
-        "review_count": 3130,
+        "review_count": 3131,
         "review_positive": 2676,
-        "review_negative": 454,
+        "review_negative": 455,
         "review_positive_percent": 85,
         "review_score_desc": "特别好评",
         "heat_label": "有讨论度",
@@ -1884,15 +1857,15 @@
         "tags": [
           "独立"
         ],
-        "review_count": 29,
-        "review_positive": 24,
+        "review_count": 30,
+        "review_positive": 25,
         "review_negative": 5,
         "review_positive_percent": 83,
         "review_score_desc": "好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 28.07,
+        "heat_score": 28.34,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1926,15 +1899,15 @@
           "独立",
           "角色扮演"
         ],
-        "review_count": 15,
-        "review_positive": 15,
+        "review_count": 16,
+        "review_positive": 16,
         "review_negative": 0,
         "review_positive_percent": 100,
         "review_score_desc": "好评",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
-        "heat_score": 22.88,
+        "heat_score": 23.38,
         "notable_publisher": false,
         "notable_publisher_name": ""
       },
@@ -1968,17 +1941,17 @@
           "动作",
           "独立"
         ],
-        "review_count": 4,
-        "review_positive": 4,
+        "review_count": 18,
+        "review_positive": 18,
         "review_negative": 0,
         "review_positive_percent": 100,
-        "review_score_desc": "4 篇用户评测",
+        "review_score_desc": "好评",
         "heat_label": "知名发行商",
         "heat_labels": [
           "知名发行商"
         ],
         "heat_level": "medium",
-        "heat_score": 31.28,
+        "heat_score": 42.3,
         "notable_publisher": true,
         "notable_publisher_name": "Devolver Digital"
       },
@@ -4884,7 +4857,7 @@
         "store": "发行日历",
         "title": "ゼルダの伝説 時のオカリナ",
         "url": "https://www.famitsu.com/game/title/72140/page/1",
-        "cover": "",
+        "cover": "https://www.famitsu.com/_next/image?url=https://image.kagali.kgl-systems.io/item/154998/tE5Cyg6D?w=160&h=160&func=bound&w=3840&q=75",
         "platforms": [
           "SWITCH2"
         ],
@@ -6022,28 +5995,28 @@
       "label": "App Store 日本 · 新着精选",
       "ok": true,
       "count": 8,
-      "checked_at": "2026-10-14T17:00:42Z",
+      "checked_at": "2026-10-14T17:24:33Z",
       "fallback": false
     },
     "googleplay": {
       "label": "Google Play 日本 · 新規リリース精选",
       "ok": true,
       "count": 6,
-      "checked_at": "2026-10-14T17:00:42Z",
+      "checked_at": "2026-10-14T17:24:33Z",
       "fallback": false
     },
     "taptap_cn_new": {
       "label": "TapTap 中国 · 新品榜",
       "ok": true,
       "count": 8,
-      "checked_at": "2026-10-14T17:00:42Z",
+      "checked_at": "2026-10-14T17:24:33Z",
       "fallback": false
     },
     "taptap_cn_upcoming": {
       "label": "TapTap 中国 · 即将首发",
       "ok": true,
       "count": 2,
-      "checked_at": "2026-10-14T17:00:42Z",
+      "checked_at": "2026-10-14T17:24:33Z",
       "fallback": false
     },
     "steam_popular_new": {
@@ -6052,7 +6025,7 @@
       "count": 34,
       "raw_count": 50,
       "dom_count": 50,
-      "checked_at": "2026-10-14T17:00:42Z",
+      "checked_at": "2026-10-14T17:24:33Z",
       "fallback": false
     },
     "steam_popular_upcoming": {
@@ -6061,17 +6034,17 @@
       "count": 47,
       "raw_count": 47,
       "dom_count": 50,
-      "checked_at": "2026-10-14T17:00:42Z",
+      "checked_at": "2026-10-14T17:24:33Z",
       "fallback": false
     },
     "famitsu": {
       "label": "Famitsu 日本游戏发行日",
       "ok": true,
       "count": 124,
-      "checked_at": "2026-10-14T17:00:42Z",
+      "checked_at": "2026-10-14T17:24:33Z",
       "fallback": false
     }
   },
-  "metadata_enriched_at": "2026-10-14T17:00:57Z",
+  "metadata_enriched_at": "2026-10-14T17:24:50Z",
   "refresh_source": "github:manual-or-push"
 }
