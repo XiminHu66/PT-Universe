@@ -1,3 +1,5 @@
+import {validUrl,permittedJob,rowFormat} from './job-contract.js';
+import {accountRoute} from './account.js';
 import {OCI_REFERENCE_BYTES,transferBudget,streamingEnabled} from './limits.js';
 import {acceptancePage} from './acceptance.js';
 import {nativeDownloadModule,nativeDownloadFailure} from './native-download.js';
@@ -11,7 +13,6 @@ export {MediaRelay} from './relay.js';
 const CORS_ORIGIN='https://ximinhu66.github.io';
 const active=new Set(['queued','running','waiting','active']);
 const statuses=new Set(['queued','running','waiting','active','complete','error','cancelled']);
-const kinds=new Set(['novel','manga','torrent','video']);
 const jobIdPattern=/^[0-9a-f]{24}$/;
 const ticketPath=/^(?:aria|video|generated)\/[a-zA-Z0-9][a-zA-Z0-9._/ \[\]()\u0080-\uffff-]{0,220}$/u;
 
@@ -31,17 +32,6 @@ function tokenIs(request,secret){
   return expected.length>=32&&equal(request.headers.get('Authorization')||'', 'Bearer '+expected);
 }
 function month(){return new Date().toISOString().slice(0,7)}
-function validUrl(raw,kind){
-  if(typeof raw!=='string'||raw.length>2048)return false;
-  if(kind==='torrent'&&/^magnet:\?xt=urn:btih:[a-f0-9]{40}(?:&[^#\r\n]*)?$/i.test(raw))return true;
-  try {
-    const u=new URL(raw);
-    if(u.username||u.password||u.port||u.protocol!=='https:'||!u.hostname.includes('.'))return false;
-    if(/^(localhost|127\.|0\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2[0-9]|3[01])\.)/i.test(u.hostname))return false;
-    if(kind==='novel'&&!['www.wenku8.net','wenku8.net','www.bilinovel.com','www.bilinovel.net','www.linovelib.com','w.linovelib.com'].includes(u.hostname))return false;
-    return true;
-  }catch{return false}
-}
 async function jsonBody(request){
   const text=await request.text();
   if(text.length>12000)throw new Error('Request too large');
@@ -49,15 +39,7 @@ async function jsonBody(request){
   if(!o||typeof o!=='object'||Array.isArray(o))throw new Error('JSON object required');
   return o;
 }
-function permittedJob(o){
-  if(!kinds.has(o.kind))return false;
-  if(o.kind==='manga')return typeof o.title==='string'&&o.title.length<200&&Array.isArray(o.files)&&o.files.length>0&&o.files.length<=20&&o.files.every(x=>typeof x==='string'&&/^File:[^<>#\r\n]{2,190}\.(png|jpe?g|gif|webp)$/i.test(x));
-  if(!validUrl(o.url,o.kind))return false;
-  if(o.kind==='novel'&&!(Array.isArray(o.indices)&&o.indices.length>0&&o.indices.length<=100&&o.indices.every(i=>Number.isSafeInteger(i)&&i>=0&&i<=100000)))return false;
-  return true;
-}
 async function scalar(db,sql,...args){const row=await db.prepare(sql).bind(...args).first();return Number(Object.values(row||{})[0]||0)}
-function rowFormat(row){return {id:row.id,kind:row.kind,url:JSON.parse(row.request_json).url||'',title:row.detail||row.kind,status:row.status,completed:row.completed_bytes,total:row.total_bytes,speed:0,error:row.error||'',created:row.created_at}}
 function requireDb(env){if(!env.DB)throw new Error('D1 missing')}
 export async function handle(request,env){
   const origin=request.headers.get('Origin');
@@ -66,6 +48,7 @@ export async function handle(request,env){
   const preview=previewRoute(request,env);if(preview)return preview;
   if(path==='/acceptance'&&request.method==='GET')return acceptancePage(env);
   if(path==='/acceptance/native-download.js'&&request.method==='GET')return nativeDownloadModule(env);
+  const account=await accountRoute(request,env);if(account)return account;
   const browserSession=await browserSessionRoute(request,env);
   if(browserSession)return browserSession;
   if(request.method==='OPTIONS'){

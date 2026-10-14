@@ -5,7 +5,7 @@
   "compatibility_date": "2026-10-13",
   "workers_dev": true,
   "observability": {"enabled": false},
-  "vars": {"ENABLE_DIRECT_STREAM": "false", "MEDIA_TRANSFER_MONTHLY_LIMIT_GIB": "100"},
+  "vars": {"ENABLE_DIRECT_STREAM": "false", "ENABLE_APP_ACCESS": "false", "ENABLE_APP_SUBMISSION": "false", "MEDIA_TRANSFER_MONTHLY_LIMIT_GIB": "100"},
   "durable_objects": {"bindings": [{"name": "RELAY", "class_name": "MediaRelay"}]},
   "exports": {"MediaRelay": {"type": "durable-object", "storage": "sqlite"}},
   "d1_databases": [{
@@ -14,3 +14,4 @@
     "database_id": "86805c79-d903-46cd-b0e2-c079c1a7fc1a"
   }]
 }
+

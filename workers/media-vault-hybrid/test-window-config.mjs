@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 const config=JSON.parse(await readFile(new URL('./wrangler.jsonc',import.meta.url),'utf8'));
 assert.equal(config.name,'pt-media-hybrid');assert.equal(config.vars.ENABLE_DIRECT_STREAM,'false');
 const operation=process.env.OPERATION;
+// Existing acceptance windows must never grant the new account permissions.
+config.vars.ENABLE_APP_ACCESS='false';
+config.vars.ENABLE_APP_SUBMISSION='false';
 assert.ok(['deploy','prepare','stream-on','stream-off','large-on'].includes(operation));
 config.vars.ENABLE_DIRECT_STREAM=['stream-on','large-on'].includes(operation)?'true':'false';
 config.vars.ENABLE_ACCEPTANCE_UI=['prepare','stream-on'].includes(operation)?'true':'false';

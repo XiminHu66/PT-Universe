@@ -1,4 +1,5 @@
 import {transferBudget,streamingEnabled} from './limits.js';
+import {appEnabled,APP_TICKET_LIMIT} from './account-auth.js';
 // Session-only file transfer: source bytes travel VPS -> outbound WebSocket
 // -> Durable Object TransformStream -> browser. D1 stores ONLY byte counts.
 const hex=b=>Array.from(b).map(n=>n.toString(16).padStart(2,'0')).join('');
@@ -62,6 +63,13 @@ async function transportCore(request,env){
    const session=await env.DB.prepare("SELECT digest FROM mv_hybrid_browser_sessions WHERE digest=? AND status='approved' AND expires_at>?").bind(link.session_digest,Date.now()).first();
    if(!session)return fail(403,'Test session expired or revoked');
   }
+  const appLink=await env.DB.prepare('SELECT session_digest FROM mv_hybrid_app_tickets WHERE digest=?').bind(digest).first();
+  if(appLink){
+   const session=appEnabled(env)?await env.DB.prepare("SELECT digest FROM mv_hybrid_app_sessions WHERE digest=? AND account_id=? AND status='approved' AND expires_at>?").bind(appLink.session_digest,env.MEDIA_APP_ACCOUNT_ID,Date.now()).first():null;
+   if(!session){await expireUnclaimedTicket(env,digest,t.month);return fail(403,'Account session unavailable');}
+   const owned=await env.DB.prepare('SELECT job_id FROM mv_hybrid_account_jobs WHERE job_id=? AND account_id=?').bind(t.job_id,env.MEDIA_APP_ACCOUNT_ID).first();
+   if(!owned){await expireUnclaimedTicket(env,digest,t.month);return fail(403,'Account job unavailable');}
+  }
   const file=await env.DB.prepare('SELECT name FROM mv_hybrid_files WHERE job_id=? AND relative_path=?').bind(t.job_id,t.relative_path).first();
   if(!file){await expireUnclaimedTicket(env,digest,t.month);return fail(404,'File metadata unavailable');}
   const transfer=hex(crypto.getRandomValues(new Uint8Array(12)));
@@ -89,11 +97,20 @@ async function releaseTicket(env,digest,period){
   env.DB.prepare("UPDATE mv_hybrid_tickets SET status='failed' WHERE digest=? AND status IN ('new','active')").bind(digest)
  ]);
 }
-const expireUnclaimedTicket=releaseTicket;
+async function expireUnclaimedTicket(env,digest,period){
+ await env.DB.batch([
+  env.DB.prepare("UPDATE mv_hybrid_transfer_usage SET reserved_bytes=MAX(0,reserved_bytes-(SELECT COALESCE(SUM(bytes),0) FROM mv_hybrid_tickets WHERE digest=? AND status='new')),updated_at=? WHERE month=?").bind(digest,Date.now(),period),
+  env.DB.prepare("UPDATE mv_hybrid_tickets SET status='expired' WHERE digest=? AND status='new'").bind(digest)
+ ]);
+}
 
 
 export async function issueFileTicket(env,data,session=null){
   if(!ready(env))return fail(503,'Direct transfer relay is disabled');
+  const app=session?.kind==='app';
+  if(app&&(!appEnabled(env)||session.account_id!==env.MEDIA_APP_ACCOUNT_ID))return fail(403,'Account scope unavailable');
+  const sessionTable=app?'mv_hybrid_app_sessions':'mv_hybrid_browser_sessions';
+  const ticketTable=app?'mv_hybrid_app_tickets':'mv_hybrid_browser_tickets';
   if(!jid.test(data?.id||'')||!pathPattern.test(data?.path||'')||data.path.includes('..'))return fail(400,'Invalid file selection');
   const j=await env.DB.prepare('SELECT status FROM mv_hybrid_jobs WHERE id=?').bind(data.id).first();
   if(j?.status!=='complete')return fail(409,'Job not completed');
@@ -119,13 +136,13 @@ export async function issueFileTicket(env,data,session=null){
   const digest=await hash(token);
   try {
    const ops=[
-    env.DB.prepare("INSERT INTO mv_hybrid_tickets(digest,job_id,relative_path,bytes,month,expires_at,status) SELECT ?,?,?,?,?,?,'new' FROM mv_hybrid_transfer_usage WHERE month=? AND transferred_bytes+reserved_bytes+?<=? AND (SELECT COUNT(*) FROM mv_hybrid_tickets WHERE status='new' AND expires_at>?)<6 AND EXISTS(SELECT 1 FROM mv_hybrid_jobs WHERE id=? AND status='complete')"+(session?" AND EXISTS(SELECT 1 FROM mv_hybrid_browser_sessions WHERE digest=? AND status='approved' AND expires_at>? AND issued_tickets<6)":''))
-     .bind(digest,data.id,data.path,f.bytes,m,expires,m,f.bytes,transferBudget(env),now,data.id,...(session?[session.digest,now]:[])),
+    env.DB.prepare("INSERT INTO mv_hybrid_tickets(digest,job_id,relative_path,bytes,month,expires_at,status) SELECT ?,?,?,?,?,?,'new' FROM mv_hybrid_transfer_usage WHERE month=? AND transferred_bytes+reserved_bytes+?<=? AND (SELECT COUNT(*) FROM mv_hybrid_tickets WHERE status='new' AND expires_at>?)<6 AND EXISTS(SELECT 1 FROM mv_hybrid_jobs WHERE id=? AND status='complete')"+(session?" AND EXISTS(SELECT 1 FROM "+sessionTable+" WHERE digest=? AND status='approved' AND expires_at>? AND issued_tickets<"+(app?APP_TICKET_LIMIT:6)+(app?' AND account_id=?':'')+")":'')+(app?' AND EXISTS(SELECT 1 FROM mv_hybrid_account_jobs WHERE job_id=? AND account_id=?)':''))
+     .bind(digest,data.id,data.path,f.bytes,m,expires,m,f.bytes,transferBudget(env),now,data.id,...(session?[session.digest,now]:[]),...(app?[session.account_id,data.id,session.account_id]:[])),
     env.DB.prepare("UPDATE mv_hybrid_transfer_usage SET reserved_bytes=reserved_bytes+?,updated_at=? WHERE month=? AND EXISTS(SELECT 1 FROM mv_hybrid_tickets WHERE digest=? AND status='new')").bind(f.bytes,now,m,digest)
    ];
    if(session){
-    ops.push(env.DB.prepare("INSERT INTO mv_hybrid_browser_tickets(digest,session_digest) SELECT ?,? WHERE EXISTS(SELECT 1 FROM mv_hybrid_tickets WHERE digest=? AND status='new')").bind(digest,session.digest,digest));
-    ops.push(env.DB.prepare("UPDATE mv_hybrid_browser_sessions SET issued_tickets=issued_tickets+1 WHERE digest=? AND EXISTS(SELECT 1 FROM mv_hybrid_tickets WHERE digest=? AND status='new')").bind(session.digest,digest));
+    ops.push(env.DB.prepare("INSERT INTO "+ticketTable+"(digest,session_digest) SELECT ?,? WHERE EXISTS(SELECT 1 FROM mv_hybrid_tickets WHERE digest=? AND status='new')").bind(digest,session.digest,digest));
+    ops.push(env.DB.prepare("UPDATE "+sessionTable+" SET issued_tickets=issued_tickets+1 WHERE digest=? AND EXISTS(SELECT 1 FROM mv_hybrid_tickets WHERE digest=? AND status='new')").bind(session.digest,digest));
    }
    const issued=await env.DB.batch(ops);
    if(!issued[0].meta?.changes)return fail(429,'Application transfer budget or outstanding/session ticket limit reached',5);

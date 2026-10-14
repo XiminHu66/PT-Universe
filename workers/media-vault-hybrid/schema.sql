@@ -30,4 +30,20 @@ CREATE TABLE IF NOT EXISTS mv_hybrid_browser_sessions (
 CREATE TABLE IF NOT EXISTS mv_hybrid_browser_tickets (
   digest TEXT PRIMARY KEY, session_digest TEXT NOT NULL
 );
+-- Disabled-by-default account sessions: hashes/metadata only, never credentials.
+CREATE TABLE IF NOT EXISTS mv_hybrid_app_sessions (
+  digest TEXT PRIMARY KEY, id TEXT NOT NULL UNIQUE, pair_code TEXT NOT NULL UNIQUE,
+  account_id TEXT NOT NULL DEFAULT '', status TEXT NOT NULL DEFAULT 'pending',
+  created_at INTEGER NOT NULL, expires_at INTEGER NOT NULL,
+  created_jobs INTEGER NOT NULL DEFAULT 0, issued_tickets INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS mv_hybrid_account_jobs (
+  job_id TEXT PRIMARY KEY, account_id TEXT NOT NULL,
+  request_key TEXT NOT NULL, request_hash TEXT NOT NULL,
+  created_by_digest TEXT NOT NULL, UNIQUE(account_id,request_key)
+);
+CREATE INDEX IF NOT EXISTS mv_hybrid_account_job_scope ON mv_hybrid_account_jobs(account_id,job_id);
+CREATE TABLE IF NOT EXISTS mv_hybrid_app_tickets (
+  digest TEXT PRIMARY KEY, session_digest TEXT NOT NULL
+);
 
