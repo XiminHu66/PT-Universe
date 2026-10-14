@@ -1,6 +1,10 @@
 name: "21 - Stage Media Vault hybrid Worker (manual; streaming OFF)"
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/21-stage-hybrid-worker.yml'
 
 permissions:
   contents: read
@@ -60,7 +64,12 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
-          npx --prefix workers/pt-universe-api wrangler d1 execute pt-universe-db --config workers/media-vault-hybrid/wrangler.jsonc --remote --file workers/media-vault-hybrid/schema.sql --yes
+          echo "Read-only D1 query permission preflight"
+          npx --prefix workers/pt-universe-api wrangler d1 execute pt-universe-db --config workers/media-vault-hybrid/wrangler.jsonc --remote --command "SELECT 1 AS ok" --yes
+          echo "Apply additive Media Vault tables via D1 query API (not bulk-import endpoint)"
+          SQL="$(sed '/^[[:space:]]*--/d' workers/media-vault-hybrid/schema.sql | tr '\n' ' ')"
+          [[ "$SQL" == *"CREATE TABLE IF NOT EXISTS mv_hybrid_jobs"* ]] || exit 1
+          npx --prefix workers/pt-universe-api wrangler d1 execute pt-universe-db --config workers/media-vault-hybrid/wrangler.jsonc --remote --command "$SQL" --yes
       - name: Deploy isolated workers.dev hybrid control plane with streaming disabled
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
