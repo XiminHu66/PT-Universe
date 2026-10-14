@@ -51,7 +51,7 @@ export class MediaRelay {
    const agents=this.agents();
    if(agents.length!==1||this.transfers.size||this.starting)return new Response('Agent unavailable or transfer already running',{status:503});
    this.starting=true;
-   const {readable,writable}=new TransformStream(),writer=writable.getWriter();
+   const {readable,writable}=new FixedLengthStream(size),writer=writable.getWriter();
    const s={writer,jobId,path,size,name,period,digest,bytes:0,attempted:0,deadline:Date.now()+IDLE_MS,agent:agents[0]};
    try{
     // Arm before claiming checkpoint durability; an interrupted start is recoverable.

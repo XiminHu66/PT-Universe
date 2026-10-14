@@ -22,13 +22,14 @@ async function open(fault=false){
 async function noReplay(ticket){const r=await fetch(base+'/download?ticket='+ticket,{signal:AbortSignal.timeout(10000)});assert.equal(r.status,403);await r.body?.cancel();}
 // VPS watcher kills the agent after precisely the first acknowledged WS frame.
 let {r,ticket}=await open(true),bytes=0,failed=false;
+if(r.status===200)assert.equal(r.headers.get('Content-Length'),String(f.size),'Physical HTTP length must match the source');
 if(r.status===502){failed=true;await r.body?.cancel()}else{try{for await(const chunk of r.body){bytes+=chunk.length}}catch{failed=true}}
 console.log('FAULT_OBSERVATION '+JSON.stringify({failed,http_status:r.status,received_bytes:bytes,expected_bytes:f.size}));
 assert.ok(failed&&bytes<f.size,'Expected a truncated HTTP transfer from process loss');
 let q=await settled();assert.equal(q.transferred_bytes-baseline.transferred_bytes,262144,'Process-loss ledger must match the acknowledged frame');partial+=262144;await noReplay(ticket);
 console.log('RECOVERY_PROOF '+JSON.stringify({case:'agent-process-loss',received_bytes:bytes,charged_bytes:262144,reserved_bytes:0,replay_http:403}));
 async function retryHash(label){
- const stream=await open(),h=createHash('sha256');let size=0;
+ const stream=await open(),h=createHash('sha256');let size=0;assert.equal(stream.r.headers.get('Content-Length'),String(f.size));
  for await(const chunk of stream.r.body){h.update(chunk);size+=chunk.length}
  assert.equal(size,f.size);assert.equal(h.digest('hex'),expected);full+=size;
  const q=await settled();assert.equal(q.transferred_bytes-baseline.transferred_bytes,full+partial);await noReplay(stream.ticket);
