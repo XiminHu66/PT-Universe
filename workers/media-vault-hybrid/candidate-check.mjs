@@ -7,6 +7,7 @@ import {layouts} from '../../apps/media-vault/account-form.js';
 import {NOVEL_UX_LAYOUTS} from './src/account-novel-scope.js';
 import {appEnabled} from './src/account-auth.js';
 import {streamingEnabled,transferBudget} from './src/limits.js';
+import {releaseBlockers} from './release-readiness.mjs';
 const root=new URL('../../',import.meta.url),base=JSON.parse(await readFile(new URL('./wrangler.jsonc',import.meta.url),'utf8'));
 const manifest=JSON.parse(await readFile(new URL('./candidate-manifest.json',import.meta.url),'utf8'));
 assert.equal(manifest.schema_version,1);assert.equal(manifest.stage,'closed-integration-candidate');
@@ -26,5 +27,6 @@ for(const [path,expected] of Object.entries(manifest.production_source_sha256)){
 assert.deepEqual(manifest.original_order,['outbound-agent','metadata','small-transfer','large-recovery','budget-retention','real-sources','frontend','merge-publication']);
 assert.ok(Array.isArray(manifest.pending)&&manifest.pending.every(x=>typeof x.id==='string'&&typeof x.status==='string'),'Acceptance gate shape required');
 console.log('PASS closed integration candidate: defaults and shutdown configs closed; 100 GiB budget; shared layout contract; reviewed production source unchanged; no deployment performed');
-console.log(manifest.pending.length?'NOT READY FOR PRODUCTION: '+manifest.pending.map(x=>x.id+': '+x.status).join('; '):'PASS acceptance manifest has no pending gates; review the separate publication decision');
-if(process.argv.includes('--release'))assert.equal(manifest.pending.length,0,'Release blocked by unresolved acceptance and publication gates');
+const blockers=releaseBlockers(manifest);
+console.log(blockers.length?'NOT READY FOR PRODUCTION: '+blockers.map(x=>x.id+': '+x.status).join('; '):'PASS recorded acceptance evidence and explicit merge/publication decision are complete');
+if(process.argv.includes('--release'))assert.equal(blockers.length,0,'Release blocked by unresolved acceptance and publication gates');

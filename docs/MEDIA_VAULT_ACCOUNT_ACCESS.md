@@ -1,5 +1,12 @@
 # Account sessions and frontend: deployed with access disabled
 
+Current status: the user's own Windows three-file save, offline verification and
+MP4 playback have passed. Account/submission and both stream gates are closed;
+old sessions/tickets are not renewed. Earlier sections below retain their original
+acceptance boundary and may describe now-completed next steps. Current gates and
+the explicit merge/automatic Pages deployment decision are documented in
+`MEDIA_VAULT_MERGE_CHECKLIST.md` and `MEDIA_VAULT_REMAINING_PLAN.md`.
+
 The backend and frontend for durable browser sessions and bounded new-job
 submission are deployed to the isolated Worker with all account permissions
 disabled. The additive D1 schema has been applied and verified. The initial disabled deployment did not create real source jobs. The later
@@ -94,8 +101,10 @@ tables are metadata-only and existing tables are preserved.
 
 The workflow adds explicit `account-approve` and `account-revoke` operations using
 `account-session-admin.mjs` and the existing GitHub Owner secret. The existing
-request-ID field accepts a 32-hex pairing code for approval or a 24-hex session ID
-for revocation. The script neither retrieves nor prints the secret. Approval
+request-ID field accepts the public 24-hex session ID for approval or revocation.
+The compatibility 32-hex pairing-code input remains internal; do not ask the user
+to send that code. Public-ID approval resolves it inside existing server-side D1
+access without logging or exporting it. The script never exports the Owner key. Approval
 still fails while account access is disabled; adding an operation does not grant
 access or change the feature switches.
 

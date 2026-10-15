@@ -31,9 +31,9 @@
       "status": "separate-decision-required"
     }
   ],
-  "reviewed_main_sha": "a28a72e46bf3af486e3b4d749064103e468ecd03",
+  "reviewed_main_sha": "be3927aaf072a0bc7b2ee1cd189cd0df1b391cfb",
   "deployment_evidence": {
-    "worker_run": "https://github.com/XiminHu66/PT-Universe/actions/runs/38807478536",
+    "worker_run": "https://github.com/XiminHu66/PT-Universe/actions/runs/38818185446",
     "companion": "paired closed deployment verified; detailed operations evidence private"
   },
   "acceptance_evidence": {
@@ -58,6 +58,16 @@
       ],
       "scope": "exact hosted chapter URL; no external reader, login or automatic retry",
       "public_run": "https://github.com/XiminHu66/PT-Universe/actions/runs/38808139300"
+    },
+    "novel_real_ui": {
+      "status": "blocked-browser-policy",
+      "scope": "fixed book first two chapters; text only; three layouts; cancel/rebuild; at most four jobs, one device, thirty minutes, zero tickets; original real UI still pending"
     }
+  },
+  "publication_decision": {
+    "status": "not-approved",
+    "approved_by_user": false,
+    "automatic_deployments_acknowledged": false,
+    "scope": "no-merge-no-production-publication"
   }
 }

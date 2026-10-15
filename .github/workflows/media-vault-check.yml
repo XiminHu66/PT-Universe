@@ -29,6 +29,8 @@ jobs:
         with:
           node-version: '24'
       - run: npm test --prefix workers/media-vault-hybrid
+      - name: Check closed candidate and evidence consistency
+        run: node workers/media-vault-hybrid/candidate-check.mjs
       - run: node --check workers/media-vault-hybrid/src/index.js
       - run: node --check workers/media-vault-hybrid/src/transport.js
       - run: node --check workers/media-vault-hybrid/src/relay.js

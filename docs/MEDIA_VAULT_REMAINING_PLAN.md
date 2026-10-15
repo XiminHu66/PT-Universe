@@ -43,6 +43,9 @@ HTTPS Worker / D1 仅保存队列、元数据及账本，VPS 主动出站，不�
 7. 条件完成后再作独立合并/生产发布决定，明确生产入口和批准的权限范围。
    两 PR 保持草稿；如果调整验收范围，须由用户明确决定，不能默认缩小目标。
 
+合并前一批完成的执行单、Pages 自动发布关系、剩余人工观察和回退步骤见
+`MEDIA_VAULT_MERGE_CHECKLIST.md`。公共合并会自动发布 Pages，不能视为仅合并源码。
+
 关闭候选检查通过，发布检查仍因真实条件及最终决定未完成而拒绝。
 详见 `MEDIA_VAULT_PREPUBLICATION_REVIEW.md`、`MEDIA_VAULT_DEVICE_ACCEPTANCE.md`。
 历史记录完整保存在私有配套仓库。
