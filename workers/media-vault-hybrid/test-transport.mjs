@@ -20,7 +20,8 @@ const base='https://unit.invalid';
 function request(route,body,token=env.MEDIA_OWNER_TOKEN,environment=env){return transportRoute(new Request(base+route,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined}),environment)}
 async function ticket(){const r=await request('/download-ticket',{id,path});return {status:r.status,...await r.json()}}
 async function usage(){return DB.prepare('SELECT * FROM mv_hybrid_transfer_usage WHERE month=?').bind(period).first()}
-async function reset(size=4){await sql([{sql:'DELETE FROM mv_hybrid_tickets'},{sql:'DELETE FROM mv_hybrid_transfer_usage'},{sql:'DELETE FROM mv_hybrid_files'},{sql:'INSERT INTO mv_hybrid_files(job_id,relative_path,name,bytes) VALUES(?,?,?,?)',args:[id,path,'sample.epub',size]}],true)}
+let agent;
+async function reset(size=4){if(agent){agent.readyState=1;agent.serializeAttachment({seen:Date.now(),retired:false});}await sql([{sql:'DELETE FROM mv_hybrid_tickets'},{sql:'DELETE FROM mv_hybrid_transfer_usage'},{sql:'DELETE FROM mv_hybrid_files'},{sql:'INSERT INTO mv_hybrid_files(job_id,relative_path,name,bytes) VALUES(?,?,?,?)',args:[id,path,'sample.epub',size]}],true)}
 try{
  await DB.prepare("INSERT INTO mv_hybrid_jobs(id,kind,request_json,status,created_at,updated_at) VALUES(?,'novel','{}','complete',0,0)").bind(id).run();
  // Real SQLite expiry: no early deletion, pending/active protection,
@@ -104,7 +105,7 @@ try{
  assert.deepEqual(concurrent.map(x=>x.status).sort(),[200,429]);
  assert.equal((await usage()).reserved_bytes,transferBudget(env),'concurrent issuance stays within budget');
  await reset();
- const agent={readyState:1,sent:[],send(raw){this.sent.push(JSON.parse(raw))}};
+ agent={readyState:1,sent:[],send(raw){this.sent.push(JSON.parse(raw))}};
  const relay=new MediaRelay(relayContext(agent),{DB});
  env.RELAY.get=()=>({fetch:url=>relay.fetch(new Request(url))});
  t=await ticket();const response=await request('/download?ticket='+t.ticket);assert.equal(response.status,200);
@@ -169,7 +170,7 @@ try{
  // No chunks or close event: durable alarm aborts the idle writer.
  await reset();context=relayContext(agent);current=new MediaRelay(context,{DB});
  t=await ticket();crashResponse=await request('/download?ticket='+t.ticket);crashReader=crashResponse.body.getReader();crashId=agent.sent.at(-1).id;
- current.transfers.get(crashId).deadline=0;await current.alarm();
+ assert.ok(current.transfers.get(crashId).deadline-Date.now()<=15000,'zero-byte startup cannot hang for the full transfer idle timeout');current.transfers.get(crashId).deadline=0;await current.alarm();
  await assert.rejects(crashReader.read());assert.equal((await usage()).reserved_bytes,0);assert.equal((await usage()).transferred_bytes,0);
  // Real consumer cancellation propagates through write failure, without manual settle.
  await reset();context=relayContext(agent);current=new MediaRelay(context,{DB});

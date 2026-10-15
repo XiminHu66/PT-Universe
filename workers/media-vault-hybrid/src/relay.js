@@ -1,12 +1,32 @@
 // Media remains ephemeral. Durable state contains ONLY ticket digests and counters.
 const decoder=new TextDecoder(),CHUNK_MAX=256*1024,ID=/^[0-9a-f]{24}$/;
-const CHECKPOINT='transfer-counts',IDLE_MS=120000,RATE_KEY='ticket-permits',RATE_WINDOW=60000,RATE_MAX=12;
+const CHECKPOINT='transfer-counts',AGENT_LEASE_MS=60000,PROBE_MS=3000,START_MS=15000,IDLE_MS=120000,RATE_KEY='ticket-permits',RATE_WINDOW=60000,RATE_MAX=12;
 export class MediaRelay {
  constructor(ctx,env){
-  this.ctx=ctx;this.env=env;this.transfers=new Map();this.starting=false;this.serial=Promise.resolve();
+  this.ctx=ctx;this.env=env;this.transfers=new Map();this.starting=false;this.serial=Promise.resolve();this.probes=new Map();
   this.ready=ctx.blockConcurrencyWhile(async()=>{try{await this.recover()}catch(e){await ctx.storage.setAlarm(Date.now()+5000);throw e}});
  }
- agents(){return this.ctx.getWebSockets('media-agent').filter(ws=>ws.readyState===1);}
+ attachment(ws){try{return ws.deserializeAttachment()||{}}catch{return {}}}
+ retire(ws){
+  const a=this.attachment(ws);try{ws.serializeAttachment({...a,retired:true})}catch{}
+  try{ws.close(1012,'Agent heartbeat expired')}catch{}
+  for(const [id,p] of this.probes)if(p.ws===ws){clearTimeout(p.timer);this.probes.delete(id);p.finish('offline');}
+ }
+ agents(){return this.ctx.getWebSockets('media-agent').filter(ws=>{
+  const a=this.attachment(ws),fresh=ws.readyState===1&&!a.retired&&Number.isSafeInteger(a.seen)&&Date.now()-a.seen<=AGENT_LEASE_MS;
+  if(!fresh)this.retire(ws);return fresh;
+ });}
+ async channel(probe=false){
+  const agents=this.agents();if(agents.length!==1)return 'offline';
+  if(this.transfers.size||this.starting||this.probes.size>=4)return 'busy';
+  if(!probe)return 'ready';
+  const ws=agents[0],id=crypto.randomUUID().replaceAll('-','').slice(0,24);
+  return new Promise(resolve=>{
+   const p={ws,finish:resolve,timer:setTimeout(()=>{this.probes.delete(id);this.retire(ws);resolve('offline');},PROBE_MS)};
+   this.probes.set(id,p);
+   try{ws.send(JSON.stringify({type:'probe',id}));}catch{clearTimeout(p.timer);this.probes.delete(id);this.retire(ws);resolve('offline');}
+  });
+ }
  exclusive(fn){const p=this.serial.then(fn);this.serial=p.catch(()=>{});return p;}
  async credit(s,bytes,status){
   await this.env.DB.batch([
@@ -34,6 +54,7 @@ export class MediaRelay {
  async fetch(request){
   await this.ready;
   const u=new URL(request.url);
+  if(u.pathname==='/agent-ready'){const channel=await this.channel(true);return new Response(channel==='ready'?null:channel,{status:channel==='ready'?204:channel==='busy'?429:503,headers:{'Retry-After':'3'}});}
   if(u.pathname==='/ticket-permit'||u.pathname==='/catalog-permit'){
    return this.exclusive(async()=>{
     const catalog=u.pathname==='/catalog-permit',key=catalog?'catalog-permits':RATE_KEY,max=catalog?6:RATE_MAX;
@@ -48,6 +69,7 @@ export class MediaRelay {
    if(request.headers.get('Upgrade')!=='websocket')return new Response('WebSocket required',{status:426});
    if(this.agents().length)return new Response('Agent already connected',{status:409,headers:{'Retry-After':'5'}});
    const pair=new WebSocketPair(),client=pair[0],server=pair[1];
+   server.serializeAttachment({seen:Date.now(),retired:false});
    this.ctx.acceptWebSocket(server,['media-agent']);
    return new Response(null,{status:101,webSocket:client});
   }
@@ -64,7 +86,7 @@ export class MediaRelay {
    if(agents.length!==1)return new Response('Agent unavailable',{status:503});
    this.starting=true;
    const {readable,writable}=new FixedLengthStream(size),writer=writable.getWriter();
-   const s={writer,jobId,path,size,name,period,digest,bytes:0,attempted:0,deadline:Date.now()+IDLE_MS,agent:agents[0]};
+   const s={writer,jobId,path,size,name,period,digest,bytes:0,attempted:0,deadline:Date.now()+START_MS,agent:agents[0]};
    try{
     // Arm before claiming checkpoint durability; an interrupted start is recoverable.
     await this.ctx.storage.setAlarm(s.deadline);
@@ -114,9 +136,20 @@ export class MediaRelay {
  }
  async webSocketMessage(ws,message){
   await this.ready;
+  const attachment=this.attachment(ws);
+  if(attachment.retired||ws.readyState!==1)return;
+  // A heartbeat proves the exact retained socket is responsive after idle or
+  // hibernation; an expired socket cannot revive after a replacement is accepted.
+  if(!Number.isSafeInteger(attachment.seen)||Date.now()-attachment.seen>AGENT_LEASE_MS){this.retire(ws);return;}
+  ws.serializeAttachment({...attachment,seen:Date.now()});
+  if(message==='mv-ping'){ws.send('mv-pong');return;}
   if(typeof message==='string'){
    let data;try{data=JSON.parse(message)}catch{return}
-   if(!ID.test(data?.id||''))return;const s=this.transfers.get(data.id);if(!s||s.agent!==ws)return;
+   if(!ID.test(data?.id||''))return;
+   if(data.type==='probe-ok'||data.type==='probe-busy'){
+    const p=this.probes.get(data.id);if(p?.ws===ws){clearTimeout(p.timer);this.probes.delete(data.id);p.finish(data.type==='probe-ok'?'ready':'busy');}return;
+   }
+   const s=this.transfers.get(data.id);if(!s||s.agent!==ws)return;
    if(data.type==='end')await this.settle(data.id,s.bytes===s.size);
    else if(data.type==='error')await this.settle(data.id,false);return;
   }
@@ -132,17 +165,17 @@ export class MediaRelay {
   try{
    const allowed=await this.exclusive(async()=>{
     if(this.transfers.get(id)!==s||s.settling||s.outcome)return false;
-    s.attempted=s.bytes+b.byteLength-24;s.deadline=Date.now()+IDLE_MS;
+    s.attempted=s.bytes+b.byteLength-24;s.deadline=Date.now()+(s.bytes===0?START_MS:IDLE_MS);
     await this.checkpoint(id,s);return true;
    });if(!allowed)return;
    await s.writer.write(b.subarray(24));
    await this.exclusive(async()=>{
     if(this.transfers.get(id)!==s||s.settling||s.outcome)return;
-    s.bytes+=b.byteLength-24;await this.checkpoint(id,s);
+    s.bytes+=b.byteLength-24;s.deadline=Date.now()+IDLE_MS;await this.checkpoint(id,s);
     ws.send(JSON.stringify({type:'ack',id,bytes:s.bytes}));
    });
   }catch{await this.settle(id,false);}finally{s.writing=false;}
  }
- async webSocketClose(ws){await this.ready;for(const [id,s] of this.transfers)if(s.agent===ws)await this.settle(id,false);}
+ async webSocketClose(ws){await this.ready;this.retire(ws);for(const [id,s] of this.transfers)if(s.agent===ws)await this.settle(id,false);}
  async webSocketError(ws){await this.webSocketClose(ws);}
 }

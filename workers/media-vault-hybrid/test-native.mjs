@@ -59,3 +59,5 @@ assert.match(html,/mv-native-download-error/);assert.ok(!html.includes(token));a
 const apiResponse=original();assert.equal(nativeDownloadFailure(new Request(req.url),apiResponse),apiResponse,'API errors remain JSON');
 const ok=new Response('bytes');assert.equal(nativeDownloadFailure(req,ok),ok,'successful file stream untouched');
 console.log('PASS shared native saver: direct navigation, metadata-only fetch, duplicate suppression, scoped error messages, fresh-ticket retry, cancellation, no false completion, executable gated module and private error bridge');
+
+const offlineChannel=harness(()=>new Response(JSON.stringify({error:'Outbound download channel unavailable',code:'channel_unavailable',ticket_issued:false}),{status:503}));await assert.rejects(offlineChannel.saver.save(file),/本次未签发票据/);assert.equal(offlineChannel.states.at(-1).ticketIssued,false);assert.equal(offlineChannel.clicks.length,0);offlineChannel.saver.dispose();

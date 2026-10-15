@@ -123,6 +123,10 @@ export async function issueFileTicket(env,data,session=null){
     const permitted=!session&&Number(env.MEDIA_STREAM_TEST_UNTIL)>Date.now()&&jid.test(env.MEDIA_STREAM_TEST_LARGE_JOB||'')&&data.id===env.MEDIA_STREAM_TEST_LARGE_JOB&&f.bytes<=32*1024*1024;
     if(!permitted)return fail(413,'Temporary acceptance file exceeds selected test scope');
   }
+  if(appFileTest(env)){
+   let available;try{available=await room(env).fetch('https://private/agent-ready')}catch{return json({error:'Outbound download channel unavailable',code:'channel_unavailable',ticket_issued:false,retry_after:3},503,{'Retry-After':'3'})}
+   if(available.status!==204)return json({error:available.status===429?'Another download is active':'Outbound download channel unavailable',code:available.status===429?'channel_busy':'channel_unavailable',ticket_issued:false,retry_after:3},available.status===429?429:503,{'Retry-After':'3'});
+  }
   let permit;
   try{permit=await room(env).fetch('https://private/ticket-permit')}catch{return fail(503,'Ticket request limiter unavailable')}
   if(permit.status===429)return fail(429,'Ticket request rate exceeded; maximum twelve per minute',permit.headers.get('Retry-After')||60);

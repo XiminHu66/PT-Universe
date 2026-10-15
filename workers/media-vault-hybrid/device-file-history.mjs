@@ -13,3 +13,22 @@ export function validateDeviceFileHistory(history,files,expected,now){
   assert.ok(t.session_status==='revoked'||Number.isSafeInteger(t.session_expires_at)&&t.session_expires_at<now,'Prior session must be closed or expired');
  }
 }
+
+// One explicit recovery round after the actual failed user attempt. Historical
+// tickets/bytes stay intact; this guard refuses any fourth round or completed
+// user-file transfer. No grants or DB writes occur here.
+export function validateDeviceRecoveryHistory(history,files,expected,now){
+ assert.ok(history.length>=4&&history.length<=6,'Expected original three plus one failed user attempt only');
+ const original=history.filter(t=>t.status==='complete');
+ validateDeviceFileHistory(original,files,expected,now);
+ const failed=history.filter(t=>t.status!=='complete');
+ assert.ok(failed.length>=1&&failed.length<=3);
+ const seen=new Set();
+ for(const t of failed){
+  const f=files.find(f=>f.id===t.job_id&&f.path===t.relative_path&&f.size===t.bytes);
+  assert.ok(f&&!seen.has(f.id),'Recovery history must match distinct selected files');seen.add(f.id);
+  assert.ok(['failed','expired'].includes(t.status),'Active or ambiguous transfer forbids recovery');
+  assert.ok(Number.isSafeInteger(t.expires_at)&&t.expires_at<now);
+  assert.ok(t.session_status==='revoked'||Number.isSafeInteger(t.session_expires_at)&&t.session_expires_at<now);
+ }
+}

@@ -14,7 +14,9 @@ const sql=(ops,batch=false)=>new Promise((resolve,reject)=>{const id=++seq;respo
 function prepare(query,args=[]){return {sql:query,args,bind(...args){return prepare(query,args);},async run(){return (await sql([this]))[0];},async first(){return (await sql([this]))[0].results[0]||null;},async all(){return (await sql([this]))[0];}};}
 const DB={prepare,batch:ops=>sql(ops,true)},origin='https://journey.invalid';
 const env={DB,ENABLE_APP_ACCESS:'true',ENABLE_APP_SUBMISSION:'true',ENABLE_DIRECT_STREAM:'false',MEDIA_APP_ACCOUNT_ID:'submit-test-'+'b'.repeat(32),MEDIA_OWNER_TOKEN:'o'.repeat(64),MEDIA_AGENT_TOKEN:'a'.repeat(64)};
-const relay=new MediaRelay(relayContext(null),env);env.RELAY={idFromName:()=>'',get:()=>({fetch:url=>relay.fetch(new Request(url))})};
+let channelMode='ready';
+const channelAgent={readyState:1,send(raw){const m=JSON.parse(raw);if(m.type==='probe'&&channelMode!=='silent')queueMicrotask(()=>relay.webSocketMessage(this,JSON.stringify({type:channelMode==='busy'?'probe-busy':'probe-ok',id:m.id})));}};
+const relay=new MediaRelay(relayContext(channelAgent),env);env.RELAY={idFromName:()=>'',get:()=>({fetch:url=>relay.fetch(new Request(url))})};
 async function request(path,{body,cookie,token,environment=env}={}){return handle(new Request(origin+path,{method:body?'POST':'GET',headers:{Origin:origin,...(body?{'Content-Type':'application/json'}:{}),...(cookie?{Cookie:cookie}:{}),...(token?{Authorization:'Bearer '+token}:{})},body:body?JSON.stringify(body):undefined}),environment);}
 
 const base=JSON.parse(await readFile(new URL('./wrangler.jsonc',import.meta.url),'utf8'));
@@ -44,6 +46,9 @@ try{
  assert.equal((await request('/download-ticket',{body:{id:files[0].id,path:files[0].path},token})).status,403,'Owner cannot mint parallel tickets');
  assert.equal((await request('/app-api/jobs/files?id='+'f'.repeat(24),{cookie:a.cookie})).status,404);
  assert.equal((await ticket(a,{...files[0],path:'generated/unselected.epub'})).status,404);
+ channelMode='busy';assert.equal((await ticket(a,files[0])).status,429);assert.equal((await DB.prepare('SELECT COUNT(*) n FROM mv_hybrid_app_tickets').first()).n,0,'busy channel consumes no ticket');
+ channelMode='silent';assert.equal((await ticket(a,files[0])).status,503);assert.equal((await DB.prepare('SELECT COUNT(*) n FROM mv_hybrid_app_tickets').first()).n,0,'silent channel consumes no ticket');
+ channelMode='ready';channelAgent.readyState=1;channelAgent.serializeAttachment({seen:Date.now(),retired:false});
  const competing=await Promise.all(Array.from({length:7},()=>ticket(a,files[0])));assert.equal(competing.filter(r=>r.status===200).length,1);assert.equal(competing.filter(r=>r.status===429).length,6,'atomic per-file single issuance');
  const first=await competing.find(r=>r.status===200).json();
  const other=await Promise.all(files.slice(1).map(f=>ticket(a,f)));assert.ok(other.every(r=>r.status===200));
@@ -64,6 +69,7 @@ try{
   await DB.prepare("UPDATE mv_hybrid_tickets SET status='complete'").run();
   const history=await DB.prepare('SELECT t.job_id,t.relative_path,t.bytes,t.status,t.expires_at,s.status AS session_status,s.expires_at AS session_expires_at FROM mv_hybrid_app_tickets a JOIN mv_hybrid_tickets t ON t.digest=a.digest JOIN mv_hybrid_app_sessions s ON s.digest=a.session_digest').all();
   validateDeviceFileHistory(history.results,files,files.map(f=>({id:f.id,bytes:f.size})),Date.now());
+  channelAgent.readyState=1;channelAgent.serializeAttachment({seen:Date.now(),retired:false});
   Object.assign(env,configureAccountWindow(base,'account-files-on',Date.now()-1000,selection).vars);
   const device=await pair();assert.equal((await approve(device)).status,200);
   const newTickets=await Promise.all(files.map(f=>ticket(device,f)));assert.ok(newTickets.every(r=>r.status===200));

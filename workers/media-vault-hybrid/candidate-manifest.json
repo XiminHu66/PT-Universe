@@ -24,7 +24,7 @@
     },
     {
       "id": "windows-native-save",
-      "status": "windows-ci-passed-user-device-pending"
+      "status": "real-user-attempt-failed-zero-byte-start"
     },
     {
       "id": "longer-session-persistence",
@@ -44,7 +44,7 @@
     "windows_native": {
       "status": "passed-on-windows-runner",
       "scope": "actual Chromium native EPUB/CBZ downloads, Unicode filenames, disk hashes, single-use tickets, offline validation and tamper rejection; localhost fixtures only",
-      "user_device": "not-observed"
+      "user_device": "attempt-failed-zero-byte-start; not-accepted"
     },
     "session_restart": {
       "status": "passed-real-browser-process-restart",

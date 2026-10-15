@@ -51,16 +51,16 @@ export function mountAccountPage(options={}){
   const active=['queued','running','active','waiting'],attention=['error','cancelled','expired'];
   const shown=jobsCache.filter(j=>filter==='all'||filter==='active'&&active.includes(j.status)||filter==='complete'&&j.status==='complete'||filter==='attention'&&attention.includes(j.status));
   $('taskSummary').textContent=jobsCache.length+' 项 · 处理中 '+jobsCache.filter(j=>active.includes(j.status)).length+' · 已完成 '+jobsCache.filter(j=>j.status==='complete').length;
-  $('jobs').innerHTML=shown.map(j=>`<article class="task-row"><div class="task-heading"><strong>${esc(j.title||j.kind)}</strong><span class="status-badge">${esc(({queued:'排队中',running:'处理中',active:'下载中',waiting:'等待中',complete:'已完成',cancelled:'已取消',expired:'已过期',error:'失败',interrupted:'任务已中断'})[j.status]||j.status)}</span></div><p>${esc(progressText(j))}</p>${j.error?'<p class="task-error">'+esc(j.error)+'</p>':''}${recoveryText(j)?'<p class="caption">'+esc(recoveryText(j))+'</p>':''}${j.source_expires_at?'<p class="caption">临时源文件清理时间参考：'+esc(new Date(j.source_expires_at).toLocaleString('zh-CN'))+'（约 24 小时；传输中的文件会保留）</p>':''}<div class="actions">${j.status==='complete'&&!current.read_only?'<button data-files="'+esc(j.id)+'">查看文件'+(transferReady?' / 保存到本机':'（传输关闭）')+'</button>':''}${!current.read_only&&current.can_submit&&active.includes(j.status)?'<button data-cancel="'+esc(j.id)+'">取消任务</button>':''}${!current.read_only&&current.can_submit&&current.scope!=='submission-test-no-transfer'&&attention.includes(j.status)?'<button data-retry="'+esc(j.id)+'">重建任务（使用新额度）</button>':''}</div></article>`).join('')||'<p>'+ (jobsCache.length?'此分类暂无任务。':'账号暂无任务。')+'</p>';
+  $('jobs').innerHTML=shown.map(j=>`<article class="task-row"><div class="task-heading"><strong>${esc(j.title||j.kind)}</strong><span class="status-badge">${esc(({queued:'排队中',running:'处理中',active:'下载中',waiting:'等待中',complete:'文件已生成',cancelled:'已取消',expired:'已过期',error:'失败',interrupted:'任务已中断'})[j.status]||j.status)}</span></div><p>${esc(progressText(j))}</p>${j.error?'<p class="task-error">'+esc(j.error)+'</p>':''}${recoveryText(j)?'<p class="caption">'+esc(recoveryText(j))+'</p>':''}${j.source_expires_at?'<p class="caption">临时源文件清理时间参考：'+esc(new Date(j.source_expires_at).toLocaleString('zh-CN'))+'（约 24 小时；传输中的文件会保留）</p>':''}<div class="actions">${j.status==='complete'&&!current.read_only?'<button data-files="'+esc(j.id)+'">查看文件'+(transferReady?' / 保存到本机':'（传输关闭）')+'</button>':''}${!current.read_only&&current.can_submit&&active.includes(j.status)?'<button data-cancel="'+esc(j.id)+'">取消任务</button>':''}${!current.read_only&&current.can_submit&&current.scope!=='submission-test-no-transfer'&&attention.includes(j.status)?'<button data-retry="'+esc(j.id)+'">重建任务（使用新额度）</button>':''}</div></article>`).join('')||'<p>'+ (jobsCache.length?'此分类暂无任务。':'账号暂无任务。')+'</p>';
  }
  async function reload(){
   if(loading)return loading;
   const work=(async()=>{
    try{const state=await client.refresh();if(state.status!=='approved'||disposed)return;
-    const g=generation,[jobs,quota]=await Promise.all([client.read('/jobs'),client.read('/quota')]);
+    const g=generation,[jobs,quota,health]=await Promise.all([client.read('/jobs'),client.read('/quota'),client.read('/health')]);
     if(disposed||g!==generation)return;
-    jobsCache=jobs.jobs;transferReady=quota.tracking==='active'&&current.can_download!==false;renderJobs();
-    $('serviceStatus').textContent=transferReady?'文件传输已开放。临时文件约保留 24 小时，请及时保存到本机。':'后台任务可独立完成；文件传输当前关闭，暂不能保存到本机。';
+    jobsCache=jobs.jobs;transferReady=quota.tracking==='active'&&current.can_download!==false&&health.channel==='ready';renderJobs();
+    $('serviceStatus').textContent=transferReady?'出站下载通道已响应，可保存到本机；是否保存完成请查看浏览器下载列表。':health.channel==='busy'?'正在传输另一份文件，请等浏览器下载完成后刷新。':health.channel==='offline'?'出站下载通道未连接或未响应，暂不能保存；刷新状态不会消耗下载票据。':'后台文件可独立生成；文件传输当前关闭，暂不能保存到本机。';
     $('budget').textContent='应用自设月预算 '+bytes(quota.limit_bytes)+' · 已传输 '+bytes(quota.transferred_bytes)+' · 已预留 '+bytes(quota.reserved_bytes)+' · 剩余 '+bytes(quota.remaining_bytes)+'；不是云服务商账单。'+(quota.tracking==='active'?'':' 文件传输当前关闭。');
    }catch(e){if(!disposed)note(e.message,true);}
   })();loading=work;try{await work;}finally{if(loading===work)loading=null;}
@@ -113,7 +113,7 @@ export function mountAccountPage(options={}){
     const data=await client.read('/jobs/files?id='+id);if(g!==generation||disposed)return;clearFiles();
     saver=(options.createSaver||createNativeSaver)({baseURL:origin,ticketPath:'/app-api/download-ticket',onState:s=>{if(g===generation&&!disposed)note(s.message,s.phase==='error');}});
     $('filesList').innerHTML=data.files.map((f,i)=>'<div class="file-row"><strong>'+esc(f.name)+'</strong><p>'+bytes(f.size)+'</p><button data-save="'+i+'"'+(transferReady?'':' disabled')+'>'+(transferReady?'保存到本机':'文件传输未开放')+'</button></div>').join('')||'<p>暂无可保存文件。</p>';
-    const activeSaver=saver;$('filesList').onclick=event=>{const b=event.target.closest('button');if(!b||g!==generation||disposed||!transferReady||current.can_download===false)return;const file=data.files[Number(b.dataset.save)];if(file)void run(()=>activeSaver.save({...file,id}));};$('files').showModal();
+    const activeSaver=saver;$('filesList').onclick=event=>{const b=event.target.closest('button');if(!b||g!==generation||disposed||!transferReady||current.can_download===false)return;const file=data.files[Number(b.dataset.save)];if(file){b.disabled=true;void run(async()=>{try{await activeSaver.save({...file,id});b.textContent='已交给浏览器，请在下载列表确认';await reload();}catch(e){b.disabled=false;await reload();throw e;}});}};$('files').showModal();
    }finally{button.disabled=false;}
   });
  };

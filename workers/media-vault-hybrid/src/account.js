@@ -89,7 +89,13 @@ export async function accountRoute(request,env){
    try{return reply(await novelCatalog(u.searchParams.get('url'),env));}
    catch(e){return fail([400,429].includes(e.status)?e.status:503,'Catalog unavailable; verify source access and retry later');}
   }
-  if(p==='/app-api/health'&&request.method==='GET')return reply({ok:true,mode:'account-cookie',streaming:streamingEnabled(env)?'enabled':'not-live'});
+  if(p==='/app-api/health'&&request.method==='GET'){
+   let channel='closed';
+   if(streamingEnabled(env)&&appFilesAllowed(env)){
+    try{const r=await env.RELAY.get(env.RELAY.idFromName('media-vault-private')).fetch('https://private/agent-ready');channel=r.status===204?'ready':r.status===429?'busy':'offline';}catch{channel='offline';}
+   }
+   return reply({ok:true,mode:'account-cookie',streaming:streamingEnabled(env)?'enabled':'not-live',channel});
+  }
   if(p==='/app-api/quota'&&request.method==='GET'){
    const period=new Date().toISOString().slice(0,7),q=await env.DB.prepare('SELECT transferred_bytes,reserved_bytes FROM mv_hybrid_transfer_usage WHERE month=?').bind(period).first();
    const used=Number(q?.transferred_bytes||0),reserved=Number(q?.reserved_bytes||0),limit=transferBudget(env);
