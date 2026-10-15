@@ -41,11 +41,12 @@
   ],
   "reviewed_main_sha": "a28a72e46bf3af486e3b4d749064103e468ecd03",
   "deployment_evidence": {
-    "worker_run": "https://github.com/XiminHu66/PT-Universe/actions/runs/38800703594",
-    "worker_version": "7938e4de-7c71-49c2-b5b9-5f62bcb7cef9",
+    "worker_run": "https://github.com/XiminHu66/PT-Universe/actions/runs/38802606137",
+    "worker_version": "d17103ca-cf71-44b7-8b74-f6df2326463c",
     "companion": "paired deployment and running-source proof passed; access/submission/streams OFF",
     "transferred_bytes": 75943820,
     "reserved_bytes": 0,
-    "merged_frontend": "candidate only; requires closed redeployment after final regressions"
+    "merged_frontend": "tested main-integrated source deployed to dedicated Worker with every gate OFF",
+    "tested_public_source": "1521253bf24cc8e4dc462ef1df2e5431a875eabb"
   }
 }

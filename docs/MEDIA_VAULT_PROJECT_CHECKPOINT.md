@@ -517,3 +517,36 @@ production-entrypoint source matches the manifest; account and stream access
 were not changed. The intentional release-block result retains all six pending
 acceptance/publication gates. This completes the closed integration-candidate
 checkpoint; it does not complete the original project or blocked live UI work.
+
+
+## 2026-10-15：配套关闭部署及主线冲突审查
+
+本轮在两个现有候选分支上继续，生产主分支未合并，账号访问/提交和两端流式保持关闭。
+公共关闭部署 https://github.com/XiminHu66/PT-Universe/actions/runs/38800703594 成功，
+源码 29ab469da10794ae7d9958cc4e590aca8519522e，版本
+7938e4de-7c71-49c2-b5b9-5f62bcb7cef9。线上 account/preview/assets/session/pair/jobs/ticket
+均按匿名、Owner、Agent 角色严格关闭；stream/download/WebSocket 关闭，账本仍
+75,943,820 transferred / 0 reserved / not_active。本轮没有迁移或新增来源任务。
+配套 VPS 更新成功，独立证明逐个比较安装文件与运行镜像内源码 SHA-256；
+适配器三个依赖模块和 Agent 都一致，容器正常、无 OOM。Agent 对适配器健康检查
+认证通过；所有 Media Vault 已配置入站映射均为回环地址，Agent 无端口映射，
+12 GiB ext4 工作区和根分区空间检查通过。具体服务器证据保留在配套仓库。
+
+发布差异检查发现 PR 显示的旧基准没有反映当前主线，GitHub 明确列出冲突。
+实际公共主线为 a28a72e46bf3af486e3b4d749064103e468ecd03。使用三路合并解决
+API 重试/SCOPED_PREVIEW 保护和 index 的 VPS 控件/补入正文对话框冲突，
+浏览器测试干净合并。其他当前主线文件逐项保留原 blob，预览资产重新生成。
+公共合并候选源码 1521253bf24cc8e4dc462ef1df2e5431a875eabb；GitHub 页面已显示
+No conflicts with base branch。两个 PR 保持草稿，未点击 Ready for review 或 Merge。
+合并后的前端候选需要在完整回归后重新关闭部署；不要把先前版本当作新候选已部署。
+
+最新发布前矩阵、真实验收缺口和回退路径在 MEDIA_VAULT_PREPUBLICATION_REVIEW.md。
+原始计划完整后续清单仍在 MEDIA_VAULT_REMAINING_PLAN.md；不以自动化夹具清除
+小说真实页面、Windows 本机、长期保持或更广漫画来源待办。
+
+最终结果补充：合并后的完整云端回归通过（74 项 Python，Worker/SQLite/跨组件，
+主线前端/API/类型/dry-run，桌面/手机夹具、7 份 EPUB，现有本机引擎镜像/工具）。
+伴随 stage 未执行，测试未使用线上凭据或窗口。随后同一公共精确源码 1521253...
+的关闭部署 https://github.com/XiminHu66/PT-Universe/actions/runs/38802606137 成功，
+版本 d17103ca-cf71-44b7-8b74-f6df2326463c；关闭检查全部通过，账本 75,943,820 / 0 不变。
+故上段“需重新关闭部署”已完成。四项真实验收仍未完成，发布检查继续拒绝提前发布。
