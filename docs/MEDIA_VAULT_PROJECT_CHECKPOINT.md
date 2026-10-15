@@ -116,3 +116,23 @@ returns file metadata to the Worker journey. Temporary fixture bytes are removed
 locally. This proves the field contract across components, not live source
 availability or a real browser layout. The candidate deploy and the next live
 batch must be recorded separately below when they actually complete.
+
+## Closed candidate deployment — completed
+
+A fresh `account-rc-off` dispatch from code commit
+`2fc1422e5588e980425ccc26e0e6a99dad6ed1a6` succeeded on 2026-10-15:
+https://github.com/XiminHu66/PT-Universe/actions/runs/38761447277.
+The dedicated Worker version is `9d905b6d-7045-4b59-abe6-faddaff48fa5`.
+The job repeated the full public-repository suite, checked live schema readiness
+without migration, and deployed with access/submission/stream/temporary-UI flags
+false, empty account realm, closed test mode and both account deadlines zero.
+Post-deploy probes verified stable 404 for account page/assets, auth, jobs, quota,
+submission, tickets and the new catalog route under anonymous/Owner/Agent requests.
+Stream ticket/download/WebSocket and temporary preview gates stayed closed.
+Transfer accounting remained 71,410,712 bytes transferred, zero reserved.
+
+No real account-source tasks were submitted in this candidate-deployment batch.
+No production entrypoint, VPS configuration or public port changed. The new
+four-source scope remains prepared, not activated. This is the completed code
+and closed-deployment checkpoint; live browser/source acceptance remains the
+next integrated batch described above. PR 104 remains a draft.
