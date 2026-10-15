@@ -366,3 +366,20 @@ and stream gates remain OFF; no account ticket or browser media transfer was
 created. See the consolidated checkpoint for the next bounded save batch and
 mandatory logout, shutdown and final accounting sequence. Detailed private
 infrastructure paths and integrity records are not added to this public document.
+
+
+## Account native file-save acceptance — completed 2026-10-15
+
+The explicitly confirmed bounded window saved the existing EPUB/CBZ/MP4 once each
+through the account page and native remote Chrome download. All completed disk
+files matched the retained-source size and SHA-256; archive/header checks passed.
+Three tickets were consumed, zero task jobs were created, and the transfer-ledger
+increase exactly equalled the downloaded total with zero reserved bytes.
+Logout, narrow revocation and both window shutdowns completed. A first immediate
+account OFF probe saw an unexpected pairing success and failed; that result is
+preserved. A new independent `account-off-check` operation subsequently passed
+all strict account/stream/temporary UI closure checks without a new deployment
+or permission change. Every successful route response still fails the check.
+See the consolidated checkpoint for the precise acceptance boundary and the
+remaining Windows/general-source/UX work. Account access and streaming are OFF;
+production publication remains a separate decision.

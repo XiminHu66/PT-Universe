@@ -282,3 +282,52 @@ close both windows and reconcile accounting. Stop and close on failure; do not
 silently retry, reset allowance or create replacement jobs. User Windows saving
 and broader catalog/layout/rebuild/provider acceptance remain separate open
 items in the original plan. PR 104 remains draft; publication is a later decision.
+
+
+## Three-file account native-save checkpoint — completed 2026-10-15
+
+This checkpoint supersedes the preceding preparation-only status. The user
+confirmed the one-device, three-file, three-ticket, at-most-10-MiB account
+window and independent twenty-minute outbound stream window. Retained-file
+preflight passed without creating replacement jobs. One scoped browser was
+approved with zero task-submission allowance.
+
+All three existing files were saved once through the real account page and
+native remote Chrome download flow. Completed disk files were read back and
+matched the retained-source size and SHA-256 exactly: EPUB, CBZ and MP4, total
+4,533,108 bytes. EPUB ZIP CRC/mimetype, CBZ two-page archive/attribution and
+MP4 header checks also passed. No repeated download or replacement ticket was
+requested. The account displayed zero remaining tickets after the third save.
+The transferred-byte ledger increased by exactly the same total, with zero
+reserved bytes.
+
+Logout completed; refreshed page state cleared account tasks. The close operation
+also narrowly revoked the accepted session. Worker deployment restored every
+account/stream/temporary UI gate to OFF, empty file selection and zero test
+deadlines. VPS stream shutdown passed, removed test flags/stopped its rollback
+watchers and restored authenticated metadata polling. No public application
+port, production page or live schema migration changed.
+
+The initial post-deployment account closure probe failed because a pairing
+endpoint still returned a success response. This failure is retained, not treated
+as a passing run. Deployment propagation is a possible explanation, not a proven
+root cause. Add `account-off-check` as a separate no-deployment closure operation
+and include the actual unexpected status in future assertion errors. Its fresh
+run passed the unchanged strict checks: stable 404 for anonymous/Owner/Agent
+account page/assets/session/pairing/jobs/quota/ticket routes; stream/download/
+WebSocket and temporary UI closure; unchanged final ledger, zero reservations.
+No successful response is tolerated by this check. Targeted OFF/migration tests
+and workflow YAML parsing passed; no account or stream permission was re-enabled.
+
+### Remaining work in the original plan
+
+1. The remote account-native save path is now proven. The user's own Windows
+   browser/disk behavior remains unverified; this run does not prove it. Any
+   later live device acceptance needs its own bounded scope and may not reset
+   or reuse this spent three-ticket allowance silently.
+2. Complete real-browser general catalog/chapter/text/layout/cancel/rebuild
+   acceptance, longer session persistence and broader Chinese manga-provider
+   support, with explicit limits. The successful fixed Commons CBZ does not
+   establish general provider compatibility or unrestricted source access.
+3. Review the complete acceptance results and final integration UX, then make
+   the separate merge and production-publication decision. PR 104 remains draft.
