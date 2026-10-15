@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Media Vault · 账号任务</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="account.css"></head>
+<body><main class="account-shell">
+<header class="topbar"><a class="brand" href="./">Media Vault <small>账号任务</small></a><button id="refresh">刷新状态</button></header>
+<section class="hero"><p class="eyebrow">YOUR FILES. YOUR SESSION.</p><h1>任务留在后台，<br>回来继续查看。</h1><p>仅提交你有权保存的内容。文件在服务器临时保留，过期后需重新提交。</p></section>
+<section class="card" aria-labelledby="loginTitle"><h2 id="loginTitle">浏览器登录</h2><p id="sessionStatus" role="status" aria-live="polite">正在恢复登录…</p><p id="pairCode"></p><p id="allowances" class="caption"></p><div class="actions"><button id="pair" class="primary">申请登录配对</button><button id="logout">退出并撤销会话</button></div><p class="caption">新设备需由账号管理员批准。批准后最长保留七天，无需输入或保存安全密钥。退出撤销本次登录和未使用的下载票据；已交给浏览器的下载请在下载列表中取消。</p></section>
+<p id="notice" role="status" aria-live="polite"></p>
+<section class="card" aria-labelledby="submitTitle"><h2 id="submitTitle">提交任务</h2><p id="submitStatus" class="caption">登录后查看提交权限。</p>
+<form id="jobForm"><fieldset id="jobFields" disabled>
+<label for="kind">任务类型</label><select id="kind"><option value="video">视频</option><option value="torrent">BT / HTTPS 直链</option><option value="novel">小说 EPUB</option><option value="manga">漫画 CBZ</option></select>
+<div id="urlFields"><label for="url">来源链接</label><input id="url" type="text" maxlength="2048" placeholder="https://…" required></div>
+<div id="novelFields" hidden><label for="indices">章节序号（从 1 开始，逗号分隔，最多 100 章）</label><input id="indices" placeholder="1,2,3"><p class="caption">支持文库8与哔哩轻小说来源；序号按原站目录顺序填写。</p></div>
+<div id="mangaFields" hidden><label for="mangaTitle">漫画标题</label><input id="mangaTitle" maxlength="199"><label for="pages">Commons 图片文件名（每行一个，最多 20 页）</label><textarea id="pages" rows="4" placeholder="File:…jpg"></textarea></div>
+<button id="submit" class="primary" type="submit">提交 / 重试原任务</button>
+</fieldset></form><p class="caption">结果不确定时，请保持原内容后重试；刷新后请重新填写相同内容。重复点击和重试会查询同一项任务。关闭整个浏览器会话或退出登录会清除本页的重试记录。</p></section>
+<section aria-labelledby="jobsTitle"><div class="section-head"><h2 id="jobsTitle">账号任务</h2></div><p id="budget" class="caption"></p><div id="jobs">请先登录。</div></section>
+<dialog id="files" aria-labelledby="filesTitle"><div class="dialog-head"><h2 id="filesTitle">任务文件</h2><button id="closeFiles" aria-label="关闭文件列表">×</button></div><div id="filesList"></div><p class="caption">“已交给浏览器”表示下载已接手，请在浏览器中检查进度与保存结果。</p></dialog>
+<footer>MEDIA VAULT · 账号预发布页面</footer></main><script type="module" src="account-app.js"></script></body></html>

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {createAccountConnection} from '../../apps/media-vault/account-session.js';
 import {spawn} from 'node:child_process';
 import {createInterface} from 'node:readline';
 import {handle} from './src/index.js';
@@ -105,5 +106,26 @@ try{
  assert.equal((await request('/app-api/jobs/cancel',{cookie:another.cookie,body:{id:cancelTarget}})).status,409);
  assert.equal((await DB.prepare('SELECT status FROM mv_hybrid_jobs WHERE id=?').bind(cancelTarget).first()).status,'queued','revocation between authorization and cancel is respected');
  const flood=await Promise.all(Array.from({length:14},()=>request('/app-auth/pair',{body:{}})));assert.equal(flood.filter(r=>r.status===201).length,9);assert.equal(flood.filter(r=>r.status===429).length,5);
+ // Execute the browser client against the real Worker handler and SQLite,
+ // dropping the first POST response only AFTER its transaction has committed.
+ await DB.prepare('UPDATE mv_hybrid_app_sessions SET expires_at=0').run();
+ await DB.prepare("UPDATE mv_hybrid_jobs SET status='cancelled' WHERE status IN ('queued','running','waiting','active')").run();
+ const ui=await browser();assert.equal((await approve(ui)).status,200);
+ const storage={value:null,getItem(){return this.value;},setItem(k,v){this.value=v;},removeItem(){this.value=null;}};
+ let dropped=false;
+ const clientOptions={origin,storage,setTimeout:()=>1,clearTimeout(){},fetch:async(url,options)=>{
+  const response=await request(new URL(url).pathname,{cookie:ui.cookie,body:options.body?JSON.parse(options.body):undefined});
+  if(options.method==='POST'&&url.endsWith('/app-api/jobs')&&!dropped){dropped=true;assert.equal(response.status,202);throw Error('response lost after SQLite commit');}
+  return response;
+ }};
+ const browserClient=createAccountConnection(clientOptions),beforeUI=(await counter()).n;
+ const uiSpec={kind:'video',url:'https://example.com/client-owned.mp4'};
+ const simultaneous=[browserClient.submit(uiSpec),browserClient.submit(uiSpec)];assert.equal(simultaneous[0],simultaneous[1]);await assert.rejects(simultaneous[0],/SQLite commit/);
+ assert.equal((await counter()).n,beforeUI+1);browserClient.dispose();
+ const reloadedClient=createAccountConnection(clientOptions);
+ const recovered=await reloadedClient.submit(uiSpec);assert.equal(recovered.replayed,true);assert.equal((await counter()).n,beforeUI+1);
+ assert.equal((await reloadedClient.read('/jobs')).jobs.some(j=>j.id===recovered.id),true);
+ assert.equal((await reloadedClient.refresh()).jobs_remaining,4);
+ await reloadedClient.logout();assert.equal(storage.value,null);assert.equal((await request('/app-auth/session',{cookie:ui.cookie})).status,403);reloadedClient.dispose();
  console.log('PASS real SQLite account sessions: OFF defaults, hashed persistent cookie, Owner approval, absolute expiry, device/pending caps, role and cross-account isolation, atomic idempotent bounded creation, rollback/revocation races, ticket caps and narrow revocation');
 }finally{child.stdin.end();lines.close();}
