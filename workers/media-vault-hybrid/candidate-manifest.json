@@ -24,15 +24,11 @@
     },
     {
       "id": "windows-native-save",
-      "status": "not-observed"
+      "status": "windows-ci-passed-user-device-pending"
     },
     {
       "id": "longer-session-persistence",
-      "status": "not-observed"
-    },
-    {
-      "id": "general-chinese-manga-provider",
-      "status": "not-delivered"
+      "status": "real-browser-restart-passed-elapsed-observation-pending"
     },
     {
       "id": "final-merge-and-publication",
@@ -41,12 +37,28 @@
   ],
   "reviewed_main_sha": "a28a72e46bf3af486e3b4d749064103e468ecd03",
   "deployment_evidence": {
-    "worker_run": "https://github.com/XiminHu66/PT-Universe/actions/runs/38802606137",
-    "worker_version": "d17103ca-cf71-44b7-8b74-f6df2326463c",
-    "companion": "paired deployment and running-source proof passed; access/submission/streams OFF",
-    "transferred_bytes": 75943820,
-    "reserved_bytes": 0,
-    "merged_frontend": "tested main-integrated source deployed to dedicated Worker with every gate OFF",
-    "tested_public_source": "1521253bf24cc8e4dc462ef1df2e5431a875eabb"
+    "worker_run": "https://github.com/XiminHu66/PT-Universe/actions/runs/38807478536",
+    "companion": "paired closed deployment verified; detailed operations evidence private"
+  },
+  "acceptance_evidence": {
+    "windows_native": {
+      "status": "passed-on-windows-runner",
+      "scope": "actual Chromium native EPUB/CBZ downloads, Unicode filenames, disk hashes, single-use tickets, offline validation and tamper rejection; localhost fixtures only",
+      "user_device": "not-observed"
+    },
+    "session_restart": {
+      "status": "passed-real-browser-process-restart",
+      "elapsed_long_term": "not-observed"
+    },
+    "manga_source": {
+      "status": "passed-live-source-and-archive-checks",
+      "provider": "MangaDex",
+      "languages": [
+        "zh",
+        "zh-hk"
+      ],
+      "scope": "exact hosted chapter URL; no external reader, login or automatic retry",
+      "public_run": "https://github.com/XiminHu66/PT-Universe/actions/runs/38808139300"
+    }
   }
 }
