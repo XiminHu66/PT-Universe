@@ -503,3 +503,17 @@ production entrypoint source is unchanged in this batch. The companion fixes
 are candidate-only and require a coordinated later deployment; live Worker/VPS
 remain at their prior closed versions. PRs remain draft. Cloud workflow results
 will be appended after their fresh runs finish.
+
+
+### Candidate checks — completed, no deployment
+
+Fresh public run https://github.com/XiminHu66/PT-Universe/actions/runs/38795617915
+passed from code `6a0cf3641daabeb700484a66526ece11f4459876`.
+The paired component candidate used that exact public ref, passed all 34 adapter
+and 28 Agent tests plus the complete Worker suite, actual offline cross-component
+journey and candidate manifest. Its VPS stage job was skipped. No SSH, live
+requests, migration, deployment or media artifact upload occurred. Reviewed
+production-entrypoint source matches the manifest; account and stream access
+were not changed. The intentional release-block result retains all six pending
+acceptance/publication gates. This completes the closed integration-candidate
+checkpoint; it does not complete the original project or blocked live UI work.
