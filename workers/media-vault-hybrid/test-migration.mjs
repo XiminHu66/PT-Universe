@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {verifyAccountOff} from './live-account-off.mjs';
 import {spawn,spawnSync} from 'node:child_process';
 import {createInterface} from 'node:readline';
 import {readFile,rm} from 'node:fs/promises';
@@ -50,3 +51,10 @@ try{
  if(originalAccount===undefined)delete process.env.CLOUDFLARE_ACCOUNT_ID;else process.env.CLOUDFLARE_ACCOUNT_ID=originalAccount;
  child.stdin.end();lines.close();await rm(checkpoint,{force:true});
 }
+
+const identities={owner:'o'.repeat(64),agent:'a'.repeat(64)};let calls=0,waits=0;
+await verifyAccountOff({...identities,attempts:3,pause:async()=>{waits++;},fetcher:async()=>new Response(null,{status:++calls<=33?401:404})});
+assert.equal(calls,99);assert.equal(waits,2,'requires two consecutive complete closed samples');
+await assert.rejects(verifyAccountOff({...identities,pause:async()=>{},fetcher:async()=>new Response(null,{status:200})}),/unexpectedly accessible/);
+await assert.rejects(verifyAccountOff({...identities,attempts:2,pause:async()=>{},fetcher:async()=>new Response(null,{status:401})}),/did not converge/);
+console.log('PASS bounded OFF propagation: old 401 may settle, stable 404 required, any successful exposure fails immediately');
