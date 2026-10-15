@@ -358,3 +358,11 @@ After all three native saves, logout/revoke, run `account-files-off`, close the
 Agent window and reconcile actual relay bytes/reservations. Do not repeat failed
 saves within this three-ticket scope or create replacement source jobs silently.
 See the consolidated project checkpoint for job IDs and the live readiness record.
+
+
+The bounded save candidate passed the full Worker suite, closed deployment,
+read-only metadata readiness and retained-source integrity checks. All access
+and stream gates remain OFF; no account ticket or browser media transfer was
+created. See the consolidated checkpoint for the next bounded save batch and
+mandatory logout, shutdown and final accounting sequence. Detailed private
+infrastructure paths and integrity records are not added to this public document.

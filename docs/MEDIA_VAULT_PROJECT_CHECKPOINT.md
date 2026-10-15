@@ -263,3 +263,22 @@ reservation release. Existing transport and native-saver tests remain required.
 This is preparation and automated evidence, not real account byte-transfer or
 Windows disk-save acceptance. Read-only live file/VPS evidence and the closed
 candidate deployment are recorded after their workflows complete.
+
+
+## Bounded account save readiness
+
+The full Worker suite and closed candidate deployment passed. Read-only live
+checks confirmed that the three existing EPUB/CBZ/MP4 outputs are still retained,
+complete, within the prepared byte cap, and consistent between metadata and
+source storage. Archive/header integrity checks passed. No account download
+ticket or media transfer occurred. Account access and streaming remain OFF.
+No production page or public application port changed.
+
+The next batch requires action-time confirmation to enable the prepared
+one-device, three-file, three-ticket, at-most-10-MiB account save scope and the
+independent outbound Agent stream window, each for at most twenty minutes.
+Save each selected file once, compare downloaded integrity, logout/revoke,
+close both windows and reconcile accounting. Stop and close on failure; do not
+silently retry, reset allowance or create replacement jobs. User Windows saving
+and broader catalog/layout/rebuild/provider acceptance remain separate open
+items in the original plan. PR 104 remains draft; publication is a later decision.
