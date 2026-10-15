@@ -2,8 +2,9 @@
 
 The backend and frontend for durable browser sessions and bounded new-job
 submission are deployed to the isolated Worker with all account permissions
-disabled. The additive D1 schema has been applied and verified. This stage did
-not create real download jobs, open a stream window or publish a production page.
+disabled. The additive D1 schema has been applied and verified. The initial disabled deployment did not create real source jobs. The later
+explicitly authorized four-source account acceptance below completed four jobs,
+then closed access again, without opening streaming or publishing production.
 The dedicated same-origin `/app/` frontend now uses the account cookie routes.
 The existing three-file acceptance page keeps its separate adapter and scope.
 The account page is bundled but returns 404 while account access is disabled.
@@ -268,28 +269,69 @@ late POST after logout, expiry, cross-tab logout and failed revocation. The real
 SQLite suite also executes the cookie client against the actual Worker handler,
 drops a response after a committed transaction, recreates the client and verifies
 one job, one quota increment and a replayed result. These are automated controller
-and backend tests. The separate Chrome acceptance above adds read-only layout,
-short reload recovery and logout evidence only.
+and backend tests. The earlier Chrome acceptance above adds read-only layout, short reload
+recovery and logout evidence; the later fixed submission pilot below adds live
+account-source completion and metadata evidence.
 
-All account source requests and relay responses in this suite are fixtures;
-no real media download or live seven-day expiry has been tested in this stage.
+All account source requests and relay responses in this automated suite are
+fixtures. Live fixed-source submission is recorded separately below; account
+file transfer and seven-day persistence are still unproven.
 
-Next: prepare a bounded account submission acceptance with explicit job/source,
-expiry and cleanup limits while streaming remains OFF; review that concrete
-scope before activation. The broader seven-day / five-job / one-hundred-ticket
-capability remains disabled and needs its own scope review before activation.
-Metadata migration, the short read-only browser acceptance and final OFF
-deployment are complete. Durable-account activation, longer persistence testing,
-real account source submission and native download acceptance remain outstanding.
-Production publication remains a separate stage. No production readiness is
-claimed.
+The bounded account submission acceptance below is complete. Next prepare an
+account file-save scope with exact retained files, byte/ticket limits, Agent
+window, expiry and cleanup; enable it only under its explicit authorization.
+The broader seven-day / five-job / one-hundred-ticket capability remains disabled.
+User Windows saving, general catalog/layout/rebuild browser acceptance, longer
+persistence and broader Chinese manga compatibility remain open. Production
+publication is a separate stage; no production readiness is claimed.
 
 ## Consolidated project checkpoint
 
 The account task candidate now includes catalog/chapter selection, explicit
 text-only/layout options, correct progress units, task filters, owned terminal-job
-rebuild and honest disabled-save controls. The submission pilot is prepared as
-one fixed thirty-minute/four-recipe account-wide batch, with zero file tickets
-and streaming OFF. See [MEDIA_VAULT_PROJECT_CHECKPOINT.md](MEDIA_VAULT_PROJECT_CHECKPOINT.md)
-for the complete original-plan mapping, integrated batch and remaining source,
-Windows and publication work. Preparation does not activate its permissions.
+rebuild and honest disabled-save controls. The submission pilot completed one fixed thirty-minute/four-recipe
+account-wide batch, with zero file tickets and streaming OFF, then closed early. See [MEDIA_VAULT_PROJECT_CHECKPOINT.md](MEDIA_VAULT_PROJECT_CHECKPOINT.md)
+for the complete original-plan mapping, completed integrated batch and remaining account transfer, Windows and
+publication work. Completed tests do not activate broad account permissions.
+
+
+## Real four-source account submission acceptance — completed
+
+On 2026-10-15, the explicitly approved `account-submit-on` window was deployed
+from `81723c0cbee4c9c0dc94e764eef982107b659a26` in successful run
+https://github.com/XiminHu66/PT-Universe/actions/runs/38769801143.
+Worker `4a34c488-f71a-410a-b17b-190a0fea7587` used an absolute deadline of
+`2026-10-15T17:02:29.468Z`. The exact browser pairing was approved through the
+existing Owner secret in successful run
+https://github.com/XiminHu66/PT-Universe/actions/runs/38770293412.
+The script verified `submission-test-no-transfer`, four jobs, zero tickets and
+expiry clamped to that deadline. No local security-key copy was needed or made.
+
+The account UI submitted and completed the exact single-chapter text EPUB,
+two-page licensed Commons CBZ, five-second MP4 and commit-pinned owned WebSeed
+recipes. The four job IDs, displayed filenames/sizes and original recipe bounds
+are recorded in the consolidated project checkpoint. All file dialogs returned
+metadata with saving disabled. No ticket or actual browser file transfer occurred.
+
+Reload retained the account/four tasks; identical novel-request replay returned
+the original job without increasing the count. A second tab recovered the same
+four completed tasks without pairing again. Logout cleared both tabs, disabled
+submission and survived second-tab reload. This proves short same-browser
+recovery and logout, not multi-device persistence or natural deadline expiry.
+
+Fresh `account-submit-off` run
+https://github.com/XiminHu66/PT-Universe/actions/runs/38771130862 succeeded,
+deploying final OFF version `54c52203-f56a-4e31-957e-9c6559b99f9d` and completing
+closed probes at `2026-10-15T16:42:07Z`. It narrowly revoked public session
+`817ab97ee752915503b545a3`, which had already logged out. All account, stream and
+temporary UI gates are OFF; the configured realm is empty, test mode is closed
+and both account deadlines are zero. Stable anonymous/Owner/Agent 404 checks
+passed for account routes, as did stream/download/WebSocket/preview closure.
+The full public suite and schema readiness passed without live migration.
+Transfer accounting remained 71,410,712 bytes transferred, zero reserved,
+tracking not active. No production page, VPS configuration or public port changed.
+
+The general catalog/chapter/layout/cancel/rebuild controls were not activated in
+this fixed-recipe scope. Their automated tests and companion EPUB field-contract
+proof remain distinct from future real-browser acceptance. Broader Chinese manga
+sources and user's Windows disk-save behavior remain outstanding.
