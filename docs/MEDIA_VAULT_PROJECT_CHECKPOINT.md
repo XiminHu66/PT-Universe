@@ -388,3 +388,21 @@ user's Windows save behavior, longer device persistence, broader Chinese manga
 provider coverage, final integration review and a separate merge/publication
 decision. Previously completed metadata/relay/recovery/retention tests need not
 be repeated unless a relevant implementation changes.
+
+
+### Closed novel candidate deployment — completed
+
+Fresh workflow run https://github.com/XiminHu66/PT-Universe/actions/runs/38785612728
+succeeded from code commit `715be897204e45f5f1caf988feac82c731572093`.
+The runner repeated the full Worker suite and read-only release/schema readiness,
+then deployed Worker version `bae6d2af-94eb-40b6-8557-8b315a50b4ac` with
+account access/submission, streaming and temporary UI OFF, closed test mode,
+empty realm and all account/stream deadlines zero. No live migration occurred.
+
+Post-deployment strict probes passed: stable 404 for anonymous/Owner/Agent account
+page/assets/session/pairing/jobs/quota/tickets; stream ticket/download/WebSocket
+and temporary preview closed. The ledger stayed 75,943,820 bytes transferred,
+zero reserved, tracking not active. No source jobs, approved sessions or media
+transfer were created in this batch. Production and VPS configuration were not
+changed. The prepared novel-ux window remains unactivated, awaiting its concrete
+access confirmation. PR 104 stays draft.
