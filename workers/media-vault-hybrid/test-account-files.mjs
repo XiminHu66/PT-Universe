@@ -6,6 +6,7 @@ import {handle} from './src/index.js';
 import {MediaRelay} from './src/relay.js';
 import {relayContext} from './test-state.mjs';
 import {configureAccountWindow} from './account-window-config.mjs';
+import {validateDeviceFileHistory} from './device-file-history.mjs';
 import {FILE_TEST_JOBS,FILE_TEST_BYTES,fileTestManifest} from './src/account-file-scope.js';
 const dbProcess=spawn('python3',[new URL('./test-sqlite.py',import.meta.url).pathname],{stdio:['pipe','pipe','inherit']}),responses=new Map();let seq=0;
 const lines=createInterface({input:dbProcess.stdout});lines.on('line',line=>{const r=JSON.parse(line),p=responses.get(r.id);responses.delete(r.id);r.error?p.reject(Error(r.error)):p.resolve(r.results);});
@@ -55,5 +56,26 @@ try{
  await request('/app-auth/logout',{cookie:a.cookie,body:{}});assert.equal((await DB.prepare('SELECT reserved_bytes FROM mv_hybrid_transfer_usage').first()).reserved_bytes,0);
  const c=await pair();assert.equal((await approve(c)).status,200);state=await (await request('/app-auth/session',{cookie:c.cookie})).json();assert.equal(state.tickets_remaining,0,'replacement session cannot reset account allowance');assert.equal((await ticket(c,files[0])).status,429);
  assert.equal((await request('/download?ticket='+first.ticket)).status,403,'logout invalidates unclaimed ticket');
+ // A separately approved new round preserves all three prior rows and gets
+ // exactly three more; changing browser sessions cannot extend either round.
+ await request('/app-auth/logout',{cookie:c.cookie,body:{}});
+ const clockRound=Date.now;try{
+  Date.now=()=>clockRound()+30*60000;
+  await DB.prepare("UPDATE mv_hybrid_tickets SET status='complete'").run();
+  const history=await DB.prepare('SELECT t.job_id,t.relative_path,t.bytes,t.status,t.expires_at,s.status AS session_status,s.expires_at AS session_expires_at FROM mv_hybrid_app_tickets a JOIN mv_hybrid_tickets t ON t.digest=a.digest JOIN mv_hybrid_app_sessions s ON s.digest=a.session_digest').all();
+  validateDeviceFileHistory(history.results,files,files.map(f=>({id:f.id,bytes:f.size})),Date.now());
+  Object.assign(env,configureAccountWindow(base,'account-files-on',Date.now()-1000,selection).vars);
+  const device=await pair();assert.equal((await approve(device)).status,200);
+  const newTickets=await Promise.all(files.map(f=>ticket(device,f)));assert.ok(newTickets.every(r=>r.status===200));
+  assert.equal((await DB.prepare('SELECT COUNT(*) n FROM mv_hybrid_app_tickets').first()).n,6,'old history is retained, not reset');
+  assert.equal((await ticket(device,files[0])).status,429,'new round cannot issue a fourth ticket');
+  await request('/app-auth/logout',{cookie:device.cookie,body:{}});
+  const replacement=await pair();assert.equal((await approve(replacement)).status,200);
+  assert.equal((await ticket(replacement,files[0])).status,429,'replacement device does not extend new round');
+  const six=await DB.prepare('SELECT t.job_id,t.relative_path,t.bytes,t.status,t.expires_at,s.status AS session_status,s.expires_at AS session_expires_at FROM mv_hybrid_app_tickets a JOIN mv_hybrid_tickets t ON t.digest=a.digest JOIN mv_hybrid_app_sessions s ON s.digest=a.session_digest').all();
+  assert.throws(()=>validateDeviceFileHistory(six.results,files,files.map(f=>({id:f.id,bytes:f.size})),Date.now()),'a third round is refused');
+  await request('/app-auth/logout',{cookie:replacement.cookie,body:{}});
+ }finally{Date.now=clockRound;}
+ console.log('PASS actual SQLite distinct device round: original history retained, exactly three additional tickets, replacement-session cap, third-round refusal');
  console.log('PASS real SQLite three-file account window: retained ownership, one device, no task mutations, atomic per-file/account cap, replacement-session cap, expiry, no revival and precise logout release');
 }finally{dbProcess.stdin.end();lines.close();}
