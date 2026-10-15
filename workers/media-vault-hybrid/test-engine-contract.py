@@ -26,6 +26,10 @@ with tempfile.TemporaryDirectory(prefix='mv-integration-') as folder:
  def api(route,url):
   if route=='novel':return {'title':'离线集成小说','chapters':[{'url':'https://fixture/1'},{'url':'https://fixture/2'}]}
   return {'title':'测试章','blocks':[{'type':'text','text':'保留正常中文段落。\n\n第二段保持独立。'},{'type':'image','url':'https://fixture/forbidden.png'}]}
+ def manga_fetch(url,*_):
+  if '/chapter/' in url:return json.dumps({'result':'ok','data':{'id':'bd38fb72-e77f-40e9-abbf-21f53571f0be','attributes':{'translatedLanguage':'zh','pages':2,'externalUrl':None}}}).encode(),'application/json'
+  if '/at-home/' in url:return json.dumps({'result':'ok','baseUrl':'https://fixture.mangadex.network','chapter':{'hash':'a'*32,'dataSaver':['1-a.png','2-b.png']}}).encode(),'application/json'
+  return png,'image/png'
  def rpc(method,*args):
   if method=='addUri':
    opts=args[1];cid=opts['dir'].split('ptmv-')[1];gids[opts['gid']]=cid;target=aria/('ptmv-'+cid)/'payload.txt';target.parent.mkdir();target.write_bytes(b'owned offline payload');return opts['gid']
@@ -57,6 +61,7 @@ with tempfile.TemporaryDirectory(prefix='mv-integration-') as folder:
   for target,name,value in [(adapter,'DB',root/'adapter/jobs.db'),(adapter,'GENERATED_FILES',generated),(adapter,'ARIA_FILES',aria),(adapter,'VIDEO_FILES',video),(agent,'ROOT',root),(agent,'STATE',root/'agent/state.json')]:stack.enter_context(patch.object(target,name,value))
   stack.enter_context(patch.object(socket,'create_connection',side_effect=AssertionError('Unexpected network access')))
   stack.enter_context(patch.object(adapter,'urlopen',side_effect=AssertionError('Unexpected adapter HTTP')))
+  stack.enter_context(patch.object(content,'mangadex_get',side_effect=manga_fetch))
   stack.enter_context(patch.object(content,'get_bytes',side_effect=AssertionError('Text-only source attempted image HTTP')))
   stack.enter_context(patch.object(adapter,'disk_ok'));stack.enter_context(patch.object(adapter,'public_url'))
   stack.enter_context(patch.object(adapter.threading,'Thread',SynchronousContent));stack.enter_context(patch.object(content,'api',side_effect=api));stack.enter_context(patch.object(content.time,'sleep'))
@@ -80,6 +85,6 @@ with tempfile.TemporaryDirectory(prefix='mv-integration-') as folder:
       if job['kind']=='novel':
        assert b'<p>' in archive.read('OEBPS/c0001.xhtml');assert '<p>保留正常中文段落。</p><p>第二段保持独立。</p>' in archive.read('OEBPS/c0001.xhtml').decode();assert archive.read('mimetype')==b'application/epub+zip';assert not any('/images/' in name for name in archive.namelist())
        assert len([name for name in archive.namelist() if name.startswith('OEBPS/c0')])==len(job['indices'])
-      else:assert len([name for name in archive.namelist() if name.endswith('.png')])==len(job['files'])
+      else:assert len([name for name in archive.namelist() if name.endswith('.png')])==(2 if job.get('provider')=='mangadex' else len(job['files']))
   before=len(submissions);recovered=agent.read_state();agent.poll_once(recovered);assert len(submissions)==before,'restart resubmitted a terminal task'
  print(json.dumps({'reports':reports,'cancelled':list(cancelled),'submissions':len(submissions),'restart_stable':True}))

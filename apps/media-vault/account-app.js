@@ -67,6 +67,7 @@ export function mountAccountPage(options={}){
  }
  async function run(fn){try{await fn();}catch(e){if(!disposed)note(e.message,true);}finally{if(!disposed)renderState(client.current());}}
  $('pair').onclick=()=>run(()=>client.pair());$('logout').onclick=()=>run(()=>client.logout());$('refresh').onclick=reload;
+ $('mangaProvider').onchange=()=>{const md=$('mangaProvider').value==='mangadex';$('mangaChapterFields').hidden=!md;$('commonsPageFields').hidden=md;};
  $('kind').onchange=()=>{clearCatalog();const kind=$('kind').value;$('urlFields').hidden=kind==='manga';$('url').required=kind!=='manga'&&current.scope!=='submission-test-no-transfer';$('mangaFields').hidden=kind!=='manga';$('novelFields').hidden=kind!=='novel';};
  $('layout').onchange=()=>{const p=layouts[$('layout').value]||layouts.compact;$('layoutPreview').style.cssText='font-size:'+p.fontScale+'%;line-height:'+p.lineHeight;for(const el of $('layoutPreview').querySelectorAll('p'))el.style.cssText='text-indent:'+p.indent+'em;margin:0 0 '+p.paragraphGap+'em';};
  $('loadCatalog').onclick=()=>run(async()=>{
@@ -90,7 +91,7 @@ export function mountAccountPage(options={}){
  };
  $('taskFilter').onchange=()=>{filter=$('taskFilter').value;renderJobs();};
  $('jobForm').onsubmit=e=>{e.preventDefault();if(sending)return;void run(async()=>{
-  const spec=current.scope==='submission-test-no-transfer'?structuredClone(current.presets?.[Number($('pilotPreset').value)]?.spec):formSpec({kind:$('kind').value,url:$('url').value,indices:$('indices').value,textOnly:$('textOnly').checked,layout:$('layout').value,title:$('mangaTitle').value,pages:$('pages').value});
+  const spec=current.scope==='submission-test-no-transfer'?structuredClone(current.presets?.[Number($('pilotPreset').value)]?.spec):formSpec({kind:$('kind').value,url:$('url').value,indices:$('indices').value,textOnly:$('textOnly').checked,layout:$('layout').value,title:$('mangaTitle').value,pages:$('pages').value,mangaProvider:$('mangaProvider').value,mangaChapter:$('mangaChapter').value});
   if(spec?.kind==='novel')selectedChapters();
   if(!spec)throw Error('请先选择本轮指定样例。');
   sending=true;renderState(current);const g=generation;

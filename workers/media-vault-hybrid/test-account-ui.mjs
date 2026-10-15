@@ -56,6 +56,9 @@ session=approved;await page.reload();node('jobs').onclick(click);while(!resolveF
 node('kind').value='novel';node('url').value='https://www.wenku8.net/book/3551.htm';node('indices').value='1-2,4';node('textOnly').checked=true;node('layout').value='compact';
 node('jobForm').onsubmit({preventDefault(){}});await new Promise(r=>setImmediate(r));
 assert.deepEqual(submittedSpecs.at(-1).indices,[0,1,3]);assert.equal(submittedSpecs.at(-1).text_only,true);assert.equal(submittedSpecs.at(-1).layout.paragraphGap,0);
+node('kind').value='manga';node('mangaProvider').value='mangadex';node('mangaProvider').onchange();assert.equal(node('commonsPageFields').hidden,true);assert.equal(node('mangaChapterFields').hidden,false);
+node('mangaTitle').value='中文章节';node('mangaChapter').value='https://mangadex.org/chapter/bd38fb72-e77f-40e9-abbf-21f53571f0be';
+node('jobForm').onsubmit({preventDefault(){}});await new Promise(r=>setImmediate(r));assert.deepEqual(submittedSpecs.at(-1),{kind:'manga',title:'中文章节',provider:'mangadex',url:node('mangaChapter').value});
 // Actual controller: cancelled confirmation makes no mutation; confirmed retry
 // sends only the server-owned retry reference, never editable form fields.
 let mutations=[];const originalRead=fake.read;fake.read=async(p,body)=>{if(p==='/jobs/cancel'){mutations.push(body);return {ok:true};}return originalRead(p,body);};

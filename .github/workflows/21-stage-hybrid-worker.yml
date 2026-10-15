@@ -6,7 +6,7 @@ on:
         description: Metadata operation
         type: choice
         default: verify
-        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership, account-approve, account-revoke, account-login-on, account-login-off, account-submit-on, account-submit-off, account-rc-off, account-off-check, account-files-check, account-files-on, account-files-off, account-novel-on, account-novel-off, candidate-check]
+        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership, account-approve, account-revoke, account-login-on, account-login-off, account-submit-on, account-submit-off, account-rc-off, account-off-check, account-files-check, account-files-on, account-files-off, account-novel-on, account-novel-off, manga-proof, candidate-check]
       pair_code:
         description: Browser pairing request ID
         type: string
@@ -234,3 +234,14 @@ jobs:
           node workers/media-vault-hybrid/live-metadata.mjs
 
 
+      - name: One fixed Chinese MangaDex chapter with streaming OFF
+        if: inputs.operation == 'manga-proof'
+        env:
+          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+          AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
+        run: |
+          node workers/media-vault-hybrid/live-stream-off.mjs
+          node workers/media-vault-hybrid/live-account-off.mjs
+          node workers/media-vault-hybrid/live-manga.mjs
+          node workers/media-vault-hybrid/live-stream-off.mjs
+          node workers/media-vault-hybrid/live-account-off.mjs

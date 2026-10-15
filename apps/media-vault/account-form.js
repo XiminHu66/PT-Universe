@@ -14,7 +14,13 @@ export const layouts={compact:{fontScale:100,lineHeight:1.4,paragraphGap:0,inden
 export function formSpec(values){
  const kind=values.kind,spec={kind};
  if(kind==='manga'){
-  spec.title=values.title.trim();spec.files=values.pages.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  spec.title=values.title.trim();
+  if(values.mangaProvider==='mangadex'){
+   spec.provider='mangadex';spec.url=String(values.mangaChapter||'').trim();
+   if(!spec.title||spec.title.length>199||!/^https:\/\/mangadex\.org\/chapter\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(spec.url))throw Error('请填写标题和完整的 MangaDex 章节链接；后台仅接受简中／繁中章节。');
+   return spec;
+  }
+  spec.files=values.pages.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
   if(!spec.title||spec.title.length>199||spec.files.length<1||spec.files.length>20||new Set(spec.files).size!==spec.files.length||spec.files.some(x=>!/^File:[^<>#\r\n]{2,190}\.(png|jpe?g|gif|webp)$/i.test(x)))throw Error('请填写标题与 1–20 个不重复的 Commons 图片文件名。');
  }else{
   spec.url=values.url.trim();

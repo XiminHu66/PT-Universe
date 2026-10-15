@@ -88,7 +88,7 @@ export function createAccountConnection(options={}){
   },
   submit(spec){
    // Canonical input only: callers cannot inject account, headers or request IDs.
-   const clean={};for(const key of ['kind','url','format','title','files','indices','text_only','layout','retry_of'])if(spec[key]!==undefined)clean[key]=spec[key];
+   const clean={};for(const key of ['kind','provider','max_bytes','max_pages','url','format','title','files','indices','text_only','layout','retry_of'])if(spec[key]!==undefined)clean[key]=spec[key];
    const input=JSON.stringify(clean),generation=epoch;
    if(submitting){if(submitting.input===input)return submitting.work;return Promise.reject(Error('请先等待当前提交结束。'));}
    const work=(async()=>{

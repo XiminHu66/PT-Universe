@@ -42,6 +42,9 @@ try{
  tasks=await client.read('/jobs');assert.equal(tasks.jobs.find(j=>j.id===cancelled.id).status,'cancelled');assert.equal(tasks.jobs.find(j=>j.id===rebuilt.id).status,'complete');
  assert.equal((await client.read('/jobs/files?id='+cancelled.id)).files.length,0);
  assert.equal((await DB.prepare('SELECT COUNT(*) n FROM mv_hybrid_tickets').first()).n,0);assert.equal((await DB.prepare('SELECT COUNT(*) n FROM mv_hybrid_transfer_usage').first()).n,0);
+ const manga=formSpec({kind:'manga',title:'简中章节 fixture',mangaProvider:'mangadex',mangaChapter:'https://mangadex.org/chapter/bd38fb72-e77f-40e9-abbf-21f53571f0be'});
+ const chinese=await client.submit(manga),mangaLease=await lease();assert.equal(mangaLease.provider,'mangadex');assert.equal(mangaLease.url,manga.url);
+ await apply(execute([mangaLease]));const mangaFiles=(await client.read('/jobs/files?id='+chinese.id)).files;assert.equal(mangaFiles.length,1);assert.ok(mangaFiles[0].name.endsWith('.cbz'));
  await client.logout();assert.equal((await request('/app-auth/session',{cookie})).status,403);
- console.log('PASS OFF integration: actual cookie/form -> Worker/SQLite -> Agent polling -> adapter/EPUB/CBZ/files -> report -> account visibility; canonical Owner input, cancellation, rebuild, restart, logout, zero tickets/ledger; source and engine I/O are offline fixtures');
+ console.log('PASS OFF integration: actual cookie/form -> Worker/SQLite -> Agent polling -> adapter/EPUB/CBZ/files -> report -> account visibility; Chinese MangaDex form/task/CBZ/account visibility; canonical Owner input, cancellation, rebuild, restart, logout, zero tickets/ledger; source and engine I/O are offline fixtures');
 }finally{client.dispose();dbProcess.stdin.end();lines.close();}
