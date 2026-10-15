@@ -6,7 +6,7 @@ on:
         description: Metadata operation
         type: choice
         default: verify
-        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership, account-approve, account-revoke, account-login-on, account-login-off, account-submit-on, account-submit-off, account-rc-off, account-off-check, account-files-check, account-device-files-check, account-device-files-on, account-files-on, account-files-off, account-novel-on, account-novel-off, manga-proof, candidate-check]
+        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership, account-approve, account-revoke, account-login-on, account-login-off, account-submit-on, account-submit-off, account-rc-off, account-off-check, account-files-check, account-device-files-check, account-device-files-verify, account-device-files-on, account-files-on, account-files-off, account-novel-on, account-novel-off, manga-proof, candidate-check]
       device_authorization:
         description: Explicit new user-device round approval (3 tickets / 10 MiB / 20 minutes)
         type: boolean
@@ -82,6 +82,12 @@ jobs:
           set -euo pipefail
           node workers/media-vault-hybrid/live-stream-off.mjs
           node workers/media-vault-hybrid/live-account-off.mjs
+      - name: Verify active device metadata without extending its deadline
+        if: inputs.operation == 'account-device-files-verify'
+        env:
+          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+          AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
+        run: node workers/media-vault-hybrid/live-device-download-ready.mjs
       - name: Inspect retained account files with all gates OFF
         if: inputs.operation == 'account-files-check' || inputs.operation == 'account-device-files-check'
         env:

@@ -13,10 +13,19 @@ for(let i=0;i<20;i++){
 }
 assert.ok(stable>=2,'Temporary stream configuration did not settle');
 const before=await get('/quota');assert.equal(before.reserved_bytes,0);
-for(const token of [undefined,owner,agent])for(const [method,path] of [['GET','/app-auth/session'],['GET','/app-api/jobs'],['GET','/app-api/quota'],['POST','/app-api/download-ticket']]){
- const r=await fetch(base+path,{method,headers:{Origin:base,...(token?{Authorization:'Bearer '+token}:{}),...(method==='POST'?{'Content-Type':'application/json'}:{})},body:method==='POST'?'{}':undefined,cache:'no-store',redirect:'error',signal:AbortSignal.timeout(20000)});
- await r.body?.cancel();assert.equal(r.status,403,'Unapproved devices/server roles must not access account data or issue tickets');
+let deniedStable=0,lastStatuses=[];
+for(let attempt=0;attempt<20;attempt++){
+ lastStatuses=[];
+ for(const token of [undefined,owner,agent])for(const [method,path] of [['GET','/app-auth/session'],['GET','/app-api/jobs'],['GET','/app-api/quota'],['POST','/app-api/download-ticket']]){
+  const r=await fetch(base+path,{method,headers:{Origin:base,...(token?{Authorization:'Bearer '+token}:{}),...(method==='POST'?{'Content-Type':'application/json'}:{})},body:method==='POST'?'{}':undefined,cache:'no-store',redirect:'error',signal:AbortSignal.timeout(20000)});
+  await r.body?.cancel();assert.ok([403,404].includes(r.status),'Unexpected status '+r.status+' at '+method+' '+path+'; unapproved access must never succeed');
+  lastStatuses.push({path,status:r.status});
+ }
+ deniedStable=lastStatuses.every(r=>r.status===403)?deniedStable+1:0;
+ if(deniedStable>=2)break;
+ if(attempt<19)await new Promise(resolve=>setTimeout(resolve,2000));
 }
+assert.ok(deniedStable>=2,'Enabled account denial did not settle: '+JSON.stringify(lastStatuses));
 const after=await get('/quota');assert.equal(after.transferred_bytes,before.transferred_bytes);assert.equal(after.reserved_bytes,0);
 console.log('PASS temporary device download metadata/auth readiness; unapproved browser/Owner/Agent denied; no session, ticket or media; app HTML/assets not accessed');
 console.log('DEVICE_WINDOW_LEDGER',JSON.stringify({transferred_bytes:after.transferred_bytes,reserved_bytes:after.reserved_bytes}));
