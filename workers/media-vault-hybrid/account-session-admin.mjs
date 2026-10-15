@@ -1,9 +1,20 @@
 // Runs only with the existing server-side GitHub Owner secret. No key export.
 import assert from 'node:assert/strict';
-const action=process.env.ACCOUNT_ACTION,code=process.env.REQUEST_ID||'',owner=process.env.OWNER;
+const action=process.env.ACCOUNT_ACTION,owner=process.env.OWNER;
+let code=process.env.REQUEST_ID||'';
 assert.ok(owner?.length>=32,'Configured Owner secret required');
 assert.ok(['account-approve','account-revoke'].includes(action));
-assert.match(code,action==='account-approve'?/^[a-f0-9]{32}$/:/^[a-f0-9]{24}$/);
+assert.match(code,action==='account-approve'?/^(?:[a-f0-9]{24}|[a-f0-9]{32})$/:/^[a-f0-9]{24}$/);
+if(action==='account-approve'&&code.length===24){
+ // Accept the PUBLIC session ID, so users never send pairing/auth codes in chat.
+ // Resolve the approval code inside existing server-side CI, never log/export it.
+ const token=process.env.D1_TOKEN,account=process.env.CLOUDFLARE_ACCOUNT_ID;
+ assert.ok(token&&account,'Configured server-side D1 access required for session-ID approval');
+ const r=await fetch('https://api.cloudflare.com/client/v4/accounts/'+encodeURIComponent(account)+'/d1/database/86805c79-d903-46cd-b0e2-c079c1a7fc1a/query',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({sql:"SELECT pair_code FROM mv_hybrid_app_sessions WHERE id=? AND status='pending' AND expires_at>?",params:[code,Date.now()]}),redirect:'error',signal:AbortSignal.timeout(20000)});
+ const d=await r.json();assert.ok(r.ok&&d.success===true&&d.result?.length===1&&d.result[0].success!==false,'Session-ID lookup failed');
+ const rows=d.result[0].results;assert.equal(rows.length,1,'Pending public session ID missing or expired');
+ code=rows[0].pair_code;assert.match(code,/^[a-f0-9]{32}$/);
+}
 const path=action==='account-approve'?'/app-auth/approve':'/app-auth/revoke';
 const res=await fetch('https://pt-media-hybrid.summer07-nanjolno.workers.dev'+path,{method:'POST',headers:{Authorization:'Bearer '+owner,'Content-Type':'application/json'},body:JSON.stringify(action==='account-approve'?{code}:{session_id:code}),signal:AbortSignal.timeout(20000),redirect:'error'});
 assert.equal(res.status,200,'Account operation not approved or service disabled');
