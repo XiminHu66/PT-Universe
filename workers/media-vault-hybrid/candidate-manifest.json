@@ -23,10 +23,6 @@
       "status": "blocked-browser-policy"
     },
     {
-      "id": "windows-native-save",
-      "status": "real-user-native-save-and-offline-validation-passed; mp4-playback-observation-pending"
-    },
-    {
       "id": "longer-session-persistence",
       "status": "real-browser-restart-passed-elapsed-observation-pending"
     },
@@ -46,7 +42,8 @@
       "scope": "actual Chromium native EPUB/CBZ downloads, Unicode filenames, disk hashes, single-use tickets, offline validation and tamper rejection; localhost fixtures only",
       "user_device": "passed-native-save-and-offline-validation-on-user-windows; user-supplied-report",
       "user_device_scope": "original three EPUB/CBZ/MP4 sizes and SHA-256 match; offline EPUB/CBZ structure checks passed; earlier zero-byte failure retained in history",
-      "mp4_playback": "user-observation-pending"
+      "mp4_playback": "user-confirmed-picture-and-sound-normal",
+      "user_device_acceptance": "passed-native-save-offline-validation-and-playback"
     },
     "session_restart": {
       "status": "passed-real-browser-process-restart",
