@@ -41,15 +41,26 @@ jobs:
           D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
           OPERATION: ${{ inputs.operation }}
           TEST_JOB_IDS: ${{ inputs.previous_jobs }}
+          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+          AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
         run: |
           set -euo pipefail
           grep -q '"ENABLE_DIRECT_STREAM": "false"' workers/media-vault-hybrid/wrangler.jsonc
           npm ci --prefix workers/pt-universe-api
           npm test --prefix workers/media-vault-hybrid
           node workers/media-vault-hybrid/test-window-config.mjs
+          if [[ "$OPERATION" == prepare ]]; then
+            node workers/media-vault-hybrid/live-stream-off.mjs
+            node workers/media-vault-hybrid/migration-check.mjs before
+          fi
           # Schema must exist before the new ticket reader can see traffic.
           if [[ "$OPERATION" == prepare || "$OPERATION" == stream-on ]]; then
             CLOUDFLARE_API_TOKEN="$D1_TOKEN" npx --prefix workers/pt-universe-api wrangler d1 execute pt-universe-db --remote --file workers/media-vault-hybrid/schema.sql --config workers/media-vault-hybrid/test-window.json --yes
+          fi
+          if [[ "$OPERATION" == prepare ]]; then
+            node workers/media-vault-hybrid/migration-check.mjs after
+            CLOUDFLARE_API_TOKEN="$D1_TOKEN" npx --prefix workers/pt-universe-api wrangler d1 execute pt-universe-db --remote --file workers/media-vault-hybrid/schema.sql --config workers/media-vault-hybrid/test-window.json --yes
+            node workers/media-vault-hybrid/migration-check.mjs idempotent
           fi
           npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/test-window.json
       - name: Revoke temporary browser sessions
@@ -76,7 +87,9 @@ jobs:
         env:
           OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
           AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
-        run: node workers/media-vault-hybrid/live-stream-off.mjs
+        run: |
+          node workers/media-vault-hybrid/live-stream-off.mjs
+          node workers/media-vault-hybrid/live-account-off.mjs
       - name: Verify temporary stream gate and role isolation
         if: inputs.operation == 'stream-on' || inputs.operation == 'large-on'
         env:

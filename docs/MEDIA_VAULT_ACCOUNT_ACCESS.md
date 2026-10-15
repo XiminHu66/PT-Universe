@@ -71,7 +71,18 @@ streaming; `ENABLE_DIRECT_STREAM` remains independently disabled.
 
 Before any new Worker code handles enabled downloads, apply the additive schema
 while streaming is OFF. The updated workflow applies schema before deployment
-for `prepare` and `stream-on`. Use a fresh native workflow dispatch after this
+for `prepare` and `stream-on`. `prepare` now keeps every stream, temporary
+preview and account gate OFF, including when fixed-file IDs are supplied.
+It verifies live stream closure before migration, records fingerprints of
+existing metadata tables, validates the account tables are empty and have the
+expected columns/index, executes the additive schema again, and compares the
+original metadata after both executions. Drift or unexpected account data
+stops deployment. Only pass/fail summaries are logged; rows and credentials are
+never logged or uploaded as artifacts. The dedicated account page/API/submit/
+ticket routes are checked for 404 after deployment with anonymous, Owner and
+Agent requests.
+
+Use a fresh native workflow dispatch after this
 change: rerunning an older job retains its old YAML and migration order. An OFF
 `prepare` dispatch is required before reusing a historical streaming job. The
 account tables are metadata-only and existing tables are preserved.
