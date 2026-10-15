@@ -18,7 +18,7 @@ type RefreshScope='all'|'sites'|'music'|'games';
 type RefreshOrigin='manual'|'scheduled:08:00'|'scheduled:08:05'|'scheduled:08:30';
 type RefreshMessage={requestId:string;scope:RefreshScope;source:RefreshOrigin;limitKeys?:string[]};
 type RefreshRunSummary={request_id:string;scope:RefreshScope;status:string;started_at:string|null;completed_at:string|null;error:string|null};
-type RefreshBudget={day:string;officialDailyMs:number;safeDailyMs:number;usedMs:number;reservedMs:number;remainingMs:number;estimatedFullRefreshMs:number;remainingRefreshes:number;reservePercent:number;resetsAt:string;scheduledRunFinished:boolean;inFlightRefreshes:number};
+type RefreshBudget={day:string;officialDailyMs:number;safeDailyMs:number;usedMs:number;reservedMs:number;remainingMs:number;estimatedFullRefreshMs:number;remainingRefreshes:number;platformUsedMs:number;reservePercent:number;resetsAt:string;scheduledRunFinished:boolean;inFlightRefreshes:number};
 type Json=Record<string,unknown>;
 
 const DATA_FILES=['site-updates.json','music.json','game-releases.json','feed.json','state.json','game-state.json'];
@@ -96,15 +96,18 @@ function median(values:number[]){
   return sorted.length?sorted.length%2?sorted[middle]:Math.round((sorted[middle-1]+sorted[middle])/2):DEFAULT_FULL_REFRESH_MS;
 }
 async function refreshBudget(env:Env):Promise<RefreshBudget>{
-  const [usage,durations,scheduled,active]=await Promise.all([
+  const [usage,durations,scheduled,active,platform]=await Promise.all([
     env.DB.prepare("SELECT COALESCE(SUM(duration_ms),0) AS total FROM refresh_runs WHERE scope IN ('all','sites','music') AND status IN ('success','partial','failed') AND completed_at >= datetime('now','start of day')").first<{total:number}>(),
     env.DB.prepare("SELECT duration_ms FROM refresh_runs WHERE scope='all' AND status='success' AND duration_ms IS NOT NULL ORDER BY rowid DESC LIMIT 7").all<{duration_ms:number}>(),
     env.DB.prepare("SELECT COUNT(*) AS total FROM refresh_runs WHERE scope='all' AND source LIKE 'scheduled:%' AND status IN ('success','partial','failed') AND completed_at >= datetime('now','start of day')").first<{total:number}>(),
-    env.DB.prepare("SELECT COUNT(*) AS total, SUM(CASE WHEN source LIKE 'scheduled:%' THEN 1 ELSE 0 END) AS scheduled FROM refresh_runs WHERE scope IN ('all','sites','music') AND status IN ('queued','running')").first<{total:number;scheduled:number}>()
+    env.DB.prepare("SELECT COUNT(*) AS total, SUM(CASE WHEN source LIKE 'scheduled:%' THEN 1 ELSE 0 END) AS scheduled FROM refresh_runs WHERE scope IN ('all','sites','music') AND status IN ('queued','running')").first<{total:number;scheduled:number}>(),
+    browserHistory(env.BROWSER).catch(()=>[])
   ]);
   const samples=(durations.results||[]).map(row=>Number(row.duration_ms)).filter(value=>Number.isFinite(value)&&value>0);
   const estimatedFullRefreshMs=Math.max(35_000,Math.min(60_000,median(samples)));
-  const usedMs=Math.max(0,Number(usage?.total||0));
+  const utcStart=new Date();utcStart.setUTCHours(0,0,0,0);
+  const platformUsedMs=platform.filter(x=>x.endTime>=+utcStart).reduce((total,x)=>total+Math.max(0,x.endTime-Math.max(x.startTime,+utcStart)),0);
+  const usedMs=Math.max(0,Number(usage?.total||0),platformUsedMs);
   const inFlightRefreshes=Math.max(0,Number(active?.total||0));
   const scheduledRunFinished=Number(scheduled?.total||0)>0;
   const scheduledReservedMs=!scheduledRunFinished&&Number(active?.scheduled||0)===0?estimatedFullRefreshMs:0;
@@ -115,7 +118,7 @@ async function refreshBudget(env:Env):Promise<RefreshBudget>{
     day:new Date().toISOString().slice(0,10),
     officialDailyMs:OFFICIAL_BROWSER_DAILY_MS,
     safeDailyMs:SAFE_BROWSER_DAILY_MS,
-    usedMs,reservedMs,remainingMs,estimatedFullRefreshMs,
+    usedMs,reservedMs,remainingMs,estimatedFullRefreshMs,platformUsedMs,
     remainingRefreshes:Math.max(0,Math.floor(remainingMs/estimatedFullRefreshMs)),
     reservePercent:50,resetsAt:reset.toISOString(),scheduledRunFinished,inFlightRefreshes
   };
@@ -408,7 +411,7 @@ async function verifySiteChapters(browser:Browser,rows:any[],source:string,index
       }
     }
     // A real page navigation can recover anti-bot or fetch-only failures.
-    for(const row of rows.filter(x=>!x.latest_checked_at)){
+    for(const row of rows.filter(x=>!x.latest_checked_at&&!(source==='copymanga'&&/详情页没有最新章节：.*(?:拷[贝貝]|Copy)/i.test(x.enrich_error||'')))){
       if(Date.now()-started>85_000)break;
       try{
         await page.goto(row.url,{waitUntil:'commit',timeout:6_000});
@@ -434,6 +437,9 @@ async function refreshSites(env:Env,sharedBrowser?:Browser,source:RefreshOrigin=
     for(const s of sources){
       console.log('refresh_source_started',{source:s.id});
       const prior=history.filter((x:any)=>x.source===s.id);
+      if(source!=='manual'&&source!=='scheduled:08:00'&&sourceIsFresh(cached,s.id,new Date().toISOString().slice(0,10))){
+        items.push(...mergeSiteRows([],prior,s.limit));states[s.id]=cached.sources[s.id];continue;
+      }
       try{
         let fresh:any[]=[],discoveryError='';
         try{fresh=await scrapeLinks(browser,s.url,s.id,s.label,s.type,s.limit,s.patterns)}

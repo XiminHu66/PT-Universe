@@ -118,7 +118,7 @@ def enrich_site_rows(found, src):
             # chapter is present in the server-rendered <title> and update date text.
             if sid == 'copymanga':
                 title_text=' '.join(soup.title.stripped_strings) if soup.title else ''
-                m=re.search(r'[-－]([^－-]{1,80})[-－](?:拷[贝貝]|Copy)', title_text)
+                m=re.search(r'(?:漫畫|漫画)[-－](.{1,160}?)[-－](?:連載中|连载中|已完[結结]|完[結结]|連載|连载|Completed|Ongoing)(?:[-－]|$)',title_text,re.I) or re.search(r'[-－]([^－-]{1,80})[-－]\s*(?:拷[贝貝]|Copy)',title_text,re.I)
                 if m: row['latest']=m.group(1).strip()
                 page_text=' '.join(soup.stripped_strings)
                 dm=re.search(r'(?:最后|最後)更新[：:\s]*(20\d{2}[-/.]\d{1,2}[-/.]\d{1,2})', page_text)
@@ -132,7 +132,8 @@ def enrich_site_rows(found, src):
                 row['cover']=parsed.cover
             if parsed.chapter_count:
                 row['chapter_count']=parsed.chapter_count
-            if row.get('latest') and row['latest'] not in ('最新更新','更新'):
+            if row.get('latest') and row['latest'] not in ('最新更新','更新','在线阅读','在線閱讀','目录','目錄','連載中','连载中'):
+                row.pop('enrich_error',None)
                 row['latest_checked_at']=now()
             else:
                 raise RuntimeError('detail page has no concrete latest chapter')
@@ -148,6 +149,8 @@ def site_row_key(row):
 
 def merge_site_row(current, previous):
     out={**previous, **current}
+    if current.get('latest_checked_at') and not current.get('enrich_error'):
+        out.pop('enrich_error',None)
     latest=str(current.get('latest') or '').strip()
     if not latest or latest in ('最新更新','更新'):
         out['latest']=previous.get('latest') or latest

@@ -12,10 +12,10 @@
     "merge-publication"
   ],
   "production_source_sha256": {
-    "apps/media-vault/index.html": "f07936c84e7cf7eb872ecfadd1ff6c0237117bab062c90ae4eb6c6fa29bee5d5",
-    "apps/media-vault/app.js": "a9b85a69ed7e1e6014c46a7a19d55aa65564308063e884b2be6324edab833f28",
+    "apps/media-vault/index.html": "d83b45858923a1a558f3da0e6e2b968863268ba96c53622acb25a3ffa2cc16a5",
+    "apps/media-vault/app.js": "5e9c7b4077ac8efcb060992a19a4245537f410856fd78c2792773a3266699d5e",
     "apps/media-vault/style.css": "e946451d4dda004cc61a56dba4bd1b1f7ab5b3dbd7099e17eabdfc6ec51a1f79",
-    "apps/media-vault/novels.css": "222b42ba890760882492e8436c773342e86d067b5fcbf74fd415eabcbafea29c"
+    "apps/media-vault/novels.css": "8fea36c704e9415f26439f57c87c503dd6c160635c15417f141921ce27390171"
   },
   "pending": [
     {
@@ -35,12 +35,17 @@
       "status": "not-delivered"
     },
     {
-      "id": "deploy-reviewed-integration-fixes",
-      "status": "candidate-only"
-    },
-    {
       "id": "final-merge-and-publication",
       "status": "separate-decision-required"
     }
-  ]
+  ],
+  "reviewed_main_sha": "a28a72e46bf3af486e3b4d749064103e468ecd03",
+  "deployment_evidence": {
+    "worker_run": "https://github.com/XiminHu66/PT-Universe/actions/runs/38800703594",
+    "worker_version": "7938e4de-7c71-49c2-b5b9-5f62bcb7cef9",
+    "companion": "paired deployment and running-source proof passed; access/submission/streams OFF",
+    "transferred_bytes": 75943820,
+    "reserved_bytes": 0,
+    "merged_frontend": "candidate only; requires closed redeployment after final regressions"
+  }
 }

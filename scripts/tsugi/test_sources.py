@@ -26,4 +26,19 @@ class SourceTests(unittest.TestCase):
    rows=[{'id':'x','title':'漫画','url':'https://www.mangacopy.com/comic/a','latest':'最新更新'}]
    main.enrich_site_rows(rows,{'id':'copymanga','enrich':True,'detail_delay':0});self.assertIn('enrich_error',rows[0]);self.assertNotIn('latest_checked_at',rows[0])
 
+
+ def test_copy_real_title_clears_previous_error(self):
+  titles=['作品-作品漫畫-第47話-連載中-百合漫画-在线阅读 - 拷貝漫畫 拷贝漫画','作品-第8話 - 拷貝漫畫']
+  for title,expected in zip(titles,['第47話','第8話']):
+   with patch.object(main,'fetch_requests',return_value='<html><title>'+title+'</title></html>'),patch.object(main,'fetch_browser_batch',return_value={}):
+    rows=[{'id':'x','title':'作品','url':'https://www.mangacopy.com/comic/a','latest':'最新更新','enrich_error':'old failure'}]
+    main.enrich_site_rows(rows,{'id':'copymanga','enrich':True,'detail_delay':0})
+    self.assertEqual(rows[0]['latest'],expected);self.assertNotIn('enrich_error',rows[0]);self.assertTrue(rows[0]['latest_checked_at'])
+
+ def test_recovered_chapter_merge_does_not_restore_old_error(self):
+  prior={'latest':'第1話','enrich_error':'previous scan failed'}
+  current={'latest':'第2話','latest_checked_at':'2026-10-14T17:27:28Z'}
+  self.assertNotIn('enrich_error',main.merge_site_row(current,prior))
+  self.assertEqual(main.merge_site_row({**current,'enrich_error':'new failure'},prior)['enrich_error'],'new failure')
+
 if __name__=='__main__':unittest.main()
