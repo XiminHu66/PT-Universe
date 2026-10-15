@@ -1,10 +1,11 @@
 """Small generated packager fixtures only; no live source, cookie or media call."""
-import hashlib,json,sys
+import hashlib,json,sys,struct,zlib
 from pathlib import Path
 sys.path.insert(0,str(Path(sys.argv[1]).resolve()))
 from builders import epub,cbz
 root=Path(sys.argv[2]);root.mkdir(parents=True,exist_ok=True)
-png=bytes.fromhex('89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000b49444154789c636000020000050001a5f645400000000049454e44ae426082')
+def chunk(tag,data):return struct.pack('>I',len(data))+tag+data+struct.pack('>I',zlib.crc32(tag+data)&0xffffffff)
+png=b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack('>IIBBBBB',8,12,8,2,0,0,0))+chunk(b'IDAT',zlib.compress((b'\0'+b'\x78\xc8\xff'*8)*12))+chunk(b'IEND',b'')
 manifest={'scope':'windows-ci-local-fixtures-only','files':[]}
 for i,(name,kind,raw) in enumerate([
  ('小说 测试.epub','epub',epub('中文测试',[{'title':'第一章','text':'第一段。\n第二段。'}])),
