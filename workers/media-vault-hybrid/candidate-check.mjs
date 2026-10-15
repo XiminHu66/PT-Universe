@@ -16,10 +16,10 @@ assert.notEqual(base.vars.ENABLE_ACCEPTANCE_UI,'true');assert.ok(!base.vars.MEDI
 assert.equal(transferBudget(base.vars),100*1024**3);
 for(const binding of ['r2_buckets','kv_namespaces','queues'])assert.equal(base[binding],undefined,'No media archive bindings in candidate');
 assert.deepEqual(layouts,NOVEL_UX_LAYOUTS,'UI presets and server scope must agree');
-for(const operation of ['account-login-off','account-submit-off','account-files-off','account-novel-off','account-rc-off']){
+for(const operation of ['account-login-off','account-submit-off','account-files-off','account-novel-off','account-observation-off','account-rc-off']){
  const {vars}=configureAccountWindow(base,operation);
  assert.equal(appEnabled(vars),false);assert.equal(streamingEnabled(vars),false);assert.equal(vars.MEDIA_APP_ACCOUNT_ID,'');assert.equal(vars.MEDIA_APP_TEST_MODE,'closed');
- for(const name of ['MEDIA_APP_LOGIN_TEST_UNTIL','MEDIA_APP_SUBMISSION_TEST_UNTIL','MEDIA_APP_FILE_TEST_START','MEDIA_APP_FILE_TEST_UNTIL','MEDIA_APP_NOVEL_TEST_START','MEDIA_APP_NOVEL_TEST_UNTIL','MEDIA_STREAM_TEST_UNTIL'])assert.equal(vars[name],'0');
+ for(const name of ['MEDIA_APP_LOGIN_TEST_UNTIL','MEDIA_APP_SUBMISSION_TEST_UNTIL','MEDIA_APP_FILE_TEST_START','MEDIA_APP_FILE_TEST_UNTIL','MEDIA_APP_NOVEL_TEST_START','MEDIA_APP_NOVEL_TEST_UNTIL','MEDIA_STREAM_TEST_UNTIL','MEDIA_APP_OBSERVATION_START','MEDIA_APP_OBSERVATION_PAIR_UNTIL','MEDIA_APP_OBSERVATION_UNTIL'])assert.equal(vars[name],'0');
 }
 for(const [path,expected] of Object.entries(manifest.production_source_sha256)){
  const actual=createHash('sha256').update(await readFile(new URL(path,root))).digest('hex');assert.equal(actual,expected,'Reviewed production source changed: '+path);

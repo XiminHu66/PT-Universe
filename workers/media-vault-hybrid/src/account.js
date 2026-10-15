@@ -1,5 +1,6 @@
 import {appNovelUx,novelUxPermits,NOVEL_UX_SOURCE,NOVEL_UX_JOBS} from './account-novel-scope.js';
 import {appFileTest,fileTestPermits} from './account-file-scope.js';
+import {appObservation,observationPairingOpen,OBSERVATION_DURATION} from './account-observation-scope.js';
 import {appEnabled,appCookieDigest,ownerAuthorized,randomHex,appCookie,APP_LIFETIME,appDeadline,appReadOnly,appSubmissionTest,appFilesAllowed,appJobLimit,appTicketLimit,appScope} from './account-auth.js';
 import {digest} from './session-auth.js';
 import {canonicalJob,rowFormat} from './job-contract.js';
@@ -52,10 +53,11 @@ export async function accountRoute(request,env){
   if(p==='/app-auth/pair'){
    if(request.method!=='POST')return fail(405,'POST required');
    if(request.headers.get('Origin')!==u.origin)return fail(403,'Same-origin pairing required');
+   if(appObservation(env)&&!observationPairingOpen(env))return fail(403,'Observation setup has ended');
    // A browser must explicitly logout before changing its cookie, so old
    // pending or approved grants cannot be silently abandoned and multiplied.
    if(current&&['pending','approved'].includes(current.status))return fail(409,'Logout before requesting a replacement session');
-   const token=randomHex(32),code=randomHex(16),id=randomHex(12),now=Date.now(),expires=Math.min(now+5*60000,appDeadline(env));
+   const token=randomHex(32),code=randomHex(16),id=randomHex(12),now=Date.now(),expires=Math.min(now+5*60000,appObservation(env)?Number(env.MEDIA_APP_OBSERVATION_PAIR_UNTIL):appDeadline(env));
    const result=await env.DB.prepare("INSERT INTO mv_hybrid_app_sessions(digest,id,pair_code,account_id,created_at,expires_at) SELECT ?,?,?,?,?,? WHERE (SELECT COUNT(*) FROM mv_hybrid_app_sessions WHERE status='pending' AND expires_at>?)<10").bind(await digest(token),id,code,env.MEDIA_APP_ACCOUNT_ID,now,expires,now).run();
    if(!result.meta?.changes)return fail(429,'Too many pending account requests');
    return reply({status:'pending',pair_code:code,session_id:id,expires_at:expires},201,{'Set-Cookie':appCookie(token,Math.max(0,Math.floor(Math.min(APP_LIFETIME,appDeadline(env)-now)/1000)))});
@@ -63,12 +65,15 @@ export async function accountRoute(request,env){
   if(p==='/app-auth/approve'){
    if(request.method!=='POST')return fail(405,'POST required');
    if(!ownerAuthorized(request,env))return fail(401,'Owner authorization required');
+   if(appObservation(env)&&!observationPairingOpen(env))return fail(403,'Observation setup has ended');
    const data=await body(request);if(!/^[a-f0-9]{32}$/.test(data.code||''))return fail(400,'Invalid account request code');
    const now=Date.now();
-   const result=await env.DB.prepare("UPDATE mv_hybrid_app_sessions SET status='approved',account_id=?,expires_at=MIN(created_at+?,?) WHERE pair_code=? AND account_id=? AND status='pending' AND expires_at>? AND (SELECT COUNT(*) FROM mv_hybrid_app_sessions WHERE status='approved' AND account_id=? AND expires_at>?)<?").bind(env.MEDIA_APP_ACCOUNT_ID,APP_LIFETIME,appDeadline(env),data.code,env.MEDIA_APP_ACCOUNT_ID,now,env.MEDIA_APP_ACCOUNT_ID,now,appFileTest(env)||appNovelUx(env)?1:3).run();
+   const observing=appObservation(env);
+   const historyGuard=observing?" AND NOT EXISTS(SELECT 1 FROM mv_hybrid_app_sessions WHERE account_id=? AND expires_at-created_at>?)":'';
+   const result=await env.DB.prepare("UPDATE mv_hybrid_app_sessions SET status='approved',account_id=?,expires_at=MIN("+(observing?'?':'created_at+?')+",?) WHERE pair_code=? AND account_id=? AND status='pending' AND expires_at>? AND (SELECT COUNT(*) FROM mv_hybrid_app_sessions WHERE status='approved' AND account_id=? AND expires_at>?)<?"+historyGuard).bind(env.MEDIA_APP_ACCOUNT_ID,observing?now+OBSERVATION_DURATION:APP_LIFETIME,appDeadline(env),data.code,env.MEDIA_APP_ACCOUNT_ID,now,env.MEDIA_APP_ACCOUNT_ID,now,observing||appFileTest(env)||appNovelUx(env)?1:3,...(observing?[env.MEDIA_APP_ACCOUNT_ID,5*60000]:[])).run();
    if(!result.meta?.changes)return fail(409,'Request expired, already handled or device limit reached');
    const session=await env.DB.prepare('SELECT id,expires_at FROM mv_hybrid_app_sessions WHERE pair_code=?').bind(data.code).first();
-   return reply({ok:true,session_id:session.id,expires_at:session.expires_at,scope:appScope(env),job_limit:appJobLimit(env),ticket_limit:appTicketLimit(env)});
+   return reply({ok:true,session_id:session.id,expires_at:session.expires_at,scope:appScope(env),job_limit:appJobLimit(env),ticket_limit:appTicketLimit(env),...(observing?{observation_started_at:session.expires_at-OBSERVATION_DURATION,observation_duration_ms:OBSERVATION_DURATION}:{})});
   }
   if(!current||!['pending','approved'].includes(current.status))return fail(403,'Account session expired or revoked');
   if(p==='/app-auth/session'){
@@ -132,6 +137,7 @@ export async function accountRoute(request,env){
    return fail(429,'Queue full or session job allowance exhausted');
   }
   if(!['/app-api/jobs/files','/app-api/jobs/cancel','/app-api/download-ticket'].includes(p))return fail(404,'Unknown account endpoint');
+  if(appObservation(env))return fail(403,'Observation does not grant files or task operations');
   if(request.method!==(p.endsWith('/files')?'GET':'POST'))return fail(405,'Method not allowed');
   const data=p.endsWith('/files')?{id:u.searchParams.get('id')}:await body(request);
   if(!jobPattern.test(data.id||''))return fail(400,'Invalid job ID');

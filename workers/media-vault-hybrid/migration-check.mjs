@@ -1,15 +1,16 @@
 // GitHub runner only: hashes metadata in memory; never prints rows or credentials.
 import assert from 'node:assert/strict';
 import {novelUxWindowValid} from './src/account-novel-scope.js';
+import {observationWindowValid,OBSERVATION_DURATION,OBSERVATION_SETUP} from './src/account-observation-scope.js';
 import {createHash} from 'node:crypto';
 import {readFile,writeFile} from 'node:fs/promises';
-const phase=process.argv[2];assert.ok(['before','after','idempotent','ready','ready-submission','ready-novel','release'].includes(phase));
+const phase=process.argv[2];assert.ok(['before','after','idempotent','ready','ready-submission','ready-novel','ready-observation','release'].includes(phase));
 const token=process.env.D1_TOKEN,account=process.env.CLOUDFLARE_ACCOUNT_ID;
 assert.ok(token&&account,'Configured D1 credentials required');
 const database='86805c79-d903-46cd-b0e2-c079c1a7fc1a';
 const checkpoint=new URL('./off-migration-check.json',import.meta.url);
 const legacy={mv_hybrid_jobs:'id',mv_hybrid_files:'job_id,relative_path',mv_hybrid_transfer_usage:'month',mv_hybrid_tickets:'digest',mv_hybrid_browser_sessions:'digest',mv_hybrid_browser_tickets:'digest'};
-let realm='';const readiness=['ready','ready-submission','ready-novel'].includes(phase);
+let realm='';const readiness=['ready','ready-submission','ready-novel','ready-observation'].includes(phase);
 if(readiness||phase==='release'){
  const config=JSON.parse(await readFile(new URL('./account-window.json',import.meta.url),'utf8'));
  for(const flag of ['ENABLE_DIRECT_STREAM','ENABLE_ACCEPTANCE_UI'])assert.equal(config.vars[flag],'false');
@@ -17,11 +18,12 @@ if(readiness||phase==='release'){
   for(const flag of ['ENABLE_APP_ACCESS','ENABLE_APP_SUBMISSION'])assert.equal(config.vars[flag],'false');
   assert.equal(config.vars.MEDIA_APP_ACCOUNT_ID,'');assert.equal(config.vars.MEDIA_APP_TEST_MODE,'closed');
  }else{
-  const novel=phase==='ready-novel',submission=phase==='ready-submission'||novel;assert.equal(config.vars.ENABLE_APP_ACCESS,'true');assert.equal(config.vars.ENABLE_APP_SUBMISSION,submission?'true':'false');
-  realm=config.vars.MEDIA_APP_ACCOUNT_ID;assert.match(realm,novel?/^novel-test-[a-f0-9]{32}$/:submission?/^submit-test-[a-f0-9]{32}$/:/^login-test-[a-f0-9]{32}$/);
-  const until=Number(config.vars[novel?'MEDIA_APP_NOVEL_TEST_UNTIL':submission?'MEDIA_APP_SUBMISSION_TEST_UNTIL':'MEDIA_APP_LOGIN_TEST_UNTIL']);
+  const observing=phase==='ready-observation',novel=phase==='ready-novel',submission=phase==='ready-submission'||novel;assert.equal(config.vars.ENABLE_APP_ACCESS,'true');assert.equal(config.vars.ENABLE_APP_SUBMISSION,submission?'true':'false');
+  realm=config.vars.MEDIA_APP_ACCOUNT_ID;assert.match(realm,observing?/^observe-test-[a-f0-9]{32}$/:novel?/^novel-test-[a-f0-9]{32}$/:submission?/^submit-test-[a-f0-9]{32}$/:/^login-test-[a-f0-9]{32}$/);
+  const until=Number(config.vars[observing?'MEDIA_APP_OBSERVATION_UNTIL':novel?'MEDIA_APP_NOVEL_TEST_UNTIL':submission?'MEDIA_APP_SUBMISSION_TEST_UNTIL':'MEDIA_APP_LOGIN_TEST_UNTIL']);
+  if(observing)assert.ok(observationWindowValid(config.vars),'Single-device observation must remain bounded and read-only');
   if(novel)assert.ok(novelUxWindowValid(config.vars),'Novel scope must remain bounded and transfer disabled');
-  assert.ok(until>Date.now()&&until<=Date.now()+(submission?1800000:1200000));
+  assert.ok(until>Date.now()&&until<=Date.now()+(observing?OBSERVATION_DURATION+OBSERVATION_SETUP:submission?1800000:1200000));
  }
 }
 const added={mv_hybrid_app_sessions:['digest','id','pair_code','account_id','status','created_at','expires_at','created_jobs','issued_tickets'],mv_hybrid_account_jobs:['job_id','account_id','request_key','request_hash','created_by_digest'],mv_hybrid_app_tickets:['digest','session_digest']};

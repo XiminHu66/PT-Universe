@@ -6,9 +6,13 @@ on:
         description: Metadata operation
         type: choice
         default: verify
-        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership, account-approve, account-revoke, account-login-on, account-login-off, account-submit-on, account-submit-off, account-rc-off, account-off-check, account-files-check, account-device-files-check, account-device-files-verify, account-device-files-on, account-device-recovery-check, account-device-recovery-on, account-files-on, account-files-off, account-novel-on, account-novel-off, manga-proof, candidate-check]
+        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership, account-approve, account-revoke, account-login-on, account-login-off, account-submit-on, account-submit-off, account-rc-off, account-off-check, account-files-check, account-device-files-check, account-device-files-verify, account-device-files-on, account-device-recovery-check, account-device-recovery-on, account-files-on, account-files-off, account-novel-on, account-novel-off, account-observation-on, account-observation-off, account-observation-check, manga-proof, candidate-check]
       device_authorization:
         description: Explicit new user-device round approval (3 tickets / 10 MiB / 20 minutes)
+        type: boolean
+        default: false
+      acceptance_authorization:
+        description: User approved fixed novel (4 jobs / 30 minutes) or 24-hour read-only observation
         type: boolean
         default: false
       pair_code:
@@ -88,6 +92,14 @@ jobs:
           OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
           AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
         run: node workers/media-vault-hybrid/live-device-download-ready.mjs
+      - name: Inspect observation metadata without granting or extending access
+        if: inputs.operation == 'account-observation-check'
+        env:
+          D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+          REQUEST_ID: ${{ inputs.pair_code }}
+        run: node workers/media-vault-hybrid/account-observation-check.mjs
       - name: Inspect retained account files with all gates OFF
         if: inputs.operation == 'account-files-check' || inputs.operation == 'account-device-files-check' || inputs.operation == 'account-device-recovery-check'
         env:
@@ -108,7 +120,7 @@ jobs:
             node workers/media-vault-hybrid/account-file-preflight.mjs
           fi
       - name: Deploy bounded account window or closed release candidate
-        if: inputs.operation == 'account-login-on' || inputs.operation == 'account-login-off' || inputs.operation == 'account-submit-on' || inputs.operation == 'account-submit-off' || inputs.operation == 'account-rc-off' || inputs.operation == 'account-files-on' || inputs.operation == 'account-device-files-on' || inputs.operation == 'account-device-recovery-on' || inputs.operation == 'account-files-off' || inputs.operation == 'account-novel-on' || inputs.operation == 'account-novel-off'
+        if: inputs.operation == 'account-login-on' || inputs.operation == 'account-login-off' || inputs.operation == 'account-submit-on' || inputs.operation == 'account-submit-off' || inputs.operation == 'account-rc-off' || inputs.operation == 'account-files-on' || inputs.operation == 'account-device-files-on' || inputs.operation == 'account-device-recovery-on' || inputs.operation == 'account-files-off' || inputs.operation == 'account-novel-on' || inputs.operation == 'account-novel-off' || inputs.operation == 'account-observation-on' || inputs.operation == 'account-observation-off'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -117,13 +129,17 @@ jobs:
           AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
           OPERATION: ${{ inputs.operation }}
           DEVICE_AUTHORIZED: ${{ inputs.device_authorization }}
+          ACCEPTANCE_AUTHORIZED: ${{ inputs.acceptance_authorization }}
           REQUEST_ID: ${{ inputs.pair_code }}
           ACCOUNT_ACTION: account-revoke
         run: |
           set -euo pipefail
           npm ci --prefix workers/pt-universe-api
           npm test --prefix workers/media-vault-hybrid
-          if [[ "$OPERATION" == account-login-on || "$OPERATION" == account-submit-on || "$OPERATION" == account-novel-on ]]; then
+          if [[ "$OPERATION" == account-novel-on || "$OPERATION" == account-observation-on ]]; then
+            [[ "$ACCEPTANCE_AUTHORIZED" == true ]] || { echo "Explicit current acceptance authorization required"; exit 1; }
+          fi
+          if [[ "$OPERATION" == account-login-on || "$OPERATION" == account-submit-on || "$OPERATION" == account-novel-on || "$OPERATION" == account-observation-on ]]; then
             node workers/media-vault-hybrid/live-stream-off.mjs
             node workers/media-vault-hybrid/live-account-off.mjs
           fi
@@ -145,8 +161,10 @@ jobs:
           else
             node workers/media-vault-hybrid/account-window-config.mjs
           fi
-          if [[ "$OPERATION" == account-login-on || "$OPERATION" == account-submit-on || "$OPERATION" == account-novel-on ]]; then
-            if [[ "$OPERATION" == account-novel-on ]]; then
+          if [[ "$OPERATION" == account-login-on || "$OPERATION" == account-submit-on || "$OPERATION" == account-novel-on || "$OPERATION" == account-observation-on ]]; then
+            if [[ "$OPERATION" == account-observation-on ]]; then
+              node workers/media-vault-hybrid/migration-check.mjs ready-observation
+            elif [[ "$OPERATION" == account-novel-on ]]; then
               node workers/media-vault-hybrid/migration-check.mjs ready-novel
             elif [[ "$OPERATION" == account-submit-on ]]; then
               node workers/media-vault-hybrid/migration-check.mjs ready-submission
@@ -159,9 +177,11 @@ jobs:
           npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/account-window.json
           if [[ "$OPERATION" == account-device-files-on || "$OPERATION" == account-device-recovery-on ]]; then
             node workers/media-vault-hybrid/live-device-download-ready.mjs
+          elif [[ "$OPERATION" == account-novel-on || "$OPERATION" == account-observation-on ]]; then
+            node workers/media-vault-hybrid/live-acceptance-ready.mjs
           elif [[ "$OPERATION" == account-files-on ]]; then
             node workers/media-vault-hybrid/live-account-window.mjs
-          elif [[ "$OPERATION" == account-login-on || "$OPERATION" == account-submit-on || "$OPERATION" == account-novel-on ]]; then
+          elif [[ "$OPERATION" == account-login-on || "$OPERATION" == account-submit-on ]]; then
             node workers/media-vault-hybrid/live-stream-off.mjs
             node workers/media-vault-hybrid/live-account-window.mjs
           else
@@ -191,6 +211,8 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           ACCOUNT_ACTION: ${{ inputs.operation }}
           REQUEST_ID: ${{ inputs.pair_code }}
+          ACCEPTANCE_AUTHORIZED: ${{ inputs.acceptance_authorization }}
+          DEVICE_AUTHORIZED: ${{ inputs.device_authorization }}
         run: node workers/media-vault-hybrid/account-session-admin.mjs
       - name: Verify live streaming remains OFF and ledger unchanged
         if: inputs.operation == 'deploy' || inputs.operation == 'prepare' || inputs.operation == 'stream-off'

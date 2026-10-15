@@ -1,5 +1,6 @@
 import {appNovelUx} from './account-novel-scope.js';
 import {appFileTest} from './account-file-scope.js';
+import {appObservation} from './account-observation-scope.js';
 import assets from './preview-assets.js';
 import {appEnabled,appReadOnly,appSubmissionTest} from './account-auth.js';
 const temporaryAssets=new Set(['index.html','app.js','style.css','novels.css','native-download.js','scoped-session.js']);
@@ -39,7 +40,7 @@ function accountPage(request,env,u){
  const nonce=crypto.randomUUID().replaceAll('-','');
  const html=name==='account.html',css=name.endsWith('.css');
  let page=assets[name];
- if(appReadOnly(env))page=page.replace('批准后最长保留七天','本次是限时只读登录验收，批准后随窗口到期').replace('<section class="hero">','<section class="card" aria-label="只读验收范围"><strong>20 分钟账号登录验收</strong><p>只开放登录、任务列表和额度查看；任务提交、取消与文件保存均关闭。到期自动停止访问。</p></section><section class="hero">');
+ if(appReadOnly(env))page=page.replace('批准后最长保留七天',appObservation(env)?'本次批准后固定24小时只读，不滑动续期':'本次是限时只读登录验收，批准后随窗口到期').replace('<section class="hero">',appObservation(env)?'<section class="card" aria-label="只读验收范围"><strong>24 小时只读会话观察</strong><p>仅一个批准设备，批准后固定24小时。任务提交、取消、目录、文件和票据均关闭；不自动续期或通过重新配对重置计时。配对准备最多20分钟，不计入已批准的观察时长。</p></section><section class="hero">':'<section class="card" aria-label="只读验收范围"><strong>20 分钟账号登录验收</strong><p>只开放登录、任务列表和额度查看；任务提交、取消与文件保存均关闭。到期自动停止访问。</p></section><section class="hero">');
  if(appSubmissionTest(env))page=page.replace('批准后最长保留七天','本次为最多 30 分钟的指定来源任务验收，批准后随窗口到期').replace('<section class="hero">','<section class="card" aria-label="提交验收范围"><strong>30 分钟账号任务验收</strong><p>仅限四个指定样例，每种最多一项，整个账号合计四项。文件传输关闭，不签发下载票据；到期停止账号访问，已提交任务继续在后台运行。</p></section><section class="hero">');
  if(appFileTest(env))page=page.replace('批准后最长保留七天','本次为最多 20 分钟的三文件保存验收，批准后随窗口到期').replace('<section class="hero">','<section class="card" aria-label="文件验收范围"><strong>20 分钟账号文件保存验收</strong><p>仅限上一轮已完成的 EPUB、CBZ、MP4 各一份；整个账号合计三张票据、最多 10 MiB，每个文件仅签发一次。任务提交、取消与重建关闭。到期停止访问；保存结果请在浏览器下载列表确认。</p></section><section class="hero">');
  if(appNovelUx(env))page=page.replace('批准后最长保留七天','本次为最多 30 分钟的小说操作验收，批准后随窗口到期').replace('<section class="hero">','<section class="card" aria-label="小说验收范围"><strong>30 分钟小说操作验收</strong><p>仅限文库8指定书目的前两章、仅文字和三种排版；一个设备、整个账号最多四项任务（含重建），零文件票据。文件传输保持关闭。</p></section><section class="hero">');

@@ -25,10 +25,6 @@
     {
       "id": "longer-session-persistence",
       "status": "real-browser-restart-passed-elapsed-observation-pending"
-    },
-    {
-      "id": "final-merge-and-publication",
-      "status": "separate-decision-required"
     }
   ],
   "reviewed_main_sha": "be3927aaf072a0bc7b2ee1cd189cd0df1b391cfb",
@@ -47,7 +43,9 @@
     },
     "session_restart": {
       "status": "passed-real-browser-process-restart",
-      "elapsed_long_term": "not-observed"
+      "elapsed_long_term": "not-observed",
+      "approved_minimum_ms": 86400000,
+      "observation_plan": "user selected 24 actual hours; single-device read-only scope; not started or accepted"
     },
     "manga_source": {
       "status": "passed-live-source-and-archive-checks",
@@ -65,9 +63,10 @@
     }
   },
   "publication_decision": {
-    "status": "not-approved",
-    "approved_by_user": false,
-    "automatic_deployments_acknowledged": false,
-    "scope": "no-merge-no-production-publication"
+    "status": "approved",
+    "approved_by_user": true,
+    "automatic_deployments_acknowledged": true,
+    "scope": "merge-both-prs-and-production-publication",
+    "evidence_reference": "User instructed completion of all remaining acceptance followed by publication on 2026-10-15; prior message explained automatic Pages publication; authorization is conditional on acceptance passing"
   }
 }

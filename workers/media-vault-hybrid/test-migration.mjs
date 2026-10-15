@@ -61,6 +61,8 @@ try{
  await writeFile(new URL('./account-window.json',import.meta.url),JSON.stringify(submitOn));await check('ready-submission');
  const novelOn=configureAccountWindow(baseConfig,'account-novel-on');await writeFile(new URL('./account-window.json',import.meta.url),JSON.stringify(novelOn));await check('ready-novel');
  await sql("INSERT INTO mv_hybrid_account_jobs(job_id,account_id,request_key,request_hash,created_by_digest) VALUES('novel-fixture','"+novelOn.vars.MEDIA_APP_ACCOUNT_ID+"','novel-collision','hash','fixture')");await assert.rejects(check('ready-novel'),/Unexpected live account data/);await sql("DELETE FROM mv_hybrid_account_jobs WHERE job_id='novel-fixture'");
+ const observeOn=configureAccountWindow(baseConfig,'account-observation-on');await writeFile(new URL('./account-window.json',import.meta.url),JSON.stringify(observeOn));await check('ready-observation');
+ await sql("INSERT INTO mv_hybrid_account_jobs(job_id,account_id,request_key,request_hash,created_by_digest) VALUES('observe-fixture','"+observeOn.vars.MEDIA_APP_ACCOUNT_ID+"','observe-collision','hash','fixture')");await assert.rejects(check('ready-observation'),/Unexpected live account data/);await sql("DELETE FROM mv_hybrid_account_jobs WHERE job_id='observe-fixture'");
  await writeFile(new URL('./account-window.json',import.meta.url),JSON.stringify(configureAccountWindow(baseConfig,'account-rc-off')));await check('release');
  await writeFile(new URL('./account-window.json',import.meta.url),JSON.stringify(accountOn));
  await sql("INSERT INTO mv_hybrid_account_jobs(job_id,account_id,request_key,request_hash,created_by_digest) VALUES('fixture','"+accountOn.vars.MEDIA_APP_ACCOUNT_ID+"','collision','hash','fixture')");
