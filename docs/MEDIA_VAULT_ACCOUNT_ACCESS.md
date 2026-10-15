@@ -84,9 +84,12 @@ ticket routes are checked for 404 after deployment with anonymous, Owner and
 Agent requests.
 
 Use a fresh native workflow dispatch after this
-change: rerunning an older job retains its old YAML and migration order. An OFF
-`prepare` dispatch is required before reusing a historical streaming job. The
-account tables are metadata-only and existing tables are preserved.
+change: rerunning an older job retains its old YAML and migration order. The
+initial OFF `prepare` migration below is complete. Its strict empty-account-table
+assertion is an initial pre-activation proof; do not rerun it after real browser
+session metadata exists. Use `account-login-off` to close a login window, and
+review schema/readiness explicitly before a later transfer stage. The account
+tables are metadata-only and existing tables are preserved.
 
 The workflow adds explicit `account-approve` and `account-revoke` operations using
 `account-session-admin.mjs` and the existing GitHub Owner secret. The existing
@@ -160,9 +163,9 @@ successful verification used a fresh dispatch of the corrected commit. Historica
 run reruns were not used to apply the correction. This proves closed deployment,
 not account activation or browser login/download acceptance.
 
-## Prepared read-only login acceptance (not activated)
+## Bounded read-only login acceptance
 
-The next browser acceptance is narrower than the durable-account contract above.
+The browser login acceptance is narrower than the durable-account contract above.
 It uses a fresh random `login-test-` account realm for at most twenty minutes,
 with no pre-existing jobs, sessions or tickets. It grants zero new-job allowance
 and zero file tickets. Server checks reject submit, cancel and ticket issuance,
@@ -205,13 +208,49 @@ Expiry enforces access closure even if a closing workflow never runs; it does
 not automatically redeploy flags or erase expired metadata rows. A fresh on
 operation starts a new window, so it must not be rerun to extend access silently.
 
-The code and tests are prepared only. The deployed service remains the verified
-OFF version above. Actual activation plus approval of the test browser requires
-confirmation of this concrete twenty-minute, read-only scope. The subsequent
-browser run will check pending/approved refresh recovery, empty account task
-visibility, budget display, cross-tab logout and final OFF closure. It will not
-establish a seven-day persistence observation, Windows disk saving or live-source
-compatibility.
+The user explicitly authorized one twenty-minute read-only window and approval
+of the test browser on 2026-10-15. A fresh `account-login-on` dispatch from
+`6571b98d8abc313d67bcebf29b25168414793c02` passed:
+https://github.com/XiminHu66/PT-Universe/actions/runs/38757264555.
+The deployed version was `ce2a9abb-6289-44b0-8eee-bb3cc73509d0`, with the
+fixed deadline `2026-10-15T15:26:01.054Z`. Opening verified the existing schema,
+empty generated account realm, closed stream/temporary-preview routes and
+cookie-less account API denial; it ran no migration or source task.
+
+The exact browser request was approved through the existing server-side Owner
+secret in a separate successful dispatch:
+https://github.com/XiminHu66/PT-Universe/actions/runs/38757729242.
+The script verified `login-test-read-only`, zero job allowance, zero ticket
+allowance and the same capped expiry. No security key was entered, exported or
+saved locally.
+
+Remote Chrome verified pending pairing recovery after reload, approved login
+recovery after reload and in a second tab, an empty isolated account task list,
+disabled submission controls and the real application budget. The page reported
+68.1 MiB transferred, 0.0 MiB reserved and file transfer closed, clearly separate
+from the cloud provider bill. Logout in one tab cleared both tabs; reloading the
+second tab did not restore account access or task visibility. No source task,
+cancel request, file ticket or file download was performed.
+
+The window was closed early by a fresh `account-login-off` dispatch, passing only
+the public test-session ID for narrow, idempotent revocation:
+https://github.com/XiminHu66/PT-Universe/actions/runs/38758036401.
+It succeeded at `2026-10-15T15:11:24Z` and deployed OFF version
+`d28408ed-553a-4245-9467-c5d2c014e7c6`: account access/submission, direct streaming
+and temporary UI flags were false, the account realm was empty, and the login
+deadline was zero. The requested session revocation passed. The checked account
+page/assets/auth/API routes returned stable 404 for anonymous, Owner and Agent
+requests; stream ticket/download/WebSocket and temporary preview routes remained
+closed. Transfer accounting stayed at 71,410,712 bytes transferred and zero
+reserved. No production page, VPS configuration or public port changed.
+
+The cloud browser could not render the final closed-page navigation because its
+URL policy rejected the resulting browser error page. No workaround was used;
+the final route-closure evidence is the successful server-side workflow probe.
+The approved read-only page and final successful workflow summary were captured
+separately. This short Chrome run does not establish seven-day persistence,
+natural twenty-minute expiry observation, Windows disk saving or live-source
+compatibility. Deadline expiry/no revival remain automated clock-controlled tests.
 
 ## Validation and next work
 
@@ -229,15 +268,18 @@ late POST after logout, expiry, cross-tab logout and failed revocation. The real
 SQLite suite also executes the cookie client against the actual Worker handler,
 drops a response after a committed transaction, recreates the client and verifies
 one job, one quota increment and a replayed result. These are automated controller
-and backend tests, not a real-browser layout or persistent-login acceptance run.
+and backend tests. The separate Chrome acceptance above adds read-only layout,
+short reload recovery and logout evidence only.
 
 All account source requests and relay responses in this suite are fixtures;
 no real media download or live seven-day expiry has been tested in this stage.
 
-Next: confirm and run the prepared twenty-minute read-only login acceptance.
-The broader seven-day / five-job / one-hundred-ticket capability remains disabled
-and needs its own scope review before activation. Metadata migration and OFF
-deployment are complete. Durable-account activation, persistent-login testing,
-real source submission and native download acceptance remain outstanding.
+Next: prepare a bounded account submission acceptance with explicit job/source,
+expiry and cleanup limits while streaming remains OFF; review that concrete
+scope before activation. The broader seven-day / five-job / one-hundred-ticket
+capability remains disabled and needs its own scope review before activation.
+Metadata migration, the short read-only browser acceptance and final OFF
+deployment are complete. Durable-account activation, longer persistence testing,
+real account source submission and native download acceptance remain outstanding.
 Production publication remains a separate stage. No production readiness is
 claimed.
