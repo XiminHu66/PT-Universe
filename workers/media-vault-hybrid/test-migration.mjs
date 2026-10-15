@@ -59,6 +59,8 @@ try{
  await sql("INSERT INTO mv_hybrid_app_sessions(digest,id,pair_code,account_id,created_at,expires_at) VALUES('old','old','old','other-realm',1,2)");
  await check('ready');
  await writeFile(new URL('./account-window.json',import.meta.url),JSON.stringify(submitOn));await check('ready-submission');
+ const novelOn=configureAccountWindow(baseConfig,'account-novel-on');await writeFile(new URL('./account-window.json',import.meta.url),JSON.stringify(novelOn));await check('ready-novel');
+ await sql("INSERT INTO mv_hybrid_account_jobs(job_id,account_id,request_key,request_hash,created_by_digest) VALUES('novel-fixture','"+novelOn.vars.MEDIA_APP_ACCOUNT_ID+"','novel-collision','hash','fixture')");await assert.rejects(check('ready-novel'),/Unexpected live account data/);await sql("DELETE FROM mv_hybrid_account_jobs WHERE job_id='novel-fixture'");
  await writeFile(new URL('./account-window.json',import.meta.url),JSON.stringify(configureAccountWindow(baseConfig,'account-rc-off')));await check('release');
  await writeFile(new URL('./account-window.json',import.meta.url),JSON.stringify(accountOn));
  await sql("INSERT INTO mv_hybrid_account_jobs(job_id,account_id,request_key,request_hash,created_by_digest) VALUES('fixture','"+accountOn.vars.MEDIA_APP_ACCOUNT_ID+"','collision','hash','fixture')");

@@ -26,8 +26,11 @@ with tempfile.TemporaryDirectory(prefix='mv-contract-') as scratch:
   with zipfile.ZipFile(io.BytesIO(raw)) as archive:
    assert archive.namelist()[0]=='mimetype' and archive.read('mimetype')==b'application/epub+zip'
    css=next(archive.read(name).decode() for name in archive.namelist() if name.endswith('.css'))
-   assert re.search(r'text-indent:2(?:\.0)?em',css) and re.search(r'margin:0 0 0(?:\.0)?em',css)
+   layout=payload['layout']
+   for field,prefix,suffix in [('fontScale','font-size:','%'),('lineHeight','line-height:',';'),('pageMargin','margin:','em'),('paragraphGap','margin:0 0 ','em'),('indent','text-indent:','em')]:
+    match=re.search(re.escape(prefix)+r'([0-9.]+)'+re.escape(suffix),css)
+    assert match and float(match.group(1))==layout[field],(field,css)
    assert not any(name.startswith('OEBPS/images/') for name in archive.namelist())
    chapters=[name for name in archive.namelist() if name.endswith('.xhtml') and '保留'.encode() in archive.read(name)]
    assert len(chapters)==2
-  print(json.dumps({'status':'complete','text_only':True,'compact_layout':True,'sha256':hashlib.sha256(raw).hexdigest(),'files':[{'path':'generated/'+jid+'.epub','name':jid+'.epub','size':len(raw)}]}))
+  print(json.dumps({'status':'complete','text_only':True,'compact_layout':payload['layout']['indent']==2 and payload['layout']['paragraphGap']==0,'layout':payload['layout'],'sha256':hashlib.sha256(raw).hexdigest(),'files':[{'path':'generated/'+jid+'.epub','name':jid+'.epub','size':len(raw)}]}))

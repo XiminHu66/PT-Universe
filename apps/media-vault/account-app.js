@@ -6,13 +6,13 @@ export function mountAccountPage(options={}){
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const bytes=n=>(Number(n||0)/1048576).toFixed(1)+' MiB';
  const note=(message,bad=false)=>{$('notice').textContent=message;$('notice').className=bad?'error':'';};
- let current={status:'unpaired'},session=null,generation=0,saver=null,disposed=false,loading=null,sending=false,jobsCache=[],filter='all',transferReady=false,presetKey='',catalog=[],catalogSource='',catalogLoading=false;
+ let current={status:'unpaired'},session=null,generation=0,saver=null,disposed=false,loading=null,sending=false,jobsCache=[],filter='all',transferReady=false,presetKey='',catalog=[],catalogSource='',catalogLoading=false,catalogEpoch=0,catalogTotal=0,pendingAction=null;
  const client=(options.createConnection||createAccountConnection)({...options.connection,origin,onState:renderState});
  function clearFiles(){saver?.dispose();saver=null;$('filesList').replaceChildren();if($('files').open)$('files').close();}
  function renderState(state){
   const previousReadOnly=current.read_only;current=state;const approved=state.status==='approved'&&!state.unverified;
   const next=approved?state.session_id:null;
-  if(next!==session||state.read_only!==previousReadOnly){session=next;++generation;clearFiles();$('jobs').replaceChildren();$('budget').textContent='';jobsCache=[];transferReady=false;clearCatalog();$('taskSummary').textContent='';$('serviceStatus').textContent='';}
+  if(next!==session||state.read_only!==previousReadOnly){if(approved)note('');clearAction();session=next;++generation;clearFiles();$('jobs').replaceChildren();$('budget').textContent='';jobsCache=[];transferReady=false;clearCatalog();$('taskSummary').textContent='';$('serviceStatus').textContent='';}
   if(!approved||state.read_only)clearFiles();
   $('sessionStatus').textContent=state.message||(state.status==='approved'?'已登录 · 到期 '+new Date(state.expires_at).toLocaleString('zh-CN'):state.status==='pending'?'等待管理员批准 · 请在五分钟内完成配对':'尚未登录，请申请配对。');
   $('pairCode').textContent=state.pair_code?'配对编号：'+state.pair_code:'';
@@ -23,19 +23,29 @@ export function mountAccountPage(options={}){
   const pilot=approved&&state.scope==='submission-test-no-transfer';
   const fileTest=approved&&state.scope==='three-file-save-test';
   $('pilotFields').hidden=!pilot;$('sourceFields').hidden=pilot||fileTest;
+  const novel=approved&&state.scope==='novel-ux-no-transfer';
+  if(novel){$('kind').value='novel';$('url').value=state.novel_scope.url;$('textOnly').checked=true;if($('indices').value==='1-3')$('indices').value='1-2';}
+  $('kind').disabled=novel;$('url').readOnly=novel;$('textOnly').disabled=novel;
   $('url').required=!pilot&&$('kind').value!=='manga';
+  $('novelFields').hidden=$('kind').value!=='novel';$('mangaFields').hidden=$('kind').value!=='manga';$('urlFields').hidden=$('kind').value==='manga';
   const key=pilot?JSON.stringify(state.presets||[]):'';
   if(key!==presetKey){presetKey=key;$('pilotPreset').innerHTML=(state.presets||[]).map((p,i)=>'<option value="'+i+'">'+esc(p.label)+'</option>').join('');}
   if(pilot)$('submitStatus').textContent='指定样例合计最多四项，剩余 '+state.jobs_remaining+' 项。文件传输与下载票据关闭。';
-  if(!pilot)$('submitStatus').textContent=approved&&state.read_only?'仅验证登录恢复、额度和退出；任务提交、取消和文件保存未开放。':approved?(state.can_submit?'本次登录最多创建五项任务；仍可查询或重试已提交的任务。':'当前只允许查看任务，提交暂未开放。'):'登录后查看提交权限。';
+  if(!pilot)$('submitStatus').textContent=approved&&state.read_only?'仅验证登录恢复、额度和退出；任务提交、取消和文件保存未开放。':approved?(state.can_submit?'本次登录最多创建 '+state.job_limit+' 项任务；重建会使用新额度。':'当前只允许查看任务，提交暂未开放。'):'登录后查看提交权限。';
+  if(novel)$('submitStatus').textContent='30 分钟小说操作验收 · 固定来源前两章 · 仅文字 · 三种排版 · 全账号最多四项任务（含重建） · 零下载票据。';
   if(fileTest)$('submitStatus').textContent='仅保存三个指定文件，不创建或修改任务。整个账号最多三张票据，每个文件仅一次；失败后请记录结果，勿重复请求。';
   if(!approved){$('jobs').textContent='请先完成登录，网络恢复后可刷新状态。';jobsCache=[];}else renderJobs();
  }
- function clearCatalog(){catalog=[];catalogSource='';$('catalogPanel').hidden=true;$('chapterList').replaceChildren();$('catalogStatus').textContent='';}
+ function clearCatalog(){++catalogEpoch;catalogTotal=0;catalog=[];catalogSource='';$('catalogPanel').hidden=true;$('chapterList').replaceChildren();$('catalogStatus').textContent='';$('selectedCount').textContent='';}
+ function selectedChapters(){
+  const indices=chapterIndices($('indices').value),max=current.novel_scope?.max_chapter||catalogTotal;
+  if(max&&indices.some(i=>i>=max))throw Error('章节序号不能超过 '+max+'。');
+  return indices;
+ }
+ function visibleChapters(){const query=$('catalogSearch').value.trim().toLowerCase();return catalog.filter(c=>(!query||c.title.toLowerCase().includes(query))&&(!current.novel_scope||c.index<current.novel_scope.max_chapter));}
  function drawChapters(){
-  let selected=[];try{selected=chapterIndices($('indices').value);}catch{}
-  const query=$('catalogSearch').value.trim().toLowerCase();
-  $('chapterList').innerHTML=catalog.filter(c=>!query||c.title.toLowerCase().includes(query)).map(c=>'<label class="check"><input type="checkbox" data-chapter="'+c.index+'"'+(selected.includes(c.index)?' checked':'')+'>'+esc((c.index+1)+'. '+c.title)+'</label>').join('')||'<p>没有匹配的章节。</p>';
+  let selected=[];try{selected=selectedChapters();$('selectedCount').textContent='已选 '+selected.length+' 章'+(current.novel_scope?' · 本轮仅前两章':' · 每项最多 100 章');}catch(e){$('selectedCount').textContent=$('indices').value.trim()?e.message:'尚未选择章节';}
+  $('chapterList').innerHTML=visibleChapters().map(c=>'<label class="check"><input type="checkbox" data-chapter="'+c.index+'"'+(selected.includes(c.index)?' checked':'')+'>'+esc((c.index+1)+'. '+c.title)+'</label>').join('')||'<p>没有匹配的章节。</p>';
  }
  function renderJobs(){
   const active=['queued','running','active','waiting'],attention=['error','cancelled','expired'];
@@ -57,41 +67,48 @@ export function mountAccountPage(options={}){
  }
  async function run(fn){try{await fn();}catch(e){if(!disposed)note(e.message,true);}finally{if(!disposed)renderState(client.current());}}
  $('pair').onclick=()=>run(()=>client.pair());$('logout').onclick=()=>run(()=>client.logout());$('refresh').onclick=reload;
- $('kind').onchange=()=>{const kind=$('kind').value;$('urlFields').hidden=kind==='manga';$('url').required=kind!=='manga'&&current.scope!=='submission-test-no-transfer';$('mangaFields').hidden=kind!=='manga';$('novelFields').hidden=kind!=='novel';};
+ $('kind').onchange=()=>{clearCatalog();const kind=$('kind').value;$('urlFields').hidden=kind==='manga';$('url').required=kind!=='manga'&&current.scope!=='submission-test-no-transfer';$('mangaFields').hidden=kind!=='manga';$('novelFields').hidden=kind!=='novel';};
  $('layout').onchange=()=>{const p=layouts[$('layout').value]||layouts.compact;$('layoutPreview').style.cssText='font-size:'+p.fontScale+'%;line-height:'+p.lineHeight;for(const el of $('layoutPreview').querySelectorAll('p'))el.style.cssText='text-indent:'+p.indent+'em;margin:0 0 '+p.paragraphGap+'em';};
  $('loadCatalog').onclick=()=>run(async()=>{
   if(catalogLoading)return;catalogLoading=true;$('loadCatalog').disabled=true;
-  const source=$('url').value.trim(),g=generation;$('catalogStatus').textContent='正在读取目录…';
-  try{const data=await client.read('/novel/catalog?'+new URLSearchParams({url:source}));if(g!==generation||disposed||source!==$('url').value.trim())return;
-   catalog=data.chapters;catalogSource=source;$('catalogPanel').hidden=false;$('catalogStatus').textContent=data.title+' · '+data.total+' 章'+(data.truncated?'（目录显示前 5000 章，其他章节可输入序号）':'')+' · 每项最多选 100 章';drawChapters();
-  }catch(e){if(g===generation&&!disposed){clearCatalog();$('catalogStatus').textContent=e.message;}}
+  const source=$('url').value.trim(),g=generation,epoch=++catalogEpoch;$('catalogStatus').textContent='正在读取目录…';
+  try{const data=await client.read('/novel/catalog?'+new URLSearchParams({url:source}));if(g!==generation||disposed||source!==$('url').value.trim()||epoch!==catalogEpoch||$('kind').value!=='novel')return;
+   catalog=data.chapters;catalogTotal=data.total;catalogSource=source;$('catalogPanel').hidden=false;$('catalogStatus').textContent=data.title+' · '+data.total+' 章'+(data.truncated?'（目录显示前 5000 章，其他章节可输入序号）':'')+' · 每项最多选 100 章';drawChapters();
+  }catch(e){if(g===generation&&epoch===catalogEpoch&&!disposed){clearCatalog();$('catalogStatus').textContent=e.message;}}
   finally{catalogLoading=false;$('loadCatalog').disabled=false;}
  });
- $('url').oninput=()=>{if(catalogSource&&catalogSource!==$('url').value.trim())clearCatalog();};
+ $('url').oninput=clearCatalog;
  $('catalogSearch').oninput=drawChapters;
  $('indices').onchange=drawChapters;
- $('selectRange').onclick=()=>run(async()=>{chapterIndices($('indices').value);drawChapters();});
+ $('selectRange').onclick=()=>run(async()=>{selectedChapters();drawChapters();});
+ $('selectVisible').onclick=()=>{const selected=visibleChapters().slice(0,100);$('indices').value=selected.map(c=>c.index+1).join(',');drawChapters();if(visibleChapters().length>100)note('已选筛选结果的前 100 章。');};
  $('clearChapters').onclick=()=>{$('indices').value='';drawChapters();};
  $('chapterList').onchange=e=>{const input=e.target;if(input.dataset?.chapter===undefined)return;let selected=[];try{selected=chapterIndices($('indices').value);}catch{}
   const index=Number(input.dataset.chapter),set=new Set(selected);if(input.checked)set.add(index);else set.delete(index);
   if(set.size>100){input.checked=false;note('每项最多选择 100 章。',true);return;}
-  $('indices').value=[...set].sort((a,b)=>a-b).map(i=>i+1).join(',');
+  $('indices').value=[...set].sort((a,b)=>a-b).map(i=>i+1).join(',');drawChapters();
  };
  $('taskFilter').onchange=()=>{filter=$('taskFilter').value;renderJobs();};
  $('jobForm').onsubmit=e=>{e.preventDefault();if(sending)return;void run(async()=>{
   const spec=current.scope==='submission-test-no-transfer'?structuredClone(current.presets?.[Number($('pilotPreset').value)]?.spec):formSpec({kind:$('kind').value,url:$('url').value,indices:$('indices').value,textOnly:$('textOnly').checked,layout:$('layout').value,title:$('mangaTitle').value,pages:$('pages').value});
+  if(spec?.kind==='novel')selectedChapters();
   if(!spec)throw Error('请先选择本轮指定样例。');
   sending=true;renderState(current);const g=generation;
   try{const result=await client.submit(spec);if(g!==generation||disposed)return;note('任务已确认：'+result.id+(result.replayed?'（已存在，无重复创建）':''));await reload();}
   catch(e){if(g===generation&&!disposed)note(e.message+' 结果不确定时，请用原内容重试。',true);}
   finally{sending=false;}
  });};
+ function clearAction(){pendingAction=null;if($('actionConfirm').open)$('actionConfirm').close();}
+ function confirmAction(action){pendingAction=action;$('actionMessage').textContent=action.retry?'按原任务的来源、章节与排版新建任务，将使用一项新额度。继续重建？':'取消后后台将停止此任务。之后重新提交或重建会使用新额度。继续取消？';$('actionConfirm').showModal();}
+ $('dismissAction').onclick=clearAction;$('actionConfirm').oncancel=clearAction;
+ $('confirmAction').onclick=()=>{const action=pendingAction;clearAction();if(action&&action.generation===generation&&current.can_submit)void run(()=>mutateJob(action));};
+ async function mutateJob(action){const g=generation;const result=action.retry?await client.submit({retry_of:action.id}):await client.read('/jobs/cancel',{id:action.id});if(g===generation&&!disposed){note(action.retry?'重建任务已确认：'+result.id:'任务已取消。');await reload();}}
  $('jobs').onclick=e=>{if(current.read_only)return;const button=e.target.closest('button');if(!button)return;
   const id=button.dataset.files||button.dataset.cancel||button.dataset.retry;if(!/^[a-f0-9]{24}$/.test(id||''))return;
+  if(button.dataset.retry||button.dataset.cancel){if(current.can_submit)confirmAction({id,retry:!!button.dataset.retry,generation});return;}
   void run(async()=>{
    const g=generation;button.disabled=true;
-   try{if(button.dataset.retry){const result=await client.submit({retry_of:id});if(g===generation){note('重建任务已确认：'+result.id);await reload();}return;}
-    if(button.dataset.cancel){await client.read('/jobs/cancel',{id});if(g===generation)await reload();return;}
+   try{
     const data=await client.read('/jobs/files?id='+id);if(g!==generation||disposed)return;clearFiles();
     saver=(options.createSaver||createNativeSaver)({baseURL:origin,ticketPath:'/app-api/download-ticket',onState:s=>{if(g===generation&&!disposed)note(s.message,s.phase==='error');}});
     $('filesList').innerHTML=data.files.map((f,i)=>'<div class="file-row"><strong>'+esc(f.name)+'</strong><p>'+bytes(f.size)+'</p><button data-save="'+i+'"'+(transferReady?'':' disabled')+'>'+(transferReady?'保存到本机':'文件传输未开放')+'</button></div>').join('')||'<p>暂无可保存文件。</p>';
@@ -106,6 +123,6 @@ export function mountAccountPage(options={}){
  const timer=schedule(()=>{if(!doc.hidden)void reload();},30000);
  $('kind').onchange();$('layout').onchange();
  void reload();
- return {reload,client,dispose(){disposed=true;++generation;cancel(timer);client.dispose();clearFiles();},current:()=>current};
+ return {reload,client,dispose(){disposed=true;++generation;cancel(timer);client.dispose();clearFiles();clearAction();},current:()=>current};
 }
 if(typeof document!=='undefined')mountAccountPage();

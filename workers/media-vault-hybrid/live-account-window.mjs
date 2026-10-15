@@ -7,7 +7,7 @@ let stable=0;
 for(let attempt=0;attempt<20;attempt++){
  const results=await Promise.all(['/app/','/app/account-app.js','/app/account-session.js'].map(async path=>{
   const response=await fetch(base+path,{cache:'no-store',redirect:'error',signal:AbortSignal.timeout(30000)}),text=await response.text();
-  if(response.status===200){assert.equal(response.headers.get('Cache-Control'),'no-store');if(path==='/app/'){assert.match(text,process.env.OPERATION==='account-files-on'?/20 分钟账号文件保存验收/:process.env.OPERATION==='account-submit-on'?/30 分钟账号任务验收/:/20 分钟账号登录验收/);assert.ok(!text.includes('批准后最长保留七天'));}}
+  if(response.status===200){assert.equal(response.headers.get('Cache-Control'),'no-store');if(path==='/app/'){assert.match(text,process.env.OPERATION==='account-novel-on'?/30 分钟小说操作验收/:process.env.OPERATION==='account-files-on'?/20 分钟账号文件保存验收/:process.env.OPERATION==='account-submit-on'?/30 分钟账号任务验收/:/20 分钟账号登录验收/);assert.ok(!text.includes('批准后最长保留七天'));}}
   return response.status;
  }));
  stable=results.every(status=>status===200)?stable+1:0;if(stable>=2)break;

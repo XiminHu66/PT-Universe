@@ -1,4 +1,4 @@
-# Media Vault project checkpoint — four-source account acceptance
+# Media Vault project checkpoint — novel workflow candidate
 
 This document consolidates the original remaining sequence: metadata integration,
 small-file transfer, larger-file/recovery, budget/retention, real source scenarios,
@@ -331,3 +331,60 @@ and workflow YAML parsing passed; no account or stream permission was re-enabled
    establish general provider compatibility or unrestricted source access.
 3. Review the complete acceptance results and final integration UX, then make
    the separate merge and production-publication decision. PR 104 remains draft.
+
+
+## Novel workflow checkpoint — prepared 2026-10-15, activation pending
+
+The next original-plan item now has a concrete implementation and bounded
+acceptance mode. This advances catalog/chapter/layout/cancel/rebuild work; it
+does not repeat the completed three-file relay acceptance or open broad account
+access. Production remains unchanged and PR 104 remains draft.
+
+The account UI now supports selecting the filtered chapter results (up to 100),
+a visible selected count, loaded-catalog bounds checking, and explicit empty or
+out-of-range feedback. Changing source/type or ending the session invalidates
+in-flight catalog results. Cancel and rebuild require a confirmation dialog;
+rebuild sends only the prior job reference and uses the server-owned canonical
+request. A newly approved login clears stale authentication errors. The limited
+novel mode locks the source, task kind and text-only preference while retaining
+real catalog/chapter/layout controls.
+
+### Concrete next live scope
+
+- At most thirty minutes and one approved browser device in a fresh isolated realm.
+- Only `https://www.wenku8.net/book/3551.htm`, chapter indices 0 and/or 1
+  (UI chapters 1–2), always text-only, with one of compact/standard/large presets.
+- Four account-wide jobs total, including rebuilds. Atomic SQL enforces the cap;
+  logout and replacement approval cannot reset the allowance.
+- Fixed-source catalog lookup, cancellation and canonical rebuild are permitted.
+  Zero download tickets; Worker and outbound Agent streaming stay OFF.
+- `account-novel-on` validates the closed starting state and fresh realm without
+  a migration. `account-novel-off` closes access/submission and resets deadlines.
+  The default configuration stays closed. Enabling this scope is a separate,
+  concrete action-time confirmation; it has not happened in this checkpoint.
+
+Execute the real controls in one batch: read/filter catalog, select the first
+one/two chapters, inspect all three layout previews, submit/cancel one compact
+request and rebuild it, then submit standard and large recipes. Do not exceed
+four jobs or silently reset the window if a source fails or cancellation arrives
+after completion. Confirm results, reload/session recovery, logout/revoke and
+final closed-route/unchanged transfer accounting. Source rejection is recorded
+as a result; no access-control bypass or source substitution is allowed.
+
+### Automated evidence and remaining boundary
+
+The complete Worker suite passes. New actual-controller tests verify filtered
+selection/counts/bounds and no cancel/rebuild request before confirmation.
+The actual Worker with SQLite verifies fixed catalog metadata, recipe rejection,
+canonical rebuild, concurrent four-job caps across session replacement, one
+device, expiry, no tickets and no transfer ledger writes. All three exact leased
+layout payloads also execute through the companion adapter and EPUB builder
+against local source fixtures; packaged CSS matches every preset field and no
+illustrations are requested. This is component-contract evidence, not a live
+source or browser-visual acceptance claim.
+
+After the bounded live novel workflow, remaining original-plan items are the
+user's Windows save behavior, longer device persistence, broader Chinese manga
+provider coverage, final integration review and a separate merge/publication
+decision. Previously completed metadata/relay/recovery/retention tests need not
+be repeated unless a relevant implementation changes.

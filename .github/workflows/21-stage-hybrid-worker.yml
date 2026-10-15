@@ -6,7 +6,7 @@ on:
         description: Metadata operation
         type: choice
         default: verify
-        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership, account-approve, account-revoke, account-login-on, account-login-off, account-submit-on, account-submit-off, account-rc-off, account-off-check, account-files-check, account-files-on, account-files-off]
+        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership, account-approve, account-revoke, account-login-on, account-login-off, account-submit-on, account-submit-off, account-rc-off, account-off-check, account-files-check, account-files-on, account-files-off, account-novel-on, account-novel-off]
       pair_code:
         description: Browser pairing request ID
         type: string
@@ -85,7 +85,7 @@ jobs:
           node workers/media-vault-hybrid/live-account-off.mjs
           node workers/media-vault-hybrid/account-file-preflight.mjs
       - name: Deploy bounded account window or closed release candidate
-        if: inputs.operation == 'account-login-on' || inputs.operation == 'account-login-off' || inputs.operation == 'account-submit-on' || inputs.operation == 'account-submit-off' || inputs.operation == 'account-rc-off' || inputs.operation == 'account-files-on' || inputs.operation == 'account-files-off'
+        if: inputs.operation == 'account-login-on' || inputs.operation == 'account-login-off' || inputs.operation == 'account-submit-on' || inputs.operation == 'account-submit-off' || inputs.operation == 'account-rc-off' || inputs.operation == 'account-files-on' || inputs.operation == 'account-files-off' || inputs.operation == 'account-novel-on' || inputs.operation == 'account-novel-off'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -99,7 +99,7 @@ jobs:
           set -euo pipefail
           npm ci --prefix workers/pt-universe-api
           npm test --prefix workers/media-vault-hybrid
-          if [[ "$OPERATION" == account-login-on || "$OPERATION" == account-submit-on ]]; then
+          if [[ "$OPERATION" == account-login-on || "$OPERATION" == account-submit-on || "$OPERATION" == account-novel-on ]]; then
             node workers/media-vault-hybrid/live-stream-off.mjs
             node workers/media-vault-hybrid/live-account-off.mjs
           fi
@@ -109,8 +109,10 @@ jobs:
             node workers/media-vault-hybrid/account-file-preflight.mjs
           fi
           node workers/media-vault-hybrid/account-window-config.mjs
-          if [[ "$OPERATION" == account-login-on || "$OPERATION" == account-submit-on ]]; then
-            if [[ "$OPERATION" == account-submit-on ]]; then
+          if [[ "$OPERATION" == account-login-on || "$OPERATION" == account-submit-on || "$OPERATION" == account-novel-on ]]; then
+            if [[ "$OPERATION" == account-novel-on ]]; then
+              node workers/media-vault-hybrid/migration-check.mjs ready-novel
+            elif [[ "$OPERATION" == account-submit-on ]]; then
               node workers/media-vault-hybrid/migration-check.mjs ready-submission
             else
               node workers/media-vault-hybrid/migration-check.mjs ready
@@ -121,7 +123,7 @@ jobs:
           npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/account-window.json
           if [[ "$OPERATION" == account-files-on ]]; then
             node workers/media-vault-hybrid/live-account-window.mjs
-          elif [[ "$OPERATION" == account-login-on || "$OPERATION" == account-submit-on ]]; then
+          elif [[ "$OPERATION" == account-login-on || "$OPERATION" == account-submit-on || "$OPERATION" == account-novel-on ]]; then
             node workers/media-vault-hybrid/live-stream-off.mjs
             node workers/media-vault-hybrid/live-account-window.mjs
           else

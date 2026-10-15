@@ -1,3 +1,4 @@
+import {appNovelUx,novelUxPermits,NOVEL_UX_SOURCE,NOVEL_UX_JOBS} from './account-novel-scope.js';
 import {appFileTest,fileTestPermits} from './account-file-scope.js';
 import {appEnabled,appCookieDigest,ownerAuthorized,randomHex,appCookie,APP_LIFETIME,appDeadline,appReadOnly,appSubmissionTest,appFilesAllowed,appJobLimit,appTicketLimit,appScope} from './account-auth.js';
 import {digest} from './session-auth.js';
@@ -64,7 +65,7 @@ export async function accountRoute(request,env){
    if(!ownerAuthorized(request,env))return fail(401,'Owner authorization required');
    const data=await body(request);if(!/^[a-f0-9]{32}$/.test(data.code||''))return fail(400,'Invalid account request code');
    const now=Date.now();
-   const result=await env.DB.prepare("UPDATE mv_hybrid_app_sessions SET status='approved',account_id=?,expires_at=MIN(created_at+?,?) WHERE pair_code=? AND account_id=? AND status='pending' AND expires_at>? AND (SELECT COUNT(*) FROM mv_hybrid_app_sessions WHERE status='approved' AND account_id=? AND expires_at>?)<?").bind(env.MEDIA_APP_ACCOUNT_ID,APP_LIFETIME,appDeadline(env),data.code,env.MEDIA_APP_ACCOUNT_ID,now,env.MEDIA_APP_ACCOUNT_ID,now,appFileTest(env)?1:3).run();
+   const result=await env.DB.prepare("UPDATE mv_hybrid_app_sessions SET status='approved',account_id=?,expires_at=MIN(created_at+?,?) WHERE pair_code=? AND account_id=? AND status='pending' AND expires_at>? AND (SELECT COUNT(*) FROM mv_hybrid_app_sessions WHERE status='approved' AND account_id=? AND expires_at>?)<?").bind(env.MEDIA_APP_ACCOUNT_ID,APP_LIFETIME,appDeadline(env),data.code,env.MEDIA_APP_ACCOUNT_ID,now,env.MEDIA_APP_ACCOUNT_ID,now,appFileTest(env)||appNovelUx(env)?1:3).run();
    if(!result.meta?.changes)return fail(409,'Request expired, already handled or device limit reached');
    const session=await env.DB.prepare('SELECT id,expires_at FROM mv_hybrid_app_sessions WHERE pair_code=?').bind(data.code).first();
    return reply({ok:true,session_id:session.id,expires_at:session.expires_at,scope:appScope(env),job_limit:appJobLimit(env),ticket_limit:appTicketLimit(env)});
@@ -75,14 +76,15 @@ export async function accountRoute(request,env){
    if(current.account_id!==env.MEDIA_APP_ACCOUNT_ID)return fail(403,'Account scope changed');
    if(current.status==='pending')return reply({status:'pending',pair_code:current.pair_code,session_id:current.id,expires_at:current.expires_at});
    const fileUsage=appFileTest(env)?Number((await env.DB.prepare('SELECT COUNT(*) n FROM mv_hybrid_app_tickets a JOIN mv_hybrid_tickets t ON t.digest=a.digest JOIN mv_hybrid_app_sessions s ON s.digest=a.session_digest WHERE s.account_id=? AND t.expires_at>?').bind(current.account_id,Number(env.MEDIA_APP_FILE_TEST_START)).first())?.n||0):current.issued_tickets;
-   const used=appSubmissionTest(env)?Number((await env.DB.prepare('SELECT COUNT(*) n FROM mv_hybrid_account_jobs WHERE account_id=?').bind(current.account_id).first())?.n||0):current.created_jobs;
-   return reply({status:'approved',session_id:current.id,expires_at:Math.min(current.expires_at,appDeadline(env)),scope:appScope(env),read_only:appReadOnly(env),can_submit:!appReadOnly(env)&&!appFileTest(env)&&env.ENABLE_APP_SUBMISSION==='true',can_download:appFilesAllowed(env)&&streamingEnabled(env),job_limit:appJobLimit(env),ticket_limit:appTicketLimit(env),jobs_remaining:Math.max(0,appJobLimit(env)-used),tickets_remaining:Math.max(0,appTicketLimit(env)-fileUsage),...(appSubmissionTest(env)?{presets:PILOT_PRESETS}:{} )});
+   const used=appSubmissionTest(env)||appNovelUx(env)?Number((await env.DB.prepare('SELECT COUNT(*) n FROM mv_hybrid_account_jobs WHERE account_id=?').bind(current.account_id).first())?.n||0):current.created_jobs;
+   return reply({status:'approved',session_id:current.id,expires_at:Math.min(current.expires_at,appDeadline(env)),scope:appScope(env),read_only:appReadOnly(env),can_submit:!appReadOnly(env)&&!appFileTest(env)&&env.ENABLE_APP_SUBMISSION==='true',can_download:appFilesAllowed(env)&&streamingEnabled(env),job_limit:appJobLimit(env),ticket_limit:appTicketLimit(env),jobs_remaining:Math.max(0,appJobLimit(env)-used),tickets_remaining:Math.max(0,appTicketLimit(env)-fileUsage),...(appSubmissionTest(env)?{presets:PILOT_PRESETS}:{} ),...(appNovelUx(env)?{novel_scope:{url:NOVEL_UX_SOURCE,max_chapter:2,text_only:true}}:{})});
   }
   if(current.status!=='approved'||current.account_id!==env.MEDIA_APP_ACCOUNT_ID)return fail(403,'Approved account required');
   if(request.method!=='GET'&&request.headers.get('Origin')!==u.origin)return fail(403,'Same-origin mutation required');
   if(appReadOnly(env)&&request.method!=='GET')return fail(403,'Login acceptance is read-only');
   if(p==='/app-api/novel/catalog'&&request.method==='GET'){
    if(appReadOnly(env)||appSubmissionTest(env)||appFileTest(env))return fail(403,'Catalog lookup is outside this fixed acceptance scope');
+   if(appNovelUx(env)&&u.searchParams.get('url')!==NOVEL_UX_SOURCE)return fail(403,'Only the fixed novel catalog is permitted');
    if(u.searchParams.size!==1)return fail(400,'Source URL required');
    try{return reply(await novelCatalog(u.searchParams.get('url'),env));}
    catch(e){return fail([400,429].includes(e.status)?e.status:503,'Catalog unavailable; verify source access and retry later');}
@@ -107,6 +109,7 @@ export async function accountRoute(request,env){
     if(!['error','cancelled','expired'].includes(prior.status))return fail(409,'Only failed, cancelled or expired jobs can be rebuilt');
     spec=canonicalJob(JSON.parse(prior.request_json));
    }else spec=canonicalJob(raw);
+   if(appNovelUx(env)&&!novelUxPermits(spec))return fail(403,'Only the fixed two-chapter text-only novel UX recipes are permitted');
    if(appSubmissionTest(env)&&!pilotPermits(spec))return fail(403,'Only the four fixed pilot recipes are permitted');
    if(!spec||!/^[a-f0-9]{32}$/.test(raw.request_key||''))return fail(400,'Valid job and request key required');
    const fingerprint=await digest(JSON.stringify(spec));
@@ -114,7 +117,7 @@ export async function accountRoute(request,env){
    const previous=await replay();if(previous)return previous.request_hash===fingerprint?reply({id:previous.job_id,replayed:true}):fail(409,'Request key was used for different input');
    const id=randomHex(12),now=Date.now();
    const batch=await env.DB.batch([
-    env.DB.prepare("INSERT INTO mv_hybrid_jobs(id,kind,request_json,status,created_at,updated_at) SELECT ?,?,?,'queued',?,? WHERE (SELECT COUNT(*) FROM mv_hybrid_jobs WHERE status IN ("+active+"))<5 AND EXISTS(SELECT 1 FROM mv_hybrid_app_sessions WHERE digest=? AND status='approved' AND account_id=? AND expires_at>? AND created_jobs<?) AND NOT EXISTS(SELECT 1 FROM mv_hybrid_account_jobs WHERE account_id=? AND request_key=?)"+(appSubmissionTest(env)?" AND (SELECT COUNT(*) FROM mv_hybrid_account_jobs WHERE account_id=?)<4 AND NOT EXISTS(SELECT 1 FROM mv_hybrid_account_jobs WHERE account_id=? AND request_hash=?)":'')).bind(id,spec.kind,JSON.stringify(spec),now,now,current.digest,current.account_id,now,appJobLimit(env),current.account_id,raw.request_key,...(appSubmissionTest(env)?[current.account_id,current.account_id,fingerprint]:[])),
+    env.DB.prepare("INSERT INTO mv_hybrid_jobs(id,kind,request_json,status,created_at,updated_at) SELECT ?,?,?,'queued',?,? WHERE (SELECT COUNT(*) FROM mv_hybrid_jobs WHERE status IN ("+active+"))<5 AND EXISTS(SELECT 1 FROM mv_hybrid_app_sessions WHERE digest=? AND status='approved' AND account_id=? AND expires_at>? AND created_jobs<?) AND NOT EXISTS(SELECT 1 FROM mv_hybrid_account_jobs WHERE account_id=? AND request_key=?)"+(appSubmissionTest(env)?" AND (SELECT COUNT(*) FROM mv_hybrid_account_jobs WHERE account_id=?)<4 AND NOT EXISTS(SELECT 1 FROM mv_hybrid_account_jobs WHERE account_id=? AND request_hash=?)":'')+(appNovelUx(env)?" AND (SELECT COUNT(*) FROM mv_hybrid_account_jobs WHERE account_id=?)<?":'')).bind(id,spec.kind,JSON.stringify(spec),now,now,current.digest,current.account_id,now,appJobLimit(env),current.account_id,raw.request_key,...(appSubmissionTest(env)?[current.account_id,current.account_id,fingerprint]:[]),...(appNovelUx(env)?[current.account_id,NOVEL_UX_JOBS]:[])),
     env.DB.prepare('INSERT INTO mv_hybrid_account_jobs(job_id,account_id,request_key,request_hash,created_by_digest) SELECT ?,?,?,?,? WHERE EXISTS(SELECT 1 FROM mv_hybrid_jobs WHERE id=?)').bind(id,current.account_id,raw.request_key,fingerprint,current.digest,id),
     env.DB.prepare('UPDATE mv_hybrid_app_sessions SET created_jobs=created_jobs+1 WHERE digest=? AND EXISTS(SELECT 1 FROM mv_hybrid_account_jobs WHERE job_id=?)').bind(current.digest,id)
    ]);
