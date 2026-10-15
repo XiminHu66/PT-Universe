@@ -1,4 +1,4 @@
-import {appEnabled,appCookieDigest,ownerAuthorized,randomHex,appCookie,APP_LIFETIME,APP_JOB_LIMIT,APP_TICKET_LIMIT} from './account-auth.js';
+import {appEnabled,appCookieDigest,ownerAuthorized,randomHex,appCookie,APP_LIFETIME,APP_JOB_LIMIT,APP_TICKET_LIMIT,appDeadline,appReadOnly} from './account-auth.js';
 import {digest} from './session-auth.js';
 import {permittedJob,rowFormat} from './job-contract.js';
 import {transferBudget,streamingEnabled} from './limits.js';
@@ -58,30 +58,31 @@ export async function accountRoute(request,env){
    // A browser must explicitly logout before changing its cookie, so old
    // pending or approved grants cannot be silently abandoned and multiplied.
    if(current&&['pending','approved'].includes(current.status))return fail(409,'Logout before requesting a replacement session');
-   const token=randomHex(32),code=randomHex(16),id=randomHex(12),now=Date.now();
-   const result=await env.DB.prepare("INSERT INTO mv_hybrid_app_sessions(digest,id,pair_code,created_at,expires_at) SELECT ?,?,?,?,? WHERE (SELECT COUNT(*) FROM mv_hybrid_app_sessions WHERE status='pending' AND expires_at>?)<10").bind(await digest(token),id,code,now,now+5*60000,now).run();
+   const token=randomHex(32),code=randomHex(16),id=randomHex(12),now=Date.now(),expires=Math.min(now+5*60000,appDeadline(env));
+   const result=await env.DB.prepare("INSERT INTO mv_hybrid_app_sessions(digest,id,pair_code,account_id,created_at,expires_at) SELECT ?,?,?,?,?,? WHERE (SELECT COUNT(*) FROM mv_hybrid_app_sessions WHERE status='pending' AND expires_at>?)<10").bind(await digest(token),id,code,env.MEDIA_APP_ACCOUNT_ID,now,expires,now).run();
    if(!result.meta?.changes)return fail(429,'Too many pending account requests');
-   return reply({status:'pending',pair_code:code,session_id:id,expires_at:now+5*60000},201,{'Set-Cookie':appCookie(token,APP_LIFETIME/1000)});
+   return reply({status:'pending',pair_code:code,session_id:id,expires_at:expires},201,{'Set-Cookie':appCookie(token,Math.max(0,Math.floor(Math.min(APP_LIFETIME,appDeadline(env)-now)/1000)))});
   }
   if(p==='/app-auth/approve'){
    if(request.method!=='POST')return fail(405,'POST required');
    if(!ownerAuthorized(request,env))return fail(401,'Owner authorization required');
    const data=await body(request);if(!/^[a-f0-9]{32}$/.test(data.code||''))return fail(400,'Invalid account request code');
    const now=Date.now();
-   const result=await env.DB.prepare("UPDATE mv_hybrid_app_sessions SET status='approved',account_id=?,expires_at=created_at+? WHERE pair_code=? AND status='pending' AND expires_at>? AND (SELECT COUNT(*) FROM mv_hybrid_app_sessions WHERE status='approved' AND account_id=? AND expires_at>?)<3").bind(env.MEDIA_APP_ACCOUNT_ID,APP_LIFETIME,data.code,now,env.MEDIA_APP_ACCOUNT_ID,now).run();
+   const result=await env.DB.prepare("UPDATE mv_hybrid_app_sessions SET status='approved',account_id=?,expires_at=MIN(created_at+?,?) WHERE pair_code=? AND account_id=? AND status='pending' AND expires_at>? AND (SELECT COUNT(*) FROM mv_hybrid_app_sessions WHERE status='approved' AND account_id=? AND expires_at>?)<3").bind(env.MEDIA_APP_ACCOUNT_ID,APP_LIFETIME,appDeadline(env),data.code,env.MEDIA_APP_ACCOUNT_ID,now,env.MEDIA_APP_ACCOUNT_ID,now).run();
    if(!result.meta?.changes)return fail(409,'Request expired, already handled or device limit reached');
    const session=await env.DB.prepare('SELECT id,expires_at FROM mv_hybrid_app_sessions WHERE pair_code=?').bind(data.code).first();
-   return reply({ok:true,session_id:session.id,expires_at:session.expires_at,scope:'account-created jobs',job_limit:APP_JOB_LIMIT,ticket_limit:APP_TICKET_LIMIT});
+   return reply({ok:true,session_id:session.id,expires_at:session.expires_at,scope:appReadOnly(env)?'login-test-read-only':'account-created jobs',job_limit:appReadOnly(env)?0:APP_JOB_LIMIT,ticket_limit:appReadOnly(env)?0:APP_TICKET_LIMIT});
   }
   if(!current||!['pending','approved'].includes(current.status))return fail(403,'Account session expired or revoked');
   if(p==='/app-auth/session'){
    if(request.method!=='GET')return fail(405,'GET required');
-   if(current.status==='pending')return reply({status:'pending',pair_code:current.pair_code,session_id:current.id,expires_at:current.expires_at});
    if(current.account_id!==env.MEDIA_APP_ACCOUNT_ID)return fail(403,'Account scope changed');
-   return reply({status:'approved',session_id:current.id,expires_at:current.expires_at,scope:'account-created jobs',can_submit:env.ENABLE_APP_SUBMISSION==='true',jobs_remaining:Math.max(0,APP_JOB_LIMIT-current.created_jobs),tickets_remaining:Math.max(0,APP_TICKET_LIMIT-current.issued_tickets)});
+   if(current.status==='pending')return reply({status:'pending',pair_code:current.pair_code,session_id:current.id,expires_at:current.expires_at});
+   return reply({status:'approved',session_id:current.id,expires_at:Math.min(current.expires_at,appDeadline(env)),scope:appReadOnly(env)?'login-test-read-only':'account-created jobs',read_only:appReadOnly(env),can_submit:!appReadOnly(env)&&env.ENABLE_APP_SUBMISSION==='true',jobs_remaining:appReadOnly(env)?0:Math.max(0,APP_JOB_LIMIT-current.created_jobs),tickets_remaining:appReadOnly(env)?0:Math.max(0,APP_TICKET_LIMIT-current.issued_tickets)});
   }
   if(current.status!=='approved'||current.account_id!==env.MEDIA_APP_ACCOUNT_ID)return fail(403,'Approved account required');
   if(request.method!=='GET'&&request.headers.get('Origin')!==u.origin)return fail(403,'Same-origin mutation required');
+  if(appReadOnly(env)&&request.method!=='GET')return fail(403,'Login acceptance is read-only');
   if(p==='/app-api/health'&&request.method==='GET')return reply({ok:true,mode:'account-cookie',streaming:streamingEnabled(env)?'enabled':'not-live'});
   if(p==='/app-api/quota'&&request.method==='GET'){
    const period=new Date().toISOString().slice(0,7),q=await env.DB.prepare('SELECT transferred_bytes,reserved_bytes FROM mv_hybrid_transfer_usage WHERE month=?').bind(period).first();

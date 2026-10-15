@@ -6,6 +6,8 @@ const operation=process.env.OPERATION;
 // Existing acceptance windows must never grant the new account permissions.
 config.vars.ENABLE_APP_ACCESS='false';
 config.vars.ENABLE_APP_SUBMISSION='false';
+config.vars.MEDIA_APP_LOGIN_TEST_UNTIL='0';
+config.vars.MEDIA_APP_ACCOUNT_ID='';
 assert.ok(['deploy','prepare','stream-on','stream-off','large-on'].includes(operation));
 config.vars.ENABLE_DIRECT_STREAM=['stream-on','large-on'].includes(operation)?'true':'false';
 const ids=process.env.TEST_JOB_IDS||'';

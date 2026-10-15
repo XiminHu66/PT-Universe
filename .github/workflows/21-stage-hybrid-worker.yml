@@ -6,7 +6,7 @@ on:
         description: Metadata operation
         type: choice
         default: verify
-        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership, account-approve, account-revoke]
+        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership, account-approve, account-revoke, account-login-on, account-login-off]
       pair_code:
         description: Browser pairing request ID
         type: string
@@ -63,6 +63,40 @@ jobs:
             node workers/media-vault-hybrid/migration-check.mjs idempotent
           fi
           npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/test-window.json
+      - name: Deploy bounded read-only account login window or close it
+        if: inputs.operation == 'account-login-on' || inputs.operation == 'account-login-off'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+          AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
+          OPERATION: ${{ inputs.operation }}
+          REQUEST_ID: ${{ inputs.pair_code }}
+          ACCOUNT_ACTION: account-revoke
+        run: |
+          set -euo pipefail
+          npm ci --prefix workers/pt-universe-api
+          npm test --prefix workers/media-vault-hybrid
+          if [[ "$OPERATION" == account-login-on ]]; then
+            node workers/media-vault-hybrid/live-stream-off.mjs
+            node workers/media-vault-hybrid/live-account-off.mjs
+          fi
+          node workers/media-vault-hybrid/account-window-config.mjs
+          if [[ "$OPERATION" == account-login-on ]]; then
+            node workers/media-vault-hybrid/migration-check.mjs ready
+          fi
+          npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/account-window.json
+          if [[ "$OPERATION" == account-login-on ]]; then
+            node workers/media-vault-hybrid/live-stream-off.mjs
+            node workers/media-vault-hybrid/live-account-window.mjs
+          else
+            if [[ -n "$REQUEST_ID" ]]; then
+              node workers/media-vault-hybrid/account-session-admin.mjs
+            fi
+            node workers/media-vault-hybrid/live-stream-off.mjs
+            node workers/media-vault-hybrid/live-account-off.mjs
+          fi
       - name: Revoke temporary browser sessions
         if: inputs.operation == 'stream-off'
         env:

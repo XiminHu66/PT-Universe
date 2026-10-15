@@ -1,5 +1,5 @@
 import {transferBudget,streamingEnabled} from './limits.js';
-import {appEnabled,APP_TICKET_LIMIT} from './account-auth.js';
+import {appEnabled,appReadOnly,APP_TICKET_LIMIT} from './account-auth.js';
 // Session-only file transfer: source bytes travel VPS -> outbound WebSocket
 // -> Durable Object TransformStream -> browser. D1 stores ONLY byte counts.
 const hex=b=>Array.from(b).map(n=>n.toString(16).padStart(2,'0')).join('');
@@ -65,7 +65,7 @@ async function transportCore(request,env){
   }
   const appLink=await env.DB.prepare('SELECT session_digest FROM mv_hybrid_app_tickets WHERE digest=?').bind(digest).first();
   if(appLink){
-   const session=appEnabled(env)?await env.DB.prepare("SELECT digest FROM mv_hybrid_app_sessions WHERE digest=? AND account_id=? AND status='approved' AND expires_at>?").bind(appLink.session_digest,env.MEDIA_APP_ACCOUNT_ID,Date.now()).first():null;
+   const session=appEnabled(env)&&!appReadOnly(env)?await env.DB.prepare("SELECT digest FROM mv_hybrid_app_sessions WHERE digest=? AND account_id=? AND status='approved' AND expires_at>?").bind(appLink.session_digest,env.MEDIA_APP_ACCOUNT_ID,Date.now()).first():null;
    if(!session){await expireUnclaimedTicket(env,digest,t.month);return fail(403,'Account session unavailable');}
    const owned=await env.DB.prepare('SELECT job_id FROM mv_hybrid_account_jobs WHERE job_id=? AND account_id=?').bind(t.job_id,env.MEDIA_APP_ACCOUNT_ID).first();
    if(!owned){await expireUnclaimedTicket(env,digest,t.month);return fail(403,'Account job unavailable');}
@@ -108,7 +108,7 @@ async function expireUnclaimedTicket(env,digest,period){
 export async function issueFileTicket(env,data,session=null){
   if(!ready(env))return fail(503,'Direct transfer relay is disabled');
   const app=session?.kind==='app';
-  if(app&&(!appEnabled(env)||session.account_id!==env.MEDIA_APP_ACCOUNT_ID))return fail(403,'Account scope unavailable');
+  if(app&&(!appEnabled(env)||appReadOnly(env)||session.account_id!==env.MEDIA_APP_ACCOUNT_ID))return fail(403,'Account scope unavailable');
   const sessionTable=app?'mv_hybrid_app_sessions':'mv_hybrid_browser_sessions';
   const ticketTable=app?'mv_hybrid_app_tickets':'mv_hybrid_browser_tickets';
   if(!jid.test(data?.id||'')||!pathPattern.test(data?.path||'')||data.path.includes('..'))return fail(400,'Invalid file selection');

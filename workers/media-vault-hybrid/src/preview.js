@@ -1,5 +1,5 @@
 import assets from './preview-assets.js';
-import {appEnabled} from './account-auth.js';
+import {appEnabled,appReadOnly} from './account-auth.js';
 const temporaryAssets=new Set(['index.html','app.js','style.css','novels.css','native-download.js','scoped-session.js']);
 const accountAssets=new Set(['account.html','account-app.js','account-session.js','account.css','style.css','native-download.js']);
 const root='/acceptance/app/';
@@ -36,6 +36,7 @@ function accountPage(request,env,u){
  if(!accountAssets.has(name)||!Object.hasOwn(assets,name))return new Response('Asset unavailable',{status:404});
  const nonce=crypto.randomUUID().replaceAll('-','');
  const html=name==='account.html',css=name.endsWith('.css');
- const content=html?assets[name].replaceAll('<script','<script nonce="'+nonce+'"'):css?assets[name].replace(/^@import[^\r\n]*[\r\n]/,''):assets[name];
+ const page=appReadOnly(env)?assets[name].replace('批准后最长保留七天','本次是限时只读登录验收，批准后随窗口到期').replace('<section class="hero">','<section class="card" aria-label="只读验收范围"><strong>20 分钟账号登录验收</strong><p>只开放登录、任务列表和额度查看；任务提交、取消与文件保存均关闭。到期自动停止访问。</p></section><section class="hero">'):assets[name];
+ const content=html?page.replaceAll('<script','<script nonce="'+nonce+'"'):css?assets[name].replace(/^@import[^\r\n]*[\r\n]/,''):assets[name];
  return new Response(content,{headers:{'Content-Type':html?'text/html; charset=utf-8':css?'text/css; charset=utf-8':'text/javascript; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff','X-Robots-Tag':'noindex','Content-Security-Policy':"default-src 'none'; script-src 'nonce-"+nonce+"' 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; frame-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"}});
 }

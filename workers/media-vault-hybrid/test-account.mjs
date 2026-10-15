@@ -3,6 +3,8 @@ import {createAccountConnection} from '../../apps/media-vault/account-session.js
 import {spawn} from 'node:child_process';
 import {createInterface} from 'node:readline';
 import {handle} from './src/index.js';
+import {configureAccountWindow} from './account-window-config.mjs';
+import {issueFileTicket} from './src/transport.js';
 import {APP_LIFETIME,APP_COOKIE} from './src/account-auth.js';
 import {digest} from './src/session-auth.js';
 import {readFile} from 'node:fs/promises';
@@ -127,5 +129,38 @@ try{
  assert.equal((await reloadedClient.read('/jobs')).jobs.some(j=>j.id===recovered.id),true);
  assert.equal((await reloadedClient.refresh()).jobs_remaining,4);
  await reloadedClient.logout();assert.equal(storage.value,null);assert.equal((await request('/app-auth/session',{cookie:ui.cookie})).status,403);reloadedClient.dispose();
+ // The first browser acceptance grants a separate, empty account realm and
+ // clamps both cookie and approved capability to the twenty-minute window.
+ const loginConfig=configureAccountWindow(defaults,'account-login-on');
+ const login={...env,...loginConfig.vars,ENABLE_APP_SUBMISSION:'true',ENABLE_DIRECT_STREAM:'true',MEDIA_STREAM_TEST_UNTIL:String(Date.now()+1200000)};
+ const deadline=Number(login.MEDIA_APP_LOGIN_TEST_UNTIL);
+ const pairedResponse=await request('/app-auth/pair',{environment:login,body:{}});assert.equal(pairedResponse.status,201);
+ const paired=await pairedResponse.json(),loginCookie=pairedResponse.headers.get('Set-Cookie').split(';')[0];
+ assert.ok(Number(pairedResponse.headers.get('Set-Cookie').match(/Max-Age=(\d+)/)[1])<=1200);
+ assert.ok(paired.expires_at<=Math.min(Date.now()+5*60000,deadline));
+ const changedRealm={...login,MEDIA_APP_ACCOUNT_ID:'login-test-'+'f'.repeat(32)};
+ assert.equal((await request('/app-auth/approve',{body:{code:paired.pair_code},token:env.MEDIA_OWNER_TOKEN,environment:changedRealm})).status,409,'pending approval is bound to its original realm');
+ assert.equal((await request('/app-auth/session',{cookie:loginCookie,environment:changedRealm})).status,403);
+ const approvedResponse=await request('/app-auth/approve',{body:{code:paired.pair_code},token:env.MEDIA_OWNER_TOKEN,environment:login});assert.equal(approvedResponse.status,200);
+ const grant=await approvedResponse.json();assert.equal(grant.scope,'login-test-read-only');assert.equal(grant.job_limit,0);assert.equal(grant.ticket_limit,0);assert.equal(grant.expires_at,deadline);
+ const loginState=await (await request('/app-auth/session',{cookie:loginCookie,environment:login})).json();
+ assert.equal(loginState.can_submit,false);assert.equal(loginState.read_only,true);assert.equal(loginState.jobs_remaining,0);assert.equal(loginState.tickets_remaining,0);
+ assert.deepEqual((await (await request('/app-api/jobs',{cookie:loginCookie,environment:login})).json()).jobs,[],'existing account/Owner jobs never enter the isolated login realm');
+ const owned='9'.repeat(24);await DB.prepare("INSERT INTO mv_hybrid_jobs(id,kind,request_json,status,created_at,updated_at) VALUES(?,'video','{}','queued',1,1)").bind(owned).run();
+ await DB.prepare('INSERT INTO mv_hybrid_account_jobs(job_id,account_id,request_key,request_hash,created_by_digest) VALUES(?,?,?,?,?)').bind(owned,login.MEDIA_APP_ACCOUNT_ID,'fixture','fixture','fixture').run();
+ const beforeReadOnly=(await counter()).n;
+ for(const [path,body] of [['/app-api/jobs',job()],['/app-api/jobs/cancel',{id:owned}],['/app-api/download-ticket',{id:owned,path:'fixture.mp4'}]])assert.equal((await request(path,{cookie:loginCookie,environment:login,body})).status,403,'read-only denies mutations even if submission/streaming flags are accidentally true');
+ assert.equal((await counter()).n,beforeReadOnly);assert.equal((await DB.prepare('SELECT status FROM mv_hybrid_jobs WHERE id=?').bind(owned).first()).status,'queued');
+ assert.equal((await issueFileTicket(login,{id:owned,path:'fixture.mp4'},{kind:'app',account_id:login.MEDIA_APP_ACCOUNT_ID})).status,403,'internal ticket path also rejects read-only grants');
+ const dateNow=Date.now;
+ try{Date.now=()=>deadline;
+  for(const path of ['/app/','/app/account-app.js','/app-auth/session','/app-api/jobs'])assert.equal((await request(path,{cookie:loginCookie,environment:login})).status,404,'clock expiry closes page and APIs without redeploy');
+  assert.equal((await request('/app-auth/approve',{body:{code:paired.pair_code},token:env.MEDIA_OWNER_TOKEN,environment:login})).status,404);
+  assert.equal((await request('/app-auth/session',{cookie:loginCookie,environment:{...login,MEDIA_APP_LOGIN_TEST_UNTIL:String(deadline+1200000)}})).status,403,'extending a global gate cannot revive an expired session');
+  assert.equal((await request('/app-auth/logout',{cookie:loginCookie,body:{},environment:login})).status,200,'logout stays available after the window closes');
+ }finally{Date.now=dateNow;}
+ const badWindow={...login,MEDIA_APP_LOGIN_TEST_UNTIL:'NaN'};assert.equal((await request('/app-auth/pair',{body:{},environment:badWindow})).status,404);
+ assert.equal((await request('/app-auth/pair',{body:{},environment:{...login,MEDIA_APP_ACCOUNT_ID:env.MEDIA_APP_ACCOUNT_ID}})).status,404,'login window cannot be pointed at the existing account realm');
+ console.log('PASS real SQLite read-only login window: realm-bound approval, cookie/session deadline clamp, no legacy account visibility, hard mutation/ticket denial, automatic expiry and no expired-session revival');
  console.log('PASS real SQLite account sessions: OFF defaults, hashed persistent cookie, Owner approval, absolute expiry, device/pending caps, role and cross-account isolation, atomic idempotent bounded creation, rollback/revocation races, ticket caps and narrow revocation');
 }finally{child.stdin.end();lines.close();}

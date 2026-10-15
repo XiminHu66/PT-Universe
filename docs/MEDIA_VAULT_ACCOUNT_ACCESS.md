@@ -160,6 +160,59 @@ successful verification used a fresh dispatch of the corrected commit. Historica
 run reruns were not used to apply the correction. This proves closed deployment,
 not account activation or browser login/download acceptance.
 
+## Prepared read-only login acceptance (not activated)
+
+The next browser acceptance is narrower than the durable-account contract above.
+It uses a fresh random `login-test-` account realm for at most twenty minutes,
+with no pre-existing jobs, sessions or tickets. It grants zero new-job allowance
+and zero file tickets. Server checks reject submit, cancel and ticket issuance,
+even if submission or streaming flags are accidentally enabled. Existing Owner
+jobs and other accounts are not imported. The page hides mutation/file-save
+controls and clearly identifies the read-only acceptance window.
+
+`account-window-config.mjs` creates the fixed-duration configuration for explicit
+`account-login-on` / `account-login-off` workflow operations. The normal base
+configuration and old acceptance generators keep account access OFF, an empty
+realm and a closed login deadline. The on operation checks closed stream/account
+routes first, validates the already-migrated schema and an empty generated realm,
+then deploys only the dedicated Worker. It never runs database migrations, creates
+a source task, starts an Agent stream or changes the production frontend/VPS.
+Its page/API probes create no cookie and approve no session automatically.
+
+`MEDIA_APP_LOGIN_TEST_UNTIL` is enforced on every account page, auth and API
+request. Its presence selects the restrictive login-test mode; a malformed,
+zero or past deadline fails closed. It also requires the generated login-test
+realm pattern. Pairing records the target realm immediately, and approval cannot
+move a pending request into another realm. Pending expiry is the earlier of
+five minutes and the window end. Cookie Max-Age and approved database expiry are
+also capped at the same window end, so a later reopening cannot revive an old
+expired browser session. Normal durable account sessions without this test
+variable retain their absolute seven-day contract; enabling that broader mode
+is not part of this acceptance.
+
+Approval remains a separate Owner-only `account-approve` operation, performed
+through the existing server-side GitHub secret for the exact public pairing
+code. For the read-only scope the administrator script verifies zero job/ticket
+limits and expiry within twenty minutes. No long-term credential enters the
+browser or needs to be saved locally. Logout and narrow administrative revocation
+remain available after the deadline or while the feature is OFF.
+
+`account-login-off` restores all gates to OFF and clears the configured realm.
+If the public session ID is provided in the existing request-ID field, it also
+revokes that specific session before running the closed-route checks. It can
+close an existing window without requiring the pre-opening checks to succeed.
+Expiry enforces access closure even if a closing workflow never runs; it does
+not automatically redeploy flags or erase expired metadata rows. A fresh on
+operation starts a new window, so it must not be rerun to extend access silently.
+
+The code and tests are prepared only. The deployed service remains the verified
+OFF version above. Actual activation plus approval of the test browser requires
+confirmation of this concrete twenty-minute, read-only scope. The subsequent
+browser run will check pending/approved refresh recovery, empty account task
+visibility, budget display, cross-tab logout and final OFF closure. It will not
+establish a seven-day persistence observation, Windows disk saving or live-source
+compatibility.
+
 ## Validation and next work
 
 `npm test --prefix workers/media-vault-hybrid` includes real in-memory SQLite
@@ -181,9 +234,10 @@ and backend tests, not a real-browser layout or persistent-login acceptance run.
 All account source requests and relay responses in this suite are fixtures;
 no real media download or live seven-day expiry has been tested in this stage.
 
-Next: review the concrete seven-day / five-job / one-hundred-ticket capability
-before isolated account activation. Metadata migration and OFF deployment are
-complete. Isolated activation, real-browser persistent-login testing,
+Next: confirm and run the prepared twenty-minute read-only login acceptance.
+The broader seven-day / five-job / one-hundred-ticket capability remains disabled
+and needs its own scope review before activation. Metadata migration and OFF
+deployment are complete. Durable-account activation, persistent-login testing,
 real source submission and native download acceptance remain outstanding.
 Production publication remains a separate stage. No production readiness is
 claimed.

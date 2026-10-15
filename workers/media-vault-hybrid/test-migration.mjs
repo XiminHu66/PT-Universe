@@ -1,10 +1,20 @@
 import assert from 'node:assert/strict';
+import {configureAccountWindow} from './account-window-config.mjs';
 import {verifyAccountOff} from './live-account-off.mjs';
 import {spawn,spawnSync} from 'node:child_process';
 import {createInterface} from 'node:readline';
-import {readFile,rm} from 'node:fs/promises';
+import {readFile,writeFile,rm} from 'node:fs/promises';
 const configFile=new URL('./test-window.json',import.meta.url),checkpoint=new URL('./off-migration-check.json',import.meta.url);
 const root=new URL('.',import.meta.url);
+const baseConfig=JSON.parse(await readFile(new URL('./wrangler.jsonc',import.meta.url),'utf8'));
+const accountOn=configureAccountWindow(baseConfig,'account-login-on',Date.now()),accountOff=configureAccountWindow(baseConfig,'account-login-off');
+assert.equal(accountOn.vars.ENABLE_APP_ACCESS,'true');assert.equal(accountOff.vars.ENABLE_APP_ACCESS,'false');
+for(const c of [accountOn,accountOff])for(const key of ['ENABLE_DIRECT_STREAM','ENABLE_APP_SUBMISSION','ENABLE_ACCEPTANCE_UI'])assert.equal(c.vars[key],'false');
+assert.match(accountOn.vars.MEDIA_APP_ACCOUNT_ID,/^login-test-[a-f0-9]{32}$/);assert.equal(accountOff.vars.MEDIA_APP_ACCOUNT_ID,'');assert.equal(accountOff.vars.MEDIA_APP_LOGIN_TEST_UNTIL,'0');
+assert.equal(baseConfig.vars.ENABLE_APP_ACCESS,'false');assert.equal(Number(accountOn.vars.MEDIA_APP_LOGIN_TEST_UNTIL)<=Date.now()+1200000,true);
+assert.notEqual(configureAccountWindow(baseConfig,'account-login-on').vars.MEDIA_APP_ACCOUNT_ID,accountOn.vars.MEDIA_APP_ACCOUNT_ID);
+assert.throws(()=>configureAccountWindow(baseConfig,'account-submit-on'));
+
 const ids=['a','b','c'].map(x=>x.repeat(24)).join(',');
 try{
  for(const operation of ['deploy','prepare','stream-on','stream-off','large-on']){
@@ -42,6 +52,13 @@ try{
  await assert.rejects(check('before'),/Unexpected live account data/);
  await sql("DELETE FROM mv_hybrid_app_sessions WHERE digest='test'");
  await check('after');
+ await writeFile(new URL('./account-window.json',import.meta.url),JSON.stringify(accountOn));
+ await check('ready');
+ await sql("INSERT INTO mv_hybrid_app_sessions(digest,id,pair_code,account_id,created_at,expires_at) VALUES('old','old','old','other-realm',1,2)");
+ await check('ready');
+ await sql("INSERT INTO mv_hybrid_account_jobs(job_id,account_id,request_key,request_hash,created_by_digest) VALUES('fixture','"+accountOn.vars.MEDIA_APP_ACCOUNT_ID+"','collision','hash','fixture')");
+ await assert.rejects(check('ready'),/Unexpected live account data/);
+ await sql("DELETE FROM mv_hybrid_account_jobs WHERE job_id='fixture'");
  await sql('ALTER TABLE mv_hybrid_app_sessions ADD COLUMN unexpected TEXT');
  await assert.rejects(check('after'),/Account schema columns differ/);
  console.log('PASS OFF preparation and real SQLite migration proofs: independent disabled gates, additive/idempotent schema, data-drift rejection, unexpected grants and schema-shape rejection');
@@ -49,7 +66,7 @@ try{
  globalThis.fetch=originalFetch;process.argv=originalArgv;
  if(originalToken===undefined)delete process.env.D1_TOKEN;else process.env.D1_TOKEN=originalToken;
  if(originalAccount===undefined)delete process.env.CLOUDFLARE_ACCOUNT_ID;else process.env.CLOUDFLARE_ACCOUNT_ID=originalAccount;
- child.stdin.end();lines.close();await rm(checkpoint,{force:true});
+ child.stdin.end();lines.close();await rm(checkpoint,{force:true});await rm(new URL('./account-window.json',import.meta.url),{force:true});
 }
 
 const identities={owner:'o'.repeat(64),agent:'a'.repeat(64)};let calls=0,waits=0;
