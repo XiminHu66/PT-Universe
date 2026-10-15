@@ -8,6 +8,13 @@ It is not a replacement project or a reason to repeat completed transfer tests.
 
 ## Current checkpoint
 
+Latest attempt: the authorized novel workflow window deployed, but remote
+Chrome could not open the account page (`ERR_BLOCKED_BY_CLIENT` and a browser
+URL-policy denial on error-tab inspection). No pairing or source work occurred.
+The window has closed and the independent strict check passed; see the final section.
+Real chapter/layout/cancel/rebuild acceptance is still pending. Earlier completed
+four-source and three-file checkpoints below remain valid.
+
 The four-source account submission acceptance completed in remote Chrome on
 2026-10-15. All four exact recipes completed through the account page, with
 zero file tickets and streaming OFF. Reload, duplicate-request recovery, a second
@@ -406,3 +413,58 @@ zero reserved, tracking not active. No source jobs, approved sessions or media
 transfer were created in this batch. Production and VPS configuration were not
 changed. The prepared novel-ux window remains unactivated, awaiting its concrete
 access confirmation. PR 104 stays draft.
+
+
+## Authorized novel live attempt — browser access blocked, 2026-10-15
+
+The user confirmed the exact thirty-minute/one-device/four-job/zero-ticket novel
+scope. Fresh `account-novel-on` run
+https://github.com/XiminHu66/PT-Universe/actions/runs/38792185508 succeeded from
+`6d416036bd34e671ecfefd386f35215f2de7201d`. Worker version
+`47790b08-ec97-49b1-9599-0f0237ac7352` had a fixed deadline of
+`2026-10-15T19:44:17.724Z`; streaming stayed OFF. Read-only fresh-realm readiness
+and deployment page/assets/unauthenticated-role probes passed. The probe creates
+no browser session, and these checks are not real account UI acceptance.
+
+Opening the dedicated account URL in remote Chrome returned
+`net::ERR_BLOCKED_BY_CLIENT`. An attempt to inspect the resulting Chrome error
+tab was then rejected by the browser URL security policy. Stop the browser
+attempt; do not route around this restriction using another surface or direct
+browser commands. This does not establish that the novel source rejected access
+or that the service was unavailable. No pairing/approval, source job, catalog
+request or file download was performed by this browser batch. Real chapter,
+layout, cancellation and rebuild acceptance remains incomplete.
+
+Immediately dispatch `account-novel-off`:
+https://github.com/XiminHu66/PT-Universe/actions/runs/38792395793.
+The closed config deployed as Worker version
+`fb6e67c7-476c-411f-8e41-a038fd18109d`, with access/submission/stream/UI OFF,
+empty realm, closed mode and all deadlines reset. The immediate account closure
+probe failed on `GET /app/account.html status=200`. Preserve that failed result;
+do not describe it as a passing shutdown run. The stream/temporary UI probes
+passed and accounting stayed 75,943,820 transferred, zero reserved, not active.
+The cause of the immediate old-page response is not proven. Use the existing
+independent no-deployment `account-off-check` to establish the final closed
+state without weakening assertions or re-enabling permissions.
+
+
+### Final closure after the blocked attempt — confirmed
+
+Fresh no-deployment `account-off-check` run
+https://github.com/XiminHu66/PT-Universe/actions/runs/38792654414 passed at
+`2026-10-15T19:17:28Z`. The unchanged strict check required stable 404 for
+anonymous/Owner/Agent account page/assets/session/pairing/jobs/quota/tickets,
+with stream/download/WebSocket and temporary UI gates closed. Accounting stayed
+75,943,820 bytes transferred, zero reserved, tracking not active. No access or
+stream permission was re-enabled for this independent check. The earlier
+immediate OFF probe remains a failed run; this later result establishes the
+final closed state, not the cause of the earlier response.
+
+No browser session existed in this attempt to log out or revoke. Production,
+VPS configuration and public application ports were unchanged. The code candidate
+and its prior automated evidence remain intact. Actual novel catalog/chapter/
+layout/cancel/rebuild UI acceptance stays open; do not claim completion from the
+successful deployment probes or automatically reopen another window to retry.
+The next continuation must account for the browser access limitation. Broader
+provider support, Windows saves, longer persistence and merge/publication remain
+in the previously recorded order; PR 104 remains draft.
