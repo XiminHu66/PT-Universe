@@ -24,7 +24,7 @@
     },
     {
       "id": "windows-native-save",
-      "status": "real-user-attempt-failed-zero-byte-start"
+      "status": "real-user-native-save-and-offline-validation-passed; mp4-playback-observation-pending"
     },
     {
       "id": "longer-session-persistence",
@@ -44,7 +44,9 @@
     "windows_native": {
       "status": "passed-on-windows-runner",
       "scope": "actual Chromium native EPUB/CBZ downloads, Unicode filenames, disk hashes, single-use tickets, offline validation and tamper rejection; localhost fixtures only",
-      "user_device": "attempt-failed-zero-byte-start; not-accepted"
+      "user_device": "passed-native-save-and-offline-validation-on-user-windows; user-supplied-report",
+      "user_device_scope": "original three EPUB/CBZ/MP4 sizes and SHA-256 match; offline EPUB/CBZ structure checks passed; earlier zero-byte failure retained in history",
+      "mp4_playback": "user-observation-pending"
     },
     "session_restart": {
       "status": "passed-real-browser-process-restart",
