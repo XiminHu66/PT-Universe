@@ -1,7 +1,7 @@
 import assets from './preview-assets.js';
-import {appEnabled,appReadOnly} from './account-auth.js';
+import {appEnabled,appReadOnly,appSubmissionTest} from './account-auth.js';
 const temporaryAssets=new Set(['index.html','app.js','style.css','novels.css','native-download.js','scoped-session.js']);
-const accountAssets=new Set(['account.html','account-app.js','account-session.js','account.css','style.css','native-download.js']);
+const accountAssets=new Set(['account.html','account-app.js','account-session.js','account-form.js','account.css','style.css','native-download.js']);
 const root='/acceptance/app/';
 const settings=`<dialog id="settings" aria-labelledby="scopedSettingsTitle"><div class="dialog-head"><h2 id="scopedSettingsTitle">临时浏览器配对</h2><button data-close="settings" aria-label="关闭配对设置">×</button></div><p>仅用于本轮暂存验收：Owner 在服务端批准后，可查看和保存三个指定文件。15 分钟到期，最多签发六张票据，无需输入长期密钥。</p><p>配对编号：<strong id="scopedPairCode">尚未生成</strong></p><p id="scopedExpiry"></p><div class="actions"><button id="scopedPair" class="primary">申请临时配对</button><button id="scopedLogout">退出并撤销会话</button></div><p id="settingsStatus" role="status" aria-live="polite"></p><p class="caption">退出会撤销当前会话与尚未使用的票据。已交给浏览器的下载请在浏览器下载列表中取消。</p><div hidden><input id="engineURL" disabled><input id="engineToken" disabled><button id="engineSave" disabled></button><button id="engineDisconnect" disabled></button></div></dialog>`;
 export function previewRoute(request,env){
@@ -36,7 +36,9 @@ function accountPage(request,env,u){
  if(!accountAssets.has(name)||!Object.hasOwn(assets,name))return new Response('Asset unavailable',{status:404});
  const nonce=crypto.randomUUID().replaceAll('-','');
  const html=name==='account.html',css=name.endsWith('.css');
- const page=appReadOnly(env)?assets[name].replace('批准后最长保留七天','本次是限时只读登录验收，批准后随窗口到期').replace('<section class="hero">','<section class="card" aria-label="只读验收范围"><strong>20 分钟账号登录验收</strong><p>只开放登录、任务列表和额度查看；任务提交、取消与文件保存均关闭。到期自动停止访问。</p></section><section class="hero">'):assets[name];
+ let page=assets[name];
+ if(appReadOnly(env))page=page.replace('批准后最长保留七天','本次是限时只读登录验收，批准后随窗口到期').replace('<section class="hero">','<section class="card" aria-label="只读验收范围"><strong>20 分钟账号登录验收</strong><p>只开放登录、任务列表和额度查看；任务提交、取消与文件保存均关闭。到期自动停止访问。</p></section><section class="hero">');
+ if(appSubmissionTest(env))page=page.replace('批准后最长保留七天','本次为最多 30 分钟的指定来源任务验收，批准后随窗口到期').replace('<section class="hero">','<section class="card" aria-label="提交验收范围"><strong>30 分钟账号任务验收</strong><p>仅限四个指定样例，每种最多一项，整个账号合计四项。文件传输关闭，不签发下载票据；到期停止账号访问，已提交任务继续在后台运行。</p></section><section class="hero">');
  const content=html?page.replaceAll('<script','<script nonce="'+nonce+'"'):css?assets[name].replace(/^@import[^\r\n]*[\r\n]/,''):assets[name];
  return new Response(content,{headers:{'Content-Type':html?'text/html; charset=utf-8':css?'text/css; charset=utf-8':'text/javascript; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff','X-Robots-Tag':'noindex','Content-Security-Policy':"default-src 'none'; script-src 'nonce-"+nonce+"' 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; frame-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"}});
 }

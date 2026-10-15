@@ -18,7 +18,7 @@ export function createAccountConnection(options={}){
    headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined,
    signal:signal?AbortSignal.any([signal,AbortSignal.timeout(15000)]):AbortSignal.timeout(15000)});
   let data;try{data=await r.json();}catch{data={};}
-  if(!r.ok){const e=Error(r.status===404?'账号服务未开放或资源不可用。':r.status===403?'当前会话无权执行此操作，请检查登录与提交权限。':r.status===429?'队列繁忙或额度不足，请稍后重试。':r.status===409?'请求发生冲突，请核对原提交内容。':r.status===400?'任务内容不符合要求，请检查输入。':'账号服务暂不可用，请重试。');e.status=r.status;throw e;}
+  if(!r.ok){const e=Error(r.status===404?'账号服务未开放或资源不可用。':r.status===403?(path==='/app-auth/session'?'尚未登录或会话已到期，请申请配对。':'当前会话无权执行此操作，请检查登录与提交权限。'):r.status===429?'请求过于频繁、队列繁忙或额度不足，请稍后重试。':r.status===409?'请求发生冲突，请核对原提交内容。':r.status===400?'任务内容不符合要求，请检查输入。':'账号服务暂不可用，请重试。');e.status=r.status;throw e;}
   return data;
  }
  function arm(){
@@ -79,7 +79,7 @@ export function createAccountConnection(options={}){
   },
   async read(path,body){
    const u=new URL(path,origin);
-   const allowed=!body&&['/health','/jobs','/quota'].includes(path)||!body&&u.pathname==='/jobs/files'&&u.searchParams.size===1&&/^[a-f0-9]{24}$/.test(u.searchParams.get('id')||'')||path==='/jobs/cancel'&&body&&/^[a-f0-9]{24}$/.test(body.id||'');
+   const allowed=!body&&['/health','/jobs','/quota'].includes(path)||!body&&u.pathname==='/novel/catalog'&&u.searchParams.size===1&&u.searchParams.has('url')||!body&&u.pathname==='/jobs/files'&&u.searchParams.size===1&&/^[a-f0-9]{24}$/.test(u.searchParams.get('id')||'')||path==='/jobs/cancel'&&body&&/^[a-f0-9]{24}$/.test(body.id||'');
    if(!allowed||u.origin!==origin)throw Error('账号页面不支持此操作。');
    const d=await refresh();if(d.status!=='approved'||d.unverified)throw Error('请先完成账号配对。');
    const generation=epoch,result=await request('/app-api'+path,body);
@@ -88,7 +88,7 @@ export function createAccountConnection(options={}){
   },
   submit(spec){
    // Canonical input only: callers cannot inject account, headers or request IDs.
-   const clean={};for(const key of ['kind','url','format','title','files','indices','text_only'])if(spec[key]!==undefined)clean[key]=spec[key];
+   const clean={};for(const key of ['kind','url','format','title','files','indices','text_only','layout','retry_of'])if(spec[key]!==undefined)clean[key]=spec[key];
    const input=JSON.stringify(clean),generation=epoch;
    if(submitting){if(submitting.input===input)return submitting.work;return Promise.reject(Error('请先等待当前提交结束。'));}
    const work=(async()=>{

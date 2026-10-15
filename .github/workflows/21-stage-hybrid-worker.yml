@@ -6,7 +6,7 @@ on:
         description: Metadata operation
         type: choice
         default: verify
-        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership, account-approve, account-revoke, account-login-on, account-login-off]
+        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership, account-approve, account-revoke, account-login-on, account-login-off, account-submit-on, account-submit-off, account-rc-off]
       pair_code:
         description: Browser pairing request ID
         type: string
@@ -63,8 +63,8 @@ jobs:
             node workers/media-vault-hybrid/migration-check.mjs idempotent
           fi
           npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/test-window.json
-      - name: Deploy bounded read-only account login window or close it
-        if: inputs.operation == 'account-login-on' || inputs.operation == 'account-login-off'
+      - name: Deploy bounded account window or closed release candidate
+        if: inputs.operation == 'account-login-on' || inputs.operation == 'account-login-off' || inputs.operation == 'account-submit-on' || inputs.operation == 'account-submit-off' || inputs.operation == 'account-rc-off'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -78,16 +78,22 @@ jobs:
           set -euo pipefail
           npm ci --prefix workers/pt-universe-api
           npm test --prefix workers/media-vault-hybrid
-          if [[ "$OPERATION" == account-login-on ]]; then
+          if [[ "$OPERATION" == account-login-on || "$OPERATION" == account-submit-on ]]; then
             node workers/media-vault-hybrid/live-stream-off.mjs
             node workers/media-vault-hybrid/live-account-off.mjs
           fi
           node workers/media-vault-hybrid/account-window-config.mjs
-          if [[ "$OPERATION" == account-login-on ]]; then
-            node workers/media-vault-hybrid/migration-check.mjs ready
+          if [[ "$OPERATION" == account-login-on || "$OPERATION" == account-submit-on ]]; then
+            if [[ "$OPERATION" == account-submit-on ]]; then
+              node workers/media-vault-hybrid/migration-check.mjs ready-submission
+            else
+              node workers/media-vault-hybrid/migration-check.mjs ready
+            fi
+          elif [[ "$OPERATION" == account-rc-off ]]; then
+            node workers/media-vault-hybrid/migration-check.mjs release
           fi
           npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/account-window.json
-          if [[ "$OPERATION" == account-login-on ]]; then
+          if [[ "$OPERATION" == account-login-on || "$OPERATION" == account-submit-on ]]; then
             node workers/media-vault-hybrid/live-stream-off.mjs
             node workers/media-vault-hybrid/live-account-window.mjs
           else

@@ -144,7 +144,11 @@ export async function handle(request,env){
       if(!row)return reply({job:null},200,origin);
       const result=await env.DB.prepare("UPDATE mv_hybrid_jobs SET status='running',lease_until=?,updated_at=? WHERE id=? AND status='queued'").bind(now+180000,now,row.id).run();
       if(!result.meta?.changes)return reply({job:null},200,origin);
-      return reply({job:{...JSON.parse(row.request_json),id:row.id}},200,origin);
+      const spec=JSON.parse(row.request_json);
+      // The adapter's established switch is skip_images. Preserve old Owner
+      // requests and translate the account's explicit text-only preference.
+      if(spec.kind==='novel'&&typeof spec.text_only==='boolean')spec.skip_images=spec.text_only;
+      return reply({job:{...spec,id:row.id}},200,origin);
     }
     if(path==='/agent/report'&&request.method==='POST'){
       const o=await jsonBody(request);

@@ -7,6 +7,8 @@ const operation=process.env.OPERATION;
 config.vars.ENABLE_APP_ACCESS='false';
 config.vars.ENABLE_APP_SUBMISSION='false';
 config.vars.MEDIA_APP_LOGIN_TEST_UNTIL='0';
+config.vars.MEDIA_APP_SUBMISSION_TEST_UNTIL='0';
+config.vars.MEDIA_APP_TEST_MODE='closed';
 config.vars.MEDIA_APP_ACCOUNT_ID='';
 assert.ok(['deploy','prepare','stream-on','stream-off','large-on'].includes(operation));
 config.vars.ENABLE_DIRECT_STREAM=['stream-on','large-on'].includes(operation)?'true':'false';

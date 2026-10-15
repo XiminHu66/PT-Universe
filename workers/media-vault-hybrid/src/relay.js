@@ -34,12 +34,13 @@ export class MediaRelay {
  async fetch(request){
   await this.ready;
   const u=new URL(request.url);
-  if(u.pathname==='/ticket-permit'){
+  if(u.pathname==='/ticket-permit'||u.pathname==='/catalog-permit'){
    return this.exclusive(async()=>{
-    const now=Date.now(),saved=await this.ctx.storage.get(RATE_KEY);
+    const catalog=u.pathname==='/catalog-permit',key=catalog?'catalog-permits':RATE_KEY,max=catalog?6:RATE_MAX;
+    const now=Date.now(),saved=await this.ctx.storage.get(key);
     const times=(Array.isArray(saved)?saved:[]).filter(t=>Number.isSafeInteger(t)&&t>now-RATE_WINDOW);
-    if(times.length>=RATE_MAX)return new Response('Ticket request rate exceeded',{status:429,headers:{'Retry-After':String(Math.max(1,Math.ceil((times[0]+RATE_WINDOW-now)/1000)))}});
-    times.push(now);await this.ctx.storage.put(RATE_KEY,times);
+    if(times.length>=max)return new Response('Request rate exceeded',{status:429,headers:{'Retry-After':String(Math.max(1,Math.ceil((times[0]+RATE_WINDOW-now)/1000)))}});
+    times.push(now);await this.ctx.storage.put(key,times);
     return new Response(null,{status:204});
    });
   }

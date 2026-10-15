@@ -13,7 +13,9 @@ for(const c of [accountOn,accountOff])for(const key of ['ENABLE_DIRECT_STREAM','
 assert.match(accountOn.vars.MEDIA_APP_ACCOUNT_ID,/^login-test-[a-f0-9]{32}$/);assert.equal(accountOff.vars.MEDIA_APP_ACCOUNT_ID,'');assert.equal(accountOff.vars.MEDIA_APP_LOGIN_TEST_UNTIL,'0');
 assert.equal(baseConfig.vars.ENABLE_APP_ACCESS,'false');assert.equal(Number(accountOn.vars.MEDIA_APP_LOGIN_TEST_UNTIL)<=Date.now()+1200000,true);
 assert.notEqual(configureAccountWindow(baseConfig,'account-login-on').vars.MEDIA_APP_ACCOUNT_ID,accountOn.vars.MEDIA_APP_ACCOUNT_ID);
-assert.throws(()=>configureAccountWindow(baseConfig,'account-submit-on'));
+assert.throws(()=>configureAccountWindow(baseConfig,'unsupported'));
+const submitOn=configureAccountWindow(baseConfig,'account-submit-on');assert.equal(submitOn.vars.ENABLE_DIRECT_STREAM,'false');assert.equal(submitOn.vars.ENABLE_APP_SUBMISSION,'true');assert.equal(submitOn.vars.MEDIA_APP_LOGIN_TEST_UNTIL,'0');assert.match(submitOn.vars.MEDIA_APP_ACCOUNT_ID,/^submit-test-[a-f0-9]{32}$/);
+assert.ok(Number(submitOn.vars.MEDIA_APP_SUBMISSION_TEST_UNTIL)>Date.now()&&Number(submitOn.vars.MEDIA_APP_SUBMISSION_TEST_UNTIL)<=Date.now()+1800000);
 
 const ids=['a','b','c'].map(x=>x.repeat(24)).join(',');
 try{
@@ -56,6 +58,9 @@ try{
  await check('ready');
  await sql("INSERT INTO mv_hybrid_app_sessions(digest,id,pair_code,account_id,created_at,expires_at) VALUES('old','old','old','other-realm',1,2)");
  await check('ready');
+ await writeFile(new URL('./account-window.json',import.meta.url),JSON.stringify(submitOn));await check('ready-submission');
+ await writeFile(new URL('./account-window.json',import.meta.url),JSON.stringify(configureAccountWindow(baseConfig,'account-rc-off')));await check('release');
+ await writeFile(new URL('./account-window.json',import.meta.url),JSON.stringify(accountOn));
  await sql("INSERT INTO mv_hybrid_account_jobs(job_id,account_id,request_key,request_hash,created_by_digest) VALUES('fixture','"+accountOn.vars.MEDIA_APP_ACCOUNT_ID+"','collision','hash','fixture')");
  await assert.rejects(check('ready'),/Unexpected live account data/);
  await sql("DELETE FROM mv_hybrid_account_jobs WHERE job_id='fixture'");
@@ -70,8 +75,8 @@ try{
 }
 
 const identities={owner:'o'.repeat(64),agent:'a'.repeat(64)};let calls=0,waits=0;
-await verifyAccountOff({...identities,attempts:3,pause:async()=>{waits++;},fetcher:async()=>new Response(null,{status:++calls<=33?401:404})});
-assert.equal(calls,99);assert.equal(waits,2,'requires two consecutive complete closed samples');
+await verifyAccountOff({...identities,attempts:3,pause:async()=>{waits++;},fetcher:async()=>new Response(null,{status:++calls<=39?401:404})});
+assert.equal(calls,117);assert.equal(waits,2,'requires two consecutive complete closed samples');
 await assert.rejects(verifyAccountOff({...identities,pause:async()=>{},fetcher:async()=>new Response(null,{status:200})}),/unexpectedly accessible/);
 await assert.rejects(verifyAccountOff({...identities,attempts:2,pause:async()=>{},fetcher:async()=>new Response(null,{status:401})}),/did not converge/);
 console.log('PASS bounded OFF propagation: old 401 may settle, stable 404 required, any successful exposure fails immediately');

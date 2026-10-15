@@ -2,13 +2,18 @@ import {digest,hex} from './session-auth.js';
 export const APP_COOKIE='__Host-mv-account';
 export const APP_LIFETIME=7*24*3600000;
 export const APP_JOB_LIMIT=5,APP_TICKET_LIMIT=100;
-export const appReadOnly=env=>env.MEDIA_APP_LOGIN_TEST_UNTIL!==undefined;
+export const appSubmissionTest=env=>env.MEDIA_APP_TEST_MODE==='submission';
+export const appReadOnly=env=>!appSubmissionTest(env)&&env.MEDIA_APP_LOGIN_TEST_UNTIL!==undefined;
+export const appFilesAllowed=env=>!appReadOnly(env)&&!appSubmissionTest(env);
+export const appJobLimit=env=>appReadOnly(env)?0:appSubmissionTest(env)?4:APP_JOB_LIMIT;
+export const appTicketLimit=env=>appFilesAllowed(env)?APP_TICKET_LIMIT:0;
+export const appScope=env=>appReadOnly(env)?'login-test-read-only':appSubmissionTest(env)?'submission-test-no-transfer':'account-created jobs';
 export function appDeadline(env){
- if(!appReadOnly(env))return Number.MAX_SAFE_INTEGER;
- const value=Number(env.MEDIA_APP_LOGIN_TEST_UNTIL);
- return /^\d+$/.test(String(env.MEDIA_APP_LOGIN_TEST_UNTIL))&&Number.isSafeInteger(value)?value:0;
+ if(!appReadOnly(env)&&!appSubmissionTest(env))return Number.MAX_SAFE_INTEGER;
+ const raw=appSubmissionTest(env)?env.MEDIA_APP_SUBMISSION_TEST_UNTIL:env.MEDIA_APP_LOGIN_TEST_UNTIL,value=Number(raw);
+ return /^\d+$/.test(String(raw))&&Number.isSafeInteger(value)?value:0;
 }
-export const appEnabled=env=>env.ENABLE_APP_ACCESS==='true'&&/^[a-zA-Z0-9_-]{1,48}$/.test(env.MEDIA_APP_ACCOUNT_ID||'')&&appDeadline(env)>Date.now()&&(!appReadOnly(env)||/^login-test-[a-f0-9]{32}$/.test(env.MEDIA_APP_ACCOUNT_ID));
+export const appEnabled=env=>env.ENABLE_APP_ACCESS==='true'&&(!env.MEDIA_APP_TEST_MODE||['closed','login','submission'].includes(env.MEDIA_APP_TEST_MODE))&&env.MEDIA_APP_TEST_MODE!=='closed'&&/^[a-zA-Z0-9_-]{1,48}$/.test(env.MEDIA_APP_ACCOUNT_ID||'')&&appDeadline(env)>Date.now()&&(!appReadOnly(env)||/^login-test-[a-f0-9]{32}$/.test(env.MEDIA_APP_ACCOUNT_ID))&&(!appSubmissionTest(env)||env.MEDIA_APP_LOGIN_TEST_UNTIL==='0'&&/^submit-test-[a-f0-9]{32}$/.test(env.MEDIA_APP_ACCOUNT_ID));
 export async function appCookieDigest(request){
  const raw=(request.headers.get('Cookie')||'').split(';').map(x=>x.trim()).find(x=>x.startsWith(APP_COOKIE+'='))?.slice(APP_COOKIE.length+1);
  return /^[a-f0-9]{64}$/.test(raw||'')?digest(raw):null;

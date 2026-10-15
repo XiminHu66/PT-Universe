@@ -12,9 +12,21 @@ export function validUrl(raw,kind){
 }
 export function permittedJob(o){
   if(!kinds.has(o.kind))return false;
+  if(o.text_only!==undefined&&typeof o.text_only!=='boolean')return false;
+  if(o.layout!==undefined&&(!o.layout||typeof o.layout!=='object'||Array.isArray(o.layout)||Object.entries(o.layout).some(([k,v])=>!Object.hasOwn(layoutBounds,k)||typeof v!=='number'||!Number.isFinite(v)||v<layoutBounds[k][0]||v>layoutBounds[k][1])))return false;
   if(o.kind==='manga')return typeof o.title==='string'&&o.title.length<200&&Array.isArray(o.files)&&o.files.length>0&&o.files.length<=20&&o.files.every(x=>typeof x==='string'&&/^File:[^<>#\r\n]{2,190}\.(png|jpe?g|gif|webp)$/i.test(x));
   if(!validUrl(o.url,o.kind))return false;
   if(o.kind==='novel'&&!(Array.isArray(o.indices)&&o.indices.length>0&&o.indices.length<=100&&o.indices.every(i=>Number.isSafeInteger(i)&&i>=0&&i<=100000)))return false;
   return true;
 }
-export function rowFormat(row){return {id:row.id,kind:row.kind,url:JSON.parse(row.request_json).url||'',title:row.detail||row.kind,status:row.status,completed:row.completed_bytes,total:row.total_bytes,speed:0,error:row.error||'',created:row.created_at}}
+export const layoutBounds={fontScale:[70,180],lineHeight:[1.1,2.5],paragraphGap:[0,3],indent:[0,4],pageMargin:[0,3]};
+export function canonicalJob(raw){
+ if(!permittedJob(raw)||raw.format!==undefined&&(typeof raw.format!=='string'||raw.format.length>120))return null;
+ const spec={};for(const key of ['kind','url','format','title','files','indices','text_only'])if(raw[key]!==undefined)spec[key]=raw[key];
+ if(raw.layout!==undefined)spec.layout=Object.fromEntries(Object.keys(layoutBounds).filter(k=>raw.layout[k]!==undefined).map(k=>[k,raw.layout[k]]));
+ return spec;
+}
+export function rowFormat(row){
+ const spec=JSON.parse(row.request_json),content=['novel','manga'].includes(row.kind),status=row.status;
+ return {id:row.id,kind:row.kind,url:spec.url||'',title:row.detail||spec.title||({novel:'小说 EPUB',manga:'Commons 图片 CBZ',video:'视频',torrent:'BT / HTTPS 文件'})[row.kind]||row.kind,status,completed:row.completed_bytes,total:row.total_bytes,progress_unit:content&&status!=='complete'?'items':'bytes',speed:0,error:row.error||'',created:row.created_at,updated:row.updated_at,source_expires_at:status==='complete'?row.updated_at+24*3600000:null};
+}

@@ -283,3 +283,13 @@ deployment are complete. Durable-account activation, longer persistence testing,
 real account source submission and native download acceptance remain outstanding.
 Production publication remains a separate stage. No production readiness is
 claimed.
+
+## Consolidated project checkpoint
+
+The account task candidate now includes catalog/chapter selection, explicit
+text-only/layout options, correct progress units, task filters, owned terminal-job
+rebuild and honest disabled-save controls. The submission pilot is prepared as
+one fixed thirty-minute/four-recipe account-wide batch, with zero file tickets
+and streaming OFF. See [MEDIA_VAULT_PROJECT_CHECKPOINT.md](MEDIA_VAULT_PROJECT_CHECKPOINT.md)
+for the complete original-plan mapping, integrated batch and remaining source,
+Windows and publication work. Preparation does not activate its permissions.
