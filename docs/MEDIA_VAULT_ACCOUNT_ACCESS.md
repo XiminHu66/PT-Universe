@@ -1,11 +1,12 @@
-# Account sessions and frontend: implemented, disabled, not deployed
+# Account sessions and frontend: deployed with access disabled
 
-This stage adds backend authorization for durable browser sessions and new job
-submission. It does not enable those permissions, apply the schema remotely,
-create real download jobs, open a stream window or publish a production page.
+The backend and frontend for durable browser sessions and bounded new-job
+submission are deployed to the isolated Worker with all account permissions
+disabled. The additive D1 schema has been applied and verified. This stage did
+not create real download jobs, open a stream window or publish a production page.
 The dedicated same-origin `/app/` frontend now uses the account cookie routes.
 The existing three-file acceptance page keeps its separate adapter and scope.
-Neither the new backend nor account page has been deployed or enabled.
+The account page is bundled but returns 404 while account access is disabled.
 
 ## Initial permission contract
 
@@ -136,6 +137,29 @@ the attachment. No frontend media buffering or local-disk completion inference
 is added. Closing the file dialog or losing session verification removes its
 controls and disposes late ticket handoff.
 
+## Verified OFF deployment
+
+On 2026-10-15, a fresh `prepare` dispatch from source commit
+`9bfc072ddd462c7067b19c9afe164cb6acafbe72` completed successfully:
+[deployment run](https://github.com/XiminHu66/PT-Universe/actions/runs/38754589025).
+The remote additive schema and a second execution passed the existing-metadata
+fingerprint checks. The three new account tables remain empty. Stream, account
+access, account submission and temporary preview gates were all deployed OFF,
+with no configured account realm or approved persistent device.
+
+Post-deployment checks confirmed stream ticket/download/WebSocket closure,
+unchanged transfer accounting and stable 404 responses for account page/assets,
+session lookup, pairing, submission and ticket endpoints under anonymous, Owner
+and Agent requests. No VPS configuration, public port or production page changed.
+
+The first deployment reached the same OFF configuration, but its immediate
+single-sample asset check observed an old-route 401 during propagation. The
+checker now requires two consecutive complete 404 samples within a bounded
+window; any successful or redirecting account route fails immediately. The
+successful verification used a fresh dispatch of the corrected commit. Historical
+run reruns were not used to apply the correction. This proves closed deployment,
+not account activation or browser login/download acceptance.
+
 ## Validation and next work
 
 `npm test --prefix workers/media-vault-hybrid` includes real in-memory SQLite
@@ -157,9 +181,9 @@ and backend tests, not a real-browser layout or persistent-login acceptance run.
 All account source requests and relay responses in this suite are fixtures;
 no real media download or live seven-day expiry has been tested in this stage.
 
-Next: review the concrete seven-day / five-job / one-hundred-ticket capability,
-then use the revised OFF prepare workflow to migrate metadata before any account
-activation. Isolated account activation, real-browser persistent-login testing,
+Next: review the concrete seven-day / five-job / one-hundred-ticket capability
+before isolated account activation. Metadata migration and OFF deployment are
+complete. Isolated activation, real-browser persistent-login testing,
 real source submission and native download acceptance remain outstanding.
 Production publication remains a separate stage. No production readiness is
 claimed.
