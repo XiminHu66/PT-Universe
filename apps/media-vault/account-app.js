@@ -21,12 +21,14 @@ export function mountAccountPage(options={}){
   $('logout').disabled=['unpaired','closed','expired','pairing','disconnecting'].includes(state.status);
   $('jobFields').disabled=!approved||!state.can_submit||sending;
   const pilot=approved&&state.scope==='submission-test-no-transfer';
-  $('pilotFields').hidden=!pilot;$('sourceFields').hidden=pilot;
+  const fileTest=approved&&state.scope==='three-file-save-test';
+  $('pilotFields').hidden=!pilot;$('sourceFields').hidden=pilot||fileTest;
   $('url').required=!pilot&&$('kind').value!=='manga';
   const key=pilot?JSON.stringify(state.presets||[]):'';
   if(key!==presetKey){presetKey=key;$('pilotPreset').innerHTML=(state.presets||[]).map((p,i)=>'<option value="'+i+'">'+esc(p.label)+'</option>').join('');}
   if(pilot)$('submitStatus').textContent='指定样例合计最多四项，剩余 '+state.jobs_remaining+' 项。文件传输与下载票据关闭。';
   if(!pilot)$('submitStatus').textContent=approved&&state.read_only?'仅验证登录恢复、额度和退出；任务提交、取消和文件保存未开放。':approved?(state.can_submit?'本次登录最多创建五项任务；仍可查询或重试已提交的任务。':'当前只允许查看任务，提交暂未开放。'):'登录后查看提交权限。';
+  if(fileTest)$('submitStatus').textContent='仅保存三个指定文件，不创建或修改任务。整个账号最多三张票据，每个文件仅一次；失败后请记录结果，勿重复请求。';
   if(!approved){$('jobs').textContent='请先完成登录，网络恢复后可刷新状态。';jobsCache=[];}else renderJobs();
  }
  function clearCatalog(){catalog=[];catalogSource='';$('catalogPanel').hidden=true;$('chapterList').replaceChildren();$('catalogStatus').textContent='';}

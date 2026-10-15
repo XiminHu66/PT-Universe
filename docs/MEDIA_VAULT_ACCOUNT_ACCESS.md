@@ -335,3 +335,26 @@ The general catalog/chapter/layout/cancel/rebuild controls were not activated in
 this fixed-recipe scope. Their automated tests and companion EPUB field-contract
 proof remain distinct from future real-browser acceptance. Broader Chinese manga
 sources and user's Windows disk-save behavior remain outstanding.
+
+
+## Prepared bounded account file-save mode
+
+The `three-file-save-test` scope reuses only the three accepted EPUB/CBZ/MP4
+outputs and their existing account ownership. It permits zero task mutations,
+one approved device and three account-wide tickets (one per exact file), at
+most 10 MiB, within an absolute twenty-minute account/stream window. The ticket
+transaction counts every previously issued ticket in that window even after
+failure, expiry or logout, preventing a replacement session from resetting it.
+Exact job/path/size checks apply at both issuance and redemption. Invalid scope,
+expired deadline or accidental submission enabling fails closed. No schema
+migration or new account-job mapping is needed.
+
+`account-files-check` only inspects metadata under existing server-side secrets
+while all gates remain OFF. `account-files-on` is a separate explicit activation;
+it must not run as part of preflight or closed candidate deployment. Its browser
+approval grants this bounded scope, not the broad durable-account contract.
+Before actual saves, verify source files/hashes and the separate VPS Agent window.
+After all three native saves, logout/revoke, run `account-files-off`, close the
+Agent window and reconcile actual relay bytes/reservations. Do not repeat failed
+saves within this three-ticket scope or create replacement source jobs silently.
+See the consolidated project checkpoint for job IDs and the live readiness record.

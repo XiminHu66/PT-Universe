@@ -1,3 +1,4 @@
+import {appFileTest,fileTestPermits} from './account-file-scope.js';
 import {appEnabled,appCookieDigest,ownerAuthorized,randomHex,appCookie,APP_LIFETIME,appDeadline,appReadOnly,appSubmissionTest,appFilesAllowed,appJobLimit,appTicketLimit,appScope} from './account-auth.js';
 import {digest} from './session-auth.js';
 import {canonicalJob,rowFormat} from './job-contract.js';
@@ -63,7 +64,7 @@ export async function accountRoute(request,env){
    if(!ownerAuthorized(request,env))return fail(401,'Owner authorization required');
    const data=await body(request);if(!/^[a-f0-9]{32}$/.test(data.code||''))return fail(400,'Invalid account request code');
    const now=Date.now();
-   const result=await env.DB.prepare("UPDATE mv_hybrid_app_sessions SET status='approved',account_id=?,expires_at=MIN(created_at+?,?) WHERE pair_code=? AND account_id=? AND status='pending' AND expires_at>? AND (SELECT COUNT(*) FROM mv_hybrid_app_sessions WHERE status='approved' AND account_id=? AND expires_at>?)<3").bind(env.MEDIA_APP_ACCOUNT_ID,APP_LIFETIME,appDeadline(env),data.code,env.MEDIA_APP_ACCOUNT_ID,now,env.MEDIA_APP_ACCOUNT_ID,now).run();
+   const result=await env.DB.prepare("UPDATE mv_hybrid_app_sessions SET status='approved',account_id=?,expires_at=MIN(created_at+?,?) WHERE pair_code=? AND account_id=? AND status='pending' AND expires_at>? AND (SELECT COUNT(*) FROM mv_hybrid_app_sessions WHERE status='approved' AND account_id=? AND expires_at>?)<?").bind(env.MEDIA_APP_ACCOUNT_ID,APP_LIFETIME,appDeadline(env),data.code,env.MEDIA_APP_ACCOUNT_ID,now,env.MEDIA_APP_ACCOUNT_ID,now,appFileTest(env)?1:3).run();
    if(!result.meta?.changes)return fail(409,'Request expired, already handled or device limit reached');
    const session=await env.DB.prepare('SELECT id,expires_at FROM mv_hybrid_app_sessions WHERE pair_code=?').bind(data.code).first();
    return reply({ok:true,session_id:session.id,expires_at:session.expires_at,scope:appScope(env),job_limit:appJobLimit(env),ticket_limit:appTicketLimit(env)});
@@ -73,14 +74,15 @@ export async function accountRoute(request,env){
    if(request.method!=='GET')return fail(405,'GET required');
    if(current.account_id!==env.MEDIA_APP_ACCOUNT_ID)return fail(403,'Account scope changed');
    if(current.status==='pending')return reply({status:'pending',pair_code:current.pair_code,session_id:current.id,expires_at:current.expires_at});
+   const fileUsage=appFileTest(env)?Number((await env.DB.prepare('SELECT COUNT(*) n FROM mv_hybrid_app_tickets a JOIN mv_hybrid_tickets t ON t.digest=a.digest JOIN mv_hybrid_app_sessions s ON s.digest=a.session_digest WHERE s.account_id=? AND t.expires_at>?').bind(current.account_id,Number(env.MEDIA_APP_FILE_TEST_START)).first())?.n||0):current.issued_tickets;
    const used=appSubmissionTest(env)?Number((await env.DB.prepare('SELECT COUNT(*) n FROM mv_hybrid_account_jobs WHERE account_id=?').bind(current.account_id).first())?.n||0):current.created_jobs;
-   return reply({status:'approved',session_id:current.id,expires_at:Math.min(current.expires_at,appDeadline(env)),scope:appScope(env),read_only:appReadOnly(env),can_submit:!appReadOnly(env)&&env.ENABLE_APP_SUBMISSION==='true',can_download:appFilesAllowed(env)&&streamingEnabled(env),job_limit:appJobLimit(env),ticket_limit:appTicketLimit(env),jobs_remaining:Math.max(0,appJobLimit(env)-used),tickets_remaining:Math.max(0,appTicketLimit(env)-current.issued_tickets),...(appSubmissionTest(env)?{presets:PILOT_PRESETS}:{} )});
+   return reply({status:'approved',session_id:current.id,expires_at:Math.min(current.expires_at,appDeadline(env)),scope:appScope(env),read_only:appReadOnly(env),can_submit:!appReadOnly(env)&&!appFileTest(env)&&env.ENABLE_APP_SUBMISSION==='true',can_download:appFilesAllowed(env)&&streamingEnabled(env),job_limit:appJobLimit(env),ticket_limit:appTicketLimit(env),jobs_remaining:Math.max(0,appJobLimit(env)-used),tickets_remaining:Math.max(0,appTicketLimit(env)-fileUsage),...(appSubmissionTest(env)?{presets:PILOT_PRESETS}:{} )});
   }
   if(current.status!=='approved'||current.account_id!==env.MEDIA_APP_ACCOUNT_ID)return fail(403,'Approved account required');
   if(request.method!=='GET'&&request.headers.get('Origin')!==u.origin)return fail(403,'Same-origin mutation required');
   if(appReadOnly(env)&&request.method!=='GET')return fail(403,'Login acceptance is read-only');
   if(p==='/app-api/novel/catalog'&&request.method==='GET'){
-   if(appReadOnly(env)||appSubmissionTest(env))return fail(403,'Catalog lookup is outside this fixed acceptance scope');
+   if(appReadOnly(env)||appSubmissionTest(env)||appFileTest(env))return fail(403,'Catalog lookup is outside this fixed acceptance scope');
    if(u.searchParams.size!==1)return fail(400,'Source URL required');
    try{return reply(await novelCatalog(u.searchParams.get('url'),env));}
    catch(e){return fail([400,429].includes(e.status)?e.status:503,'Catalog unavailable; verify source access and retry later');}
@@ -93,10 +95,10 @@ export async function accountRoute(request,env){
   }
   if(p==='/app-api/jobs'&&request.method==='GET'){
    const result=await env.DB.prepare('SELECT j.* FROM mv_hybrid_jobs j JOIN mv_hybrid_account_jobs a ON a.job_id=j.id WHERE a.account_id=? ORDER BY j.created_at DESC LIMIT 40').bind(current.account_id).all();
-   return reply({jobs:result.results.map(rowFormat)});
+   return reply({jobs:result.results.filter(j=>!appFileTest(env)||fileTestPermits(env,j.id)).map(rowFormat)});
   }
   if(p==='/app-api/jobs'&&request.method==='POST'){
-   if(env.ENABLE_APP_SUBMISSION!=='true')return fail(403,'Account submission disabled');
+   if(appFileTest(env)||env.ENABLE_APP_SUBMISSION!=='true')return fail(403,'Account submission disabled');
    const raw=await body(request);let spec;
    if(raw.retry_of!==undefined){
     if(!jobPattern.test(raw.retry_of||''))return fail(400,'Invalid retry job ID');
@@ -125,11 +127,13 @@ export async function accountRoute(request,env){
   const data=p.endsWith('/files')?{id:u.searchParams.get('id')}:await body(request);
   if(!jobPattern.test(data.id||''))return fail(400,'Invalid job ID');
   const owned=await env.DB.prepare('SELECT j.status FROM mv_hybrid_jobs j JOIN mv_hybrid_account_jobs a ON a.job_id=j.id WHERE j.id=? AND a.account_id=?').bind(data.id,current.account_id).first();
+  if(appFileTest(env)&&!fileTestPermits(env,data.id))return fail(404,'File outside this acceptance scope');
   if(!owned)return fail(404,'Account job not found');
   if(p.endsWith('/files')){
-   const files=owned.status==='complete'?await env.DB.prepare('SELECT relative_path AS path,name,bytes AS size FROM mv_hybrid_files WHERE job_id=?').bind(data.id).all():{results:[]};return reply({files:files.results});
+   const files=owned.status==='complete'?await env.DB.prepare('SELECT relative_path AS path,name,bytes AS size FROM mv_hybrid_files WHERE job_id=?').bind(data.id).all():{results:[]};return reply({files:files.results.filter(f=>!appFileTest(env)||fileTestPermits(env,data.id,f.path,f.size))});
   }
   if(p.endsWith('/cancel')){
+   if(appFileTest(env))return fail(403,'Task mutations are outside this file-save scope');
    if(owned.status==='cancelled')return reply({ok:true});
    const now=Date.now();
    const r=await env.DB.prepare("UPDATE mv_hybrid_jobs SET status='cancelled',updated_at=? WHERE id=? AND status IN ("+active+") AND EXISTS(SELECT 1 FROM mv_hybrid_app_sessions WHERE digest=? AND status='approved' AND account_id=? AND expires_at>?) AND EXISTS(SELECT 1 FROM mv_hybrid_account_jobs WHERE job_id=? AND account_id=?)").bind(now,data.id,current.digest,current.account_id,now,data.id,current.account_id).run();

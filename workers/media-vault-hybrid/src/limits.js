@@ -1,3 +1,4 @@
+import {appFileTest,fileTestWindowValid} from './account-file-scope.js';
 // Application safety budget, not OCI/Cloudflare official quota.
 export const OCI_REFERENCE_BYTES = 10_000_000_000_000; // Oracle Always Free docs: 10 TB/month outbound
 export function transferBudget(env) {
@@ -7,7 +8,7 @@ export function transferBudget(env) {
 }
 export function streamingEnabled(env){
  const until=env?.MEDIA_STREAM_TEST_UNTIL;
- return env?.ENABLE_DIRECT_STREAM==='true'&&!!env?.RELAY&&
+ return (!appFileTest(env)||fileTestWindowValid(env))&&env?.ENABLE_DIRECT_STREAM==='true'&&!!env?.RELAY&&
   (until===undefined||(Number.isSafeInteger(Number(until))&&Number(until)>Date.now()));
 }
 

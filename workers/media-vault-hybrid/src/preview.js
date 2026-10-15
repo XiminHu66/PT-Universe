@@ -1,3 +1,4 @@
+import {appFileTest} from './account-file-scope.js';
 import assets from './preview-assets.js';
 import {appEnabled,appReadOnly,appSubmissionTest} from './account-auth.js';
 const temporaryAssets=new Set(['index.html','app.js','style.css','novels.css','native-download.js','scoped-session.js']);
@@ -39,6 +40,7 @@ function accountPage(request,env,u){
  let page=assets[name];
  if(appReadOnly(env))page=page.replace('批准后最长保留七天','本次是限时只读登录验收，批准后随窗口到期').replace('<section class="hero">','<section class="card" aria-label="只读验收范围"><strong>20 分钟账号登录验收</strong><p>只开放登录、任务列表和额度查看；任务提交、取消与文件保存均关闭。到期自动停止访问。</p></section><section class="hero">');
  if(appSubmissionTest(env))page=page.replace('批准后最长保留七天','本次为最多 30 分钟的指定来源任务验收，批准后随窗口到期').replace('<section class="hero">','<section class="card" aria-label="提交验收范围"><strong>30 分钟账号任务验收</strong><p>仅限四个指定样例，每种最多一项，整个账号合计四项。文件传输关闭，不签发下载票据；到期停止账号访问，已提交任务继续在后台运行。</p></section><section class="hero">');
+ if(appFileTest(env))page=page.replace('批准后最长保留七天','本次为最多 20 分钟的三文件保存验收，批准后随窗口到期').replace('<section class="hero">','<section class="card" aria-label="文件验收范围"><strong>20 分钟账号文件保存验收</strong><p>仅限上一轮已完成的 EPUB、CBZ、MP4 各一份；整个账号合计三张票据、最多 10 MiB，每个文件仅签发一次。任务提交、取消与重建关闭。到期停止访问；保存结果请在浏览器下载列表确认。</p></section><section class="hero">');
  const content=html?page.replaceAll('<script','<script nonce="'+nonce+'"'):css?assets[name].replace(/^@import[^\r\n]*[\r\n]/,''):assets[name];
  return new Response(content,{headers:{'Content-Type':html?'text/html; charset=utf-8':css?'text/css; charset=utf-8':'text/javascript; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff','X-Robots-Tag':'noindex','Content-Security-Policy':"default-src 'none'; script-src 'nonce-"+nonce+"' 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; frame-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"}});
 }

@@ -222,3 +222,44 @@ Proceed in the original order without repeating completed relay/recovery work:
    Chinese manga compatibility. Longer device persistence is also unproven.
 4. Review the remaining acceptance results, then make a separate merge and
    production-publication decision. PR 104 stays draft until that decision.
+
+
+## Three-file account save candidate — prepared, not activated
+
+The next candidate adds a distinct `files` account mode rather than enabling the
+broad seven-day/five-job/one-hundred-ticket contract. Only the existing novel,
+CBZ and MP4 jobs in the acceptance table above are eligible; BT is excluded.
+No account-job mapping is imported or rewritten and no new source job is created.
+
+- Absolute twenty-minute account/stream deadline; one approved browser device.
+- Existing account ownership plus exact job/path/size allowlist at issuance and
+  redemption. Missing, changed, incomplete or older-than-23-hour metadata stops
+  preflight; no automatic source retry or substitution.
+- Three issued tickets across the account/window, one per file, aggregate at
+  most 10 MiB. Failed/expired/revoked tickets still consume that window's allowance.
+  A replacement approved session cannot reset it. SQL transactions enforce
+  concurrent account/per-file/byte checks and retain the global transfer budget.
+- No new submission, cancellation, rebuild or catalog lookup. Owner/temporary
+  browser roles cannot mint parallel tickets while this account window is active.
+- Invalid scope, accidental submission enabling, expiry, logout and narrow
+  administrative revocation deny account access/tickets. Pending reservations
+  are released precisely; active/unrelated transfers preserve their prior rules.
+- Source selectors are hidden in this Worker-only file view. The banner states
+  the three-file/three-ticket/10-MiB bounds and tells users to confirm disk saves
+  in the browser, without claiming success when a native download is handed off.
+
+Workflow 21 adds `account-files-check` (read-only metadata and closed-route
+checks), `account-files-on` (explicit activation only) and `account-files-off`.
+The on operation rechecks retained file metadata and the absence of approved
+sessions/prior account tickets, writes its runtime selection only on the runner,
+and never outputs credentials. The off operation empties that selection and
+resets the account/stream deadlines along with the existing independent gates.
+The base configuration and production entrypoint remain unchanged.
+
+`test-account-files.mjs` uses the actual Worker/SQLite handler for concurrent
+single-file issuance, account-wide allowance across replacement sessions,
+wrong files/roles, disabled mutations, expiry/no revival, and exact logout
+reservation release. Existing transport and native-saver tests remain required.
+This is preparation and automated evidence, not real account byte-transfer or
+Windows disk-save acceptance. Read-only live file/VPS evidence and the closed
+candidate deployment are recorded after their workflows complete.

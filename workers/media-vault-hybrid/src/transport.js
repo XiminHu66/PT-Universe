@@ -1,5 +1,6 @@
+import {appFileTest,fileTestPermits,FILE_TEST_BYTES} from './account-file-scope.js';
 import {transferBudget,streamingEnabled} from './limits.js';
-import {appEnabled,appFilesAllowed,APP_TICKET_LIMIT} from './account-auth.js';
+import {appEnabled,appFilesAllowed,appTicketLimit} from './account-auth.js';
 // Session-only file transfer: source bytes travel VPS -> outbound WebSocket
 // -> Durable Object TransformStream -> browser. D1 stores ONLY byte counts.
 const hex=b=>Array.from(b).map(n=>n.toString(16).padStart(2,'0')).join('');
@@ -68,7 +69,7 @@ async function transportCore(request,env){
    const session=appEnabled(env)&&appFilesAllowed(env)?await env.DB.prepare("SELECT digest FROM mv_hybrid_app_sessions WHERE digest=? AND account_id=? AND status='approved' AND expires_at>?").bind(appLink.session_digest,env.MEDIA_APP_ACCOUNT_ID,Date.now()).first():null;
    if(!session){await expireUnclaimedTicket(env,digest,t.month);return fail(403,'Account session unavailable');}
    const owned=await env.DB.prepare('SELECT job_id FROM mv_hybrid_account_jobs WHERE job_id=? AND account_id=?').bind(t.job_id,env.MEDIA_APP_ACCOUNT_ID).first();
-   if(!owned){await expireUnclaimedTicket(env,digest,t.month);return fail(403,'Account job unavailable');}
+   if(!owned||appFileTest(env)&&!fileTestPermits(env,t.job_id,t.relative_path,t.bytes)){await expireUnclaimedTicket(env,digest,t.month);return fail(403,'Account job unavailable');}
   }
   const file=await env.DB.prepare('SELECT name FROM mv_hybrid_files WHERE job_id=? AND relative_path=?').bind(t.job_id,t.relative_path).first();
   if(!file){await expireUnclaimedTicket(env,digest,t.month);return fail(404,'File metadata unavailable');}
@@ -108,6 +109,7 @@ async function expireUnclaimedTicket(env,digest,period){
 export async function issueFileTicket(env,data,session=null){
   if(!ready(env))return fail(503,'Direct transfer relay is disabled');
   const app=session?.kind==='app';
+  if(appFileTest(env)&&!app)return fail(403,'Only the approved account may use this file window');
   if(app&&(!appEnabled(env)||!appFilesAllowed(env)||session.account_id!==env.MEDIA_APP_ACCOUNT_ID))return fail(403,'Account scope unavailable');
   const sessionTable=app?'mv_hybrid_app_sessions':'mv_hybrid_browser_sessions';
   const ticketTable=app?'mv_hybrid_app_tickets':'mv_hybrid_browser_tickets';
@@ -116,6 +118,7 @@ export async function issueFileTicket(env,data,session=null){
   if(j?.status!=='complete')return fail(409,'Job not completed');
   const f=await env.DB.prepare('SELECT bytes,name FROM mv_hybrid_files WHERE job_id=? AND relative_path=?').bind(data.id,data.path).first();
   if(!f||!Number.isSafeInteger(f.bytes)||f.bytes<=0||f.bytes>12*1024**3)return fail(404,'File not found or size invalid');
+  if(appFileTest(env)&&!fileTestPermits(env,data.id,data.path,f.bytes))return fail(403,'File outside this fixed acceptance scope');
   if(env.MEDIA_STREAM_TEST_UNTIL&&f.bytes>10*1024*1024){
     const permitted=!session&&Number(env.MEDIA_STREAM_TEST_UNTIL)>Date.now()&&jid.test(env.MEDIA_STREAM_TEST_LARGE_JOB||'')&&data.id===env.MEDIA_STREAM_TEST_LARGE_JOB&&f.bytes<=32*1024*1024;
     if(!permitted)return fail(413,'Temporary acceptance file exceeds selected test scope');
@@ -136,8 +139,8 @@ export async function issueFileTicket(env,data,session=null){
   const digest=await hash(token);
   try {
    const ops=[
-    env.DB.prepare("INSERT INTO mv_hybrid_tickets(digest,job_id,relative_path,bytes,month,expires_at,status) SELECT ?,?,?,?,?,?,'new' FROM mv_hybrid_transfer_usage WHERE month=? AND transferred_bytes+reserved_bytes+?<=? AND (SELECT COUNT(*) FROM mv_hybrid_tickets WHERE status='new' AND expires_at>?)<6 AND EXISTS(SELECT 1 FROM mv_hybrid_jobs WHERE id=? AND status='complete')"+(session?" AND EXISTS(SELECT 1 FROM "+sessionTable+" WHERE digest=? AND status='approved' AND expires_at>? AND issued_tickets<"+(app?APP_TICKET_LIMIT:6)+(app?' AND account_id=?':'')+")":'')+(app?' AND EXISTS(SELECT 1 FROM mv_hybrid_account_jobs WHERE job_id=? AND account_id=?)':''))
-     .bind(digest,data.id,data.path,f.bytes,m,expires,m,f.bytes,transferBudget(env),now,data.id,...(session?[session.digest,now]:[]),...(app?[session.account_id,data.id,session.account_id]:[])),
+    env.DB.prepare("INSERT INTO mv_hybrid_tickets(digest,job_id,relative_path,bytes,month,expires_at,status) SELECT ?,?,?,?,?,?,'new' FROM mv_hybrid_transfer_usage WHERE month=? AND transferred_bytes+reserved_bytes+?<=? AND (SELECT COUNT(*) FROM mv_hybrid_tickets WHERE status='new' AND expires_at>?)<6 AND EXISTS(SELECT 1 FROM mv_hybrid_jobs WHERE id=? AND status='complete')"+(session?" AND EXISTS(SELECT 1 FROM "+sessionTable+" WHERE digest=? AND status='approved' AND expires_at>? AND issued_tickets<"+(app?appTicketLimit(env):6)+(app?' AND account_id=?':'')+")":'')+(app?' AND EXISTS(SELECT 1 FROM mv_hybrid_account_jobs WHERE job_id=? AND account_id=?)':'')+(appFileTest(env)?" AND (SELECT COUNT(*) FROM mv_hybrid_app_tickets a JOIN mv_hybrid_tickets t ON t.digest=a.digest JOIN mv_hybrid_app_sessions s ON s.digest=a.session_digest WHERE s.account_id=? AND t.expires_at>?)<3 AND (SELECT COALESCE(SUM(t.bytes),0) FROM mv_hybrid_app_tickets a JOIN mv_hybrid_tickets t ON t.digest=a.digest JOIN mv_hybrid_app_sessions s ON s.digest=a.session_digest WHERE s.account_id=? AND t.expires_at>?)+?<=? AND NOT EXISTS(SELECT 1 FROM mv_hybrid_app_tickets a JOIN mv_hybrid_tickets t ON t.digest=a.digest JOIN mv_hybrid_app_sessions s ON s.digest=a.session_digest WHERE s.account_id=? AND t.expires_at>? AND t.job_id=? AND t.relative_path=?)":''))
+     .bind(digest,data.id,data.path,f.bytes,m,expires,m,f.bytes,transferBudget(env),now,data.id,...(session?[session.digest,now]:[]),...(app?[session.account_id,data.id,session.account_id]:[]),...(appFileTest(env)?[session.account_id,Number(env.MEDIA_APP_FILE_TEST_START),session.account_id,Number(env.MEDIA_APP_FILE_TEST_START),f.bytes,FILE_TEST_BYTES,session.account_id,Number(env.MEDIA_APP_FILE_TEST_START),data.id,data.path]:[])),
     env.DB.prepare("UPDATE mv_hybrid_transfer_usage SET reserved_bytes=reserved_bytes+?,updated_at=? WHERE month=? AND EXISTS(SELECT 1 FROM mv_hybrid_tickets WHERE digest=? AND status='new')").bind(f.bytes,now,m,digest)
    ];
    if(session){
