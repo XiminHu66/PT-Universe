@@ -6,7 +6,7 @@ on:
         description: Metadata operation
         type: choice
         default: verify
-        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership, account-approve, account-revoke, account-login-on, account-login-off, account-submit-on, account-submit-off, account-rc-off, account-files-check, account-files-on, account-files-off]
+        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership, account-approve, account-revoke, account-login-on, account-login-off, account-submit-on, account-submit-off, account-rc-off, account-off-check, account-files-check, account-files-on, account-files-off]
       pair_code:
         description: Browser pairing request ID
         type: string
@@ -63,6 +63,15 @@ jobs:
             node workers/media-vault-hybrid/migration-check.mjs idempotent
           fi
           npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/test-window.json
+      - name: Verify account and streaming closure without deployment
+        if: inputs.operation == 'account-off-check'
+        env:
+          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+          AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
+        run: |
+          set -euo pipefail
+          node workers/media-vault-hybrid/live-stream-off.mjs
+          node workers/media-vault-hybrid/live-account-off.mjs
       - name: Inspect retained account files with all gates OFF
         if: inputs.operation == 'account-files-check'
         env:
@@ -215,4 +224,5 @@ jobs:
           set -euo pipefail
           test -n "$OWNER" && test -n "$AGENT"
           node workers/media-vault-hybrid/live-metadata.mjs
+
 

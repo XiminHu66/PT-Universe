@@ -11,7 +11,7 @@ export async function verifyAccountOff({owner,agent,fetcher=fetch,pause=ms=>new 
    await response.body?.cancel();
    // Old unauthenticated fallthrough can return 401 during propagation. Never
    // conceal a successful/redirecting account endpoint during an OFF deploy.
-   assert.ok(response.status>=400,'Account OFF route unexpectedly accessible: '+method+' '+path);
+   assert.ok(response.status>=400,'Account OFF route unexpectedly accessible: '+method+' '+path+' status='+response.status);
    return response.status;
   })));
   stable=statuses.every(status=>status===404)?stable+1:0;
