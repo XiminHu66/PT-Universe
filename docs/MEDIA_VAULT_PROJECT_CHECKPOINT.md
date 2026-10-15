@@ -8,6 +8,12 @@ It is not a replacement project or a reason to repeat completed transfer tests.
 
 ## Current checkpoint
 
+Current integration work and the complete original-plan mapping are maintained
+in `MEDIA_VAULT_REMAINING_PLAN.md`. The next closed candidate fixes canonical
+submission, cooperative source cancellation and cumulative content bounds, and
+adds a real offline Agent/adapter contract plus explicit unresolved release gates.
+This does not supersede the real-browser block or claim those acceptances passed.
+
 Latest attempt: the authorized novel workflow window deployed, but remote
 Chrome could not open the account page (`ERR_BLOCKED_BY_CLIENT` and a browser
 URL-policy denial on error-tab inspection). No pairing or source work occurred.
@@ -468,3 +474,32 @@ successful deployment probes or automatically reopen another window to retry.
 The next continuation must account for the browser access limitation. Broader
 provider support, Windows saves, longer persistence and merge/publication remain
 in the previously recorded order; PR 104 remains draft.
+
+
+## Closed cross-component integration candidate — 2026-10-15
+
+The original order is unchanged; see MEDIA_VAULT_REMAINING_PLAN.md for the full
+remaining sequence. Review identified and fixed Owner raw-payload persistence,
+late duplicate-chapter rejection and invalid JSON returning a server error.
+Canonical input now preserves the legacy boolean text-only alias, strips
+unrecognized forwarding fields and normalizes chapter order. Content acquisition
+checks cancellation before further source reads and during polite spacing,
+checks cumulative acquired text/image bytes before packaging and rejects text
+that the packager would otherwise truncate. EPUB building also splits source
+paragraphs before control-character cleanup, fixing normal paragraphs being
+joined together while still removing blank paragraphs.
+
+An offline companion contract executes actual cookie/form, Worker/SQLite,
+Agent polling, adapter and EPUB/CBZ builders, then applies real report metadata
+back to the Worker. Four account kinds and a canonical Owner recipe, cancel,
+rebuild, restart stability, file ownership, logout and zero tickets/ledger are
+covered. Source HTTP and video/BT engine responses are disposable fixtures;
+this is not a new live source, browser or Windows-save result.
+
+New candidate-check operations run without production credentials, SSH, schema
+mutation, deployment or live service calls. The public manifest retains explicit
+pending gates and the release command fails until they are resolved. Reviewed
+production entrypoint source is unchanged in this batch. The companion fixes
+are candidate-only and require a coordinated later deployment; live Worker/VPS
+remain at their prior closed versions. PRs remain draft. Cloud workflow results
+will be appended after their fresh runs finish.

@@ -1,4 +1,4 @@
-import {validUrl,permittedJob,rowFormat} from './job-contract.js';
+import {validUrl,canonicalJob,rowFormat} from './job-contract.js';
 import {accountRoute} from './account.js';
 import {OCI_REFERENCE_BYTES,transferBudget,streamingEnabled} from './limits.js';
 import {acceptancePage} from './acceptance.js';
@@ -33,11 +33,12 @@ function tokenIs(request,secret){
 }
 function month(){return new Date().toISOString().slice(0,7)}
 async function jsonBody(request){
-  const text=await request.text();
-  if(text.length>12000)throw new Error('Request too large');
-  const o=JSON.parse(text);
-  if(!o||typeof o!=='object'||Array.isArray(o))throw new Error('JSON object required');
-  return o;
+  try{const text=await request.text();
+   if(text.length>12000)throw Error();
+   const o=JSON.parse(text);
+   if(!o||typeof o!=='object'||Array.isArray(o))throw Error();
+   return o;
+  }catch{throw Object.assign(Error('A bounded JSON object is required'),{status:400});}
 }
 async function scalar(db,sql,...args){const row=await db.prepare(sql).bind(...args).first();return Number(Object.values(row||{})[0]||0)}
 function requireDb(env){if(!env.DB)throw new Error('D1 missing')}
@@ -79,8 +80,8 @@ export async function handle(request,env){
       return reply({jobs:(result.results||[]).map(rowFormat)},200,origin);
     }
     if(path==='/jobs'&&request.method==='POST'){
-      const o=await jsonBody(request);
-      if(!permittedJob(o))return denied(origin,400,'Unsupported or invalid download job');
+      const o=canonicalJob(await jsonBody(request));
+      if(!o)return denied(origin,400,'Unsupported or invalid download job');
       const count=await scalar(env.DB,"SELECT COUNT(*) AS total FROM mv_hybrid_jobs WHERE status IN ('queued','running','waiting','active')");
       if(count>=5)return denied(origin,429,'Queue full; maximum five pending jobs');
       const id=Array.from(crypto.getRandomValues(new Uint8Array(12))).map(x=>x.toString(16).padStart(2,'0')).join('');
@@ -181,7 +182,7 @@ export async function handle(request,env){
       return denied(origin,503,'Direct-to-computer streaming not yet enabled');
     return denied(origin,404,'Unknown route');
   }catch(e){
-    return denied(origin,500,'Hybrid service unavailable: '+String(e?.message||e).slice(0,140));
+    return denied(origin,e?.status===400?400:500,e?.status===400?'A bounded JSON object is required':'Hybrid service unavailable');
   }
 }
 export default {fetch:handle};

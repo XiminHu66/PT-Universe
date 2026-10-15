@@ -4,26 +4,32 @@ export function validUrl(raw,kind){
   if(kind==='torrent'&&/^magnet:\?xt=urn:btih:[a-f0-9]{40}(?:&[^#\r\n]*)?$/i.test(raw))return true;
   try {
     const u=new URL(raw);
-    if(u.username||u.password||u.port||u.protocol!=='https:'||!u.hostname.includes('.'))return false;
+    if(u.username||u.password||u.port||u.hash||u.protocol!=='https:'||!u.hostname.includes('.'))return false;
     if(/^(localhost|127\.|0\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2[0-9]|3[01])\.)/i.test(u.hostname))return false;
     if(kind==='novel'&&!['www.wenku8.net','wenku8.net','www.bilinovel.com','www.bilinovel.net','www.linovelib.com','w.linovelib.com'].includes(u.hostname))return false;
     return true;
   }catch{return false}
 }
 export function permittedJob(o){
-  if(!kinds.has(o.kind))return false;
-  if(o.text_only!==undefined&&typeof o.text_only!=='boolean')return false;
+  if(!o||typeof o!=='object'||Array.isArray(o)||!kinds.has(o.kind))return false;
+  if(o.text_only!==undefined&&typeof o.text_only!=='boolean'||o.skip_images!==undefined&&typeof o.skip_images!=='boolean')return false;
+  if(o.kind==='novel'&&o.text_only!==undefined&&o.skip_images!==undefined&&o.text_only!==o.skip_images)return false;
   if(o.layout!==undefined&&(!o.layout||typeof o.layout!=='object'||Array.isArray(o.layout)||Object.entries(o.layout).some(([k,v])=>!Object.hasOwn(layoutBounds,k)||typeof v!=='number'||!Number.isFinite(v)||v<layoutBounds[k][0]||v>layoutBounds[k][1])))return false;
-  if(o.kind==='manga')return typeof o.title==='string'&&o.title.length<200&&Array.isArray(o.files)&&o.files.length>0&&o.files.length<=20&&o.files.every(x=>typeof x==='string'&&/^File:[^<>#\r\n]{2,190}\.(png|jpe?g|gif|webp)$/i.test(x));
+  if(o.kind==='manga')return typeof o.title==='string'&&o.title.trim().length>0&&o.title.length<200&&Array.isArray(o.files)&&o.files.length>0&&o.files.length<=20&&new Set(o.files).size===o.files.length&&o.files.every(x=>typeof x==='string'&&/^File:[^<>#\r\n]{2,190}\.(png|jpe?g|gif|webp)$/i.test(x));
   if(!validUrl(o.url,o.kind))return false;
-  if(o.kind==='novel'&&!(Array.isArray(o.indices)&&o.indices.length>0&&o.indices.length<=100&&o.indices.every(i=>Number.isSafeInteger(i)&&i>=0&&i<=100000)))return false;
+  if(o.kind==='novel'&&!(Array.isArray(o.indices)&&o.indices.length>0&&o.indices.length<=100&&new Set(o.indices).size===o.indices.length&&o.indices.every(i=>Number.isSafeInteger(i)&&i>=0&&i<=100000)))return false;
   return true;
 }
 export const layoutBounds={fontScale:[70,180],lineHeight:[1.1,2.5],paragraphGap:[0,3],indent:[0,4],pageMargin:[0,3]};
 export function canonicalJob(raw){
  if(!permittedJob(raw)||raw.format!==undefined&&(typeof raw.format!=='string'||raw.format.length>120))return null;
- const spec={};for(const key of ['kind','url','format','title','files','indices','text_only'])if(raw[key]!==undefined)spec[key]=raw[key];
- if(raw.layout!==undefined)spec.layout=Object.fromEntries(Object.keys(layoutBounds).filter(k=>raw.layout[k]!==undefined).map(k=>[k,raw.layout[k]]));
+ const spec={kind:raw.kind};
+ const keys=raw.kind==='manga'?['title','files']:raw.kind==='novel'?['url','text_only','skip_images']:['url','format'];
+ for(const key of keys)if(raw[key]!==undefined)spec[key]=raw[key];
+ if(raw.kind==='novel'){
+  spec.indices=[...raw.indices].sort((a,b)=>a-b);
+  if(raw.layout!==undefined)spec.layout=Object.fromEntries(Object.keys(layoutBounds).filter(k=>raw.layout[k]!==undefined).map(k=>[k,raw.layout[k]]));
+ }
  return spec;
 }
 export function rowFormat(row){

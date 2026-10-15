@@ -53,9 +53,9 @@ assert.equal(r.status,200);
 r=await result(await req('/jobs/files?id='+id,{headers:auth()}));assert.equal(r.body.files[0].size,14240);
 r=await result(await req('/agent/report',{method:'POST',headers:auth(env.MEDIA_AGENT_TOKEN),body:JSON.stringify({id,status:'running'})}));assert.equal(r.status,409,'terminal jobs cannot reopen');
 r=await result(await req('/jobs/cancel',{method:'POST',headers:auth(),body:JSON.stringify({id})}));assert.equal(r.status,409,'completed job is not cancellable');
-r=await result(await req('/jobs',{method:'POST',headers:auth(),body:JSON.stringify({kind:'novel',url:'https://www.wenku8.net/book/3551.htm',indices:[1],id:'spoofed'})}));
+r=await result(await req('/jobs',{method:'POST',headers:auth(),body:JSON.stringify({kind:'novel',url:'https://www.wenku8.net/book/3551.htm',indices:[1],id:'spoofed',request_id:'f'.repeat(24),headers:{Authorization:'not-a-credential'},account_id:'untrusted',skip_images:true})}));
 const cancelled=r.body.id;
-r=await result(await req('/agent/lease',{method:'POST',headers:auth(env.MEDIA_AGENT_TOKEN),body:'{}'}));assert.equal(r.body.job.id,cancelled,'untrusted body cannot override generated ID');
+r=await result(await req('/agent/lease',{method:'POST',headers:auth(env.MEDIA_AGENT_TOKEN),body:'{}'}));assert.equal(r.body.job.id,cancelled,'untrusted body cannot override generated ID');assert.equal(r.body.job.request_id,undefined);assert.equal(r.body.job.headers,undefined);assert.equal(r.body.job.account_id,undefined);assert.equal(r.body.job.skip_images,true,'legacy Owner text-only preference remains supported');
 r=await result(await req('/jobs/cancel',{method:'POST',headers:auth(),body:JSON.stringify({id:cancelled})}));assert.equal(r.status,200);
 r=await result(await req('/agent/job?id='+cancelled,{headers:auth(env.MEDIA_AGENT_TOKEN)}));assert.equal(r.body.status,'cancelled');
 r=await result(await req('/agent/report',{method:'POST',headers:auth(env.MEDIA_AGENT_TOKEN),body:JSON.stringify({id:cancelled,status:'complete',files:[{path:'generated/'+cancelled+'.epub',size:12}]})}));assert.equal(r.status,409,'cancelled jobs cannot publish files');
@@ -68,5 +68,6 @@ r=await result(await req('/download-ticket',{method:'POST',headers:auth(),body:'
 assert.equal((await req('/acceptance')).status,404,'acceptance UI disabled by default');
 r=await req('/jobs',{method:'OPTIONS',headers:{Origin:'https://ximinhu66.github.io'}});
 assert.equal(r.status,204);
+for(const bad of [null,[],{kind:'novel',url:'https://www.wenku8.net/book/3551.htm',indices:[0,0]},{kind:'novel',url:'https://www.wenku8.net/book/3551.htm',indices:[0],text_only:true,skip_images:false}]){const invalid=await req('/jobs',{method:'POST',headers:auth(),body:JSON.stringify(bad)});assert.equal(invalid.status,400);}
 console.log('PASS token isolation, lease IDs, cancellation visibility, terminal guards, completion validation, atomic D1 report API, quota OFF and CORS');
 

@@ -6,7 +6,7 @@ on:
         description: Metadata operation
         type: choice
         default: verify
-        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership, account-approve, account-revoke, account-login-on, account-login-off, account-submit-on, account-submit-off, account-rc-off, account-off-check, account-files-check, account-files-on, account-files-off, account-novel-on, account-novel-off]
+        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership, account-approve, account-revoke, account-login-on, account-login-off, account-submit-on, account-submit-off, account-rc-off, account-off-check, account-files-check, account-files-on, account-files-off, account-novel-on, account-novel-off, candidate-check]
       pair_code:
         description: Browser pairing request ID
         type: string
@@ -33,6 +33,12 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24'
+      - name: Check candidate without deployment or live service requests
+        if: inputs.operation == 'candidate-check'
+        run: |
+          set -euo pipefail
+          npm test --prefix workers/media-vault-hybrid
+          node workers/media-vault-hybrid/candidate-check.mjs
       - name: Test and deploy only dedicated hybrid metadata Worker
         if: inputs.operation == 'deploy' || inputs.operation == 'prepare' || inputs.operation == 'stream-on' || inputs.operation == 'large-on' || inputs.operation == 'stream-off'
         env:

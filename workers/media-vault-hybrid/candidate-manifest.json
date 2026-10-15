@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "stage": "closed-integration-candidate",
+  "original_order": [
+    "outbound-agent",
+    "metadata",
+    "small-transfer",
+    "large-recovery",
+    "budget-retention",
+    "real-sources",
+    "frontend",
+    "merge-publication"
+  ],
+  "production_source_sha256": {
+    "apps/media-vault/index.html": "f07936c84e7cf7eb872ecfadd1ff6c0237117bab062c90ae4eb6c6fa29bee5d5",
+    "apps/media-vault/app.js": "a9b85a69ed7e1e6014c46a7a19d55aa65564308063e884b2be6324edab833f28",
+    "apps/media-vault/style.css": "e946451d4dda004cc61a56dba4bd1b1f7ab5b3dbd7099e17eabdfc6ec51a1f79",
+    "apps/media-vault/novels.css": "222b42ba890760882492e8436c773342e86d067b5fcbf74fd415eabcbafea29c"
+  },
+  "pending": [
+    {
+      "id": "novel-real-ui",
+      "status": "blocked-browser-policy"
+    },
+    {
+      "id": "windows-native-save",
+      "status": "not-observed"
+    },
+    {
+      "id": "longer-session-persistence",
+      "status": "not-observed"
+    },
+    {
+      "id": "general-chinese-manga-provider",
+      "status": "not-delivered"
+    },
+    {
+      "id": "deploy-reviewed-integration-fixes",
+      "status": "candidate-only"
+    },
+    {
+      "id": "final-merge-and-publication",
+      "status": "separate-decision-required"
+    }
+  ]
+}
