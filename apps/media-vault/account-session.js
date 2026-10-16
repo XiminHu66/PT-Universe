@@ -1,4 +1,15 @@
 // Account cookie client. Storage contains public retry IDs and hashes only.
+const catalogMessages={
+ catalog_source_invalid:'小说来源链接不符合要求，请检查链接。',
+ catalog_limiter_unavailable:'目录服务暂未就绪，请稍后重试；无需重新登录。',
+ catalog_rate_limited:'目录请求过于频繁，请稍后再试，勿连续点击。',
+ catalog_upstream_http:'小说目录来源服务返回错误，请稍后重试；无需重新登录。',
+ catalog_network:'目录服务连接失败，请稍后重试；无需重新登录。',
+ catalog_timeout:'读取小说目录超时，请稍后重试，勿连续点击。',
+ catalog_too_large:'小说目录超出读取大小限制，暂不能加载。',
+ catalog_invalid_response:'来源未返回有效小说目录，暂不能加载。',
+ catalog_unavailable:'小说目录暂不可用，请稍后重试；无需重新登录。'
+};
 export function createAccountConnection(options={}){
  const origin=options.origin||location.origin,fetcher=options.fetch||fetch;
  const now=options.now||Date.now,schedule=options.setTimeout||setTimeout,cancel=options.clearTimeout||clearTimeout;
@@ -18,7 +29,7 @@ export function createAccountConnection(options={}){
    headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined,
    signal:signal?AbortSignal.any([signal,AbortSignal.timeout(15000)]):AbortSignal.timeout(15000)});
   let data;try{data=await r.json();}catch{data={};}
-  if(!r.ok){const e=Error(r.status===404?'账号服务未开放或资源不可用。':r.status===403?(path==='/app-auth/session'?'尚未登录或会话已到期，请申请配对。':'当前会话无权执行此操作，请检查登录与提交权限。'):r.status===429?'请求过于频繁、队列繁忙或额度不足，请稍后重试。':r.status===409?'请求发生冲突，请核对原提交内容。':r.status===400?'任务内容不符合要求，请检查输入。':'账号服务暂不可用，请重试。');e.status=r.status;throw e;}
+  if(!r.ok){const catalogError=path.startsWith('/app-api/novel/catalog?')&&[400,429,503].includes(r.status)?(typeof data?.code==='string'&&Object.hasOwn(catalogMessages,data.code)?catalogMessages[data.code]:catalogMessages.catalog_unavailable):null;const e=Error(catalogError||(r.status===404?'账号服务未开放或资源不可用。':r.status===403?(path==='/app-auth/session'?'尚未登录或会话已到期，请申请配对。':'当前会话无权执行此操作，请检查登录与提交权限。'):r.status===429?'请求过于频繁、队列繁忙或额度不足，请稍后重试。':r.status===409?'请求发生冲突，请核对原提交内容。':r.status===400?'任务内容不符合要求，请检查输入。':'账号服务暂不可用，请重试。'));e.status=r.status;throw e;}
   return data;
  }
  function arm(){

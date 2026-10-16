@@ -4,7 +4,7 @@ import {appObservation,observationPairingOpen,OBSERVATION_DURATION} from './acco
 import {appEnabled,appCookieDigest,ownerAuthorized,randomHex,appCookie,APP_LIFETIME,appDeadline,appReadOnly,appSubmissionTest,appFilesAllowed,appJobLimit,appTicketLimit,appScope} from './account-auth.js';
 import {digest} from './session-auth.js';
 import {canonicalJob,rowFormat} from './job-contract.js';
-import {novelCatalog} from './account-catalog.js';
+import {novelCatalog,catalogFailure} from './account-catalog.js';
 import {transferBudget,streamingEnabled} from './limits.js';
 import {issueFileTicket} from './transport.js';
 import {PILOT_PRESETS,pilotPermits} from './account-pilot.js';
@@ -92,7 +92,7 @@ export async function accountRoute(request,env){
    if(appNovelUx(env)&&u.searchParams.get('url')!==NOVEL_UX_SOURCE)return fail(403,'Only the fixed novel catalog is permitted');
    if(u.searchParams.size!==1)return fail(400,'Source URL required');
    try{return reply(await novelCatalog(u.searchParams.get('url'),env));}
-   catch(e){return fail([400,429].includes(e.status)?e.status:503,'Catalog unavailable; verify source access and retry later');}
+   catch(e){const failure=catalogFailure(e);return reply(failure.body,failure.status);}
   }
   if(p==='/app-api/health'&&request.method==='GET'){
    let channel='closed';

@@ -33,6 +33,10 @@ try{
  const originalFetch=globalThis.fetch;let catalogCalls=0;
  try{globalThis.fetch=async(url,opts)=>{catalogCalls++;assert.equal(new URL(url).hostname,'pt-universe-api.summer07-nanjolno.workers.dev');assert.equal(new URL(url).searchParams.get('url'),NOVEL_UX_SOURCE);assert.equal(opts.redirect,'error');return new Response(JSON.stringify({title:'fixture',chapters:[{title:'one',url:'private'},{title:'two',url:'private'}]}));};
  const catalog=await request('/app-api/novel/catalog?'+new URLSearchParams({url:NOVEL_UX_SOURCE}),{cookie:a.cookie});assert.equal(catalog.status,200);assert.deepEqual((await catalog.json()).chapters,[{index:0,title:'one'},{index:1,title:'two'}]);assert.equal(catalogCalls,1);
+ globalThis.fetch=async()=>new Response('private upstream text',{status:500});
+ const upstream=await request('/app-api/novel/catalog?'+new URLSearchParams({url:NOVEL_UX_SOURCE}),{cookie:a.cookie});assert.equal(upstream.status,503);assert.deepEqual(await upstream.json(),{error:'Catalog unavailable; verify source access and retry later',code:'catalog_upstream_http'});
+ globalThis.fetch=async()=>new Response('<html>unexpected</html>');
+ const malformed=await request('/app-api/novel/catalog?'+new URLSearchParams({url:NOVEL_UX_SOURCE}),{cookie:a.cookie});assert.equal(malformed.status,503);assert.equal((await malformed.json()).code,'catalog_invalid_response');
  }finally{globalThis.fetch=originalFetch;}
  for(const bad of [{...spec(),url:'https://www.wenku8.net/book/1.htm'},{...spec(),indices:[2]},{...spec(),indices:[]},{...spec(),text_only:false},{...spec(),layout:{...NOVEL_UX_LAYOUTS.compact,fontScale:110}},{kind:'video',url:'https://example.com/v.mp4'}])assert.ok((await submit(a,bad)).status>=400);
  const first=await submit(a,spec());assert.equal(first.status,202);const firstId=(await first.json()).id;
