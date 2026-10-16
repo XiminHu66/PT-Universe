@@ -1,0 +1,8 @@
+{
+  "scope":"previous-three-file-native-save-evidence",
+  "files":[
+    {"id":"dca57e024edd1a7f0b6b57ae","label":"小说 EPUB","kind":"epub","bytes":52742,"sha256":"9e666f4ee31a6901292f2063d826a6d7c03f09b4f14b0a265df388b8ef426a61"},
+    {"id":"72c68c784e3df4c2e61dd101","label":"中文 CBZ","kind":"cbz","bytes":1632158,"sha256":"6da0cd390504c1fb4cb47ee52decbaf3ab29eb209928e5faea715b4f1659546a"},
+    {"id":"97960aca7f892551c2d5d2f1","label":"视频 MP4","kind":"mp4","bytes":2848208,"sha256":"05bd857af7f70bf51b6aac1144046973bf3325c9101a554bc27dc9607dbbd8f5"}
+  ]
+}

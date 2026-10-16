@@ -1,0 +1,42 @@
+{
+  "$schema": "../pt-universe-api/node_modules/wrangler/config-schema.json",
+  "name": "pt-media-hybrid",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-13",
+  "compatibility_flags": ["global_fetch_strictly_public"],
+  "workers_dev": true,
+  "observability": {
+    "enabled": false
+  },
+  "vars": {
+    "ENABLE_DIRECT_STREAM": "false",
+    "ENABLE_APP_ACCESS": "false",
+    "ENABLE_APP_SUBMISSION": "false",
+    "MEDIA_APP_LOGIN_TEST_UNTIL": "0",
+    "MEDIA_TRANSFER_MONTHLY_LIMIT_GIB": "100",
+    "MEDIA_APP_OBSERVATION_START": "0",
+    "MEDIA_APP_OBSERVATION_PAIR_UNTIL": "0",
+    "MEDIA_APP_OBSERVATION_UNTIL": "0"
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "RELAY",
+        "class_name": "MediaRelay"
+      }
+    ]
+  },
+  "exports": {
+    "MediaRelay": {
+      "type": "durable-object",
+      "storage": "sqlite"
+    }
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "pt-universe-db",
+      "database_id": "86805c79-d903-46cd-b0e2-c079c1a7fc1a"
+    }
+  ]
+}

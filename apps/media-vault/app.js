@@ -1,26 +1,29 @@
 'use strict';
+const SCOPED_PREVIEW=document.documentElement.dataset.hybridPreview==='true';
 const API='https://pt-universe-api.summer07-nanjolno.workers.dev/api/media/';
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const safeURL=s=>{try{const u=new URL(s);return ['https:','http:'].includes(u.protocol)?u.href:'';}catch{return '';}};
 const href=s=>esc(safeURL(s));
 const db={get(k,d){try{return JSON.parse(localStorage.getItem('ptu.mv.'+k))??d;}catch{return d;}},set(k,v){try{localStorage.setItem('ptu.mv.'+k,JSON.stringify(v));}catch{notice('浏览器无法保存本地记录，本次仍可使用。',true);}}};
-const meta={music:['♫','音乐','LISTEN. DISCOVER. KEEP.','给喜欢的声音，<br>留一个位置。','从每日榜单发现音乐，寻找 FLAC 音源，收藏你的下一首循环。'],novels:['▤','轻小说','ONE MORE CHAPTER.','下一章，<br>随时随地继续。','输入小说链接、查看目录、保存进度，把喜欢的故事装进阅读器。'],anime:['▷','动漫','YOUR NEXT EPISODE.','好故事，<br>不止一种打开方式。','查找中文字幕动漫，解析单集链接，管理你的观看与下载。'],torrent:['↓','BT 下载','LET IT FLOW.','链接放进来，<br>文件慢慢到。','输入名称，同时搜索多个来源，直接获取磁力链接与种子。'],video:['◫','视频','A LINK. YOUR OPTIONS.','留下想看的，<br>按你的方式播放。','输入网页或媒体链接，查看格式、播放视频、保存字幕与文件。']};
+const meta={music:['♫','音乐','LISTEN. DISCOVER. KEEP.','给喜欢的声音，<br>留一个位置。','从每日榜单发现音乐，寻找 FLAC 音源，收藏你的下一首循环。'],novels:['▤','轻小说','ONE MORE CHAPTER.','下一章，<br>随时随地继续。','输入小说链接、查看目录、保存进度，把喜欢的故事装进阅读器。'],anime:['▷','动漫','YOUR NEXT EPISODE.','好故事，<br>不止一种打开方式。','查找中文字幕动漫，解析单集链接，管理你的观看与下载。'],torrent:['↓','BT 下载','LET IT FLOW.','链接放进来，<br>文件慢慢到。','输入名称，同时搜索多个来源，直接获取磁力链接与种子。'],video:['◫','视频','A LINK. YOUR OPTIONS.','留下想看的，<br>按你的方式播放。','输入网页或媒体链接，查看格式、播放视频、保存字幕与文件。'],manga:['▤','漫画','PAGES TO KEEP.','把有授权的漫画，<br>保存成一本书。','下载开放许可的中文漫画页面，按照页序生成 CBZ 并保留署名信息。']};
 let country=db.get('country','jp'),genre=db.get('genre','0'),chartItems=[],chartRequest=0,book=null,chapterIndex=0,readerContent='',readerChapter=null,readerName='',fontSize=21,engine=null,engineJobs=[],history=db.get('history',[]),shelf=db.get('shelf',[]),snapshot=null;
-try{engine=JSON.parse(sessionStorage.getItem('mv.engine'));}catch{}
+if(SCOPED_PREVIEW)engine={url:location.origin,mode:'scoped-session'};
+else try{engine=JSON.parse(sessionStorage.getItem('mv.engine'));}catch{}
+const scopedReady=SCOPED_PREVIEW?import('./scoped-session.js').then(({createScopedConnection})=>createScopedConnection({onState:showScopedState})):null;
 const loaded=new Set();
 function notice(text,bad=false){$('#notice').hidden=!text;$('#notice').textContent=text;$('#notice').className=bad?'error':'';}
 function empty(text){return `<div class="empty"><p>${esc(text)}</p></div>`;}
 function date(s){return s?new Date(s).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'尚无成功更新';}
 function bytes(n){return n>=1e9?(n/1e9).toFixed(2)+' GB':n>=1e6?(n/1e6).toFixed(1)+' MB':n>=1e3?(n/1e3).toFixed(1)+' KB':(n||0)+' B';}
 async function busy(button,fn){if(button)button.disabled=true;try{return await fn();}catch(e){notice(e.message,true);}finally{if(button)button.disabled=false;}}
-async function api(path,params={}){
+async function api(path,params={}){if(SCOPED_PREVIEW)throw Error('本轮仅联调三个已批准文件的查看与保存，暂不开放其他来源。');
  let r,raw;try{r=await fetch(API+path+'?'+new URLSearchParams(params),{signal:AbortSignal.timeout(path==='health'?10000:path==='chapter'?120000:45000),cache:'no-store'});raw=await r.text();}
  catch(e){const error=new Error(e.name==='TimeoutError'?'来源响应超时，已缓存的章节仍可阅读。':'无法连接媒体服务，已缓存的章节仍保留。');error.transient=true;throw error;}
  let d;try{d=JSON.parse(raw);}catch{const error=new Error('接口返回 HTTP '+r.status+'，请稍后重试');error.transient=r.ok||[408,429,500,502,503,504,522,524].includes(r.status);throw error;}
  if(!r.ok||d.error){const error=new Error(d.error||'接口暂不可用');error.transient=[408,429,500,502,503,504,522,524].includes(r.status);throw error;}return d;
 }
-async function callEngine(path,body,config=engine){if(!config)throw new Error('此功能需要下载引擎。点击右上角“设置 → 下载引擎设置” 连接自己的电脑或 NAS。');const r=await fetch(config.url+path,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+config.token,...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(path.includes('novel')?90000:65000)});const d=await r.json();if(!r.ok||d.error)throw new Error(d.error||'引擎请求失败');return d;}
+async function callEngine(path,body,config=engine){if(SCOPED_PREVIEW)return (await scopedReady).read(path,body);if(!config)throw new Error('此功能需要下载引擎。点击右上角“设置 → 下载引擎设置” 连接自己的电脑或 NAS。');const r=await fetch(config.url+path,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+config.token,...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(path.includes('novel')?90000:65000)});const d=await r.json();if(!r.ok||d.error)throw new Error(d.error||'引擎请求失败');return d;}
 function addHistory(title,status){history=[{title,status,time:new Date().toISOString()},...history].slice(0,80);db.set('history',history);$('#queueCount').textContent=engineJobs.filter(x=>['running','queued','active','waiting'].includes(x.status)).length||history.length;}
 function downloadURL(url,title){
  const valid=safeURL(url);if(!valid)throw new Error('下载链接无效');
@@ -36,8 +39,8 @@ function blobDownload(data,name,type='text/plain;charset=utf-8'){const url=URL.c
 function player(track,url,type){if(!safeURL(url))throw new Error('没有可用音频链接');$('#player').hidden=false;$('#playerTitle').textContent=track.title;$('#playerArtist').textContent=track.artist||'';$('#playerArt').src=safeURL(track.artwork)||'../../icon.svg';$('#playerType').textContent=type;$('#audio').src=url;$('#audio').play().catch(e=>notice('播放失败：'+e.message,true));}
 $('#audio').addEventListener('error',()=>notice('音频加载失败：来源可能不支持跨站播放，或该浏览器不支持此编码。',true));
 $('#playerClose').onclick=()=>{$('#audio').pause();$('#audio').removeAttribute('src');$('#audio').load();$('#player').hidden=true;};
-$('#tabs').innerHTML=['novels','music','anime','torrent','video'].map(id=>[id,meta[id]]).map(([id,m])=>`<a href="#${id}" data-tab="${id}"><b>${m[0]}</b>${m[1]}</a>`).join('');
-function route(){let id=location.hash.slice(1)||'novels';if(!meta[id])id='novels';document.body.classList.toggle('novel-mode',id==='novels');if(id!=='video')$('#videoPlayer').pause();$$('.view').forEach(x=>x.hidden=x.id!==id);$$('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===id));$('#breadcrumb').textContent='发现 / '+meta[id][1];$('#eyebrow').textContent=meta[id][2];$('#title').innerHTML=meta[id][3];$('#subtitle').textContent=meta[id][4];notice('');window.scrollTo(0,0);if(!loaded.has(id)){loaded.add(id);if(id==='music')loadCharts();if(id==='novels'){renderShelf();renderNovelDownloads();}if(id==='anime')loadAnime();if(id==='torrent')loadTasks();}}
+$('#tabs').innerHTML=['novels','music','anime','torrent','video','manga'].map(id=>[id,meta[id]]).map(([id,m])=>`<a href="#${id}" data-tab="${id}"><b>${m[0]}</b>${m[1]}</a>`).join('');
+function route(){let id=location.hash.slice(1)||(SCOPED_PREVIEW?'torrent':'novels');if(!meta[id])id='novels';document.body.classList.toggle('novel-mode',id==='novels');if(id!=='video')$('#videoPlayer').pause();$$('.view').forEach(x=>x.hidden=x.id!==id);$$('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===id));$('#breadcrumb').textContent='发现 / '+meta[id][1];$('#eyebrow').textContent=meta[id][2];$('#title').innerHTML=meta[id][3];$('#subtitle').textContent=meta[id][4];notice('');window.scrollTo(0,0);if(!loaded.has(id)){loaded.add(id);if(id==='music')loadCharts();if(id==='novels'){renderShelf();renderNovelDownloads();}if(id==='anime')loadAnime();if(id==='torrent')loadTasks();}}
 addEventListener('hashchange',route);
 const countries=[['jp','日本'],['us','美国'],['cn','中国'],['tw','台湾'],['hk','香港'],['kr','韩国'],['gb','英国']];
 $('#countries').innerHTML=countries.map(([id,name])=>`<button data-country="${id}">${name}</button>`).join('');
@@ -232,7 +235,7 @@ async function openNovelDownload(item,preset={}){
  $('#downloadBookTitle').textContent=item.title||'正在读取小说';$('#downloadSelectionCount').textContent='正在读取章节目录…';$('#downloadSelectionError').hidden=true;$('#downloadSelectionFields').hidden=true;$('#downloadReload').hidden=true;$('#downloadConfirm').disabled=true;$('#downloadConfirm').textContent='正在读取目录…';$('#downloadRange').value='';$('#downloadPanelTabs').hidden=true;$('#epubLayoutPanel').hidden=true;
  if(!dialog.open)dialog.showModal();
  try{const target=Array.isArray(item.chapters)?item:await getBook(item.url);if(request!==downloadSelectionRequest||!dialog.open)return;if(!target.chapters?.length)throw new Error('这本小说没有可下载章节。');
-  downloadSelection={target:{...target,chapters:[...target.chapters]},indices:new Set(preset.indices||target.chapters.map((_,i)=>i))};$('#downloadBookTitle').textContent=target.title;$('#downloadPanelTabs').hidden=false;showDownloadPanel('chapters');renderDownloadSelection();
+  downloadSelection={target:{...target,chapters:[...target.chapters]},indices:new Set(preset.indices||target.chapters.map((_,i)=>i))};$('#downloadVpsControls').hidden=!engine||!!target.local;$('#downloadUseVPS').checked=false;$('#downloadTextOnlyVPS').checked=false;$('#downloadBookTitle').textContent=target.title;$('#downloadPanelTabs').hidden=false;showDownloadPanel('chapters');renderDownloadSelection();
  }catch(e){if(request!==downloadSelectionRequest||!dialog.open)return;$('#downloadSelectionCount').textContent='目录读取失败';$('#downloadSelectionError').textContent=e.message;$('#downloadSelectionError').hidden=false;$('#downloadReload').hidden=false;$('#downloadReload').onclick=()=>openNovelDownload(item,preset);$('#downloadConfirm').textContent='请先读取目录';}
 }
 $('#downloadChapterDialog').onclose=()=>{downloadSelectionRequest++;epubPreviewRequest++;downloadSelection=null;};
@@ -241,7 +244,7 @@ $('#downloadClear').onclick=()=>{if(downloadSelection){downloadSelection.indices
 function applyDownloadRange(){if(!downloadSelection)return;try{downloadSelection.indices=new Set(parseChapterRange($('#downloadRange').value,downloadSelection.target.chapters.length));updateDownloadSelection();}catch(e){$('#downloadSelectionError').textContent=e.message;$('#downloadSelectionError').hidden=false;}}
 $('#downloadApplyRange').onclick=applyDownloadRange;
 $('#downloadRange').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();applyDownloadRange();}};
-$('#downloadConfirm').onclick=()=>{if(!downloadSelection?.indices.size)return;enqueueNovel(downloadSelection.target,{indices:[...downloadSelection.indices].sort((a,b)=>a-b)});$('#downloadChapterDialog').close();};
+$('#downloadConfirm').onclick=e=>busy(e.currentTarget,async()=>{if(!downloadSelection?.indices.size)return;const selection=downloadSelection;const indices=[...selection.indices].sort((a,b)=>a-b);if($('#downloadUseVPS').checked){if(!engine||selection.target.local)throw new Error('VPS 后台下载不可用于本地导入书籍；请使用浏览器本地打包。');if(indices.length>100)throw new Error('VPS 一次最多处理 100 章；请缩小章节范围或使用本地下载。');const job=await callEngine('/jobs',{kind:'novel',url:selection.target.url,indices,layout:normalizeEPUBLayout(epubLayout),skip_images:$('#downloadTextOnlyVPS').checked});$('#downloadChapterDialog').close();notice('VPS 后台任务已提交：'+job.id+'。完成后可在下载任务中取回 EPUB。');await loadTasks();return;}enqueueNovel(selection.target,{indices});$('#downloadChapterDialog').close();});
 
 function persistNovelTasks(){db.set('novelTasks',novelTasks.filter(t=>!t.target?.local).slice(0,30).map(({id,url,title,from,to,indices,layout,status,progress,detail,failedChapter})=>({id,url,title,from,to,indices,layout,status,progress,detail,failedChapter})));}
 function taskProgressHTML(task){return `<div class="novel-task-progress"><progress max="100" value="${task.progress||0}" aria-label="${esc(task.title)} 下载进度"></progress><span>${Math.floor(task.progress||0)}%</span></div><p class="task-detail">${esc(task.detail)}</p>`;}
@@ -409,20 +412,58 @@ async function parseVideo(url,button){return busy(button,async()=>{location.hash
 $('#videoForm').onsubmit=e=>{e.preventDefault();parseVideo($('#videoURL').value.trim(),e.submitter);};$('#videoPlayer').onerror=()=>notice('视频无法直接播放，可尝试下载引擎或返回原站。',true);
 let subtitleBlob;$('#subtitleImport').onchange=e=>{const f=e.target.files[0];if(!f)return;if(subtitleBlob)URL.revokeObjectURL(subtitleBlob);subtitleBlob=URL.createObjectURL(f);$('#videoPlayer').querySelectorAll('track').forEach(t=>t.remove());const t=document.createElement('track');t.kind='subtitles';t.label='中文字幕';t.srclang='zh';t.src=subtitleBlob;t.default=true;$('#videoPlayer').append(t);};
 async function submitJob(kind,url,format){const d=await callEngine('/jobs',{kind,url,format});notice('任务已提交到你的引擎：'+d.id+'。在下载任务中查看进度与结果。');addHistory(url,'引擎任务已提交');await loadTasks();return d;}
+$('#mangaForm').onsubmit=e=>{e.preventDefault();busy(e.submitter,async()=>{if(!engine)throw new Error('请先在设置中连接已验证的 HTTPS VPS 下载引擎。');const title=$('#mangaTitle').value.trim();const files=$('#mangaPages').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(!title||files.length<1||files.length>20)throw new Error('请填写漫画标题和 1–20 个已授权图片文件名。');if(files.some(x=>!/^File:[^\\/<>#]+\.(jpe?g|png|gif|webp)$/i.test(x)))throw new Error('仅支持 Wikimedia Commons 的 File: 文件名，不能填外部图片 URL。');const d=await callEngine('/jobs',{kind:'manga',title,files});notice('中文漫画 CBZ 任务已提交：'+d.id);await loadTasks();if(!$('#queue').open)$('#queue').showModal();});};
 $('#torrentForm').onsubmit=e=>{e.preventDefault();const url=$('#torrentURL').value.trim();if(engine){busy(e.submitter,()=>submitJob('torrent',url));return;}busy(e.submitter,()=>{if(/^magnet:\?xt=urn:btih:[a-z0-9]+/i.test(url)){const a=document.createElement('a');a.href=url;document.body.append(a);a.click();a.remove();notice('已请求本机 BT 客户端接手。需先安装支持磁力链接的客户端；无需常驻服务器。');}else if(safeURL(url)){downloadURL(url,'种子或直链文件');notice('已打开文件下载。种子文件请用本机 BT 客户端打开。');}else throw new Error('请输入磁力链接或有效 HTTP(S) 下载链接');});};
-function openSettings(){$('#engineURL').value=engine?.url||localStorage.getItem('mv.engine.url')||'http://localhost:8789';$('#engineToken').value=engine?.token||'';$('#settings').showModal();}
+function openSettings(){if(SCOPED_PREVIEW){$('#settings').showModal();void scopedReady.then(c=>c.refresh()).catch(()=>{});return;}$('#engineURL').value=engine?.url||localStorage.getItem('mv.engine.url')||'http://localhost:8789';$('#engineToken').value=engine?.token||'';$('#settings').showModal();}
 $('#settingsOpen').onclick=()=>{$('#displaySettings').close();openSettings();};$('#torrentConnect').onclick=openSettings;
 $('#engineSave').onclick=e=>busy(e.currentTarget,async()=>{const u=new URL($('#engineURL').value.trim());if(!['https:','http:'].includes(u.protocol)||u.username||u.password||u.search||u.hash)throw new Error('引擎地址无效');if(u.protocol==='http:'&&!['localhost','127.0.0.1','[::1]'].includes(u.hostname))throw new Error('远程引擎请使用 HTTPS 地址');const config={url:u.href.replace(/\/$/,''),token:$('#engineToken').value.trim()};if(config.token.length<24)throw new Error('请输入完整访问密钥');$('#settingsStatus').textContent='正在连接…';try{await callEngine('/health',null,config);engine=config;sessionStorage.setItem('mv.engine',JSON.stringify(config));localStorage.setItem('mv.engine.url',config.url);$('#settingsStatus').textContent='连接成功。现在可以提交 BT、视频和小说任务。';$('#engineStatus').textContent='● 引擎已连接';loadTasks();}catch(e){$('#settingsStatus').textContent='连接失败：'+e.message;throw e;}});
-$('#engineDisconnect').onclick=()=>{engine=null;sessionStorage.removeItem('mv.engine');$('#engineToken').value='';$('#engineStatus').textContent='网页直连模式';$('#settingsStatus').textContent='已断开';engineJobs=[];loadTasks();};$$('[data-close]').forEach(b=>b.onclick=()=>{if(b.dataset.close==='reader')readerRequest++;$('#'+b.dataset.close).close();});
+$('#engineDisconnect').onclick=()=>{if(SCOPED_PREVIEW){void scopedReady.then(c=>c.logout()).catch(e=>notice(e.message,true));return;}engine=null;void loadTransferBudget();sessionStorage.removeItem('mv.engine');$('#engineToken').value='';$('#engineStatus').textContent='网页直连模式';$('#settingsStatus').textContent='已断开';engineJobs=[];loadTasks();};$$('[data-close]').forEach(b=>b.onclick=()=>{if(b.dataset.close==='reader')readerRequest++;$('#'+b.dataset.close).close();});
 const statuses={queued:'排队中',running:'处理中',active:'下载中',waiting:'等待中',paused:'已暂停',complete:'已完成',error:'失败',interrupted:'引擎重启，需重新提交',cancelled:'已取消'};
 function taskHTML(j){const progress=j.total?Math.min(100,100*j.completed/j.total):null;return `<div class="task-row"><strong>${esc(j.title||j.url||j.id)}</strong><p class="caption">${esc(statuses[j.status]||j.status)} ${progress===null?'':progress.toFixed(1)+'%'} · ${bytes(j.completed||0)} ${j.total?'/ '+bytes(j.total):''}${j.speed?' · '+bytes(j.speed)+'/s':''}</p>${progress===null?'':`<div class="progress"><i style="width:${progress}%"></i></div>`}${j.error?`<p>${esc(j.error)}</p>`:''}<div class="actions">${j.status==='complete'?`<button data-job-files="${esc(j.id)}">查看 / 取回文件</button>`:''}${['running','active','waiting','queued','paused'].includes(j.status)?`<button data-job-cancel="${esc(j.id)}">取消任务</button>`:''}</div></div>`;}
-async function loadTasks(){if(!engine){$('#torrentTasks').innerHTML=empty('尚未连接引擎。连接后显示实际进度、速度和文件列表。');renderQueue();return;}try{const d=await callEngine('/jobs');engineJobs=d.jobs;$('#engineStatus').textContent='● 引擎已连接';$('#torrentTasks').innerHTML=engineJobs.length?engineJobs.map(taskHTML).join(''):empty('下载队列为空');renderQueue();bindTasks();}catch(e){$('#engineStatus').textContent='引擎连接失败';$('#torrentTasks').innerHTML=empty(e.message);}}
+async function loadTransferBudget(){
+ const label=$('#mvTransferBudgetText'),detail=$('#mvTransferBudgetMeta'),progress=$('#mvTransferBudgetProgress');
+ if(!label||!detail||!progress)return;
+ if(!engine){label.textContent='尚未连接混合下载服务。';detail.textContent='此处只显示 Media Vault 自设的每月文件传输预算，不是云服务商账单。';progress.value=0;return;}
+ try{
+  const q=await callEngine('/quota');
+  if(q.tracking!=='active'&&!SCOPED_PREVIEW)throw new Error('Direct transfer bridge not yet active');
+  const cap=Number(q.limit_bytes),used=Number(q.transferred_bytes),reserved=Number(q.reserved_bytes||0);
+  const remain=Number(q.remaining_bytes);
+  if(![cap,used,reserved,remain].every(Number.isSafeInteger)||cap<=0||used<0||reserved<0||remain<0||used+reserved+remain>cap+1)
+   throw new Error('额度数据不完整');
+  progress.value=Math.min(100,100*(used+reserved)/cap);
+  label.textContent='剩余 '+bytes(remain)+' / '+bytes(cap)+' · '+String(q.period||'本月');
+  detail.textContent='已传输 '+bytes(used)+' · 已预留 '+bytes(reserved)+' · 预计剩余 '+bytes(remain)+'。这是应用自设软预算，并非 Cloudflare/GitHub 官方剩余额度；仅在服务端确认传输字节后计入。';
+ }catch(err){
+  if(SCOPED_PREVIEW){label.textContent='临时会话或额度暂不可读取';detail.textContent='请打开临时配对入口检查会话状态；未确认的数据不显示为剩余额度。';progress.value=0;return;}
+  label.textContent='传输额度尚无法读取';
+  detail.textContent='混合下载网关尚未启用，或服务器暂时不可用；不显示猜测的剩余额度。';
+  progress.value=0;
+ }
+}
+async function loadTasks(){void loadTransferBudget();if(!engine){$('#torrentTasks').innerHTML=empty('尚未连接引擎。连接后显示实际进度、速度和文件列表。');renderQueue();return;}try{const d=await callEngine('/jobs');engineJobs=d.jobs;$('#engineStatus').textContent=SCOPED_PREVIEW?'● 临时会话已授权':'● 引擎已连接';$('#torrentTasks').innerHTML=engineJobs.length?engineJobs.map(taskHTML).join(''):empty('下载队列为空');renderQueue();bindTasks();}catch(e){$('#engineStatus').textContent=SCOPED_PREVIEW?'临时会话未授权':'引擎连接失败';$('#torrentTasks').innerHTML=empty(e.message);}}
 function renderQueue(){$('#queueList').innerHTML=novelDownloadHTML()+engineJobs.map(taskHTML).join('')+history.slice(0,30).map(x=>`<div class="task-row"><strong>${esc(x.title)}</strong><p class="caption">${esc(x.status)} · ${date(x.time)}</p></div>`).join('')||empty('暂无任务。');$('#queueCount').textContent=novelTasks.filter(t=>['queued','running'].includes(t.status)).length+engineJobs.filter(x=>['running','queued','active','waiting'].includes(x.status)).length;bindTasks();bindNovelTaskActions();}
 function bindTasks(){$$('[data-job-files]').forEach(b=>b.onclick=()=>busy(b,()=>showJobFiles(b.dataset.jobFiles)));$$('[data-job-cancel]').forEach(b=>b.onclick=()=>busy(b,async()=>{await callEngine('/jobs/cancel',{id:b.dataset.jobCancel});loadTasks();}));}
-async function showJobFiles(id){const d=await callEngine('/jobs/files?id='+encodeURIComponent(id));$('#filesTitle').textContent='已完成文件';$('#filesList').innerHTML=d.files.map((f,i)=>`<div class="file-row"><strong>${esc(f.name)}</strong><p>${bytes(f.size)}</p><button data-engine-file="${i}">↓ 保存到本机</button></div>`).join('')||empty('没有可下载文件');if(!$('#files').open)$('#files').showModal();$$('[data-engine-file]').forEach(b=>b.onclick=()=>busy(b,async()=>{const f=d.files[+b.dataset.engineFile];const ticket=await callEngine('/download-ticket',{id,path:f.path});downloadURL(engine.url+'/download?ticket='+encodeURIComponent(ticket.ticket),f.name);}));}
-$('#queueOpen').onclick=()=>{renderQueue();$('#queue').showModal();loadTasks();};$('#queueRefresh').onclick=e=>busy(e.currentTarget,loadTasks);$('#torrentRefresh').onclick=e=>busy(e.currentTarget,loadTasks);setInterval(()=>{if(engine&&!document.hidden&&(location.hash==='#torrent'||$('#queue').open))loadTasks();},6000);
-const snapshotReady=fetch('data/snapshot.json',{cache:'no-cache',signal:AbortSignal.timeout(8000)}).then(r=>r.ok?r.json():null).then(d=>{snapshot=d;}).catch(()=>{});
-if(engine)callEngine('/health').then(()=>{$('#engineStatus').textContent='● 引擎已连接';}).catch(()=>{$('#engineStatus').textContent='引擎连接失败';});
+let nativeEngineSaver=null,nativeEngineConfig=null;
+async function showJobFiles(id){
+ const config=engine,d=await callEngine('/jobs/files?id='+encodeURIComponent(id),null,config);
+ const {createNativeSaver}=await import('./native-download.js');
+ if(engine!==config)throw Error('下载连接已变化，请重新打开文件列表。');
+ if(nativeEngineConfig!==config){
+  nativeEngineSaver?.dispose();nativeEngineConfig=config;
+  nativeEngineSaver=createNativeSaver({baseURL:config.url,...(SCOPED_PREVIEW?{ticketPath:'/acceptance/ticket'}:{headers:{Authorization:'Bearer '+config.token}}),
+   fetch:(...args)=>{if(engine!==config)throw Error('下载连接已变化');return fetch(...args);},
+   onState:state=>{notice(state.message,state.phase==='error');if(SCOPED_PREVIEW&&[403,404].includes(state.status))void scopedReady.then(c=>c.invalidate(state.status));if(state.phase==='handed-off')addHistory(state.file.name,'已交给浏览器保存');}});
+ }
+ $('#filesTitle').textContent='已完成文件';
+ $('#filesList').innerHTML=d.files.map((f,i)=>`<div class="file-row"><strong>${esc(f.name)}</strong><p>${bytes(f.size)}</p><button data-engine-file="${i}">↓ 保存到本机</button></div>`).join('')||empty('没有可下载文件');
+ if(!$('#files').open)$('#files').showModal();
+ $$('[data-engine-file]').forEach(b=>b.onclick=()=>busy(b,()=>nativeEngineSaver.save({...d.files[+b.dataset.engineFile],id})));
+}
+
+$('#queueOpen').onclick=()=>{renderQueue();$('#queue').showModal();loadTasks();void loadTransferBudget();};$('#queueRefresh').onclick=e=>busy(e.currentTarget,loadTasks);$('#torrentRefresh').onclick=e=>busy(e.currentTarget,loadTasks);setInterval(()=>{if(engine&&!document.hidden&&(location.hash==='#torrent'||$('#queue').open))loadTasks();},6000);
+const snapshotReady=SCOPED_PREVIEW?Promise.resolve(null):fetch('data/snapshot.json',{cache:'no-cache',signal:AbortSignal.timeout(8000)}).then(r=>r.ok?r.json():null).then(d=>{snapshot=d;}).catch(()=>{});
+if(engine&&!SCOPED_PREVIEW)callEngine('/health').then(()=>{$('#engineStatus').textContent='● 引擎已连接';}).catch(()=>{$('#engineStatus').textContent='引擎连接失败';});
 renderQueue();queueMicrotask(route);
 
 $('#serviceCheck').onclick=e=>busy(e.currentTarget,async()=>{const label=$('#serviceStatus');label.textContent='正在检测连接…';try{const d=await api('health');label.textContent='媒体服务已连接 · v'+d.version;notice('媒体服务可连接。各来源的可用情况请查看搜索结果；服务连接成功不代表所有来源可用。');}catch(e){label.textContent='媒体服务暂不可达';throw e;}});
@@ -437,3 +478,35 @@ $('#torrentSearch').onsubmit=e=>{e.preventDefault();busy(e.submitter,async()=>{
  $$('[data-torrent-send]').forEach(b=>b.onclick=()=>busy(b,()=>{const x=d.items[+b.dataset.torrentSend];return submitJob('torrent',x.magnet||x.torrent);}));
  }catch(err){$('#torrentResults').innerHTML=empty(err.message);throw err;}
 });};
+
+// These controls exist only in the separately hosted, automatically expiring
+// preview. Production private-engine settings retain their existing contract.
+let previousScopedStatus='unpaired';
+function showScopedState(state){
+ if(!SCOPED_PREVIEW)return;
+ const approved=state.status==='approved'&&!state.unverified;
+ $('#scopedPairCode').textContent=state.pair_code||(approved?'当前会话已批准':'尚未生成');
+ $('#scopedExpiry').textContent=state.expires_at?'到期时间：'+new Date(state.expires_at).toLocaleTimeString():'';
+ $('#settingsStatus').textContent=state.message||({pending:'等待 Owner 批准。请保留此页面，刷新后可恢复当前请求。',approved:'仅允许查看和保存三个指定文件，最多签发六张票据。',unpaired:'申请临时配对即可开始；无需输入长期密钥。',expired:'配对已失效，请重新申请。',closed:'限时联调窗口已关闭。'}[state.status]||'正在核对临时会话…');
+ $('#scopedSessionLabel').textContent=approved?'已授权 · 三个指定文件':state.status==='pending'?'等待批准':'尚未授权';
+ $('#scopedPair').disabled=['pairing','disconnecting'].includes(state.status);
+ $('#scopedLogout').disabled=['unpaired','closed','expired','pairing','disconnecting'].includes(state.status);
+ $('#engineStatus').textContent=approved?'● 临时会话已授权':'临时会话未授权';
+ if(!approved){
+  engineJobs=[];nativeEngineSaver?.dispose();nativeEngineSaver=null;nativeEngineConfig=null;
+  $('#filesList').replaceChildren();if($('#files').open)$('#files').close();renderQueue();
+  $('#torrentTasks').innerHTML=empty('请先完成临时配对，再查看已批准文件。');
+  $('#mvTransferBudgetText').textContent='临时会话未授权，额度暂不可读取';$('#mvTransferBudgetMeta').textContent='配对后显示服务端实际统计；不是云服务商账单。';$('#mvTransferBudgetProgress').value=0;
+ }
+ const newlyApproved=approved&&previousScopedStatus!=='approved';previousScopedStatus=approved?'approved':state.unverified?'unverified':state.status;
+ if(newlyApproved)void loadTasks();
+}
+if(SCOPED_PREVIEW){
+ $('#scopedOpen').onclick=openSettings;
+ $('#scopedPair').onclick=e=>busy(e.currentTarget,async()=>{await (await scopedReady).pair();}).finally(async()=>showScopedState((await scopedReady).current()));
+ $('#scopedLogout').onclick=e=>busy(e.currentTarget,async()=>{await (await scopedReady).logout();}).finally(async()=>showScopedState((await scopedReady).current()));
+ for(const id of ['engineURL','engineToken','engineSave'])if($('#'+id))$('#'+id).disabled=true;
+ $('#settingsOpen').textContent='临时浏览器配对';$('#torrentConnect').textContent='临时浏览器配对 →';
+ for(const form of document.querySelectorAll('form')){for(const control of form.querySelectorAll('input,select,button'))control.disabled=true;}
+ void scopedReady.then(c=>c.refresh()).catch(()=>{});
+}

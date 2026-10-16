@@ -1,0 +1,55 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src blob:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Media Vault · 本机文件验收</title>
+<style>body{font:17px/1.7 system-ui,sans-serif;background:#f4f6fa;color:#152334;margin:0}main{max-width:860px;margin:48px auto;padding:30px;background:white;border-radius:16px}h1{font-size:28px}button,input{font:inherit;padding:10px}button{background:#164c96;color:white;border:0;border-radius:8px}button:disabled{opacity:.45}pre{white-space:pre-wrap;word-break:break-word;background:#f4f6fa;padding:18px}small{color:#536273}.ok{color:#166137}.bad{color:#a62027}</style>
+<main><h1>校验已保存到本机的文件</h1><p>此页完全离线：不会连接服务器、上传文件、读取 Cookie 或要求密钥。请选取已下载的验收文件；文件名可以不同，以字节数和 SHA-256 为准。</p>
+<p id="platform"></p><p id="expected"></p><input id="files" aria-label="选择验收文件" type="file" multiple><button id="verify">开始校验</button>
+<p id="status" role="status">等待选择文件。</p><pre id="result"></pre><button id="report" disabled>保存验收报告 JSON</button>
+<p><small>本页验证所选磁盘文件、压缩包内容及浏览器报告的平台。它不证明后台会话长期保持，也不替代真实小说页面操作。报告仅在点击保存后写入本机，由你决定是否提供。</small></p></main>
+<script>__JSZIP_SOURCE__</script>
+<script>
+const expected=__EXPECTED_MANIFEST__;
+const $=id=>document.getElementById(id),onWindows=/Win/.test(navigator.platform);
+$('platform').textContent=onWindows?'当前浏览器报告为 Windows。':'当前环境不是 Windows：可以校验文件，但不计为 Windows 本机验收。';
+$('expected').textContent='本轮期望 '+expected.files.length+' 个文件：'+expected.files.map(x=>x.label).join('、');
+let report=null;
+function ensure(ok,message){if(!ok)throw Error(message);}
+async function inspect(bytes,item){
+ const kind=item.kind;
+ if(kind==='mp4'){ensure(new TextDecoder().decode(bytes.slice(4,8))==='ftyp','MP4 文件头无效');return {container:'ftyp'};}
+ const zip=await JSZip.loadAsync(bytes,{checkCRC32:true}),entries=Object.values(zip.files).filter(x=>!x.dir);
+ ensure(entries.length<=500,'压缩包条目数量异常');
+ for(const e of entries)ensure(!e.unsafeOriginalName?.split(/[\\/]/).includes('..')&&!e.name.startsWith('/')&&!e.name.includes('\\'),'压缩包路径异常');
+ let expanded=0,images=0;
+ for(const entry of entries){
+  const data=await entry.async('uint8array');expanded+=data.length;ensure(expanded<=100*1024**2,'解压内容过大');
+  if(/\.(xml|opf|xhtml)$/i.test(entry.name)){
+   const text=new TextDecoder().decode(data);ensure(!/<!DOCTYPE|<!ENTITY/i.test(text),'XML 包含外部声明');
+   const parsed=new DOMParser().parseFromString(text,'application/xml');ensure(!parsed.querySelector('parsererror'),'XML 结构无效');
+  }
+  if(/\.(png|jpe?g|gif|webp)$/i.test(entry.name)){const image=await createImageBitmap(new Blob([data]));ensure(image.width>0&&image.height>0,'图片无效');image.close();images++;}
+ }
+ if(kind==='epub')ensure(zip.file('mimetype')&&await zip.file('mimetype').async('string')==='application/epub+zip'&&zip.file('META-INF/container.xml'),'EPUB 结构无效');
+ if(kind==='cbz'){ensure(images>0&&zip.file('ComicInfo.xml'),'CBZ 缺少图片或中文元数据');ensure((await zip.file('ComicInfo.xml').async('string')).includes('<LanguageISO>zh</LanguageISO>'),'CBZ 语言元数据不是中文');}
+ return {container:kind,entries:entries.length,images};
+}
+$('verify').onclick=async()=>{
+ $('verify').disabled=true;$('report').disabled=true;report=null;$('result').textContent='';$('status').className='';
+ try{
+  const files=[...$('files').files];ensure(files.length===expected.files.length,'请选择本轮全部 '+expected.files.length+' 个文件。');
+  ensure(files.reduce((n,f)=>n+f.size,0)<=32*1024**2,'所选文件总量超出本轮离线验收上限。');
+  const results=[],seen=new Set();
+  for(const file of files){
+   $('status').textContent='正在校验 '+file.name+'…';const raw=new Uint8Array(await file.arrayBuffer());
+   const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',raw))].map(x=>x.toString(16).padStart(2,'0')).join('');
+   const item=expected.files.find(x=>x.sha256===hash&&x.bytes===raw.length);
+   ensure(item,'文件与本轮大小/哈希不匹配：'+file.name);ensure(!seen.has(item.id),'重复选择同一个验收文件');seen.add(item.id);
+   results.push({id:item.id,label:item.label,name:file.name,bytes:raw.length,sha256:hash,...await inspect(raw,item)});
+  }
+  report={schema_version:1,scope:expected.scope,verified_at:new Date().toISOString(),platform:navigator.platform,browser:navigator.userAgent,windows:onWindows,local_files_match_expected:true,files:results};
+  $('status').textContent=onWindows?'通过：Windows 本机所选文件与验收清单一致。':'文件通过；当前不是 Windows 环境，不能确认 Windows 本机验收。';$('status').className='ok';$('report').disabled=false;$('result').textContent=JSON.stringify(report,null,2);
+ }catch(e){$('status').textContent='未通过：'+e.message;$('status').className='bad';}
+ finally{$('verify').disabled=false;}
+};
+$('report').onclick=()=>{if(!report)return;const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='media-vault-local-verification.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+</script></html>

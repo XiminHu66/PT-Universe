@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - apps/media-vault/**
+      - workers/media-vault-hybrid/**
       - scripts/media-vault/**
       - services/media-engine/**
       - workers/pt-universe-api/**
@@ -27,7 +28,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - run: npm test --prefix workers/media-vault-hybrid
+      - name: Check closed candidate and evidence consistency
+        run: node workers/media-vault-hybrid/candidate-check.mjs
+      - run: node --check workers/media-vault-hybrid/src/index.js
+      - run: node --check workers/media-vault-hybrid/src/transport.js
+      - run: node --check workers/media-vault-hybrid/src/relay.js
       - run: npm ci --prefix workers/pt-universe-api
+      - name: Actual local workerd relay and connection lifecycle
+        run: npm run test:transport-runtime --prefix workers/media-vault-hybrid
+      - run: npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/wrangler.jsonc --dry-run --outdir /tmp/pt-media-hybrid-dryrun
       - run: node scripts/media-vault/frontend-test.cjs
       - run: npm run test:media --prefix workers/pt-universe-api
       - run: npm run check --prefix workers/pt-universe-api

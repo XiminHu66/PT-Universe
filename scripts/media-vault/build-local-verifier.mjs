@@ -1,0 +1,10 @@
+import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import path from 'node:path';
+const root=new URL('../../',import.meta.url);
+const manifest=JSON.parse(await readFile(process.argv[2]||new URL('./native-save-manifest.json',import.meta.url),'utf8'));
+if(!Array.isArray(manifest.files)||!manifest.files.length||manifest.files.some(x=>!/^[a-f0-9]{64}$/.test(x.sha256)||!Number.isSafeInteger(x.bytes)||x.bytes<=0))throw Error('Invalid expected-file manifest');
+const source=await readFile(new URL('apps/media-vault/vendor/jszip.min.js',root),'utf8');
+let template=await readFile(new URL('./local-verification-template.html',import.meta.url),'utf8');
+template=template.replace('__JSZIP_SOURCE__',()=>source.replace(/<\/script/gi,'<\\/script')).replace('__EXPECTED_MANIFEST__',()=>JSON.stringify(manifest).replaceAll('<','\\u003c'));
+const target=process.argv[3]||new URL('./verify-local.html',import.meta.url);
+await writeFile(target,template);console.log('Built standalone offline verifier; no network access');

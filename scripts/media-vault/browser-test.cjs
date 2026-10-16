@@ -38,7 +38,9 @@ const assert=require('node:assert/strict');
  await page.click('#themeToggle');assert.equal(await page.getAttribute('html','data-theme'),'dark');
  await page.reload();assert.equal(await page.getAttribute('html','data-theme'),'dark');await page.click('#themeToggle');
  // Navigation order and geometry are shared across all tabs.
- assert.deepEqual(await page.locator('[data-tab]').evaluateAll(es=>es.map(e=>e.dataset.tab)),['novels','music','anime','torrent','video']);
+ assert.deepEqual(await page.locator('[data-tab]').evaluateAll(es=>es.map(e=>e.dataset.tab)),['novels','music','anime','torrent','video','manga']);
+ // The transfer widget must never invent cloud-provider allowance while disconnected.
+ await page.click('#queueOpen');await page.locator('#mvTransferBudget').waitFor({state:'visible'});assert.match(await page.locator('#mvTransferBudgetText').textContent(),/尚未连接/);assert.match(await page.locator('#mvTransferBudgetMeta').textContent(),/不是云服务商账单/);await page.locator('#queue [data-close]').first().click();
  const navigationGeometry=()=>page.evaluate(()=>{const rail=document.querySelector('.rail').getBoundingClientRect(),tabs=document.querySelector('#tabs').getBoundingClientRect(),bar=document.querySelector('.topbar').getBoundingClientRect();return {rail:[rail.x,rail.y,rail.width,rail.height],tabsY:tabs.y,bar:[bar.x,bar.y,bar.width,bar.height],direction:getComputedStyle(document.querySelector('#tabs')).flexDirection};});
  const desktopNavigation=await navigationGeometry();assert.equal(desktopNavigation.direction,'row');
  // Settings independently resize the novel UI and body, persist, and can reset.
@@ -169,10 +171,11 @@ const assert=require('node:assert/strict');
  if(!await page.locator('#animeNext').isDisabled())throw Error('Last episode page must disable Next');
  if(!(await page.locator('#animeList').textContent()).includes('01'))throw Error('Episode pagination failed');
  await page.click('#animeBack');await page.waitForSelector('[data-series]');
- for(const tab of ['anime','torrent','video','novels']){await page.click(`[data-tab="${tab}"]`);await page.locator('#'+tab).waitFor({state:'visible'});assert.deepEqual(await navigationGeometry(),desktopNavigation);}
+ for(const tab of ['anime','torrent','video','manga','novels']){await page.click(`[data-tab="${tab}"]`);await page.locator('#'+tab).waitFor({state:'visible'});assert.deepEqual(await navigationGeometry(),desktopNavigation);}
  await page.click('#displaySettingsOpen');await page.click('#settingsOpen');await page.waitForSelector('#settings[open]');await page.click('[data-close="settings"]');
+ await page.click('[data-tab="manga"]');await page.locator('#manga').waitFor({state:'visible'});assert.ok(await page.locator('#mangaForm').isVisible());
  await page.setViewportSize({width:390,height:844});const mobileNavigation=await navigationGeometry();
- for(const tab of ['music','anime','torrent','video','novels']){await page.click(`[data-tab="${tab}"]`);await page.locator('#'+tab).waitFor({state:'visible'});assert.deepEqual(await navigationGeometry(),mobileNavigation);assert.ok(!await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth));}
+ for(const tab of ['music','anime','torrent','video','manga','novels']){await page.click(`[data-tab="${tab}"]`);await page.locator('#'+tab).waitFor({state:'visible'});assert.deepEqual(await navigationGeometry(),mobileNavigation);assert.ok(!await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth));}
  await page.click('#displaySettingsOpen');await page.screenshot({animations:'disabled',path:'test-results/media-vault/type-settings-mobile.png'});await page.locator('#displaySettings [data-close]').first().click();
  await page.click('[data-tab="music"]');await page.locator('#music').waitFor({state:'visible'});
  await page.screenshot({animations:'disabled',path:'test-results/media-vault/mobile.png'});

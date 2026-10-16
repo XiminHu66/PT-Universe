@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "stage": "closed-integration-candidate",
+  "original_order": [
+    "outbound-agent",
+    "metadata",
+    "small-transfer",
+    "large-recovery",
+    "budget-retention",
+    "real-sources",
+    "frontend",
+    "merge-publication"
+  ],
+  "production_source_sha256": {
+    "apps/media-vault/index.html": "d83b45858923a1a558f3da0e6e2b968863268ba96c53622acb25a3ffa2cc16a5",
+    "apps/media-vault/app.js": "5e9c7b4077ac8efcb060992a19a4245537f410856fd78c2792773a3266699d5e",
+    "apps/media-vault/style.css": "e946451d4dda004cc61a56dba4bd1b1f7ab5b3dbd7099e17eabdfc6ec51a1f79",
+    "apps/media-vault/novels.css": "8fea36c704e9415f26439f57c87c503dd6c160635c15417f141921ce27390171"
+  },
+  "pending": [
+    {
+      "id": "novel-real-ui",
+      "status": "user-browser-catalog-503-repair-pending-real-retest"
+    },
+    {
+      "id": "longer-session-persistence",
+      "status": "real-browser-restart-passed-elapsed-observation-pending"
+    }
+  ],
+  "reviewed_main_sha": "be3927aaf072a0bc7b2ee1cd189cd0df1b391cfb",
+  "deployment_evidence": {
+    "worker_run": "https://github.com/XiminHu66/PT-Universe/actions/runs/38818185446",
+    "companion": "paired closed deployment verified; detailed operations evidence private"
+  },
+  "acceptance_evidence": {
+    "windows_native": {
+      "status": "passed-on-windows-runner",
+      "scope": "actual Chromium native EPUB/CBZ downloads, Unicode filenames, disk hashes, single-use tickets, offline validation and tamper rejection; localhost fixtures only",
+      "user_device": "passed-native-save-and-offline-validation-on-user-windows; user-supplied-report",
+      "user_device_scope": "original three EPUB/CBZ/MP4 sizes and SHA-256 match; offline EPUB/CBZ structure checks passed; earlier zero-byte failure retained in history",
+      "mp4_playback": "user-confirmed-picture-and-sound-normal",
+      "user_device_acceptance": "passed-native-save-offline-validation-and-playback"
+    },
+    "session_restart": {
+      "status": "passed-real-browser-process-restart",
+      "elapsed_long_term": "not-observed",
+      "approved_minimum_ms": 86400000,
+      "observation_plan": "user selected 24 actual hours; single-device read-only scope; not started or accepted"
+    },
+    "manga_source": {
+      "status": "passed-live-source-and-archive-checks",
+      "provider": "MangaDex",
+      "languages": [
+        "zh",
+        "zh-hk"
+      ],
+      "scope": "exact hosted chapter URL; no external reader, login or automatic retry",
+      "public_run": "https://github.com/XiminHu66/PT-Universe/actions/runs/38808139300"
+    },
+    "novel_real_ui": {
+      "status": "user-browser-catalog-503-repair-pending-real-retest",
+      "scope": "fixed book first two chapters; text only; three layouts; cancel/rebuild; at most four jobs, one device, thirty minutes, zero tickets; original real UI still pending",
+      "failed_attempt": {
+        "source": "real-user-windows-browser",
+        "observed_at": "2026-10-16T00:22:17Z",
+        "operation": "fixed-source-catalog",
+        "http_status": 503,
+        "error": "Catalog unavailable; verify source access and retry later",
+        "result": "not-passed",
+        "diagnosis": "Catalog handler caught a dependency or response failure; original response did not distinguish cause. Missing cross-Worker public-fetch flag found in reviewed deployed configuration; upstream cause not directly observed.",
+        "scope_boundary": "Original thirty-minute window must expire without extension. No acceptance pass or 24-hour observation start recorded."
+      }
+    }
+  },
+  "publication_decision": {
+    "status": "approved",
+    "approved_by_user": true,
+    "automatic_deployments_acknowledged": true,
+    "scope": "merge-both-prs-and-production-publication",
+    "evidence_reference": "User instructed completion of all remaining acceptance followed by publication on 2026-10-15; prior message explained automatic Pages publication; authorization is conditional on acceptance passing"
+  }
+}
