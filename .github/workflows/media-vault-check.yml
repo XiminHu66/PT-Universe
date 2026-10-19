@@ -8,7 +8,6 @@ on:
       - services/media-engine/**
       - workers/pt-universe-api/**
       - .github/workflows/media-vault-check.yml
-      - .github/workflows/23-media-vault-device-self-approval.yml
 permissions:
   contents: read
 jobs:
@@ -52,7 +51,7 @@ jobs:
           node scripts/media-vault/browser-test.cjs
           node scripts/media-vault/provider-browser-test.cjs
           node scripts/media-vault/integrated-browser-test.cjs
-          node scripts/media-vault/self-confirmation-browser-test.cjs
+          node scripts/media-vault/github-login-browser-test.cjs
       - name: Validate generated EPUB structure
         run: |
           pip install Pillow

@@ -12,13 +12,17 @@
     "merge-publication"
   ],
   "production_source_sha256": {
-    "apps/media-vault/index.html": "0bf1f2a7db35e6204cfa85cd156eb0d469e367f7c45d0d2882008021eba097fa",
-    "apps/media-vault/app.js": "acd2b9a6fde0dea62c7e8a3fe61bc2d096fc9e77de725e8b10b00104d1cb03c3",
+    "apps/media-vault/index.html": "bd56245f9f4f1a74715fd3f3e92738ee5a4ffe9691d215e15d52af7564e344a7",
+    "apps/media-vault/app.js": "7212dbe20bd52bab8119a27d00644212daa3e0d7c8a842f4aed6cbb6db347cf9",
     "apps/media-vault/style.css": "fcab9657ac3815436c492746b2abcb58d784862927b9db83cb7889abcaaa0edd",
     "apps/media-vault/novels.css": "8fea36c704e9415f26439f57c87c503dd6c160635c15417f141921ce27390171",
-    "apps/media-vault/device-connect.js": "7e4928d034764d35564e973b008a1fc90730a4424a8739524e84ddd08f38ebfc",
-    "apps/media-vault/integrated-downloads.js": "d6bf13b3fef7139bd0b0331dd1b3bb824c2d03bb228afeaa75e4f3a5989f8ff7",
-    "apps/media-vault/device-approval.js": "1f0a89e8cce7eab00a00df8206acb0cb6fe0b86ddd408e62de685c90b9b16eeb"
+    "apps/media-vault/device-connect.js": "b55216fcd5ace9ee0a6a9af1ee44889b16304d20ae12969e794dcbc5a01f7c3c",
+    "apps/media-vault/integrated-downloads.js": "5c66898faaa5f586b8c379689d54b8edd1b66549d764f46af9c4b468ca1eadfd",
+    "workers/media-vault-hybrid/src/github-login.js": "702ee8125c644da6fef8353432432cf580744d17c2c5a2a7da6728ad9d564103",
+    "workers/media-vault-hybrid/oauth-schema.sql": "c212391ce004886b383699a57e4d7987b338fad2ce83164639615bec81eb970f",
+    "workers/media-vault-hybrid/src/integrated.js": "b60d5728b6e1be7b84a4570b089577f030726f5aecfbfd7c402ae1b0174247fc",
+    "apps/media-vault/account-session.js": "66b121b84e91dbba37ce64e796443d001fce4416670581bd6571bbdd293d604e",
+    "workers/media-vault-hybrid/account-window-config.mjs": "49ad613dbf510c7565dd0910d5161598c264507304a38ccbd36719b287a0b13d"
   },
   "pending": [],
   "reviewed_main_sha": "d3dae7273d0de614243dd5ffc07c9768ed2f2428",
@@ -139,11 +143,11 @@
     }
   ],
   "current_change": {
-    "id": "self-service-github-device-confirmation",
+    "id": "private-github-identity-login",
     "status": "implementation-candidate",
-    "requested_behavior": "User confirms their own GitHub identity and exact device; processing and remembered connection are automatic with no chat approval or public secret.",
-    "authorization": "User explicitly requested 全部自动化，不要任何回这里的授权环节，要么我自己手动授权，要么弄自动授权 on 2026-10-19. No existing live pending device is approved by this development task.",
-    "configuration": "Existing personal access and normal delivery remain enabled. Only repository-owner-authored explicit confirmation issues trigger the scoped approval workflow; no anonymous auto-approval or new public port.",
-    "prior_evidence_scope": "Historical native-save and transport evidence is retained; the new owner-confirmation flow is validated in fixtures, not claimed as completed by the real user."
+    "requested_behavior": "Normal GitHub login; no public issue, pairing ID, chat approval or copied client credential. First-time private login-app registration is prefilled and performed by the user.",
+    "authorization": "User requested a simpler secure authorization flow and chose GitHub normal login on 2026-10-19. No live app, device approval or identity consent is performed by development tests.",
+    "configuration": "Existing personal delivery and VPS ports retained. Issue workflow removed; legacy personal pairing/Owner approval endpoints closed in the new login mode. Private app has no repository permission requests or webhook events. Client secret and bounded handoff encrypted server-side, numeric owner allowlist, state cookie, PKCE, replay/expiry/Origin guards, rate limiting, parent/device logout and recovery.",
+    "prior_evidence_scope": "Historical transport/save evidence retained. New GitHub operations are local intercepted fixtures; actual private-app creation and first consent are performed by the user after publication."
   }
 }

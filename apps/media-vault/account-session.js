@@ -90,7 +90,7 @@ export function createAccountConnection(options={}){
   },
   async read(path,body){
    const u=new URL(path,origin);
-   const allowed=!body&&['/health','/jobs','/quota','/pikpak/accounts'].includes(path)||!body&&u.pathname==='/novel/catalog'&&u.searchParams.size===1&&u.searchParams.has('url')||!body&&u.pathname==='/jobs/files'&&u.searchParams.size===1&&/^[a-f0-9]{24}$/.test(u.searchParams.get('id')||'')||path==='/jobs/cancel'&&body&&/^[a-f0-9]{24}$/.test(body.id||'');
+   const allowed=!body&&['/health','/jobs','/quota','/pikpak/accounts','/devices'].includes(path)||!body&&u.pathname==='/novel/catalog'&&u.searchParams.size===1&&u.searchParams.has('url')||!body&&u.pathname==='/jobs/files'&&u.searchParams.size===1&&/^[a-f0-9]{24}$/.test(u.searchParams.get('id')||'')||['/jobs/cancel','/devices/revoke'].includes(path)&&body&&/^[a-f0-9]{24}$/.test(body.id||'');
    if(!allowed||u.origin!==origin)throw Error('账号页面不支持此操作。');
    const d=await refresh();if(d.status!=='approved'||d.unverified)throw Error('请先完成账号配对。');
    const generation=epoch,result=await request('/app-api'+path,body);

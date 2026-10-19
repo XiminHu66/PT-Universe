@@ -1,4 +1,5 @@
 import {integratedRoute} from './integrated.js';
+import {githubLoginRoute} from './github-login.js';
 import {validUrl,canonicalJob,rowFormat} from './job-contract.js';
 import {accountRoute} from './account.js';
 import {OCI_REFERENCE_BYTES,transferBudget,streamingEnabled} from './limits.js';
@@ -47,6 +48,7 @@ export async function handle(request,env){
   const origin=request.headers.get('Origin');
   if(origin && origin!==CORS_ORIGIN&&origin!==new URL(request.url).origin)return denied(origin);
   const u=new URL(request.url),path=u.pathname;
+  const login=await githubLoginRoute(request,env,{exchange:integratedRoute});if(login)return login;
   const integrated=await integratedRoute(request,env);if(integrated)return integrated;
   const preview=previewRoute(request,env);if(preview)return preview;
   if(path==='/acceptance'&&request.method==='GET')return acceptancePage(env);

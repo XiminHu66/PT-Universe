@@ -1,6 +1,4 @@
 import assert from 'node:assert/strict';
-import {approveSelfDevice} from './self-approve-device.mjs';
-import {approvalBody,APPROVAL_PREFIX} from '../../apps/media-vault/device-approval.js';
 import {MEDIA_ORIGIN} from './src/integrated.js';
 import {createAccountConnection} from '../../apps/media-vault/account-session.js';
 import {spawn} from 'node:child_process';
@@ -62,26 +60,5 @@ try{
  assert.equal((await request('/app-auth/logout',{cookie:a.cookie,body:{}})).status,200);assert.equal((await gateway('/session',{token:rotated.token})).status,403);assert.equal(await usage(),0,'parent logout revokes child tickets');
  assert.equal((await request('/download?ticket='+(await again.json()).ticket)).status,403);
  const config=configureAccountWindow(defaults,'account-personal-downloads-on');assert.equal(config.vars.ENABLE_DIRECT_STREAM,'true');assert.equal(config.vars.MEDIA_STREAM_TEST_UNTIL,undefined);assert.equal(config.vars.MEDIA_APP_ACCOUNT_ID,'media-vault-personal');
- // Full self-confirmation handoff: synthetic GitHub event -> actual SQLite
- // pending parent -> actual Owner route -> cookie exchange -> account gateway.
- env.MEDIA_APP_ACCOUNT_ID='media-vault-personal';
- const own=await browser(),person={id:36136585,login:'XiminHu66',type:'User'};
- const event={action:'opened',sender:person,repository:{full_name:'XiminHu66/PT-Universe',owner:person},issue:{number:7,user:person,state:'open',title:APPROVAL_PREFIX+own.session_id,body:approvalBody(own.session_id,true),created_at:new Date().toISOString()}};
- const context={eventName:'issues',repository:'XiminHu66/PT-Universe',actor:'XiminHu66'},secrets={owner:env.MEDIA_OWNER_TOKEN,d1:'fixture-d1',account:'fixture-account',github:'fixture-github'};let ownerApprovals=0,closed=0;
- const selfRequest=async(url,options)=>{const body=JSON.parse(options.body);
-  if(url.startsWith('https://api.cloudflare.com/')){const rows=await DB.prepare(body.sql).bind(...body.params).all();return Response.json({success:true,result:[{success:true,results:rows.results}]});}
-  if(url.endsWith('/app-auth/approve')){ownerApprovals++;return request('/app-auth/approve',{body,token:env.MEDIA_OWNER_TOKEN});}
-  assert.equal(url,'https://api.github.com/repos/XiminHu66/PT-Universe/issues/7');assert.equal(body.state,'closed');closed++;return Response.json({state:'closed'});
- };
- assert.equal((await approveSelfDevice(event,context,secrets,selfRequest)).approved,true);
- assert.equal((await request('/app-auth/session',{cookie:own.cookie})).status,200);
- const selfGrant=await (await request('/app-auth/media-vault-connect',{cookie:own.cookie,body:{remember:true}})).json();
- assert.equal((await (await gateway('/session',{token:selfGrant.token})).json()).scope,'personal-vps-downloads');
- assert.equal((await approveSelfDevice(event,context,secrets,selfRequest)).approved,false);assert.equal(ownerApprovals,1);assert.equal(closed,2);
- const foreign=await request('/app-auth/pair',{body:{},environment:{...env,MEDIA_APP_ACCOUNT_ID:'another-account'}}),foreignData=await foreign.json();
- await assert.rejects(approveSelfDevice({...event,issue:{...event.issue,title:APPROVAL_PREFIX+foreignData.session_id,body:approvalBody(foreignData.session_id,true)}},context,secrets,selfRequest),/过期/);assert.equal(ownerApprovals,1,'other account never reaches Owner approval');
- assert.equal((await DB.prepare('SELECT status FROM mv_hybrid_app_sessions WHERE id=?').bind(foreignData.session_id).first()).status,'pending');
- await request('/app-auth/logout',{cookie:own.cookie,body:{}});
- console.log('PASS real SQLite self-confirmation journey: exact personal pending browser, signed-owner event fixture, real approval route, same-browser device exchange, approved account API, retry without extension and cross-account rejection; no live grant or issue created');
  console.log('PASS integrated device grant: one-time approved cookie exchange, 30-day remember, strict Origin/CORS, role separation, account ownership, submission idempotency, normal >10MiB ticket, usage-preserving rotation, parent revocation and reservation release');
 }finally{child.stdin.end();lines.close();}
