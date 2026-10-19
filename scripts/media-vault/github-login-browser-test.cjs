@@ -22,6 +22,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
   if(u.origin===site){try{const clean=u.pathname.startsWith('/PT-Universe/')?u.pathname.slice('/PT-Universe'.length):u.pathname,name=path.resolve(root,'.'+clean+(clean.endsWith('/')?'index.html':''));assert.ok(name.startsWith(root+'/'));return route.fulfill({body:await fs.readFile(name),contentType:({'.js':'text/javascript','.html':'text/html','.css':'text/css','.json':'application/json'})[path.extname(name)]||'application/octet-stream'});}catch{return route.fulfill({status:404});}}
   if(u.origin===worker){
    assert.ok(!u.pathname.includes('/app-auth/pair')&&!u.pathname.includes('/app-auth/approve'),'no legacy or issue approval');
+   if(u.pathname==='/media-vault-login/setup/start')assert.equal(headers.origin,worker,'native private setup form must retain a verifiable Origin');
    const request=new Request(req.url(),{method:req.method(),headers,...(['GET','HEAD'].includes(req.method())?{}:{body:req.postData()||''})});
    const exchange=async(r,e)=>{exchanges++;return integratedRoute(r,e);};
    let response=await githubLoginRoute(request,env,{exchange,fetch:fixtureGitHub});if(!response)response=await handle(request,env);

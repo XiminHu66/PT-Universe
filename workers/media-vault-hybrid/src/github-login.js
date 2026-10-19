@@ -108,7 +108,7 @@ export async function githubLoginRoute(request,env,{exchange,fetch:requestGitHub
    if(!(request.headers.get('Content-Type')||'').startsWith('application/x-www-form-urlencoded'))fail(415,'开通表单无效。');
    const text=await request.text();if(text.length>300)fail(400,'开通表单无效。');const params=new URLSearchParams(text),context={channel:params.get('channel'),remember:params.get('remember')==='true'};if(!pattern.test(context.channel||'')||!['true','false'].includes(params.get('remember')))fail(400,'请重新开始连接。');await connection(context,env);
    const flow=await beginFlow(request,env,'setup',context),action='https://github.com/settings/apps/new?state='+flow.state;
-   return page(`<h1>首次启用 GitHub 登录</h1><p>正在打开 GitHub 的私有应用创建页面。应用只识别你的身份，不申请仓库读写权限，无需安装到仓库。</p><form id="manifest" action="${action}" method="post"><input hidden name="manifest" value="${escape(JSON.stringify(loginManifest()))}"><button>继续到 GitHub</button></form>`,{headers:{'Set-Cookie':cookie(flow.browser)},externalForm:true,script:'document.getElementById("manifest").submit();'});
+   return page(`<h1>首次启用 GitHub 登录</h1><p>正在打开 GitHub 的私有应用创建页面。应用只识别你的身份，不申请仓库读写权限，无需安装到仓库。</p><form id="manifest" action="${action}" method="post"><input hidden name="manifest" value="${escape(JSON.stringify(loginManifest()))}"><button>继续到 GitHub</button></form>`,{headers:{'Set-Cookie':cookie(flow.browser),'Referrer-Policy':'strict-origin'},externalForm:true,script:'document.getElementById("manifest").submit();'});
   }
   if(path===prefix+'/setup/callback'){
    if(request.method!=='GET')fail(405,'需要 GET。');const context=callbackContext=await consumeFlow(request,env,'setup'),code=u.searchParams.get('code');if(!/^[a-zA-Z0-9_-]{16,200}$/.test(code||''))fail(403,'GitHub 开通已取消，请重新登录。');
