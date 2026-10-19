@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {inspectNovel} from './account-novel-check.mjs';
+import {NOVEL_UX_LAYOUTS,NOVEL_UX_SOURCE} from './src/account-novel-scope.js';
+const session={id:'a'.repeat(24),account_id:'novel-test-'+'b'.repeat(32),status:'approved',created_at:1000,expires_at:1800000,created_jobs:2,issued_tickets:0};
+const rows=['compact','large'].map((layout,i)=>({id:String(i+1).repeat(24),kind:'novel',status:i?'complete':'cancelled',request_json:JSON.stringify({kind:'novel',url:NOVEL_UX_SOURCE,indices:[0,1],text_only:true,layout:NOVEL_UX_LAYOUTS[layout]}),created_at:2000+i,updated_at:3000+i,file_count:i,file_bytes:i*52742}));
+let calls=[];const query=async(sql,params)=>{calls.push({sql,params});assert.ok(sql.startsWith('SELECT '));assert.ok(!/SELECT \*|pair_code|cookie|SELECT digest/.test(sql));return sql.includes('SELECT j.id')?rows:sql.includes('AS jobs,')?[{jobs:rows.length,tickets:0}]:[session];};
+const paths=[];const metadata=async p=>{paths.push(p);return p==='/health'?{streaming:'not-live'}:{reserved_bytes:0,transferred_bytes:80476928};};
+const out=await inspectNovel({id:session.id,query,metadata,now:5000});assert.equal(out.jobs_remaining,2);assert.deepEqual(out.jobs.map(j=>[j.status,j.layout]),[['cancelled','compact'],['complete','large']]);assert.ok(!JSON.stringify(out).includes(NOVEL_UX_SOURCE));assert.ok(!JSON.stringify(out).includes('account_id'));assert.deepEqual(paths,['/health','/quota']);
+await assert.rejects(inspectNovel({id:'bad',query,metadata}));assert.equal(calls.length,3);
+rows.push(...rows,...rows);await assert.rejects(inspectNovel({id:session.id,query,metadata}),/four-task/);rows.splice(2);
+session.account_id='observe-test-'+'b'.repeat(32);await assert.rejects(inspectNovel({id:session.id,query,metadata}));session.account_id='novel-test-'+'b'.repeat(32);
+rows[0].request_json=JSON.stringify({...JSON.parse(rows[0].request_json),text_only:false});await assert.rejects(inspectNovel({id:session.id,query,metadata}),/Unexpected novel scope/);
+console.log('PASS novel metadata: exact public session, SELECT-only scoped task parameters, remaining cap, no source/auth export and no release acceptance');

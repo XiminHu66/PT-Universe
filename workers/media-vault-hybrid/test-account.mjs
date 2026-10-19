@@ -1,0 +1,166 @@
+import assert from 'node:assert/strict';
+import {createAccountConnection} from '../../apps/media-vault/account-session.js';
+import {spawn} from 'node:child_process';
+import {createInterface} from 'node:readline';
+import {handle} from './src/index.js';
+import {configureAccountWindow} from './account-window-config.mjs';
+import {issueFileTicket} from './src/transport.js';
+import {APP_LIFETIME,APP_COOKIE} from './src/account-auth.js';
+import {digest} from './src/session-auth.js';
+import {readFile} from 'node:fs/promises';
+const defaults=JSON.parse(await readFile(new URL('./wrangler.jsonc',import.meta.url),'utf8'));
+assert.equal(defaults.vars.ENABLE_APP_ACCESS,'false');assert.equal(defaults.vars.ENABLE_APP_SUBMISSION,'false');assert.equal(defaults.vars.ENABLE_DIRECT_STREAM,'false');
+const child=spawn('python3',[new URL('./test-sqlite.py',import.meta.url).pathname],{stdio:['pipe','pipe','inherit']});
+const pending=new Map();let sequence=0,failAt,beforeBatch,beforeRun,beforeFirst;
+const lines=createInterface({input:child.stdout});
+lines.on('line',line=>{const r=JSON.parse(line),p=pending.get(r.id);pending.delete(r.id);r.error?p.reject(Error(r.error)):p.resolve(r.results);});
+function sql(ops,batch=false,fail_at){return new Promise((resolve,reject)=>{const id=++sequence;pending.set(id,{resolve,reject});child.stdin.write(JSON.stringify({id,ops,batch,fail_at})+'\n');});}
+function prepare(query,args=[]){return {sql:query,args,bind(...args){return prepare(query,args);},async run(){if(beforeRun)await beforeRun(this);return (await sql([this]))[0];},async first(){if(beforeFirst)await beforeFirst(this);return (await sql([this]))[0].results[0]||null;},async all(){return (await sql([this]))[0];}};}
+const DB={prepare,async batch(ops){if(beforeBatch)await beforeBatch(ops);return sql(ops,true,failAt);}};
+const origin='https://account.invalid',env={DB,ENABLE_APP_ACCESS:'true',ENABLE_APP_SUBMISSION:'true',MEDIA_APP_ACCOUNT_ID:'personal-test',MEDIA_OWNER_TOKEN:'o'.repeat(64),MEDIA_AGENT_TOKEN:'a'.repeat(64),ENABLE_DIRECT_STREAM:'true',RELAY:{idFromName(){return 'relay';},get(){return {fetch:async url=>new Response(null,{status:url.endsWith('/ticket-permit')?204:503})};}}};
+async function request(path,{body,cookie,token,environment=env,source=origin,method}={}){return handle(new Request(origin+path,{method:method||(body?'POST':'GET'),headers:{...(source?{Origin:source}:{}),...(cookie?{Cookie:cookie}:{}),...(token?{Authorization:'Bearer '+token}:{}),...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined}),environment);}
+async function browser(){const r=await request('/app-auth/pair',{body:{}});assert.equal(r.status,201);const data=await r.json(),cookie=r.headers.get('Set-Cookie').split(';')[0];return {...data,cookie,header:r.headers.get('Set-Cookie')};}
+const approve=b=>request('/app-auth/approve',{body:{code:b.pair_code},token:env.MEDIA_OWNER_TOKEN});
+const counter=()=>DB.prepare('SELECT COUNT(*) n FROM mv_hybrid_jobs').first();
+const usage=async()=>Number((await DB.prepare('SELECT reserved_bytes FROM mv_hybrid_transfer_usage').first())?.reserved_bytes||0);
+const job=(key='1'.repeat(32))=>({kind:'video',url:'https://example.com/owned.mp4',request_key:key});
+try{
+ assert.equal((await request('/app-auth/pair',{body:{},environment:{...env,ENABLE_APP_ACCESS:'false'}})).status,404);
+ assert.equal((await request('/app-auth/pair',{body:{},environment:{...env,MEDIA_APP_ACCOUNT_ID:''}})).status,404);
+ assert.equal((await request('/app-auth/pair',{body:{},source:'https://foreign.invalid'})).status,403);
+ const a=await browser();assert.match(a.header,/Secure; HttpOnly; SameSite=Strict; Max-Age=604800/);
+ const raw=a.cookie.split('=')[1],stored=await DB.prepare('SELECT * FROM mv_hybrid_app_sessions WHERE id=?').bind(a.session_id).first();
+ assert.notEqual(stored.digest,raw);assert.equal(stored.digest,await digest(raw));assert.ok(!JSON.stringify(stored).includes(raw));
+ assert.equal((await request('/app-api/jobs',{cookie:a.cookie,body:job()})).status,403,'pending browser cannot create');
+ assert.equal((await request('/app-auth/approve',{body:{code:a.pair_code},token:env.MEDIA_AGENT_TOKEN})).status,401);
+ assert.equal((await approve(a)).status,200);assert.equal((await approve(a)).status,409);
+ const session=await request('/app-auth/session',{cookie:a.cookie}),s=await session.json();assert.equal(s.expires_at,stored.created_at+APP_LIFETIME);assert.equal(session.headers.get('Set-Cookie'),null,'reads never extend cookie lifetime');
+ for(const path of ['/health','/jobs','/agent/lease','/quota'])assert.equal((await request(path,{cookie:a.cookie})).status,401,'account cookie is never an Owner or Agent token');
+ assert.equal((await request('/acceptance/session',{cookie:a.cookie})).status,404,'account cannot become a test session');
+ assert.equal((await request('/app-api/jobs',{cookie:'__Host-mv-acceptance='+'a'.repeat(64)})).status,403);
+ assert.equal((await request('/app-api/jobs',{cookie:a.cookie,body:job(),environment:{...env,ENABLE_APP_SUBMISSION:'false'}})).status,403);
+ assert.equal((await counter()).n,0);
+ const competing=await Promise.all(Array.from({length:8},()=>request('/app-api/jobs',{cookie:a.cookie,body:job()})));
+ assert.equal(competing.filter(r=>r.status===202).length,1);assert.equal(competing.filter(r=>r.status===200).length,7);
+ const id=(await competing[0].json()).id;assert.equal((await counter()).n,1);
+ const count=await DB.prepare('SELECT created_jobs FROM mv_hybrid_app_sessions WHERE id=?').bind(a.session_id).first();assert.equal(count.created_jobs,1);
+ assert.equal((await request('/app-api/jobs',{cookie:a.cookie,body:{...job(),url:'https://example.com/other.mp4'}})).status,409);
+ assert.equal((await request('/app-api/jobs',{cookie:a.cookie,body:{...job('2'.repeat(32)),account_id:'other',request_id:'f'.repeat(24),headers:{Authorization:'private'},format:'best'}})).status,202);
+ const normalized=JSON.parse((await DB.prepare('SELECT request_json FROM mv_hybrid_jobs ORDER BY created_at DESC LIMIT 1').first()).request_json);
+ assert.ok(!('headers' in normalized)&&!('request_id' in normalized)&&!('account_id' in normalized));
+ const b=await browser();assert.equal((await approve(b)).status,200);
+ assert.equal((await (await request('/app-api/jobs',{cookie:b.cookie})).json()).jobs.length,2,'approved devices share only the account-created jobs');
+ const foreign='e'.repeat(24);await DB.prepare("INSERT INTO mv_hybrid_jobs(id,kind,request_json,status,created_at,updated_at) VALUES(?,'video','{}','complete',0,0)").bind(foreign).run();
+ await DB.prepare("INSERT INTO mv_hybrid_account_jobs(job_id,account_id,request_key,request_hash,created_by_digest) VALUES(?,'different','different','hash','different')").bind(foreign).run();
+ for(const [path,body] of [['/app-api/jobs/files?id='+foreign,undefined],['/app-api/jobs/cancel',{id:foreign}],['/app-api/download-ticket',{id:foreign,path:'generated/foreign.epub'}]])assert.equal((await request(path,{cookie:a.cookie,body})).status,404);
+ assert.equal((await request('/app-api/jobs',{cookie:a.cookie,environment:{...env,MEDIA_APP_ACCOUNT_ID:'different'}})).status,403);
+ const before=(await counter()).n;failAt=1;
+ assert.equal((await request('/app-api/jobs',{cookie:a.cookie,body:job('3'.repeat(32))})).status,503);failAt=undefined;
+ assert.equal((await counter()).n,before,'mapping failure rolls back job insertion and quota increment');
+ beforeBatch=async ops=>{if(ops[0].sql.startsWith('INSERT INTO mv_hybrid_jobs')){beforeBatch=null;await DB.prepare("UPDATE mv_hybrid_app_sessions SET status='revoked' WHERE id=?").bind(b.session_id).run();}};
+ assert.equal((await request('/app-api/jobs',{cookie:b.cookie,body:job('4'.repeat(32))})).status,429);
+ assert.equal((await counter()).n,before,'revocation between auth and insert blocks task creation');
+ assert.equal((await request('/app-api/jobs/cancel',{cookie:a.cookie,body:{id}})).status,200);assert.equal((await request('/app-api/jobs/cancel',{cookie:a.cookie,body:{id}})).status,200);
+ const allowance=await Promise.all(Array.from({length:8},(_,i)=>request('/app-api/jobs',{cookie:a.cookie,body:job((i+5).toString(16).repeat(32))})));
+ assert.equal(allowance.filter(r=>r.status===202).length,3);assert.equal(allowance.filter(r=>r.status===429).length,5);
+ assert.equal((await DB.prepare('SELECT created_jobs FROM mv_hybrid_app_sessions WHERE id=?').bind(a.session_id).first()).created_jobs,5,'lifetime job allowance is atomic');
+ assert.equal((await request('/app-api/jobs',{cookie:a.cookie,body:job()})).status,200,'idempotent retry still works after allowance exhausted');
+ await DB.prepare("UPDATE mv_hybrid_jobs SET status='complete' WHERE id=?").bind(id).run();
+ await DB.prepare('INSERT INTO mv_hybrid_files(job_id,relative_path,name,bytes) VALUES(?,?,?,4)').bind(id,'generated/own.epub','own.epub').run();
+ const ticket=async()=>request('/app-api/download-ticket',{cookie:a.cookie,body:{id,path:'generated/own.epub'}});
+ assert.equal((await ticket()).status,200);assert.equal(await usage(),4);
+ await DB.prepare('UPDATE mv_hybrid_app_sessions SET issued_tickets=99 WHERE id=?').bind(a.session_id).run();
+ const caps=await Promise.all([ticket(),ticket()]);assert.equal(caps.filter(r=>r.status===200).length,1);assert.equal(caps.filter(r=>r.status===429).length,1);
+ assert.equal((await DB.prepare('SELECT issued_tickets FROM mv_hybrid_app_sessions WHERE id=?').bind(a.session_id).first()).issued_tickets,100);
+ const appTicket=(await caps.find(r=>r.status===200).json()).ticket;
+ // An independent Owner reservation and a different session's active transfer
+ // must survive single-session revocation and pre-claim validation races.
+ await DB.prepare("INSERT INTO mv_hybrid_tickets(digest,job_id,relative_path,bytes,month,expires_at,status) VALUES(?,?,?,?,?,?,?)").bind('f'.repeat(64),foreign,'generated/foreign.epub',9,new Date().toISOString().slice(0,7),Date.now()+60000,'new').run();
+ await DB.prepare('UPDATE mv_hybrid_transfer_usage SET reserved_bytes=reserved_bytes+9').run();
+ assert.equal((await request('/app-auth/logout',{cookie:a.cookie,body:{},source:'https://foreign.invalid'})).status,403);
+ assert.equal((await request('/app-auth/revoke',{cookie:a.cookie,body:{session_id:a.session_id}})).status,401);
+ assert.equal((await request('/app-auth/revoke',{body:{session_id:a.session_id},token:env.MEDIA_OWNER_TOKEN,environment:{...env,ENABLE_APP_ACCESS:'false'}})).status,200);
+ assert.equal(await usage(),9,'only app unused reservations released');
+ assert.equal((await request('/download?ticket='+appTicket)).status,403);
+ assert.equal((await request('/app-auth/revoke',{body:{session_id:a.session_id},token:env.MEDIA_OWNER_TOKEN})).status,200);assert.equal(await usage(),9);
+ const loggedOut=await request('/app-auth/logout',{cookie:a.cookie,body:{},environment:{...env,ENABLE_APP_ACCESS:'false'}});assert.equal(loggedOut.status,200);assert.match(loggedOut.headers.get('Set-Cookie'),/Max-Age=0/);
+ const c=await browser();assert.equal((await approve(c)).status,200);
+ await DB.prepare('UPDATE mv_hybrid_app_sessions SET expires_at=0 WHERE id=?').bind(c.session_id).run();assert.equal((await request('/app-auth/session',{cookie:c.cookie})).status,403);
+ const d=await browser(),e=await browser(),f=await browser(),g=await browser();
+ const deviceCaps=await Promise.all([d,e,f,g].map(approve));assert.equal(deviceCaps.filter(r=>r.status===200).length,3);assert.equal(deviceCaps.filter(r=>r.status===409).length,1,'device limit is atomic');
+ const approvedDevice=[d,e,f,g][deviceCaps.findIndex(r=>r.status===200)];
+ const globalCap=await Promise.all(Array.from({length:4},(_,i)=>request('/app-api/jobs',{cookie:approvedDevice.cookie,body:job((i+1).toString().repeat(31)+'e')})));
+ assert.equal(globalCap.filter(r=>r.status===202).length,1);assert.equal(globalCap.filter(r=>r.status===429).length,3,'all accounts share the existing five-active-job ceiling');
+ const deviceTicket=async()=>request('/app-api/download-ticket',{cookie:approvedDevice.cookie,body:{id,path:'generated/own.epub'}});
+ const disabledTicket=(await (await deviceTicket()).json()).ticket;assert.equal(await usage(),13);
+ assert.equal((await request('/download?ticket='+disabledTicket,{environment:{...env,ENABLE_APP_ACCESS:'false'}})).status,403);
+ assert.equal(await usage(),9,'disabling access releases only the unused account ticket');
+ const racingTicket=(await (await deviceTicket()).json()).ticket,racingDigest=await digest(racingTicket);
+ beforeFirst=async op=>{if(op.sql.startsWith('SELECT session_digest FROM mv_hybrid_app_tickets')){beforeFirst=null;await DB.prepare("UPDATE mv_hybrid_tickets SET status='active' WHERE digest=?").bind(racingDigest).run();}};
+ assert.equal((await request('/download?ticket='+racingTicket,{environment:{...env,ENABLE_APP_ACCESS:'false'}})).status,403);
+ assert.equal(await usage(),13,'pre-claim access rejection cannot release a concurrently active transfer');
+ assert.equal((await request('/app-auth/logout',{cookie:approvedDevice.cookie,body:{}})).status,200);
+ assert.equal(await usage(),13,'logout preserves active reservations and unrelated Owner tickets');
+ assert.equal((await DB.prepare('SELECT status FROM mv_hybrid_tickets WHERE digest=?').bind(racingDigest).first()).status,'active');
+ const cancelTarget=(await DB.prepare("SELECT j.id FROM mv_hybrid_jobs j JOIN mv_hybrid_account_jobs a ON a.job_id=j.id WHERE j.status='queued' AND a.account_id=? LIMIT 1").bind(env.MEDIA_APP_ACCOUNT_ID).first()).id;
+ const another=[d,e,f,g].find((x,i)=>deviceCaps[i].status===200&&x!==approvedDevice);
+ beforeRun=async op=>{if(op.sql.startsWith("UPDATE mv_hybrid_jobs SET status='cancelled'")){beforeRun=null;await DB.prepare("UPDATE mv_hybrid_app_sessions SET status='revoked' WHERE id=?").bind(another.session_id).run();}};
+ assert.equal((await request('/app-api/jobs/cancel',{cookie:another.cookie,body:{id:cancelTarget}})).status,409);
+ assert.equal((await DB.prepare('SELECT status FROM mv_hybrid_jobs WHERE id=?').bind(cancelTarget).first()).status,'queued','revocation between authorization and cancel is respected');
+ const flood=await Promise.all(Array.from({length:14},()=>request('/app-auth/pair',{body:{}})));assert.equal(flood.filter(r=>r.status===201).length,9);assert.equal(flood.filter(r=>r.status===429).length,5);
+ // Execute the browser client against the real Worker handler and SQLite,
+ // dropping the first POST response only AFTER its transaction has committed.
+ await DB.prepare('UPDATE mv_hybrid_app_sessions SET expires_at=0').run();
+ await DB.prepare("UPDATE mv_hybrid_jobs SET status='cancelled' WHERE status IN ('queued','running','waiting','active')").run();
+ const ui=await browser();assert.equal((await approve(ui)).status,200);
+ const storage={value:null,getItem(){return this.value;},setItem(k,v){this.value=v;},removeItem(){this.value=null;}};
+ let dropped=false;
+ const clientOptions={origin,storage,setTimeout:()=>1,clearTimeout(){},fetch:async(url,options)=>{
+  const response=await request(new URL(url).pathname,{cookie:ui.cookie,body:options.body?JSON.parse(options.body):undefined});
+  if(options.method==='POST'&&url.endsWith('/app-api/jobs')&&!dropped){dropped=true;assert.equal(response.status,202);throw Error('response lost after SQLite commit');}
+  return response;
+ }};
+ const browserClient=createAccountConnection(clientOptions),beforeUI=(await counter()).n;
+ const uiSpec={kind:'video',url:'https://example.com/client-owned.mp4'};
+ const simultaneous=[browserClient.submit(uiSpec),browserClient.submit(uiSpec)];assert.equal(simultaneous[0],simultaneous[1]);await assert.rejects(simultaneous[0],/SQLite commit/);
+ assert.equal((await counter()).n,beforeUI+1);browserClient.dispose();
+ const reloadedClient=createAccountConnection(clientOptions);
+ const recovered=await reloadedClient.submit(uiSpec);assert.equal(recovered.replayed,true);assert.equal((await counter()).n,beforeUI+1);
+ assert.equal((await reloadedClient.read('/jobs')).jobs.some(j=>j.id===recovered.id),true);
+ assert.equal((await reloadedClient.refresh()).jobs_remaining,4);
+ await reloadedClient.logout();assert.equal(storage.value,null);assert.equal((await request('/app-auth/session',{cookie:ui.cookie})).status,403);reloadedClient.dispose();
+ // The first browser acceptance grants a separate, empty account realm and
+ // clamps both cookie and approved capability to the twenty-minute window.
+ const loginConfig=configureAccountWindow(defaults,'account-login-on');
+ const login={...env,...loginConfig.vars,ENABLE_APP_SUBMISSION:'true',ENABLE_DIRECT_STREAM:'true',MEDIA_STREAM_TEST_UNTIL:String(Date.now()+1200000)};
+ const deadline=Number(login.MEDIA_APP_LOGIN_TEST_UNTIL);
+ const pairedResponse=await request('/app-auth/pair',{environment:login,body:{}});assert.equal(pairedResponse.status,201);
+ const paired=await pairedResponse.json(),loginCookie=pairedResponse.headers.get('Set-Cookie').split(';')[0];
+ assert.ok(Number(pairedResponse.headers.get('Set-Cookie').match(/Max-Age=(\d+)/)[1])<=1200);
+ assert.ok(paired.expires_at<=Math.min(Date.now()+5*60000,deadline));
+ const changedRealm={...login,MEDIA_APP_ACCOUNT_ID:'login-test-'+'f'.repeat(32)};
+ assert.equal((await request('/app-auth/approve',{body:{code:paired.pair_code},token:env.MEDIA_OWNER_TOKEN,environment:changedRealm})).status,409,'pending approval is bound to its original realm');
+ assert.equal((await request('/app-auth/session',{cookie:loginCookie,environment:changedRealm})).status,403);
+ const approvedResponse=await request('/app-auth/approve',{body:{code:paired.pair_code},token:env.MEDIA_OWNER_TOKEN,environment:login});assert.equal(approvedResponse.status,200);
+ const grant=await approvedResponse.json();assert.equal(grant.scope,'login-test-read-only');assert.equal(grant.job_limit,0);assert.equal(grant.ticket_limit,0);assert.equal(grant.expires_at,deadline);
+ const loginState=await (await request('/app-auth/session',{cookie:loginCookie,environment:login})).json();
+ assert.equal(loginState.can_submit,false);assert.equal(loginState.read_only,true);assert.equal(loginState.jobs_remaining,0);assert.equal(loginState.tickets_remaining,0);
+ assert.deepEqual((await (await request('/app-api/jobs',{cookie:loginCookie,environment:login})).json()).jobs,[],'existing account/Owner jobs never enter the isolated login realm');
+ const owned='9'.repeat(24);await DB.prepare("INSERT INTO mv_hybrid_jobs(id,kind,request_json,status,created_at,updated_at) VALUES(?,'video','{}','queued',1,1)").bind(owned).run();
+ await DB.prepare('INSERT INTO mv_hybrid_account_jobs(job_id,account_id,request_key,request_hash,created_by_digest) VALUES(?,?,?,?,?)').bind(owned,login.MEDIA_APP_ACCOUNT_ID,'fixture','fixture','fixture').run();
+ const beforeReadOnly=(await counter()).n;
+ for(const [path,body] of [['/app-api/jobs',job()],['/app-api/jobs/cancel',{id:owned}],['/app-api/download-ticket',{id:owned,path:'fixture.mp4'}]])assert.equal((await request(path,{cookie:loginCookie,environment:login,body})).status,403,'read-only denies mutations even if submission/streaming flags are accidentally true');
+ assert.equal((await counter()).n,beforeReadOnly);assert.equal((await DB.prepare('SELECT status FROM mv_hybrid_jobs WHERE id=?').bind(owned).first()).status,'queued');
+ assert.equal((await issueFileTicket(login,{id:owned,path:'fixture.mp4'},{kind:'app',account_id:login.MEDIA_APP_ACCOUNT_ID})).status,403,'internal ticket path also rejects read-only grants');
+ const dateNow=Date.now;
+ try{Date.now=()=>deadline;
+  for(const path of ['/app/','/app/account-app.js','/app-auth/session','/app-api/jobs'])assert.equal((await request(path,{cookie:loginCookie,environment:login})).status,404,'clock expiry closes page and APIs without redeploy');
+  assert.equal((await request('/app-auth/approve',{body:{code:paired.pair_code},token:env.MEDIA_OWNER_TOKEN,environment:login})).status,404);
+  assert.equal((await request('/app-auth/session',{cookie:loginCookie,environment:{...login,MEDIA_APP_LOGIN_TEST_UNTIL:String(deadline+1200000)}})).status,403,'extending a global gate cannot revive an expired session');
+  assert.equal((await request('/app-auth/logout',{cookie:loginCookie,body:{},environment:login})).status,200,'logout stays available after the window closes');
+ }finally{Date.now=dateNow;}
+ const badWindow={...login,MEDIA_APP_LOGIN_TEST_UNTIL:'NaN'};assert.equal((await request('/app-auth/pair',{body:{},environment:badWindow})).status,404);
+ assert.equal((await request('/app-auth/pair',{body:{},environment:{...login,MEDIA_APP_ACCOUNT_ID:env.MEDIA_APP_ACCOUNT_ID}})).status,404,'login window cannot be pointed at the existing account realm');
+ console.log('PASS real SQLite read-only login window: realm-bound approval, cookie/session deadline clamp, no legacy account visibility, hard mutation/ticket denial, automatic expiry and no expired-session revival');
+ console.log('PASS real SQLite account sessions: OFF defaults, hashed persistent cookie, Owner approval, absolute expiry, device/pending caps, role and cross-account isolation, atomic idempotent bounded creation, rollback/revocation races, ticket caps and narrow revocation');
+}finally{child.stdin.end();lines.close();}
