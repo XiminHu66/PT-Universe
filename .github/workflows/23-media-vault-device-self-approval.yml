@@ -1,0 +1,38 @@
+name: "Media Vault · 本人设备确认"
+on:
+  issues:
+    types: [opened]
+permissions:
+  contents: read
+concurrency:
+  group: media-vault-owner-device-confirmation
+  cancel-in-progress: false
+jobs:
+  confirm:
+    if: >-
+      github.repository == 'XiminHu66/PT-Universe' &&
+      github.actor == 'XiminHu66' &&
+      github.event.sender.id == 36136585 &&
+      github.event.issue.user.id == 36136585 &&
+      startsWith(github.event.issue.title, '[Media Vault] 确认设备 ')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout trusted default-branch source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - name: Confirm only the owner's exact pending personal device
+        env:
+          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+          D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node workers/media-vault-hybrid/self-approve-device.mjs

@@ -1,3 +1,4 @@
+import {selfApprovalURL} from './device-approval.js?v=1';
 import {createAccountConnection} from './account-session.js';
 import {mountPikPak} from './pikpak-account.js';
 export const VPS_ORIGIN='https://pt-media-hybrid.summer07-nanjolno.workers.dev';
@@ -25,10 +26,11 @@ export function mountIntegratedDownloads(options={}){
  const client=createAccountConnection({...options.connection,origin:base,fetch:bridge,storage:options.storage||win.sessionStorage,onState:render});
  async function refreshAccounts(){if(state.status!=='approved'||state.unverified)return;await pikpak.refresh();$('pikpakTaskSubmit').disabled=!$('pikpakProfile').options.length;}
  pikpak=mountPikPak({client,$,note:options.note||note,current:()=>state,reload:async()=>{await refreshAccounts();await options.onTasksChanged?.();}});
- function finish(error){if(watch!==null){win.clearInterval(watch);watch=null;}const task=pending;pending=null;if(error)task?.reject(error);else task?.resolve(client);}
+ function resetApproval(){$('vpsSelfApprove').hidden=true;$('vpsSelfApproveHelp').hidden=true;$('vpsConnectNow').hidden=false;$('vpsRemember').disabled=false;}
+ function finish(error){resetApproval();if(watch!==null){win.clearInterval(watch);watch=null;}const task=pending;pending=null;if(error)task?.reject(error);else task?.resolve(client);}
  function closeDialog(){if($('vpsConnection').open)$('vpsConnection').close();}
  async function receive(event){const data=event.data;if(event.origin!==new URL(base).origin||event.source!==popup||data?.type!=='mv-device-connect'||data.channel!==channel)return;
-  if(data.status==='pending'){note('首次连接需要管理员确认一次。确认后会自动继续本次下载。');$('vpsPairCode').textContent=data.session_id;return;}
+  if(data.status==='pending'){if(!/^[a-f0-9]{24}$/.test(data.session_id||''))return;note('点下方按钮，用你自己的 GitHub 账号确认一次，系统会自动继续下载。无需回聊天。');$('vpsPairCode').textContent=data.session_id;$('vpsSelfApprove').href=selfApprovalURL(data.session_id,$('vpsRemember').checked);$('vpsSelfApprove').hidden=false;$('vpsSelfApproveHelp').hidden=false;$('vpsConnectNow').hidden=true;return;}
   if(data.status==='error'){note(data.message||'连接失败，请重试。',true);finish(Error(data.message||'连接失败'));return;}
   if(data.status!=='connected'||!/^[a-f0-9]{64}$/.test(data.token||'')||!Number.isSafeInteger(data.expires_at)||data.expires_at<=Date.now())return;
   receiving=true;token={token:data.token,expires_at:data.expires_at};
@@ -36,13 +38,13 @@ export function mountIntegratedDownloads(options={}){
   try{await client.refresh();if(disposed)return;closeDialog();finish();await refreshAccounts();await options.onTasksChanged?.();}catch(e){note(e.message,true);finish(e);}finally{receiving=false;}
  }
  win.addEventListener('message',receive);
- function show(){if(!$('vpsConnection').open)$('vpsConnection').showModal();$('vpsPairCode').textContent='';note('连接会复用已有授权，不需要输入服务器密钥。');}
+ function show(){resetApproval();if(!$('vpsConnection').open)$('vpsConnection').showModal();$('vpsPairCode').textContent='';note('连接会复用已有授权，不需要输入服务器密钥。');}
  async function ensure(){await ready;if(token?.expires_at>Date.now()&&(state.status!=='approved'||state.unverified)){try{await client.refresh();}catch(e){if(![403,404].includes(e.status))throw Error('VPS 暂时无法连接，请稍后重试，无需重新授权。');}}if(state.status==='approved'&&!state.unverified&&state.expires_at>Date.now())return Promise.resolve(client);if(pending)return pending.work;show();let resolve,reject;const work=new Promise((yes,no)=>{resolve=yes;reject=no;});pending={work,resolve,reject};return work;}
  $('vpsConnectStatus').onclick=show;$('vpsManageConnection').onclick=show;
  $('vpsConnectNow').onclick=()=>{
   channel=win.crypto.randomUUID().replaceAll('-','');const url=base+'/media-vault-connect/?'+new URLSearchParams({channel,remember:String($('vpsRemember').checked)});
-  popup=win.open(url,'media-vault-connect','popup,width=570,height=580');
-  if(!popup){note('请允许此页面打开一次连接窗口，然后重试。',true);return;}
+  $('vpsRemember').disabled=true;popup=win.open(url,'media-vault-connect','popup,width=570,height=580');
+  if(!popup){resetApproval();note('请允许此页面打开一次连接窗口，然后重试。',true);return;}
   if(watch!==null)win.clearInterval(watch);
   watch=win.setInterval(()=>{if(popup?.closed&&!receiving){if(state.status!=='approved'){note('连接窗口已关闭，可重新点击连接。');finish(Error('连接尚未完成，请重试。'));}else if(watch!==null){win.clearInterval(watch);watch=null;}}},1000);
  };

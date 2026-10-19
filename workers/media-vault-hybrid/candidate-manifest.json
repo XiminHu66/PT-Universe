@@ -12,12 +12,13 @@
     "merge-publication"
   ],
   "production_source_sha256": {
-    "apps/media-vault/index.html": "066d6e7464130c3e6e87538a8d5e0c892cd26814460870e1835c3f7e948b58fa",
-    "apps/media-vault/app.js": "2d55c4658a0028fdbdba352c9496f504a652d8e7bf83c75b6d480bfa7348731c",
+    "apps/media-vault/index.html": "0bf1f2a7db35e6204cfa85cd156eb0d469e367f7c45d0d2882008021eba097fa",
+    "apps/media-vault/app.js": "acd2b9a6fde0dea62c7e8a3fe61bc2d096fc9e77de725e8b10b00104d1cb03c3",
     "apps/media-vault/style.css": "fcab9657ac3815436c492746b2abcb58d784862927b9db83cb7889abcaaa0edd",
     "apps/media-vault/novels.css": "8fea36c704e9415f26439f57c87c503dd6c160635c15417f141921ce27390171",
-    "apps/media-vault/device-connect.js": "c3761602369f8d5f8d6c471aa35a2a205b6bfa64d60387b248e79f66c4924670",
-    "apps/media-vault/integrated-downloads.js": "3c0976bb055c78bd35fe64ba8cc526ccd0c559f064054c989f1e46c03b54dc50"
+    "apps/media-vault/device-connect.js": "7e4928d034764d35564e973b008a1fc90730a4424a8739524e84ddd08f38ebfc",
+    "apps/media-vault/integrated-downloads.js": "d6bf13b3fef7139bd0b0331dd1b3bb824c2d03bb228afeaa75e4f3a5989f8ff7",
+    "apps/media-vault/device-approval.js": "1f0a89e8cce7eab00a00df8206acb0cb6fe0b86ddd408e62de685c90b9b16eeb"
   },
   "pending": [],
   "reviewed_main_sha": "d3dae7273d0de614243dd5ffc07c9768ed2f2428",
@@ -138,11 +139,11 @@
     }
   ],
   "current_change": {
-    "id": "integrated-media-vault-downloads",
+    "id": "self-service-github-device-confirmation",
     "status": "implementation-candidate",
-    "requested_behavior": "Tasks, progress, provider accounts and native file save stay within the original Media Vault page.",
-    "authorization": "User explicitly chose 保存到本机: VPS 后台处理，完成后在 Media Vault 内点击保存到电脑；需启用现有的文件传输链路.",
-    "configuration": "Repository defaults remain closed; a separate explicit integrated-downloads-on deployment enables stable personal access and normal delivery. No new public ports.",
-    "prior_evidence_scope": "Historical acceptance/publication records above describe the previous release; they do not prove this updated UI, 30-day elapsed persistence, or real PikPak account behavior."
+    "requested_behavior": "User confirms their own GitHub identity and exact device; processing and remembered connection are automatic with no chat approval or public secret.",
+    "authorization": "User explicitly requested 全部自动化，不要任何回这里的授权环节，要么我自己手动授权，要么弄自动授权 on 2026-10-19. No existing live pending device is approved by this development task.",
+    "configuration": "Existing personal access and normal delivery remain enabled. Only repository-owner-authored explicit confirmation issues trigger the scoped approval workflow; no anonymous auto-approval or new public port.",
+    "prior_evidence_scope": "Historical native-save and transport evidence is retained; the new owner-confirmation flow is validated in fixtures, not claimed as completed by the real user."
   }
 }
