@@ -99,12 +99,12 @@ export function createAccountConnection(options={}){
   },
   submit(spec){
    // Canonical input only: callers cannot inject account, headers or request IDs.
-   const clean={};for(const key of ['kind','provider','max_bytes','max_pages','url','format','title','files','indices','text_only','layout','retry_of','profile_id','cleanup_after_download','label','token'])if(spec[key]!==undefined)clean[key]=spec[key];
+   const clean={};for(const key of ['kind','provider','max_bytes','max_pages','url','format','title','files','indices','text_only','layout','retry_of','profile_id','cleanup_after_download','label','token','auth_type','username','password','store_credentials','source_job','file_id','confirm_permanent'])if(spec[key]!==undefined)clean[key]=spec[key];
    const input=JSON.stringify(clean),generation=epoch;
    if(submitting){if(submitting.input===input)return submitting.work;return Promise.reject(Error('请先等待当前提交结束。'));}
    const work=(async()=>{
     const session=await refresh();if(generation!==epoch||disposed||session.status!=='approved'||session.unverified||!session.can_submit)throw Error('当前会话未开放任务提交。');
-    const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(input))),b=>b.toString(16).padStart(2,'0')).join('');
+    const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(clean.kind==='pikpak-account'?JSON.stringify({kind:clean.kind,label:clean.label,auth_type:clean.auth_type||'pat'}):input))),b=>b.toString(16).padStart(2,'0')).join('');
     if(generation!==epoch||disposed)throw Error('会话已变化，请重新操作。');
     let entry=entries.find(x=>x.hash===hash&&x.session===session.session_id);
     if(entries.some(x=>x.session===session.session_id&&!x.id&&x!==entry))throw Error('上一项提交结果尚未确认，请先用原内容重试。');
@@ -115,10 +115,10 @@ export function createAccountConnection(options={}){
     }
     // Persist BEFORE sending; network loss/timeout/reload retains the same key.
     const firstAttempt=!entry.sent;entry.sent=true;persist();
-    let result;try{result=await request('/app-api/jobs',{...clean,request_key:entry.key});}catch(e){if(firstAttempt&&[400,403,404,409,429].includes(e.status)&&generation===epoch&&!disposed){entries=entries.filter(x=>x!==entry);persist();}throw e;}
+    let result;try{result=await request('/app-api/jobs',{...clean,request_key:entry.key});}catch(e){if((firstAttempt||clean.kind==='pikpak-account'&&e.status===409)&&[400,403,404,409,429].includes(e.status)&&generation===epoch&&!disposed){entries=entries.filter(x=>x!==entry);persist();}throw e;}
     if(generation!==epoch||disposed||state.status!=='approved'||state.unverified||state.expires_at<=now())throw Error('会话已变化；请重新登录后查看任务，勿据此判断提交失败。');
     if(!/^[a-f0-9]{24}$/.test(result.id||''))throw Error('提交结果不可确认，请用原内容重试。');
-    entry.id=result.id;persist();return result;
+    entry.id=result.id;if(clean.kind==='pikpak-account')entries=entries.filter(x=>x!==entry);persist();return result;
    })();
    const active={input,work};submitting=active;work.then(()=>{if(submitting===active)submitting=null;},()=>{if(submitting===active)submitting=null;});return work;
   },

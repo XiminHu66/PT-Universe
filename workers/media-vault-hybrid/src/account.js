@@ -1,4 +1,4 @@
-import {sealProviderToken} from './provider-secrets.js';
+import {sealProviderToken,providerFingerprint} from './provider-secrets.js';
 import {appNovelUx,novelUxPermits,NOVEL_UX_SOURCE,NOVEL_UX_JOBS} from './account-novel-scope.js';
 import {appFileTest,fileTestPermits} from './account-file-scope.js';
 import {appObservation,observationPairingOpen,OBSERVATION_DURATION} from './account-observation-scope.js';
@@ -131,16 +131,22 @@ export async function accountRoute(request,env){
    if(appSubmissionTest(env)&&!pilotPermits(spec))return fail(403,'Only the four fixed pilot recipes are permitted');
    if(!spec||!/^[a-f0-9]{32}$/.test(raw.request_key||''))return fail(400,'Valid job and request key required');
    if(spec.kind.startsWith('pikpak')&&env.MEDIA_APP_TEST_MODE!=='personal')return fail(403,'PikPak requires personal account scope');
-   if(spec.kind==='pikpak'){
-    const profile=await env.DB.prepare("SELECT j.id FROM mv_hybrid_jobs j JOIN mv_hybrid_account_jobs a ON a.job_id=j.id WHERE j.id=? AND j.kind='pikpak-account' AND j.status='complete' AND a.account_id=?").bind(spec.profile_id,current.account_id).first();
+   if(spec.kind==='pikpak'||spec.kind==='pikpak-cleanup'){
+    const profile=await env.DB.prepare("SELECT j.* FROM mv_hybrid_jobs j JOIN mv_hybrid_account_jobs a ON a.job_id=j.id WHERE j.id=? AND j.kind='pikpak-account' AND j.status='complete' AND a.account_id=?").bind(spec.profile_id,current.account_id).first();
     if(!profile)return fail(403,'PikPak profile does not belong to this account');
+    if(spec.kind==='pikpak-cleanup'&&rowFormat(profile).provider_result?.auth_type!=='rclone')return fail(403,'Full account login required for permanent cleanup');
    }
-   const fingerprint=await digest(JSON.stringify(spec));
+   if(spec.kind==='pikpak-cleanup'){
+    const source=await env.DB.prepare("SELECT j.* FROM mv_hybrid_jobs j JOIN mv_hybrid_account_jobs a ON a.job_id=j.id WHERE j.id=? AND a.account_id=? AND j.kind='pikpak' AND j.status='complete'").bind(spec.source_job,current.account_id).first();
+    const target=source?rowFormat(source).cleanup_target:null;
+    if(!target||target.file_id!==spec.file_id||target.profile_id!==spec.profile_id)return fail(409,'Exact verified cloud file required');
+   }
+   const fingerprint=spec.kind==='pikpak-account'?await providerFingerprint(spec,env.MEDIA_AGENT_TOKEN):await digest(JSON.stringify(spec));
    const replay=async()=>env.DB.prepare('SELECT job_id,request_hash FROM mv_hybrid_account_jobs WHERE account_id=? AND request_key=?').bind(current.account_id,raw.request_key).first();
    const previous=await replay();if(previous)return previous.request_hash===fingerprint?reply({id:previous.job_id,replayed:true}):fail(409,'Request key was used for different input');
    const id=randomHex(12),now=Date.now();
    if(spec.kind==='pikpak-account'){
-    const token=spec.token;delete spec.token;
+    const token=spec.auth_type==='rclone'?JSON.stringify({username:spec.username,password:spec.password}):spec.token;delete spec.token;delete spec.username;delete spec.password;
     spec.token_cipher=await sealProviderToken(token,env.MEDIA_AGENT_TOKEN,current.account_id,id);
    }
    if(spec.kind.startsWith('pikpak'))spec.vault_scope=current.account_id;
@@ -168,7 +174,7 @@ export async function accountRoute(request,env){
    if(appFileTest(env))return fail(403,'Task mutations are outside this file-save scope');
    if(owned.status==='cancelled')return reply({ok:true});
    const now=Date.now();
-   const r=await env.DB.prepare("UPDATE mv_hybrid_jobs SET status='cancelled',updated_at=? WHERE id=? AND status IN ("+active+") AND EXISTS(SELECT 1 FROM mv_hybrid_app_sessions WHERE digest=? AND status='approved' AND account_id=? AND expires_at>?) AND EXISTS(SELECT 1 FROM mv_hybrid_account_jobs WHERE job_id=? AND account_id=?)").bind(now,data.id,current.digest,current.account_id,now,data.id,current.account_id).run();
+   const r=await env.DB.prepare("UPDATE mv_hybrid_jobs SET status='cancelled',request_json=CASE WHEN kind='pikpak-account' THEN json_remove(request_json,'$.token_cipher') ELSE request_json END,updated_at=? WHERE id=? AND status IN ("+active+") AND EXISTS(SELECT 1 FROM mv_hybrid_app_sessions WHERE digest=? AND status='approved' AND account_id=? AND expires_at>?) AND EXISTS(SELECT 1 FROM mv_hybrid_account_jobs WHERE job_id=? AND account_id=?)").bind(now,data.id,current.digest,current.account_id,now,data.id,current.account_id).run();
    return r.meta?.changes?reply({ok:true}):fail(409,'Job finished or session changed');
   }
   if(!appFilesAllowed(env))return fail(403,'This account acceptance does not grant file tickets');

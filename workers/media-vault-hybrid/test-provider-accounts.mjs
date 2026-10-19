@@ -55,6 +55,31 @@ try{
  // Plain provider tokens never enter retry storage; only the request hash/key.
  const data=new Map(),storage={getItem:k=>data.get(k),setItem:(k,v)=>data.set(k,v),removeItem:k=>data.delete(k)};
  const client=createAccountConnection({origin,storage,channel:null,fetch:async(url,o)=>url.endsWith('/app-auth/session')?new Response(JSON.stringify(session)):new Response(JSON.stringify({id})),setTimeout:()=>0,clearTimeout(){}});
- await client.submit({kind:spec.kind,label:spec.label,token});assert.ok(!JSON.stringify([...data]).includes(token));client.dispose();
+ await client.submit({kind:spec.kind,label:spec.label,token});assert.ok(!JSON.stringify([...data]).includes(token));
+
+ const full={kind:'pikpak-account',auth_type:'rclone',label:'完整账号',username:'fixture@example.org',password:'fixture-secret-not-real',store_credentials:true,request_key:'4'.repeat(32)};
+ assert.equal(canonicalJob({...full,store_credentials:false}),null);
+ const fullResponse=await request('/app-api/jobs',{cookie:a.cookie,body:full});assert.equal(fullResponse.status,202);const fullId=(await fullResponse.json()).id;
+ const registrationHash=await DB.prepare('SELECT request_hash FROM mv_hybrid_account_jobs WHERE job_id=?').bind(fullId).first();assert.notEqual(registrationHash.request_hash,await digest(JSON.stringify(canonicalJob(full))),'registration fingerprint is keyed, not a password guessing oracle');
+ const fullRow=await DB.prepare('SELECT * FROM mv_hybrid_jobs WHERE id=?').bind(fullId).first();assert.ok(!fullRow.request_json.includes(full.password));assert.ok(!fullRow.request_json.includes(full.username));
+ await DB.prepare("UPDATE mv_hybrid_jobs SET status='running' WHERE id=?").bind(fullId).run();
+ assert.equal((await request('/agent/report',{token:env.MEDIA_AGENT_TOKEN,body:{id:fullId,status:'complete',files:[],title:JSON.stringify({id:fullId,label:full.label,ready:true,auth_type:'rclone'})}})).status,200);
+ assert.equal(JSON.parse((await DB.prepare('SELECT request_json FROM mv_hybrid_jobs WHERE id=?').bind(fullId).first()).request_json).token_cipher,undefined);
+ const sourceResponse=await request('/app-api/jobs',{cookie:a.cookie,body:{...download,profile_id:fullId,request_key:'5'.repeat(32)}});assert.equal(sourceResponse.status,202);const sourceId=(await sourceResponse.json()).id;
+ await DB.prepare("UPDATE mv_hybrid_jobs SET status='running' WHERE id=?").bind(sourceId).run();
+ const cloudFile='fixture-cloud-file',receipt={cleanup:'awaiting-confirmation',file_id:cloudFile,name:'完整视频.mp4',bytes:19};
+ assert.equal((await request('/agent/report',{token:env.MEDIA_AGENT_TOKEN,body:{id:sourceId,status:'complete',files:[{path:'generated/'+sourceId+'.mp4',name:sourceId+'.mp4',size:19}],title:JSON.stringify(receipt)}})).status,200);
+ const clean={kind:'pikpak-cleanup',source_job:sourceId,profile_id:fullId,file_id:cloudFile,confirm_permanent:true,request_key:'6'.repeat(32)};
+ assert.equal((await request('/app-api/jobs',{cookie:a.cookie,body:{...clean,file_id:'wrong'}})).status,409);
+ assert.equal((await request('/app-api/jobs',{cookie:a.cookie,body:{...clean,profile_id:id}})).status,403);
+ assert.equal((await request('/app-api/jobs',{cookie:a.cookie,body:{...clean,confirm_permanent:false}})).status,400);
+ const cleanResponse=await request('/app-api/jobs',{cookie:a.cookie,body:clean});assert.equal(cleanResponse.status,202);const cleanId=(await cleanResponse.json()).id;
+ await DB.prepare("UPDATE mv_hybrid_jobs SET status='running' WHERE id=?").bind(cleanId).run();
+ assert.equal((await request('/agent/report',{token:env.MEDIA_AGENT_TOKEN,body:{id:cleanId,status:'complete',files:[],title:JSON.stringify({cleanup:'purged-quota-pending',source_job:sourceId,file_id:cloudFile})}})).status,200);
+ const afterJobs=await (await request('/app-api/jobs',{cookie:a.cookie})).json();const sourceAfter=afterJobs.jobs.find(j=>j.id===sourceId);assert.equal(sourceAfter.cleanup_target,null);assert.equal(sourceAfter.cleanup_status,'purged-quota-pending');
+ const cancelReg=await request('/app-api/jobs',{cookie:a.cookie,body:{...full,request_key:'7'.repeat(32)}});assert.equal(cancelReg.status,202);const cancelId=(await cancelReg.json()).id;
+ assert.equal((await request('/app-api/jobs/cancel',{cookie:a.cookie,body:{id:cancelId}})).status,200);assert.equal(JSON.parse((await DB.prepare('SELECT request_json FROM mv_hybrid_jobs WHERE id=?').bind(cancelId).first()).request_json).token_cipher,undefined);
+ await client.submit(full);assert.ok(!JSON.stringify([...data]).includes(full.password));
+ client.dispose();
  console.log('PASS real SQLite personal provider scope: encrypted PAT, public redaction, idempotency, account-owned profiles, control-only empty-file completion, base32 magnets and credential-free retry storage; stream remains OFF');
 }finally{child.stdin.end();lines.close()}
