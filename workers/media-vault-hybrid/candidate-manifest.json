@@ -12,12 +12,12 @@
     "merge-publication"
   ],
   "production_source_sha256": {
-    "apps/media-vault/index.html": "80f960f4a348a6f03a50b1ddc2f49aa5c698c40ecf96a4788b046fd4d0b1e75e",
-    "apps/media-vault/app.js": "e6eec41d9376da2d46a5b588de3b3eba18ac0be88a59f30fd779eae15e3b46bf",
+    "apps/media-vault/index.html": "8bfd229970ca48a2d75e0ab79a8d55b5906c46b0070dcda1fad766d455d39a77",
+    "apps/media-vault/app.js": "4fcb6d654dbb96f479b13ff8de8229a798ef771c2f99d13d2ba2363ae9484afb",
     "apps/media-vault/style.css": "fcab9657ac3815436c492746b2abcb58d784862927b9db83cb7889abcaaa0edd",
     "apps/media-vault/novels.css": "8fea36c704e9415f26439f57c87c503dd6c160635c15417f141921ce27390171",
-    "apps/media-vault/device-connect.js": "f1e06c06a862ade4119b3ba212d2eef82a793447f906b934e031df33ac46c612",
-    "apps/media-vault/integrated-downloads.js": "64ee0d7be7588b03366b084fb75edc64eea30b745eb9e51ac34ae668fe99eae1"
+    "apps/media-vault/device-connect.js": "c3761602369f8d5f8d6c471aa35a2a205b6bfa64d60387b248e79f66c4924670",
+    "apps/media-vault/integrated-downloads.js": "3c0976bb055c78bd35fe64ba8cc526ccd0c559f064054c989f1e46c03b54dc50"
   },
   "pending": [],
   "reviewed_main_sha": "d3dae7273d0de614243dd5ffc07c9768ed2f2428",

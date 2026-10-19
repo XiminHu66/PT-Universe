@@ -11,7 +11,7 @@ let country=db.get('country','jp'),genre=db.get('genre','0'),chartItems=[],chart
 if(SCOPED_PREVIEW)engine={url:location.origin,mode:'scoped-session'};
 else try{engine=JSON.parse(sessionStorage.getItem('mv.engine'));}catch{}
 const scopedReady=SCOPED_PREVIEW?import('./scoped-session.js').then(({createScopedConnection})=>createScopedConnection({onState:showScopedState})):null;
-const integratedReady=SCOPED_PREVIEW?Promise.resolve(null):import('./integrated-downloads.js').then(({mountIntegratedDownloads})=>{
+const integratedReady=SCOPED_PREVIEW?Promise.resolve(null):import('./integrated-downloads.js?v=2').then(({mountIntegratedDownloads})=>{
  const connection=mountIntegratedDownloads({note:notice,onState:state=>{const connected=state.status==='approved'&&!state.unverified;if(connected&&(!engine||engine.mode==='account-device')){if(!engine)engine={url:'https://pt-media-hybrid.summer07-nanjolno.workers.dev',mode:'account-device'};$('#engineStatus').textContent='● VPS 已连接';}else if(!connected&&engine?.mode==='account-device'){engine=null;engineJobs=[];renderQueue();$('#engineStatus').textContent='VPS 需连接';}},onTasksChanged:()=>loadTasks(),openQueue:()=>{renderQueue();if(!$('#queue').open)$('#queue').showModal();}});return connection;
 });
 const loaded=new Set();

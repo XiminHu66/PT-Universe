@@ -12,7 +12,7 @@ async function connect(){
    if(state.scope!=='personal-vps-downloads')throw Error('当前授权不是个人下载权限，请在 Media Vault 检查连接。');
    const grant=await request('/app-auth/media-vault-connect',{remember});send({status:'connected',...grant});message.textContent='已连接，正在返回 Media Vault。';window.close();return;
   }
-  pairingStarted=true;message.textContent='这是首次连接，管理员确认后会自动返回。之后本设备无需逐项授权。';code.textContent=state.pair_code;send({status:'pending',pair_code:state.pair_code,session_id:state.session_id});
+  pairingStarted=true;message.textContent='这是首次连接，管理员确认后会自动返回。之后本设备无需逐项授权。';code.textContent=state.session_id;send({status:'pending',session_id:state.session_id});
   if(state.expires_at<=Date.now())throw Error('首次连接请求已到期，请回到 Media Vault 重试。');
   setTimeout(connect,2500);
  }catch(e){message.textContent=e.message;send({status:'error',message:e.message});}
