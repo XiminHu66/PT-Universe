@@ -56,6 +56,7 @@ try{
  assert.equal((await gateway('/session')).status,403,'old device connection replaced');assert.equal(await usage(),0,'rotation releases unclaimed reservation');
  const renewed=await (await gateway('/session',{token:rotated.token})).json();assert.equal(renewed.jobs_remaining,199);assert.equal(renewed.tickets_remaining,99,'rotation preserves usage counters');assert.ok(rotated.expires_at<=Date.now()+86400000);
  const again=await gateway('/download-ticket',{body:{id,path},token:rotated.token});assert.equal(again.status,200);
+ failAt=1;assert.equal((await request('/app-auth/logout',{cookie:a.cookie,body:{}})).status,503);failAt=undefined;assert.equal((await gateway('/session',{token:rotated.token})).status,200,'failed revocation rolls back both grants');assert.equal(await usage(),bytes);
  assert.equal((await request('/app-auth/logout',{cookie:a.cookie,body:{}})).status,200);assert.equal((await gateway('/session',{token:rotated.token})).status,403);assert.equal(await usage(),0,'parent logout revokes child tickets');
  assert.equal((await request('/download?ticket='+(await again.json()).ticket)).status,403);
  const config=configureAccountWindow(defaults,'account-personal-downloads-on');assert.equal(config.vars.ENABLE_DIRECT_STREAM,'true');assert.equal(config.vars.MEDIA_STREAM_TEST_UNTIL,undefined);assert.equal(config.vars.MEDIA_APP_ACCOUNT_ID,'media-vault-personal');
