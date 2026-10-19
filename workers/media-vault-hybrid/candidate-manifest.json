@@ -20,8 +20,8 @@
     "apps/media-vault/integrated-downloads.js": "5c66898faaa5f586b8c379689d54b8edd1b66549d764f46af9c4b468ca1eadfd",
     "workers/media-vault-hybrid/src/github-login.js": "702ee8125c644da6fef8353432432cf580744d17c2c5a2a7da6728ad9d564103",
     "workers/media-vault-hybrid/oauth-schema.sql": "c212391ce004886b383699a57e4d7987b338fad2ce83164639615bec81eb970f",
-    "workers/media-vault-hybrid/src/integrated.js": "b60d5728b6e1be7b84a4570b089577f030726f5aecfbfd7c402ae1b0174247fc",
-    "apps/media-vault/account-session.js": "66b121b84e91dbba37ce64e796443d001fce4416670581bd6571bbdd293d604e",
+    "workers/media-vault-hybrid/src/integrated.js": "79a900f0d2c6d67a48a779638091047a24dc6943de541fd900b57ba34a17a54f",
+    "apps/media-vault/account-session.js": "9916c4b9672e20422df92d06c8232807a2517a180e19f9dbe4b1b8187df559aa",
     "workers/media-vault-hybrid/account-window-config.mjs": "49ad613dbf510c7565dd0910d5161598c264507304a38ccbd36719b287a0b13d"
   },
   "pending": [],
