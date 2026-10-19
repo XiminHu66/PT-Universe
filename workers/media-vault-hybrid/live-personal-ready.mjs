@@ -7,7 +7,9 @@ assert.equal(vars.MEDIA_APP_TEST_MODE,'personal');assert.equal(vars.MEDIA_APP_AC
 assert.equal(vars.ENABLE_APP_SUBMISSION,'true');assert.equal(vars.ENABLE_DIRECT_STREAM,'false');assert.ok(appEnabled(vars));assert.equal(appReadOnly(vars),false);
 const base='https://pt-media-hybrid.summer07-nanjolno.workers.dev';
 for(const path of ['/app-auth/session','/app-api/pikpak/accounts','/app-api/jobs']){
- const r=await fetch(base+path,{redirect:'error',signal:AbortSignal.timeout(20000)});assert.equal(r.status,403,'Unapproved browser must remain denied');
+ const deadline=Date.now()+45000;let status;
+ do{const r=await fetch(base+path,{redirect:'error',signal:AbortSignal.timeout(15000)});status=r.status;if(status===403)break;assert.equal(status,404,'Unexpected exposure or account service failure');if(Date.now()<deadline)await new Promise(resolve=>setTimeout(resolve,1500));}while(Date.now()<deadline);
+ assert.equal(status,403,'Personal account configuration did not propagate within the bounded readiness window');
 }
 const r=await fetch(base+'/health',{headers:{Authorization:'Bearer '+process.env.OWNER},redirect:'error',signal:AbortSignal.timeout(20000)});assert.equal(r.status,200);assert.equal((await r.json()).streaming,'not-live');
 console.log('PASS personal VPS task portal ready; unapproved browser denied, Owner approval required, streaming OFF; no page/source/media/cookie/task access');

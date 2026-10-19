@@ -6,7 +6,7 @@ on:
         description: Metadata operation
         type: choice
         default: verify
-        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership, account-approve, account-revoke, account-login-on, account-login-off, account-submit-on, account-submit-off, account-rc-off, account-off-check, account-files-check, account-device-files-check, account-device-files-verify, account-device-files-on, account-device-recovery-check, account-device-recovery-on, account-files-on, account-files-off, account-novel-on, account-novel-off, account-observation-on, account-observation-off, account-observation-check, account-novel-check, account-personal-on, remote-download-proof, manga-proof, candidate-check]
+        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership, account-approve, account-revoke, account-login-on, account-login-off, account-submit-on, account-submit-off, account-rc-off, account-off-check, account-files-check, account-device-files-check, account-device-files-verify, account-device-files-on, account-device-recovery-check, account-device-recovery-on, account-files-on, account-files-off, account-novel-on, account-novel-off, account-observation-on, account-observation-off, account-observation-check, account-novel-check, account-personal-on, account-personal-check, remote-download-proof, manga-proof, candidate-check]
       device_authorization:
         description: Explicit new user-device round approval (3 tickets / 10 MiB / 20 minutes)
         type: boolean
@@ -302,6 +302,13 @@ jobs:
           node workers/media-vault-hybrid/live-metadata.mjs
 
 
+      - name: Verify personal portal metadata without deployment
+        if: inputs.operation == 'account-personal-check'
+        env:
+          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        run: |
+          OPERATION=account-personal-on node workers/media-vault-hybrid/account-window-config.mjs
+          node workers/media-vault-hybrid/live-personal-ready.mjs
       - name: Verify VPS BT and video download with streaming OFF
         if: inputs.operation == 'remote-download-proof'
         env:
