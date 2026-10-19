@@ -12,13 +12,15 @@
     "merge-publication"
   ],
   "production_source_sha256": {
-    "apps/media-vault/index.html": "2579ae75c99a7b7cf460f52608fd3a6cdf6bc912abf740566c8c6016fc1b2786",
-    "apps/media-vault/app.js": "bf57476f876d4bdae583ff8854ce85bbbab6acdbd3f7bc5fbe28f289e6e6490b",
-    "apps/media-vault/style.css": "e946451d4dda004cc61a56dba4bd1b1f7ab5b3dbd7099e17eabdfc6ec51a1f79",
-    "apps/media-vault/novels.css": "8fea36c704e9415f26439f57c87c503dd6c160635c15417f141921ce27390171"
+    "apps/media-vault/index.html": "80f960f4a348a6f03a50b1ddc2f49aa5c698c40ecf96a4788b046fd4d0b1e75e",
+    "apps/media-vault/app.js": "e6eec41d9376da2d46a5b588de3b3eba18ac0be88a59f30fd779eae15e3b46bf",
+    "apps/media-vault/style.css": "fcab9657ac3815436c492746b2abcb58d784862927b9db83cb7889abcaaa0edd",
+    "apps/media-vault/novels.css": "8fea36c704e9415f26439f57c87c503dd6c160635c15417f141921ce27390171",
+    "apps/media-vault/device-connect.js": "5bda8de5043065d32b821c5200cca5094644235de190842bbda307fbe98ab9f1",
+    "apps/media-vault/integrated-downloads.js": "64ee0d7be7588b03366b084fb75edc64eea30b745eb9e51ac34ae668fe99eae1"
   },
   "pending": [],
-  "reviewed_main_sha": "d787d405772a25b2369656e72eb6861ef3e44a5c",
+  "reviewed_main_sha": "d3dae7273d0de614243dd5ffc07c9768ed2f2428",
   "deployment_evidence": {
     "worker_run": "https://github.com/XiminHu66/PT-Universe/actions/runs/39303107069",
     "companion": "paired closed deployment verified; detailed operations evidence private"
@@ -134,5 +136,13 @@
       "status": "user-deferred-unverified",
       "impact": "No actual 24-hour cross-day restore/natural-expiry acceptance; runtime expiry/authorization protections remain unchanged"
     }
-  ]
+  ],
+  "current_change": {
+    "id": "integrated-media-vault-downloads",
+    "status": "implementation-candidate",
+    "requested_behavior": "Tasks, progress, provider accounts and native file save stay within the original Media Vault page.",
+    "authorization": "User explicitly chose 保存到本机: VPS 后台处理，完成后在 Media Vault 内点击保存到电脑；需启用现有的文件传输链路.",
+    "configuration": "Repository defaults remain closed; a separate explicit integrated-downloads-on deployment enables stable personal access and normal delivery. No new public ports.",
+    "prior_evidence_scope": "Historical acceptance/publication records above describe the previous release; they do not prove this updated UI, 30-day elapsed persistence, or real PikPak account behavior."
+  }
 }

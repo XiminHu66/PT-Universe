@@ -7,7 +7,7 @@ import {readFile,writeFile} from 'node:fs/promises';
 export function configureAccountWindow(base,operation,now=Date.now(),selection=null){
  assert.equal(base.name,'pt-media-hybrid');assert.equal(base.vars.ENABLE_DIRECT_STREAM,'false');
  assert.equal(base.vars.ENABLE_APP_ACCESS,'false');assert.equal(base.vars.ENABLE_APP_SUBMISSION,'false');
- assert.ok(['account-login-on','account-login-off','account-submit-on','account-submit-off','account-rc-off','account-files-on','account-files-off','account-novel-on','account-novel-off','account-observation-on','account-observation-off','account-personal-on'].includes(operation));assert.ok(Number.isSafeInteger(now)&&now>0);
+ assert.ok(['account-login-on','account-login-off','account-submit-on','account-submit-off','account-rc-off','account-files-on','account-files-off','account-novel-on','account-novel-off','account-observation-on','account-observation-off','account-personal-on','account-personal-downloads-on'].includes(operation));assert.ok(Number.isSafeInteger(now)&&now>0);
  if(operation==='account-files-on'){
   assert.ok(selection&&/^submit-test-[a-f0-9]{32}$/.test(selection.account_id),'Retained account selection required');
   assert.equal(fileTestManifest({MEDIA_APP_FILE_TEST_FILES:JSON.stringify(selection.files)}).length,3,'Three fixed retained files required');
@@ -20,11 +20,12 @@ export function configureAccountWindow(base,operation,now=Date.now(),selection=n
  if(operation==='account-novel-on')Object.assign(config.vars,{ENABLE_APP_ACCESS:'true',ENABLE_APP_SUBMISSION:'true',MEDIA_APP_ACCOUNT_ID:'novel-test-'+randomUUID().replaceAll('-',''),MEDIA_APP_TEST_MODE:'novel-ux',MEDIA_APP_NOVEL_TEST_START:String(now),MEDIA_APP_NOVEL_TEST_UNTIL:String(now+30*60000)});
  if(operation==='account-observation-on')Object.assign(config.vars,{ENABLE_APP_ACCESS:'true',MEDIA_APP_ACCOUNT_ID:'observe-test-'+randomUUID().replaceAll('-',''),MEDIA_APP_TEST_MODE:'observation',MEDIA_APP_OBSERVATION_START:String(now),MEDIA_APP_OBSERVATION_PAIR_UNTIL:String(now+OBSERVATION_SETUP),MEDIA_APP_OBSERVATION_UNTIL:String(now+OBSERVATION_SETUP+OBSERVATION_DURATION)});
  if(operation==='account-files-on')Object.assign(config.vars,{ENABLE_APP_ACCESS:'true',ENABLE_APP_SUBMISSION:'false',ENABLE_DIRECT_STREAM:'true',MEDIA_STREAM_TEST_UNTIL:String(now+20*60000),MEDIA_APP_ACCOUNT_ID:selection.account_id,MEDIA_APP_TEST_MODE:'files',MEDIA_APP_LOGIN_TEST_UNTIL:'0',MEDIA_APP_FILE_TEST_START:String(now),MEDIA_APP_FILE_TEST_UNTIL:String(now+20*60000),MEDIA_APP_FILE_TEST_FILES:JSON.stringify(selection.files)});
- if(operation==='account-personal-on')Object.assign(config.vars,{ENABLE_APP_ACCESS:'true',ENABLE_APP_SUBMISSION:'true',MEDIA_APP_ACCOUNT_ID:'media-vault-personal',MEDIA_APP_TEST_MODE:'personal'});
+ if(operation==='account-personal-on'||operation==='account-personal-downloads-on')Object.assign(config.vars,{ENABLE_APP_ACCESS:'true',ENABLE_APP_SUBMISSION:'true',MEDIA_APP_ACCOUNT_ID:'media-vault-personal',MEDIA_APP_TEST_MODE:'personal'});
+ if(operation==='account-personal-downloads-on'){config.vars.ENABLE_DIRECT_STREAM='true';delete config.vars.MEDIA_STREAM_TEST_UNTIL;}
  return config;
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  const config=configureAccountWindow(JSON.parse(await readFile(new URL('./wrangler.jsonc',import.meta.url),'utf8')),process.env.OPERATION,Date.now(),process.env.OPERATION==='account-files-on'?JSON.parse(await readFile(new URL('./account-file-selection.json',import.meta.url),'utf8')):null);
  await writeFile(new URL('./account-window.json',import.meta.url),JSON.stringify(config,null,2));
- console.log('Configured isolated account operation',process.env.OPERATION,'; temporary preview OFF; explicit bounded file operation required to enable streaming');
+ console.log('Configured isolated account operation',process.env.OPERATION,'; temporary preview OFF; delivery only enabled by explicit download operation');
 }

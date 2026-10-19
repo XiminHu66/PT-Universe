@@ -3,7 +3,9 @@ const {readFileSync}=require('node:fs');
 const vm=require('node:vm');
 const assert=require('node:assert/strict');
 const {webcrypto}=require('node:crypto');
-const code=readFileSync('apps/media-vault/app.js','utf8');
+// The native browser suite covers the asynchronous device connection. This VM
+// fixture isolates existing reader/music logic without module or IndexedDB APIs.
+const code=readFileSync('apps/media-vault/app.js','utf8').replace(/const integratedReady=[\s\S]*?\nconst loaded=/,'const integratedReady=Promise.resolve(null);\nconst loaded=');
 const settle=()=>new Promise(resolve=>setImmediate(resolve));
 function fixture(hash='#music'){
  const elements=new Map(),requests=[],saved=new Map();

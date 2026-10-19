@@ -6,7 +6,7 @@ on:
         description: Metadata operation
         type: choice
         default: verify
-        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership, account-approve, account-revoke, account-login-on, account-login-off, account-submit-on, account-submit-off, account-rc-off, account-off-check, account-files-check, account-device-files-check, account-device-files-verify, account-device-files-on, account-device-recovery-check, account-device-recovery-on, account-files-on, account-files-off, account-novel-on, account-novel-off, account-observation-on, account-observation-off, account-observation-check, account-novel-check, account-personal-on, account-personal-update, account-personal-check, remote-download-proof, manga-proof, candidate-check]
+        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership, account-approve, account-revoke, account-login-on, account-login-off, account-submit-on, account-submit-off, account-rc-off, account-off-check, account-files-check, account-device-files-check, account-device-files-verify, account-device-files-on, account-device-recovery-check, account-device-recovery-on, account-files-on, account-files-off, account-novel-on, account-novel-off, account-observation-on, account-observation-off, account-observation-check, account-novel-check, account-personal-on, account-personal-update, account-personal-check, remote-download-proof, manga-proof, candidate-check, integrated-downloads-on, integrated-download-proof]
       device_authorization:
         description: Explicit new user-device round approval (3 tickets / 10 MiB / 20 minutes)
         type: boolean
@@ -347,3 +347,27 @@ jobs:
           node workers/media-vault-hybrid/migration-check.mjs ready-personal
           npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/account-window.json
           node workers/media-vault-hybrid/live-personal-ready.mjs
+
+      - name: Enable integrated personal downloads with existing account authorization
+        if: inputs.operation == 'integrated-downloads-on'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+          ACCEPTANCE_AUTHORIZED: ${{ inputs.acceptance_authorization }}
+        run: |
+          set -euo pipefail
+          [[ "$ACCEPTANCE_AUTHORIZED" == true ]] || { echo 'Explicit personal file delivery authorization required'; exit 1; }
+          npm ci --prefix workers/pt-universe-api
+          npm test --prefix workers/media-vault-hybrid
+          OPERATION=account-personal-on node workers/media-vault-hybrid/account-window-config.mjs
+          node workers/media-vault-hybrid/migration-check.mjs ready-personal
+          OPERATION=account-personal-downloads-on node workers/media-vault-hybrid/account-window-config.mjs
+          npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/account-window.json
+          node workers/media-vault-hybrid/live-integrated-ready.mjs
+      - name: Controlled normal delivery and exact ledger proof
+        if: inputs.operation == 'integrated-download-proof'
+        env:
+          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        run: node workers/media-vault-hybrid/live-integrated-delivery.mjs
