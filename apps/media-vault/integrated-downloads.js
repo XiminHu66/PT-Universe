@@ -37,7 +37,7 @@ export function mountIntegratedDownloads(options={}){
  }
  win.addEventListener('message',receive);
  function show(){if(!$('vpsConnection').open)$('vpsConnection').showModal();$('vpsPairCode').textContent='';note('连接会复用已有授权，不需要输入服务器密钥。');}
- function ensure(){if(state.status==='approved'&&!state.unverified&&state.expires_at>Date.now())return Promise.resolve(client);if(pending)return pending.work;show();let resolve,reject;const work=new Promise((yes,no)=>{resolve=yes;reject=no;});pending={work,resolve,reject};return work;}
+ async function ensure(){await ready;if(token?.expires_at>Date.now()&&(state.status!=='approved'||state.unverified)){try{await client.refresh();}catch(e){if(![403,404].includes(e.status))throw Error('VPS 暂时无法连接，请稍后重试，无需重新授权。');}}if(state.status==='approved'&&!state.unverified&&state.expires_at>Date.now())return Promise.resolve(client);if(pending)return pending.work;show();let resolve,reject;const work=new Promise((yes,no)=>{resolve=yes;reject=no;});pending={work,resolve,reject};return work;}
  $('vpsConnectStatus').onclick=show;$('vpsManageConnection').onclick=show;
  $('vpsConnectNow').onclick=()=>{
   channel=win.crypto.randomUUID().replaceAll('-','');const url=base+'/media-vault-connect/?'+new URLSearchParams({channel,remember:String($('vpsRemember').checked)});
@@ -50,6 +50,7 @@ export function mountIntegratedDownloads(options={}){
  $('vpsConnectCancel').onclick=cancelConnection;$('vpsConnection').oncancel=cancelConnection;
  $('vpsForget').onclick=async()=>{try{if(token)await client.logout();token=null;await store.set(null);render({status:'unpaired'});note('已忘记此设备。VPS 上的下载任务继续保留。');}catch(e){note(e.message,true);}};
  $('pikpakTaskForm').onsubmit=event=>{event.preventDefault();void (async()=>{const button=$('pikpakTaskSubmit');button.disabled=true;try{await ensure();const profile=$('pikpakProfile').value;if(!profile)throw Error('请先添加并验证一个 PikPak 账号。');const result=await client.submit({kind:'pikpak',url:$('pikpakURL').value.trim(),profile_id:profile,cleanup_after_download:true});options.note?.('已开始 PikPak 下载，可在本页“下载任务”查看进度。');await options.onTasksChanged?.();options.openQueue?.();return result;}catch(e){options.note?.(e.message,true);}finally{button.disabled=false;}})();};
- const ready=(async()=>{try{token=await store.get();if(!token||token.expires_at<=Date.now()){token=null;render(state);return;}await client.refresh();await refreshAccounts();await options.onTasksChanged?.();}catch{render({status:'unpaired'});}})();
+ const ready=(async()=>{try{token=await store.get();if(!token||token.expires_at<=Date.now()){token=null;render(state);return;}await client.refresh();await refreshAccounts();}catch{render({status:'unpaired'});}})();
+ void ready.then(()=>{if(state.status==='approved')return options.onTasksChanged?.();}).catch(e=>options.note?.(e.message,true));
  return {ready,ensure,client,refreshAccounts,current:()=>state,openConnection:show,async openPikPak(url=''){await ensure();$('pikpakPanel').hidden=false;if(url)$('pikpakURL').value=url;await refreshAccounts();$('pikpakPanel').scrollIntoView({behavior:'smooth',block:'start'});},async read(path,body){await ensure();if(path==='/jobs'&&body){const result=await client.submit(body);await refreshAccounts();return result;}if(path==='/resolve')return {formats:[{id:'best',label:'最佳可用画质',format:'auto'}]};return client.read(path,body);},fetch:bridge,dispose(){disposed=true;client.dispose();win.removeEventListener('message',receive);finish(Error('页面已关闭'));}};
 }
