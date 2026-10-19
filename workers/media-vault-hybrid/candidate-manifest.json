@@ -20,7 +20,7 @@
   "pending": [
     {
       "id": "novel-real-ui",
-      "status": "user-browser-catalog-503-repair-pending-real-retest"
+      "status": "tasks-and-logout-passed-awaiting-catalog-preview-confirmation"
     },
     {
       "id": "longer-session-persistence",
@@ -29,7 +29,7 @@
   ],
   "reviewed_main_sha": "be3927aaf072a0bc7b2ee1cd189cd0df1b391cfb",
   "deployment_evidence": {
-    "worker_run": "https://github.com/XiminHu66/PT-Universe/actions/runs/38818185446",
+    "worker_run": "https://github.com/XiminHu66/PT-Universe/actions/runs/39298787600",
     "companion": "paired closed deployment verified; detailed operations evidence private"
   },
   "acceptance_evidence": {
@@ -58,8 +58,21 @@
       "public_run": "https://github.com/XiminHu66/PT-Universe/actions/runs/38808139300"
     },
     "novel_real_ui": {
-      "status": "user-browser-catalog-503-repair-pending-real-retest",
-      "scope": "fixed book first two chapters; text only; three layouts; cancel/rebuild; at most four jobs, one device, thirty minutes, zero tickets; original real UI still pending",
+      "status": "tasks-and-logout-passed-awaiting-catalog-preview-confirmation",
+      "scope": {
+        "first_two_chapters": true,
+        "text_only": true,
+        "layouts": [
+          "compact",
+          "standard",
+          "large"
+        ],
+        "cancel_rebuild": true,
+        "job_count": 4,
+        "device_count": 1,
+        "streaming": false,
+        "tickets": 0
+      },
       "failed_attempt": {
         "source": "real-user-windows-browser",
         "observed_at": "2026-10-16T00:22:17Z",
@@ -69,7 +82,19 @@
         "result": "not-passed",
         "diagnosis": "Catalog handler caught a dependency or response failure; original response did not distinguish cause. Missing cross-Worker public-fetch flag found in reviewed deployed configuration; upstream cause not directly observed.",
         "scope_boundary": "Original thirty-minute window must expire without extension. No acceptance pass or 24-hour observation start recorded."
-      }
+      },
+      "evidence_reference": "User reported completion of requested real Windows task/rebuild/refresh/logout sequence on 2026-10-19; server confirmation: https://github.com/XiminHu66/PT-Universe/actions/runs/39298402309",
+      "task_result_summary": {
+        "cancelled_compact": 1,
+        "completed_compact_rebuild": 1,
+        "completed_standard": 1,
+        "completed_large": 1,
+        "session_revoked_before_admin_close": true,
+        "file_count": 3,
+        "download_tickets": 0,
+        "transfer_delta_bytes": 0
+      },
+      "catalog_preview_confirmation": "Pending explicit user confirmation of catalog and all three preview presets; server task parameters do not substitute for that UI observation"
     }
   },
   "publication_decision": {
