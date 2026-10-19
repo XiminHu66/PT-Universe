@@ -16,7 +16,7 @@
     "apps/media-vault/app.js": "e6eec41d9376da2d46a5b588de3b3eba18ac0be88a59f30fd779eae15e3b46bf",
     "apps/media-vault/style.css": "fcab9657ac3815436c492746b2abcb58d784862927b9db83cb7889abcaaa0edd",
     "apps/media-vault/novels.css": "8fea36c704e9415f26439f57c87c503dd6c160635c15417f141921ce27390171",
-    "apps/media-vault/device-connect.js": "5bda8de5043065d32b821c5200cca5094644235de190842bbda307fbe98ab9f1",
+    "apps/media-vault/device-connect.js": "f1e06c06a862ade4119b3ba212d2eef82a793447f906b934e031df33ac46c612",
     "apps/media-vault/integrated-downloads.js": "64ee0d7be7588b03366b084fb75edc64eea30b745eb9e51ac34ae668fe99eae1"
   },
   "pending": [],
