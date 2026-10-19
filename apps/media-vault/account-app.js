@@ -1,3 +1,4 @@
+import {mountPikPak} from './pikpak-account.js';
 import {createAccountConnection} from './account-session.js';
 import {createNativeSaver} from './native-download.js';
 import {formSpec,chapterIndices,layouts,progressText,recoveryText} from './account-form.js';
@@ -6,11 +7,13 @@ export function mountAccountPage(options={}){
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const bytes=n=>(Number(n||0)/1048576).toFixed(1)+' MiB';
  const note=(message,bad=false)=>{$('notice').textContent=message;$('notice').className=bad?'error':'';};
+ let pikpak;
  let current={status:'unpaired'},session=null,generation=0,saver=null,disposed=false,loading=null,sending=false,jobsCache=[],filter='all',transferReady=false,presetKey='',catalog=[],catalogSource='',catalogLoading=false,catalogEpoch=0,catalogTotal=0,pendingAction=null;
  const client=(options.createConnection||createAccountConnection)({...options.connection,origin,onState:renderState});
+ pikpak=mountPikPak({client,$,note,current:()=>current,reload});
  function clearFiles(){saver?.dispose();saver=null;$('filesList').replaceChildren();if($('files').open)$('files').close();}
  function renderState(state){
-  const previousReadOnly=current.read_only;current=state;const approved=state.status==='approved'&&!state.unverified;
+  const previousReadOnly=current.read_only;current=state;pikpak?.render(state);const approved=state.status==='approved'&&!state.unverified;
   const next=approved?state.session_id:null;
   if(next!==session||state.read_only!==previousReadOnly){if(approved)note('');clearAction();session=next;++generation;clearFiles();$('jobs').replaceChildren();$('budget').textContent='';jobsCache=[];transferReady=false;clearCatalog();$('taskSummary').textContent='';$('serviceStatus').textContent='';}
   if(!approved||state.read_only)clearFiles();
@@ -27,7 +30,7 @@ export function mountAccountPage(options={}){
   if(novel){$('kind').value='novel';$('url').value=state.novel_scope.url;$('textOnly').checked=true;if($('indices').value==='1-3')$('indices').value='1-2';}
   $('kind').disabled=novel;$('url').readOnly=novel;$('textOnly').disabled=novel;
   $('url').required=!pilot&&$('kind').value!=='manga';
-  $('novelFields').hidden=$('kind').value!=='novel';$('mangaFields').hidden=$('kind').value!=='manga';$('urlFields').hidden=$('kind').value==='manga';
+  $('novelFields').hidden=$('kind').value!=='novel';$('mangaFields').hidden=$('kind').value!=='manga';$('pikpakFields').hidden=$('kind').value!=='pikpak';$('urlFields').hidden=$('kind').value==='manga';
   const key=pilot?JSON.stringify(state.presets||[]):'';
   if(key!==presetKey){presetKey=key;$('pilotPreset').innerHTML=(state.presets||[]).map((p,i)=>'<option value="'+i+'">'+esc(p.label)+'</option>').join('');}
   if(pilot)$('submitStatus').textContent='指定样例合计最多四项，剩余 '+state.jobs_remaining+' 项。文件传输与下载票据关闭。';
@@ -51,7 +54,7 @@ export function mountAccountPage(options={}){
   const active=['queued','running','active','waiting'],attention=['error','cancelled','expired'];
   const shown=jobsCache.filter(j=>filter==='all'||filter==='active'&&active.includes(j.status)||filter==='complete'&&j.status==='complete'||filter==='attention'&&attention.includes(j.status));
   $('taskSummary').textContent=jobsCache.length+' 项 · 处理中 '+jobsCache.filter(j=>active.includes(j.status)).length+' · 已完成 '+jobsCache.filter(j=>j.status==='complete').length;
-  $('jobs').innerHTML=shown.map(j=>`<article class="task-row"><div class="task-heading"><strong>${esc(j.title||j.kind)}</strong><span class="status-badge">${esc(({queued:'排队中',running:'处理中',active:'下载中',waiting:'等待中',complete:'文件已生成',cancelled:'已取消',expired:'已过期',error:'失败',interrupted:'任务已中断'})[j.status]||j.status)}</span></div><p>${esc(progressText(j))}</p>${j.error?'<p class="task-error">'+esc(j.error)+'</p>':''}${recoveryText(j)?'<p class="caption">'+esc(recoveryText(j))+'</p>':''}${j.source_expires_at?'<p class="caption">临时源文件清理时间参考：'+esc(new Date(j.source_expires_at).toLocaleString('zh-CN'))+'（约 24 小时；传输中的文件会保留）</p>':''}<div class="actions">${j.status==='complete'&&!current.read_only?'<button data-files="'+esc(j.id)+'">查看文件'+(transferReady?' / 保存到本机':'（传输关闭）')+'</button>':''}${!current.read_only&&current.can_submit&&active.includes(j.status)?'<button data-cancel="'+esc(j.id)+'">取消任务</button>':''}${!current.read_only&&current.can_submit&&current.scope!=='submission-test-no-transfer'&&attention.includes(j.status)?'<button data-retry="'+esc(j.id)+'">重建任务（使用新额度）</button>':''}</div></article>`).join('')||'<p>'+ (jobsCache.length?'此分类暂无任务。':'账号暂无任务。')+'</p>';
+  $('jobs').innerHTML=shown.map(j=>`<article class="task-row"><div class="task-heading"><strong>${esc(j.title||j.kind)}</strong><span class="status-badge">${esc(({queued:'排队中',running:'处理中',active:'下载中',waiting:'等待中',complete:j.kind==='pikpak-account'?'账号已连接':'文件已生成',cancelled:'已取消',expired:'已过期',error:'失败',interrupted:'任务已中断'})[j.status]||j.status)}</span></div><p>${esc(progressText(j))}</p>${j.error?'<p class="task-error">'+esc(j.error)+'</p>':''}${recoveryText(j)?'<p class="caption">'+esc(recoveryText(j))+'</p>':''}${j.source_expires_at?'<p class="caption">临时源文件清理时间参考：'+esc(new Date(j.source_expires_at).toLocaleString('zh-CN'))+'（约 24 小时；传输中的文件会保留）</p>':''}<div class="actions">${j.status==='complete'&&j.kind!=='pikpak-account'&&!current.read_only?'<button data-files="'+esc(j.id)+'">查看文件'+(transferReady?' / 保存到本机':'（传输关闭）')+'</button>':''}${!current.read_only&&current.can_submit&&active.includes(j.status)?'<button data-cancel="'+esc(j.id)+'">取消任务</button>':''}${!current.read_only&&current.can_submit&&current.scope!=='submission-test-no-transfer'&&attention.includes(j.status)&&j.kind!=='pikpak-account'?'<button data-retry="'+esc(j.id)+'">重建任务（使用新额度）</button>':''}</div></article>`).join('')||'<p>'+ (jobsCache.length?'此分类暂无任务。':'账号暂无任务。')+'</p>';
  }
  async function reload(){
   if(loading)return loading;
@@ -59,6 +62,7 @@ export function mountAccountPage(options={}){
    try{const state=await client.refresh();if(state.status!=='approved'||disposed)return;
     const g=generation,[jobs,quota,health]=await Promise.all([client.read('/jobs'),client.read('/quota'),client.read('/health')]);
     if(disposed||g!==generation)return;
+    if(current.scope==='personal-vps-downloads')await pikpak.refresh();
     jobsCache=jobs.jobs;transferReady=quota.tracking==='active'&&current.can_download!==false&&health.channel==='ready';renderJobs();
     $('serviceStatus').textContent=transferReady?'出站下载通道已响应，可保存到本机；是否保存完成请查看浏览器下载列表。':health.channel==='busy'?'正在传输另一份文件，请等浏览器下载完成后刷新。':health.channel==='offline'?'出站下载通道未连接或未响应，暂不能保存；刷新状态不会消耗下载票据。':'后台文件可独立生成；文件传输当前关闭，暂不能保存到本机。';
     $('budget').textContent='应用自设月预算 '+bytes(quota.limit_bytes)+' · 已传输 '+bytes(quota.transferred_bytes)+' · 已预留 '+bytes(quota.reserved_bytes)+' · 剩余 '+bytes(quota.remaining_bytes)+'；不是云服务商账单。'+(quota.tracking==='active'?'':' 文件传输当前关闭。');
@@ -66,9 +70,14 @@ export function mountAccountPage(options={}){
   })();loading=work;try{await work;}finally{if(loading===work)loading=null;}
  }
  async function run(fn){try{await fn();}catch(e){if(!disposed)note(e.message,true);}finally{if(!disposed)renderState(client.current());}}
+ if(!options.document&&location.hash){
+  const incoming=new URLSearchParams(location.hash.slice(1)),kind=incoming.get('kind'),url=incoming.get('url')||'';
+  if(['video','torrent','pikpak'].includes(kind)&&url.length<=2048){$('kind').value=kind;$('url').value=url;}
+  history.replaceState(null,'',location.pathname+location.search);
+ }
  $('pair').onclick=()=>run(()=>client.pair());$('logout').onclick=()=>run(()=>client.logout());$('refresh').onclick=reload;
  $('mangaProvider').onchange=()=>{const md=$('mangaProvider').value==='mangadex';$('mangaChapterFields').hidden=!md;$('commonsPageFields').hidden=md;};
- $('kind').onchange=()=>{clearCatalog();const kind=$('kind').value;$('urlFields').hidden=kind==='manga';$('url').required=kind!=='manga'&&current.scope!=='submission-test-no-transfer';$('mangaFields').hidden=kind!=='manga';$('novelFields').hidden=kind!=='novel';};
+ $('kind').onchange=()=>{clearCatalog();const kind=$('kind').value;$('urlFields').hidden=kind==='manga';$('url').required=kind!=='manga'&&current.scope!=='submission-test-no-transfer';$('mangaFields').hidden=kind!=='manga';$('novelFields').hidden=kind!=='novel';$('pikpakFields').hidden=kind!=='pikpak';};
  $('layout').onchange=()=>{const p=layouts[$('layout').value]||layouts.compact;$('layoutPreview').style.cssText='font-size:'+p.fontScale+'%;line-height:'+p.lineHeight;for(const el of $('layoutPreview').querySelectorAll('p'))el.style.cssText='text-indent:'+p.indent+'em;margin:0 0 '+p.paragraphGap+'em';};
  $('loadCatalog').onclick=()=>run(async()=>{
   if(catalogLoading)return;catalogLoading=true;$('loadCatalog').disabled=true;
@@ -91,7 +100,7 @@ export function mountAccountPage(options={}){
  };
  $('taskFilter').onchange=()=>{filter=$('taskFilter').value;renderJobs();};
  $('jobForm').onsubmit=e=>{e.preventDefault();if(sending)return;void run(async()=>{
-  const spec=current.scope==='submission-test-no-transfer'?structuredClone(current.presets?.[Number($('pilotPreset').value)]?.spec):formSpec({kind:$('kind').value,url:$('url').value,indices:$('indices').value,textOnly:$('textOnly').checked,layout:$('layout').value,title:$('mangaTitle').value,pages:$('pages').value,mangaProvider:$('mangaProvider').value,mangaChapter:$('mangaChapter').value});
+  const spec=current.scope==='submission-test-no-transfer'?structuredClone(current.presets?.[Number($('pilotPreset').value)]?.spec):formSpec({kind:$('kind').value,url:$('url').value,indices:$('indices').value,textOnly:$('textOnly').checked,layout:$('layout').value,title:$('mangaTitle').value,pages:$('pages').value,mangaProvider:$('mangaProvider').value,mangaChapter:$('mangaChapter').value,pikpakProfile:$('pikpakProfile').value,pikpakCleanup:$('pikpakCleanup').checked});
   if(spec?.kind==='novel')selectedChapters();
   if(!spec)throw Error('请先选择本轮指定样例。');
   sending=true;renderState(current);const g=generation;

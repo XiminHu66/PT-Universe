@@ -1,3 +1,4 @@
+import {sealProviderToken} from './provider-secrets.js';
 import {appNovelUx,novelUxPermits,NOVEL_UX_SOURCE,NOVEL_UX_JOBS} from './account-novel-scope.js';
 import {appFileTest,fileTestPermits} from './account-file-scope.js';
 import {appObservation,observationPairingOpen,OBSERVATION_DURATION} from './account-observation-scope.js';
@@ -106,6 +107,11 @@ export async function accountRoute(request,env){
    const used=Number(q?.transferred_bytes||0),reserved=Number(q?.reserved_bytes||0),limit=transferBudget(env);
    return reply({period,limit_bytes:limit,transferred_bytes:used,reserved_bytes:reserved,remaining_bytes:Math.max(0,limit-used-reserved),tracking:streamingEnabled(env)?'active':'not_active',kind:'self_imposed_monthly_budget'});
   }
+  if(p==='/app-api/pikpak/accounts'&&request.method==='GET'){
+   if(env.MEDIA_APP_TEST_MODE!=='personal'||appReadOnly(env))return fail(403,'PikPak accounts unavailable in this scope');
+   const rows=await env.DB.prepare("SELECT j.* FROM mv_hybrid_jobs j JOIN mv_hybrid_account_jobs a ON a.job_id=j.id WHERE a.account_id=? AND j.kind='pikpak-account' AND j.status='complete' ORDER BY j.created_at DESC LIMIT 30").bind(current.account_id).all();
+   return reply({accounts:rows.results.map(rowFormat).map(r=>r.provider_result).filter(Boolean)});
+  }
   if(p==='/app-api/jobs'&&request.method==='GET'){
    const result=await env.DB.prepare('SELECT j.* FROM mv_hybrid_jobs j JOIN mv_hybrid_account_jobs a ON a.job_id=j.id WHERE a.account_id=? ORDER BY j.created_at DESC LIMIT 40').bind(current.account_id).all();
    return reply({jobs:result.results.filter(j=>!appFileTest(env)||fileTestPermits(env,j.id)).map(rowFormat)});
@@ -118,15 +124,26 @@ export async function accountRoute(request,env){
     const prior=await env.DB.prepare('SELECT j.request_json,j.status FROM mv_hybrid_jobs j JOIN mv_hybrid_account_jobs a ON a.job_id=j.id WHERE j.id=? AND a.account_id=?').bind(raw.retry_of,current.account_id).first();
     if(!prior)return fail(404,'Account retry job not found');
     if(!['error','cancelled','expired'].includes(prior.status))return fail(409,'Only failed, cancelled or expired jobs can be rebuilt');
-    spec=canonicalJob(JSON.parse(prior.request_json));
+    const previousSpec=JSON.parse(prior.request_json);if(previousSpec.kind==='pikpak-account')return fail(409,'请在账号表单重新授权 PikPak；不会重复使用已清除的凭据');
+    spec=canonicalJob(previousSpec);
    }else spec=canonicalJob(raw);
    if(appNovelUx(env)&&!novelUxPermits(spec))return fail(403,'Only the fixed two-chapter text-only novel UX recipes are permitted');
    if(appSubmissionTest(env)&&!pilotPermits(spec))return fail(403,'Only the four fixed pilot recipes are permitted');
    if(!spec||!/^[a-f0-9]{32}$/.test(raw.request_key||''))return fail(400,'Valid job and request key required');
+   if(spec.kind.startsWith('pikpak')&&env.MEDIA_APP_TEST_MODE!=='personal')return fail(403,'PikPak requires personal account scope');
+   if(spec.kind==='pikpak'){
+    const profile=await env.DB.prepare("SELECT j.id FROM mv_hybrid_jobs j JOIN mv_hybrid_account_jobs a ON a.job_id=j.id WHERE j.id=? AND j.kind='pikpak-account' AND j.status='complete' AND a.account_id=?").bind(spec.profile_id,current.account_id).first();
+    if(!profile)return fail(403,'PikPak profile does not belong to this account');
+   }
    const fingerprint=await digest(JSON.stringify(spec));
    const replay=async()=>env.DB.prepare('SELECT job_id,request_hash FROM mv_hybrid_account_jobs WHERE account_id=? AND request_key=?').bind(current.account_id,raw.request_key).first();
    const previous=await replay();if(previous)return previous.request_hash===fingerprint?reply({id:previous.job_id,replayed:true}):fail(409,'Request key was used for different input');
    const id=randomHex(12),now=Date.now();
+   if(spec.kind==='pikpak-account'){
+    const token=spec.token;delete spec.token;
+    spec.token_cipher=await sealProviderToken(token,env.MEDIA_AGENT_TOKEN,current.account_id,id);
+   }
+   if(spec.kind.startsWith('pikpak'))spec.vault_scope=current.account_id;
    const batch=await env.DB.batch([
     env.DB.prepare("INSERT INTO mv_hybrid_jobs(id,kind,request_json,status,created_at,updated_at) SELECT ?,?,?,'queued',?,? WHERE (SELECT COUNT(*) FROM mv_hybrid_jobs WHERE status IN ("+active+"))<5 AND EXISTS(SELECT 1 FROM mv_hybrid_app_sessions WHERE digest=? AND status='approved' AND account_id=? AND expires_at>? AND created_jobs<?) AND NOT EXISTS(SELECT 1 FROM mv_hybrid_account_jobs WHERE account_id=? AND request_key=?)"+(appSubmissionTest(env)?" AND (SELECT COUNT(*) FROM mv_hybrid_account_jobs WHERE account_id=?)<4 AND NOT EXISTS(SELECT 1 FROM mv_hybrid_account_jobs WHERE account_id=? AND request_hash=?)":'')+(appNovelUx(env)?" AND (SELECT COUNT(*) FROM mv_hybrid_account_jobs WHERE account_id=?)<?":'')).bind(id,spec.kind,JSON.stringify(spec),now,now,current.digest,current.account_id,now,appJobLimit(env),current.account_id,raw.request_key,...(appSubmissionTest(env)?[current.account_id,current.account_id,fingerprint]:[]),...(appNovelUx(env)?[current.account_id,NOVEL_UX_JOBS]:[])),
     env.DB.prepare('INSERT INTO mv_hybrid_account_jobs(job_id,account_id,request_key,request_hash,created_by_digest) SELECT ?,?,?,?,? WHERE EXISTS(SELECT 1 FROM mv_hybrid_jobs WHERE id=?)').bind(id,current.account_id,raw.request_key,fingerprint,current.digest,id),

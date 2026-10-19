@@ -25,6 +25,7 @@ export function formSpec(values){
  }else{
   spec.url=values.url.trim();
   if(!spec.url)throw Error('请填写来源链接。');
+  if(kind==='pikpak'){if(!/^[a-f0-9]{24}$/.test(values.pikpakProfile||'')||values.pikpakCleanup!==true)throw Error('请选择已验证的 PikPak 账号，并确认本任务云端副本清理方式。');spec.profile_id=values.pikpakProfile;spec.cleanup_after_download=true;}
   if(kind==='novel'){spec.indices=chapterIndices(values.indices);spec.text_only=Boolean(values.textOnly);spec.layout={...(layouts[values.layout]||layouts.compact)};}
  }
  return spec;

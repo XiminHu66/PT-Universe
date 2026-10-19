@@ -39,6 +39,7 @@ jobs:
         run: npm run test:transport-runtime --prefix workers/media-vault-hybrid
       - run: npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/wrangler.jsonc --dry-run --outdir /tmp/pt-media-hybrid-dryrun
       - run: node scripts/media-vault/frontend-test.cjs
+      - run: node scripts/media-vault/test-providers.mjs
       - run: npm run test:media --prefix workers/pt-universe-api
       - run: npm run check --prefix workers/pt-universe-api
       - run: npm run types --prefix workers/pt-universe-api -- --check
@@ -46,7 +47,9 @@ jobs:
       - run: npm install --no-save playwright@1.58.2
       - run: npx playwright install --with-deps chromium
       - name: Browser interaction and responsive layout
-        run: node scripts/media-vault/browser-test.cjs
+        run: |
+          node scripts/media-vault/browser-test.cjs
+          node scripts/media-vault/provider-browser-test.cjs
       - name: Validate generated EPUB structure
         run: |
           pip install Pillow
