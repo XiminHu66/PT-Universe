@@ -50,6 +50,7 @@ jobs:
         run: |
           node scripts/media-vault/browser-test.cjs
           node scripts/media-vault/provider-browser-test.cjs
+          node scripts/media-vault/integrated-browser-test.cjs
       - name: Validate generated EPUB structure
         run: |
           pip install Pillow

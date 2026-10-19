@@ -18,13 +18,19 @@ async function body(request){
  const data=JSON.parse(raw);if(!data||typeof data!=='object'||Array.isArray(data))throw Error('Object required');return data;
  }catch{throw Object.assign(Error('Invalid JSON body'),{status:400});}
 }
-async function revoke(db,hash){
+async function revokeOne(db,hash){
  await db.batch([
   db.prepare("UPDATE mv_hybrid_transfer_usage SET reserved_bytes=MAX(0,reserved_bytes-(SELECT COALESCE(SUM(t.bytes),0) FROM mv_hybrid_tickets t JOIN mv_hybrid_app_tickets a ON a.digest=t.digest WHERE t.month=mv_hybrid_transfer_usage.month AND t.status='new' AND a.session_digest=?)),updated_at=?").bind(hash,Date.now()),
   db.prepare("UPDATE mv_hybrid_tickets SET status='expired' WHERE status='new' AND digest IN(SELECT digest FROM mv_hybrid_app_tickets WHERE session_digest=?)").bind(hash),
   db.prepare("UPDATE mv_hybrid_app_sessions SET status='revoked' WHERE digest=?").bind(hash)
  ]);
 }
+export async function revoke(db,hash){
+ const parent=await db.prepare('SELECT id FROM mv_hybrid_app_sessions WHERE digest=?').bind(hash).first();
+ if(parent){const child=await db.prepare('SELECT digest FROM mv_hybrid_app_sessions WHERE pair_code=?').bind('vault:'+parent.id).first();if(child)await revokeOne(db,child.digest);}
+ await revokeOne(db,hash);
+}
+
 export async function accountRoute(request,env){
  const u=new URL(request.url),p=u.pathname;
  if(!p.startsWith('/app-auth/')&&!p.startsWith('/app-api/'))return null;
