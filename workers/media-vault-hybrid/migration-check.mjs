@@ -4,17 +4,19 @@ import {novelUxWindowValid} from './src/account-novel-scope.js';
 import {observationWindowValid,OBSERVATION_DURATION,OBSERVATION_SETUP} from './src/account-observation-scope.js';
 import {createHash} from 'node:crypto';
 import {readFile,writeFile} from 'node:fs/promises';
-const phase=process.argv[2];assert.ok(['before','after','idempotent','ready','ready-submission','ready-novel','ready-observation','release'].includes(phase));
+const phase=process.argv[2];assert.ok(['before','after','idempotent','ready','ready-submission','ready-novel','ready-observation','ready-personal','release'].includes(phase));
 const token=process.env.D1_TOKEN,account=process.env.CLOUDFLARE_ACCOUNT_ID;
 assert.ok(token&&account,'Configured D1 credentials required');
 const database='86805c79-d903-46cd-b0e2-c079c1a7fc1a';
 const checkpoint=new URL('./off-migration-check.json',import.meta.url);
 const legacy={mv_hybrid_jobs:'id',mv_hybrid_files:'job_id,relative_path',mv_hybrid_transfer_usage:'month',mv_hybrid_tickets:'digest',mv_hybrid_browser_sessions:'digest',mv_hybrid_browser_tickets:'digest'};
 let realm='';const readiness=['ready','ready-submission','ready-novel','ready-observation'].includes(phase);
-if(readiness||phase==='release'){
+if(readiness||phase==='release'||phase==='ready-personal'){
  const config=JSON.parse(await readFile(new URL('./account-window.json',import.meta.url),'utf8'));
  for(const flag of ['ENABLE_DIRECT_STREAM','ENABLE_ACCEPTANCE_UI'])assert.equal(config.vars[flag],'false');
- if(phase==='release'){
+ if(phase==='ready-personal'){
+  assert.equal(config.vars.ENABLE_APP_ACCESS,'true');assert.equal(config.vars.ENABLE_APP_SUBMISSION,'true');assert.equal(config.vars.MEDIA_APP_TEST_MODE,'personal');assert.equal(config.vars.MEDIA_APP_ACCOUNT_ID,'media-vault-personal');
+ }else if(phase==='release'){
   for(const flag of ['ENABLE_APP_ACCESS','ENABLE_APP_SUBMISSION'])assert.equal(config.vars[flag],'false');
   assert.equal(config.vars.MEDIA_APP_ACCOUNT_ID,'');assert.equal(config.vars.MEDIA_APP_TEST_MODE,'closed');
  }else{
@@ -48,13 +50,13 @@ for(const [table,columns] of Object.entries(added)){
   const info=await query('PRAGMA table_info('+table+')');
   assert.deepEqual(info.map(c=>c.name),columns,'Account schema columns differ');
   const where=!readiness?'':table==='mv_hybrid_app_tickets'?" WHERE session_digest IN(SELECT digest FROM mv_hybrid_app_sessions WHERE account_id='"+realm+"')":" WHERE account_id='"+realm+"'";
-  if(phase!=='release'){const count=await query('SELECT COUNT(*) AS n FROM '+table+where);assert.equal(count[0].n,0,'Unexpected live account data: stop before account activation');}
+  if(!['release','ready-personal'].includes(phase)){const count=await query('SELECT COUNT(*) AS n FROM '+table+where);assert.equal(count[0].n,0,'Unexpected live account data: stop before account activation');}
  }
 }
 if(phase==='before')await writeFile(checkpoint,JSON.stringify(snapshot),{mode:0o600});
-else if(!readiness&&phase!=='release'){
+else if(!readiness&&!['release','ready-personal'].includes(phase)){
  const before=JSON.parse(await readFile(checkpoint,'utf8'));
  assert.deepEqual(snapshot,before,'Existing metadata changed across additive schema execution');
 }
 if(phase!=='before'){const indices=await query("SELECT name FROM sqlite_master WHERE type='index' AND name='mv_hybrid_account_job_scope'");assert.equal(indices.length,1,'Account scope index missing');}
-console.log(phase==='release'?'PASS closed release readiness: existing metadata schema retained; account history allowed; all feature gates OFF; no migration':readiness?'PASS isolated login readiness: schema matches; generated account realm has no sessions, jobs or tickets; no row data logged':'PASS OFF metadata migration '+phase+': existing table fingerprints preserved; account tables '+(phase==='before'?'absent or empty':'present and empty')+'; no row data logged');
+console.log(phase==='ready-personal'?'PASS personal readiness: existing schema and history preserved; no migration, file stream remains OFF':phase==='release'?'PASS closed release readiness: existing metadata schema retained; account history allowed; all feature gates OFF; no migration':readiness?'PASS isolated login readiness: schema matches; generated account realm has no sessions, jobs or tickets; no row data logged':'PASS OFF metadata migration '+phase+': existing table fingerprints preserved; account tables '+(phase==='before'?'absent or empty':'present and empty')+'; no row data logged');

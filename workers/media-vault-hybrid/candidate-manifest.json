@@ -12,13 +12,13 @@
     "merge-publication"
   ],
   "production_source_sha256": {
-    "apps/media-vault/index.html": "d83b45858923a1a558f3da0e6e2b968863268ba96c53622acb25a3ffa2cc16a5",
-    "apps/media-vault/app.js": "5e9c7b4077ac8efcb060992a19a4245537f410856fd78c2792773a3266699d5e",
+    "apps/media-vault/index.html": "2579ae75c99a7b7cf460f52608fd3a6cdf6bc912abf740566c8c6016fc1b2786",
+    "apps/media-vault/app.js": "bf57476f876d4bdae583ff8854ce85bbbab6acdbd3f7bc5fbe28f289e6e6490b",
     "apps/media-vault/style.css": "e946451d4dda004cc61a56dba4bd1b1f7ab5b3dbd7099e17eabdfc6ec51a1f79",
     "apps/media-vault/novels.css": "8fea36c704e9415f26439f57c87c503dd6c160635c15417f141921ce27390171"
   },
   "pending": [],
-  "reviewed_main_sha": "ff3526b703a818c090a73ae92c2ccec3956b0073",
+  "reviewed_main_sha": "d787d405772a25b2369656e72eb6861ef3e44a5c",
   "deployment_evidence": {
     "worker_run": "https://github.com/XiminHu66/PT-Universe/actions/runs/39303107069",
     "companion": "paired closed deployment verified; detailed operations evidence private"

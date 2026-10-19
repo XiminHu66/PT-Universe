@@ -40,7 +40,7 @@ export function createAccountConnection(options={}){
   if(!['pending','approved'].includes(data?.status)||!Number.isSafeInteger(data.expires_at)||data.expires_at<=now())throw Object.assign(Error('账号会话已到期。'),{status:403});
   if(!/^[a-f0-9]{24}$/.test(data.session_id||''))throw Object.assign(Error('会话编号无效。'),{status:403});
   if(data.status==='pending'&&!/^[a-f0-9]{32}$/.test(data.pair_code||''))throw Object.assign(Error('配对编号无效。'),{status:403});
-  if(data.status==='approved'&&(typeof data.can_submit!=='boolean'||!Number.isInteger(data.jobs_remaining)||data.jobs_remaining<0||data.jobs_remaining>5||!Number.isInteger(data.tickets_remaining)||data.tickets_remaining<0||data.tickets_remaining>100))throw Object.assign(Error('会话权限不可确认。'),{status:403});
+  if(data.status==='approved'&&(typeof data.can_submit!=='boolean'||!Number.isInteger(data.jobs_remaining)||data.jobs_remaining<0||data.jobs_remaining>(data.scope==='personal-vps-downloads'?200:5)||!Number.isInteger(data.tickets_remaining)||data.tickets_remaining<0||data.tickets_remaining>100))throw Object.assign(Error('会话权限不可确认。'),{status:403});
   return data;
  }
  async function refresh(){
@@ -90,7 +90,7 @@ export function createAccountConnection(options={}){
   },
   async read(path,body){
    const u=new URL(path,origin);
-   const allowed=!body&&['/health','/jobs','/quota'].includes(path)||!body&&u.pathname==='/novel/catalog'&&u.searchParams.size===1&&u.searchParams.has('url')||!body&&u.pathname==='/jobs/files'&&u.searchParams.size===1&&/^[a-f0-9]{24}$/.test(u.searchParams.get('id')||'')||path==='/jobs/cancel'&&body&&/^[a-f0-9]{24}$/.test(body.id||'');
+   const allowed=!body&&['/health','/jobs','/quota','/pikpak/accounts'].includes(path)||!body&&u.pathname==='/novel/catalog'&&u.searchParams.size===1&&u.searchParams.has('url')||!body&&u.pathname==='/jobs/files'&&u.searchParams.size===1&&/^[a-f0-9]{24}$/.test(u.searchParams.get('id')||'')||path==='/jobs/cancel'&&body&&/^[a-f0-9]{24}$/.test(body.id||'');
    if(!allowed||u.origin!==origin)throw Error('账号页面不支持此操作。');
    const d=await refresh();if(d.status!=='approved'||d.unverified)throw Error('请先完成账号配对。');
    const generation=epoch,result=await request('/app-api'+path,body);
@@ -99,7 +99,7 @@ export function createAccountConnection(options={}){
   },
   submit(spec){
    // Canonical input only: callers cannot inject account, headers or request IDs.
-   const clean={};for(const key of ['kind','provider','max_bytes','max_pages','url','format','title','files','indices','text_only','layout','retry_of'])if(spec[key]!==undefined)clean[key]=spec[key];
+   const clean={};for(const key of ['kind','provider','max_bytes','max_pages','url','format','title','files','indices','text_only','layout','retry_of','profile_id','cleanup_after_download','label','token'])if(spec[key]!==undefined)clean[key]=spec[key];
    const input=JSON.stringify(clean),generation=epoch;
    if(submitting){if(submitting.input===input)return submitting.work;return Promise.reject(Error('请先等待当前提交结束。'));}
    const work=(async()=>{

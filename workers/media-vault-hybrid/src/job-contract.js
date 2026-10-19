@@ -1,7 +1,7 @@
-const kinds=new Set(['novel','manga','torrent','video']);
+const kinds=new Set(['novel','manga','torrent','video','pikpak-account','pikpak']);
 export function validUrl(raw,kind){
   if(typeof raw!=='string'||raw.length>2048)return false;
-  if(kind==='torrent'&&/^magnet:\?xt=urn:btih:[a-f0-9]{40}(?:&[^#\r\n]*)?$/i.test(raw))return true;
+  if(['torrent','pikpak'].includes(kind)&&/^magnet:\?xt=urn:btih:(?:[a-f0-9]{40}|[a-z2-7]{32})(?:&[^#\r\n]*)?$/i.test(raw))return true;
   try {
     const u=new URL(raw);
     if(u.username||u.password||u.port||u.hash||u.protocol!=='https:'||!u.hostname.includes('.'))return false;
@@ -13,6 +13,8 @@ export function validUrl(raw,kind){
 export const mangaDexUrl=raw=>typeof raw==='string'&&/^https:\/\/mangadex\.org\/chapter\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(raw);
 export function permittedJob(o){
   if(!o||typeof o!=='object'||Array.isArray(o)||!kinds.has(o.kind))return false;
+  if(o.kind==='pikpak-account')return typeof o.label==='string'&&o.label.trim().length>0&&o.label.length<=24&&typeof o.token==='string'&&o.token.length>=20&&o.token.length<=4096&&!/\s/.test(o.token);
+  if(o.kind==='pikpak'&&(!/^[a-f0-9]{24}$/.test(o.profile_id||'')||o.cleanup_after_download!==true))return false;
   if(o.text_only!==undefined&&typeof o.text_only!=='boolean'||o.skip_images!==undefined&&typeof o.skip_images!=='boolean')return false;
   if(o.kind==='novel'&&o.text_only!==undefined&&o.skip_images!==undefined&&o.text_only!==o.skip_images)return false;
   if(o.layout!==undefined&&(!o.layout||typeof o.layout!=='object'||Array.isArray(o.layout)||Object.entries(o.layout).some(([k,v])=>!Object.hasOwn(layoutBounds,k)||typeof v!=='number'||!Number.isFinite(v)||v<layoutBounds[k][0]||v>layoutBounds[k][1])))return false;
@@ -29,6 +31,8 @@ export function permittedJob(o){
 export const layoutBounds={fontScale:[70,180],lineHeight:[1.1,2.5],paragraphGap:[0,3],indent:[0,4],pageMargin:[0,3]};
 export function canonicalJob(raw){
  if(!permittedJob(raw)||raw.format!==undefined&&(typeof raw.format!=='string'||raw.format.length>120))return null;
+ if(raw.kind==='pikpak-account')return {kind:raw.kind,label:raw.label.trim(),token:raw.token};
+ if(raw.kind==='pikpak')return {kind:raw.kind,url:raw.url,profile_id:raw.profile_id,cleanup_after_download:true};
  const spec={kind:raw.kind};
  const keys=raw.kind==='manga'?(raw.provider==='mangadex'?['provider','url','title','max_bytes','max_pages']:['title','files']):raw.kind==='novel'?['url','text_only','skip_images']:['url','format'];
  for(const key of keys)if(raw[key]!==undefined)spec[key]=raw[key];
@@ -40,5 +44,9 @@ export function canonicalJob(raw){
 }
 export function rowFormat(row){
  const spec=JSON.parse(row.request_json),content=['novel','manga'].includes(row.kind),status=row.status;
+ if(row.kind==='pikpak-account'){
+  let result=null;try{const d=JSON.parse(row.detail||'{}');if(d.id===row.id&&d.ready===true)result={id:d.id,label:String(d.label||spec.label||'PikPak').slice(0,24),ready:true};}catch{}
+  return {id:row.id,kind:row.kind,title:'PikPak 账号 · '+String(spec.label||'').slice(0,24),status,error:row.error||'',created:row.created_at,updated:row.updated_at,provider_result:result,completed:0,total:0};
+ }
  return {id:row.id,kind:row.kind,url:spec.url||'',title:row.detail||spec.title||({novel:'小说 EPUB',manga:spec.provider==='mangadex'?'MangaDex 中文章节 CBZ':'Commons 图片 CBZ',video:'视频',torrent:'BT / HTTPS 文件'})[row.kind]||row.kind,status,completed:row.completed_bytes,total:row.total_bytes,progress_unit:content&&status!=='complete'?'items':'bytes',speed:0,error:row.error||'',created:row.created_at,updated:row.updated_at,source_expires_at:status==='complete'?row.updated_at+24*3600000:null};
 }

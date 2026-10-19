@@ -9,7 +9,7 @@ function statement(sql,args){
    if(S.startsWith('SELECT transferred_bytes'))return null;
    if(S.startsWith('SELECT COUNT(*)'))return {total:db.jobs.filter(x=>['queued','running'].includes(x.status)).length};
    if(S.startsWith('SELECT * FROM mv_hybrid_jobs WHERE status='))return db.jobs.find(x=>x.status==='queued')||null;
-   if(S.startsWith('SELECT status FROM mv_hybrid_jobs WHERE id=')){let j=db.jobs.find(x=>x.id===args[0]);return j?{status:j.status}:null;}
+   if((S.startsWith('SELECT status FROM mv_hybrid_jobs WHERE id=')||S.startsWith('SELECT status,kind,request_json FROM mv_hybrid_jobs WHERE id='))){let j=db.jobs.find(x=>x.id===args[0]);return j?{status:j.status,kind:j.kind,request_json:j.request_json}:null;}
    return null;
  },
  async all(){
@@ -46,6 +46,7 @@ r=await result(await req('/agent/lease',{method:'POST',headers:{...auth(env.MEDI
 assert.equal(r.status,200);assert.equal(r.body.job.id,id);
 r=await result(await req('/agent/job?id='+id,{headers:auth()}));assert.equal(r.status,401);
 r=await result(await req('/agent/job?id='+id,{headers:auth(env.MEDIA_AGENT_TOKEN)}));assert.equal(r.body.status,'running');
+r=await result(await req('/agent/report',{method:'POST',headers:auth(env.MEDIA_AGENT_TOKEN),body:JSON.stringify({id,status:'complete',files:[]})}));assert.equal(r.status,400,'ordinary downloads still require files');
 r=await result(await req('/agent/report',{method:'POST',headers:auth(env.MEDIA_AGENT_TOKEN),body:JSON.stringify({id,status:'complete',files:[{path:'generated/../../bad.epub',size:12}]})}));
 assert.equal(r.status,400);assert.equal(db.jobs[0].status,'running');assert.equal(db.files.length,0,'invalid completion must not partially commit');
 r=await result(await req('/agent/report',{method:'POST',headers:{...auth(env.MEDIA_AGENT_TOKEN),'Content-Type':'application/json'},body:JSON.stringify({id,status:'complete',completed:14240,total:14240,title:'测试小说',files:[{path:'generated/'+id+'.epub',name:id+'.epub',size:14240}]})}));

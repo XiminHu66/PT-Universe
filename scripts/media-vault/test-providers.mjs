@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {searchMonochrome,trackURL} from '../../apps/media-vault/monochrome.js';
+import {remoteTaskURL} from '../../apps/media-vault/remote-download.js';
+let called;
+const d=await searchMonochrome('中文 & artist',{fetch:async(url,options)=>{called={url,options};return new Response(JSON.stringify({tracks:[{id:'12345',title:'Song',artistNames:['Artist'],playable:true},{id:'../secret',title:'invalid'}]}));}});
+assert.equal(new URL(called.url).searchParams.get('q'),'中文 & artist');assert.equal(called.options.credentials,'omit');assert.equal(d.items.length,1);assert.equal(d.items[0].url,trackURL('12345'));
+await assert.rejects(searchMonochrome('a',{fetch:async()=>new Response('{}',{status:429})}),/429/);
+assert.throws(()=>trackURL('javascript:alert(1)'));
+const handoff=new URL(remoteTaskURL('torrent','magnet:?xt=urn:btih:'+'a'.repeat(40)));assert.equal(handoff.search,'');assert.equal(new URLSearchParams(handoff.hash.slice(1)).get('url'),'magnet:?xt=urn:btih:'+'a'.repeat(40));
+console.log('PASS Monochrome metadata normalization, error handling, no credentials, fixed stream endpoint and fragment-only VPS handoff');

@@ -4,7 +4,7 @@ import {appObservation} from './account-observation-scope.js';
 import assets from './preview-assets.js';
 import {appEnabled,appReadOnly,appSubmissionTest} from './account-auth.js';
 const temporaryAssets=new Set(['index.html','app.js','style.css','novels.css','native-download.js','scoped-session.js']);
-const accountAssets=new Set(['account.html','account-app.js','account-session.js','account-form.js','account.css','style.css','native-download.js']);
+const accountAssets=new Set(['account.html','account-app.js','account-session.js','account-form.js','account.css','style.css','native-download.js','pikpak-account.js']);
 const root='/acceptance/app/';
 const settings=`<dialog id="settings" aria-labelledby="scopedSettingsTitle"><div class="dialog-head"><h2 id="scopedSettingsTitle">临时浏览器配对</h2><button data-close="settings" aria-label="关闭配对设置">×</button></div><p>仅用于本轮暂存验收：Owner 在服务端批准后，可查看和保存三个指定文件。15 分钟到期，最多签发六张票据，无需输入长期密钥。</p><p>配对编号：<strong id="scopedPairCode">尚未生成</strong></p><p id="scopedExpiry"></p><div class="actions"><button id="scopedPair" class="primary">申请临时配对</button><button id="scopedLogout">退出并撤销会话</button></div><p id="settingsStatus" role="status" aria-live="polite"></p><p class="caption">退出会撤销当前会话与尚未使用的票据。已交给浏览器的下载请在浏览器下载列表中取消。</p><div hidden><input id="engineURL" disabled><input id="engineToken" disabled><button id="engineSave" disabled></button><button id="engineDisconnect" disabled></button></div></dialog>`;
 export function previewRoute(request,env){
