@@ -16,6 +16,15 @@ function elapsedPassed(value){
   Number.isFinite(start)&&Number.isFinite(end)&&end>start&&end-start>=o.approved_minimum_ms&&
   o.same_device===true&&o.browser_restart===true&&o.absolute_expiry===true&&o.revocation_denied===true;
 }
+// A user-approved scope change is a deferral, never evidence that 24h elapsed.
+// It applies only to this gate; novel, native-save and publication checks remain.
+function elapsedDeferred(value){
+ const d=value?.release_requirement;
+ return value?.elapsed_long_term==='not-completed-user-deferred'&&
+  value.observation===undefined&&d?.status==='deferred-by-user'&&
+  d.approved_by_user===true&&d.scope==='longer-session-persistence-only'&&
+  reference(d.evidence_reference)&&reference(d.reason);
+}
 export function releaseBlockers(manifest){
  const blockers=new Map();
  for(const gate of manifest.pending||[])blockers.set(gate.id,gate.status);
@@ -26,7 +35,8 @@ export function releaseBlockers(manifest){
  if(windows?.user_device_acceptance!=='passed-native-save-offline-validation-and-playback'||
     windows.mp4_playback!=='user-confirmed-picture-and-sound-normal')
   missing('windows-native-save','user-device save, offline verification and playback required');
- if(!elapsedPassed(evidence.session_restart))missing('longer-session-persistence','approved duration and actual elapsed device observations required');
+ if(!elapsedPassed(evidence.session_restart)&&!elapsedDeferred(evidence.session_restart))
+  missing('longer-session-persistence','actual elapsed device observations or explicit user-approved deferral required');
  if(evidence.manga_source?.status!=='passed-live-source-and-archive-checks')
   missing('manga-source','live source and archive evidence required');
  const decision=manifest.publication_decision;

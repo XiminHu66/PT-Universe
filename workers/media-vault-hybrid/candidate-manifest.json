@@ -21,15 +21,11 @@
     {
       "id": "novel-real-ui",
       "status": "tasks-and-logout-passed-awaiting-catalog-preview-confirmation"
-    },
-    {
-      "id": "longer-session-persistence",
-      "status": "real-browser-restart-passed-elapsed-observation-pending"
     }
   ],
-  "reviewed_main_sha": "be3927aaf072a0bc7b2ee1cd189cd0df1b391cfb",
+  "reviewed_main_sha": "ff3526b703a818c090a73ae92c2ccec3956b0073",
   "deployment_evidence": {
-    "worker_run": "https://github.com/XiminHu66/PT-Universe/actions/runs/39298787600",
+    "worker_run": "https://github.com/XiminHu66/PT-Universe/actions/runs/39303107069",
     "companion": "paired closed deployment verified; detailed operations evidence private"
   },
   "acceptance_evidence": {
@@ -43,9 +39,25 @@
     },
     "session_restart": {
       "status": "passed-real-browser-process-restart",
-      "elapsed_long_term": "not-observed",
+      "elapsed_long_term": "not-completed-user-deferred",
       "approved_minimum_ms": 86400000,
-      "observation_plan": "user selected 24 actual hours; single-device read-only scope; not started or accepted"
+      "observation_plan": "24-hour cross-day login observation removed from this release by explicit user decision; no actual 24-hour pass claimed",
+      "release_requirement": {
+        "status": "deferred-by-user",
+        "approved_by_user": true,
+        "scope": "longer-session-persistence-only",
+        "evidence_reference": "User agreed on 2026-10-19 at 11:28:30 America/Los_Angeles to remove the 24-hour release wait after explanation of its separate cross-day login scope",
+        "reason": "User normally keeps the download page open; existing native-save, refresh/restart and logout evidence retained; cross-day login remains unverified"
+      },
+      "discontinued_attempt": {
+        "approved_at": "2026-10-19T18:24:22.921Z",
+        "scheduled_expires_at": "2026-10-20T18:24:22.921Z",
+        "approval_run": "https://github.com/XiminHu66/PT-Universe/actions/runs/39302195509",
+        "closure_run": "https://github.com/XiminHu66/PT-Universe/actions/runs/39303107069",
+        "result": "cancelled-before-24-hours; not an elapsed-observation acceptance",
+        "closure_status": "passed-revoked-and-all-account-gates-off",
+        "closed_version": "0e578a12-ffdb-4cef-a4f6-89142d6e3d5f"
+      }
     },
     "manga_source": {
       "status": "passed-live-source-and-archive-checks",
@@ -94,7 +106,7 @@
         "download_tickets": 0,
         "transfer_delta_bytes": 0
       },
-      "catalog_preview_confirmation": "Pending explicit user confirmation of catalog and all three preview presets; server task parameters do not substitute for that UI observation"
+      "catalog_preview_confirmation": "User explicitly reported on 2026-10-19 that catalog and all three preview presets have not yet been individually confirmed; retain novel-real-ui blocker"
     }
   },
   "publication_decision": {
@@ -102,6 +114,6 @@
     "approved_by_user": true,
     "automatic_deployments_acknowledged": true,
     "scope": "merge-both-prs-and-production-publication",
-    "evidence_reference": "User instructed completion of all remaining acceptance followed by publication on 2026-10-15; prior message explained automatic Pages publication; authorization is conditional on acceptance passing"
+    "evidence_reference": "User instructed completion of all remaining acceptance followed by publication on 2026-10-15; prior message explained automatic Pages publication; authorization is conditional on acceptance passing; user explicitly deferred only the longer-session-persistence release requirement on 2026-10-19; novel UI confirmation remains required"
   }
 }

@@ -25,7 +25,19 @@ for(const patch of [{status:'passed-local-fixtures'},{scope:{...complete.accepta
 for(const patch of [{ended_at:'2026-01-01T01:00:00Z'},{ended_at:'2025-12-31T00:00:00Z'},{source:'clock-controlled-fixture'},{accepted_by_user:false},{revocation_denied:false}]){
  const m=structuredClone(complete);Object.assign(m.acceptance_evidence.session_restart.observation,patch);assert.ok(ids(m).includes('longer-session-persistence'));
 }
+const deferred=structuredClone(erased);
+Object.assign(deferred.acceptance_evidence.session_restart,{
+ elapsed_long_term:'not-completed-user-deferred',
+ release_requirement:{status:'deferred-by-user',approved_by_user:true,scope:'longer-session-persistence-only',evidence_reference:'synthetic-user-scope-change',reason:'User does not require cross-day login for this release'}
+});
+assert.deepEqual(ids(deferred),['final-merge-and-publication','novel-real-ui'],'Deferral removes only the specifically authorized gate');
+for(const patch of [{approved_by_user:false},{scope:'all-acceptance'},{evidence_reference:''},{reason:''},{status:'passed'}]){
+ const m=structuredClone(deferred);Object.assign(m.acceptance_evidence.session_restart.release_requirement,patch);assert.ok(ids(m).includes('longer-session-persistence'));
+}
+for(const patch of [{elapsed_long_term:'passed-real-elapsed-observation'},{observation:{source:'real-user-device'}}]){
+ const m=structuredClone(deferred);Object.assign(m.acceptance_evidence.session_restart,patch);assert.ok(ids(m).includes('longer-session-persistence'),'Deferral cannot be mislabeled as actual observation');
+}
 for(const patch of [{automatic_deployments_acknowledged:false},{scope:'merge-only'},{approved_by_user:false}]){
  const m=structuredClone(complete);Object.assign(m.publication_decision,patch);assert.ok(ids(m).includes('final-merge-and-publication'));
 }
-console.log('PASS release evidence: erased pending list, CI-only saves, fixture UI/time, insufficient duration, incomplete scope and unapproved automatic deployment remain blocked');
+console.log('PASS release evidence: narrow explicit deferral never invents elapsed observations; erased pending list, CI-only saves, fixture UI/time, incomplete scope and unapproved automatic deployment remain blocked');
