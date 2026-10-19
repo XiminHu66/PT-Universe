@@ -1,12 +1,28 @@
 // Evidence consistency checks, not a substitute for actual user observation or approval.
 const reference=value=>typeof value==='string'&&value.trim().length>0;
-function novelPassed(value){
+function novelScope(value){
  const s=value?.scope;
- return value?.status==='passed-real-browser'&&reference(value.evidence_reference)&&
+ return reference(value?.evidence_reference)&&
   s?.first_two_chapters===true&&s.text_only===true&&s.cancel_rebuild===true&&
   ['compact','standard','large'].every(layout=>s.layouts?.includes(layout))&&
   Number.isInteger(s.job_count)&&s.job_count>=3&&s.job_count<=4&&s.device_count===1&&
   s.streaming===false&&s.tickets===0;
+}
+function novelPassed(value){return value?.status==='passed-real-browser'&&novelScope(value);}
+// Publishing a disabled integration with disclosed UI limitations is distinct
+// from accepting those previews or authorizing live account/stream access.
+function novelClosedPublication(value,manifest){
+ const d=value?.release_requirement,t=value?.task_result_summary;
+ return manifest.release_mode==='default-off-with-known-ui-limitations'&&
+  value?.status==='tasks-and-logout-passed-previews-unverified'&&novelScope(value)&&
+  value.catalog_preview_confirmation==='not-individually-confirmed-by-user'&&
+  t?.cancelled_compact===1&&t.completed_compact_rebuild===1&&
+  t.completed_standard===1&&t.completed_large===1&&t.file_count===3&&
+  t.session_revoked_before_admin_close===true&&t.download_tickets===0&&t.transfer_delta_bytes===0&&
+  d?.status==='known-limitation-for-default-off-publication'&&
+  d.scope==='catalog-and-three-preview-presets-only'&&d.user_directed_publication===true&&
+  reference(d.evidence_reference)&&reference(d.reason)&&
+  manifest.publication_decision?.known_limitations?.includes('novel-catalog-and-three-previews');
 }
 function elapsedPassed(value){
  const o=value?.observation,start=Date.parse(o?.started_at),end=Date.parse(o?.ended_at);
@@ -30,7 +46,8 @@ export function releaseBlockers(manifest){
  for(const gate of manifest.pending||[])blockers.set(gate.id,gate.status);
  const evidence=manifest.acceptance_evidence||{};
  const missing=(id,reason)=>{if(!blockers.has(id))blockers.set(id,reason);};
- if(!novelPassed(evidence.novel_real_ui))missing('novel-real-ui','real browser scope and evidence required');
+ if(!novelPassed(evidence.novel_real_ui)&&!novelClosedPublication(evidence.novel_real_ui,manifest))
+  missing('novel-real-ui','real browser evidence or a disclosed default-off publication decision required');
  const windows=evidence.windows_native;
  if(windows?.user_device_acceptance!=='passed-native-save-offline-validation-and-playback'||
     windows.mp4_playback!=='user-confirmed-picture-and-sound-normal')

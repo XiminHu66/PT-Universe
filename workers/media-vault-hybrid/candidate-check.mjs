@@ -28,5 +28,5 @@ assert.deepEqual(manifest.original_order,['outbound-agent','metadata','small-tra
 assert.ok(Array.isArray(manifest.pending)&&manifest.pending.every(x=>typeof x.id==='string'&&typeof x.status==='string'),'Acceptance gate shape required');
 console.log('PASS closed integration candidate: defaults and shutdown configs closed; 100 GiB budget; shared layout contract; reviewed production source unchanged; no deployment performed');
 const blockers=releaseBlockers(manifest);
-console.log(blockers.length?'NOT READY FOR PRODUCTION: '+blockers.map(x=>x.id+': '+x.status).join('; '):'PASS recorded acceptance evidence and explicit merge/publication decision are complete');
+console.log(blockers.length?'NOT READY FOR PRODUCTION: '+blockers.map(x=>x.id+': '+x.status).join('; '):manifest.release_mode==='default-off-with-known-ui-limitations'?'PASS authorized default-off publication; catalog/previews and cross-day login remain explicitly unverified':'PASS recorded acceptance evidence and explicit merge/publication decision are complete');
 if(process.argv.includes('--release'))assert.equal(blockers.length,0,'Release blocked by unresolved acceptance and publication gates');

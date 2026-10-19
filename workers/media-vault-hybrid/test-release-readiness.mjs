@@ -40,4 +40,17 @@ for(const patch of [{elapsed_long_term:'passed-real-elapsed-observation'},{obser
 for(const patch of [{automatic_deployments_acknowledged:false},{scope:'merge-only'},{approved_by_user:false}]){
  const m=structuredClone(complete);Object.assign(m.publication_decision,patch);assert.ok(ids(m).includes('final-merge-and-publication'));
 }
-console.log('PASS release evidence: narrow explicit deferral never invents elapsed observations; erased pending list, CI-only saves, fixture UI/time, incomplete scope and unapproved automatic deployment remain blocked');
+const limited=structuredClone(complete);
+limited.release_mode='default-off-with-known-ui-limitations';
+limited.publication_decision.known_limitations=['novel-catalog-and-three-previews'];
+Object.assign(limited.acceptance_evidence.novel_real_ui,{
+ status:'tasks-and-logout-passed-previews-unverified',catalog_preview_confirmation:'not-individually-confirmed-by-user',
+ task_result_summary:{cancelled_compact:1,completed_compact_rebuild:1,completed_standard:1,completed_large:1,file_count:3,session_revoked_before_admin_close:true,download_tickets:0,transfer_delta_bytes:0},
+ release_requirement:{status:'known-limitation-for-default-off-publication',scope:'catalog-and-three-preview-presets-only',user_directed_publication:true,evidence_reference:'synthetic-release-direction-after-disclosure',reason:'Publish disabled integration with actual preview results still unverified'}
+});
+limited.acceptance_evidence.session_restart=structuredClone(deferred.acceptance_evidence.session_restart);
+assert.deepEqual(ids(limited),[],'Disclosed default-off publication is not a fabricated UI or elapsed-time pass');
+for(const change of [m=>delete m.release_mode,m=>m.publication_decision.known_limitations=[],m=>m.publication_decision.approved_by_user=false,m=>m.acceptance_evidence.novel_real_ui.scope.tickets=1,m=>m.acceptance_evidence.novel_real_ui.task_result_summary.completed_standard=0,m=>m.acceptance_evidence.novel_real_ui.release_requirement.user_directed_publication=false,m=>m.acceptance_evidence.novel_real_ui.release_requirement.evidence_reference='',m=>m.acceptance_evidence.novel_real_ui.catalog_preview_confirmation='passed',m=>delete m.acceptance_evidence.windows_native.user_device_acceptance,m=>m.acceptance_evidence.manga_source.status='pending']){
+ const m=structuredClone(limited);change(m);assert.ok(ids(m).length>0,'Known UI limitation cannot silently grant another scope or remove required evidence');
+}
+console.log('PASS release evidence: disclosed default-off publication and narrow elapsed deferral retain unverified results; missing task/save/source/decision evidence, extra scope and fabricated passes stay blocked');

@@ -17,12 +17,7 @@
     "apps/media-vault/style.css": "e946451d4dda004cc61a56dba4bd1b1f7ab5b3dbd7099e17eabdfc6ec51a1f79",
     "apps/media-vault/novels.css": "8fea36c704e9415f26439f57c87c503dd6c160635c15417f141921ce27390171"
   },
-  "pending": [
-    {
-      "id": "novel-real-ui",
-      "status": "tasks-and-logout-passed-awaiting-catalog-preview-confirmation"
-    }
-  ],
+  "pending": [],
   "reviewed_main_sha": "ff3526b703a818c090a73ae92c2ccec3956b0073",
   "deployment_evidence": {
     "worker_run": "https://github.com/XiminHu66/PT-Universe/actions/runs/39303107069",
@@ -70,7 +65,7 @@
       "public_run": "https://github.com/XiminHu66/PT-Universe/actions/runs/38808139300"
     },
     "novel_real_ui": {
-      "status": "tasks-and-logout-passed-awaiting-catalog-preview-confirmation",
+      "status": "tasks-and-logout-passed-previews-unverified",
       "scope": {
         "first_two_chapters": true,
         "text_only": true,
@@ -106,7 +101,14 @@
         "download_tickets": 0,
         "transfer_delta_bytes": 0
       },
-      "catalog_preview_confirmation": "User explicitly reported on 2026-10-19 that catalog and all three preview presets have not yet been individually confirmed; retain novel-real-ui blocker"
+      "catalog_preview_confirmation": "not-individually-confirmed-by-user",
+      "release_requirement": {
+        "status": "known-limitation-for-default-off-publication",
+        "scope": "catalog-and-three-preview-presets-only",
+        "user_directed_publication": true,
+        "evidence_reference": "After the assistant explicitly disclosed the remaining unconfirmed catalog/three-preview UI condition, user directed on 2026-10-19 at 11:39:06 America/Los_Angeles: 继续推进到发布给我. This is publication direction with a known limitation, not a report that previews passed.",
+        "reason": "Publish the integration with account access, task submission and streaming defaults OFF; retain real task/logout evidence and unverified UI status rather than block this release on further manual preview checks."
+      }
     }
   },
   "publication_decision": {
@@ -114,6 +116,23 @@
     "approved_by_user": true,
     "automatic_deployments_acknowledged": true,
     "scope": "merge-both-prs-and-production-publication",
-    "evidence_reference": "User instructed completion of all remaining acceptance followed by publication on 2026-10-15; prior message explained automatic Pages publication; authorization is conditional on acceptance passing; user explicitly deferred only the longer-session-persistence release requirement on 2026-10-19; novel UI confirmation remains required"
-  }
+    "evidence_reference": "User authorized merge and production publication including automatic GitHub Pages, explicitly deferred the 24-hour wait at 2026-10-19 11:28:30 America/Los_Angeles, and after disclosure that catalog/three previews were still unconfirmed instructed 继续推进到发布给我 at 11:39:06. Publish default-off with those known limitations; no claim of complete UI or cross-day acceptance and no live account/stream activation.",
+    "known_limitations": [
+      "novel-catalog-and-three-previews",
+      "longer-session-persistence"
+    ]
+  },
+  "release_mode": "default-off-with-known-ui-limitations",
+  "known_limitations": [
+    {
+      "id": "novel-catalog-and-three-previews",
+      "status": "not-individually-confirmed-by-user",
+      "impact": "Catalog loading and three preview presets may still have user-visible issues; fixed novel task generation/rebuild/logout did pass; account integration stays default-off"
+    },
+    {
+      "id": "longer-session-persistence",
+      "status": "user-deferred-unverified",
+      "impact": "No actual 24-hour cross-day restore/natural-expiry acceptance; runtime expiry/authorization protections remain unchanged"
+    }
+  ]
 }
