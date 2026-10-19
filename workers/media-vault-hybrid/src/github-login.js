@@ -44,9 +44,9 @@ async function limit(request,env){
  }
  await env.DB.batch(['flows','connections','limits'].map(table=>env.DB.prepare('DELETE FROM mv_hybrid_login_'+table+' WHERE expires_at<=?').bind(now)));
 }
-async function connection(data,env){
+async function connection(data,env,statuses=['pending']){
  const id=await digest(data.channel),row=await env.DB.prepare('SELECT * FROM mv_hybrid_login_connections WHERE digest=? AND expires_at>?').bind(id,Date.now()).first();
- if(!row||row.remember!==Number(data.remember))fail(409,'连接已到期或选项已变化，请回到 Media Vault 重试。');return {id,row};
+ if(!row||row.remember!==Number(data.remember)||!statuses.includes(row.status))fail(409,'连接已到期或已完成，请回到 Media Vault 重试。');return {id,row};
 }
 async function config(env){
  const row=await env.DB.prepare("SELECT cipher FROM mv_hybrid_login_config WHERE id='github'").first();return row?openLogin(row.cipher,env,'config'):null;
@@ -84,13 +84,13 @@ export async function githubLoginRoute(request,env,{exchange,fetch:requestGitHub
   if(isConnect){
    if(request.method!=='POST'||![SITE_ORIGIN,LOGIN_ORIGIN].includes(origin))fail(403,'请从 Media Vault 开始登录。');
    const data=await readBody(request),id=await digest(data.channel),prior=await env.DB.prepare('SELECT remember,status,expires_at FROM mv_hybrid_login_connections WHERE digest=?').bind(id).first();
-   if(prior){if(prior.remember!==Number(data.remember)||prior.expires_at<=Date.now()||prior.status!=='pending')fail(409,'请重新开始登录。');return json({ok:true},200,cors);}
+   if(prior){if(prior.remember!==Number(data.remember)||prior.expires_at<=Date.now()||!['pending','processing','deliverable'].includes(prior.status))fail(409,'请重新开始登录。');return json({ok:true},200,cors);}
    await limit(request,env);await env.DB.prepare('INSERT OR IGNORE INTO mv_hybrid_login_connections(digest,remember,expires_at) VALUES(?,?,?)').bind(id,Number(data.remember),Date.now()+life).run();return json({ok:true},201,cors);
   }
   if(isResult||isReceipt){
    if(request.method!==(isResult?'GET':'POST')||origin!==SITE_ORIGIN)fail(403,'请在 Media Vault 完成连接。');
    const proof=(request.headers.get('Authorization')||'').replace(/^Bearer /,'');if(!pattern.test(proof))fail(403,'连接校验失败。');
-   if(isReceipt){await env.DB.prepare('DELETE FROM mv_hybrid_login_connections WHERE digest=?').bind(await digest(proof)).run();return json({ok:true},200,cors);}
+   if(isReceipt){await env.DB.prepare("UPDATE mv_hybrid_login_connections SET status=?,cipher=NULL WHERE digest=?").bind(path.endsWith('/ack')?'consumed':'cancelled',await digest(proof)).run();return json({ok:true},200,cors);}
    // The same secret can retry delivery until the main page acknowledges it.
    // No second device is minted; acknowledgement deletes the encrypted handoff.
    const ready=await env.DB.prepare("SELECT status,cipher FROM mv_hybrid_login_connections WHERE digest=? AND status IN ('deliverable','error') AND expires_at>?").bind(await digest(proof),Date.now()).first();
@@ -133,9 +133,10 @@ export async function githubLoginRoute(request,env,{exchange,fetch:requestGitHub
    return cleanRedirect(connectPath(context),{'Set-Cookie':appCookie(raw,Math.floor((expires-now)/1000))});
   }
   if(path===prefix+'/complete'){
-   if(request.method!=='POST'||origin!==LOGIN_ORIGIN)fail(403,'需要同源连接。');const context=await readBody(request),{id}=await connection(context,env),hash=await appCookieDigest(request);
+   if(request.method!=='POST'||origin!==LOGIN_ORIGIN)fail(403,'需要同源连接。');const context=await readBody(request),{id,row}=await connection(context,env,['pending','processing','deliverable']),hash=await appCookieDigest(request);
    const parent=hash?await env.DB.prepare("SELECT id FROM mv_hybrid_app_sessions WHERE digest=? AND account_id=? AND status='approved' AND expires_at>? AND pair_code NOT LIKE 'vault:%'").bind(hash,env.MEDIA_APP_ACCOUNT_ID,Date.now()).first():null;if(!parent)fail(403,'请先使用 GitHub 登录。');
-   const claimed=await env.DB.prepare("UPDATE mv_hybrid_login_connections SET status='processing' WHERE digest=? AND status='pending' AND expires_at>? RETURNING digest").bind(id,Date.now()).first();if(!claimed)fail(409,'连接已处理，请返回 Media Vault。');
+   if(row.status==='deliverable')return json({ok:true});if(row.status==='processing')return json({status:'processing'},202);
+   const claimed=await env.DB.prepare("UPDATE mv_hybrid_login_connections SET status='processing' WHERE digest=? AND status='pending' AND expires_at>? RETURNING digest").bind(id,Date.now()).first();if(!claimed)return json({status:'processing'},202);
    try{
     const response=await exchange(new Request(LOGIN_ORIGIN+'/app-auth/media-vault-connect',{method:'POST',headers:{Origin:LOGIN_ORIGIN,Cookie:request.headers.get('Cookie')||'','Content-Type':'application/json'},body:JSON.stringify({remember:context.remember})}),env);
     if(response.status!==200)fail(503,'设备连接暂不可用，请重试。');const grant=await response.json();
