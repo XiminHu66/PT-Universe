@@ -54,6 +54,7 @@ export async function accountRoute(request,env){
   }
   if(!appEnabled(env))return fail(404,'Account access unavailable');
   if(!env.DB)return fail(503,'Metadata unavailable');
+  if(env.MEDIA_APP_TEST_MODE==='personal'&&env.MEDIA_GITHUB_LOGIN==='true'&&['/app-auth/pair','/app-auth/approve'].includes(p))return fail(410,'Use private GitHub login from Media Vault');
   const hash=await appCookieDigest(request);
   const current=hash?await env.DB.prepare('SELECT * FROM mv_hybrid_app_sessions WHERE digest=? AND expires_at>?').bind(hash,Date.now()).first():null;
   if(p==='/app-auth/pair'){
@@ -92,6 +93,20 @@ export async function accountRoute(request,env){
   }
   if(current.status!=='approved'||current.account_id!==env.MEDIA_APP_ACCOUNT_ID)return fail(403,'Approved account required');
   if(request.method!=='GET'&&request.headers.get('Origin')!==u.origin)return fail(403,'Same-origin mutation required');
+  if(p==='/app-api/devices'||p==='/app-api/devices/revoke'){
+   if(env.MEDIA_APP_TEST_MODE!=='personal')return fail(403,'Personal devices only');
+   const parentId=current.pair_code.startsWith('vault:')?current.pair_code.slice(6):current.id;
+   if(p==='/app-api/devices'&&request.method==='GET'){
+    const rows=await env.DB.prepare("SELECT id,created_at,expires_at FROM mv_hybrid_app_sessions WHERE account_id=? AND status='approved' AND pair_code NOT LIKE 'vault:%' AND expires_at>? ORDER BY created_at DESC LIMIT 20").bind(current.account_id,Date.now()).all();
+    return reply({devices:rows.results.map(row=>({...row,current:row.id===parentId}))});
+   }
+   if(p==='/app-api/devices/revoke'&&request.method==='POST'){
+    const data=await body(request);if(!jobPattern.test(data.id||''))return fail(400,'Invalid device');
+    const row=await env.DB.prepare("SELECT digest FROM mv_hybrid_app_sessions WHERE id=? AND account_id=? AND pair_code NOT LIKE 'vault:%'").bind(data.id,current.account_id).first();
+    if(!row)return fail(404,'Device not found');await revoke(env.DB,row.digest);return reply({ok:true,current:data.id===parentId});
+   }
+   return fail(405,'Invalid device operation');
+  }
   if(appReadOnly(env)&&request.method!=='GET')return fail(403,'Login acceptance is read-only');
   if(p==='/app-api/novel/catalog'&&request.method==='GET'){
    if(appReadOnly(env)||appSubmissionTest(env)||appFileTest(env))return fail(403,'Catalog lookup is outside this fixed acceptance scope');

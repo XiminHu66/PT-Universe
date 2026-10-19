@@ -364,6 +364,7 @@ jobs:
           OPERATION=account-personal-on node workers/media-vault-hybrid/account-window-config.mjs
           node workers/media-vault-hybrid/migration-check.mjs ready-personal
           OPERATION=account-personal-downloads-on node workers/media-vault-hybrid/account-window-config.mjs
+          CLOUDFLARE_API_TOKEN="$D1_TOKEN" npx --prefix workers/pt-universe-api wrangler d1 execute pt-universe-db --remote --file workers/media-vault-hybrid/oauth-schema.sql --config workers/media-vault-hybrid/account-window.json --yes
           npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/account-window.json
           node workers/media-vault-hybrid/live-integrated-ready.mjs
       - name: Controlled normal delivery and exact ledger proof

@@ -23,13 +23,13 @@ export function createAccountConnection(options={}){
  const serialize=fn=>{const result=mutation.then(fn,fn);mutation=result.catch(()=>{});return result;};
  const clearTimer=()=>{if(timer!==null)cancel(timer);timer=null;};
  function emit(next){state=next;options.onState?.(next);}
- function lost(status='expired',message='账号会话不可用，请重新申请配对。'){++epoch;inflight=null;clearTimer();emit({status,message});}
+ function lost(status='expired',message='登录已失效，请重新登录 Media Vault。'){++epoch;inflight=null;clearTimer();emit({status,message});}
  async function request(path,body,signal){
   const r=await fetcher(origin+path,{method:body?'POST':'GET',credentials:'same-origin',cache:'no-store',redirect:'error',
    headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined,
    signal:signal?AbortSignal.any([signal,AbortSignal.timeout(15000)]):AbortSignal.timeout(15000)});
   let data;try{data=await r.json();}catch{data={};}
-  if(!r.ok){const catalogError=path.startsWith('/app-api/novel/catalog?')&&[400,429,503].includes(r.status)?(typeof data?.code==='string'&&Object.hasOwn(catalogMessages,data.code)?catalogMessages[data.code]:catalogMessages.catalog_unavailable):null;const e=Error(catalogError||(r.status===404?'账号服务未开放或资源不可用。':r.status===403?(path==='/app-auth/session'?'尚未登录或会话已到期，请申请配对。':'当前会话无权执行此操作，请检查登录与提交权限。'):r.status===429?'请求过于频繁、队列繁忙或额度不足，请稍后重试。':r.status===409?'请求发生冲突，请核对原提交内容。':r.status===400?'任务内容不符合要求，请检查输入。':'账号服务暂不可用，请重试。'));e.status=r.status;throw e;}
+  if(!r.ok){const catalogError=path.startsWith('/app-api/novel/catalog?')&&[400,429,503].includes(r.status)?(typeof data?.code==='string'&&Object.hasOwn(catalogMessages,data.code)?catalogMessages[data.code]:catalogMessages.catalog_unavailable):null;const e=Error(catalogError||(r.status===404?'账号服务未开放或资源不可用。':r.status===403?(path==='/app-auth/session'?'尚未登录或会话已到期，请重新登录。':'当前会话无权执行此操作，请检查登录与提交权限。'):r.status===429?'请求过于频繁、队列繁忙或额度不足，请稍后重试。':r.status===409?'请求发生冲突，请核对原提交内容。':r.status===400?'任务内容不符合要求，请检查输入。':'账号服务暂不可用，请重试。'));e.status=r.status;throw e;}
   return data;
  }
  function arm(){
@@ -45,7 +45,7 @@ export function createAccountConnection(options={}){
  }
  async function refresh(){
   if(disposed)throw Error('账号连接已关闭。');
-  if(['pairing','disconnecting','logout-failed'].includes(state.status))throw Error('请先完成当前配对或退出操作。');
+  if(['pairing','disconnecting','logout-failed'].includes(state.status))throw Error('请先完成当前登录或退出操作。');
   if(inflight)return inflight;
   const generation=epoch;
   const work=(async()=>{
@@ -90,9 +90,9 @@ export function createAccountConnection(options={}){
   },
   async read(path,body){
    const u=new URL(path,origin);
-   const allowed=!body&&['/health','/jobs','/quota','/pikpak/accounts'].includes(path)||!body&&u.pathname==='/novel/catalog'&&u.searchParams.size===1&&u.searchParams.has('url')||!body&&u.pathname==='/jobs/files'&&u.searchParams.size===1&&/^[a-f0-9]{24}$/.test(u.searchParams.get('id')||'')||path==='/jobs/cancel'&&body&&/^[a-f0-9]{24}$/.test(body.id||'');
+   const allowed=!body&&['/health','/jobs','/quota','/pikpak/accounts','/devices'].includes(path)||!body&&u.pathname==='/novel/catalog'&&u.searchParams.size===1&&u.searchParams.has('url')||!body&&u.pathname==='/jobs/files'&&u.searchParams.size===1&&/^[a-f0-9]{24}$/.test(u.searchParams.get('id')||'')||['/jobs/cancel','/devices/revoke'].includes(path)&&body&&/^[a-f0-9]{24}$/.test(body.id||'');
    if(!allowed||u.origin!==origin)throw Error('账号页面不支持此操作。');
-   const d=await refresh();if(d.status!=='approved'||d.unverified)throw Error('请先完成账号配对。');
+   const d=await refresh();if(d.status!=='approved'||d.unverified)throw Error('请先登录 Media Vault。');
    const generation=epoch,result=await request('/app-api'+path,body);
    if(generation!==epoch||disposed||state.status!=='approved'||state.unverified||state.expires_at<=now())throw Error('会话已变化，请重新操作。');
    return result;

@@ -4,19 +4,19 @@ import {digest} from './session-auth.js';
 import assets from './preview-assets.js';
 export const MEDIA_ORIGIN='https://ximinhu66.github.io';
 const reply=(value,status=200)=>new Response(JSON.stringify(value),{status,headers:{'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
-const allowed=new Set(['/session','/logout','/health','/quota','/jobs','/jobs/files','/jobs/cancel','/download-ticket','/pikpak/accounts','/novel/catalog']);
+const allowed=new Set(['/session','/logout','/health','/quota','/jobs','/jobs/files','/jobs/cancel','/download-ticket','/pikpak/accounts','/novel/catalog','/devices','/devices/revoke']);
 const personal=env=>appEnabled(env)&&env.MEDIA_APP_TEST_MODE==='personal';
 export async function integratedRoute(request,env){
  try{return await integratedCore(request,env);}catch{return reply({error:"Download connection temporarily unavailable"},503);}
 }
 async function integratedCore(request,env){
  const u=new URL(request.url),p=u.pathname,origin=request.headers.get('Origin');
- if(p==='/media-vault-connect/'||['/media-vault-connect/device-connect.js','/media-vault-connect/device-approval.js'].includes(p)){
+ if(p==='/media-vault-connect/'||['/media-vault-connect/device-connect.js'].includes(p)){
   if(request.method!=='GET')return reply({error:'GET required'},405);
   if(!personal(env))return reply({error:'Personal downloads unavailable'},404);
   if(p.endsWith('.js'))return new Response(assets[p.split('/').pop()],{headers:{'Content-Type':'text/javascript','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
   const nonce=randomHex(16);
-  return new Response(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>连接 Media Vault</title><style>body{font:18px/1.65 system-ui;background:#f5f7fa;color:#17202a;margin:0;padding:32px}main{max-width:520px;margin:8vh auto;background:white;padding:28px;border-radius:18px}h1{font-size:26px}code{display:block;overflow-wrap:anywhere;font-size:20px}p{margin:14px 0}.muted{color:#5d6878}a.button{display:inline-block;padding:12px 18px;background:#267e60;color:white;text-decoration:none;border-radius:9px}a[hidden]{display:none}</style><main><h1>连接 Media Vault</h1><p id="connectMessage" role="status">正在复用已有授权…</p><a id="selfApprove" class="button" hidden target="_blank" rel="noopener noreferrer">用 GitHub 确认此设备</a><p class="muted">GitHub 会打开已填好的确认单。使用 XiminHu66 登录后点击 Submit new issue，系统会自动连接，确认记录也会标记完成。无需复制编号或发送聊天消息。</p><code id="connectCode"></code><p class="muted">连接成功后会自动返回 Media Vault。下载、任务和账号管理均在原页面完成。</p></main><script nonce="${nonce}" type="module" src="device-connect.js"></script></html>`,{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff','Content-Security-Policy':`default-src 'none'; script-src 'nonce-${nonce}' 'self'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`}});
+  return new Response(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>连接 Media Vault</title><style>body{font:18px/1.65 system-ui;background:#f5f7fa;color:#17202a;margin:0;padding:32px}main{max-width:520px;margin:8vh auto;background:white;padding:28px;border-radius:18px}h1{font-size:26px}code{display:block;overflow-wrap:anywhere;font-size:20px}p{margin:14px 0}.muted{color:#5d6878}a.button{display:inline-block;padding:12px 18px;background:#267e60;color:white;text-decoration:none;border-radius:9px}[hidden]{display:none!important}button.button{border:0;border-radius:9px;padding:12px 18px;background:#267e60;color:white;font:inherit;cursor:pointer}</style><main><h1>连接 Media Vault</h1><p id="connectMessage" role="status">正在复用已有授权…</p><form id="setupForm" method="post" action="/media-vault-login/setup/start" hidden><input id="setupChannel" name="channel" hidden><input id="setupRemember" name="remember" hidden><p>首次使用需要在 GitHub 创建专用私有登录应用。设置已预填，只用于识别你的身份，无需安装到仓库；密钥由服务端自动保存。</p><button class="button" type="submit">首次启用 GitHub 登录</button></form><p class="muted">仅允许你的 GitHub 账号登录。不创建 issue、不申请仓库读写权限，不需要复制设备编号或服务密钥。</p><p class="muted">连接成功后会自动返回 Media Vault。下载、任务和账号管理均在原页面完成。</p></main><script nonce="${nonce}" type="module" src="device-connect.js"></script></html>`,{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'strict-origin','X-Content-Type-Options':'nosniff','Content-Security-Policy':`default-src 'none'; script-src 'nonce-${nonce}' 'self'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'`}});
  }
  if(p==='/app-auth/media-vault-connect'){
   if(request.method!=='POST'||origin!==u.origin)return reply({error:'Same-origin connection required'},403);
@@ -43,8 +43,13 @@ async function integratedCore(request,env){
  if(!allowed.has(path))return cors(reply({error:'Unknown Media Vault operation'},404));
  const token=(request.headers.get('Authorization')||'').replace(/^Bearer /,'');
  if(!/^[a-f0-9]{64}$/.test(token))return cors(reply({error:'Connect this device first'},403));
- const row=await env.DB.prepare("SELECT digest FROM mv_hybrid_app_sessions WHERE digest=? AND account_id=? AND status='approved' AND pair_code LIKE 'vault:%' AND expires_at>? AND EXISTS(SELECT 1 FROM mv_hybrid_app_sessions parent WHERE parent.id=substr(mv_hybrid_app_sessions.pair_code,7) AND parent.status='approved' AND parent.account_id=mv_hybrid_app_sessions.account_id)").bind(await digest(token),env.MEDIA_APP_ACCOUNT_ID,Date.now()).first();
+ const row=await env.DB.prepare("SELECT digest,pair_code FROM mv_hybrid_app_sessions WHERE digest=? AND account_id=? AND status='approved' AND pair_code LIKE 'vault:%' AND expires_at>? AND EXISTS(SELECT 1 FROM mv_hybrid_app_sessions parent WHERE parent.id=substr(mv_hybrid_app_sessions.pair_code,7) AND parent.status='approved' AND parent.account_id=mv_hybrid_app_sessions.account_id)").bind(await digest(token),env.MEDIA_APP_ACCOUNT_ID,Date.now()).first();
  if(!row)return cors(reply({error:'Device connection expired or revoked'},403));
+ if(path==='/logout'&&request.method==='POST'){
+  const parent=await env.DB.prepare('SELECT digest FROM mv_hybrid_app_sessions WHERE id=? AND account_id=?').bind(row.pair_code.slice(6),env.MEDIA_APP_ACCOUNT_ID).first();
+  if(parent)await revoke(env.DB,parent.digest);else await revoke(env.DB,row.digest);
+  return cors(reply({ok:true}));
+ }
  const destination=path==='/session'?'/app-auth/session':path==='/logout'?'/app-auth/logout':'/app-api'+path;
  const internal=new Request(u.origin+destination+u.search,{method:request.method,headers:{Origin:u.origin,Cookie:appCookie(token,0).split(';')[0],...(request.method==='POST'?{'Content-Type':'application/json'}:{})},...(request.method==='POST'?{body:await request.text()}:{})});
  const response=await accountRoute(internal,env);const safeHeaders=new Headers(response.headers);safeHeaders.delete('Set-Cookie');
