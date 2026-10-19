@@ -1,6 +1,6 @@
 const enc=new TextEncoder();
 export async function sealProviderToken(token,agentSecret,scope,id){
- if(typeof token!=='string'||token.length<20||token.length>4096||/\s/.test(token))throw Error('Invalid provider token');
+ if(typeof token!=='string'||token.length<1||token.length>8192)throw Error('Invalid provider token');
  if(!agentSecret||agentSecret.length<32)throw Error('Provider encryption unavailable');
  const key=await crypto.subtle.importKey('raw',await crypto.subtle.digest('SHA-256',enc.encode('media-vault-pikpak-v1:'+agentSecret)),{name:'AES-GCM'},false,['encrypt']);
  const iv=crypto.getRandomValues(new Uint8Array(12)),aad=enc.encode(scope+'/'+id);

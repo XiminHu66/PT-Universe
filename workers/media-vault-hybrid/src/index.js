@@ -105,7 +105,7 @@ export async function handle(request,env){
       if(!row)return denied(origin,404,'Job not found');
       if(row.status==='cancelled')return reply({ok:true},200,origin);
       if(!active.has(row.status))return denied(origin,409,'Job already finished');
-      await env.DB.prepare("UPDATE mv_hybrid_jobs SET status='cancelled',updated_at=? WHERE id=? AND status IN ('queued','running','waiting','active')").bind(Date.now(),o.id).run();
+      await env.DB.prepare("UPDATE mv_hybrid_jobs SET status='cancelled',request_json=CASE WHEN kind='pikpak-account' THEN json_remove(request_json,'$.token_cipher') ELSE request_json END,updated_at=? WHERE id=? AND status IN ('queued','running','waiting','active')").bind(Date.now(),o.id).run();
       return reply({ok:true},200,origin);
     }
     if(path==='/resolve'&&request.method==='POST'){
@@ -169,14 +169,27 @@ export async function handle(request,env){
       let providerControl=false;
       if(o.status==='complete'&&Array.isArray(files)&&files.length===0){
        const kind=await env.DB.prepare('SELECT kind FROM mv_hybrid_jobs WHERE id=?').bind(o.id).first();
-       providerControl=kind?.kind==='pikpak-account';
+       providerControl=['pikpak-account','pikpak-cleanup'].includes(kind?.kind);
       }
       if(!Array.isArray(files)||files.length>80||(o.status==='complete'&&files.length===0&&!providerControl))return denied(origin,400,'Completed job requires valid files');
       if(files.some(f=>!f||!ticketPath.test(f.path||'')||f.path.split('/').includes('..')||!Number.isSafeInteger(f.size)||f.size<=0||f.size>12*1024**3))return denied(origin,400,'Invalid file metadata');
       const ops=files.map(f=>env.DB.prepare("INSERT OR REPLACE INTO mv_hybrid_files(job_id,relative_path,name,bytes) SELECT ?,?,?,? WHERE EXISTS(SELECT 1 FROM mv_hybrid_jobs WHERE id=? AND status='running')").bind(o.id,f.path,String(f.name||f.path).slice(0,220),f.size,o.id));
       if(row.kind==='pikpak-account'&&o.status!=='running'){const spec=JSON.parse(row.request_json);delete spec.token_cipher;ops.push(env.DB.prepare("UPDATE mv_hybrid_jobs SET request_json=? WHERE id=? AND status='running'").bind(JSON.stringify(spec),o.id));}
+      let detail=String(o.title||'').slice(0,180);
+      if(row.kind.startsWith('pikpak')&&o.status==='complete'){
+       let data;try{data=JSON.parse(String(o.title||''));}catch{}
+       if(data&&row.kind==='pikpak-account')detail=JSON.stringify({id:o.id,label:String(data.label||'PikPak').slice(0,24),ready:data.ready===true,...(data.auth_type==='rclone'?{auth_type:'rclone'}:{})});
+       else if(data&&['awaiting-confirmation','purged-quota-released','purged-quota-pending'].includes(data.cleanup)){
+        const spec=JSON.parse(row.request_json);
+        if(!/^[A-Za-z0-9_-]{1,128}$/.test(data.file_id||''))return denied(origin,400,'Invalid cleanup file ID');
+        if(row.kind==='pikpak'&&(!Number.isSafeInteger(data.bytes)||data.bytes<=0||data.bytes>6000000000||typeof data.name!=='string'||data.name.length>220))return denied(origin,400,'Invalid cleanup receipt');
+        if(row.kind==='pikpak-cleanup'&&(data.file_id!==spec.file_id||data.source_job!==spec.source_job||data.cleanup==='awaiting-confirmation'))return denied(origin,400,'Cleanup target mismatch');
+        detail=JSON.stringify({cleanup:data.cleanup,file_id:data.file_id,...(row.kind==='pikpak'?{bytes:data.bytes,name:data.name}:{source_job:spec.source_job})});
+        if(row.kind==='pikpak-cleanup')ops.push(env.DB.prepare("UPDATE mv_hybrid_jobs SET detail=json_set(detail,'$.cleanup',?) WHERE id=? AND kind='pikpak' AND status='complete' AND json_valid(detail) AND json_extract(detail,'$.file_id')=?").bind(data.cleanup,spec.source_job,spec.file_id));
+       }
+      }
       const sql="UPDATE mv_hybrid_jobs SET status=?,updated_at=?,lease_until=?,completed_bytes=?,total_bytes=?,detail=?,error=? WHERE id=? AND status='running'";
-      ops.push(env.DB.prepare(sql).bind(o.status,Date.now(),o.status==='running'?Date.now()+180000:0,done,total,String(o.title||'').slice(0,180),String(o.error||'').slice(0,150),o.id));
+      ops.push(env.DB.prepare(sql).bind(o.status,Date.now(),o.status==='running'?Date.now()+180000:0,done,total,detail,String(o.error||'').slice(0,150),o.id));
       // D1 batch commits file metadata and the terminal status atomically.
       const results=await env.DB.batch(ops);
       if(!results.at(-1)?.meta?.changes)return denied(origin,409,'Job state changed');
