@@ -28,7 +28,7 @@ export function mountIntegratedDownloads(options={}){
  function finish(error){if(watch!==null){win.clearInterval(watch);watch=null;}const task=pending;pending=null;if(error)task?.reject(error);else task?.resolve(client);}
  function closeDialog(){if($('vpsConnection').open)$('vpsConnection').close();}
  async function receive(event){const data=event.data;if(event.origin!==new URL(base).origin||event.source!==popup||data?.type!=='mv-device-connect'||data.channel!==channel)return;
-  if(data.status==='pending'){note('首次连接需要管理员确认一次。确认后会自动继续本次下载。');$('vpsPairCode').textContent=data.pair_code;return;}
+  if(data.status==='pending'){note('首次连接需要管理员确认一次。确认后会自动继续本次下载。');$('vpsPairCode').textContent=data.session_id;return;}
   if(data.status==='error'){note(data.message||'连接失败，请重试。',true);finish(Error(data.message||'连接失败'));return;}
   if(data.status!=='connected'||!/^[a-f0-9]{64}$/.test(data.token||'')||!Number.isSafeInteger(data.expires_at)||data.expires_at<=Date.now())return;
   receiving=true;token={token:data.token,expires_at:data.expires_at};
