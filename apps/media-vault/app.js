@@ -474,7 +474,7 @@ async function showJobFiles(id){
  $$('[data-engine-file]').forEach(b=>b.onclick=()=>busy(b,()=>nativeEngineSaver.save({...d.files[+b.dataset.engineFile],id})));
 }
 
-$('#queueOpen').onclick=()=>{renderQueue();$('#queue').showModal();loadTasks();void loadTransferBudget();};$('#queueRefresh').onclick=e=>busy(e.currentTarget,loadTasks);$('#torrentRefresh').onclick=e=>busy(e.currentTarget,loadTasks);setInterval(()=>{if(engine&&!document.hidden&&(location.hash==='#torrent'||$('#queue').open))loadTasks();},6000);
+$('#queueOpen').onclick=()=>{renderQueue();$('#queue').showModal();loadTasks();void loadTransferBudget();};$('#queueRefresh').onclick=e=>busy(e.currentTarget,loadTasks);$('#torrentRefresh').onclick=e=>busy(e.currentTarget,loadTasks);setInterval(()=>{if(engine&&!document.hidden&&(location.hash==='#torrent'||$('#queue').open||!$('#pikpakPanel').hidden))loadTasks();},6000);
 const snapshotReady=SCOPED_PREVIEW?Promise.resolve(null):fetch('data/snapshot.json',{cache:'no-cache',signal:AbortSignal.timeout(8000)}).then(r=>r.ok?r.json():null).then(d=>{snapshot=d;}).catch(()=>{});
 if(engine&&!SCOPED_PREVIEW)callEngine('/health').then(()=>{$('#engineStatus').textContent='● 引擎已连接';}).catch(()=>{$('#engineStatus').textContent='引擎连接失败';});
 renderQueue();queueMicrotask(route);
