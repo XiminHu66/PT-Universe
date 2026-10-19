@@ -60,6 +60,7 @@ try{
  const full={kind:'pikpak-account',auth_type:'rclone',label:'完整账号',username:'fixture@example.org',password:'fixture-secret-not-real',store_credentials:true,request_key:'4'.repeat(32)};
  assert.equal(canonicalJob({...full,store_credentials:false}),null);
  const fullResponse=await request('/app-api/jobs',{cookie:a.cookie,body:full});assert.equal(fullResponse.status,202);const fullId=(await fullResponse.json()).id;
+ const registrationHash=await DB.prepare('SELECT request_hash FROM mv_hybrid_account_jobs WHERE job_id=?').bind(fullId).first();assert.notEqual(registrationHash.request_hash,await digest(JSON.stringify(canonicalJob(full))),'registration fingerprint is keyed, not a password guessing oracle');
  const fullRow=await DB.prepare('SELECT * FROM mv_hybrid_jobs WHERE id=?').bind(fullId).first();assert.ok(!fullRow.request_json.includes(full.password));assert.ok(!fullRow.request_json.includes(full.username));
  await DB.prepare("UPDATE mv_hybrid_jobs SET status='running' WHERE id=?").bind(fullId).run();
  assert.equal((await request('/agent/report',{token:env.MEDIA_AGENT_TOKEN,body:{id:fullId,status:'complete',files:[],title:JSON.stringify({id:fullId,label:full.label,ready:true,auth_type:'rclone'})}})).status,200);

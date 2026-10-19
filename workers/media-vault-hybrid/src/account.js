@@ -1,4 +1,4 @@
-import {sealProviderToken} from './provider-secrets.js';
+import {sealProviderToken,providerFingerprint} from './provider-secrets.js';
 import {appNovelUx,novelUxPermits,NOVEL_UX_SOURCE,NOVEL_UX_JOBS} from './account-novel-scope.js';
 import {appFileTest,fileTestPermits} from './account-file-scope.js';
 import {appObservation,observationPairingOpen,OBSERVATION_DURATION} from './account-observation-scope.js';
@@ -141,7 +141,7 @@ export async function accountRoute(request,env){
     const target=source?rowFormat(source).cleanup_target:null;
     if(!target||target.file_id!==spec.file_id||target.profile_id!==spec.profile_id)return fail(409,'Exact verified cloud file required');
    }
-   const fingerprint=await digest(JSON.stringify(spec));
+   const fingerprint=spec.kind==='pikpak-account'?await providerFingerprint(spec,env.MEDIA_AGENT_TOKEN):await digest(JSON.stringify(spec));
    const replay=async()=>env.DB.prepare('SELECT job_id,request_hash FROM mv_hybrid_account_jobs WHERE account_id=? AND request_key=?').bind(current.account_id,raw.request_key).first();
    const previous=await replay();if(previous)return previous.request_hash===fingerprint?reply({id:previous.job_id,replayed:true}):fail(409,'Request key was used for different input');
    const id=randomHex(12),now=Date.now();

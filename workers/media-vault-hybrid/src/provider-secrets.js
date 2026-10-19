@@ -8,3 +8,10 @@ export async function sealProviderToken(token,agentSecret,scope,id){
  const b64=bytes=>btoa(String.fromCharCode(...bytes));
  return {iv:b64(iv),data:b64(data)};
 }
+
+export async function providerFingerprint(spec,secret){
+ if(!secret||secret.length<32)throw Error('Provider encryption unavailable');
+ const key=await crypto.subtle.importKey('raw',enc.encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);
+ const value=new Uint8Array(await crypto.subtle.sign('HMAC',key,enc.encode('media-vault-provider-request-v1:'+JSON.stringify(spec))));
+ return Array.from(value,b=>b.toString(16).padStart(2,'0')).join('');
+}
