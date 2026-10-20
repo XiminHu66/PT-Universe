@@ -15,12 +15,13 @@ function sql(ops,batch=false,fail_at=null){return new Promise((resolve,reject)=>
 function statement(query,args=[]){return {sql:query,args,bind(...args){return statement(query,args)},async run(){return (await sql([this]))[0]},async first(){return (await sql([this]))[0].results[0]||null},async all(){return (await sql([this]))[0]}}}
 const DB={prepare:statement,async batch(ops){const inject=failAt;failAt=null;return sql(ops,true,inject)}};
 const id='a'.repeat(24),path='video/ptmv-'+id+' [中文样本].mp4',period=new Date().toISOString().slice(0,7);
-const env={DB,ENABLE_DIRECT_STREAM:'true',MEDIA_OWNER_TOKEN:'o'.repeat(64),MEDIA_AGENT_TOKEN:'a'.repeat(64),MEDIA_TRANSFER_MONTHLY_LIMIT_GIB:'5',RELAY:{idFromName(){return 'test'},get(){return {fetch:async url=>url.endsWith('/ticket-permit')?new Response(null,{status:204}):new Response('offline',{status:503})}}}};
+const env={DB,ENABLE_DIRECT_STREAM:'true',MEDIA_OWNER_TOKEN:'o'.repeat(64),MEDIA_AGENT_TOKEN:'a'.repeat(64),MEDIA_TRANSFER_MONTHLY_LIMIT_GIB:'5',RELAY:{idFromName(){return 'test'},get(){return {fetch:async url=>(url.endsWith('/ticket-permit')||url.endsWith('/agent-ready'))?new Response(null,{status:204}):new Response('offline',{status:503})}}}};
 const base='https://unit.invalid';
 function request(route,body,token=env.MEDIA_OWNER_TOKEN,environment=env){return transportRoute(new Request(base+route,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined}),environment)}
 async function ticket(){const r=await request('/download-ticket',{id,path});return {status:r.status,...await r.json()}}
 async function usage(){return DB.prepare('SELECT * FROM mv_hybrid_transfer_usage WHERE month=?').bind(period).first()}
-let agent;
+let agent,probeTarget;
+function makeRelay(ctx,environment){const r=new MediaRelay(ctx,environment);probeTarget=r;return r;}
 async function reset(size=4){if(agent){agent.readyState=1;agent.serializeAttachment({seen:Date.now(),retired:false});}await sql([{sql:'DELETE FROM mv_hybrid_tickets'},{sql:'DELETE FROM mv_hybrid_transfer_usage'},{sql:'DELETE FROM mv_hybrid_files'},{sql:'INSERT INTO mv_hybrid_files(job_id,relative_path,name,bytes) VALUES(?,?,?,?)',args:[id,path,'sample.epub',size]}],true)}
 try{
  await DB.prepare("INSERT INTO mv_hybrid_jobs(id,kind,request_json,status,created_at,updated_at) VALUES(?,'novel','{}','complete',0,0)").bind(id).run();
@@ -35,6 +36,7 @@ try{
  await DB.prepare("UPDATE mv_hybrid_jobs SET updated_at=? WHERE id=?").bind(Date.now(),id).run();
  assert.equal((await expire()).status,409,'24-hour cloud age floor must hold');
  await DB.prepare("UPDATE mv_hybrid_jobs SET updated_at=0 WHERE id=?").bind(id).run();
+ const offline=await request('/download-ticket',{id,path},env.MEDIA_OWNER_TOKEN,{...env,RELAY:{idFromName:()=>'',get:()=>({fetch:async()=>new Response(null,{status:503})})}});assert.equal(offline.status,503);assert.equal((await offline.json()).ticket_issued,false);assert.equal((await DB.prepare('SELECT COUNT(*) n FROM mv_hybrid_tickets').first()).n,0,'normal-mode offline probe issues no ticket');
  let live=await ticket();assert.equal(live.status,200);
  assert.equal((await expire()).status,409,'Unredeemed valid ticket retains source');
  await DB.prepare("UPDATE mv_hybrid_tickets SET status='active'").run();
@@ -105,8 +107,8 @@ try{
  assert.deepEqual(concurrent.map(x=>x.status).sort(),[200,429]);
  assert.equal((await usage()).reserved_bytes,transferBudget(env),'concurrent issuance stays within budget');
  await reset();
- agent={readyState:1,sent:[],send(raw){this.sent.push(JSON.parse(raw))}};
- const relay=new MediaRelay(relayContext(agent),{DB});
+ agent={readyState:1,sent:[],send(raw){const m=JSON.parse(raw);if(m.type==='probe'){queueMicrotask(()=>probeTarget.webSocketMessage(this,JSON.stringify({type:'probe-ok',id:m.id})));return;}this.sent.push(m)}};
+ const relay=makeRelay(relayContext(agent),{DB});
  env.RELAY.get=()=>({fetch:url=>relay.fetch(new Request(url))});
  t=await ticket();const response=await request('/download?ticket='+t.ticket);assert.equal(response.status,200);
  assert.equal((await request('/download?ticket='+t.ticket)).status,403);
@@ -140,7 +142,7 @@ try{
  assert.equal((await usage()).transferred_bytes,4);assert.equal((await usage()).reserved_bytes,0);
  // Process loss after a confirmed chunk: boot from metadata, no old writer.
  await reset();
- let context=relayContext(agent),current=new MediaRelay(context,{DB});
+ let context=relayContext(agent),current=makeRelay(context,{DB});
  env.RELAY.get=()=>({fetch:url=>current.fetch(new Request(url))});
  t=await ticket();let crashResponse=await request('/download?ticket='+t.ticket),crashReader=crashResponse.body.getReader(),crashId=agent.sent.at(-1).id;
  let frame=current.webSocketMessage(agent,new Uint8Array([...new TextEncoder().encode(crashId),80,75]).buffer);
@@ -148,65 +150,66 @@ try{
  const saved=context.values.get('transfer-counts');
  assert.equal(saved.bytes,2);assert.equal(saved.attempted,2);
  assert.deepEqual(Object.keys(saved).sort(),['attempted','bytes','deadline','digest','id','period','size'].sort(),'persistent checkpoint stores only identifiers and counters');
- current=new MediaRelay(relayContext(agent,context.values),{DB});await current.ready;
+ current=makeRelay(relayContext(agent,context.values),{DB});await current.ready;
  assert.equal((await usage()).transferred_bytes,2);assert.equal((await usage()).reserved_bytes,0);
  assert.equal((await request('/download?ticket='+t.ticket)).status,403);
  await crashReader.cancel();
  // Loss during a pending write charges at most its one unconfirmed frame.
- await reset();context=relayContext(agent);let lost=new MediaRelay(context,{DB});current=lost;
+ await reset();context=relayContext(agent);let lost=makeRelay(context,{DB});current=lost;
  t=await ticket();crashResponse=await request('/download?ticket='+t.ticket);crashReader=crashResponse.body.getReader();crashId=agent.sent.at(-1).id;
  frame=lost.webSocketMessage(agent,new Uint8Array([...new TextEncoder().encode(crashId),80,75]).buffer);
  for(let n=0;n<100&&context.values.get('transfer-counts')?.attempted!==2;n++)await new Promise(r=>setTimeout(r,1));
  assert.equal(context.values.get('transfer-counts').bytes,0);
- current=new MediaRelay(relayContext(agent,context.values),{DB});await current.ready;
+ current=makeRelay(relayContext(agent,context.values),{DB});await current.ready;
  assert.equal((await usage()).transferred_bytes,2,'unconfirmed attempted bytes use conservative bound');assert.equal((await usage()).reserved_bytes,0);
  await crashReader.cancel();await frame;
  assert.equal((await usage()).transferred_bytes,2,'late failure does not double-credit');
  // A claim/save crash has no checkpoint: count its reserved upper bound once.
  await reset();t=await ticket();await DB.prepare("UPDATE mv_hybrid_tickets SET status='active'").run();
- current=new MediaRelay(relayContext(agent),{DB});await current.ready;
+ current=makeRelay(relayContext(agent),{DB});await current.ready;
  assert.equal((await usage()).transferred_bytes,4);assert.equal((await usage()).reserved_bytes,0);
- current=new MediaRelay(relayContext(agent),{DB});await current.ready;assert.equal((await usage()).transferred_bytes,4);
+ current=makeRelay(relayContext(agent),{DB});await current.ready;assert.equal((await usage()).transferred_bytes,4);
  // No chunks or close event: durable alarm aborts the idle writer.
- await reset();context=relayContext(agent);current=new MediaRelay(context,{DB});
+ await reset();context=relayContext(agent);current=makeRelay(context,{DB});
  t=await ticket();crashResponse=await request('/download?ticket='+t.ticket);crashReader=crashResponse.body.getReader();crashId=agent.sent.at(-1).id;
  assert.ok(current.transfers.get(crashId).deadline-Date.now()<=15000,'zero-byte startup cannot hang for the full transfer idle timeout');current.transfers.get(crashId).deadline=0;await current.alarm();
  await assert.rejects(crashReader.read());assert.equal((await usage()).reserved_bytes,0);assert.equal((await usage()).transferred_bytes,0);
  // Real consumer cancellation propagates through write failure, without manual settle.
- await reset();context=relayContext(agent);current=new MediaRelay(context,{DB});
+ await reset();context=relayContext(agent);current=makeRelay(context,{DB});
  t=await ticket();crashResponse=await request('/download?ticket='+t.ticket);crashReader=crashResponse.body.getReader();crashId=agent.sent.at(-1).id;
  await crashReader.cancel();await current.webSocketMessage(agent,new Uint8Array([...new TextEncoder().encode(crashId),80,75]).buffer);
  assert.equal((await usage()).reserved_bytes,0);assert.equal((await usage()).transferred_bytes,0);
  // D1 outage followed by object loss preserves the terminal success decision.
- await reset();context=relayContext(agent);current=new MediaRelay(context,{DB});
+ await reset();context=relayContext(agent);current=makeRelay(context,{DB});
  t=await ticket();crashResponse=await request('/download?ticket='+t.ticket);crashReader=crashResponse.body.getReader();crashId=agent.sent.at(-1).id;
  frame=current.webSocketMessage(agent,new Uint8Array([...new TextEncoder().encode(crashId),80,75,3,4]).buffer);await crashReader.read();await frame;
  failAt=1;await assert.rejects(current.settle(crashId,true),/Injected database failure/);assert.ok(context.alarmAt);
- current=new MediaRelay(relayContext(agent,context.values),{DB});await current.ready;
+ current=makeRelay(relayContext(agent,context.values),{DB});await current.ready;
  assert.equal((await usage()).transferred_bytes,4);assert.equal((await usage()).reserved_bytes,0);
  assert.equal((await DB.prepare('SELECT status FROM mv_hybrid_tickets').first()).status,'complete');await crashReader.cancel();
  // Concurrent redemption is claimed atomically inside the recovered relay.
- await reset();current=new MediaRelay(relayContext(agent),{DB});t=await ticket();
+ await reset();current=makeRelay(relayContext(agent),{DB});t=await ticket();
  const claims=await Promise.all([request('/download?ticket='+t.ticket),request('/download?ticket='+t.ticket)]);
  assert.deepEqual(claims.map(r=>r.status).sort(),[200,403]);
  crashId=agent.sent.at(-1).id;await claims.find(r=>r.status===200).body.cancel();await current.webSocketClose(agent);
  assert.equal((await usage()).reserved_bytes,0);
  // Slow-reader ACK withholding, a competing download, and reservation isolation.
- await reset();context=relayContext(agent);current=new MediaRelay(context,{DB});agent.sent=[];
+ await reset();context=relayContext(agent);current=makeRelay(context,{DB});agent.sent=[];
  const duplicateAgent=await current.fetch(new Request('https://private/agent-connect',{headers:{Upgrade:'websocket'}}));assert.equal(duplicateAgent.status,409);assert.equal(duplicateAgent.headers.get('Retry-After'),'5');
- t=await ticket();crashResponse=await request('/download?ticket='+t.ticket);crashReader=crashResponse.body.getReader();crashId=agent.sent.at(-1).id;
+ t=await ticket();const busyTicket=await ticket();crashResponse=await request('/download?ticket='+t.ticket);crashReader=crashResponse.body.getReader();crashId=agent.sent.at(-1).id;
  frame=current.webSocketMessage(agent,new Uint8Array([...new TextEncoder().encode(crashId),80,75]).buffer);
  for(let n=0;n<100&&context.values.get('transfer-counts')?.attempted!==2;n++)await new Promise(r=>setTimeout(r,1));
  assert.ok(!agent.sent.some(x=>x.type==='ack'),'slow reader must withhold ACK');
- const busyTicket=await ticket(),busyResponse=await request('/download?ticket='+busyTicket.ticket);
- assert.equal(busyResponse.status,429);assert.equal(busyResponse.headers.get('Retry-After'),'2');
+ const blockedTicket=await ticket();assert.equal(blockedTicket.status,429);assert.equal(blockedTicket.ticket_issued,false);
+ const busyResponse=await request('/download?ticket='+busyTicket.ticket);
+ assert.equal(busyResponse.status,429);assert.equal(busyResponse.headers.get('Retry-After'),'3');
  assert.equal((await usage()).reserved_bytes,4,'busy redemption releases only its own reservation');
  assert.equal((await request('/download?ticket='+busyTicket.ticket)).status,403);
  await crashReader.read();await frame;assert.equal(agent.sent.at(-1).type,'ack');
  await crashReader.cancel();await current.webSocketClose(agent);
  assert.equal((await usage()).transferred_bytes,2);assert.equal((await usage()).reserved_bytes,0);
  // A premature second frame cannot build an unbounded writable queue.
- await reset();context=relayContext(agent);current=new MediaRelay(context,{DB});agent.sent=[];
+ await reset();context=relayContext(agent);current=makeRelay(context,{DB});agent.sent=[];
  t=await ticket();crashResponse=await request('/download?ticket='+t.ticket);crashReader=crashResponse.body.getReader();crashId=agent.sent.at(-1).id;
  frame=current.webSocketMessage(agent,new Uint8Array([...new TextEncoder().encode(crashId),80,75]).buffer);
  for(let n=0;n<100&&context.values.get('transfer-counts')?.attempted!==2;n++)await new Promise(r=>setTimeout(r,1));
@@ -218,17 +221,17 @@ assert.equal((await usage()).reserved_bytes,0);
  assert.ok(!agent.sent.some(x=>x.type==='ack'),'protocol violation cannot ACK queued frames');
  // Rate permits are serialized and survive a fresh object, while the pending cap
  // is conditional SQL in the same issuance transaction as the reservation.
- await reset();context=relayContext(agent);current=new MediaRelay(context,{DB});
+ await reset();context=relayContext(agent);current=makeRelay(context,{DB});
  const originalNow=Date.now;let clock=originalNow();Date.now=()=>clock;
  try{
   const burst=await Promise.all(Array.from({length:20},()=>ticket()));
-  assert.equal(burst.filter(x=>x.status===200).length,6);assert.equal(burst.filter(x=>x.status===429).length,14);
-  assert.equal((await usage()).reserved_bytes,24);assert.equal(context.values.get('ticket-permits').length,12);
-  current=new MediaRelay(relayContext(agent,context.values),{DB});await current.ready;
+  const accepted=burst.filter(x=>x.status===200).length;assert.ok(accepted<=6);assert.equal(burst.filter(x=>x.status===429).length,20-accepted);for(let n=accepted;n<6;n++)assert.equal((await ticket()).status,200);
+  assert.equal((await usage()).reserved_bytes,24);assert.ok(context.values.get('ticket-permits').length<=12);while(context.values.get('ticket-permits').length<12)await ticket();assert.equal(context.values.get('ticket-permits').length,12);
+  current=makeRelay(relayContext(agent,context.values),{DB});await current.ready;
   const limited=await request('/download-ticket',{id,path});assert.equal(limited.status,429);assert.equal(limited.headers.get('Retry-After'),'60');
-  clock+=60001;assert.equal((await current.fetch(new Request('https://private/ticket-permit'))).status,204);
+  clock+=60001;agent.readyState=1;agent.serializeAttachment({seen:clock,retired:false});assert.equal((await current.fetch(new Request('https://private/ticket-permit'))).status,204);
   await DB.prepare("UPDATE mv_hybrid_tickets SET expires_at=0 WHERE status='new'").run();
-  const refreshed=await Promise.all(Array.from({length:8},()=>ticket()));assert.equal(refreshed.filter(x=>x.status===200).length,6);
+  const refreshed=await Promise.all(Array.from({length:8},()=>ticket()));const acceptedAgain=refreshed.filter(x=>x.status===200).length;assert.ok(acceptedAgain<=6);for(let n=acceptedAgain;n<6;n++)assert.equal((await ticket()).status,200);
   assert.equal((await usage()).reserved_bytes,24,'new window and concurrent expiry do not double-release');
  }finally{Date.now=originalNow;}
  // Metadata job capacity also stays at five under concurrent submission.

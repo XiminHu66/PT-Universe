@@ -19,7 +19,7 @@ export class MediaRelay {
  });}
  async channel(probe=false){
   const agents=this.agents();if(agents.length!==1)return 'offline';
-  if(this.transfers.size||this.starting||this.probes.size>=4)return 'busy';
+  if(this.transfers.size||this.starting||this.githubCalls.size||this.probes.size>=4)return 'busy';
   if(!probe)return 'ready';
   const ws=agents[0],id=crypto.randomUUID().replaceAll('-','').slice(0,24);
   return new Promise(resolve=>{
@@ -87,7 +87,12 @@ export class MediaRelay {
   }
   if(u.pathname==='/agent-connect'){
    if(request.headers.get('Upgrade')!=='websocket')return new Response('WebSocket required',{status:426});
-   if(this.agents().length)return new Response('Agent already connected',{status:409,headers:{'Retry-After':'5'}});
+   if(this.agents().length){
+    // An OPEN wrapper can outlive a dead network connection. Probe it before
+    // refusing the authenticated replacement; never replace a healthy writer.
+    const existing=await this.channel(true);
+    if(existing!=='offline'||this.agents().length)return new Response('Agent already connected',{status:409,headers:{'Retry-After':'5'}});
+   }
    const pair=new WebSocketPair(),client=pair[0],server=pair[1];
    server.serializeAttachment({seen:Date.now(),retired:false});
    this.ctx.acceptWebSocket(server,['media-agent']);
@@ -97,6 +102,8 @@ export class MediaRelay {
    const jobId=u.searchParams.get('job'),path=u.searchParams.get('path'),id=u.searchParams.get('transfer');
    const size=Number(u.searchParams.get('size')),name=u.searchParams.get('name')||'download.bin',period=u.searchParams.get('month'),digest=u.searchParams.get('digest');
    if(!ID.test(jobId||'')||!ID.test(id||'')||!path||path.length>300||!Number.isSafeInteger(size)||size<=0||size>12*1024**3||!/^\d{4}-\d{2}$/.test(period||'')||!(/^[0-9a-f]{64}$/).test(digest||''))return new Response('Invalid stream request',{status:400});
+   const live=await this.channel(true);
+   if(live!=='ready')return new Response(live==='busy'?'Transfer already running':'Agent unavailable',{status:live==='busy'?429:503,headers:{'Retry-After':'3'}});
    // Claim in the relay, after constructor recovery, so a concurrent bootstrap
    // cannot mistake a freshly redeemed ticket for a lost-process orphan.
    const marked=await this.env.DB.prepare("UPDATE mv_hybrid_tickets SET status='active' WHERE digest=? AND status='new' AND expires_at>? AND EXISTS(SELECT 1 FROM mv_hybrid_jobs WHERE id=mv_hybrid_tickets.job_id AND status='complete')").bind(digest,Date.now()).run();

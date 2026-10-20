@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {MediaRelay} from './src/relay.js';
 import {relayContext} from './test-state.mjs';
-const agent={readyState:1,sent:[],send(x){this.sent.push(JSON.parse(x))}};
+const agent={readyState:1,sent:[],send(x){const m=JSON.parse(x);if(m.type==='probe'){queueMicrotask(()=>relay.webSocketMessage(this,JSON.stringify({type:'probe-ok',id:m.id})));return;}this.sent.push(m)}};
 let credited=null;
 const db={
  async batch(ops){return Promise.all(ops.map(op=>op.run()))},

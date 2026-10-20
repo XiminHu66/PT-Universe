@@ -62,6 +62,12 @@ try{
  await fetch('/test-expire-lease');await connect(false);
  assert.equal((await fetch('/agent-ready')).status,503,'silent OPEN socket times out before any ticket or browser stream');
  await connect();assert.equal((await fetch('/agent-ready')).status,204,'timeout permits later healthy connection');
+ await fetch('/test-expire-lease');await connect(false);
+ await connect();assert.equal((await fetch('/agent-ready')).status,204,'fresh silent OPEN socket is probed and replaced during reconnect, without waiting for sixty-second lease');
+ await fetch('/test-expire-lease');await connect(false);
+ const silentDigest='f'.repeat(64);await db.prepare("INSERT INTO mv_hybrid_tickets(digest,job_id,relative_path,bytes,month,expires_at,status) VALUES(?,?,?,4,'2026-10',?,'new')").bind(silentDigest,id,path,Date.now()+60000).run();
+ const silent=await fetch('/stream?'+new URLSearchParams({job:id,path,transfer:'f'.repeat(24),size:'4',name:'fixture.epub',month:'2026-10',digest:silentDigest}));assert.equal(silent.status,503,'silent stream peer fails before HTTP200 or ticket claim');assert.equal((await db.prepare('SELECT status FROM mv_hybrid_tickets WHERE digest=?').bind(silentDigest).first()).status,'new');
+ await connect();
  if(process.argv.includes('--require-agent'))assert.ok(process.env.MEDIA_AGENT_SOURCE,'Actual companion Agent source is required');
  if(process.env.MEDIA_AGENT_SOURCE){
   await fetch('/test-expire-lease');await fetch('/agent-ready');
