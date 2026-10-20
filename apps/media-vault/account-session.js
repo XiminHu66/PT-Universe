@@ -107,6 +107,14 @@ export function createAccountConnection(options={}){
     const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(clean.kind==='pikpak-account'?JSON.stringify({kind:clean.kind,label:clean.label,auth_type:clean.auth_type||'pat'}):input))),b=>b.toString(16).padStart(2,'0')).join('');
     if(generation!==epoch||disposed)throw Error('会话已变化，请重新操作。');
     let entry=entries.find(x=>x.hash===hash&&x.session===session.session_id);
+    // A confirmed terminal attempt must never pin this input to a cancelled job.
+    // Uncertain POSTs keep their key; active/completed jobs remain deduplicated.
+    if(entry?.id){
+     const snapshot=await request('/app-api/jobs');
+     if(generation!==epoch||disposed)throw Error('会话已变化，请重新操作。');
+     const previous=snapshot.jobs?.find(j=>j.id===entry.id);
+     if(previous&&['error','cancelled','expired','interrupted'].includes(previous.status)){entries=entries.filter(x=>x!==entry);entry=null;}
+    }
     if(entries.some(x=>x.session===session.session_id&&!x.id&&x!==entry))throw Error('上一项提交结果尚未确认，请先用原内容重试。');
     if(!entry){
      if(session.jobs_remaining<1)throw Error('本次登录的任务额度已用完。');

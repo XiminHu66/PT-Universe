@@ -12,18 +12,20 @@
     "merge-publication"
   ],
   "production_source_sha256": {
-    "apps/media-vault/index.html": "94f63c78bc45ccf36204e8b65fde2bebe5a3fce4836358e32e2cd16b8a8ac80e",
-    "apps/media-vault/app.js": "9d2fa069dcd165dcd42b5a0e9282fdbe14f4ed1f0844d525fa721051ee1e0e23",
-    "apps/media-vault/style.css": "fcab9657ac3815436c492746b2abcb58d784862927b9db83cb7889abcaaa0edd",
+    "apps/media-vault/index.html": "7d865dc525274f99fd6d0ad1236b647c3a8ed1d94c9a17b1383694798c5318b7",
+    "apps/media-vault/app.js": "8807119bbde80bf4dbff35dfaba00ec5afb1f0f7d364457e6ac1bc1ec74d27b2",
+    "apps/media-vault/style.css": "4fb55254b5e41437ebb5dee254726aab50a3727d90f2ee68c2ed27717898e54a",
     "apps/media-vault/novels.css": "8fea36c704e9415f26439f57c87c503dd6c160635c15417f141921ce27390171",
     "apps/media-vault/device-connect.js": "a7196845da103131b53c5df4518bc1dbba86577e5c5ece2ec37f25be838ee014",
-    "apps/media-vault/integrated-downloads.js": "86f218597e2712f01aa1a60defe2728f742a804cc2d11358daf0ad168b2d1639",
+    "apps/media-vault/integrated-downloads.js": "8d94c6338362f8278f48feaa6ef31fd38f160c6c401df09e8f6802ea9f6e5d1d",
     "workers/media-vault-hybrid/src/github-login.js": "6ecc4067d2a85cfb6e7c02cab51ca4d1bda667d708d9e794098f45802f9edecf",
     "workers/media-vault-hybrid/oauth-schema.sql": "c212391ce004886b383699a57e4d7987b338fad2ce83164639615bec81eb970f",
     "workers/media-vault-hybrid/src/integrated.js": "f5988f95497117b582182a2aa1813af8866f1b1f80310a540a49ce747f6adf9a",
-    "apps/media-vault/account-session.js": "9916c4b9672e20422df92d06c8232807a2517a180e19f9dbe4b1b8187df559aa",
+    "apps/media-vault/account-session.js": "7f2f0af6b9fc6cbf9f03684a6b3a545ecd750ba79670963cf5a097d7c94ac136",
     "workers/media-vault-hybrid/account-window-config.mjs": "b4cd6daa5ccf0dcd8a103c3a0e778949deb4a182e15dc399f4037be56d92422c",
-    "workers/media-vault-hybrid/src/github-transport.js": "9cd0a03e08b5290aa83a92ed325bd9e327021a5acd268509f0e85c6a690fc1f9"
+    "workers/media-vault-hybrid/src/github-transport.js": "9cd0a03e08b5290aa83a92ed325bd9e327021a5acd268509f0e85c6a690fc1f9",
+    "apps/media-vault/download-tasks.js": "acd67ea53638edcd521f0e8bdd5d946e7f477b072db42e3275b62dbb70a1935f",
+    "apps/media-vault/native-download.js": "148877f393aa20b091eacbcaae9c003f29cdcfad8a0b2d024838ad95430efbde"
   },
   "pending": [],
   "reviewed_main_sha": "d3dae7273d0de614243dd5ffc07c9768ed2f2428",

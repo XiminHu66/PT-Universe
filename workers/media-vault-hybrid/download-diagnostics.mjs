@@ -1,0 +1,4 @@
+import assert from 'node:assert/strict';
+const account=process.env.CLOUDFLARE_ACCOUNT_ID,token=process.env.D1_TOKEN;assert.ok(account&&token);
+const sql="SELECT id,kind,status,created_at,updated_at,lease_until,completed_bytes,total_bytes,CASE WHEN error='' THEN 'none' WHEN error LIKE '%Aria%' THEN 'aria' WHEN error LIKE '%MeTube%' THEN 'metube' ELSE 'other' END AS error_class FROM mv_hybrid_jobs ORDER BY created_at DESC LIMIT 16";
+const r=await fetch('https://api.cloudflare.com/client/v4/accounts/'+encodeURIComponent(account)+'/d1/database/86805c79-d903-46cd-b0e2-c079c1a7fc1a/query',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({sql,params:[]}),redirect:'error',signal:AbortSignal.timeout(20000)});const d=await r.json();assert.ok(r.ok&&d.success===true);for(const row of d.result[0].results)console.log('QUEUE_METADATA',JSON.stringify(row));

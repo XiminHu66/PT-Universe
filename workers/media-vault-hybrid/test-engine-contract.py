@@ -37,7 +37,7 @@ with tempfile.TemporaryDirectory(prefix='mv-integration-') as folder:
   if method=='tellStatus':return {'status':'complete','completedLength':str(target.stat().st_size),'totalLength':str(target.stat().st_size),'followedBy':[]}
   if method=='getFiles':return [{'path':'/downloads/ptmv-'+cid+'/payload.txt'}]
   raise AssertionError('Unexpected engine method '+method)
- def metube(route,data=None):
+ def metube(route,data=None,**_options):
   if route=='/add':
    name=data['custom_name_prefix']+'.fixture.mp4';raw=b'\x00\x00\x00\x18ftypisomoffline fixture'
    (video/name).write_bytes(raw);history.append({**data,'status':'finished','filename':name,'size':len(raw),'percent':100});return {'status':'ok'}

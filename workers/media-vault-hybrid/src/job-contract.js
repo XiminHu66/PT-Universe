@@ -58,7 +58,8 @@ export function rowFormat(row){
    return {id:row.id,kind:row.kind,title:cleanupLabels[data.cleanup],status,completed:row.completed_bytes,total:row.total_bytes,error:row.error||'',created:row.created_at,updated:row.updated_at,cleanup_target:target,cleanup_status:data.cleanup,...(row.kind==='pikpak-cleanup'?{source_job:spec.source_job}:{source_expires_at:status==='complete'?row.updated_at+24*3600000:null})};
   }
  }
- return {id:row.id,kind:row.kind,url:spec.url||'',title:row.detail||spec.title||({novel:'小说 EPUB',manga:spec.provider==='mangadex'?'MangaDex 中文章节 CBZ':'Commons 图片 CBZ',video:'视频',torrent:'BT / HTTPS 文件'})[row.kind]||row.kind,status,completed:row.completed_bytes,total:row.total_bytes,progress_unit:content&&status!=='complete'?'items':'bytes',speed:0,error:row.error||'',created:row.created_at,updated:row.updated_at,source_expires_at:status==='complete'?row.updated_at+24*3600000:null};
+ let detail=null;try{const d=JSON.parse(row.detail);if(d&&typeof d==='object'&&typeof d.title==='string'&&['submitting','extracting','downloading','processing','metadata','peers','queued','checking'].includes(d.phase))detail=d;}catch{}
+ return {id:row.id,kind:row.kind,url:spec.url||'',phase:detail?.phase||'',peers:row.kind==='torrent'?detail?.peers:undefined,title:detail?.title||(!detail&&row.detail)||spec.title||({novel:'小说 EPUB',manga:spec.provider==='mangadex'?'MangaDex 中文章节 CBZ':'Commons 图片 CBZ',video:'视频',torrent:'BT / HTTPS 文件'})[row.kind]||row.kind,status,completed:row.completed_bytes,total:row.total_bytes,progress_unit:content&&status!=='complete'?'items':'bytes',speed:detail?.speed||0,error:row.error||'',created:row.created_at,updated:row.updated_at,source_expires_at:status==='complete'?row.updated_at+24*3600000:null};
 }
 
 export const cleanupLabels={'awaiting-confirmation':'VPS 副本已校验；等待确认永久删除云端副本','purged-quota-released':'云端副本已永久删除；存储用量已下降','purged-quota-pending':'云端副本已永久删除；额度更新待确认'};

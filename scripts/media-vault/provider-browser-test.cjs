@@ -9,7 +9,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),http
  await page.goto(base+'/apps/media-vault/');await page.click('[data-tab="music"]');assert.equal(await page.inputValue('#musicSource'),'monochrome');await page.fill('#musicQuery','fixture');await page.click('#musicSearch button');await page.locator('[data-track-download]').waitFor();assert.match(await page.locator('#albums').textContent(),/Local music fixture/);
  // Intercept the handoff function so no browser requests the live Worker page.
  await page.evaluate(()=>{window.fixtureHandoff=[];openVpsTask=async(kind,url)=>window.fixtureHandoff.push({kind,url});});
- await page.click('[data-tab="torrent"]');await page.click('#torrent details summary');await page.fill('#torrentURL','magnet:?xt=urn:btih:'+'A'.repeat(32));await page.click('#torrentForm button');
+ await page.click('[data-tab="torrent"]');await page.fill('#torrentURL','magnet:?xt=urn:btih:'+'A'.repeat(32));await page.click('#torrentForm button');
  await page.click('[data-tab="video"]');await page.fill('#videoURL','https://example.org/video');await page.click('#videoForm button');await page.click('#pikpakOpen');assert.deepEqual(await page.evaluate(()=>window.fixtureHandoff.map(x=>x.kind)),['torrent','video','pikpak']);
  let fixtureJobs=[];
  const id='c'.repeat(24),submitted=[],token='fixture-PAT-only-'+ 't'.repeat(32),session={status:'approved',session_id:'b'.repeat(24),scope:'personal-vps-downloads',expires_at:Date.now()+3600000,job_limit:200,jobs_remaining:200,tickets_remaining:0,can_submit:true,can_download:false};
