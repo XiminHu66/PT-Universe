@@ -4,7 +4,7 @@ import {appFileTest,fileTestPermits} from './account-file-scope.js';
 import {appObservation,observationPairingOpen,OBSERVATION_DURATION} from './account-observation-scope.js';
 import {appEnabled,appCookieDigest,ownerAuthorized,randomHex,appCookie,APP_LIFETIME,appDeadline,appReadOnly,appSubmissionTest,appFilesAllowed,appJobLimit,appTicketLimit,appScope} from './account-auth.js';
 import {digest} from './session-auth.js';
-import {canonicalJob,rowFormat} from './job-contract.js';
+import {canonicalJob,rowFormat,MAX_JOB_BODY} from './job-contract.js';
 import {novelCatalog,catalogFailure} from './account-catalog.js';
 import {transferBudget,streamingEnabled} from './limits.js';
 import {issueFileTicket} from './transport.js';
@@ -13,8 +13,8 @@ const reply=(data,status=200,headers={})=>new Response(JSON.stringify(data),{sta
 const fail=(status,error)=>reply({error},status);
 const active="'queued','running','waiting','active'";
 const jobPattern=/^[a-f0-9]{24}$/;
-async function body(request){
- try{const raw=await request.text();if(raw.length>12000)throw Error('Oversized JSON');
+async function body(request,limit=12000){
+ try{const raw=await request.text();if(raw.length>limit)throw Error('Oversized JSON');
  const data=JSON.parse(raw);if(!data||typeof data!=='object'||Array.isArray(data))throw Error('Object required');return data;
  }catch{throw Object.assign(Error('Invalid JSON body'),{status:400});}
 }
@@ -138,14 +138,14 @@ export async function accountRoute(request,env){
   }
   if(p==='/app-api/jobs'&&request.method==='POST'){
    if(appFileTest(env)||env.ENABLE_APP_SUBMISSION!=='true')return fail(403,'Account submission disabled');
-   const raw=await body(request);let spec;
+   const raw=await body(request,MAX_JOB_BODY);let spec;
    if(raw.retry_of!==undefined){
     if(!jobPattern.test(raw.retry_of||''))return fail(400,'Invalid retry job ID');
     const prior=await env.DB.prepare('SELECT j.request_json,j.status FROM mv_hybrid_jobs j JOIN mv_hybrid_account_jobs a ON a.job_id=j.id WHERE j.id=? AND a.account_id=?').bind(raw.retry_of,current.account_id).first();
     if(!prior)return fail(404,'Account retry job not found');
     if(!['error','cancelled','expired'].includes(prior.status))return fail(409,'Only failed, cancelled or expired jobs can be rebuilt');
     const previousSpec=JSON.parse(prior.request_json);if(previousSpec.kind==='pikpak-account')return fail(409,'请在账号表单重新授权 PikPak；不会重复使用已清除的凭据');
-    spec=canonicalJob(previousSpec);
+    spec=canonicalJob(previousSpec);if(spec?.kind==='novel'&&env.MEDIA_APP_TEST_MODE==='personal')spec.resume_from=raw.retry_of;
    }else spec=canonicalJob(raw);
    if(appNovelUx(env)&&!novelUxPermits(spec))return fail(403,'Only the fixed two-chapter text-only novel UX recipes are permitted');
    if(appSubmissionTest(env)&&!pilotPermits(spec))return fail(403,'Only the four fixed pilot recipes are permitted');

@@ -12,8 +12,8 @@
     "merge-publication"
   ],
   "production_source_sha256": {
-    "apps/media-vault/index.html": "7b9fcee5dab490ca849169be02562d54477adb4e76d10d1292beccde2c00c3da",
-    "apps/media-vault/app.js": "20faf2518dae5f937c92b803e1906bcc6b66b5bb5ab8b3fcb24e45192812b360",
+    "apps/media-vault/index.html": "79f46bc41d83b23bcd93ab65a13d1c3e15572b146dcee1f76a8edef5e349d21d",
+    "apps/media-vault/app.js": "bd68dd328c63c819d36b7d39558b48f3253dcc6c487eba2b5640cf5b249a2133",
     "apps/media-vault/style.css": "4476708422d550839c9ac25771806f1e0e90a6a67bb2b27114693becbbb42621",
     "apps/media-vault/novels.css": "8fea36c704e9415f26439f57c87c503dd6c160635c15417f141921ce27390171",
     "apps/media-vault/device-connect.js": "a7196845da103131b53c5df4518bc1dbba86577e5c5ece2ec37f25be838ee014",

@@ -26,7 +26,7 @@ try{
  const spec=formSpec({kind:'novel',url:'https://www.wenku8.net/book/3551.htm',indices:'1-2',textOnly:true,layout:'compact'});
  const submitted=await client.submit(spec),leased=(await (await request('/agent/lease',{body:{},token:agentToken})).json()).job;
  assert.equal(leased.id,submitted.id);assert.equal(leased.skip_images,true);assert.equal(leased.layout.indent,2);assert.equal(leased.layout.paragraphGap,0);
- assert.deepEqual(chapterIndices('1-3,2,5'),[0,1,2,4]);for(const bad of ['', '0','5-1','1-101','1-100,101'])assert.throws(()=>chapterIndices(bad));
+ assert.deepEqual(chapterIndices('1-3,2,5'),[0,1,2,4]);for(const bad of ['', '0','5-1','1-10001','1-10000,10001'])assert.throws(()=>chapterIndices(bad));
  // A companion checkout allows the exact leased payload to execute through
  // the actual adapter/content packager, with source HTTP replaced by fixtures.
  let files=[{path:'generated/'+leased.id+'.epub',name:leased.id+'.epub',size:2048}];

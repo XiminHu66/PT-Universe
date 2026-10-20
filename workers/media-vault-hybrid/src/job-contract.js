@@ -1,3 +1,5 @@
+export const MAX_NOVEL_CHAPTERS=10000;
+export const MAX_JOB_BODY=131072;
 const kinds=new Set(['novel','manga','torrent','video','pikpak-account','pikpak','pikpak-cleanup']);
 export function validUrl(raw,kind){
   if(typeof raw!=='string'||raw.length>2048)return false;
@@ -19,7 +21,7 @@ export function permittedJob(o){
   if(o.kind==='pikpak'&&(!/^[a-f0-9]{24}$/.test(o.profile_id||'')||o.cleanup_after_download!==true))return false;
   if(o.text_only!==undefined&&typeof o.text_only!=='boolean'||o.skip_images!==undefined&&typeof o.skip_images!=='boolean')return false;
   if(o.kind==='novel'&&o.text_only!==undefined&&o.skip_images!==undefined&&o.text_only!==o.skip_images)return false;
-  if(o.layout!==undefined&&(!o.layout||typeof o.layout!=='object'||Array.isArray(o.layout)||Object.entries(o.layout).some(([k,v])=>!Object.hasOwn(layoutBounds,k)||typeof v!=='number'||!Number.isFinite(v)||v<layoutBounds[k][0]||v>layoutBounds[k][1])))return false;
+  if(o.layout!==undefined&&(!o.layout||typeof o.layout!=='object'||Array.isArray(o.layout)||Object.entries(o.layout).some(([k,v])=>Object.hasOwn(layoutChoices,k)?!layoutChoices[k].includes(v):!Object.hasOwn(layoutBounds,k)||typeof v!=='number'||!Number.isFinite(v)||v<layoutBounds[k][0]||v>layoutBounds[k][1])))return false;
   if(o.kind==='manga'){
    if(typeof o.title!=='string'||!o.title.trim()||o.title.length>=200)return false;
    if(o.provider==='mangadex')return mangaDexUrl(o.url)&&o.files===undefined&&[['max_bytes',100*1024**2],['max_pages',80]].every(([key,cap])=>o[key]===undefined||Number.isSafeInteger(o[key])&&o[key]>0&&o[key]<=cap);
@@ -27,9 +29,10 @@ export function permittedJob(o){
    return Array.isArray(o.files)&&o.files.length>0&&o.files.length<=20&&new Set(o.files).size===o.files.length&&o.files.every(x=>typeof x==='string'&&/^File:[^<>#\r\n]{2,190}\.(png|jpe?g|gif|webp)$/i.test(x));
   }
   if(!validUrl(o.url,o.kind))return false;
-  if(o.kind==='novel'&&!(Array.isArray(o.indices)&&o.indices.length>0&&o.indices.length<=100&&new Set(o.indices).size===o.indices.length&&o.indices.every(i=>Number.isSafeInteger(i)&&i>=0&&i<=100000)))return false;
+  if(o.kind==='novel'&&!(Array.isArray(o.indices)&&o.indices.length>0&&o.indices.length<=MAX_NOVEL_CHAPTERS&&new Set(o.indices).size===o.indices.length&&o.indices.every(i=>Number.isSafeInteger(i)&&i>=0&&i<=100000)))return false;
   return true;
 }
+export const layoutChoices={titleAlign:['left','center'],textAlign:['left','justify']};
 export const layoutBounds={fontScale:[70,180],lineHeight:[1.1,2.5],paragraphGap:[0,3],indent:[0,4],pageMargin:[0,3]};
 export function canonicalJob(raw){
  if(!permittedJob(raw)||raw.format!==undefined&&(typeof raw.format!=='string'||raw.format.length>120))return null;
@@ -42,7 +45,7 @@ export function canonicalJob(raw){
  for(const key of keys)if(raw[key]!==undefined)spec[key]=raw[key];
  if(raw.kind==='novel'){
   spec.indices=[...raw.indices].sort((a,b)=>a-b);
-  if(raw.layout!==undefined)spec.layout=Object.fromEntries(Object.keys(layoutBounds).filter(k=>raw.layout[k]!==undefined).map(k=>[k,raw.layout[k]]));
+  if(raw.layout!==undefined)spec.layout=Object.fromEntries([...Object.keys(layoutBounds),...Object.keys(layoutChoices)].filter(k=>raw.layout[k]!==undefined).map(k=>[k,raw.layout[k]]));
  }
  return spec;
 }
