@@ -11,7 +11,7 @@ let country=db.get('country','jp'),genre=db.get('genre','0'),chartItems=[],chart
 if(SCOPED_PREVIEW)engine={url:location.origin,mode:'scoped-session'};
 else try{engine=JSON.parse(sessionStorage.getItem('mv.engine'));}catch{}
 const scopedReady=SCOPED_PREVIEW?import('./scoped-session.js').then(({createScopedConnection})=>createScopedConnection({onState:showScopedState})):null;
-const integratedReady=SCOPED_PREVIEW?Promise.resolve(null):import('./integrated-downloads.js?v=6').then(({mountIntegratedDownloads})=>{
+const integratedReady=SCOPED_PREVIEW?Promise.resolve(null):import('./integrated-downloads.js?v=7').then(({mountIntegratedDownloads})=>{
  const connection=mountIntegratedDownloads({note:notice,onState:state=>{const connected=state.status==='approved'&&!state.unverified;if(connected&&(!engine||engine.mode==='account-device')){if(!engine)engine={url:'https://pt-media-hybrid.summer07-nanjolno.workers.dev',mode:'account-device'};$('#engineStatus').textContent='● VPS 已连接';}else if(!connected&&!state.unverified&&engine?.mode==='account-device'){engine=null;engineJobs=[];renderQueue();$('#engineStatus').textContent='VPS 需连接';}},onTasksChanged:()=>loadTasks(),openQueue:()=>{renderQueue();if(!$('#queue').open)$('#queue').showModal();}});return connection;
 });
 const loaded=new Set();
@@ -230,7 +230,9 @@ function updateDownloadSelection(){
 }
 function renderDownloadSelection(){
  const selection=downloadSelection;if(!selection)return;
- $('#downloadChapterList').innerHTML=selection.target.chapters.map((chapter,index)=>`<label class="download-chapter-option"><input type="checkbox" value="${index}" data-download-chapter="${index}"><span class="download-chapter-number">${index+1}</span><span>${esc(chapter.title)}</span></label>`).join('');
+ const pageSize=200,total=selection.target.chapters.length,pages=Math.ceil(total/pageSize);selection.page=Math.max(0,Math.min(selection.page||0,pages-1));
+ $('#downloadChapterPager').hidden=pages<=1;$('#downloadChapterPage').textContent=`第 ${selection.page+1} / ${pages} 页 · 每页 ${pageSize} 章`;$('#downloadChapterPrev').disabled=!selection.page;$('#downloadChapterNext').disabled=selection.page+1>=pages;
+ $('#downloadChapterList').innerHTML=selection.target.chapters.slice(selection.page*pageSize,(selection.page+1)*pageSize).map((chapter,offset)=>{const index=selection.page*pageSize+offset;return `<label class="download-chapter-option"><input type="checkbox" value="${index}" data-download-chapter="${index}"><span class="download-chapter-number">${index+1}</span><span>${esc(chapter.title)}</span></label>`;}).join('');
  $$('#downloadChapterList input').forEach(input=>input.onchange=()=>{if(input.checked)selection.indices.add(Number(input.value));else selection.indices.delete(Number(input.value));updateDownloadSelection();});updateDownloadSelection();
 }
 async function openNovelDownload(item,preset={}){
@@ -242,12 +244,14 @@ async function openNovelDownload(item,preset={}){
  }catch(e){if(request!==downloadSelectionRequest||!dialog.open)return;$('#downloadSelectionCount').textContent='目录读取失败';$('#downloadSelectionError').textContent=e.message;$('#downloadSelectionError').hidden=false;$('#downloadReload').hidden=false;$('#downloadReload').onclick=()=>openNovelDownload(item,preset);$('#downloadConfirm').textContent='请先读取目录';}
 }
 $('#downloadChapterDialog').onclose=()=>{downloadSelectionRequest++;epubPreviewRequest++;downloadSelection=null;};
+$('#downloadChapterPrev').onclick=()=>{if(downloadSelection){downloadSelection.page--;renderDownloadSelection();}};
+$('#downloadChapterNext').onclick=()=>{if(downloadSelection){downloadSelection.page++;renderDownloadSelection();}};
 $('#downloadSelectAll').onchange=e=>{if(!downloadSelection)return;downloadSelection.indices=new Set(e.target.checked?downloadSelection.target.chapters.map((_,i)=>i):[]);updateDownloadSelection();};
 $('#downloadClear').onclick=()=>{if(downloadSelection){downloadSelection.indices.clear();updateDownloadSelection();}};
 function applyDownloadRange(){if(!downloadSelection)return;try{downloadSelection.indices=new Set(parseChapterRange($('#downloadRange').value,downloadSelection.target.chapters.length));updateDownloadSelection();}catch(e){$('#downloadSelectionError').textContent=e.message;$('#downloadSelectionError').hidden=false;}}
 $('#downloadApplyRange').onclick=applyDownloadRange;
 $('#downloadRange').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();applyDownloadRange();}};
-$('#downloadConfirm').onclick=e=>busy(e.currentTarget,async()=>{if(!downloadSelection?.indices.size)return;const selection=downloadSelection;const indices=[...selection.indices].sort((a,b)=>a-b);if($('#downloadUseVPS').checked){if(!engine||selection.target.local)throw new Error('VPS 后台下载不可用于本地导入书籍；请使用浏览器本地打包。');if(indices.length>100)throw new Error('VPS 一次最多处理 100 章；请缩小章节范围或使用本地下载。');const job=await callEngine('/jobs',{kind:'novel',url:selection.target.url,indices,layout:normalizeEPUBLayout(epubLayout),skip_images:$('#downloadTextOnlyVPS').checked});$('#downloadChapterDialog').close();notice('VPS 后台任务已提交：'+job.id+'。完成后可在下载任务中取回 EPUB。');await loadTasks();return;}enqueueNovel(selection.target,{indices});$('#downloadChapterDialog').close();});
+$('#downloadConfirm').onclick=e=>busy(e.currentTarget,async()=>{if(!downloadSelection?.indices.size)return;const selection=downloadSelection;const indices=[...selection.indices].sort((a,b)=>a-b);if($('#downloadUseVPS').checked){if(!engine||selection.target.local)throw new Error('VPS 后台下载不可用于本地导入书籍；请使用浏览器本地打包。');if(indices.length>10000)throw new Error('VPS 单次支持最多 10,000 章；请分次选择更长的小说。');const job=await callEngine('/jobs',{kind:'novel',url:selection.target.url,indices,layout:normalizeEPUBLayout(epubLayout),skip_images:$('#downloadTextOnlyVPS').checked});$('#downloadChapterDialog').close();notice('VPS 后台任务已提交：'+job.id+'。完成后可在下载任务中取回 EPUB。');await loadTasks();return;}enqueueNovel(selection.target,{indices});$('#downloadChapterDialog').close();});
 
 function persistNovelTasks(){db.set('novelTasks',novelTasks.filter(t=>!t.target?.local).slice(0,30).map(({id,url,title,from,to,indices,layout,status,progress,detail,failedChapter})=>({id,url,title,from,to,indices,layout,status,progress,detail,failedChapter})));}
 function taskProgressHTML(task){return `<div class="novel-task-progress"><progress max="100" value="${task.progress||0}" aria-label="${esc(task.title)} 下载进度"></progress><span>${Math.floor(task.progress||0)}%</span></div><p class="task-detail">${esc(task.detail)}</p>`;}

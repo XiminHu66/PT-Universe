@@ -1,5 +1,5 @@
 import {mountPikPak} from './pikpak-account.js';
-import {createAccountConnection} from './account-session.js';
+import {createAccountConnection} from './account-session.js?v=3';
 import {createNativeSaver} from './native-download.js';
 import {formSpec,chapterIndices,layouts,progressText,recoveryText} from './account-form.js';
 export function mountAccountPage(options={}){
@@ -47,8 +47,9 @@ export function mountAccountPage(options={}){
  }
  function visibleChapters(){const query=$('catalogSearch').value.trim().toLowerCase();return catalog.filter(c=>(!query||c.title.toLowerCase().includes(query))&&(!current.novel_scope||c.index<current.novel_scope.max_chapter));}
  function drawChapters(){
-  let selected=[];try{selected=selectedChapters();$('selectedCount').textContent='已选 '+selected.length+' 章'+(current.novel_scope?' · 本轮仅前两章':' · 每项最多 100 章');}catch(e){$('selectedCount').textContent=$('indices').value.trim()?e.message:'尚未选择章节';}
-  $('chapterList').innerHTML=visibleChapters().map(c=>'<label class="check"><input type="checkbox" data-chapter="'+c.index+'"'+(selected.includes(c.index)?' checked':'')+'>'+esc((c.index+1)+'. '+c.title)+'</label>').join('')||'<p>没有匹配的章节。</p>';
+  let selected=[];try{selected=selectedChapters();$('selectedCount').textContent='已选 '+selected.length+' 章'+(current.novel_scope?' · 本轮仅前两章':' · 每项最多 10,000 章');}catch(e){$('selectedCount').textContent=$('indices').value.trim()?e.message:'尚未选择章节';}
+  const selectedSet=new Set(selected);
+  $('chapterList').innerHTML=visibleChapters().map(c=>'<label class="check"><input type="checkbox" data-chapter="'+c.index+'"'+(selectedSet.has(c.index)?' checked':'')+'>'+esc((c.index+1)+'. '+c.title)+'</label>').join('')||'<p>没有匹配的章节。</p>';
  }
  function renderJobs(){
   const active=['queued','running','active','waiting'],attention=['error','cancelled','expired'];
@@ -83,7 +84,7 @@ export function mountAccountPage(options={}){
   if(catalogLoading)return;catalogLoading=true;$('loadCatalog').disabled=true;
   const source=$('url').value.trim(),g=generation,epoch=++catalogEpoch;$('catalogStatus').textContent='正在读取目录…';
   try{const data=await client.read('/novel/catalog?'+new URLSearchParams({url:source}));if(g!==generation||disposed||source!==$('url').value.trim()||epoch!==catalogEpoch||$('kind').value!=='novel')return;
-   catalog=data.chapters;catalogTotal=data.total;catalogSource=source;$('catalogPanel').hidden=false;$('catalogStatus').textContent=data.title+' · '+data.total+' 章'+(data.truncated?'（目录显示前 5000 章，其他章节可输入序号）':'')+' · 每项最多选 100 章';drawChapters();
+   catalog=data.chapters;catalogTotal=data.total;catalogSource=source;$('catalogPanel').hidden=false;$('catalogStatus').textContent=data.title+' · '+data.total+' 章'+(data.truncated?'（目录显示前 5000 章，其他章节可输入序号）':'')+' · 每项最多选 10,000 章';drawChapters();
   }catch(e){if(g===generation&&epoch===catalogEpoch&&!disposed){clearCatalog();$('catalogStatus').textContent=e.message;}}
   finally{catalogLoading=false;$('loadCatalog').disabled=false;}
  });
@@ -91,11 +92,11 @@ export function mountAccountPage(options={}){
  $('catalogSearch').oninput=drawChapters;
  $('indices').onchange=drawChapters;
  $('selectRange').onclick=()=>run(async()=>{selectedChapters();drawChapters();});
- $('selectVisible').onclick=()=>{const selected=visibleChapters().slice(0,100);$('indices').value=selected.map(c=>c.index+1).join(',');drawChapters();if(visibleChapters().length>100)note('已选筛选结果的前 100 章。');};
+ $('selectVisible').onclick=()=>{const selected=visibleChapters().slice(0,10000);$('indices').value=selected.map(c=>c.index+1).join(',');drawChapters();if(visibleChapters().length>10000)note('已选筛选结果的前 10,000 章。');};
  $('clearChapters').onclick=()=>{$('indices').value='';drawChapters();};
  $('chapterList').onchange=e=>{const input=e.target;if(input.dataset?.chapter===undefined)return;let selected=[];try{selected=chapterIndices($('indices').value);}catch{}
   const index=Number(input.dataset.chapter),set=new Set(selected);if(input.checked)set.add(index);else set.delete(index);
-  if(set.size>100){input.checked=false;note('每项最多选择 100 章。',true);return;}
+  if(set.size>10000){input.checked=false;note('每项最多选择 10,000 章。',true);return;}
   $('indices').value=[...set].sort((a,b)=>a-b).map(i=>i+1).join(',');drawChapters();
  };
  $('taskFilter').onchange=()=>{filter=$('taskFilter').value;renderJobs();};

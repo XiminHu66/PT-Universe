@@ -26,7 +26,7 @@ async function apply(result){for(const report of result.reports){const r=await r
 const client=createAccountConnection(options);
 try{
  const p=await client.pair();assert.equal((await request('/app-auth/approve',{body:{code:p.pair_code},token})).status,200);
- const compact=formSpec({kind:'novel',url:'https://www.wenku8.net/book/3551.htm',indices:'1-2',textOnly:true,layout:'compact'});
+ const compact=formSpec({kind:'novel',url:'https://www.wenku8.net/book/3551.htm',indices:'1-1001',textOnly:true,layout:'compact'});
  const owner=await request('/jobs',{token,body:{...compact,text_only:undefined,skip_images:true,request_id:'f'.repeat(24),headers:{test:'must drop'},account_id:'must drop'}});assert.equal(owner.status,202);
  const recipes=[compact,formSpec({kind:'manga',title:'授权图片 fixture',pages:'File:One.png\nFile:Two.png'}),formSpec({kind:'video',url:'https://fixture.invalid/source.mp4'}),formSpec({kind:'torrent',url:'https://fixture.invalid/payload.txt'})];
  const ids=[];for(const spec of recipes)ids.push((await client.submit(spec)).id);

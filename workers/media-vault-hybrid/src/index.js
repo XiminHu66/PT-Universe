@@ -1,6 +1,6 @@
 import {integratedRoute} from './integrated.js';
 import {githubLoginRoute,loginReadiness} from './github-login.js';
-import {validUrl,canonicalJob,rowFormat} from './job-contract.js';
+import {validUrl,canonicalJob,rowFormat,MAX_JOB_BODY} from './job-contract.js';
 import {accountRoute} from './account.js';
 import {OCI_REFERENCE_BYTES,transferBudget,streamingEnabled} from './limits.js';
 import {acceptancePage} from './acceptance.js';
@@ -34,9 +34,9 @@ function tokenIs(request,secret){
   return expected.length>=32&&equal(request.headers.get('Authorization')||'', 'Bearer '+expected);
 }
 function month(){return new Date().toISOString().slice(0,7)}
-async function jsonBody(request){
+async function jsonBody(request,limit=12000){
   try{const text=await request.text();
-   if(text.length>12000)throw Error();
+   if(text.length>limit)throw Error();
    const o=JSON.parse(text);
    if(!o||typeof o!=='object'||Array.isArray(o))throw Error();
    return o;
@@ -85,7 +85,7 @@ export async function handle(request,env){
       return reply({jobs:(result.results||[]).map(rowFormat)},200,origin);
     }
     if(path==='/jobs'&&request.method==='POST'){
-      const o=canonicalJob(await jsonBody(request));
+      const o=canonicalJob(await jsonBody(request,MAX_JOB_BODY));
       if(!o||o.kind.startsWith('pikpak'))return denied(origin,400,'Unsupported or invalid download job');
       const count=await scalar(env.DB,"SELECT COUNT(*) AS total FROM mv_hybrid_jobs WHERE status IN ('queued','running','waiting','active')");
       if(count>=5)return denied(origin,429,'Queue full; maximum five pending jobs');

@@ -1,4 +1,4 @@
-import {createAccountConnection} from './account-session.js?v=2';
+import {createAccountConnection} from './account-session.js?v=3';
 import {mountPikPak} from './pikpak-account.js';
 export const VPS_ORIGIN='https://pt-media-hybrid.summer07-nanjolno.workers.dev';
 function tokenStore(){

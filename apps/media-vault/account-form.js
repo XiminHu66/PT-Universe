@@ -3,10 +3,10 @@ export function chapterIndices(value){
  const result=new Set();
  for(const token of String(value).trim().split(/[,，\s]+/)){
   const match=/^(\d+)(?:[-–~至](\d+))?$/.exec(token);
-  if(!match)throw Error('章节填写示例：1-10,15,20-25；最多 100 章。');
+  if(!match)throw Error('章节填写示例：1-10,15,20-25；最多 10,000 章。');
   const first=Number(match[1]),last=Number(match[2]||match[1]);
-  if(first<1||last<first||last>100001||last-first>99)throw Error('章节范围无效，最多选择 100 章。');
-  for(let i=first;i<=last;i++){result.add(i-1);if(result.size>100)throw Error('每项任务最多选择 100 章。');}
+  if(first<1||last<first||last>100001||last-first>9999)throw Error('章节范围无效，最多选择 10,000 章。');
+  for(let i=first;i<=last;i++){result.add(i-1);if(result.size>10000)throw Error('每项任务最多选择 10,000 章。');}
  }
  return [...result].sort((a,b)=>a-b);
 }
