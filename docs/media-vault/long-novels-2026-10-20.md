@@ -1,6 +1,6 @@
 # Long-novel VPS downloads — 2026-10-20
 
-The 100-chapter restriction existed independently in the main page, account form/controller, Worker contract, adapter and EPUB builder. Worker JSON was additionally capped at 12,000 characters and adapter JSON at 16 KiB. The main page also sent `titleAlign` and `textAlign`, which the numeric-only backend layout contract rejected.
+The 100-chapter restriction existed independently in the main page, account form/controller, Worker contract, adapter and EPUB builder. Worker JSON was additionally capped at 12,000 characters and adapter JSON at 16 KiB. The main page also sent `titleAlign` and `textAlign`, which the numeric-only backend layout contract rejected. Its `skip_images` checkbox value was dropped by the account-client field allowlist; this is now forwarded and covered by the real main-page submission test.
 
 The new limit is **10,000 selected chapters per task**. Job submission permits bounded 128 KiB JSON at the Owner/account/adapter routes; other control bodies retain their smaller limits. Duplicate, invalid and out-of-catalog indices remain rejected. All seven existing page layout options are accepted and rendered in the VPS EPUB.
 
@@ -17,3 +17,6 @@ Checkpoint files are excluded from downloads and included in the existing owned 
 - Actual SQLite Worker/device/Owner requests accept and lease a 10,000-chapter body; invalid/oversized/duplicate selections, layout injection and cross-account checkpoint access are rejected.
 - Companion integration executes 1,001 chapters through the real account client, Worker, Agent, adapter and EPUB builder using offline source fixtures. Full 10,000-chapter internet acquisition has not been performed.
 - The deployment also checks the exact deployed source hashes and builds/verifies a synthetic 10,000-chapter EPUB inside the running VPS container without source requests. Browser CI checks the main page's 1,001-chapter selection, pagination, layout payload and submission.
+
+
+Deployment checks passed in private run 39464746206 (job 118773092906): exact deployed adapter/builders/content/Agent hashes matched, 87 adapter and 43 Agent tests passed, and the running container produced a valid 10,000-chapter 3,338,374-byte synthetic EPUB with 37,536 KiB maximum process RSS. Source requests in that container proof: zero. The Worker update passed in run 39359943380, job 118773433889 (version 695c6af8-4e72-45ce-b4d9-c046e423e82c). Final browser publication includes the subsequently discovered text-only forwarding correction.

@@ -12,7 +12,7 @@
     "merge-publication"
   ],
   "production_source_sha256": {
-    "apps/media-vault/index.html": "79f46bc41d83b23bcd93ab65a13d1c3e15572b146dcee1f76a8edef5e349d21d",
+    "apps/media-vault/index.html": "558556e77cf239c8e924617b838fc5d9efd8d2a2c76056e3b568548177e30b97",
     "apps/media-vault/app.js": "bd68dd328c63c819d36b7d39558b48f3253dcc6c487eba2b5640cf5b249a2133",
     "apps/media-vault/style.css": "4476708422d550839c9ac25771806f1e0e90a6a67bb2b27114693becbbb42621",
     "apps/media-vault/novels.css": "8fea36c704e9415f26439f57c87c503dd6c160635c15417f141921ce27390171",
@@ -21,7 +21,7 @@
     "workers/media-vault-hybrid/src/github-login.js": "6ecc4067d2a85cfb6e7c02cab51ca4d1bda667d708d9e794098f45802f9edecf",
     "workers/media-vault-hybrid/oauth-schema.sql": "c212391ce004886b383699a57e4d7987b338fad2ce83164639615bec81eb970f",
     "workers/media-vault-hybrid/src/integrated.js": "f5988f95497117b582182a2aa1813af8866f1b1f80310a540a49ce747f6adf9a",
-    "apps/media-vault/account-session.js": "7f2f0af6b9fc6cbf9f03684a6b3a545ecd750ba79670963cf5a097d7c94ac136",
+    "apps/media-vault/account-session.js": "2f0aca187f5260d51b654eb445b786fc07d11636b90b66fbeb383377242a8ae2",
     "workers/media-vault-hybrid/account-window-config.mjs": "b4cd6daa5ccf0dcd8a103c3a0e778949deb4a182e15dc399f4037be56d92422c",
     "workers/media-vault-hybrid/src/github-transport.js": "9cd0a03e08b5290aa83a92ed325bd9e327021a5acd268509f0e85c6a690fc1f9",
     "apps/media-vault/download-tasks.js": "406c0cfbe9e267eaa17f2183440add365658e9bd4536f314f04228d8e2a05983",
