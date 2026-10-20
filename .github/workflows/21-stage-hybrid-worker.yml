@@ -383,4 +383,5 @@ jobs:
         if: inputs.operation == 'integrated-download-proof'
         env:
           OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-        run: node workers/media-vault-hybrid/live-integrated-delivery.mjs
+          FIXTURE_REF: ${{ github.sha }}
+        run: node workers/media-vault-hybrid/live-download-release.mjs

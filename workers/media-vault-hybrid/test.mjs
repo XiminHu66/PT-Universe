@@ -46,6 +46,8 @@ r=await result(await req('/agent/lease',{method:'POST',headers:{...auth(env.MEDI
 assert.equal(r.status,200);assert.equal(r.body.job.id,id);
 r=await result(await req('/agent/job?id='+id,{headers:auth()}));assert.equal(r.status,401);
 r=await result(await req('/agent/job?id='+id,{headers:auth(env.MEDIA_AGENT_TOKEN)}));assert.equal(r.body.status,'running');
+r=await result(await req('/agent/report',{method:'POST',headers:auth(env.MEDIA_AGENT_TOKEN),body:JSON.stringify({id,status:'running',title:'Preparing fixture',phase:'extracting',speed:123,peers:2})}));assert.equal(r.status,200);
+r=await result(await req('/jobs',{headers:auth()}));assert.equal(r.body.jobs[0].phase,'extracting');assert.equal(r.body.jobs[0].speed,123);assert.equal(r.body.jobs[0].title,'Preparing fixture');
 r=await result(await req('/agent/report',{method:'POST',headers:auth(env.MEDIA_AGENT_TOKEN),body:JSON.stringify({id,status:'complete',files:[]})}));assert.equal(r.status,400,'ordinary downloads still require files');
 r=await result(await req('/agent/report',{method:'POST',headers:auth(env.MEDIA_AGENT_TOKEN),body:JSON.stringify({id,status:'complete',files:[{path:'generated/../../bad.epub',size:12}]})}));
 assert.equal(r.status,400);assert.equal(db.jobs[0].status,'running');assert.equal(db.files.length,0,'invalid completion must not partially commit');

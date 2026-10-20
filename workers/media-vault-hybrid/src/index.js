@@ -181,6 +181,10 @@ export async function handle(request,env){
       const ops=files.map(f=>env.DB.prepare("INSERT OR REPLACE INTO mv_hybrid_files(job_id,relative_path,name,bytes) SELECT ?,?,?,? WHERE EXISTS(SELECT 1 FROM mv_hybrid_jobs WHERE id=? AND status='running')").bind(o.id,f.path,String(f.name||f.path).slice(0,220),f.size,o.id));
       if(row.kind==='pikpak-account'&&o.status!=='running'){const spec=JSON.parse(row.request_json);delete spec.token_cipher;ops.push(env.DB.prepare("UPDATE mv_hybrid_jobs SET request_json=? WHERE id=? AND status='running'").bind(JSON.stringify(spec),o.id));}
       let detail=String(o.title||'').slice(0,180);
+      const phases=new Set(['submitting','extracting','downloading','processing','metadata','peers','queued','checking']);
+      if(!row.kind.startsWith('pikpak')&&phases.has(o.phase)){
+       detail=JSON.stringify({title:detail,phase:o.phase,speed:Number.isSafeInteger(o.speed)&&o.speed>=0?o.speed:0,peers:Number.isSafeInteger(o.peers)&&o.peers>=0&&o.peers<=100000?o.peers:0});
+      }
       if(row.kind.startsWith('pikpak')&&o.status==='complete'){
        let data;try{data=JSON.parse(String(o.title||''));}catch{}
        if(data&&row.kind==='pikpak-account')detail=JSON.stringify({id:o.id,label:String(data.label||'PikPak').slice(0,24),ready:data.ready===true,...(data.auth_type==='rclone'?{auth_type:'rclone'}:{})});

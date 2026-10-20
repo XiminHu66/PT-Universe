@@ -128,6 +128,13 @@ try{
  const recovered=await reloadedClient.submit(uiSpec);assert.equal(recovered.replayed,true);assert.equal((await counter()).n,beforeUI+1);
  assert.equal((await reloadedClient.read('/jobs')).jobs.some(j=>j.id===recovered.id),true);
  assert.equal((await reloadedClient.refresh()).jobs_remaining,4);
+ await reloadedClient.read('/jobs/cancel',{id:recovered.id});
+ const rebuilt=await reloadedClient.submit(uiSpec);assert.notEqual(rebuilt.id,recovered.id,'cancel then same input creates a new job');
+ assert.equal((await reloadedClient.submit(uiSpec)).id,rebuilt.id,'active new attempt is still deduplicated');
+ assert.equal((await counter()).n,beforeUI+2);
+ await DB.prepare("UPDATE mv_hybrid_jobs SET status='error' WHERE id=?").bind(rebuilt.id).run();
+ const repaired=await reloadedClient.submit({retry_of:rebuilt.id});assert.notEqual(repaired.id,rebuilt.id);
+ assert.equal((await reloadedClient.submit({retry_of:rebuilt.id})).id,repaired.id,'explicit retries are also idempotent');
  await reloadedClient.logout();assert.equal(storage.value,null);assert.equal((await request('/app-auth/session',{cookie:ui.cookie})).status,403);reloadedClient.dispose();
  // The first browser acceptance grants a separate, empty account realm and
  // clamps both cookie and approved capability to the twenty-minute window.
