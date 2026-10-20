@@ -1,5 +1,6 @@
 import {appEnabled,appCookie,appCookieDigest,randomHex} from './account-auth.js';
 import {digest} from './session-auth.js';
+import {githubProviderFetch} from './github-transport.js';
 
 export const LOGIN_OWNER_ID=36136585;
 export const LOGIN_ORIGIN='https://pt-media-hybrid.summer07-nanjolno.workers.dev';
@@ -72,7 +73,8 @@ export function loginManifest(){return {name:'Media Vault XiminHu66 '+randomHex(
 
 // The callback never accepts an owner ID or a device/session ID from the browser.
 // Only GitHub's fixed HTTPS /user response can create an approved personal parent.
-export async function githubLoginRoute(request,env,{exchange,fetch:requestGitHub=fetch}={}){
+export async function githubLoginRoute(request,env,{exchange,fetch:requestGitHub}={}){
+ requestGitHub||=(url,options)=>githubProviderFetch(env,url,options);
  const u=new URL(request.url),path=u.pathname;
  if(!path.startsWith(prefix+'/'))return null;
  const origin=request.headers.get('Origin'),isResult=path===prefix+'/result',isConnect=path===prefix+'/connect',isReceipt=[prefix+'/ack',prefix+'/cancel'].includes(path),cross=isResult||isConnect||isReceipt;let callbackContext;
@@ -160,10 +162,10 @@ export async function loginReadiness(env){
  const configured=Boolean(await env.DB.prepare("SELECT 1 AS configured FROM mv_hybrid_login_config WHERE id='github'").first());
  let provider_reachable=false,provider_http_status=null,provider_reason='unavailable';
  try{
-  const response=await fetch('https://api.github.com/users/XiminHu66',{headers:{Accept:'application/vnd.github+json','User-Agent':'MediaVaultPrivateLogin'},redirect:'manual',signal:AbortSignal.timeout(15000)});
+  const response=await githubProviderFetch(env,'https://api.github.com/users/XiminHu66',{headers:{Accept:'application/vnd.github+json','User-Agent':'MediaVaultPrivateLogin'},redirect:'manual',signal:AbortSignal.timeout(15000)});
   provider_http_status=response.status;
   if(response.ok){const user=await response.json();provider_reachable=user.id===LOGIN_OWNER_ID&&user.type==='User';provider_reason=provider_reachable?'ok':'identity_mismatch';}
   else {provider_reason=[403,429].includes(response.status)&&response.headers.get('X-RateLimit-Remaining')==='0'?'rate_limited':'upstream_http';await response.body?.cancel();}
  }catch(error){provider_reason=['TypeError','TimeoutError','AbortError'].includes(error.name)?error.name:'unavailable';}
- return {enabled:true,provider_reachable,configured,provider_http_status,provider_reason};
+ return {enabled:true,provider_reachable,configured,provider_http_status,provider_reason,transport:env.MEDIA_LOGIN_TRANSPORT==='vps'?'vps':'edge'};
 }

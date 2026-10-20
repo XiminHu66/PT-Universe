@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {githubProviderFetch} from './src/github-transport.js';
+const sent=[],env={MEDIA_LOGIN_TRANSPORT:'vps',RELAY:{idFromName(name){assert.equal(name,'media-vault-private');return name;},get(){return {async fetch(url,options){assert.equal(url,'https://private/github-login');assert.equal(options.method,'POST');sent.push(JSON.parse(options.body));return Response.json({id:36136585,type:'User'});}};}}};
+await githubProviderFetch(env,'https://api.github.com/users/XiminHu66');assert.deepEqual(sent.pop(),{operation:'probe',payload:{}});
+await githubProviderFetch(env,'https://api.github.com/app-manifests/'+'c'.repeat(40)+'/conversions',{method:'POST'});assert.deepEqual(sent.pop(),{operation:'manifest',payload:{code:'c'.repeat(40)}});
+const data={client_id:'Iv1.'+'b'.repeat(16),client_secret:'s'.repeat(40),code:'c'.repeat(40),code_verifier:'a'.repeat(64),redirect_uri:'https://pt-media-hybrid.summer07-nanjolno.workers.dev/media-vault-login/callback'};
+await githubProviderFetch(env,'https://github.com/login/oauth/access_token',{method:'POST',body:new URLSearchParams(data).toString()});const {redirect_uri,...payload}=data;assert.deepEqual(sent.pop(),{operation:'token',payload});
+await githubProviderFetch(env,'https://api.github.com/user',{headers:{Authorization:'Bearer ghu_'+'x'.repeat(40)}});assert.deepEqual(sent.pop(),{operation:'user',payload:{access_token:'ghu_'+'x'.repeat(40)}});
+for(const url of ['https://evil.invalid/','http://api.github.com/user','https://api.github.com/user?url=https://evil.invalid','https://api.github.com/app-manifests/../users/conversions'])await assert.rejects(githubProviderFetch(env,url));
+await assert.rejects(githubProviderFetch(env,'https://github.com/login/oauth/access_token',{method:'POST',body:new URLSearchParams({...data,redirect_uri:'https://evil.invalid/'}).toString()}));assert.equal(sent.length,0);
+console.log('PASS GitHub VPS transport: four fixed operations, fixed callback, minimal credential fields, no arbitrary URL/header/redirect forwarding');

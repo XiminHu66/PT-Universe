@@ -3,7 +3,7 @@ const decoder=new TextDecoder(),CHUNK_MAX=256*1024,ID=/^[0-9a-f]{24}$/;
 const CHECKPOINT='transfer-counts',AGENT_LEASE_MS=60000,PROBE_MS=3000,START_MS=15000,IDLE_MS=120000,RATE_KEY='ticket-permits',RATE_WINDOW=60000,RATE_MAX=12;
 export class MediaRelay {
  constructor(ctx,env){
-  this.ctx=ctx;this.env=env;this.transfers=new Map();this.starting=false;this.serial=Promise.resolve();this.probes=new Map();
+  this.ctx=ctx;this.env=env;this.transfers=new Map();this.starting=false;this.serial=Promise.resolve();this.probes=new Map();this.githubCalls=new Map();
   this.ready=ctx.blockConcurrencyWhile(async()=>{try{await this.recover()}catch(e){await ctx.storage.setAlarm(Date.now()+5000);throw e}});
  }
  attachment(ws){try{return ws.deserializeAttachment()||{}}catch{return {}}}
@@ -11,6 +11,7 @@ export class MediaRelay {
   const a=this.attachment(ws);try{ws.serializeAttachment({...a,retired:true})}catch{}
   try{ws.close(1012,'Agent heartbeat expired')}catch{}
   for(const [id,p] of this.probes)if(p.ws===ws){clearTimeout(p.timer);this.probes.delete(id);p.finish('offline');}
+  for(const [id,p] of this.githubCalls)if(p.ws===ws){clearTimeout(p.timer);this.githubCalls.delete(id);p.finish(new Response('Private login relay unavailable',{status:503}));}
  }
  agents(){return this.ctx.getWebSockets('media-agent').filter(ws=>{
   const a=this.attachment(ws),fresh=ws.readyState===1&&!a.retired&&Number.isSafeInteger(a.seen)&&Date.now()-a.seen<=AGENT_LEASE_MS;
@@ -54,6 +55,25 @@ export class MediaRelay {
  async fetch(request){
   await this.ready;
   const u=new URL(request.url);
+  if(u.pathname==='/github-login'){
+   if(request.method!=='POST')return new Response(null,{status:405});
+   const text=await request.text();if(text.length>3500)return new Response(null,{status:413});
+   let data;try{data=JSON.parse(text);}catch{return new Response(null,{status:400});}
+   if(!['probe','manifest','token','user'].includes(data?.operation)||!data.payload||typeof data.payload!=='object'||Array.isArray(data.payload)||Object.keys(data).some(k=>!['operation','payload'].includes(k)))return new Response(null,{status:400});
+   const agents=this.agents();if(agents.length!==1)return new Response(null,{status:503});
+   if(this.githubCalls.size)return new Response(null,{status:429});
+   const allowed=await this.exclusive(async()=>{
+    const now=Date.now(),prior=await this.ctx.storage.get('github-login-permits'),times=(Array.isArray(prior)?prior:[]).filter(t=>Number.isSafeInteger(t)&&t>now-60000);
+    if(times.length>=20)return false;times.push(now);await this.ctx.storage.put('github-login-permits',times);return true;
+   });
+   if(!allowed||this.githubCalls.size)return new Response(null,{status:429});
+   const ws=agents[0],id=crypto.randomUUID().replaceAll('-','').slice(0,24);
+   return new Promise(resolve=>{
+    const pending={ws,finish:resolve,timer:setTimeout(()=>{this.githubCalls.delete(id);resolve(new Response(null,{status:504}));},16000)};
+    this.githubCalls.set(id,pending);
+    try{ws.send(JSON.stringify({type:'github-request',id,...data}));}catch{clearTimeout(pending.timer);this.githubCalls.delete(id);resolve(new Response(null,{status:503}));}
+   });
+  }
   if(u.pathname==='/agent-ready'){const channel=await this.channel(true);return new Response(channel==='ready'?null:channel,{status:channel==='ready'?204:channel==='busy'?429:503,headers:{'Retry-After':'3'}});}
   if(u.pathname==='/ticket-permit'||u.pathname==='/catalog-permit'){
    return this.exclusive(async()=>{
@@ -144,8 +164,15 @@ export class MediaRelay {
   ws.serializeAttachment({...attachment,seen:Date.now()});
   if(message==='mv-ping'){ws.send('mv-pong');return;}
   if(typeof message==='string'){
+   if(message.length>16000)return;
    let data;try{data=JSON.parse(message)}catch{return}
    if(!ID.test(data?.id||''))return;
+   if(data.type==='github-response'){
+    const p=this.githubCalls.get(data.id);if(!p||p.ws!==ws)return;
+    if(!Number.isInteger(data.status)||data.status<200||data.status>599||[204,205,304].includes(data.status)||!data.data||typeof data.data!=='object'||Array.isArray(data.data))return;
+    clearTimeout(p.timer);this.githubCalls.delete(data.id);
+    p.finish(new Response(JSON.stringify(data.data),{status:data.status,headers:{'Content-Type':'application/json','Cache-Control':'no-store',...(data.rate_limited===true?{'X-RateLimit-Remaining':'0'}:{})}}));return;
+   }
    if(data.type==='probe-ok'||data.type==='probe-busy'){
     const p=this.probes.get(data.id);if(p?.ws===ws){clearTimeout(p.timer);this.probes.delete(data.id);p.finish(data.type==='probe-ok'?'ready':'busy');}return;
    }
