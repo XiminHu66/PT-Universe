@@ -158,6 +158,12 @@ export async function githubLoginRoute(request,env,{exchange,fetch:requestGitHub
 export async function loginReadiness(env){
  if(!enabled(env)||!env.DB)return {enabled:false,provider_reachable:false,configured:false};
  const configured=Boolean(await env.DB.prepare("SELECT 1 AS configured FROM mv_hybrid_login_config WHERE id='github'").first());
- let provider_reachable=false;try{const user=await github(fetch,'https://api.github.com/users/XiminHu66');provider_reachable=user.id===LOGIN_OWNER_ID&&user.type==='User';}catch{}
- return {enabled:true,provider_reachable,configured};
+ let provider_reachable=false,provider_http_status=null,provider_reason='unavailable';
+ try{
+  const response=await fetch('https://api.github.com/users/XiminHu66',{headers:{Accept:'application/vnd.github+json','User-Agent':'MediaVaultPrivateLogin'},redirect:'manual',signal:AbortSignal.timeout(15000)});
+  provider_http_status=response.status;
+  if(response.ok){const user=await response.json();provider_reachable=user.id===LOGIN_OWNER_ID&&user.type==='User';provider_reason=provider_reachable?'ok':'identity_mismatch';}
+  else {provider_reason=[403,429].includes(response.status)&&response.headers.get('X-RateLimit-Remaining')==='0'?'rate_limited':'upstream_http';await response.body?.cancel();}
+ }catch(error){provider_reason=['TypeError','TimeoutError','AbortError'].includes(error.name)?error.name:'unavailable';}
+ return {enabled:true,provider_reachable,configured,provider_http_status,provider_reason};
 }

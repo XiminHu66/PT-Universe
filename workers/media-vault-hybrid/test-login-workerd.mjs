@@ -45,7 +45,7 @@ try{
  assert.equal(external.length,3,'native Worker fetch performed all three fixed provider requests');
  const count=await db.prepare('SELECT COUNT(*) AS n FROM mv_hybrid_app_sessions').first();
  r=await request('/login-readiness');assert.equal(r.status,401,'public cannot inspect login configuration');
- r=await mf.dispatchFetch(origin+'/login-readiness',{headers:{Authorization:'Bearer '+'o'.repeat(64)}});assert.equal(r.status,200);assert.deepEqual(await r.json(),{enabled:true,provider_reachable:true,configured:true});
+ r=await mf.dispatchFetch(origin+'/login-readiness',{headers:{Authorization:'Bearer '+'o'.repeat(64)}});assert.equal(r.status,200);assert.deepEqual(await r.json(),{enabled:true,provider_reachable:true,configured:true,provider_http_status:200,provider_reason:'ok'});
  r=await request('/fixture-catalog');assert.equal(r.status,200);assert.deepEqual(await r.json(),{title:'目录',total:1,chapters:[{index:0,title:'一'}],truncated:false});
  const blocked={channel:'b'.repeat(64),remember:false};r=await request('/media-vault-login/connect',{body:blocked,source:site});assert.equal(r.status,201);
  r=await request('/media-vault-login/start',{body:blocked});assert.equal(r.status,200);const blockedAuth=new URL((await r.json()).authorize_url),blockedCookie=r.headers.get('Set-Cookie').split(';')[0];
