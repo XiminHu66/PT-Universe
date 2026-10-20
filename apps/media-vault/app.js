@@ -425,6 +425,7 @@ async function openVpsTask(kind,url=''){
  if(!url){notice('VPS 已连接，可以直接在本页提交下载。');await loadTasks();return;}
  return submitJob(kind,url);
 }
+if($('#torrentUseExample'))$('#torrentUseExample').onclick=()=>{$('#torrentURL').value='magnet:?xt=urn:btih:08ada5a7a6183aae1e09d831df6748d566095a10';$('#torrentURL').focus();notice('已填入公开授权的 Sintel 测试磁力（约 129 MB），点击开始下载即可。');};
 $('#torrentForm').onsubmit=e=>{e.preventDefault();let url;try{url=torrentInput($('#torrentURL').value);$('#torrentURL').value=url;}catch(error){notice(error.message,true);return;}busy(e.submitter,()=>engine?submitJob('torrent',url):openVpsTask('torrent',url));};
 function openSettings(){if(SCOPED_PREVIEW){$('#settings').showModal();void scopedReady.then(c=>c.refresh()).catch(()=>{});return;}$('#engineURL').value=engine?.url||localStorage.getItem('mv.engine.url')||'http://localhost:8789';$('#engineToken').value=engine?.token||'';$('#settings').showModal();}
 $('#settingsOpen').onclick=()=>{$('#displaySettings').close();openSettings();};$('#torrentConnect').onclick=()=>busy($('#torrentConnect'),()=>openVpsTask('torrent'));
