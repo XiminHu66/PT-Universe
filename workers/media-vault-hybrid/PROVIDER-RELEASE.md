@@ -1,4 +1,8 @@
-# Personal VPS provider update — 2026-10-19
+# Media Vault provider release
+
+**Superseded:** use the [2026-10-20 release checkpoint](../../docs/media-vault/release-2026-10-20.md) for the current production state and continuation plan. Normal authenticated delivery is ON. Video, BT and PikPak controls stay in Media Vault; the old dedicated account-page handoff and per-device Owner approval below are historical. The existing private GitHub identity login replaces that approval flow. Workflow names containing “streaming OFF” and closed default configuration do not describe current production delivery. Do not restore an old stage or request new keys based on this archived text.
+
+## Archived provider update — 2026-10-19
 
 The public music page defaults to Monochrome's own Tracks search and FLAC URLs. BT and normal video links hand off to the dedicated account portal, then the existing outward-polling VPS Agent submits Aria2/MeTube jobs. No Owner key is pasted into the public page. Video extraction occurs on the VPS; the optional public-direct-link parser remains separate. Unsupported/login/DRM sources may still fail.
 
