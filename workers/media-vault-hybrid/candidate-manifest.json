@@ -13,7 +13,7 @@
   ],
   "production_source_sha256": {
     "apps/media-vault/index.html": "9b490cd2113cc298b32a670d49584d8325d6346035e792a50a4395225fe00015",
-    "apps/media-vault/app.js": "aafe300c55eaea472348681a62c4bf18574a0a585e972cd94e18c740e9d72a2e",
+    "apps/media-vault/app.js": "a8ccdf9489a11504a956d6af02b8e2a628c1e8bd0c93905d3297dda1dfdd7c1a",
     "apps/media-vault/style.css": "6213bec256d8c7e99d9eaecd89b4ae04649db5d6e90398fcab54ec9df7547b25",
     "apps/media-vault/novels.css": "8fea36c704e9415f26439f57c87c503dd6c160635c15417f141921ce27390171",
     "apps/media-vault/device-connect.js": "a7196845da103131b53c5df4518bc1dbba86577e5c5ece2ec37f25be838ee014",
