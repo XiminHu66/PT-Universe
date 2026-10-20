@@ -17,7 +17,7 @@ async function lookup(source,env,fetcher,signal){
  if(permit.status!==204){void permit.body?.cancel().catch(()=>{});throw failure(permit.status===429?'catalog_rate_limited':'catalog_limiter_unavailable');}
  signal.throwIfAborted();
  let response;
- try{response=await fetcher('https://pt-universe-api.summer07-nanjolno.workers.dev/api/media/novel?'+new URLSearchParams({url:source}),{cache:'no-store',redirect:'error',headers:{Accept:'application/json'},signal});}
+ try{response=await fetcher('https://pt-universe-api.summer07-nanjolno.workers.dev/api/media/novel?'+new URLSearchParams({url:source}),{cache:'no-store',redirect:'manual',headers:{Accept:'application/json'},signal});}
  catch{throw failure(signal.aborted?'catalog_timeout':'catalog_network');}
  if(!response.ok){void response.body?.cancel().catch(()=>{});throw failure(response.status===429?'catalog_rate_limited':'catalog_upstream_http');}
  const reader=response.body?.getReader();if(!reader)throw failure('catalog_invalid_response');

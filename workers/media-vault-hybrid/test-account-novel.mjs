@@ -31,7 +31,7 @@ try{
  assert.match(await (await request('/app/')).text(),/30 分钟小说操作验收/);
  assert.equal((await request('/app-api/novel/catalog?url=https://www.wenku8.net/book/1.htm',{cookie:a.cookie})).status,403);
  const originalFetch=globalThis.fetch;let catalogCalls=0;
- try{globalThis.fetch=async(url,opts)=>{catalogCalls++;assert.equal(new URL(url).hostname,'pt-universe-api.summer07-nanjolno.workers.dev');assert.equal(new URL(url).searchParams.get('url'),NOVEL_UX_SOURCE);assert.equal(opts.redirect,'error');return new Response(JSON.stringify({title:'fixture',chapters:[{title:'one',url:'private'},{title:'two',url:'private'}]}));};
+ try{globalThis.fetch=async(url,opts)=>{catalogCalls++;assert.equal(new URL(url).hostname,'pt-universe-api.summer07-nanjolno.workers.dev');assert.equal(new URL(url).searchParams.get('url'),NOVEL_UX_SOURCE);assert.equal(opts.redirect,'manual');return new Response(JSON.stringify({title:'fixture',chapters:[{title:'one',url:'private'},{title:'two',url:'private'}]}));};
  const catalog=await request('/app-api/novel/catalog?'+new URLSearchParams({url:NOVEL_UX_SOURCE}),{cookie:a.cookie});assert.equal(catalog.status,200);assert.deepEqual((await catalog.json()).chapters,[{index:0,title:'one'},{index:1,title:'two'}]);assert.equal(catalogCalls,1);
  globalThis.fetch=async()=>new Response('private upstream text',{status:500});
  const upstream=await request('/app-api/novel/catalog?'+new URLSearchParams({url:NOVEL_UX_SOURCE}),{cookie:a.cookie});assert.equal(upstream.status,503);assert.deepEqual(await upstream.json(),{error:'Catalog unavailable; verify source access and retry later',code:'catalog_upstream_http'});

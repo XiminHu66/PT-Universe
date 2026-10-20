@@ -42,7 +42,7 @@ export function mountIntegratedDownloads(options={}){
  }
  async function receive(event){const data=event.data;if(event.origin!==new URL(base).origin||event.source!==popup||data?.type!=='mv-device-connect'||data.channel!==channel)return;
   if(data.status==='login'){note('请在 GitHub 窗口完成登录，之后会自动继续下载。');return;}
-  if(data.status==='setup_required'){note('首次请在连接窗口启用专用私有登录应用。设置已预填，之后直接登录。');return;}
+  if(data.status==='setup_required'){note('首次请在 GitHub 确认创建专用私有登录应用，之后会自动继续。');return;}
   if(data.status==='error'){note(data.message||'连接失败，请重试。',true);finish(Error(data.message||'连接失败'));return;}
   if(data.status==='ready')await poll();
  }

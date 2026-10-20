@@ -63,7 +63,7 @@ try{
  const originalNow=Date.now;try{Date.now=()=>Number(pilot.MEDIA_APP_SUBMISSION_TEST_UNTIL);assert.equal((await request('/app-auth/session',{cookie:devices[0],environment:pilot})).status,404);}finally{Date.now=originalNow;}
  // Metadata lookup strips source URLs/unknown fields, stops at upstream errors,
  // and has its own durable global rate bucket, independent of file tickets.
- const catalog=await novelCatalog(spec.url,env,async(url,o)=>{assert.match(url,/^https:\/\/pt-universe-api\./);assert.equal(o.redirect,'error');assert.ok(!o.headers.Authorization&&!o.headers.Cookie);return new Response(JSON.stringify({title:'目录',chapters:[{title:'一',url:'private chapter',secret:'drop'}]}));});
+ const catalog=await novelCatalog(spec.url,env,async(url,o)=>{assert.match(url,/^https:\/\/pt-universe-api\./);assert.equal(o.redirect,'manual');assert.ok(!o.headers.Authorization&&!o.headers.Cookie);return new Response(JSON.stringify({title:'目录',chapters:[{title:'一',url:'private chapter',secret:'drop'}]}));});
  assert.deepEqual(catalog.chapters,[{index:0,title:'一'}]);
  let fetches=0;await assert.rejects(novelCatalog('https://localhost/x',env,async()=>{fetches++;}),e=>e.status===400);assert.equal(fetches,0);
  await assert.rejects(novelCatalog(spec.url,env,async()=>new Response('',{status:429})),e=>e.status===429);
