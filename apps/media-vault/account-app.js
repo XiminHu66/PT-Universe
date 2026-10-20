@@ -1,5 +1,5 @@
 import {mountPikPak} from './pikpak-account.js';
-import {createAccountConnection} from './account-session.js';
+import {createAccountConnection} from './account-session.js?v=3';
 import {createNativeSaver} from './native-download.js';
 import {formSpec,chapterIndices,layouts,progressText,recoveryText} from './account-form.js';
 export function mountAccountPage(options={}){
