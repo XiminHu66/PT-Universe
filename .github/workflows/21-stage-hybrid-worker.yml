@@ -6,7 +6,7 @@ on:
         description: Metadata operation
         type: choice
         default: verify
-        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership, account-approve, account-revoke, account-login-on, account-login-off, account-submit-on, account-submit-off, account-rc-off, account-off-check, account-files-check, account-device-files-check, account-device-files-verify, account-device-files-on, account-device-recovery-check, account-device-recovery-on, account-files-on, account-files-off, account-novel-on, account-novel-off, account-observation-on, account-observation-off, account-observation-check, account-novel-check, account-personal-on, account-personal-update, account-personal-check, remote-download-proof, manga-proof, candidate-check, integrated-downloads-on, integrated-download-proof, login-diagnostics]
+        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership, account-approve, account-revoke, account-login-on, account-login-off, account-submit-on, account-submit-off, account-rc-off, account-off-check, account-files-check, account-device-files-check, account-device-files-verify, account-device-files-on, account-device-recovery-check, account-device-recovery-on, account-files-on, account-files-off, account-novel-on, account-novel-off, account-observation-on, account-observation-off, account-observation-check, account-novel-check, account-personal-on, account-personal-update, account-personal-check, remote-download-proof, manga-proof, candidate-check, integrated-downloads-on, integrated-download-proof, login-diagnostics, download-diagnostics]
       device_authorization:
         description: Explicit new user-device round approval (3 tickets / 10 MiB / 20 minutes)
         type: boolean
@@ -53,6 +53,12 @@ jobs:
           D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: node workers/media-vault-hybrid/login-diagnostics.mjs
+      - name: Read-only download queue metadata
+        if: inputs.operation == 'download-diagnostics'
+        env:
+          D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node workers/media-vault-hybrid/download-diagnostics.mjs
       - name: Test and deploy only dedicated hybrid metadata Worker
         if: inputs.operation == 'deploy' || inputs.operation == 'prepare' || inputs.operation == 'stream-on' || inputs.operation == 'large-on' || inputs.operation == 'stream-off'
         env:
