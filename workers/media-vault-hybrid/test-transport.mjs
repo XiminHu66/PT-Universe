@@ -14,7 +14,7 @@ lines.on('line',line=>{const value=JSON.parse(line),handler=pending.get(value.id
 function sql(ops,batch=false,fail_at=null){return new Promise((resolve,reject)=>{const id=++sequence;pending.set(id,{resolve,reject});process.stdin.write(JSON.stringify({id,ops,batch,fail_at})+'\n')})}
 function statement(query,args=[]){return {sql:query,args,bind(...args){return statement(query,args)},async run(){return (await sql([this]))[0]},async first(){return (await sql([this]))[0].results[0]||null},async all(){return (await sql([this]))[0]}}}
 const DB={prepare:statement,async batch(ops){const inject=failAt;failAt=null;return sql(ops,true,inject)}};
-const id='a'.repeat(24),path='video/ptmv-'+id+' [中文样本].mp4',period=new Date().toISOString().slice(0,7);
+const id='a'.repeat(24),path='video/ptmv-'+id+" [中文样本 (ZDF, Terra X) & Kid's choice 🎬!].mp4",period=new Date().toISOString().slice(0,7);
 const env={DB,ENABLE_DIRECT_STREAM:'true',MEDIA_OWNER_TOKEN:'o'.repeat(64),MEDIA_AGENT_TOKEN:'a'.repeat(64),MEDIA_TRANSFER_MONTHLY_LIMIT_GIB:'5',RELAY:{idFromName(){return 'test'},get(){return {fetch:async url=>(url.endsWith('/ticket-permit')||url.endsWith('/agent-ready'))?new Response(null,{status:204}):new Response('offline',{status:503})}}}};
 const base='https://unit.invalid';
 function request(route,body,token=env.MEDIA_OWNER_TOKEN,environment=env){return transportRoute(new Request(base+route,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined}),environment)}
@@ -189,10 +189,20 @@ try{
  assert.equal((await DB.prepare('SELECT status FROM mv_hybrid_tickets').first()).status,'complete');await crashReader.cancel();
  // Concurrent redemption is claimed atomically inside the recovered relay.
  await reset();current=makeRelay(relayContext(agent),{DB});t=await ticket();
- const claims=await Promise.all([request('/download?ticket='+t.ticket),request('/download?ticket='+t.ticket)]);
- assert.deepEqual(claims.map(r=>r.status).sort(),[200,403]);
- crashId=agent.sent.at(-1).id;await claims.find(r=>r.status===200).body.cancel();await current.webSocketClose(agent);
- assert.equal((await usage()).reserved_bytes,0);
+ const pullsBefore=agent.sent.filter(x=>x.type==='pull').length;
+ const claims=await Promise.all(Array.from({length:8},()=>request('/download?ticket='+t.ticket)));
+ assert.deepEqual(claims.map(r=>r.status).sort(),[200,403,403,403,403,403,403,403]);
+ assert.equal(agent.sent.filter(x=>x.type==='pull').length-pullsBefore,1);
+ assert.equal((await DB.prepare('SELECT status FROM mv_hybrid_tickets').first()).status,'active','duplicates cannot retire the live claim');
+ assert.equal((await usage()).reserved_bytes,4,'duplicates cannot release the live reservation');
+ crashId=agent.sent.at(-1).id;crashReader=claims.find(r=>r.status===200).body.getReader();
+ frame=current.webSocketMessage(agent,new Uint8Array([...new TextEncoder().encode(crashId),80,75,3,4]).buffer);
+ assert.deepEqual([...(await crashReader.read()).value],[80,75,3,4]);await frame;
+ const raceEnd=current.webSocketMessage(agent,JSON.stringify({type:'end',id:crashId}));assert.equal((await crashReader.read()).done,true);await raceEnd;
+ assert.equal((await usage()).reserved_bytes,0);assert.equal((await usage()).transferred_bytes,4);
+ assert.equal((await DB.prepare('SELECT status FROM mv_hybrid_tickets').first()).status,'complete');
+ assert.equal((await request('/download?ticket='+t.ticket)).status,403);
+ await current.webSocketClose(agent);
  // Slow-reader ACK withholding, a competing download, and reservation isolation.
  await reset();context=relayContext(agent);current=makeRelay(context,{DB});agent.sent=[];
  const duplicateAgent=await current.fetch(new Request('https://private/agent-connect',{headers:{Upgrade:'websocket'}}));assert.equal(duplicateAgent.status,409);assert.equal(duplicateAgent.headers.get('Retry-After'),'5');

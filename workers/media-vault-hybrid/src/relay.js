@@ -3,7 +3,7 @@ const decoder=new TextDecoder(),CHUNK_MAX=256*1024,ID=/^[0-9a-f]{24}$/;
 const CHECKPOINT='transfer-counts',AGENT_LEASE_MS=60000,PROBE_MS=3000,START_MS=15000,IDLE_MS=120000,RATE_KEY='ticket-permits',RATE_WINDOW=60000,RATE_MAX=12;
 export class MediaRelay {
  constructor(ctx,env){
-  this.ctx=ctx;this.env=env;this.transfers=new Map();this.starting=false;this.serial=Promise.resolve();this.probes=new Map();this.githubCalls=new Map();
+  this.ctx=ctx;this.env=env;this.transfers=new Map();this.admissions=new Set();this.starting=false;this.serial=Promise.resolve();this.probes=new Map();this.githubCalls=new Map();
   this.ready=ctx.blockConcurrencyWhile(async()=>{try{await this.recover()}catch(e){await ctx.storage.setAlarm(Date.now()+5000);throw e}});
  }
  attachment(ws){try{return ws.deserializeAttachment()||{}}catch{return {}}}
@@ -102,6 +102,12 @@ export class MediaRelay {
    const jobId=u.searchParams.get('job'),path=u.searchParams.get('path'),id=u.searchParams.get('transfer');
    const size=Number(u.searchParams.get('size')),name=u.searchParams.get('name')||'download.bin',period=u.searchParams.get('month'),digest=u.searchParams.get('digest');
    if(!ID.test(jobId||'')||!ID.test(id||'')||!path||path.length>300||!Number.isSafeInteger(size)||size<=0||size>12*1024**3||!/^\d{4}-\d{2}$/.test(period||'')||!(/^[0-9a-f]{64}$/).test(digest||''))return new Response('Invalid stream request',{status:400});
+   // Protect one ticket before the asynchronous socket probe. A duplicate
+   // must get 403, never a busy response that releases the first redemption's
+   // reservation in the transport fallback. Other tickets remain independent.
+   if(this.admissions.has(digest)||[...this.transfers.values()].some(s=>s.digest===digest))return new Response('Ticket unavailable',{status:403});
+   this.admissions.add(digest);
+   try{
    const live=await this.channel(true);
    if(live!=='ready')return new Response(live==='busy'?'Transfer already running':'Agent unavailable',{status:live==='busy'?429:503,headers:{'Retry-After':'3'}});
    // Claim in the relay, after constructor recovery, so a concurrent bootstrap
@@ -128,6 +134,7 @@ export class MediaRelay {
    }finally{this.starting=false;}
    const safeName=name.replace(/[^a-zA-Z0-9._ -]/g,'_').slice(0,130)||'download.bin';
    return new Response(readable,{status:200,headers:{'Content-Type':'application/octet-stream','Content-Disposition':'attachment; filename="'+safeName+'"','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','Content-Length':String(size)}});
+   }finally{this.admissions.delete(digest);}
   }
   return new Response('Not found',{status:404});
  }

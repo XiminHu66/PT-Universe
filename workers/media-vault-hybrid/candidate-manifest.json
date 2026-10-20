@@ -26,8 +26,8 @@
     "workers/media-vault-hybrid/src/github-transport.js": "9cd0a03e08b5290aa83a92ed325bd9e327021a5acd268509f0e85c6a690fc1f9",
     "apps/media-vault/download-tasks.js": "15916eed60157a28a8c241abde54ebe7703a73f00b78d52dd3e23036f2c5d796",
     "apps/media-vault/native-download.js": "e3f7e8a1acd235bbe10bcf133363c71817cfb3ba0c95c5f17823f6e63d02a91a",
-    "workers/media-vault-hybrid/src/relay.js": "d9dabea3d4490a573f09c05b42de844039e70267049411daf2e59534e181d808",
-    "workers/media-vault-hybrid/src/transport.js": "2d917e27e06fbc22b594f072d9dfefc6d0024f00e08bd89bb2ebfa7e21692bb2"
+    "workers/media-vault-hybrid/src/relay.js": "948b5440191bc40dffba12a915e5d4ac3cf3b601aab5fd90312bd3dba97c2b58",
+    "workers/media-vault-hybrid/src/transport.js": "29108ef4aac8eb9175e5293202e9207f819a07956018c64331d72579945dd574"
   },
   "pending": [],
   "reviewed_main_sha": "d3dae7273d0de614243dd5ffc07c9768ed2f2428",

@@ -32,3 +32,8 @@
 当前版本不接收来源网站 Cookie，也不收集 Google 密码。不把“在本机重新登录”当作 VPS 授权方案，不通过公开 issue 或聊天收取凭据。不新增公网端口，不改变现有登录、传输预算、文件保留及正常文件交付状态。
 
 官方故障说明：[MeTube FAQ](https://github.com/alexta69/metube/wiki/Troubleshooting-FAQ)、[yt-dlp YouTube 提取与来源身份限制](https://github.com/yt-dlp/yt-dlp/wiki/Extractors#youtube)、[JavaScript 运行环境](https://github.com/yt-dlp/yt-dlp/wiki/EJS)。未执行人机验证绕过、换 IP 或更换请求身份重试。
+
+## 完整链路发现并修复的通用缺陷
+
+- 真正的视频页下载后，标题中的 ASCII 逗号、单引号、部分常见标点或 emoji 会被旧 Agent / Worker 文件路径规则拒绝，导致文件已下载却显示无可用文件。现已对齐三处路径规则并补上跨组件实际文件夹测试；保留长度限制、目录归属、路径穿越、编码穿越和符号链接拒绝。
+- 同一票据并发取回时，连接预探测之前未锁定票据，重复请求可能通过 busy 分支提前释放首个请求的预留。现对每张票据在异步预探测前做接入去重；测试并发 8 次只能启动一次拉流，其余全部 403，并完整验证字节、完成状态和账本。

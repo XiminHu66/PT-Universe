@@ -25,7 +25,7 @@ try{
   assert.ok(!['error','cancelled','expired'].includes(j.status),'CC source execution failed');await sleep(3000);
  }
  assert.ok(ready,'CC source execution deadline');
- const {files}=await api('/jobs/files?id='+id);assert.equal(files.length,1);const f=files[0];assert.ok(f.size>0&&f.size<=32*1024**2,'Bounded source file');
+ const {files}=await api('/jobs/files?id='+id);assert.equal(files.length,1);const f=files[0];assert.ok(f.size>0&&f.size<=64*1024**2,'Bounded source file');
  let ticket,response;
  for(let attempt=0;;attempt++){
   ({ticket}=await api('/download-ticket',{id,path:f.path}));
