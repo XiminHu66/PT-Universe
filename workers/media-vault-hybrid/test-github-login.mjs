@@ -14,7 +14,7 @@ function prepare(query,args=[]){return {sql:query,args,bind(...args){return prep
 const DB={prepare,batch:ops=>sql(ops,true)},env={DB,ENABLE_APP_ACCESS:'true',ENABLE_APP_SUBMISSION:'true',ENABLE_DIRECT_STREAM:'true',MEDIA_APP_TEST_MODE:'personal',MEDIA_APP_ACCOUNT_ID:'media-vault-personal',MEDIA_GITHUB_LOGIN:'true',MEDIA_AGENT_TOKEN:'a'.repeat(64),MEDIA_OWNER_TOKEN:'o'.repeat(64)};
 const calls=[],clientID='Iv1.'+'b'.repeat(16),secret='s'.repeat(40),code='c'.repeat(40);let githubID=36136585,permissions={},ghFailure=false,scope='';
 const github=async(url,options)=>{
- calls.push({url,options});assert.equal(options.redirect,'error');
+ calls.push({url,options});assert.equal(options.redirect,'manual');
  if(ghFailure)throw Error('fixture network outage');
  if(url.includes('/app-manifests/'))return Response.json({owner:{id:githubID,type:'User'},client_id:clientID,client_secret:secret,permissions,events:[],pem:'discard-this-unused-private-key',webhook_secret:'discard-unused-webhook-secret'},{status:201});
  if(url==='https://github.com/login/oauth/access_token'){const data=new URLSearchParams(options.body);assert.equal(data.get('client_id'),clientID);assert.equal(data.get('client_secret'),secret);assert.equal(data.get('redirect_uri'),origin+'/media-vault-login/callback');assert.match(data.get('code_verifier'),/^[a-f0-9]{64}$/);return Response.json({access_token:'ghu_'+ 'x'.repeat(40),scope,token_type:'bearer'});}

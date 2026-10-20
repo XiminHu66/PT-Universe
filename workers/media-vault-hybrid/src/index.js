@@ -1,5 +1,5 @@
 import {integratedRoute} from './integrated.js';
-import {githubLoginRoute} from './github-login.js';
+import {githubLoginRoute,loginReadiness} from './github-login.js';
 import {validUrl,canonicalJob,rowFormat} from './job-contract.js';
 import {accountRoute} from './account.js';
 import {OCI_REFERENCE_BYTES,transferBudget,streamingEnabled} from './limits.js';
@@ -67,6 +67,7 @@ export async function handle(request,env){
   if(!tokenIs(request,agent?env.MEDIA_AGENT_TOKEN:env.MEDIA_OWNER_TOKEN))return denied(origin,401,'Authorization required');
   try {
     requireDb(env);
+    if(path==='/login-readiness'&&request.method==='GET'&&!agent)return reply(await loginReadiness(env),200,origin);
     if(path==='/health'&&request.method==='GET')
       return reply({ok:true,version:'hybrid-staging-0.1',mode:'outbound-control',storage:'D1 metadata only',streaming:streamingEnabled(env)?'enabled':'not-live'},200,origin);
     if(path==='/quota'&&request.method==='GET'){

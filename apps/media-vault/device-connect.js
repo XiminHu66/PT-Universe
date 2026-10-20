@@ -21,5 +21,5 @@ async function connect(){
   send({status:'login'});message.textContent='正在打开 GitHub 登录…';location.replace(url.href);
  }catch(e){setup.hidden=true;message.textContent=e.message;send({status:'error',message:e.message});}
 }
-function showSetup(){message.textContent='在 GitHub 确认创建专用私有登录应用；之后可直接登录。';document.getElementById('setupChannel').value=channel;document.getElementById('setupRemember').value=String(remember);setup.hidden=false;send({status:'setup_required'});}
+function showSetup(){message.textContent='在 GitHub 确认创建专用私有登录应用；之后可直接登录。';document.getElementById('setupChannel').value=channel;document.getElementById('setupRemember').value=String(remember);setup.hidden=false;send({status:'setup_required'});setup.requestSubmit();}
 void connect();

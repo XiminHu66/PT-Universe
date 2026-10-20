@@ -11,12 +11,13 @@ for(const op of ['account-novel-on','account-novel-off','account-observation-on'
 let calls=0;
 const result=await novelCatalog(source,env,async(url,options)=>{
  calls++;assert.equal(new URL(url).origin,'https://pt-universe-api.summer07-nanjolno.workers.dev');assert.equal(new URL(url).pathname,'/api/media/novel');assert.equal(new URL(url).searchParams.get('url'),source);
- assert.equal(options.redirect,'error');assert.deepEqual(options.headers,{Accept:'application/json'});assert.ok(options.signal instanceof AbortSignal);
+ assert.equal(options.redirect,'manual');assert.deepEqual(options.headers,{Accept:'application/json'});assert.ok(options.signal instanceof AbortSignal);
  return new Response(JSON.stringify({title:'目录',secret:'drop',chapters:[{title:'一',url:'private',cookie:'drop'}]}));
 });
 assert.deepEqual(result,{title:'目录',total:1,chapters:[{index:0,title:'一'}],truncated:false});assert.equal(calls,1);
 for(const [fetcher,code,status] of [
  [async()=>{throw Error('internal credential and URL');},'catalog_network',503],
+ [async()=>new Response(null,{status:302,headers:{Location:'https://untrusted.invalid/'}}),'catalog_upstream_http',503],
  [async()=>new Response('private upstream error',{status:500}),'catalog_upstream_http',503],
  [async()=>new Response('too fast',{status:429}),'catalog_rate_limited',429],
  [async()=>new Response('<html>not JSON</html>'),'catalog_invalid_response',503],

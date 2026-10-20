@@ -63,7 +63,9 @@ async function consumeFlow(request,env,kind){
  const context=await openLogin(row.cipher,env,'flow');await connection(context,env);return context;
 }
 async function github(request,url,init={}){
- const response=await request(url,{...init,headers:{Accept:'application/vnd.github+json','User-Agent':'MediaVaultPrivateLogin',...init.headers},redirect:'error',signal:AbortSignal.timeout(15000)});
+ // Workers accepts follow/manual only. Reject redirects before following them,
+ // so OAuth credentials can never be forwarded to another host.
+ let response;try{response=await request(url,{...init,headers:{Accept:'application/vnd.github+json','User-Agent':'MediaVaultPrivateLogin',...init.headers},redirect:'manual',signal:AbortSignal.timeout(15000)});}catch{fail(502,'暂时无法连接 GitHub 登录服务，请稍后重新登录。');}
  const text=await response.text();if(text.length>64000||!response.ok)fail(502,'GitHub 暂时无法完成登录，请稍后重试。');let data;try{data=JSON.parse(text);}catch{fail(502,'GitHub 暂时无法完成登录，请稍后重试。');}return data;
 }
 export function loginManifest(){return {name:'Media Vault XiminHu66 '+randomHex(3),url:SITE_ORIGIN+'/PT-Universe/apps/media-vault/',description:'仅用于 XiminHu66 的 Media Vault 身份登录；不读取或写入仓库，不接收 webhook。',redirect_url:LOGIN_ORIGIN+prefix+'/setup/callback',callback_urls:[LOGIN_ORIGIN+prefix+'/callback'],public:false,default_permissions:{},default_events:[],hook_attributes:{url:LOGIN_ORIGIN+prefix+'/unused-webhook',active:false},request_oauth_on_install:false};}
@@ -80,7 +82,7 @@ export async function githubLoginRoute(request,env,{exchange,fetch:requestGitHub
   if(u.origin!==LOGIN_ORIGIN)fail(403,'登录地址无效。');
   if(origin&&origin!==LOGIN_ORIGIN&&!(origin===SITE_ORIGIN&&cross))fail(403,'登录来源无效。');
   if(request.method==='OPTIONS')return origin===SITE_ORIGIN&&cross?new Response(null,{status:204,headers:{...baseHeaders,...cors}}):json({error:'来源无效。'},403);
-  if(path===prefix+'/failed')return page('<h1>登录未完成</h1><p>请求可能已过期、被取消，或不是允许的 GitHub 账号。请关闭此窗口，回到 Media Vault 重新登录。</p>',{status:400});
+  if(path===prefix+'/failed'){const service=u.searchParams.get('reason')==='service';return page('<h1>'+(service?'登录服务连接失败':'登录未完成')+'</h1><p>'+(service?'服务端暂时未能完成 GitHub 登录。这不是账号不符，请稍后在 Media Vault 重新点击登录。':'请求已过期、被取消，或登录校验未通过。请在 Media Vault 重新点击登录。')+'</p><button id="close">关闭窗口</button>',{status:service?502:400,script:'document.getElementById("close").onclick=()=>window.close();'});}
   if(isConnect){
    if(request.method!=='POST'||![SITE_ORIGIN,LOGIN_ORIGIN].includes(origin))fail(403,'请从 Media Vault 开始登录。');
    const data=await readBody(request),id=await digest(data.channel),prior=await env.DB.prepare('SELECT remember,status,expires_at FROM mv_hybrid_login_connections WHERE digest=?').bind(id).first();
@@ -147,7 +149,15 @@ export async function githubLoginRoute(request,env,{exchange,fetch:requestGitHub
  }catch(error){
   const status=error.status||503,message=error.status?error.message:'登录服务暂不可用，请稍后重试。';
   if(callbackContext)try{await env.DB.prepare("UPDATE mv_hybrid_login_connections SET status='error',cipher=?,expires_at=? WHERE digest=? AND status='pending'").bind(await sealLogin({error:message},env,'handoff'),Date.now()+120000,await digest(callbackContext.channel)).run();}catch{}
-  if(path.endsWith('/callback'))return cleanRedirect(prefix+'/failed',{'Set-Cookie':cookie('',0),'X-MV-Login-Error':String(status)});
+  if(path.endsWith('/callback'))return cleanRedirect(prefix+'/failed'+(status>=500?'?reason=service':''),{'Set-Cookie':cookie('',0),'X-MV-Login-Error':String(status)});
   return json({error:message},status,cors);
  }
+}
+
+// Owner-only caller in index.js; fixed public provider probe, no OAuth code/token.
+export async function loginReadiness(env){
+ if(!enabled(env)||!env.DB)return {enabled:false,provider_reachable:false,configured:false};
+ const configured=Boolean(await env.DB.prepare("SELECT 1 AS configured FROM mv_hybrid_login_config WHERE id='github'").first());
+ let provider_reachable=false;try{const user=await github(fetch,'https://api.github.com/users/XiminHu66');provider_reachable=user.id===LOGIN_OWNER_ID&&user.type==='User';}catch{}
+ return {enabled:true,provider_reachable,configured};
 }
