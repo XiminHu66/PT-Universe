@@ -1,6 +1,20 @@
 const activeTask=j=>['queued','running','active','waiting','paused'].includes(j.status);
 const labels={queued:'等待 VPS 接单',running:'VPS 正在处理',active:'正在下载',waiting:'等待来源响应',paused:'已暂停',complete:'文件已就绪',error:'下载失败',cancelled:'已取消',expired:'临时文件已过期',interrupted:'任务已中断'};
 const phases={submitting:'正在启动下载引擎',extracting:'正在解析视频',downloading:'正在下载',processing:'正在合并视频',metadata:'正在获取 BT 元数据',peers:'等待可用做种者',queued:'引擎排队中',checking:'正在校验文件'};
+function torrentInput(raw){
+ const value=String(raw).trim().replaceAll('&amp;','&');
+ if(/^(?:[a-f0-9]{40}|[a-z2-7]{32})$/i.test(value))return 'magnet:?xt=urn:btih:'+value;
+ if(/^magnet:/i.test(value)){
+  let u;try{u=new URL(value);}catch{throw Error('磁力链接无效。');}
+  const xt=u.searchParams.getAll('xt');
+  if(u.hash||xt.length!==1||!/^urn:btih:(?:[a-f0-9]{40}|[a-z2-7]{32})$/i.test(xt[0]))throw Error('请提供含一个 BTIH 哈希的完整磁力链接；暂不支持仅含 BTMH 的链接。');
+  u.searchParams.delete('xt');const rest=u.searchParams.toString();
+  return 'magnet:?xt='+xt[0]+(rest?'&'+rest:'');
+ }
+ let u;try{u=new URL(value);}catch{throw Error('请输入磁力链接、BTIH 哈希或 HTTPS 种子文件链接。');}
+ if(u.protocol!=='https:'||u.username||u.password||u.port||u.hash)throw Error('种子文件请使用不含账号密码或片段的 HTTPS 链接。');
+ return u.href;
+}
 function videoInput(raw){
  let u;try{u=new URL(String(raw).trim());}catch{throw Error('请输入完整的 HTTPS 视频页面链接。');}
  if(u.protocol!=='https:'||u.username||u.password||u.port||u.hash)throw Error('请使用不含账号密码、端口或片段的公开 HTTPS 视频链接。');
@@ -29,5 +43,5 @@ function taskView(j,now=Date.now()){
  const active=activeTask(j),stale=active&&Number.isFinite(j.updated)&&now-j.updated>90000,failure=videoFailureInfo(j);
  return {active,stale,failure,label:failure?.label||(active&&phases[j.phase])||labels[j.status]||'正在同步状态',progress:j.total>0?Math.min(100,100*(j.completed||0)/j.total):null,
  retry:!failure&&['error','cancelled','expired','interrupted'].includes(j.status)&&!['pikpak-account','pikpak-cleanup'].includes(j.kind),
- hint:stale?'状态更新已延迟，正在自动重连；请勿重复提交。':j.phase==='peers'?'BT 速度取决于做种者；无可用节点时可以取消后换一个种子。':j.status==='queued'?'任务已保存，VPS 接单后会自动更新。':j.status==='complete'?'点击保存到电脑，临时文件保留 24 小时。':j.status==='cancelled'?'可以重新下载，无需重新登录。':''};
+ hint:stale?'状态更新已延迟，正在自动重连；请勿重复提交。':j.phase==='metadata'?'正在寻找节点并读取文件列表；未附 Tracker 的磁力使用公共 Tracker。5 分钟无结果会停止，可改用种子文件链接。':j.phase==='peers'?'元数据已取得，正在等待做种节点；10 分钟无进展会停止并释放队列。':j.status==='queued'?'任务已保存，VPS 接单后会自动更新。':j.status==='complete'?'点击保存到电脑，临时文件保留 24 小时。':j.status==='cancelled'?'可以重新下载，无需重新登录。':''};
 }
