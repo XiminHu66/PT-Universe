@@ -16,7 +16,7 @@ const CORS_ORIGIN='https://ximinhu66.github.io';
 const active=new Set(['queued','running','waiting','active']);
 const statuses=new Set(['queued','running','waiting','active','complete','error','cancelled']);
 const jobIdPattern=/^[0-9a-f]{24}$/;
-const ticketPath=/^(?:aria|video|generated)\/[a-zA-Z0-9][a-zA-Z0-9._/ \[\]()\u0080-\uffff-]{0,220}$/u;
+const ticketPath=/^(?:aria|video|generated)\/[a-zA-Z0-9][a-zA-Z0-9._/ \[\](),&!+'\u0080-\uffff\u{10000}-\u{10ffff}-]{0,220}$/u;
 
 function equal(a,b){
   if(typeof a!=='string'||typeof b!=='string'||a.length!==b.length)return false;

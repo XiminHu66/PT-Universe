@@ -18,7 +18,7 @@ async function hash(text){
 }
 function json(obj,status=200,headers={}){return new Response(JSON.stringify(obj),{status,headers:{'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff',...headers}});}
 const fail=(status,message,retry)=>json({error:message,...(retry?{retry_after:Number(retry)}:{})},status,retry?{'Retry-After':String(retry)}:{});
-const pathPattern=/^(aria|video|generated)\/[a-zA-Z0-9][a-zA-Z0-9._/ \[\]()\u0080-\uffff-]{0,220}$/u;
+const pathPattern=/^(aria|video|generated)\/[a-zA-Z0-9][a-zA-Z0-9._/ \[\](),&!+'\u0080-\uffff\u{10000}-\u{10ffff}-]{0,220}$/u;
 const jid=/^[0-9a-f]{24}$/;
 const ready=e=>streamingEnabled(e)&&!!e?.DB;
 const room=e=>e.RELAY.get(e.RELAY.idFromName('media-vault-private'));
