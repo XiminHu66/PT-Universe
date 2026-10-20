@@ -36,7 +36,9 @@ jobs:
       - run: node --check workers/media-vault-hybrid/src/relay.js
       - run: npm ci --prefix workers/pt-universe-api
       - name: Actual local workerd login with native fetch and D1
-        run: node workers/media-vault-hybrid/test-login-workerd.mjs
+        run: |
+          node workers/media-vault-hybrid/test-login-workerd.mjs
+          node workers/media-vault-hybrid/test-login-workerd.mjs --vps
       - name: Actual local workerd relay and connection lifecycle
         run: npm run test:transport-runtime --prefix workers/media-vault-hybrid
       - run: npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/wrangler.jsonc --dry-run --outdir /tmp/pt-media-hybrid-dryrun

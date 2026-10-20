@@ -21,7 +21,7 @@ export function configureAccountWindow(base,operation,now=Date.now(),selection=n
  if(operation==='account-observation-on')Object.assign(config.vars,{ENABLE_APP_ACCESS:'true',MEDIA_APP_ACCOUNT_ID:'observe-test-'+randomUUID().replaceAll('-',''),MEDIA_APP_TEST_MODE:'observation',MEDIA_APP_OBSERVATION_START:String(now),MEDIA_APP_OBSERVATION_PAIR_UNTIL:String(now+OBSERVATION_SETUP),MEDIA_APP_OBSERVATION_UNTIL:String(now+OBSERVATION_SETUP+OBSERVATION_DURATION)});
  if(operation==='account-files-on')Object.assign(config.vars,{ENABLE_APP_ACCESS:'true',ENABLE_APP_SUBMISSION:'false',ENABLE_DIRECT_STREAM:'true',MEDIA_STREAM_TEST_UNTIL:String(now+20*60000),MEDIA_APP_ACCOUNT_ID:selection.account_id,MEDIA_APP_TEST_MODE:'files',MEDIA_APP_LOGIN_TEST_UNTIL:'0',MEDIA_APP_FILE_TEST_START:String(now),MEDIA_APP_FILE_TEST_UNTIL:String(now+20*60000),MEDIA_APP_FILE_TEST_FILES:JSON.stringify(selection.files)});
  if(operation==='account-personal-on'||operation==='account-personal-downloads-on')Object.assign(config.vars,{ENABLE_APP_ACCESS:'true',ENABLE_APP_SUBMISSION:'true',MEDIA_APP_ACCOUNT_ID:'media-vault-personal',MEDIA_APP_TEST_MODE:'personal'});
- if(operation==='account-personal-downloads-on'){config.vars.ENABLE_DIRECT_STREAM='true';config.vars.MEDIA_GITHUB_LOGIN='true';delete config.vars.MEDIA_STREAM_TEST_UNTIL;}
+ if(operation==='account-personal-downloads-on'){config.vars.ENABLE_DIRECT_STREAM='true';config.vars.MEDIA_GITHUB_LOGIN='true';config.vars.MEDIA_LOGIN_TRANSPORT='vps';delete config.vars.MEDIA_STREAM_TEST_UNTIL;}
  return config;
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
