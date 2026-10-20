@@ -21,13 +21,21 @@ export function createNativeSaver(options) {
   if(!current||event.origin!==base.origin||event.source!==frame?.contentWindow||
      !d||d.type!=='mv-native-download-error'||d.attempt!==current.attempt||
      !Number.isInteger(d.status)||d.status<400||d.status>599)return;
-  const e=error(d.status,d.retry_after),file=current.file;current=null;
+  const e=error(d.status,d.retry_after),previous=current,file=previous.file;current=null;
+  // An HTML error response means no attachment bytes were delivered. Only
+  // retry that confirmed pre-stream 503, with a fresh one-use ticket.
+  if(d.status===503&&(previous.deliveryRetry||0)<2&&!disposed&&!pending){
+   notify({phase:'requesting',file,message:'下载通道已中断，正在自动重连…'});
+   void (options.wait||((ms)=>new Promise(resolve=>setTimeout(resolve,ms))))(3000).then(()=>{
+    if(!disposed&&!pending&&!current)return saver.save(file,{deliveryRetry:(previous.deliveryRetry||0)+1});
+   }).catch(()=>{});return;
+  }
   notify({phase:'error',file,message:e.message,status:e.status,retryAfter:e.retryAfter});
  }
  win.addEventListener('message',onMessage);
- return {
+ const saver={
   error,
-  async save(file,{signal}={}) {
+  async save(file,{signal,deliveryRetry=0}={}) {
    if(disposed)throw Error('下载入口已关闭，请重新打开文件列表。');
    if(pending)throw Error('正在请求下载票据，请稍候。');
    if(!file||typeof file.name!=='string'||!file.name||file.name.length>255||/[\x00-\x1f\x7f/\\]/.test(file.name)||
@@ -43,7 +51,7 @@ export function createNativeSaver(options) {
       signal:signal?AbortSignal.any([signal,AbortSignal.timeout(20000)]):AbortSignal.timeout(20000)});
     }catch(e){throw Error(signal?.aborted?'已停止请求下载票据。':'下载服务连接失败或响应超时，请稍后重试。');}
     try{data=await response.json();}catch{throw error(response.status);}
-    if(data.ticket_issued===false&&response.status===503&&data.code==='channel_unavailable'&&channelRetry<3){
+    if(data.ticket_issued===false&&((response.status===503&&data.code==='channel_unavailable')||(response.status===429&&data.code==='channel_busy'))&&channelRetry<3){
      notify({phase:'requesting',file,message:'下载通道正在自动重连（'+(channelRetry+1)+'/3）…'});
      const delay=Math.min(10,Math.max(1,Number(response.headers.get('Retry-After')||data.retry_after)||3))*1000;
      await (options.wait||((ms)=>new Promise(resolve=>setTimeout(resolve,ms))))(delay);continue;
@@ -61,7 +69,7 @@ export function createNativeSaver(options) {
     if(!frame){frame=doc.createElement('iframe');frame.name='mv-native-'+win.crypto.randomUUID();frame.title='文件下载通道';frame.hidden=true;frame.referrerPolicy='no-referrer';doc.body.append(frame);}
     const attempt=win.crypto.randomUUID().replaceAll('-',''),url=new URL('download',base);
     url.searchParams.set('ticket',data.ticket);url.searchParams.set('attempt',attempt);
-    current={attempt,file};
+    current={attempt,file,deliveryRetry};
     const anchor=doc.createElement('a');anchor.href=url.href;anchor.target=frame.name;
     // Content-Disposition supplies the filename. A download attribute would
     // bypass iframe rendering of a pre-stream HTTP error in Chrome.
@@ -77,4 +85,5 @@ export function createNativeSaver(options) {
   // their own cancellation controls, and handoff is not proof of disk saving.
   dispose(){disposed=true;current=null;win.removeEventListener('message',onMessage);}
  };
+ return saver;
 }
