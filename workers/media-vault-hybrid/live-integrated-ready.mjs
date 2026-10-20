@@ -22,4 +22,19 @@ for(const path of ['/app-auth/pair','/app-auth/approve']){
 const proof=await fetch(base+'/media-vault-login/result',{headers:{Origin:origin,Authorization:'Bearer '+'0'.repeat(64)},redirect:'error',signal:AbortSignal.timeout(15000)});assert.equal(proof.status,202);assert.equal(proof.headers.get('Access-Control-Allow-Origin'),origin);assert.deepEqual(await proof.json(),{status:'pending'});
 console.log('PASS normal personal delivery enabled; exact-origin preflight; anonymous and Owner denied device API; old issue/pairing paths closed; private login schema/result boundary ready; no account HTML, grant, cookie, ticket, job or media accessed');
 
-const readiness=await fetch(base+'/login-readiness',{headers:{Authorization:'Bearer '+process.env.OWNER},redirect:'error',signal:AbortSignal.timeout(20000)});assert.equal(readiness.status,200);const login=await readiness.json();console.log('LOGIN_PROVIDER_READINESS',JSON.stringify(login));assert.equal(login.enabled,true);assert.equal(login.provider_reachable,true,'Actual Worker must reach fixed public GitHub API through the configured private transport');assert.equal(typeof login.configured,'boolean');console.log('PASS deployed Worker GitHub identity transport; private login configured:',login.configured);
+// Worker and Durable Object versions propagate independently; a new internal
+// route can briefly return the old object's 404 before the Agent reconnects.
+// Retry only deployment/offline statuses, never a GitHub quota rejection.
+let login,loginReady=false;const loginDeadline=Date.now()+90000;
+do{
+ const readiness=await fetch(base+'/login-readiness',{headers:{Authorization:'Bearer '+process.env.OWNER},redirect:'error',signal:AbortSignal.timeout(20000)});
+ assert.equal(readiness.status,200);login=await readiness.json();
+ assert.equal(login.enabled,true);assert.equal(typeof login.configured,'boolean');
+ if(login.provider_reachable===true){loginReady=true;break;}
+ if(![404,503,504].includes(login.provider_http_status)||login.provider_reason==='rate_limited')break;
+ if(Date.now()+1500>=loginDeadline)break;
+ await new Promise(resolve=>setTimeout(resolve,1500));
+}while(Date.now()<loginDeadline);
+console.log('LOGIN_PROVIDER_READINESS',JSON.stringify(login));
+assert.ok(loginReady,'Actual Worker must reach fixed public GitHub API through the configured private transport');
+console.log('PASS deployed Worker GitHub identity transport; private login configured:',login.configured);
