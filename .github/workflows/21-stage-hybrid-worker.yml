@@ -6,7 +6,7 @@ on:
         description: Metadata operation
         type: choice
         default: verify
-        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership, account-approve, account-revoke, account-login-on, account-login-off, account-submit-on, account-submit-off, account-rc-off, account-off-check, account-files-check, account-device-files-check, account-device-files-verify, account-device-files-on, account-device-recovery-check, account-device-recovery-on, account-files-on, account-files-off, account-novel-on, account-novel-off, account-observation-on, account-observation-off, account-observation-check, account-novel-check, account-personal-on, account-personal-update, account-personal-check, remote-download-proof, manga-proof, candidate-check, integrated-downloads-on, integrated-download-proof, login-diagnostics, download-diagnostics]
+        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership, account-approve, account-revoke, account-login-on, account-login-off, account-submit-on, account-submit-off, account-rc-off, account-off-check, account-files-check, account-device-files-check, account-device-files-verify, account-device-files-on, account-device-recovery-check, account-device-recovery-on, account-files-on, account-files-off, account-novel-on, account-novel-off, account-observation-on, account-observation-off, account-observation-check, account-novel-check, account-personal-on, account-personal-update, account-personal-check, remote-download-proof, manga-proof, candidate-check, integrated-downloads-on, integrated-download-proof, login-diagnostics, download-diagnostics, video-source-proof]
       device_authorization:
         description: Explicit new user-device round approval (3 tickets / 10 MiB / 20 minutes)
         type: boolean
@@ -385,3 +385,9 @@ jobs:
           OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
           FIXTURE_REF: ${{ github.sha }}
         run: node workers/media-vault-hybrid/live-download-release.mjs
+
+      - name: One fixed CC video page through actual VPS and normal file delivery
+        if: inputs.operation == 'video-source-proof'
+        env:
+          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        run: node workers/media-vault-hybrid/live-video-source-proof.mjs
