@@ -386,7 +386,7 @@ jobs:
           FIXTURE_REF: ${{ github.sha }}
         run: node workers/media-vault-hybrid/live-download-release.mjs
 
-      - name: One fixed CC video page through actual VPS and normal file delivery
+      - name: Licensed video page and trackerless BT to completed file delivery
         if: inputs.operation == 'video-source-proof'
         env:
           OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}

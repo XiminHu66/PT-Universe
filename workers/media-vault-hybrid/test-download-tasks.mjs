@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
-const {orderedTasks,taskView,videoInput}=vm.runInNewContext(readFileSync(new URL('../../apps/media-vault/download-tasks.js',import.meta.url),'utf8')+'\n;({orderedTasks,taskView,videoInput})',{URL});
+const {orderedTasks,taskView,videoInput,torrentInput}=vm.runInNewContext(readFileSync(new URL('../../apps/media-vault/download-tasks.js',import.meta.url),'utf8')+'\n;({orderedTasks,taskView,videoInput,torrentInput})',{URL});
 const old={id:'old',kind:'video',status:'complete',created:10,phase:'extracting'},now={id:'new',kind:'torrent',status:'running',created:2,updated:Date.now(),phase:'metadata',completed:0,total:0};
 assert.equal(orderedTasks([old,now])[0].id,'new');assert.equal(taskView(now).progress,null);assert.equal(taskView(now).label,'正在获取 BT 元数据');assert.equal(taskView(old).label,'文件已就绪');assert.equal(taskView({...now,status:'cancelled'}).retry,true);assert.equal(taskView({...now,updated:Date.now()-91000}).stale,true);assert.equal(taskView({...now,phase:'peers'}).label,'等待可用做种者');
 console.log('PASS task states: active-first ordering, unknown totals, metadata/peers, terminal labels, retry and delayed status');
@@ -12,3 +12,12 @@ for(const error of ['[VIDEO_BOT_CHECK] source rejected','来源要求登录或�
 assert.equal(taskView({kind:'video',status:'cancelled',error:'[VIDEO_BOT_CHECK] old error'}).retry,true);
 assert.equal(taskView({kind:'video',status:'error',error:'Temporary connection failure'}).retry,true);
 console.log('PASS video input: canonical single-video links, playlist/channel rejection, source auth diagnosis and bounded retry UI');
+
+const hash='a'.repeat(40);
+assert.equal(torrentInput(hash),'magnet:?xt=urn:btih:'+hash);
+assert.equal(torrentInput('magnet:?dn=Example&amp;xt=urn%3Abtih%3A'+hash+'&tr=udp%3A%2F%2Ftracker.example%3A80%2Fannounce'),'magnet:?xt=urn:btih:'+hash+'&dn=Example&tr=udp%3A%2F%2Ftracker.example%3A80%2Fannounce');
+for(const value of ['magnet:?xt=urn:btmh:1220abc','magnet:?xt=urn:btih:'+hash+'&xt=urn:btih:'+hash,'http://example.org/file.torrent','https://user:pass@example.org/file.torrent'])assert.throws(()=>torrentInput(value));
+assert.equal(taskView({kind:'video',status:'error',error:'[VIDEO_TIMEOUT] stalled'}).retry,true);
+assert.equal(taskView({kind:'torrent',status:'error',error:'[BT_METADATA_TIMEOUT] stalled'}).retry,true);
+assert.match(taskView(now).hint,/5 分钟/);
+console.log('PASS torrent input: hash, reordered and encoded magnet, tracker preservation and actionable stall retry');
