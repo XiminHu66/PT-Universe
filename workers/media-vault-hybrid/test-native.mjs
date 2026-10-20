@@ -7,7 +7,7 @@ function harness(fetcher){
  const nodes=[],clicks=[],states=[],listeners=new Map();
  const win={location:{href:base+'/acceptance'},crypto,addEventListener:(k,v)=>listeners.set(k,v),removeEventListener:k=>listeners.delete(k)};
  const doc={body:{append:n=>nodes.push(n)},createElement:tag=>({tag,contentWindow:{},click(){clicks.push(this)},remove(){}})};
- const saver=createNativeSaver({baseURL:base,ticketPath:'/acceptance/ticket',window:win,document:doc,fetch:fetcher,onState:s=>states.push(s)});
+ const saver=createNativeSaver({baseURL:base,ticketPath:'/acceptance/ticket',window:win,document:doc,fetch:fetcher,wait:async()=>{},onState:s=>states.push(s)});
  return {saver,nodes,clicks,states,listeners};
 }
 const success=()=>new Response(JSON.stringify({ticket:token}),{headers:{'Content-Type':'application/json'}});
@@ -61,3 +61,5 @@ const ok=new Response('bytes');assert.equal(nativeDownloadFailure(req,ok),ok,'su
 console.log('PASS shared native saver: direct navigation, metadata-only fetch, duplicate suppression, scoped error messages, fresh-ticket retry, cancellation, no false completion, executable gated module and private error bridge');
 
 const offlineChannel=harness(()=>new Response(JSON.stringify({error:'Outbound download channel unavailable',code:'channel_unavailable',ticket_issued:false}),{status:503}));await assert.rejects(offlineChannel.saver.save(file),/本次未签发票据/);assert.equal(offlineChannel.states.at(-1).ticketIssued,false);assert.equal(offlineChannel.clicks.length,0);offlineChannel.saver.dispose();
+
+let reconnectCalls=0;const reconnect=harness(()=>++reconnectCalls===1?new Response(JSON.stringify({code:'channel_unavailable',ticket_issued:false}),{status:503}):success());await reconnect.saver.save(file);assert.equal(reconnectCalls,2);assert.equal(reconnect.clicks.length,1);assert.ok(reconnect.states.some(s=>s.message.includes('自动重连')));reconnect.saver.dispose();

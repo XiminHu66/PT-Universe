@@ -469,7 +469,7 @@ async function awaitIntegratedFetch(...args){return (await integratedReady).fetc
 let nativeEngineSaver=null,nativeEngineConfig=null;
 async function showJobFiles(id){
  const config=engine,d=await callEngine('/jobs/files?id='+encodeURIComponent(id),null,config);
- const {createNativeSaver}=await import('./native-download.js');
+ const {createNativeSaver}=await import('./native-download.js?v=2');
  if(engine!==config)throw Error('下载连接已变化，请重新打开文件列表。');
  if(nativeEngineConfig!==config){
   nativeEngineSaver?.dispose();nativeEngineConfig=config;

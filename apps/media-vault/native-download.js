@@ -12,7 +12,7 @@ export function createNativeSaver(options) {
  const notify=s=>options.onState?.(s);
  function error(status,retry) {
   const wait=Number(retry),delay=Number.isFinite(wait)&&wait>0?Math.min(3600,Math.ceil(wait)):null;
-  const labels={401:'下载授权不可用，请重新连接。',403:'配对或票据已失效，请重新配对或重新请求保存。',404:'临时文件已不可用，请刷新文件列表；必要时重新提交任务。',409:'文件尚未就绪，请刷新任务状态。',429:'下载服务繁忙或已达到票据、额度限制。',503:'下载通道暂不可用，请稍后重新请求保存。'};
+  const labels={401:'下载授权不可用，请重新连接。',403:'登录或票据已失效，请刷新连接后重新保存。',404:'临时文件已不可用，请刷新文件列表；必要时重新提交任务。',409:'文件尚未就绪，请刷新任务状态。',429:'下载服务繁忙或已达到票据、额度限制。',503:'下载通道暂不可用，请稍后重新请求保存。'};
   const e=Error((labels[status]||'下载请求失败，请稍后重试。')+(delay?' 请至少等待 '+delay+' 秒。':''));
   e.status=status;e.retryAfter=delay;return e;
  }
@@ -34,17 +34,26 @@ export function createNativeSaver(options) {
       !Number.isSafeInteger(file.size)||file.size<=0||typeof file.path!=='string'||typeof file.id!=='string')throw Error('文件信息无效，请刷新文件列表。');
    pending=true;notify({phase:'requesting',file,message:'正在请求一次性下载票据…'});
    try {
-    let response;
+    let response,data;
+    for(let channelRetry=0;;channelRetry++){
+    if(disposed||signal?.aborted)throw Error('已停止请求下载票据。');
     try {
      response=await (options.fetch||fetch)(endpoint.href,{method:'POST',headers:{...options.headers,'Content-Type':'application/json'},
       credentials:'same-origin',cache:'no-store',redirect:'error',body:JSON.stringify({id:file.id,path:file.path}),
       signal:signal?AbortSignal.any([signal,AbortSignal.timeout(20000)]):AbortSignal.timeout(20000)});
     }catch(e){throw Error(signal?.aborted?'已停止请求下载票据。':'下载服务连接失败或响应超时，请稍后重试。');}
-    let data;try{data=await response.json();}catch{throw error(response.status);}
+    try{data=await response.json();}catch{throw error(response.status);}
+    if(data.ticket_issued===false&&response.status===503&&data.code==='channel_unavailable'&&channelRetry<3){
+     notify({phase:'requesting',file,message:'下载通道正在自动重连（'+(channelRetry+1)+'/3）…'});
+     const delay=Math.min(10,Math.max(1,Number(response.headers.get('Retry-After')||data.retry_after)||3))*1000;
+     await (options.wait||((ms)=>new Promise(resolve=>setTimeout(resolve,ms))))(delay);continue;
+    }
     if(!response.ok||data.error){
      const e=error(response.status,response.headers.get('Retry-After')||data.retry_after);
      if(data.ticket_issued===false&&((response.status===503&&data.code==='channel_unavailable')||(response.status===429&&data.code==='channel_busy'))){e.message=(data.code==='channel_busy'?'另一份文件正在传输。':'出站下载通道未连接或未响应。')+'本次未签发票据；请刷新通道状态后再试。';e.ticketIssued=false;}
      throw e;
+    }
+    break;
     }
     if(!/^[a-zA-Z0-9_-]{32,128}$/.test(data.ticket||''))throw Error('下载票据格式无效，请重新请求保存。');
     if(signal?.aborted)throw Error('已停止请求下载票据。');
