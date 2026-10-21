@@ -47,7 +47,7 @@ const server=http.createServer((req,res)=>{try{let file=path.join(root,new URL(r
   await op.locator('#booxNative').waitFor({state:'visible'});
   assert.equal(await op.locator('#booxFrame').count(),0);
   assert.equal(await op.locator('#booxNative').getAttribute('href'),'http://192.168.4.23:8085/');
-  assert.ok((await op.locator('#booxStatus').innerText()).includes('不允许识别设备'));
+  assert.ok((await op.locator('#booxStatus').innerText()).includes('无法验证其设备身份'));
   assert.ok(opaqueLan<254,'An opaque candidate must open before finishing the subnet scan');
   await opaque.close();
   const denied=await browser.newContext();let deniedRequests=0;
