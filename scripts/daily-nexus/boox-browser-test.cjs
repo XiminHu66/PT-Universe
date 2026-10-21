@@ -29,7 +29,15 @@ const server=http.createServer((req,res)=>{try{let file=path.join(root,new URL(r
     return r.fulfill({contentType:'text/html',body:'<h1>BOOX opaque fixture</h1>'});
   });
   await opaque.addInitScript(()=>{Object.defineProperty(navigator,'permissions',{value:{query:async()=>({state:'granted'})}})});
-  const op=await opaque.newPage();await op.goto(url);await op.locator('#booxEntry').click();
+  const op=await opaque.newPage();
+  op.on('console',message=>{if(message.text().startsWith('opaque fixture'))console.log(message.text())});
+  await op.addInitScript(()=>{
+    const realFetch=fetch.bind(window);
+    window.fetch=async(url,options)=>{try{const response=await realFetch(url,options);if(String(url).includes('192.168.4.23:8085'))console.log('opaque fixture response',String(url),options?.mode,response.type,response.status);return response}catch(error){if(String(url).includes('192.168.4.23:8085'))console.log('opaque fixture error',String(url),options?.mode,error.message);throw error}};
+  });
+  await op.goto(url);await op.locator('#booxEntry').click();
+  await op.waitForFunction(()=>!document.querySelector('#booxScan').disabled);
+  console.log('opaque fixture state',await op.locator('#booxStatus').innerText(),await op.locator('#booxFrame').getAttribute('src'),opaqueLan);
   await op.frameLocator('#booxFrame').getByRole('heading',{name:'BOOX opaque fixture'}).waitFor();
   assert.ok((await op.locator('#booxStatus').innerText()).includes('不允许识别设备'));
   assert.ok(opaqueLan<254,'An opaque candidate must open before finishing the subnet scan');
