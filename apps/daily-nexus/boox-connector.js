@@ -34,8 +34,9 @@
         }
         return null;
       } catch (error) { if (controller.signal.aborted) return null; }
+      // Fetch requires redirect:follow for no-cors; error/manual rejects before sending.
       // Opaque responses establish only a reachable candidate, never device identity.
-      const response = await fetcher(base + '/', {...options, mode:'no-cors'});
+      const response = await fetcher(base + '/', {...options, mode:'no-cors', redirect:'follow'});
       return response.type === 'opaque' ? {url:base, model:'待确认的互传页面', verified:false} : null;
     } catch { return null; }
     finally { finished = true; clearTimeout(timer); signal?.removeEventListener('abort', abort); }

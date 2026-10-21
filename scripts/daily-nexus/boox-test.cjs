@@ -10,7 +10,7 @@ test('Device identity must match actual BOOX API; opaque responses stay unverifi
  assert.equal((await probe('192.168.4.2',{fetcher:async()=>({ok:true,json:async()=>({type:'server',model:'Note Air'})})})).verified,true);
  assert.equal(await probe('192.168.4.2',{fetcher:async()=>({ok:true,json:async()=>({type:'router',model:'Other'})})}),null);
  assert.equal(await probe('192.168.4.2',{fetcher:async()=>({ok:false,status:404})}),null);
- assert.equal((await probe('192.168.4.2',{fetcher:async(_,o)=>{if(o.mode==='cors')throw Error('CORS');return {type:'opaque'}}})).verified,false);
+ assert.equal((await probe('192.168.4.2',{fetcher:async(_,o)=>{if(o.mode==='cors')throw Error('CORS');assert.equal(o.redirect,'follow');assert.equal(o.credentials,'omit');return {type:'opaque'}}})).verified,false);
 });
 test('Abort and timeouts cancel the underlying network request',async()=>{
  let aborted=false;const fetcher=(_,o)=>new Promise((r,j)=>o.signal.addEventListener('abort',()=>{aborted=true;j(Error('aborted'))}));
