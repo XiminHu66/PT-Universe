@@ -83,6 +83,19 @@
   if (!root.document) return;
   const $ = id => document.getElementById(id);
   const panel = $('booxPanel'); if (!panel) return;
+  // A GitHub Pages HTTPS site must not embed the BOOX firmware's HTTP page.
+  // Keep local-network discovery (targetAddressSpace:'local') but navigate to
+  // the native transfer UI only as a deliberate top-level, separate-tab action.
+  $('booxFrameWrap')?.remove();
+  $('booxScan').textContent = '扫描 BOOX';
+  $('booxConnect').textContent = '打开此地址 ↗';
+  $('booxNative').setAttribute('referrerpolicy', 'no-referrer');
+  const entryText = $('booxEntry')?.querySelector('p');
+  if (entryText) entryText.textContent = '在局域网寻找 BOOX，找到后在新标签页打开原生互传；不向网站上传书籍。';
+  const headlineText = panel.querySelector('.boox-head p');
+  if (headlineText) headlineText.textContent = '在 BOOX 上开启原生互传，并连接同一 Wi-Fi。找到设备后请点击“打开 BOOX 互传”，在独立标签页传书。';
+  const helpText = panel.querySelector('.boox-manual p');
+  if (helpText) helpText.textContent = 'BOOX 原生互传使用局域网 HTTP，不能安全地嵌入本站的 HTTPS 页面。此处只负责查找和记住地址；点击链接将独立打开 BOOX。已知 IP 可直接打开，无须扫描。';
   let controller = null, selected = null, initialized = false, busy = false, generation = 0;
   let prefs = {};
   try { const saved = JSON.parse(localStorage.getItem(KEY) || '{}'); if (saved && typeof saved === 'object' && !Array.isArray(saved)) prefs = saved; } catch {}
@@ -104,9 +117,21 @@
     selected = hit; prefs.last = address(hit.url); save();
     $('booxHost').value = new URL(hit.url).hostname;
     $('booxNative').href = hit.url + '/'; $('booxNative').textContent = '独立打开 ↗'; $('booxNative').hidden = false;
-    $('booxFrameWrap').hidden = false; $('booxFrame').src = hit.url + '/';
-    $('booxFrameNote').textContent = '已请求载入原生互传页面。若下方空白或显示拒绝连接，点击“独立打开”，无需手输地址。';
-    status(hit.verified ? `发现 ${hit.model} · ${new URL(hit.url).hostname}。正在载入原生页面。` : '该地址有响应，但浏览器不允许识别设备。请核对下方页面确实是 BOOX 后再传书。');
+    $('booxNative').textContent = '打开 BOOX 互传 ↗';
+    status(hit.manual
+      ? '地址已保存。已尝试在新标签页打开；若弹窗被拦截，请点击“打开 BOOX 互传”。'
+      : hit.verified
+        ? `发现 ${hit.model} · ${new URL(hit.url).hostname}。请点击“打开 BOOX 互传”。`
+        : '该地址有响应，但浏览器无法验证其设备身份。确认地址属于 BOOX 后，再点击“打开 BOOX 互传”。');
+  }
+  function openManual() {
+    let url;
+    try { url = address($('booxHost').value); } catch (error) { status(error.message); return; }
+    // Direct navigation works even where HTTPS-to-LAN probing is browser-blocked.
+    if (controller) controller.abort();
+    connect({url, manual:true, verified:false});
+    // Synchronous in the user's click/Enter gesture to avoid popup blockers.
+    $('booxNative').click();
   }
   function showHit(hit) {
     const button = document.createElement('button'); button.type = 'button';
@@ -121,17 +146,15 @@
     }
     return 'unknown';
   }
-  async function start(manual = false, automatic = false) {
+  async function start(automatic = false) {
     if (busy) return;
-    let direct;
-    if (manual) { try { direct = address($('booxHost').value); } catch (e) { status(e.message); return; } }
     const ticket = ++generation; setBusy(true);
     const state = await permissionState();
     if (ticket !== generation) { setBusy(false); return; }
     if (automatic && state !== 'granted') { setBusy(false); status('点击“扫描并连接”以允许浏览器访问 BOOX 所在的本地网络。'); return; }
     if (state === 'denied') { setBusy(false); status('本地网络权限已被拒绝。请在地址栏的网站设置中允许“本地网络访问”，然后重试。'); return; }
     controller = new AbortController(); const signal = controller.signal;
-    selected = null; showLastAddress(); $('booxFrame').src = 'about:blank'; $('booxFrameWrap').hidden = true;
+    selected = null; showLastAddress();
     $('booxResults').replaceChildren(); $('booxProgress').value = 0; $('booxCount').textContent = '0 / 254'; setBusy(true);
     status('请保持 BOOX 互传开启并连接同一 Wi-Fi；若浏览器询问本地网络权限，请选择允许。');
     try {
@@ -149,36 +172,28 @@
         });
       }
       try {
-      if (manual) {
-        const hit = await probe(direct, {signal, permissionReady, timeout:state === 'unknown' ? 8000 : 1600});
-        if (!signal.aborted) {
-          if (hit) showHit(hit);
-          else status('无法连接此地址。请确认互传已开启、同一 Wi-Fi，且浏览器已允许本地网络访问。');
-        }
-      } else {
         const hits = await scan({last:prefs.last, signal, permission:state !== 'granted', permissionReady, onFound:showHit,
-          onPhase:phase => { status(phase === 'reconnect' ? '正在快速重连上次的 BOOX 地址…' : phase === 'permission' ? '请允许浏览器访问本地网络，授权后立即开始快速扫描。' : phase === 'retry' ? '快速扫描未发现设备，正在重试响应较慢的地址…' : '正在快速寻找 BOOX，找到后立即连接…'); },
+          onPhase:phase => { status(phase === 'reconnect' ? '正在快速检查上次的 BOOX 地址…' : phase === 'permission' ? '请允许浏览器访问本地网络，授权后开始快速扫描。' : phase === 'retry' ? '快速扫描未发现设备，正在重试响应较慢的地址…' : '正在快速寻找 BOOX，找到后提供打开链接…'); },
           onProgress:(done,total) => { $('booxProgress').value = done; $('booxCount').textContent = `${done} / ${total}`; }});
-        if (!signal.aborted && !selected) status(hits.length ? `找到 ${hits.length} 个候选页面，因跨域限制无法确认型号，请选择后核对。` : '未找到设备。请确认 BOOX 互传开启、同一 Wi-Fi、无访客网络隔离，并允许本地网络访问。可重试扫描或使用下方已知地址。');
+        if (!signal.aborted && !selected) status(hits.length ? '找到候选地址，请确认它属于 BOOX 再打开。' : '未找到设备。请确认 BOOX 互传开启且处于同一 Wi-Fi；也可直接输入已知 IP 打开，无需扫描。');
         else if (!signal.aborted && selected) {
-          $('booxCount').textContent = '已连接 · 已停止其余扫描';
-          if (selected.verified) status(`已连接 ${selected.model}，已停止其余扫描。可在下方原生页面传书。`);
+          $('booxCount').textContent = '已发现 · 已停止其余扫描';
+          if (selected.verified) status(`发现 ${selected.model}，已停止其余扫描。点击“打开 BOOX 互传”继续。`);
         }
-      }
       } finally { removePermissionListener(); }
     } catch { if (!signal.aborted) status('扫描未完成，请重试或使用已知地址。'); }
     finally { if (signal.aborted) status('已停止扫描。'); controller = null; setBusy(false); }
   }
   function open(automatic = false) {
     panel.hidden = false; panel.scrollIntoView({behavior:'smooth', block:'start'});
-    if (!initialized) { initialized = true; start(false, automatic); }
+    if (!initialized) { initialized = true; start(automatic); }
   }
   $('booxEntry').onclick = () => open();
-  $('booxScan').onclick = () => start(); $('booxConnect').onclick = () => start(true);
+  $('booxScan').onclick = () => start(); $('booxConnect').onclick = openManual;
   $('booxStop').onclick = () => controller?.abort();
-  $('booxHost').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); start(true); } };
+  $('booxHost').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); openManual(); } };
   $('booxAuto').onchange = () => { prefs.auto = $('booxAuto').checked; save(); };
-  $('booxClose').onclick = () => { ++generation; controller?.abort(); panel.hidden = true; $('booxFrame').src = 'about:blank'; $('booxFrameWrap').hidden = true; selected = null; initialized = false; $('booxEntry').focus(); };
+  $('booxClose').onclick = () => { ++generation; controller?.abort(); panel.hidden = true; selected = null; initialized = false; $('booxEntry').focus(); };
   addEventListener('pagehide', () => controller?.abort());
   addEventListener('nexus-view-change', event => {
     if (event.detail?.view === 'tools' && prefs.auto && !initialized) open(true);
