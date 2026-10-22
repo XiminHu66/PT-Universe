@@ -12,7 +12,7 @@ async function admin(action){return post('/api/workbench/ai-admin',{action,owner
 try{
  const catalog=await fetch(api+'/api/anythingllm/providers',{headers,signal:AbortSignal.timeout(30000)});assert.equal(catalog.status,200);const providers=(await catalog.json()).providers;assert.ok(providers.length>=11);assert.ok(providers.every(p=>p.kind==='free'));report.providers=providers.length;
  const modelResponse=await fetch(api+'/api/anythingllm/models?provider=gemini',{headers,signal:AbortSignal.timeout(90000)});assert.equal(modelResponse.status,200);const modelReport=await modelResponse.json();assert.equal(modelReport.fallback,false);assert.equal(modelReport.source,'google-pricing-and-models');assert.ok(modelReport.models.length>2);assert.ok(!modelReport.models.some(m=>/tts|live|image|embedding/.test(m.id)));report.freeModels=modelReport;
- const body={provider:'gemini',model:'gemini-3.5-flash-lite',owner:id,messages:[{role:'system',content:'你是一位清晰、诚实、有帮助的助手。默认使用中文回答。'},{role:'user',content:'你是什么模型'}],maxTokens:2048,temperature:0.7};
+ const body={provider:'gemini',model:'gemini-3.5-flash-lite',owner:id,messages:[{role:'system',content:'你是一位清晰、诚实、有帮助的助手。默认使用中文回答。'},{role:'user',content:'你是什么模型'}],maxTokens:2048,temperature:0.7,allowFreeFallback:true};
  assert.equal((await post('/api/anythingllm/chat',body)).status,401);report.unauthorizedBlocked=true;
  await secret(['secret','put','RESEARCH_PROBE_AUTH'],JSON.stringify({token:deployToken,expiresAt:Date.now()+10*60000}));configured=true;
  assert.equal((await post('/api/sync/register',{id,token})).status,201);registered=true;
@@ -20,7 +20,7 @@ try{
  let grant;for(let i=0;i<4;i++){grant=await admin('grant-test');if(grant.status===200)break;if(grant.status!==401)break;await new Promise(r=>setTimeout(r,3000))}assert.equal(grant.status,200);granted=true;
  report.browserCases=[];
  async function browserCase(name,payload){
-  try{const r=await post('/api/anythingllm/chat',payload,token);const status=r.status;const errorBody=!r.ok?await r.clone().text():null;const answer=await consumeChat(r,()=>{});assert.ok(answer.content.trim());const row={name,ok:true,status,model:answer.model||payload.model,characters:answer.content.length};report.browserCases.push(row);console.log(JSON.stringify(row));return answer.content}catch(e){const row={name,ok:false,model:payload.model,error:e.message,status:e.status};report.browserCases.push(row);console.log(JSON.stringify(row));return ''}
+  try{const r=await post('/api/anythingllm/chat',payload,token);const status=r.status,fallbackFrom=r.headers.get('x-pt-fallback-from'),attempts=r.headers.get('x-pt-attempts');const answer=await consumeChat(r,()=>{});assert.ok(answer.content.trim());const row={name,ok:true,status,model:answer.model||payload.model,characters:answer.content.length,fallbackFrom,attempts};report.browserCases.push(row);console.log(JSON.stringify(row));return answer.content}catch(e){const row={name,ok:false,model:payload.model,error:e.message,status:e.status};report.browserCases.push(row);console.log(JSON.stringify(row));return ''}
  }
  await browserCase('daily-workspace-system-and-2048-tokens-lite',body);
  const alternative=modelReport.models.find(m=>m.id==='gemini-3.8-flash')||modelReport.models.find(m=>m.id!==body.model);assert.ok(alternative);

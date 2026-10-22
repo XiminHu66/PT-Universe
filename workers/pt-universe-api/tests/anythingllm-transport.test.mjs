@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';import {build} from 'esbuild';
+const load=async entry=>{const b=await build({entryPoints:[entry],bundle:true,format:'esm',platform:'node',write:false});return import('data:text/javascript;base64,'+Buffer.from(b.outputFiles[0].text).toString('base64'))};
+const {fetchChatWithRetry,retry,geminiCompatiblePayload:compatible}=await load('src/anythingllm-transport.ts');
+const old=globalThis.fetch,options={method:'POST',body:'unchanged'};let calls=0,waits=[];
+try{
+ globalThis.fetch=async()=>{calls++;return calls<3?new Response('busy',{status:503}):Response.json({ok:true})};const result=await fetchChatWithRetry('https://fixed',options,async ms=>waits.push(ms));assert.equal(result.response.status,200);assert.equal(result.attempts,3);assert.equal(waits.length,2);
+ for(const status of [400,401,402,403,404,429]){calls=0;globalThis.fetch=async()=>{calls++;return new Response('no',{status})};const r=await fetchChatWithRetry('https://fixed',options,async()=>{});assert.equal(calls,1);assert.equal(r.response.status,status)}
+ calls=0;globalThis.fetch=async()=>{calls++;throw Error('network')};await assert.rejects(()=>fetchChatWithRetry('https://fixed',options,async()=>{}));assert.equal(calls,3);
+ const controller=new AbortController();controller.abort();calls=0;await assert.rejects(()=>fetchChatWithRetry('https://fixed',{...options,signal:controller.signal},async()=>{}));assert.equal(calls,1);
+ const source={model:'gemini-3.8-flash',temperature:0.7,messages:[{role:'system',content:'x'},{role:'user',content:'y'}],max_tokens:2048};assert.ok(!('temperature' in compatible(source)));assert.equal(source.temperature,0.7);assert.equal(compatible({...source,model:'gemini-3.5-flash-lite'}).temperature,0.7);assert.deepEqual(compatible(source).messages,source.messages);
+ const {anythingLLMRoute:route,publicError}=await load('src/anythingllm.ts');
+ const err=await publicError(Response.json([{error:{message:'Busy secret-api-key'}}],{status:503}),'secret-api-key');const message=(await err.json()).error;assert.match(message,/503/);assert.match(message,/Busy/);assert.ok(!message.includes('secret-api-key'));
+ let upstream=[];globalThis.fetch=async(url,opts)=>{if(!url.includes('/chat/completions'))throw Error('read-only catalog fallback');const payload=JSON.parse(opts.body);upstream.push(payload);return payload.model==='gemini-3.8-flash'?Response.json({error:{message:'overloaded'}},{status:503}):new Response('data: {"model":"gemini-3.5-flash-lite","choices":[{"delta":{"content":"OK"}}]}\n\ndata: [DONE]\n\n',{headers:{'content-type':'text/event-stream'}})};
+ const request=new Request('https://worker/api/anythingllm/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({provider:'gemini',apiKey:'test-key',...source,maxTokens:2048,allowFreeFallback:true})});const response=await route(request,{},async()=>false);
+ assert.equal(response.status,200);assert.equal(response.headers.get('x-pt-fallback-from'),'gemini-3.8-flash');assert.equal(response.headers.get('x-pt-model'),'gemini-3.5-flash-lite');assert.equal(upstream.length,4);assert.ok(upstream.slice(0,3).every(p=>p.model==='gemini-3.8-flash'));assert.deepEqual(upstream[3].messages,source.messages);assert.equal(upstream[3].max_tokens,2048);assert.match(await response.text(),/OK/);
+}finally{globalThis.fetch=old}
+console.log('Chat transport: bounded 503/network retry, no auth/quota retry, cancel, model-specific sampling, safe array errors, and explicit same-provider free fallback with preserved context passed.');

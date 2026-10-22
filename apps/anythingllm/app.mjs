@@ -1,4 +1,4 @@
-import {esc,markdown,consumeChat,directBase,normalizeBackup} from './core.mjs?v=2';
+import {esc,markdown,consumeChat,directBase,normalizeBackup} from './core.mjs?v=4';
 const API='https://pt-universe-api.summer07-nanjolno.workers.dev/api/anythingllm';
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const read=(key,fallback,storage=localStorage)=>{try{return JSON.parse(storage.getItem(key))??fallback}catch{return fallback}};
@@ -73,7 +73,7 @@ function renderModels(){
 }
 function renderMessages(){
  const c=chat(),messages=c?.messages||[];$('#welcome').hidden=messages.length>0;$('#messages').hidden=!messages.length;
- $('#messages').innerHTML=messages.map((m,i)=>`<article class="message ${m.role}" data-message="${esc(m.id)}"><div class="message-header"><span class="avatar">${m.role==='user'?'你':'✳'}</span>${m.role==='user'?'你':esc(providers.find(p=>p.id===m.provider)?.name||'助手')}<span class="message-meta">${m.role==='assistant'?esc(m.model||'')+(m.status==='streaming'?' · 生成中':m.status==='stopped'?' · 已停止':''):''}</span></div><div class="message-content">${m.content?markdown(m.content):'<span class="pending">正在等待模型回答…</span>'}</div>${m.error?`<div class="message-error">${esc(m.error)}</div>`:''}<div class="message-actions"><button data-copy="${esc(m.id)}">复制</button>${m.role==='assistant'&&i===messages.length-1&&m.status!=='streaming'?'<button data-retry>重新生成</button>':''}${m.role==='user'&&i===messages.findLastIndex(m=>m.role==='user')?'<button data-edit="'+esc(m.id)+'">编辑后重发</button>':''}</div></article>`).join('');
+ $('#messages').innerHTML=messages.map((m,i)=>`<article class="message ${m.role}" data-message="${esc(m.id)}"><div class="message-header"><span class="avatar">${m.role==='user'?'你':'✳'}</span>${m.role==='user'?'你':esc(providers.find(p=>p.id===m.provider)?.name||'助手')}<span class="message-meta">${m.role==='assistant'?esc(m.model||'')+(m.status==='streaming'?' · 生成中':m.status==='stopped'?' · 已停止':''):''}</span></div><div class="message-content">${m.content?markdown(m.content):(m.status==='streaming'?'<span class="pending">正在等待模型回答…</span>':'<span class="pending">本次未收到回答</span>')}</div>${m.fallbackFrom?`<div class="fallback-note">${esc(m.fallbackFrom)} 暂时繁忙，本次由 ${esc(m.model)} 回复。</div>`:''}${m.error?`<div class="message-error">${esc(m.error)}</div>`:''}<div class="message-actions"><button data-copy="${esc(m.id)}">复制</button>${m.role==='assistant'&&i===messages.length-1&&m.status!=='streaming'?'<button data-retry>重新生成</button>':''}${m.role==='user'&&i===messages.findLastIndex(m=>m.role==='user')?'<button data-edit="'+esc(m.id)+'">编辑后重发</button>':''}</div></article>`).join('');
  $$('[data-copy]').forEach(b=>b.onclick=async()=>{try{await navigator.clipboard.writeText(c.messages.find(m=>m.id===b.dataset.copy).content);b.textContent='已复制'}catch{notice('浏览器无法复制，请手动选择文字复制。')}});
  $$('[data-retry]').forEach(b=>b.onclick=()=>resend(false));
  $$('[data-edit]').forEach(b=>b.onclick=async()=>{if(busy)return;const index=c.messages.findIndex(m=>m.id===b.dataset.edit);if(!await ask('编辑并重新发送','此消息之后的回答会被移除。'))return;$('#prompt').value=c.messages[index].content;c.messages=c.messages.slice(0,index);persist();renderMessages();$('#prompt').focus()});
@@ -90,7 +90,7 @@ async function chatResponse(id,config,messages,signal,override){
   const base=directBase(config.baseUrl||(id==='ollama'?'http://localhost:11434/v1':''));
   return fetch(base+'/chat/completions',{method:'POST',headers:{'content-type':'application/json',...((override?.key??keys[id])?{authorization:'Bearer '+(override?.key??keys[id])}:{})},body:JSON.stringify(payload),signal,redirect:'error'});
  }
- return request('chat',{...credentials(id,override),model:payload.model,messages,maxTokens:payload.max_tokens,temperature:payload.temperature},signal);
+ return request('chat',{...credentials(id,override),model:payload.model,messages,maxTokens:payload.max_tokens,temperature:payload.temperature,...(id==='gemini'?{allowFreeFallback:config.allowFreeFallback!==false}:{})},signal);
 }
 async function send(textOverride){
  if(busy)return;
@@ -111,8 +111,10 @@ async function generate(c){
  let lastRender=0;
  try{
   const response=await chatResponse(id,config,messages,controller.signal);
+  if(response.headers.get('x-pt-fallback-from')){output.fallbackFrom=response.headers.get('x-pt-fallback-from');output.model=response.headers.get('x-pt-model')||config.model;notice(output.fallbackFrom+' 暂时繁忙，本次自动使用免费备用模型 '+output.model+'。可在后端设置中关闭。')}
+  output.requestId=response.headers.get('x-pt-request-id')||'';
   const result=await consumeChat(response,(delta,meta)=>{output.content+=delta;if(meta.model)output.model=meta.model;const now=Date.now();if(now-lastRender>80){const nearBottom=$('#scroll').scrollHeight-$('#scroll').scrollTop-$('#scroll').clientHeight<160;const element=document.querySelector(`[data-message="${output.id}"] .message-content`);if(element)element.innerHTML=markdown(output.content);if(nearBottom)scrollBottom();lastRender=now}if(!saveTimer)saveTimer=setTimeout(()=>{saveTimer=null;persist()},600)});
-  output.status='done';output.model=result.model||config.model;output.usage=result.usage;const tokens=result.usage?.total_tokens;$('#usage').textContent=`${((Date.now()-started)/1000).toFixed(1)} 秒${tokens?' · '+tokens+' tokens':''} · ${output.model}`;
+  output.status='done';output.model=result.model||output.model||config.model;output.usage=result.usage;const tokens=result.usage?.total_tokens;$('#usage').textContent=`${((Date.now()-started)/1000).toFixed(1)} 秒${tokens?' · '+tokens+' tokens':''} · ${output.model}`;
  }catch(e){const aborted=controller.signal.aborted;output.status=aborted?'stopped':'error';output.error=aborted?(controller.signal.reason==='timeout'?'等待超时，已保留收到的内容。':'已停止生成，收到的内容已保留。'):(typeof e.message==='string'?e.message:'请求失败');if(!aborted&&e instanceof TypeError)output.error='无法连接后端。自建接口请检查 CORS、本地网络权限与 HTTPS；云端接口请稍后重试。';if(e.status===401&&id==='gemini'&&config.shared){backendReady=false;backendSession=null;sessionStorage.removeItem(sessionKey);renderModels()}if(e.retryAfter)output.error+=`（建议 ${e.retryAfter} 秒后重试）`;
  }finally{clearTimeout(timeout);if(saveTimer){clearTimeout(saveTimer);saveTimer=null}controller=null;c.updatedAt=Date.now();persist();setBusy(false);renderSidebar();renderMessages();scrollBottom()}
 }
@@ -122,10 +124,10 @@ function openSettings(id=providerId){
  const config=cfg(id);$('#quota-check').hidden=id!=='openrouter';renderSettingsModels(id,config.model);$('#setting-provider').value=id;$('#settings-title').textContent=p.name;$('#provider-description').innerHTML=esc(p.quota)+'<small>'+esc(p.requirements)+'<br>'+esc(p.note)+'</small>';
  $('#provider-links').innerHTML=(p.signup?`<a href="${esc(p.signup)}" target="_blank" rel="noopener noreferrer">注册 / 获取 Key ↗</a>`:'')+(p.docs?`<a href="${esc(p.docs)}" target="_blank" rel="noopener noreferrer">官方说明 ↗</a>`:'');
  $('#api-key').value=keys[id]||'';$('#account-field').hidden=id!=='cloudflare';$('#account-id').value=config.accountId||'';$('#base-field').hidden=!['custom','ollama'].includes(id);$('#base-url').value=config.baseUrl||p.base||'';fillModelSelect($('#setting-model'),id,config.model);
- $('#shared-row').hidden=id!=='gemini';$('#use-shared').checked=!!config.shared;$('#settings-connect').hidden=id!=='gemini';$('#key-field').hidden=id==='gemini'&&config.shared;$('#key-note').hidden=id==='gemini'&&config.shared;
+ $('#fallback-row').hidden=id!=='gemini';$('#allow-free-fallback').checked=config.allowFreeFallback!==false;$('#shared-row').hidden=id!=='gemini';$('#use-shared').checked=!!config.shared;$('#settings-connect').hidden=id!=='gemini';$('#key-field').hidden=id==='gemini'&&config.shared;$('#key-note').hidden=id==='gemini'&&config.shared;
  $('#shared-info').hidden=id!=='gemini';$('#shared-info').textContent=backendReady?'后台连接已验证，可以直接聊天。':(backendError||'点击「连接 PT 后台」，在原有工具中心登录后自动返回。无需寻找配对码或再次填写 Gemini Key。');$('#test-result').textContent='';showDialog('#settings-dialog');void loadModels(id);
 }
-function formConfig(){const id=$('#setting-provider').value;return {id,key:$('#api-key').value.trim(),model:$('#setting-model').value.trim(),accountId:$('#account-id').value.trim(),baseUrl:['custom','ollama'].includes(id)?$('#base-url').value.trim():'',shared:id==='gemini'&&$('#use-shared').checked,allowPaid:false}}
+function formConfig(){const id=$('#setting-provider').value;return {id,key:$('#api-key').value.trim(),model:$('#setting-model').value.trim(),accountId:$('#account-id').value.trim(),baseUrl:['custom','ollama'].includes(id)?$('#base-url').value.trim():'',shared:id==='gemini'&&$('#use-shared').checked,allowFreeFallback:id==='gemini'&&$('#allow-free-fallback').checked,allowPaid:false}}
 function validateConfig(c){const p=providers.find(p=>p.id===c.id);if(!c.model)throw Error('请填写模型 ID');if(!c.key&&!c.shared&&!['custom','ollama'].includes(c.id))throw Error('请填写 API Key');if(c.id==='cloudflare'&&!/^[a-f0-9]{32}$/i.test(c.accountId))throw Error('Account ID 应为 32 位');if(['custom','ollama'].includes(c.id))directBase(c.baseUrl);if(!c.allowPaid&&['trial','evaluation','conditional','paid'].includes(p.kind))throw Error('请先核对该后端额度，再勾选使用资格确认');if(c.id!=='gemini'&&p.freeModels&&!p.freeModels.includes(c.model))throw Error('模型不在已核实的免费清单中，请刷新免费模型列表');if(models[c.id]&&!models[c.id].some(m=>m.id===c.model))throw Error('请选择列表中的免费型号');if(!c.allowPaid&&c.id==='openrouter'&&c.model!=='openrouter/free'&&!c.model.endsWith(':free'))throw Error('免费模式只接受 openrouter/free 或 :free 型号')}
 function renderCatalog(){
  const query=$('#provider-search').value.toLowerCase(),filter=$('#kind-filter').value;

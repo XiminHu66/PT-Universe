@@ -1,6 +1,7 @@
 import catalog from '../../../apps/anythingllm/providers.json';
 import {verifyBackendSession} from './anythingllm-auth';
 import {geminiFreeModels,geminiModelFallback,textChatModel} from './anythingllm-models';
+import {fetchChatWithRetry,geminiCompatiblePayload,TRANSIENT} from './anythingllm-transport';
 
 type ChatEnv={DB:D1Database;GEMINI_API_KEY?:string};
 type Authenticate=(r:Request,e:any,id:string)=>Promise<boolean>;
@@ -58,7 +59,7 @@ export async function publicError(response:Response,key:string){
  }catch{}
  if(key)message=message.split(key).join('[redacted]');
  message=message.replace(/(?:sk-|gsk_|nvapi-|AIza)[A-Za-z0-9_-]{12,}/g,'[redacted]');
- const prefix=response.status===401?'API Key 无效':response.status===402?'额度不足或需要充值':response.status===403?'模型权限 / 地域 / 账户资格受限':response.status===404?'模型或接口不存在，请重新拉取模型':response.status===429?'后端限流或免费额度耗尽':'后端请求失败';
+ const prefix=response.status===400?'模型拒绝了请求参数':response.status===401?'API Key 无效':response.status===402?'额度不足或需要充值':response.status===403?'模型权限 / 地域 / 账户资格受限':response.status===404?'模型或接口不存在，请重新拉取模型':response.status===429?'后端限流或免费额度耗尽':response.status>=500?'模型服务暂时不可用':'后端请求失败';
  const result=fail(prefix+'（HTTP '+response.status+'）'+(message?'：'+message:''),response.status>=400&&response.status<600?response.status:502);
  const retry=response.headers.get('retry-after');if(retry&&/^\d{1,6}$/.test(retry))result.headers.set('retry-after',retry);
  return result;
@@ -93,21 +94,35 @@ export async function anythingLLMRoute(request:Request,env:ChatEnv,authenticate:
  if(!key)return fail('请在后端设置中填写 API Key',401);
  if(/[\r\n]/.test(key))return fail('API Key 格式不正确');
  if(path.endsWith('/status'))return Response.json({configured:true,shared:!body.apiKey,provider:target.provider.id},{headers:{'cache-control':'no-store'}});
+ let verifiedGeminiModels:{id:string}[]=[];
  if(target.provider.id==='gemini'&&(path.endsWith('/models')||path.endsWith('/chat'))){
   let report;
   try{report=await geminiFreeModels(key)}catch{report=geminiModelFallback()}
   if(path.endsWith('/models'))return Response.json(report,{headers:{'cache-control':'no-store'}});
+  verifiedGeminiModels=report.models;
   if(!report.models.some((m:any)=>m.id===payload!.model))return fail('该型号不在官方免费层且支持文字聊天的实时清单中，请刷新模型列表',400);
  }
  const url=target.base+(path.endsWith('/chat')?'/chat/completions':path.endsWith('/quota')?'/key':'/models');
  if(path.endsWith('/quota')&&target.provider.id!=='openrouter')return fail('此后端未提供统一剩余额度接口，请查看官方控制台');
  try{
-  const response=await fetch(url,{method:payload?'POST':'GET',headers:{authorization:'Bearer '+key,'content-type':'application/json'},...(payload?{body:JSON.stringify(payload)}:{}),redirect:'manual',signal:AbortSignal.any([request.signal,AbortSignal.timeout(120000)])});
-  if(!response.ok||response.status>=300)return publicError(response,key);
+  const outgoing=payload&&target.provider.id==='gemini'?geminiCompatiblePayload(payload):payload;
+  const options:RequestInit={method:payload?'POST':'GET',headers:{authorization:'Bearer '+key,'content-type':'application/json'},...(outgoing?{body:JSON.stringify(outgoing)}:{}),redirect:'manual',signal:AbortSignal.any([request.signal,AbortSignal.timeout(120000)])};
+  const requestId=crypto.randomUUID(),started=Date.now();
+  let {response,attempts}=payload?await fetchChatWithRetry(url,options):{response:await fetch(url,options),attempts:1};
+  let actualModel=payload?.model||'',fallbackFrom='';
+  const fallbackModel='gemini-3.5-flash-lite';
+  if(payload&&target.provider.id==='gemini'&&body.allowFreeFallback===true&&TRANSIENT.has(response.status)&&payload.model!==fallbackModel&&verifiedGeminiModels.some(m=>m.id===fallbackModel)){
+   await response.body?.cancel();
+   const backup=await fetchChatWithRetry(url,{...options,body:JSON.stringify(geminiCompatiblePayload({...payload,model:fallbackModel}))});
+   response=backup.response;attempts+=backup.attempts;actualModel=fallbackModel;fallbackFrom=payload.model;
+  }
+  const diagnosticHeaders={'x-pt-request-id':requestId,'x-pt-attempts':String(attempts),'x-pt-model':actualModel,...(fallbackFrom?{'x-pt-fallback-from':fallbackFrom}:{}),'access-control-expose-headers':'retry-after,x-pt-request-id,x-pt-attempts,x-pt-model,x-pt-fallback-from'};
+  if(payload)console.info(JSON.stringify({event:'pt_chat_upstream',requestId,provider:target.provider.id,model:actualModel,requestedModel:payload.model,status:response.status,attempts,elapsedMs:Date.now()-started}));
+  if(!response.ok||response.status>=300){const error=await publicError(response,key);for(const [name,value]of Object.entries(diagnosticHeaders))error.headers.set(name,value);return error}
   if(path.endsWith('/chat')){
    const contentType=response.headers.get('content-type')||'';
    if(!/text\/event-stream|application\/json/i.test(contentType))return fail('后端未返回有效的聊天响应',502);
-   return new Response(response.body,{headers:{'content-type':contentType,'cache-control':'no-store','x-content-type-options':'nosniff'}});
+   return new Response(response.body,{headers:{'content-type':contentType,'cache-control':'no-store','x-content-type-options':'nosniff',...diagnosticHeaders}});
   }
   const data:any=await response.json();
   if(path.endsWith('/quota'))return Response.json({freeRequests:data?.data?.free_model_daily_requests??null,checkedAt:new Date().toISOString()},{headers:{'cache-control':'no-store'}});
