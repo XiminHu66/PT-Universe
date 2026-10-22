@@ -1,5 +1,6 @@
 import catalog from '../../../apps/anythingllm/providers.json';
 import {verifyBackendSession} from './anythingllm-auth';
+import {geminiFreeModels,geminiModelFallback,textChatModel} from './anythingllm-models';
 
 type ChatEnv={DB:D1Database;GEMINI_API_KEY?:string};
 type Authenticate=(r:Request,e:any,id:string)=>Promise<boolean>;
@@ -16,7 +17,7 @@ export function validateChat(body:any,provider:typeof catalog.providers[number])
  {
   if(['trial','evaluation','conditional','paid'].includes(provider.kind))throw Error('请先在后端设置中确认此账户的试用额度 / 使用资格');
   if(provider.id==='openrouter'&&model!=='openrouter/free'&&!model.endsWith(':free'))throw Error('免费模式只允许 OpenRouter 免费路由或 :free 模型');
-  if(provider.freeModels&&!provider.freeModels.includes(model))throw Error('该模型不在已核实的免费清单中；请核对价格后在设置中允许其他模型');
+  if(provider.id!=='gemini'&&provider.freeModels&&!provider.freeModels.includes(model))throw Error('该模型不在已核实的免费清单中，请刷新免费模型列表');
  }
  if(!Array.isArray(body.messages)||!body.messages.length||body.messages.length>100)throw Error('对话需包含 1–100 条消息');
  const messages=body.messages.map((m:any)=>{
@@ -62,6 +63,17 @@ export async function anythingLLMRoute(request:Request,env:ChatEnv,authenticate:
  const path=new URL(request.url).pathname;
  if(!path.startsWith('/api/anythingllm/'))return null;
  if(path==='/api/anythingllm/providers'&&request.method==='GET')return Response.json(catalog,{headers:{'cache-control':'public,max-age=300'}});
+ // Model IDs and public prices contain no account data. Listing is read-only,
+ // cached and separate from the authenticated completion endpoint.
+ if(path==='/api/anythingllm/models'&&request.method==='GET'){
+  const id=new URL(request.url).searchParams.get('provider');
+  if(id==='openrouter'){
+   try{const r=await fetch('https://openrouter.ai/api/v1/models',{redirect:'manual',signal:AbortSignal.timeout(20000)});if(!r.ok)throw Error();const d:any=await r.json();return Response.json({models:(d.data||[]).filter((m:any)=>(m.id==='openrouter/free'||m.id?.endsWith(':free'))&&Number(m.pricing?.prompt)===0&&Number(m.pricing?.completion)===0).map((m:any)=>({id:m.id,name:str(m.name,180)||m.id})),checkedAt:new Date().toISOString(),source:'openrouter-zero-price-models',scope:'free-tier-text-chat',fallback:false},{headers:{'cache-control':'public,max-age=300'}})}catch{return fail('OpenRouter 免费型号查询暂时不可用',502)}
+  }
+  if(id!=='gemini')return fail('此后端需要先配置个人 Key',401);
+  let report;try{report=env.GEMINI_API_KEY?await geminiFreeModels(env.GEMINI_API_KEY.trim()):geminiModelFallback()}catch{report=geminiModelFallback()}
+  return Response.json(report,{headers:{'cache-control':report.fallback?'public,max-age=30':'public,max-age=300'}});
+ }
  if(!['/api/anythingllm/chat','/api/anythingllm/models','/api/anythingllm/status','/api/anythingllm/quota'].includes(path))return fail('Not found',404);
  if(request.method!=='POST')return fail('仅支持 POST',405);
  if(Number(request.headers.get('content-length')||0)>160000)return fail('请求过大',413);
@@ -73,11 +85,16 @@ export async function anythingLLMRoute(request:Request,env:ChatEnv,authenticate:
  let key=str(body.apiKey,4096);
  if(!key&&target.provider.id==='gemini'){
   const shared=await sharedKey(request,env,body,authenticate,path.endsWith('/chat'));if(shared instanceof Response)return shared;key=shared;
-  if(path.endsWith('/chat')&&!target.provider.freeModels?.includes(payload!.model))return fail('后台 Gemini 仅允许已核实的免费型号',403);
  }
  if(!key)return fail('请在后端设置中填写 API Key',401);
  if(/[\r\n]/.test(key))return fail('API Key 格式不正确');
  if(path.endsWith('/status'))return Response.json({configured:true,shared:!body.apiKey,provider:target.provider.id},{headers:{'cache-control':'no-store'}});
+ if(target.provider.id==='gemini'&&(path.endsWith('/models')||path.endsWith('/chat'))){
+  let report;
+  try{report=await geminiFreeModels(key)}catch{report=geminiModelFallback()}
+  if(path.endsWith('/models'))return Response.json(report,{headers:{'cache-control':'no-store'}});
+  if(!report.models.some((m:any)=>m.id===payload!.model))return fail('该型号不在官方免费层且支持文字聊天的实时清单中，请刷新模型列表',400);
+ }
  const url=target.base+(path.endsWith('/chat')?'/chat/completions':path.endsWith('/quota')?'/key':'/models');
  if(path.endsWith('/quota')&&target.provider.id!=='openrouter')return fail('此后端未提供统一剩余额度接口，请查看官方控制台');
  try{
@@ -91,7 +108,7 @@ export async function anythingLLMRoute(request:Request,env:ChatEnv,authenticate:
   const data:any=await response.json();
   if(path.endsWith('/quota'))return Response.json({freeRequests:data?.data?.free_model_daily_requests??null,checkedAt:new Date().toISOString()},{headers:{'cache-control':'no-store'}});
   let models=Array.isArray(data.data)?data.data:Array.isArray(data.models)?data.models:[];
-  models=models.filter((m:any)=>typeof m.id==='string');
+  models=models.filter((m:any)=>typeof m.id==='string'&&textChatModel(m.id));
   if(target.provider.id==='gemini')models=models.map((m:any)=>({...m,id:m.id.replace(/^models\//,'')}));
   if(target.provider.id==='openrouter')models=models.filter((m:any)=>m.id==='openrouter/free'||m.id.endsWith(':free'));
   if(target.provider.freeModels)models=models.filter((m:any)=>target.provider.freeModels!.includes(m.id));

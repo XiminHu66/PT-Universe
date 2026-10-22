@@ -9,17 +9,21 @@
       "base": "https://generativelanguage.googleapis.com/v1beta/openai",
       "models": [
         "gemini-3.5-flash-lite",
-        "gemini-3.6-flash"
+        "gemini-3.8-flash",
+        "gemini-3.6-flash",
+        "gemini-3.1-flash-lite",
+        "gemini-3-flash-preview",
+        "gemini-2.5-pro",
+        "gemini-2.5-flash",
+        "gemini-2.5-flash-lite",
+        "gemini-robotics-er-2-preview"
       ],
       "quota": "部分模型有免费层；速率与每日额度以 AI Studio 为准",
       "signup": "https://aistudio.google.com/apikey",
       "docs": "https://ai.google.dev/gemini-api/docs/pricing",
       "requirements": "Google 账号；免费层无需开通付费",
-      "note": "直接连接 PT Universe 已有后台，无需重新填写 Gemini Key。也可使用自己的免费层 Key。",
-      "freeModels": [
-        "gemini-3.6-flash",
-        "gemini-3.5-flash-lite"
-      ],
+      "note": "自动交叉核对 Google 官方价格页和实时模型列表，只显示免费层且支持文字聊天的型号。可直接连接 PT 后台，无需重填 Key。",
+      "freeModels": null,
       "checkedAt": "2026-10-22",
       "serviceType": "official"
     },

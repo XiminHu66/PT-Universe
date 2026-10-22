@@ -6,7 +6,7 @@ const BRIDGE='https://pt-vps-tools.h1nano.chatgpt.site/__pt_chat_connect';
 const sessionKey='anythingllm.backend.session';let backendReady=false,backendError='',backendSession=read(sessionKey,null,sessionStorage);
 const stateKey='anythingllm.state.v1',configKey='anythingllm.config.v1',keyKey='anythingllm.keys.v1';
 const defaults={version:1,workspaces:[{id:'general',name:'日常对话',icon:'◌',system:'你是一位清晰、诚实、有帮助的助手。默认使用中文回答。',temperature:.7,maxTokens:2048},{id:'research',name:'研究与阅读',icon:'◈',system:'你是一位研究助手。清楚区分证据、推断与未知。解释问题、机制、证据与局限，给出可执行的下一步。没有联网工具时不要声称已检索。默认中文。',temperature:.3,maxTokens:4096},{id:'code',name:'代码与构建',icon:'⌘',system:'你是一位务实的软件工程伙伴。先解释问题与最小修复，再给出可运行的代码。明确假设与验证方法。默认中文。',temperature:.3,maxTokens:4096}],chats:[]};
-let state=read(stateKey,structuredClone(defaults)),configs=read(configKey,{}),keys=read(keyKey,{},sessionStorage),workspaceId=read('anythingllm.workspace','general'),chatId=read('anythingllm.chat',''),providers=[],providerId=read('anythingllm.provider','gemini'),busy=false,controller=null,files=[],models={},saveTimer=null;
+let state=read(stateKey,structuredClone(defaults)),configs=read(configKey,{}),keys=read(keyKey,{},sessionStorage),workspaceId=read('anythingllm.workspace','general'),chatId=read('anythingllm.chat',''),providers=[],providerId=read('anythingllm.provider','gemini'),busy=false,controller=null,files=[],models={},modelReports={},modelTasks=new Map(),saveTimer=null;
 if(!state.workspaces?.length||!Array.isArray(state.chats))state=structuredClone(defaults);
 if(!state.workspaces.some(w=>w.id===workspaceId))workspaceId=state.workspaces[0].id;
 for(const c of state.chats)for(const m of c.messages||[])if(m.status==='streaming')m.status='stopped';
@@ -30,11 +30,45 @@ function renderSidebar(){
 }
 function connectBackend(){persist();sessionStorage.setItem('anythingllm.connect.draft',$('#prompt').value);const nonce=Array.from(crypto.getRandomValues(new Uint8Array(24)),x=>x.toString(16).padStart(2,'0')).join('');sessionStorage.setItem('anythingllm.connect.nonce',nonce);location.assign(BRIDGE+'?nonce='+nonce)}
 async function checkBackend(){backendReady=false;backendError='';try{const r=await request('status',credentials('gemini'),AbortSignal.timeout(12000));const d=await r.json();if(!r.ok)throw Error(d.error||'连接失败');backendReady=d.configured===true}catch(e){backendError=e instanceof TypeError?'暂时无法验证后台连接，请点击「连接 PT 后台」重试':e.message}renderModels();return backendReady}
+function modelRows(id){return models[id]||providers.find(p=>p.id===id)?.models.map(id=>({id,name:id}))||[]}
+function fillModelSelect(element,id,selected){
+ const rows=modelRows(id);element.innerHTML=rows.length?rows.map(m=>`<option value="${esc(m.id)}">${esc(m.name&&m.name!==m.id?m.name+' · '+m.id:m.id)}</option>`).join(''):'<option value="">填写 Key 后自动获取免费模型</option>';
+ if(rows.some(m=>m.id===selected))element.value=selected;
+}
+function modelSummary(id){
+ const report=modelReports[id];if(modelTasks.has(id))return '正在自动获取免费模型…';
+ if(report?.error)return '更新失败：'+report.error+'；保留上次列表，可点击 ↻ 重试';
+ const count=modelRows(id).length;if(!report)return count+' 个已知免费型号 · '+(!keys[id]&&!['gemini','openrouter'].includes(id)?'填写 Free plan Key 后自动获取完整列表':'正在准备自动更新');
+ return `${count} 个免费文字模型 · ${report.fallback?'最近核实清单':'自动更新 '+new Date(report.checkedAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}${report.unsupported?.length?' · '+report.unsupported.length+' 个专用型号见设置':''}`;
+}
+function renderSettingsModels(id,selected){
+ fillModelSelect($('#setting-model'),id,selected);$('#settings-model-status').textContent=modelSummary(id);
+ const extra=modelReports[id]?.unsupported||[];$('#model-exclusions').hidden=!extra.length;
+ $('#unsupported-models').innerHTML=extra.map(m=>`<p><strong>${esc(m.name)}</strong><br>${esc(m.id)} · ${esc(m.reason)}</p>`).join('');
+}
+async function loadModels(id,{override,force=false}={}){
+ if(modelTasks.has(id))return modelTasks.get(id);
+ const last=modelReports[id];if(!force&&last&&!last.error&&Date.now()-last.fetchedAt<600000)return last;
+ const c=override||cfg(id),key=override?.key??keys[id];
+ if(!['gemini','openrouter'].includes(id)&&!key)return;
+ // Put the task in the map before rendering, so loading state is visible.
+ const task=Promise.resolve().then(async()=>{
+  try{
+   const response=(id==='openrouter'||(id==='gemini'&&!key))?await fetch(API+'/models?provider='+id,{cache:'no-store',signal:AbortSignal.timeout(45000)}):await request('models',credentials(id,override),AbortSignal.timeout(45000));
+   const data=await response.json();if(!response.ok)throw Error(data.error?.message||data.error||'模型查询失败');
+   if(!Array.isArray(data.models))throw Error('模型列表格式不正确');
+   models[id]=data.models;modelReports[id]={...data,fetchedAt:Date.now()};
+   const current=cfg(id).model;if(data.models.length&&!data.models.some(m=>m.id===current)){configs[id]={...cfg(id),model:data.models[0].id};saveConfig()}
+   return modelReports[id];
+  }catch(e){modelReports[id]={...last,error:e instanceof TypeError?'暂时无法连接模型接口':e.message,fetchedAt:Date.now()};return modelReports[id]}
+  finally{modelTasks.delete(id);if(providerId===id)renderModels();if($('#settings-dialog').open&&$('#setting-provider').value===id)renderSettingsModels(id,$('#setting-model').value)}
+ });modelTasks.set(id,task);if(providerId===id)renderModels();if($('#settings-dialog').open&&$('#setting-provider').value===id)$('#settings-model-status').textContent=modelSummary(id);return task;
+}
 function renderModels(){
  const p=provider();if(!p)return;$('#backend-banner').hidden=p.id!=='gemini'||!cfg().shared||!!keys.gemini||backendReady;$('#welcome-connect').textContent=p.id==='gemini'&&!ready()?'连接 PT 后台 →':'配置后端 →';
  $('#provider-select').innerHTML=providers.filter(p=>p.kind!=='retired').map(p=>`<option value="${esc(p.id)}" ${p.id===providerId?'selected':''}>${esc(p.name)}${ready(p.id)?' · 已配置':''}</option>`).join('');
- $('#model-input').value=cfg().model||p.models[0]||'';
- $('#model-list').innerHTML=(models[p.id]||p.models).map(m=>`<option value="${esc(typeof m==='string'?m:m.id)}"></option>`).join('');
+ fillModelSelect($('#model-input'),p.id,cfg().model);
+ $('#model-summary').textContent=modelSummary(p.id);
  const n=$('#connection');n.className='connection'+(ready()?' ready':'');n.innerHTML='<i></i>'+(ready()?(cfg().shared&&!keys[p.id]?'后台 Gemini':'已配置 · 按需调用'):'待配置');
 }
 function renderMessages(){
@@ -85,14 +119,14 @@ async function generate(c){
 async function resend(){if(busy)return;const c=chat();if(!c)return;const last=c.messages.at(-1);if(last?.role==='assistant'){if(!await ask('重新生成回答','将替换最后一条回答，使用顶部当前选择的后端和模型。'))return;c.messages.pop()}await generate(c)}
 function openSettings(id=providerId){
  const p=providers.find(p=>p.id===id);if(!p||p.kind==='retired')return;
- const config=cfg(id);$('#quota-check').hidden=id!=='openrouter';$('#settings-model-list').innerHTML=(models[id]||p.models).map(m=>`<option value="${esc(typeof m==='string'?m:m.id)}"></option>`).join('');$('#setting-provider').value=id;$('#settings-title').textContent=p.name;$('#provider-description').innerHTML=esc(p.quota)+'<small>'+esc(p.requirements)+'<br>'+esc(p.note)+'</small>';
+ const config=cfg(id);$('#quota-check').hidden=id!=='openrouter';renderSettingsModels(id,config.model);$('#setting-provider').value=id;$('#settings-title').textContent=p.name;$('#provider-description').innerHTML=esc(p.quota)+'<small>'+esc(p.requirements)+'<br>'+esc(p.note)+'</small>';
  $('#provider-links').innerHTML=(p.signup?`<a href="${esc(p.signup)}" target="_blank" rel="noopener noreferrer">注册 / 获取 Key ↗</a>`:'')+(p.docs?`<a href="${esc(p.docs)}" target="_blank" rel="noopener noreferrer">官方说明 ↗</a>`:'');
- $('#api-key').value=keys[id]||'';$('#account-field').hidden=id!=='cloudflare';$('#account-id').value=config.accountId||'';$('#base-field').hidden=!['custom','ollama'].includes(id);$('#base-url').value=config.baseUrl||p.base||'';$('#setting-model').value=config.model||p.models[0]||'';
+ $('#api-key').value=keys[id]||'';$('#account-field').hidden=id!=='cloudflare';$('#account-id').value=config.accountId||'';$('#base-field').hidden=!['custom','ollama'].includes(id);$('#base-url').value=config.baseUrl||p.base||'';fillModelSelect($('#setting-model'),id,config.model);
  $('#shared-row').hidden=id!=='gemini';$('#use-shared').checked=!!config.shared;$('#settings-connect').hidden=id!=='gemini';$('#key-field').hidden=id==='gemini'&&config.shared;$('#key-note').hidden=id==='gemini'&&config.shared;
- $('#shared-info').hidden=id!=='gemini';$('#shared-info').textContent=backendReady?'后台连接已验证，可以直接聊天。':(backendError||'点击「连接 PT 后台」，在原有工具中心登录后自动返回。无需寻找配对码或再次填写 Gemini Key。');$('#test-result').textContent='';showDialog('#settings-dialog');
+ $('#shared-info').hidden=id!=='gemini';$('#shared-info').textContent=backendReady?'后台连接已验证，可以直接聊天。':(backendError||'点击「连接 PT 后台」，在原有工具中心登录后自动返回。无需寻找配对码或再次填写 Gemini Key。');$('#test-result').textContent='';showDialog('#settings-dialog');void loadModels(id);
 }
 function formConfig(){const id=$('#setting-provider').value;return {id,key:$('#api-key').value.trim(),model:$('#setting-model').value.trim(),accountId:$('#account-id').value.trim(),baseUrl:['custom','ollama'].includes(id)?$('#base-url').value.trim():'',shared:id==='gemini'&&$('#use-shared').checked,allowPaid:false}}
-function validateConfig(c){const p=providers.find(p=>p.id===c.id);if(!c.model)throw Error('请填写模型 ID');if(!c.key&&!c.shared&&!['custom','ollama'].includes(c.id))throw Error('请填写 API Key');if(c.id==='cloudflare'&&!/^[a-f0-9]{32}$/i.test(c.accountId))throw Error('Account ID 应为 32 位');if(['custom','ollama'].includes(c.id))directBase(c.baseUrl);if(!c.allowPaid&&['trial','evaluation','conditional','paid'].includes(p.kind))throw Error('请先核对该后端额度，再勾选使用资格确认');if(!c.allowPaid&&p.freeModels&&!p.freeModels.includes(c.model))throw Error('模型不在已核实的免费清单中，请核对价格后勾选允许其他模型');if(!c.allowPaid&&c.id==='openrouter'&&c.model!=='openrouter/free'&&!c.model.endsWith(':free'))throw Error('免费模式只接受 openrouter/free 或 :free 型号')}
+function validateConfig(c){const p=providers.find(p=>p.id===c.id);if(!c.model)throw Error('请填写模型 ID');if(!c.key&&!c.shared&&!['custom','ollama'].includes(c.id))throw Error('请填写 API Key');if(c.id==='cloudflare'&&!/^[a-f0-9]{32}$/i.test(c.accountId))throw Error('Account ID 应为 32 位');if(['custom','ollama'].includes(c.id))directBase(c.baseUrl);if(!c.allowPaid&&['trial','evaluation','conditional','paid'].includes(p.kind))throw Error('请先核对该后端额度，再勾选使用资格确认');if(c.id!=='gemini'&&p.freeModels&&!p.freeModels.includes(c.model))throw Error('模型不在已核实的免费清单中，请刷新免费模型列表');if(models[c.id]&&!models[c.id].some(m=>m.id===c.model))throw Error('请选择列表中的免费型号');if(!c.allowPaid&&c.id==='openrouter'&&c.model!=='openrouter/free'&&!c.model.endsWith(':free'))throw Error('免费模式只接受 openrouter/free 或 :free 型号')}
 function renderCatalog(){
  const query=$('#provider-search').value.toLowerCase(),filter=$('#kind-filter').value;
  const list=providers.filter(p=>(filter==='free'||p.serviceType===filter)&&JSON.stringify(p).toLowerCase().includes(query));
@@ -108,22 +142,18 @@ function exportBackup(){download('AnythingLLM-backup-'+new Date().toISOString().
 $('#new-chat').onclick=newChat;$('#search-chats').oninput=renderSidebar;$('#provider-open').onclick=openCatalog;$('#welcome-free').onclick=openCatalog;$('#welcome-connect').onclick=()=>providerId==='gemini'&&!ready()?connectBackend():openSettings();$('#backend-connect').onclick=connectBackend;$('#settings-connect').onclick=connectBackend;$('#use-shared').onchange=()=>{const shared=$('#use-shared').checked;$('#key-field').hidden=shared;$('#key-note').hidden=shared;$('#settings-connect').hidden=!shared};$('#settings-open').onclick=()=>openSettings();$('#workspace-settings').onclick=openWorkspace;
 $$('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());$$('dialog').forEach(d=>d.addEventListener('click',e=>{if(e.target===d){const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close()}}));
 $('#provider-search').oninput=renderCatalog;$('#kind-filter').onchange=renderCatalog;
-$('#provider-form').onsubmit=e=>{e.preventDefault();try{const c=formConfig();validateConfig(c);const {key,id,...config}=c;keys[id]=key;configs[id]=config;providerId=id;saveConfig();renderModels();$('#settings-dialog').close();$('#providers-dialog').close();notice(id==='gemini'&&config.shared&&!backendReady?'点击「连接 PT 后台」即可使用现有 Gemini。':'后端已保存。可先测试对话或直接发送消息。')}catch(e){$('#test-result').textContent=e.message}};
+$('#provider-form').onsubmit=e=>{e.preventDefault();try{const c=formConfig();validateConfig(c);const {key,id,...config}=c;keys[id]=key;configs[id]=config;providerId=id;delete modelReports[id];delete models[id];saveConfig();renderModels();void loadModels(id,{force:true});$('#settings-dialog').close();$('#providers-dialog').close();notice(id==='gemini'&&config.shared&&!backendReady?'点击「连接 PT 后台」即可使用现有 Gemini。':'后端已保存。可先测试对话或直接发送消息。')}catch(e){$('#test-result').textContent=e.message}};
 $('#test-provider').onclick=async()=>{
  const button=$('#test-provider'),result=$('#test-result');button.disabled=true;result.textContent='正在用小额度请求验证真实回答…';
  try{const c=formConfig();validateConfig(c);const r=await chatResponse(c.id,c,[{role:'user',content:'只回复 OK。'}],AbortSignal.timeout(45000),c);const answer=await consumeChat(r,()=>{});result.textContent='连接成功 · '+(answer.model||c.model)+'：'+answer.content.slice(0,150)}catch(e){result.textContent='连接失败：'+e.message}finally{button.disabled=false}
 };
-$('#settings-models').onclick=async()=>{const button=$('#settings-models');button.disabled=true;try{const c=formConfig();const r=await request('models',credentials(c.id,c),AbortSignal.timeout(30000));const data=await r.json();if(!r.ok)throw Error(data.error||'模型查询失败');if(!data.models?.length)throw Error('当前账号没有返回可用型号，请核对 Free plan 权限');models[c.id]=data.models;$('#settings-model-list').innerHTML=data.models.map(m=>`<option value="${esc(m.id)}"></option>`).join('');if(!$('#setting-model').value)$('#setting-model').value=data.models[0].id;$('#test-result').textContent='已获取 '+data.models.length+' 个型号，可在默认模型框中选择。'}catch(e){$('#test-result').textContent=e.message}finally{button.disabled=false}};
+$('#settings-models').onclick=async()=>{const button=$('#settings-models');button.disabled=true;try{const c=formConfig();const report=await loadModels(c.id,{override:c,force:true});$('#test-result').textContent=report?.error?'更新失败：'+report.error:report?'已更新 '+report.models.length+' 个免费文字模型。': '请先填写个人 Free plan Key。'}finally{button.disabled=false}};
+let keyModelTimer;for(const id of ['api-key','account-id'])$('#'+id).addEventListener('input',()=>{clearTimeout(keyModelTimer);keyModelTimer=setTimeout(()=>{const c=formConfig();if(c.key){delete modelReports[c.id];void loadModels(c.id,{override:c,force:true})}},900)});
 $('#quota-check').onclick=async()=>{const button=$('#quota-check');button.disabled=true;try{const c=formConfig();const r=await request('quota',credentials(c.id,c),AbortSignal.timeout(20000));const data=await r.json();if(!r.ok)throw Error(data.error||'额度查询失败');const q=data.freeRequests;$('#test-result').textContent=q?`今日免费请求：剩余 ${q.remaining} / ${q.limit}，已用 ${q.used}。`:'此账号未返回每日计数，请查看 OpenRouter 控制台。'}catch(e){$('#test-result').textContent=e.message}finally{button.disabled=false}};
 $('#forget-key').onclick=async()=>{const id=$('#setting-provider').value;if(!await ask('移除此后端 Key','只移除当前标签页保存的 Key，对话记录会保留。'))return;delete keys[id];$('#api-key').value='';saveConfig();renderModels();$('#test-result').textContent='Key 已移除。'};
-$('#provider-select').onchange=()=>{if(busy)return;providerId=$('#provider-select').value;const p=provider();if(!cfg().model)configs[p.id]={...cfg(),model:p.models[0]||''};saveConfig();renderModels();if(!ready())openSettings()};
-$('#model-input').onchange=()=>{configs[providerId]={...cfg(),model:$('#model-input').value.trim()};saveConfig()};
-$('#refresh-models').onclick=async()=>{
- const button=$('#refresh-models');button.disabled=true;
- try{let response;if(['custom','ollama'].includes(providerId)){const base=directBase(cfg().baseUrl||provider().base);response=await fetch(base+'/models',{headers:keys[providerId]?{authorization:'Bearer '+keys[providerId]}:{},signal:AbortSignal.timeout(30000),redirect:'error'})}else response=await request('models',credentials(providerId),AbortSignal.timeout(30000));
-  const data=await response.json();if(!response.ok)throw Error(data.error?.message||data.error||'拉取失败');const rows=data.models||data.data||[];if(!rows.length)throw Error('后端未返回可用模型；可从官方控制台复制精确 ID 手动填写。');models[providerId]=rows;renderModels();notice('已更新 '+rows.length+' 个模型。拉取模型列表不代表每个模型都免费，请核对账户套餐。');
- }catch(e){notice('模型列表更新失败：'+e.message+'。已保留当前型号，可手动输入。')}finally{button.disabled=false}
-};
+$('#provider-select').onchange=()=>{if(busy)return;providerId=$('#provider-select').value;const p=provider();if(!cfg().model)configs[p.id]={...cfg(),model:p.models[0]||''};saveConfig();renderModels();void loadModels(providerId);if(!ready())openSettings()};
+$('#model-input').onchange=()=>{configs[providerId]={...cfg(),model:$('#model-input').value};saveConfig()};
+$('#refresh-models').onclick=async()=>{const id=providerId,report=await loadModels(id,{force:true});notice(report?.error?'模型更新失败：'+report.error:report?.warning|| (report?'已自动更新 '+report.models.length+' 个免费文字模型。':'配置此后端的免费计划 Key 后，将自动获取型号。'))};
 $('#composer').onsubmit=e=>{e.preventDefault();send()};$('#prompt').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();send()}};$('#prompt').oninput=()=>{const p=$('#prompt');p.style.height='auto';p.style.height=Math.min(200,p.scrollHeight)+'px'};
 $('#stop').onclick=()=>controller?.abort('user');document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();if(!$$('dialog[open]').length)newChat()}});
 $$('[data-prompt]').forEach(b=>b.onclick=()=>{$('#prompt').value=b.dataset.prompt;$('#prompt').focus()});
@@ -147,12 +177,15 @@ async function init(){
    if(!expected||nonce!==expected)throw Error('后台连接已过期或不是本标签页发起，请重新点击连接');
    backendSession={token};sessionStorage.setItem(sessionKey,JSON.stringify(backendSession));providerId='gemini';configs.gemini={...cfg('gemini'),shared:true};delete keys.gemini;$('#prompt').value=sessionStorage.getItem('anythingllm.connect.draft')||'';sessionStorage.removeItem('anythingllm.connect.draft');
   }
-  const response=await fetch('./providers.json?v=20261022-free2');if(!response.ok)throw Error('目录加载失败');providers=(await response.json()).providers;
+  const response=await fetch('./providers.json?v=20261022-models3');if(!response.ok)throw Error('目录加载失败');providers=(await response.json()).providers;
   if(!providers.some(p=>p.id===providerId))providerId='gemini';
   for(const p of providers){if(!cfg(p.id).model)configs[p.id]={...cfg(p.id),model:p.models[0]||''};configs[p.id].allowPaid=false}
   if(!keys.gemini)configs.gemini={...cfg('gemini'),shared:true};
   $('#provider-count').textContent=providers.length;saveConfig();render();if(chat())scrollBottom();
+  for(const p of providers)if(keys[p.id]||['gemini','openrouter'].includes(p.id))void loadModels(p.id);
   if(cfg('gemini').shared&&!keys.gemini){await checkBackend();if(providerId==='gemini'&&!backendReady)notice('Gemini 尚未连接：点击上方「连接 PT 后台」，会在原有工具中心登录后自动返回。')}
  }catch(e){notice('连接初始化失败：'+e.message);renderSidebar();renderMessages()}
 }
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&providers.length)void loadModels(providerId)});
+setInterval(()=>{if(!document.hidden&&providers.length)void loadModels(providerId)},600000);
 init();
