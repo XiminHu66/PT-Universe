@@ -1,4 +1,5 @@
 import catalog from '../../../apps/anythingllm/providers.json';
+import {verifyBackendSession} from './anythingllm-auth';
 
 type ChatEnv={DB:D1Database;GEMINI_API_KEY?:string};
 type Authenticate=(r:Request,e:any,id:string)=>Promise<boolean>;
@@ -6,13 +7,13 @@ const fail=(error:string,status=400)=>Response.json({error},{status,headers:{'ca
 const str=(v:unknown,n=300)=>typeof v==='string'?v.trim().slice(0,n):'';
 export function providerBase(id:string,accountId:unknown){
  const provider=catalog.providers.find(p=>p.id===id);
- if(!provider||!provider.base||['local','custom','retired'].includes(provider.kind))throw Error('请选择支持的云端后端；自建接口请使用浏览器直连');
+ if(!provider||!provider.base||provider.kind!=='free')throw Error('只支持已核实有持续免费额度的后端');
  if(id==='cloudflare'&&!/^[a-f0-9]{32}$/i.test(str(accountId)))throw Error('请填写 32 位 Cloudflare Account ID');
  return {provider,base:provider.base.replace('{accountId}',str(accountId))};
 }
 export function validateChat(body:any,provider:typeof catalog.providers[number]){
  const model=str(body.model,200);if(!model||!/^[@\w./:+-]+$/.test(model))throw Error('请选择或填写有效模型 ID');
- if(body.allowPaid!==true){
+ {
   if(['trial','evaluation','conditional','paid'].includes(provider.kind))throw Error('请先在后端设置中确认此账户的试用额度 / 使用资格');
   if(provider.id==='openrouter'&&model!=='openrouter/free'&&!model.endsWith(':free'))throw Error('免费模式只允许 OpenRouter 免费路由或 :free 模型');
   if(provider.freeModels&&!provider.freeModels.includes(model))throw Error('该模型不在已核实的免费清单中；请核对价格后在设置中允许其他模型');
@@ -29,9 +30,13 @@ export function validateChat(body:any,provider:typeof catalog.providers[number])
  return {model,messages,stream:true,max_tokens:Math.max(64,Math.min(8192,Math.trunc(max_tokens))),temperature:Math.max(0,Math.min(2,temperature))};
 }
 async function sharedKey(request:Request,env:ChatEnv,body:any,authenticate:Authenticate,reserve:boolean){
- const owner=str(body.owner,50);
- if(!/^[\w-]{36}$/.test(owner)||!await authenticate(request,env,owner))return fail('请先连接原有 PT Universe 配对码，或配置个人 Gemini Key',401);
- if(!await env.DB.prepare('SELECT owner FROM research_ai_accounts WHERE owner=?').bind(owner).first())return fail('此配对码未启用后台 AI；可使用个人 API Key',403);
+ const session=await verifyBackendSession(body.backendSession);
+ if(session?.probe&&(!reserve||body.model!=='gemini-3.5-flash-lite'||body.maxTokens!==128||body.temperature!==0||body.messages?.length!==1||body.messages[0].role!=='user'||body.messages[0].content!=='PT Chat connection test: respond only OK.'))return fail('后台连接自检只能执行固定测试',403);
+ const owner=session?.owner||str(body.owner,50);
+ if(!session){
+  if(!/^[\w-]{36}$/.test(owner)||!await authenticate(request,env,owner))return fail('点击「连接 PT 后台」，登录原有工具中心即可使用 Gemini，无需重填 API Key',401);
+  if(!await env.DB.prepare('SELECT owner FROM research_ai_accounts WHERE owner=?').bind(owner).first())return fail('当前配对码未开通后台 AI；请点击「连接 PT 后台」完成账号连接',403);
+ }
  if(!env.GEMINI_API_KEY)return fail('后台尚未配置 Gemini；请使用个人 Key',503);
  if(reserve){
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS anythingllm_usage(id TEXT PRIMARY KEY,owner TEXT NOT NULL,created_at INTEGER NOT NULL)').run();
@@ -87,8 +92,9 @@ export async function anythingLLMRoute(request:Request,env:ChatEnv,authenticate:
   if(path.endsWith('/quota'))return Response.json({freeRequests:data?.data?.free_model_daily_requests??null,checkedAt:new Date().toISOString()},{headers:{'cache-control':'no-store'}});
   let models=Array.isArray(data.data)?data.data:Array.isArray(data.models)?data.models:[];
   models=models.filter((m:any)=>typeof m.id==='string');
-  if(target.provider.id==='openrouter'&&body.allowPaid!==true)models=models.filter((m:any)=>m.id==='openrouter/free'||m.id.endsWith(':free'));
-  if(target.provider.freeModels&&body.allowPaid!==true)models=models.filter((m:any)=>target.provider.freeModels!.includes(m.id));
+  if(target.provider.id==='gemini')models=models.map((m:any)=>({...m,id:m.id.replace(/^models\//,'')}));
+  if(target.provider.id==='openrouter')models=models.filter((m:any)=>m.id==='openrouter/free'||m.id.endsWith(':free'));
+  if(target.provider.freeModels)models=models.filter((m:any)=>target.provider.freeModels!.includes(m.id));
   return Response.json({models:models.slice(0,1000).map((m:any)=>({id:m.id,name:str(m.name)||m.id})),checkedAt:new Date().toISOString()},{headers:{'cache-control':'no-store'}});
  }catch{return fail('后端连接失败或超时，请检查网络、模型和 Key 后重试',502)}
 }

@@ -16,7 +16,8 @@ assert.equal((await route(req('chat',{...body,apiKey:''}),{},noAuth)).status,401
 assert.equal((await route(req('chat',{...body,provider:'gemini',apiKey:'',model:'gemini-3.5-flash-lite'}),{},noAuth)).status,401);
 assert.equal((await route(req('chat',{...body,provider:'cerebras'}),{},noAuth)).status,400);
 assert.equal((await route(req('chat',{...body,messages:[{role:'user',content:'x'.repeat(60001)}]}),{},noAuth)).status,400);
-const catalog=await (await route(req('providers',null,'GET'),{},noAuth)).json();assert.equal(catalog.providers.length,28);assert.equal(catalog.providers.find(p=>p.id==='github').kind,'retired');
+const catalog=await (await route(req('providers',null,'GET'),{},noAuth)).json();assert.equal(catalog.providers.length,11);assert.ok(catalog.providers.every(p=>p.kind==='free'));assert.ok(!catalog.providers.some(p=>p.id==='fireworks'));assert.ok(catalog.providers.some(p=>p.id==='a4f'));
+assert.throws(()=>validateChat({...body,model:'paid-model',allowPaid:true},p),/免费/);
 const old=globalThis.fetch;let calls=[];
 try{
  globalThis.fetch=async(url,options)=>{calls.push({url,options});return new Response('data: {"choices":[{"delta":{"content":"OK"}}]}\n\ndata: [DONE]\n\n',{headers:{'content-type':'text/event-stream'}})};
@@ -28,6 +29,6 @@ try{
  globalThis.fetch=async()=>new Response('data: [DONE]\n\n',{headers:{'content-type':'text/event-stream'}});
  const shared={provider:'gemini',model:'gemini-3.5-flash-lite',owner:'11111111-1111-4111-8111-111111111111',messages:body.messages};assert.equal((await route(req('chat',shared),{DB:db,GEMINI_API_KEY:'private-shared-key'},async()=>true)).status,200);assert.equal(reservations,1);
  const denied={prepare(){return {bind(){return this},async first(){return {owner:'authorized'}},async run(){return {meta:{changes:0}}}}}};assert.equal((await route(req('chat',shared),{DB:denied,GEMINI_API_KEY:'private-shared-key'},async()=>true)).status,429);
- assert.equal((await route(req('chat',{...shared,model:'paid',allowPaid:true}),{DB:db,GEMINI_API_KEY:'private-shared-key'},async()=>true)).status,403);
+ assert.equal((await route(req('chat',{...shared,model:'paid',allowPaid:true}),{DB:db,GEMINI_API_KEY:'private-shared-key'},async()=>true)).status,400);
 }finally{globalThis.fetch=old}
 console.log('AnythingLLM Worker: fixed egress, redirect denial, shared auth/enrollment/quota, BYOK, free-only selection, streaming, model filtering, limits and secret redaction passed.');

@@ -1,5 +1,6 @@
 {
   "checkedAt": "2026-10-22",
+  "policy": "recurring-free-only",
   "providers": [
     {
       "id": "gemini",
@@ -14,12 +15,13 @@
       "signup": "https://aistudio.google.com/apikey",
       "docs": "https://ai.google.dev/gemini-api/docs/pricing",
       "requirements": "Google 账号；免费层无需开通付费",
-      "note": "免费层内容可能用于产品改进。已配置 PT 配对码时可使用现有后台 Gemini。",
+      "note": "直接连接 PT Universe 已有后台，无需重新填写 Gemini Key。也可使用自己的免费层 Key。",
       "freeModels": [
         "gemini-3.6-flash",
         "gemini-3.5-flash-lite"
       ],
-      "checkedAt": "2026-10-22"
+      "checkedAt": "2026-10-22",
+      "serviceType": "official"
     },
     {
       "id": "groq",
@@ -37,6 +39,22 @@
       "requirements": "注册 Groq 账号，创建 API Key",
       "note": "保持 Free plan；模型列表不等于账号的免费权限。",
       "freeModels": null,
+      "checkedAt": "2026-10-22",
+      "serviceType": "official"
+    },
+    {
+      "id": "a4f",
+      "name": "A4F · AI For Free",
+      "kind": "free",
+      "serviceType": "aggregator",
+      "base": "https://api.a4f.co/v1",
+      "models": [],
+      "quota": "Free plan：5 请求/分钟，300 请求/日；无到期日",
+      "signup": "https://www.a4f.co/",
+      "docs": "https://www.a4f.co/pricing",
+      "requirements": "注册账号并创建免费计划 API Key；从账号模型列表选择可用型号",
+      "note": "第三方聚合中转，官方自报免费计划；免费模型和上下文有限。这里未取得个人 Key 实测。",
+      "freeModels": null,
       "checkedAt": "2026-10-22"
     },
     {
@@ -51,9 +69,10 @@
       "signup": "https://openrouter.ai/keys",
       "docs": "https://openrouter.ai/docs/api-reference/limits",
       "requirements": "注册账号并创建 Key",
-      "note": "默认强制只调用 openrouter/free 或 :free；可拉取当前零价格模型。",
+      "note": "默认只允许 openrouter/free 或 :free 模型；免费请求按 UTC 日重置。可查询当前账号真实剩余额度。",
       "freeModels": null,
-      "checkedAt": "2026-10-22"
+      "checkedAt": "2026-10-22",
+      "serviceType": "aggregator"
     },
     {
       "id": "mistral",
@@ -69,7 +88,8 @@
       "requirements": "注册 Mistral 账号；Free mode 无需信用卡",
       "note": "API Key 跟随组织套餐；请保持 Free mode，不启用按量付费。",
       "freeModels": null,
-      "checkedAt": "2026-10-22"
+      "checkedAt": "2026-10-22",
+      "serviceType": "official"
     },
     {
       "id": "sambanova",
@@ -87,7 +107,8 @@
       "requirements": "注册账号；未绑定支付方式即 Free tier",
       "note": "以控制台当前模型和返回限额为准。",
       "freeModels": null,
-      "checkedAt": "2026-10-22"
+      "checkedAt": "2026-10-22",
+      "serviceType": "official"
     },
     {
       "id": "cloudflare",
@@ -107,7 +128,8 @@
         "@cf/meta/llama-3.1-8b-instruct",
         "@cf/zai-org/glm-4.7-flash"
       ],
-      "checkedAt": "2026-10-22"
+      "checkedAt": "2026-10-22",
+      "serviceType": "official"
     },
     {
       "id": "zhipu",
@@ -131,7 +153,8 @@
         "glm-4.6v-flash",
         "glm-4-flash-250414"
       ],
-      "checkedAt": "2026-10-22"
+      "checkedAt": "2026-10-22",
+      "serviceType": "official"
     },
     {
       "id": "gitee",
@@ -147,7 +170,8 @@
       "requirements": "Gitee 账号；选择「免费体验访问令牌」",
       "note": "模型权限以免费体验令牌为准；付费 Token 资源包独立。",
       "freeModels": null,
-      "checkedAt": "2026-10-22"
+      "checkedAt": "2026-10-22",
+      "serviceType": "official"
     },
     {
       "id": "llm7",
@@ -164,7 +188,8 @@
       "requirements": "注册并取得 Free token",
       "note": "免费 token 只支持对应 turbo 模型；额度可随服务容量调整。",
       "freeModels": null,
-      "checkedAt": "2026-10-22"
+      "checkedAt": "2026-10-22",
+      "serviceType": "aggregator"
     },
     {
       "id": "intern",
@@ -181,285 +206,112 @@
       "requirements": "书生 API 账号、API Token；按官方规则验证",
       "note": "模型和普通用户额度以 API 控制台为准；不自动申请竞赛专属额度。",
       "freeModels": null,
-      "checkedAt": "2026-10-22"
-    },
+      "checkedAt": "2026-10-22",
+      "serviceType": "official"
+    }
+  ],
+  "excluded": [
     {
       "id": "modelscope",
       "name": "ModelScope · 魔搭",
-      "kind": "conditional",
-      "base": "https://api-inference.modelscope.cn/v1",
-      "models": [],
-      "quota": "提供社区 API-Inference；当前免费模型和配额需在个人控制台核实",
-      "signup": "https://modelscope.cn/my/myaccesstoken",
-      "docs": "https://modelscope.cn/docs/model-service/API-Inference/intro",
-      "requirements": "魔搭账号和 Access Token；选择带 API-Inference 的模型",
-      "note": "没有从当前官方页面读取到稳定额度，因此不沿用旧教程的每日 2000 次承诺。填入完整组织/模型 ID。",
-      "freeModels": null,
-      "checkedAt": "2026-10-22"
+      "reason": "提供社区 API-Inference；当前免费模型和配额需在个人控制台核实",
+      "docs": "https://modelscope.cn/docs/model-service/API-Inference/intro"
     },
     {
       "id": "stepfun",
       "name": "StepFun · 阶跃星辰",
-      "kind": "evaluation",
-      "base": "https://api.stepfun.com/v1",
-      "models": [
-        "step-gui"
-      ],
-      "quota": "Model Lab 指定实验模型免费；并发 1，不保证持续在线",
-      "signup": "https://platform.stepfun.com/",
-      "docs": "https://platform.stepfun.com/docs/zh/guides/models/model-lab",
-      "requirements": "阶跃账号、API Key；使用 Model Lab 当前型号",
-      "note": "当前 Lab 主要为 GUI 专用模型；这里只支持文本聊天，不提供 GUI 自动操作。普通旗舰模型按量计费。",
-      "freeModels": [
-        "step-gui"
-      ],
-      "checkedAt": "2026-10-22"
+      "reason": "Model Lab 指定实验模型免费；并发 1，不保证持续在线",
+      "docs": "https://platform.stepfun.com/docs/zh/guides/models/model-lab"
     },
     {
       "id": "baichuan",
       "name": "百川智能",
-      "kind": "conditional",
-      "base": "https://api.baichuan-ai.com/v1",
-      "models": [],
-      "quota": "海纳百川计划可申请免费 M3Plus API；需获批",
-      "signup": "https://platform.baichuan-ai.com/",
-      "docs": "https://platform.baichuan-ai.com/docs-v2",
-      "requirements": "注册、实名并申请对应计划；填写控制台模型 ID",
-      "note": "申请制免费，不等于注册立即拥有。旧赠金规则不能保证仍适用。",
-      "freeModels": null,
-      "checkedAt": "2026-10-22"
+      "reason": "海纳百川计划可申请免费 M3Plus API；需获批",
+      "docs": "https://platform.baichuan-ai.com/docs-v2"
     },
     {
       "id": "baidu",
       "name": "百度千帆",
-      "kind": "conditional",
-      "base": "https://qianfan.baidubce.com/v2",
-      "models": [
-        "ernie-speed-8k",
-        "ernie-lite-8k"
-      ],
-      "quota": "历史 Speed/Lite 免费政策需按当前控制台核实",
-      "signup": "https://console.bce.baidu.com/qianfan/",
-      "docs": "https://cloud.baidu.com/doc/qianfan-api/s/3m7of64lb",
-      "requirements": "百度智能云账号、实名认证、千帆 V2 API Key",
-      "note": "已接入 V2 API；不把 2024 年免费宣传推定为当前所有模型免费。",
-      "freeModels": null,
-      "checkedAt": "2026-10-22"
+      "reason": "历史 Speed/Lite 免费政策需按当前控制台核实",
+      "docs": "https://cloud.baidu.com/doc/qianfan-api/s/3m7of64lb"
     },
     {
       "id": "siliconflow",
       "name": "SiliconFlow · 硅基流动",
-      "kind": "conditional",
-      "base": "https://api.siliconflow.cn/v1",
-      "models": [
-        "Qwen/Qwen3-8B"
-      ],
-      "quota": "部分小模型提供免费服务；必须核对模型广场现价",
-      "signup": "https://cloud.siliconflow.cn/account/ak",
-      "docs": "https://docs.siliconflow.cn/cn/usercases/use-siliconcloud-in-minbricks",
-      "requirements": "中国站账号；可能需要手机或实名认证",
-      "note": "官方用例列有免费 Qwen3-8B；不代表全平台免费，使用前核实个人 Key 权限。",
-      "freeModels": [
-        "Qwen/Qwen3-8B"
-      ],
-      "checkedAt": "2026-10-22"
+      "reason": "部分小模型提供免费服务；必须核对模型广场现价",
+      "docs": "https://docs.siliconflow.cn/cn/usercases/use-siliconcloud-in-minbricks"
     },
     {
       "id": "nvidia",
       "name": "NVIDIA NIM",
-      "kind": "evaluation",
-      "base": "https://integrate.api.nvidia.com/v1",
-      "models": [
-        "meta/llama-3.3-70b-instruct",
-        "openai/gpt-oss-120b"
-      ],
-      "quota": "开发 / 原型 API 免费体验；额度与模型权限以账户为准",
-      "signup": "https://build.nvidia.com/settings/api-keys",
-      "docs": "https://build.nvidia.com/",
-      "requirements": "NVIDIA 开发者账号并验证",
-      "note": "适合开发评估，不承诺无限量或生产免费。",
-      "freeModels": null,
-      "checkedAt": "2026-10-22"
+      "reason": "开发 / 原型 API 免费体验；额度与模型权限以账户为准",
+      "docs": "https://build.nvidia.com/"
     },
     {
       "id": "cohere",
       "name": "Cohere",
-      "kind": "evaluation",
-      "base": "https://api.cohere.ai/compatibility/v1",
-      "models": [
-        "command-a-plus-05-2026",
-        "command-a-reasoning-08-2025"
-      ],
-      "quota": "Trial key：通常 1,000 调用/月；不同模型有独立限制",
-      "signup": "https://dashboard.cohere.com/api-keys",
-      "docs": "https://docs.cohere.com/docs/rate-limits",
-      "requirements": "注册 Cohere 账号，使用 Trial key",
-      "note": "试用用于评估；特定新模型另有免费规则，生产使用请核实许可。",
-      "freeModels": null,
-      "checkedAt": "2026-10-22"
+      "reason": "Trial key：通常 1,000 调用/月；不同模型有独立限制",
+      "docs": "https://docs.cohere.com/docs/rate-limits"
     },
     {
       "id": "cerebras",
       "name": "Cerebras",
-      "kind": "trial",
-      "base": "https://api.cerebras.ai/v1",
-      "models": [
-        "gpt-oss-120b"
-      ],
-      "quota": "新账户 $5 试用赠金，30 天过期",
-      "signup": "https://cloud.cerebras.ai/",
-      "docs": "https://inference-docs.cerebras.ai/console/account-billing",
-      "requirements": "注册账号并验证支付方式",
-      "note": "已没有永久免费层。到期后需要充值。",
-      "freeModels": null,
-      "checkedAt": "2026-10-22"
+      "reason": "新账户 $5 试用赠金，30 天过期",
+      "docs": "https://inference-docs.cerebras.ai/console/account-billing"
     },
     {
       "id": "alibaba",
       "name": "阿里云百炼 · Qwen",
-      "kind": "trial",
-      "base": "https://dashscope.aliyuncs.com/compatible-mode/v1",
-      "models": [
-        "qwen-flash",
-        "qwen-plus"
-      ],
-      "quota": "北京地域新人额度，通常每模型 100 万 tokens / 90 天",
-      "signup": "https://bailian.console.aliyun.com/",
-      "docs": "https://help.aliyun.com/zh/model-studio/new-free-quota",
-      "requirements": "阿里云中国站账号、北京地域 Key，按要求实名",
-      "note": "开启「免费额度用完即停」。国际 / 其他地域不适用该赠额。",
-      "freeModels": null,
-      "checkedAt": "2026-10-22"
+      "reason": "北京地域新人额度，通常每模型 100 万 tokens / 90 天",
+      "docs": "https://help.aliyun.com/zh/model-studio/new-free-quota"
     },
     {
       "id": "tencent",
       "name": "腾讯混元",
-      "kind": "trial",
-      "base": "https://api.hunyuan.cloud.tencent.com/v1",
-      "models": [
-        "hunyuan-lite"
-      ],
-      "quota": "首次开通有一次性免费资源包；具体额度和期限以中国站控制台为准",
-      "signup": "https://console.cloud.tencent.com/hunyuan",
-      "docs": "https://cloud.tencent.com/document/product/1729/97731",
-      "requirements": "腾讯云账号并开通对应服务；创建混元 API Key",
-      "note": "旧平台逐步迁移 TokenHub；本适配器使用混元中国站 Key，不能混用 TokenHub Key。",
-      "freeModels": null,
-      "checkedAt": "2026-10-22"
+      "reason": "首次开通有一次性免费资源包；具体额度和期限以中国站控制台为准",
+      "docs": "https://cloud.tencent.com/document/product/1729/97731"
     },
     {
       "id": "pollinations",
       "name": "Pollinations",
-      "kind": "conditional",
-      "base": "https://gen.pollinations.ai/v1",
-      "models": [
-        "openai-fast"
-      ],
-      "quota": "零价格模型 / 赠送 Pollen 按账户与活动提供",
-      "signup": "https://enter.pollinations.ai/",
-      "docs": "https://gen.pollinations.ai/docs",
-      "requirements": "注册账号，生成 API Key，检查模型价格及 Pollen",
-      "note": "不再假定免 Key 无限调用；有价格的模型会消耗 Pollen。",
-      "freeModels": null,
-      "checkedAt": "2026-10-22"
+      "reason": "零价格模型 / 赠送 Pollen 按账户与活动提供",
+      "docs": "https://gen.pollinations.ai/docs"
     },
     {
       "id": "huggingface",
       "name": "Hugging Face",
-      "kind": "paid",
-      "base": "https://router.huggingface.co/v1",
-      "models": [],
-      "quota": "免费账户无月度推理赠额；PRO 含每月 $2 compute credits",
-      "signup": "https://huggingface.co/settings/tokens",
-      "docs": "https://huggingface.co/docs/inference-providers/pricing",
-      "requirements": "HF 账号、Inference Providers 权限 Token、有效余额",
-      "note": "保留兼容入口；不列入免费推荐。",
-      "freeModels": null,
-      "checkedAt": "2026-10-22"
+      "reason": "免费账户无月度推理赠额；PRO 含每月 $2 compute credits",
+      "docs": "https://huggingface.co/docs/inference-providers/pricing"
     },
     {
       "id": "together",
       "name": "Together AI",
-      "kind": "paid",
-      "base": "https://api.together.xyz/v1",
-      "models": [],
-      "quota": "当前无免费试用；首次最低购买 $15 credits",
-      "signup": "https://api.together.ai/settings/api-keys",
-      "docs": "https://docs.together.ai/docs/billing-credits",
-      "requirements": "账号及预付余额",
-      "note": "旧清单的免费赠额已经不适用。",
-      "freeModels": null,
-      "checkedAt": "2026-10-22"
+      "reason": "当前无免费试用；首次最低购买 $15 credits",
+      "docs": "https://docs.together.ai/docs/billing-credits"
     },
     {
       "id": "fireworks",
       "name": "Fireworks AI",
-      "kind": "conditional",
-      "base": "https://api.fireworks.ai/inference/v1",
-      "models": [],
-      "quota": "Fire Pass 当前不对新订阅开放；已有资格 / 促销用户按规则使用",
-      "signup": "https://app.fireworks.ai/api-keys",
-      "docs": "https://docs.fireworks.ai/firepass",
-      "requirements": "已有资格或平台赠额；普通 Key 可能产生费用",
-      "note": "不能把普通 fw_ Key 当作免费 Fire Pass；根据控制台填写精确模型 ID。",
-      "freeModels": null,
-      "checkedAt": "2026-10-22"
+      "reason": "新账号 $1 一次性赠金，不是持续免费额度；Fire Pass 暂不对新用户开放。",
+      "docs": "https://fireworks.ai/blog/best-llm-api-providers"
     },
     {
       "id": "novita",
       "name": "Novita AI",
-      "kind": "paid",
-      "base": "https://api.novita.ai/openai/v1",
-      "models": [],
-      "quota": "LLM 需有效余额；Sandbox 赠金不能推定可用于 LLM",
-      "signup": "https://novita.ai/console/key-management",
-      "docs": "https://docs.novita.ai/guides/quickstart",
-      "requirements": "注册账号、LLM API Key、核实 LLM 可用余额",
-      "note": "保留兼容入口，不标为持续免费 API。",
-      "freeModels": null,
-      "checkedAt": "2026-10-22"
+      "reason": "LLM 需有效余额；Sandbox 赠金不能推定可用于 LLM",
+      "docs": "https://docs.novita.ai/guides/quickstart"
     },
     {
       "id": "github",
       "name": "GitHub Models",
-      "kind": "retired",
-      "base": "",
-      "models": [],
-      "quota": "2026-07-30 已完全退役",
-      "signup": "https://docs.github.com/en/github-models",
-      "docs": "https://docs.github.com/en/github-models",
-      "requirements": "不可再开通",
-      "note": "旧教程的 GitHub token 推理方案已移除。",
-      "freeModels": null,
-      "checkedAt": "2026-10-22"
+      "reason": "2026-07-30 已完全退役",
+      "docs": "https://docs.github.com/en/github-models"
     },
     {
-      "id": "ollama",
-      "name": "Ollama / LM Studio",
-      "kind": "local",
-      "base": "http://localhost:11434/v1",
-      "models": [],
-      "quota": "自建推理无 API 供应商费用；需要自己的设备与模型",
-      "signup": "https://ollama.com/",
-      "docs": "https://docs.ollama.com/api/openai-compatibility",
-      "requirements": "已有本地服务；Ollama 11434 / LM Studio 1234",
-      "note": "由浏览器直连。浏览器可能要求本地网络权限；服务须配置允许本站来源。",
-      "freeModels": null,
-      "checkedAt": "2026-10-22"
-    },
-    {
-      "id": "custom",
-      "name": "自定义 OpenAI 兼容接口",
-      "kind": "custom",
-      "base": "",
-      "models": [],
-      "quota": "费用、模型、权限以自定义服务为准",
-      "signup": "",
-      "docs": "",
-      "requirements": "填写完整 Base URL、Key 和模型 ID",
-      "note": "可接入 LiteLLM、One API、其他厂商或自建网关；浏览器直连，需 CORS 支持。",
-      "freeModels": null,
-      "checkedAt": "2026-10-22"
+      "id": "aimlapi",
+      "name": "AI/ML API",
+      "reason": "官方 FAQ：免费层当前暂停。",
+      "docs": "https://docs.aimlapi.com/faq/free-tier"
     }
   ]
 }
