@@ -49,13 +49,17 @@ async function sharedKey(request:Request,env:ChatEnv,body:any,authenticate:Authe
  }
  return env.GEMINI_API_KEY.trim();
 }
-async function publicError(response:Response,key:string){
+export async function publicError(response:Response,key:string){
  let message='';
- try{const data:any=await response.json();message=str(data?.error?.message||data?.message||data?.error,700)}catch{}
+ try{const raw=await response.text();let data:any;try{data=JSON.parse(raw)}catch{}
+  if(Array.isArray(data))data=data[0];
+  message=str(data?.error?.message||data?.message||data?.error?.status||data?.error,700);
+  if(!message&&raw.length<1500&&!/[<>]/.test(raw))message=str(raw,700);
+ }catch{}
  if(key)message=message.split(key).join('[redacted]');
  message=message.replace(/(?:sk-|gsk_|nvapi-|AIza)[A-Za-z0-9_-]{12,}/g,'[redacted]');
  const prefix=response.status===401?'API Key 无效':response.status===402?'额度不足或需要充值':response.status===403?'模型权限 / 地域 / 账户资格受限':response.status===404?'模型或接口不存在，请重新拉取模型':response.status===429?'后端限流或免费额度耗尽':'后端请求失败';
- const result=fail(prefix+(message?'：'+message:''),response.status>=400&&response.status<600?response.status:502);
+ const result=fail(prefix+'（HTTP '+response.status+'）'+(message?'：'+message:''),response.status>=400&&response.status<600?response.status:502);
  const retry=response.headers.get('retry-after');if(retry&&/^\d{1,6}$/.test(retry))result.headers.set('retry-after',retry);
  return result;
 }
