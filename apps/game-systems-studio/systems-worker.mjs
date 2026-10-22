@@ -1,0 +1,4 @@
+import {validateSystem} from './systems-model.mjs';
+import {simulateIncremental} from './incremental-engine.mjs';
+import {simulateRpg,rpgFight,journey} from './rpg-engine.mjs';
+self.onmessage=e=>{const{id,config,trace,seed}=e.data;try{const d=validateSystem(config),start=performance.now();let last=start;const progress=f=>{const now=performance.now();if(now-last>120){self.postMessage({id,type:'progress',fraction:f});last=now}};if(trace){if(d.gameType!=='rpg'||!Number.isInteger(seed)||seed<0||seed>4294967295)throw Error('回放输入无效');const samples=d.settings.mode==='campaign'?journey(d,seed,true).stages:[rpgFight(d,seed,d.settings.stage,d.hero.level,true)];self.postMessage({id,type:'trace',samples});return}const result=d.gameType==='incremental'?simulateIncremental(d,progress):simulateRpg(d,progress);self.postMessage({id,type:'result',result:{...result,elapsedMs:performance.now()-start}})}catch(error){self.postMessage({id,type:'error',message:error.message})}};
