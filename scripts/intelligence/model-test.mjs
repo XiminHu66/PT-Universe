@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import * as M from '../../apps/pt-intelligence/model.mjs';
+const s=M.blank();assert.equal(M.normalize(s).version,1);assert.throws(()=>M.normalize({...s,entities:[{id:'x',type:'bad',title:'x'}]}));assert.throws(()=>M.normalize({...s,entities:[{id:'a',type:'note',title:'a'}],inbox:[{id:'a',type:'article',title:'b'}]}));
+const old={id:'old',type:'article',title:'Old title',url:'https://a.com/x?utm_source=a',body:'one',timestamp:'2026-10-01'};const next={id:'new',type:'article',title:'New title',url:'https://a.com/x',body:'two',timestamp:'2026-10-02'};const merged=M.mergeInbox([old],[next],'2026-10-22T12:00:00Z');assert.equal(merged.length,1);assert.equal(merged[0].id,'old');assert.equal(merged[0].changedAt,'2026-10-22T12:00:00Z');s.inbox=merged;s.meta.old={archived:true,saved:true,read:true};assert.equal(M.active(s,merged[0]),false);assert.equal(M.viewItem(s,merged[0]).saved,true);
+assert.equal(M.nextDue('2026-01-31','monthly'),'2026-02-28');assert.equal(M.nextDue('2026-12-31','daily'),'2027-01-01');
+s.entities=[{id:'t',type:'task',title:'Task',status:'today',due:M.day(),recurring:'weekly',subtasks:[{title:'a',done:true}]}];assert.equal(M.attention(s).length,1);M.complete(s,'t');assert.equal(s.entities[0].status,'completed');assert.equal(s.entities.length,2);assert.equal(s.entities[1].subtasks[0].done,false);M.complete(s,'t');M.complete(s,'t');assert.equal(s.entities.length,2,'No duplicate recurrence');
+s.entities.push({id:'d',type:'decision',title:'Cloudflare',reasoning:'privacy conscious choice',related:['p'],reviewDate:M.day()});assert.equal(M.search(s,'privacy',{type:'decision',project:'p'}).length,1);assert.equal(M.search(s,'Cloudflre').length,1);assert.equal(M.search(s,'privacy',{type:'task'}).length,0);
+const legacy=M.fromLegacy({nodes:[{id:'n',name:'Project',updatedAt:'2025-01-01'}],tasks:[{id:'t',title:'Old standing task',nodeId:'n',date:'2020-01-01',done:false}]});assert.equal(legacy[1].due,undefined,'Legacy creation dates are never deadlines');assert.equal(legacy[1].readonly,true);assert.equal(legacy[1].projectId,legacy[0].id);
+console.log('PASS: schema validation, duplicate IDs, feed dedup, metadata preservation, recurrence, search, legacy read-only mapping');
+assert.equal(M.morning('2026-11-03'),'2026-11-03T09:00:00-08:00');assert.equal(M.morning('2026-10-23'),'2026-10-23T09:00:00-07:00');
+assert.throws(()=>M.normalize({...M.blank(),entities:[{id:'__proto__',type:'note',title:'bad'}]}));
+console.log('PASS: Pacific DST snooze and reserved IDs');
