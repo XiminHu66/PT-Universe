@@ -1,3 +1,5 @@
+> **2026-10-22：独立 OS 路线已暂停。** 以下为旧 PoC 功能记录，不再代表当前产品承诺。默认入口为暂停说明和原始记录导出；旧应用保留在 `experiment.html`。查看 [完整取舍与重新立项条件](PRODUCT-DECISION.md)。本机记录、备份和其他 PT 页面均未改动。
+
 # PT Intelligence OS — independent PoC
 
 Entry: `https://ximinhu66.github.io/PT-Universe/apps/pt-intelligence/`

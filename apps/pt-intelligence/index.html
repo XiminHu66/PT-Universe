@@ -1,6 +1,36 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#fafafa"><meta name="description" content="PT Intelligence — 今天的任务，值得关注的信息，留下的决定。"><title>PT · 今天</title><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="style.css?v=2"></head><body>
-<a class="skip" href="#main">跳到内容</a><button class="sidebar-backdrop" data-act="menu-close" aria-label="关闭导航"></button>
-<aside id="sidebar"><a class="brand" href="#today"><span class="brand-symbol">pt</span><strong>Intelligence</strong></a><button class="search-launch" data-act="search"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10" cy="10" r="7"/><path d="m15 15 6 6"/></svg><span>搜索</span><kbd>⌘ K</kbd></button><nav id="nav" aria-label="主导航"></nav><div class="sidebottom"><button id="source-health" data-act="nav" data-view="settings">来源</button><button data-act="nav" data-view="settings"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 6h16M4 12h16M4 18h16M8 3v6m8 0v6m-6 0v6"/></svg>设置</button><a href="../../" class="universe">返回 PT Universe <span>↗</span></a></div></aside>
-<div id="shell"><header class="topbar"><button id="mobile-menu" aria-label="打开导航">☰</button><div id="crumb">今天</div><div class="toptools"><span id="sync-label"></span><button id="refresh-button" class="iconbutton" data-act="refresh" aria-label="更新数据" title="更新数据"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2 6m2-14v6h-6"/></svg></button><button class="iconbutton mobile-search" data-act="search" aria-label="搜索"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10" cy="10" r="7"/><path d="m15 15 6 6"/></svg></button><details class="menu new-menu"><summary class="primary">＋ 新建</summary><div class="menu-content"><button data-act="new-task">任务 <kbd>N</kbd></button><button data-act="new-inbox">捕捉信息</button><button data-act="new-project">项目</button><hr><button data-act="new-note">笔记</button><button data-act="new-decision">决策</button><button data-act="new-event">日程</button></div></details></div></header><main id="main" tabindex="-1"></main></div>
-<nav id="mobile-nav" aria-label="移动导航"></nav><dialog id="editor"><div id="editor-body"></div></dialog><dialog id="detail"><div id="detail-body"></div></dialog><dialog id="search"><div class="search-head"><span>⌕</span><input id="search-input" placeholder="搜索任务、项目、记录和信息…" aria-label="全局搜索"><button data-act="close">Esc</button></div><div class="search-filters"><select id="search-type" aria-label="按类型筛选"></select><select id="search-project" aria-label="按项目筛选"></select><input id="search-after" type="date" aria-label="起始日期"></div><div id="search-results"></div><div class="dialogfoot"><span>↑ ↓ 选择 · Enter 打开</span></div></dialog><div id="toast" role="status" aria-live="polite"></div><div id="save-error" role="alert" hidden></div><input id="import-file" type="file" accept="application/json,.json" hidden><script type="module" src="app.mjs?v=2"></script></body></html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#fafaf8">
+<meta name="description" content="PT Intelligence 独立 OS 实验已暂停。保留实验记录，后续整合回到现有工作流。">
+<title>PT Intelligence · 实验已暂停</title><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="stylesheet" href="status.css?v=1">
+</head>
+<body>
+<header><a href="../../" class="home">PT Universe <span aria-hidden="true">↗</span></a><span class="status">实验已暂停</span></header>
+<main>
+<p class="eyebrow">PT INTELLIGENCE · PRODUCT REVIEW</p>
+<h1>少一个系统，<br>少一份重复整理。</h1>
+<p class="intro">这次 PoC 没有建立真正的工作流闭环。独立 OS 路线停止扩展，已有实验记录保留。</p>
+<section aria-labelledby="why"><h2 id="why">为什么停下来</h2><dl>
+<div><dt>任务被复制了</dt><dd>原来的项目和任务只读导入；在这里“加入今日”创建的是另一份任务，完成后不会更新原工具。</dd></div>
+<div><dt>资讯又整理了一遍</dt><dd>RSS、监视和研究已有各自的处理流程。关键词排序和聚合 Brief，没有回答“这会影响我的哪个项目”。</dd></div>
+<div><dt>多了一个维护入口</dt><dd>独立的任务、项目和笔记存储，让同一件事需要在不同地方跟进。</dd></div>
+</dl></section>
+<section class="next" aria-labelledby="next"><h2 id="next">值得继续的，是具体的连接</h2>
+<p>例如：一条监视变化 → 对应项目与原始证据 → 在现有任务中处理 → 留下决定和结果。</p>
+<p class="secondary">只有能共用一份数据、减少一次整理，并把处理结果同步回原工作流，才重新立项。这个闭环目前尚未实现。</p></section>
+<section aria-labelledby="continue"><h2 id="continue">继续原有工作流</h2><div class="links">
+<a href="../daily-nexus/?tab=todo"><span>项目、任务与随手记</span><span>Idea Pad ↗</span></a>
+<a href="../watch-inbox/"><span>监视变化与待处理报告</span><span>Watch Inbox ↗</span></a>
+<a href="../research-workbench/"><span>研究、证据与方法决策</span><span>Research ↗</span></a>
+<a href="../rss-dashboard/"><span>阅读与稍后读</span><span>RSS Orbit ↗</span></a>
+</div></section>
+<section class="archive" aria-labelledby="archive"><h2 id="archive">实验记录保留</h2>
+<p>本浏览器中的 PoC 数据没有迁移或删除。旧实验仍可访问，其记录与原工具相互独立。</p>
+<div class="actions"><button id="export">导出 PoC 记录</button><a href="experiment.html#settings">打开旧实验与备份设置 ↗</a></div>
+<p id="export-status" role="status" aria-live="polite"></p>
+<details><summary>导出导入前的备份</summary><p>如果曾在旧实验导入数据，可能还保留了导入前的原始备份。</p><button id="export-backup">导出原始备份</button></details>
+</section></main>
+<footer><time datetime="2026-10-22">2026.10.22</time><a href="PRODUCT-DECISION.md">查看完整取舍记录 ↗</a></footer>
+<script type="module" src="status.mjs?v=1"></script>
+</body></html>
