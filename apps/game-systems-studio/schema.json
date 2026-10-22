@@ -1,0 +1,528 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Game Systems Studio v1",
+  "description": "Cross-object ID uniqueness, references, total deck/enemy counts and equipped final-stat limits are additionally checked by model.mjs.",
+  "type": "object",
+  "required": [
+    "format",
+    "schemaVersion",
+    "engineVersion",
+    "name",
+    "characters",
+    "enemies",
+    "cards",
+    "items",
+    "encounters",
+    "build",
+    "scenario"
+  ],
+  "properties": {
+    "format": {
+      "const": "pt.game-systems-studio"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "engineVersion": {
+      "const": "gss-combat/1"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "characters": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 80,
+      "items": {
+        "$ref": "#/$defs/character"
+      }
+    },
+    "enemies": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 80,
+      "items": {
+        "$ref": "#/$defs/enemy"
+      }
+    },
+    "cards": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 80,
+      "items": {
+        "$ref": "#/$defs/card"
+      }
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 80,
+      "items": {
+        "$ref": "#/$defs/item"
+      }
+    },
+    "encounters": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 80,
+      "items": {
+        "$ref": "#/$defs/encounter"
+      }
+    },
+    "build": {
+      "$ref": "#/$defs/build"
+    },
+    "scenario": {
+      "$ref": "#/$defs/scenario"
+    }
+  },
+  "$defs": {
+    "stats": {
+      "type": "object",
+      "required": [
+        "hp",
+        "attack",
+        "defense",
+        "speed",
+        "accuracy",
+        "dodge",
+        "crit",
+        "critDamage",
+        "armorPen",
+        "resistance"
+      ],
+      "properties": {
+        "hp": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20000
+        },
+        "attack": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "defense": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "speed": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        },
+        "accuracy": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "dodge": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.95
+        },
+        "crit": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "critDamage": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "armorPen": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "resistance": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "character": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "stats"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_-]{1,80}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 6000
+        },
+        "stats": {
+          "$ref": "#/$defs/stats"
+        }
+      }
+    },
+    "enemy": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "stats",
+        "behavior",
+        "heavyMultiplier"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_-]{1,80}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 6000
+        },
+        "stats": {
+          "$ref": "#/$defs/stats"
+        },
+        "behavior": {
+          "enum": [
+            "attack",
+            "cycle",
+            "guard"
+          ]
+        },
+        "heavyMultiplier": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 4
+        }
+      }
+    },
+    "card": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "cost",
+        "damage",
+        "attackScale",
+        "block",
+        "heal",
+        "draw",
+        "status",
+        "stacks",
+        "exhaust"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_-]{1,80}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 6000
+        },
+        "cost": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "damage": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "attackScale": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "block": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "heal": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "draw": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "status": {
+          "enum": [
+            "none",
+            "bleed",
+            "poison",
+            "burn",
+            "vulnerable",
+            "stun",
+            "slow"
+          ]
+        },
+        "stacks": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 30
+        },
+        "exhaust": {
+          "type": "boolean"
+        }
+      }
+    },
+    "item": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "slot",
+        "modifiers"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_-]{1,80}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 6000
+        },
+        "slot": {
+          "enum": [
+            "weapon",
+            "armor",
+            "accessory"
+          ]
+        },
+        "modifiers": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "hp": {
+              "type": "integer",
+              "minimum": -1000,
+              "maximum": 1000
+            },
+            "attack": {
+              "type": "integer",
+              "minimum": -1000,
+              "maximum": 1000
+            },
+            "defense": {
+              "type": "integer",
+              "minimum": -1000,
+              "maximum": 1000
+            },
+            "speed": {
+              "type": "integer",
+              "minimum": -1000,
+              "maximum": 1000
+            },
+            "accuracy": {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "dodge": {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "crit": {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "critDamage": {
+              "type": "number",
+              "minimum": -4,
+              "maximum": 4
+            },
+            "armorPen": {
+              "type": "integer",
+              "minimum": -1000,
+              "maximum": 1000
+            },
+            "resistance": {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            }
+          }
+        }
+      }
+    },
+    "encounter": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "enemies"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_-]{1,80}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 6000
+        },
+        "enemies": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "required": [
+              "enemyId",
+              "count"
+            ],
+            "properties": {
+              "enemyId": {
+                "type": "string"
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 3
+              }
+            }
+          }
+        }
+      }
+    },
+    "build": {
+      "type": "object",
+      "required": [
+        "name",
+        "characterId",
+        "itemIds",
+        "deck",
+        "policy",
+        "target"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "characterId": {
+          "type": "string"
+        },
+        "itemIds": {
+          "type": "array",
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "deck": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 80,
+          "items": {
+            "type": "object",
+            "required": [
+              "cardId",
+              "count"
+            ],
+            "properties": {
+              "cardId": {
+                "type": "string"
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10
+              }
+            }
+          }
+        },
+        "policy": {
+          "enum": [
+            "balanced",
+            "aggressive",
+            "defensive"
+          ]
+        },
+        "target": {
+          "enum": [
+            "lowestHp",
+            "highestAttack",
+            "random"
+          ]
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "required": [
+        "encounterId",
+        "energy",
+        "handSize",
+        "maxRounds",
+        "seed"
+      ],
+      "properties": {
+        "encounterId": {
+          "type": "string"
+        },
+        "energy": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "handSize": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "maxRounds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        }
+      }
+    }
+  }
+}

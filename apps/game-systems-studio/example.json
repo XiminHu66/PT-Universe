@@ -1,0 +1,222 @@
+{
+  "format": "pt.game-systems-studio",
+  "schemaVersion": 1,
+  "engineVersion": "gss-combat/1",
+  "name": "裂伤游侠 · 平衡试验",
+  "characters": [
+    {
+      "id": "ranger",
+      "name": "裂伤游侠",
+      "notes": "",
+      "stats": {
+        "hp": 80,
+        "attack": 5,
+        "defense": 2,
+        "speed": 10,
+        "accuracy": 0.95,
+        "dodge": 0.05,
+        "crit": 0.1,
+        "critDamage": 1.5,
+        "armorPen": 0,
+        "resistance": 0
+      }
+    }
+  ],
+  "enemies": [
+    {
+      "id": "sentinel",
+      "name": "铁卫",
+      "notes": "",
+      "stats": {
+        "hp": 150,
+        "attack": 25,
+        "defense": 3,
+        "speed": 8,
+        "accuracy": 0.95,
+        "dodge": 0.05,
+        "crit": 0.08,
+        "critDamage": 1.5,
+        "armorPen": 0,
+        "resistance": 0
+      },
+      "behavior": "cycle",
+      "heavyMultiplier": 1.65
+    },
+    {
+      "id": "raider",
+      "name": "掠夺者",
+      "notes": "",
+      "stats": {
+        "hp": 38,
+        "attack": 8,
+        "defense": 1,
+        "speed": 12,
+        "accuracy": 0.95,
+        "dodge": 0.05,
+        "crit": 0.12,
+        "critDamage": 1.5,
+        "armorPen": 0,
+        "resistance": 0
+      },
+      "behavior": "attack",
+      "heavyMultiplier": 1.5
+    }
+  ],
+  "cards": [
+    {
+      "id": "strike",
+      "name": "斩击",
+      "notes": "",
+      "cost": 1,
+      "damage": 8,
+      "attackScale": 1,
+      "block": 0,
+      "heal": 0,
+      "draw": 0,
+      "stacks": 0,
+      "status": "none",
+      "exhaust": false
+    },
+    {
+      "id": "guard",
+      "name": "招架",
+      "notes": "",
+      "cost": 1,
+      "damage": 0,
+      "attackScale": 0,
+      "block": 10,
+      "heal": 0,
+      "draw": 0,
+      "stacks": 0,
+      "status": "none",
+      "exhaust": false
+    },
+    {
+      "id": "bleed",
+      "name": "割裂",
+      "notes": "",
+      "cost": 1,
+      "damage": 3,
+      "attackScale": 0.5,
+      "block": 0,
+      "heal": 0,
+      "draw": 0,
+      "stacks": 3,
+      "status": "bleed",
+      "exhaust": false
+    },
+    {
+      "id": "focus",
+      "name": "整备",
+      "notes": "",
+      "cost": 1,
+      "damage": 0,
+      "attackScale": 0,
+      "block": 0,
+      "heal": 0,
+      "draw": 2,
+      "stacks": 0,
+      "status": "none",
+      "exhaust": true
+    },
+    {
+      "id": "recover",
+      "name": "喘息",
+      "notes": "",
+      "cost": 2,
+      "damage": 0,
+      "attackScale": 0,
+      "block": 0,
+      "heal": 13,
+      "draw": 0,
+      "stacks": 0,
+      "status": "none",
+      "exhaust": false
+    }
+  ],
+  "items": [
+    {
+      "id": "blade",
+      "name": "旧猎刀",
+      "notes": "",
+      "slot": "weapon",
+      "modifiers": {
+        "attack": 2,
+        "crit": 0.04
+      }
+    },
+    {
+      "id": "coat",
+      "name": "皮甲",
+      "notes": "",
+      "slot": "armor",
+      "modifiers": {
+        "hp": 8,
+        "defense": 1
+      }
+    }
+  ],
+  "encounters": [
+    {
+      "id": "gate",
+      "name": "守门铁卫",
+      "notes": "",
+      "enemies": [
+        {
+          "enemyId": "sentinel",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "pair",
+      "name": "双掠夺者",
+      "notes": "",
+      "enemies": [
+        {
+          "enemyId": "raider",
+          "count": 2
+        }
+      ]
+    }
+  ],
+  "build": {
+    "name": "裂伤流 · 初稿",
+    "characterId": "ranger",
+    "itemIds": [
+      "blade",
+      "coat"
+    ],
+    "deck": [
+      {
+        "cardId": "strike",
+        "count": 4
+      },
+      {
+        "cardId": "guard",
+        "count": 3
+      },
+      {
+        "cardId": "bleed",
+        "count": 2
+      },
+      {
+        "cardId": "focus",
+        "count": 1
+      },
+      {
+        "cardId": "recover",
+        "count": 1
+      }
+    ],
+    "policy": "balanced",
+    "target": "lowestHp"
+  },
+  "scenario": {
+    "encounterId": "gate",
+    "energy": 3,
+    "handSize": 5,
+    "maxRounds": 60,
+    "seed": 42
+  }
+}

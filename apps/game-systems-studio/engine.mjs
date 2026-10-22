@@ -1,0 +1,57 @@
+import {validate,deriveStats,ENGINE} from './model.mjs';
+export function rng(seed){let state=seed>>>0;return ()=>{state=(state+0x6D2B79F5)>>>0;let t=state;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296}}
+export function compile(raw){
+ const d=validate(raw),hero=d.characters.find(x=>x.id===d.build.characterId),enc=d.encounters.find(x=>x.id===d.scenario.encounterId);
+ const enemies=enc.enemies.flatMap((e,group)=>Array.from({length:e.count},(_,i)=>({...d.enemies.find(x=>x.id===e.enemyId),instanceId:e.enemyId+'_'+group+'_'+i}))),seen={};
+ for(const enemy of enemies){if(enemies.filter(x=>x.id===enemy.id).length>1){seen[enemy.id]=(seen[enemy.id]||0)+1;enemy.name+=' #'+seen[enemy.id]}}
+ return {doc:d,hero:{...hero,stats:deriveStats(d)},enemies,deck:d.build.deck.flatMap(e=>Array(e.count).fill(d.cards.find(x=>x.id===e.cardId)))};
+}
+const freshActor=(x,id,side)=>({id,name:x.name,side,stats:{...x.stats},hp:x.stats.hp,block:0,dots:{bleed:[],poison:[],burn:[]},effects:{stun:0,slow:0,vulnerable:0},behavior:x.behavior,heavyMultiplier:x.heavyMultiplier});
+export function damageFormula(base,attack,scale,crit,critDamage,vulnerable,defense,pen,block){const raw=(base+attack*scale)*(crit?critDamage:1)*(vulnerable?1.5:1),afterArmor=Math.max(0,Math.floor(raw-Math.max(0,defense-pen))),absorbed=Math.min(block,afterArmor);return {raw,armor:Math.max(0,defense-pen),afterArmor,absorbed,damage:afterArmor-absorbed}}
+export function fight(compiled,seed,trace=false){
+ const {doc:d}=compiled,random=rng(seed),hero=freshActor(compiled.hero,'hero','player'),enemies=compiled.enemies.map(x=>freshActor(x,x.instanceId,'enemy')),actors=[hero,...enemies],stats={damage:0,taken:0,blockGranted:0,healed:0,energyUsed:0,energyAvailable:0,deadHands:0,playerTurns:0,drawn:0,exhausted:0,statusTurns:{bleed:0,poison:0,burn:0,stun:0,slow:0,vulnerable:0},enemyTurns:0},byCard=Object.fromEntries(d.cards.map(c=>[c.id,{id:c.id,name:c.name,plays:0,draws:0,damage:0,block:0,heal:0,status:0,energy:0}])),events=[];
+ let draw=[...compiled.deck],discard=[],exhaust=[],hand=[],energy=0,round=0,end=null,deathCause='',lastActor='',sequence=0;
+ function snapshot(){return {actors:actors.map(a=>({id:a.id,name:a.name,side:a.side,hp:a.hp,maxHp:a.stats.hp,block:a.block,status:{...a.effects,...Object.fromEntries(Object.entries(a.dots).map(([k,ls])=>[k,ls.reduce((n,x)=>n+x.amount,0)]))}})),energy,hand:hand.map(c=>c.name),draw:draw.length,discard:discard.length,exhaust:exhaust.length}}
+ function emit(type,actor,title,detail={}){if(trace)events.push({index:sequence++,round,type,actor:actor?.name||'',actorId:actor?.id||'',title,detail,state:snapshot()})}
+ function roll(label,actor){const value=random();if(trace)emit('rng',actor,label,{value});return value}
+ function shuffle(xs){for(let i=xs.length-1;i>0;i--){const j=Math.floor(roll('洗牌 RNG',hero)*(i+1));[xs[i],xs[j]]=[xs[j],xs[i]]}return xs}
+ function check(){if(hero.hp<=0){end='loss';return true}if(enemies.every(x=>x.hp<=0)){end='win';return true}return false}
+ function loseHp(target,n,source,cardId){const actual=Math.min(target.hp,n);target.hp-=actual;if(target.side==='enemy'){stats.damage+=actual;if(cardId&&byCard[cardId])byCard[cardId].damage+=actual}else{stats.taken+=actual;if(target.hp<=0)deathCause=source}return actual}
+ function hit(attacker,target,base,scale,cardId,label){const chance=Math.max(.05,Math.min(1,attacker.stats.accuracy-target.stats.dodge)),hitRoll=roll('命中判定',attacker);if(hitRoll>=chance){emit('miss',attacker,label+' · 未命中',{target:target.name,chance,hitRoll});return false}const critRoll=roll('暴击判定',attacker),crit=critRoll<attacker.stats.crit,f=damageFormula(base,attacker.stats.attack,scale,crit,attacker.stats.critDamage,target.effects.vulnerable>0,target.stats.defense,attacker.stats.armorPen,target.block);target.block-=f.absorbed;const actual=loseHp(target,f.damage,attacker.name+' · '+label,cardId);emit('damage',attacker,label+(crit?' · 暴击':'')+' → '+target.name+' −'+actual,{base,attack:attacker.stats.attack,scale,crit,critMultiplier:attacker.stats.critDamage,vulnerable:target.effects.vulnerable>0,defense:target.stats.defense,armorPen:attacker.stats.armorPen,...f,actual,chance,hitRoll,critRoll,formula:'floor((基础 + 攻击 × 系数) × 暴击倍率 × 易伤倍率 − max(防御 − 穿甲, 0))，格挡后按剩余 HP 截断'});return true}
+ function applyStatus(target,kind,amount,cardId){const r=roll('状态抵抗判定',hero);if(r<target.stats.resistance){emit('resist',target,'抵抗了状态',{kind,roll:r,resistance:target.stats.resistance});return}if(Object.hasOwn(target.dots,kind))target.dots[kind].push({amount,cardId});else target.effects[kind]=Math.min(30,target.effects[kind]+amount);byCard[cardId].status+=amount;emit('status',hero,'施加 '+kind+' +'+amount,{target:target.name,roll:r,resistance:target.stats.resistance})}
+ function drawCards(n){for(let i=0;i<n;i++){if(hand.length>=20)break;if(!draw.length){if(!discard.length)break;draw=shuffle(discard.splice(0));emit('shuffle',hero,'弃牌洗回牌库')}if(!draw.length)break;const c=draw.pop();hand.push(c);stats.drawn++;byCard[c.id].draws++;emit('draw',hero,'抽到 '+c.name)}}
+ function target(){const live=enemies.filter(x=>x.hp>0);if(!live.length)return null;if(d.build.target==='random')return live[Math.floor(roll('随机目标',hero)*live.length)];return [...live].sort(d.build.target==='highestAttack'?(a,b)=>b.stats.attack-a.stats.attack:(a,b)=>a.hp-b.hp)[0]}
+ function selectCard(){const foe=enemies.find(x=>x.hp>0),incoming=enemies.filter(x=>x.hp>0).reduce((n,e)=>n+e.stats.attack,0);return hand.filter(c=>c.cost<=energy).map((c,i)=>{let val=(c.damage+c.attackScale*hero.stats.attack)*.9+(c.status==='bleed'||c.status==='poison'||c.status==='burn'?c.stacks*2:0)+(c.status==='vulnerable'?c.stacks*3:0)+(c.status==='stun'?c.stacks*9:0)+(c.status==='slow'?c.stacks:0);if(d.build.policy==='defensive')val*=.65;val+=Math.min(c.block,Math.max(0,incoming-hero.block))*(d.build.policy==='defensive'?1.5:d.build.policy==='aggressive'?.15:.7);val+=Math.min(c.heal,hero.stats.hp-hero.hp)*(hero.hp<hero.stats.hp*.5?2:.7);val+=c.draw*(hand.length<4?5:2);return {c,i,score:val/(c.cost||.5)}}).filter(x=>x.score>0).sort((a,b)=>b.score-a.score||a.i-b.i)[0]?.c}
+ emit('start',null,'战斗开始',{seed,engine:ENGINE});shuffle(draw);
+ for(round=1;round<=d.scenario.maxRounds&&!end;round++){
+   const slowAtStart=new Set(actors.filter(a=>a.effects.slow>0).map(a=>a.id));
+   const order=actors.filter(a=>a.hp>0).sort((a,b)=>b.stats.speed*(b.effects.slow? .5:1)-a.stats.speed*(a.effects.slow? .5:1)||a.id.localeCompare(b.id));
+   emit('round',null,'第 '+round+' 回合',{order:order.map(a=>a.name)});
+   for(const a of order){if(a.hp<=0||end)continue;lastActor=a.id;a.block=0;emit('turn',a,a.name+' 的行动');
+     if(a.side==='enemy'){stats.enemyTurns++;for(const k of Object.keys(stats.statusTurns))if(a.effects[k]>0||a.dots[k]?.length)stats.statusTurns[k]++}
+     for(const [kind,layers]of Object.entries(a.dots)){for(const layer of layers){if(a.hp<=0)break;const actual=loseHp(a,layer.amount,kind,layer.cardId);emit('dot',a,kind+' −'+actual,{cardId:layer.cardId,stacks:layer.amount,actual,ignoresArmor:true})}if(layers.length){layers[layers.length-1].amount--;a.dots[kind]=layers.filter(x=>x.amount>0)}}
+     if(check())break;
+     if(a.effects.stun>0){emit('skip',a,'眩晕 · 跳过行动');a.effects.stun--;for(const k of ['vulnerable'])a.effects[k]=Math.max(0,a.effects[k]-1);continue}
+     if(a===hero){stats.playerTurns++;energy=d.scenario.energy;stats.energyAvailable+=energy;drawCards(Math.max(0,d.scenario.handSize-hand.length));let actions=0,c=selectCard();if(!c)stats.deadHands++;
+       while(c&&!end&&actions<60){actions++;const at=hand.indexOf(c);hand.splice(at,1);energy-=c.cost;stats.energyUsed+=c.cost;byCard[c.id].plays++;byCard[c.id].energy+=c.cost;emit('play',hero,'打出 '+c.name,{cardId:c.id,cost:c.cost});const foe=target();let landed=true;
+         if(foe&&(c.damage>0||c.attackScale>0))landed=hit(hero,foe,c.damage,c.attackScale,c.id,c.name);
+         if(c.block){hero.block+=c.block;stats.blockGranted+=c.block;byCard[c.id].block+=c.block;emit('block',hero,'格挡 +'+c.block,{cardId:c.id,granted:c.block})}
+         if(c.heal){const amount=Math.min(c.heal,hero.stats.hp-hero.hp);hero.hp+=amount;stats.healed+=amount;byCard[c.id].heal+=amount;emit('heal',hero,'恢复 '+amount,{cardId:c.id,actual:amount})}
+         if(foe?.hp>0&&landed&&c.status!=='none')applyStatus(foe,c.status,c.stacks,c.id);
+         if(c.exhaust){exhaust.push(c);stats.exhausted++}else discard.push(c);
+         if(check())break;if(c.draw)drawCards(c.draw);c=selectCard();
+       }
+       if(actions>=60&&c&&!end){end='draw';deathCause='单次行动达到 60 张安全上限';emit('limit',hero,deathCause)}
+       discard.push(...hand.splice(0));emit('end-turn',hero,'回合结束',{unusedEnergy:energy});
+     }else{const intent=a.behavior==='guard'||a.behavior==='cycle'&&round%3===2?'guard':a.behavior==='cycle'&&round%3===0?'heavy':'attack';if(intent==='guard'){a.block+=8;emit('block',a,'架盾 +8',{granted:8})}else hit(a,hero,0,intent==='heavy'?a.heavyMultiplier:1,null,intent==='heavy'?'重击':'攻击');check()}
+     for(const k of ['vulnerable'])a.effects[k]=Math.max(0,a.effects[k]-1);
+   }
+   for(const a of actors)if(slowAtStart.has(a.id))a.effects.slow=Math.max(0,a.effects.slow-1);
+ }
+ const rounds=Math.min(round-1,d.scenario.maxRounds);round=rounds;if(!end){end='draw';deathCause='达到回合上限'}emit('result',null,{win:'胜利',loss:'战败',draw:'未决'}[end],{result:end,deathCause});return {seed:seed>>>0,result:end,rounds,deathCause,stats,byCard,events,final:snapshot()};
+}
+export function interval(wins,n){const z=1.95996398454,p=wins/n,q=1+z*z/n,center=(p+z*z/(2*n))/q,half=z*Math.sqrt(p*(1-p)/n+z*z/(4*n*n))/q;return {low:Math.max(0,center-half),high:Math.min(1,center+half)}}
+export function aggregate(){return {runs:0,wins:0,losses:0,draws:0,rounds:0,damage:0,taken:0,energyUsed:0,energyAvailable:0,deadHands:0,playerTurns:0,blockGranted:0,healed:0,deathCauses:{},byCard:{},roundHistogram:{},statusTurns:{},enemyTurns:0,samples:{}}}
+export function accumulate(a,r){a.runs++;a.wins+=r.result==='win';a.losses+=r.result==='loss';a.draws+=r.result==='draw';for(const k of ['rounds'])a[k]+=r[k];for(const k of ['damage','taken','energyUsed','energyAvailable','deadHands','playerTurns','blockGranted','healed','enemyTurns'])a[k]+=r.stats[k];for(const [k,v]of Object.entries(r.stats.statusTurns))a.statusTurns[k]=(a.statusTurns[k]||0)+v;for(const [id,c]of Object.entries(r.byCard)){a.byCard[id]??={...c,plays:0,draws:0,damage:0,block:0,heal:0,status:0,energy:0};for(const k of ['plays','draws','damage','block','heal','status','energy'])a.byCard[id][k]+=c[k]}if(r.result==='loss'||r.result==='draw')a.deathCauses[r.deathCause]=(a.deathCauses[r.deathCause]||0)+1;a.roundHistogram[r.rounds]=(a.roundHistogram[r.rounds]||0)+1;if(a.samples.first===undefined)a.samples.first=r.seed;if(a.samples[r.result]===undefined)a.samples[r.result]=r.seed;return a}
+export function summarize(a,seed){const n=a.runs;return {...a,seed,winRate:a.wins/n,ci:interval(a.wins,n),averageRounds:a.rounds/n,averageDamage:a.damage/n,averageTaken:a.taken/n,resourceEfficiency:a.energyAvailable?a.energyUsed/a.energyAvailable:0,deadHandRate:a.playerTurns?a.deadHands/a.playerTurns:0,engineVersion:ENGINE}}
+export function batch(raw,n=1000,seed=42){if(!Number.isInteger(n)||n<1||n>100000)throw Error('模拟局数需要在 1–100000 之间');if(!Number.isInteger(seed)||seed<0||seed>4294967295)throw Error('随机种子无效');const c=compile(raw),a=aggregate();for(let i=0;i<n;i++)accumulate(a,fight(c,(seed+i)>>>0));return summarize(a,seed)}
