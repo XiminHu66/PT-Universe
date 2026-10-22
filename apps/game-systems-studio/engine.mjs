@@ -25,7 +25,7 @@ export function fight(compiled,seed,trace=false){
  emit('start',null,'战斗开始',{seed,engine:ENGINE});shuffle(draw);
  for(round=1;round<=d.scenario.maxRounds&&!end;round++){
    const slowAtStart=new Set(actors.filter(a=>a.effects.slow>0).map(a=>a.id));
-   const order=actors.filter(a=>a.hp>0).sort((a,b)=>b.stats.speed*(b.effects.slow? .5:1)-a.stats.speed*(a.effects.slow? .5:1)||a.id.localeCompare(b.id));
+   const order=actors.filter(a=>a.hp>0).sort((a,b)=>b.stats.speed*(b.effects.slow? .5:1)-a.stats.speed*(a.effects.slow? .5:1)||(a.id<b.id?-1:a.id>b.id?1:0));
    emit('round',null,'第 '+round+' 回合',{order:order.map(a=>a.name)});
    for(const a of order){if(a.hp<=0||end)continue;lastActor=a.id;a.block=0;emit('turn',a,a.name+' 的行动');
      if(a.side==='enemy'){stats.enemyTurns++;for(const k of Object.keys(stats.statusTurns))if(a.effects[k]>0||a.dots[k]?.length)stats.statusTurns[k]++}
