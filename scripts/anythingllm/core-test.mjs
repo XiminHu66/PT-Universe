@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {markdown,consumeChat,directBase,normalizeBackup} from '../../apps/anythingllm/core.mjs';
+const html=markdown('<img src=x onerror=alert(1)>\n\n[x](javascript:alert(1))\n\n```js\n<script>alert(1)</script>\n```\n\n|a|b|\n|--|--|\n|1|2|');
+assert.ok(!html.includes('<script>'));assert.ok(!html.includes('<img'));assert.ok(!html.includes('href="javascript:'));assert.ok(html.includes('<table>'));
+assert.ok(markdown('## Title\n\n**bold**\n- one\n- two').includes('<ul>'));
+assert.equal(directBase('http://localhost:11434/v1/'),'http://localhost:11434/v1');
+for(const u of ['http://example.com/v1','https://a:b@example.com/v1','https://example.com/v1?key=x','https://example.com/v1/chat/completions'])assert.throws(()=>directBase(u));
+const encoder=new TextEncoder();
+const stream=parts=>new Response(new ReadableStream({start(c){for(const p of parts)c.enqueue(encoder.encode(p));c.close()}}),{headers:{'content-type':'text/event-stream'}});
+let text='';const result=await consumeChat(stream(['data: {"model":"a","choices":[{"delta":{"content":"你"}}]}\r\n\r','\ndata: {"choices":[{"delta":{"content":"好"}}]}\n\ndata: [DO','NE]\n\n']),s=>text+=s);assert.equal(text,'你好');assert.equal(result.model,'a');
+assert.equal((await consumeChat(Response.json({model:'json',choices:[{message:{content:'OK'}}]}),()=>{})).content,'OK');
+await assert.rejects(()=>consumeChat(stream(['data: {"error":{"message":"limited"}}\n\n']),()=>{}),/limited/);
+await assert.rejects(()=>consumeChat(stream(['data: {"choices":[{"delta":{"content":"partial"}}]}\n\n']),()=>{}),/提前结束/);
+await assert.rejects(()=>consumeChat(stream(['data: [DONE]\n\n']),()=>{}),/未返回回答/);
+await assert.rejects(()=>consumeChat(Response.json({error:'quota'},{status:429}),()=>{}),/quota/);
+const b=normalizeBackup({version:1,workspaces:[{id:'a',name:'test',apiKey:'secret'}],chats:[{id:'b',workspace:'a',apiKey:'secret',messages:[{role:'assistant',content:'x',apiKey:'secret',status:'streaming'}]}]});assert.ok(!JSON.stringify(b).includes('secret'));assert.equal(b.chats[0].messages[0].status,'stopped');
+assert.throws(()=>normalizeBackup({version:1,workspaces:[],chats:[]}));
+console.log('Chat core: split SSE/UTF-8, JSON fallback, midstream errors, truncation, empty answer, Markdown escaping, direct endpoint validation and secret-free import passed.');

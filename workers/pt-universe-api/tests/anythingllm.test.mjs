@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict';
+import {build} from 'esbuild';
+const built=await build({entryPoints:['src/anythingllm.ts'],bundle:true,format:'esm',platform:'node',write:false});
+const {anythingLLMRoute:route,providerBase,validateChat}=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
+const req=(path,body,method='POST')=>new Request('https://worker/api/anythingllm/'+path,{method,...(method==='POST'?{headers:{'content-type':'application/json'},body:JSON.stringify(body)}:{})});
+const noAuth=async()=>false;
+assert.throws(()=>providerBase('custom',''));
+assert.throws(()=>providerBase('cloudflare','invalid'));
+assert.equal(providerBase('cloudflare','a'.repeat(32)).base,'https://api.cloudflare.com/client/v4/accounts/'+'a'.repeat(32)+'/ai/v1');
+const p=providerBase('openrouter').provider;
+assert.throws(()=>validateChat({model:'paid',messages:[{role:'user',content:'x'}]},p),/免费/);
+assert.throws(()=>validateChat({model:'openrouter/free',messages:[{role:'tool',content:'x'}]},p));
+const body={provider:'openrouter',apiKey:'test-private-key-never-return',model:'openrouter/free',messages:[{role:'system',content:'system'},{role:'user',content:'Hello'}]};
+assert.equal((await route(req('chat',{...body,baseUrl:'https://evil.example'}),{},noAuth)).status,400);
+assert.equal((await route(req('chat',{...body,apiKey:''}),{},noAuth)).status,401);
+assert.equal((await route(req('chat',{...body,provider:'gemini',apiKey:'',model:'gemini-3.5-flash-lite'}),{},noAuth)).status,401);
+assert.equal((await route(req('chat',{...body,provider:'cerebras'}),{},noAuth)).status,400);
+assert.equal((await route(req('chat',{...body,messages:[{role:'user',content:'x'.repeat(60001)}]}),{},noAuth)).status,400);
+const catalog=await (await route(req('providers',null,'GET'),{},noAuth)).json();assert.equal(catalog.providers.length,28);assert.equal(catalog.providers.find(p=>p.id==='github').kind,'retired');
+const old=globalThis.fetch;let calls=[];
+try{
+ globalThis.fetch=async(url,options)=>{calls.push({url,options});return new Response('data: {"choices":[{"delta":{"content":"OK"}}]}\n\ndata: [DONE]\n\n',{headers:{'content-type':'text/event-stream'}})};
+ const response=await route(req('chat',body),{},noAuth);assert.equal(response.status,200);assert.match(await response.text(),/OK/);assert.equal(calls[0].url,'https://openrouter.ai/api/v1/chat/completions');assert.equal(calls[0].options.headers.authorization,'Bearer '+body.apiKey);assert.equal(calls[0].options.redirect,'manual');assert.equal(JSON.parse(calls[0].options.body).stream,true);
+ globalThis.fetch=async()=>Response.json({error:{message:'bad '+body.apiKey}},{status:401});const bad=await route(req('chat',body),{},noAuth);assert.equal(bad.status,401);assert.ok(!(await bad.text()).includes(body.apiKey));
+ globalThis.fetch=async()=>Response.json({error:{message:'rate limit'}},{status:429,headers:{'retry-after':'20'}});const limited=await route(req('chat',body),{},noAuth);assert.equal(limited.status,429);assert.equal(limited.headers.get('retry-after'),'20');
+ globalThis.fetch=async()=>Response.json({data:[{id:'paid-model'},{id:'model:free'},{id:'openrouter/free'}]});const models=await (await route(req('models',body),{},noAuth)).json();assert.deepEqual(models.models.map(m=>m.id),['model:free','openrouter/free']);
+ let reservations=0;const db={prepare(sql){return {bind(){return this},async first(){return {owner:'authorized'}},async run(){if(sql.startsWith('INSERT'))reservations++;return {meta:{changes:1}}}}}};
+ globalThis.fetch=async()=>new Response('data: [DONE]\n\n',{headers:{'content-type':'text/event-stream'}});
+ const shared={provider:'gemini',model:'gemini-3.5-flash-lite',owner:'11111111-1111-4111-8111-111111111111',messages:body.messages};assert.equal((await route(req('chat',shared),{DB:db,GEMINI_API_KEY:'private-shared-key'},async()=>true)).status,200);assert.equal(reservations,1);
+ const denied={prepare(){return {bind(){return this},async first(){return {owner:'authorized'}},async run(){return {meta:{changes:0}}}}}};assert.equal((await route(req('chat',shared),{DB:denied,GEMINI_API_KEY:'private-shared-key'},async()=>true)).status,429);
+ assert.equal((await route(req('chat',{...shared,model:'paid',allowPaid:true}),{DB:db,GEMINI_API_KEY:'private-shared-key'},async()=>true)).status,403);
+}finally{globalThis.fetch=old}
+console.log('AnythingLLM Worker: fixed egress, redirect denial, shared auth/enrollment/quota, BYOK, free-only selection, streaming, model filtering, limits and secret redaction passed.');

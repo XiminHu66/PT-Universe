@@ -10,6 +10,7 @@ import { geminiProbeRoute } from './gemini-probe';
 import { researchAIRoute } from './research-ai';
 import { lifeAiRoute } from './life-ai';
 import { foodRecipesRoute } from './food-recipes';
+import { anythingLLMRoute } from './anythingllm';
 import { mediaRoute } from './media';
 import {checkAiRoute} from './check-ai';
 import { contentHubRoute, hubTick } from './content-hub';
@@ -585,6 +586,7 @@ export default {
         await env.DB.prepare('INSERT INTO analytics_daily(day,path,views) VALUES(?,?,1) ON CONFLICT(day,path) DO UPDATE SET views=views+1').bind(day,path).run();
         return new Response(null,{status:204,headers:cors(request)});
       }
+      const chat=await anythingLLMRoute(request,env,authenticate);if(chat){const headers=new Headers(chat.headers);for(const [key,value] of Object.entries(cors(request)))headers.set(key,value);return new Response(chat.body,{status:chat.status,headers})}
       const muse=await museRoute(request,env,authenticate);if(muse)return reply(request,muse.body,muse.status||200);
       const investment=await investmentRoute(request,env);if(investment)return reply(request,investment.body,investment.status||200);
       const decision=await decisionRoute(request,env,authenticate);if(decision)return reply(request,decision.body,decision.status||200);

@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - workers/pt-universe-api/**
+      - apps/anythingllm/providers.json
       - scripts/research/gemini-probe.mjs
       - scripts/decision/life-ai-probe.mjs
       - apps/watch-inbox/report-schema.*
@@ -42,6 +43,7 @@ jobs:
       - name: Validate Worker
         run: |
           npm run check
+          node tests/anythingllm.test.mjs
           node tests/site-updates.test.mjs
           node tests/content-hub.test.mjs
           node tests/check-ai.test.mjs
@@ -153,6 +155,21 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           RESEARCH_RUN_SMOKE: ${{ contains(github.event.head_commit.message, '[research-ai-test]') }}
         run: node ../../scripts/research/live-ai-smoke.mjs
+
+      - name: Verify AnythingLLM shared Gemini with a temporary account
+        if: contains(github.event.head_commit.message, '[anythingllm-live]')
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node ../../scripts/anythingllm/live-smoke.mjs
+
+      - name: Save AnythingLLM live verification
+        if: always() && contains(github.event.head_commit.message, '[anythingllm-live]')
+        uses: actions/upload-artifact@v4
+        with:
+          name: anythingllm-live-verification
+          path: /tmp/anythingllm-live.json
+          if-no-files-found: warn
 
       - name: Save research workflow verification
         if: always() && contains(github.event.head_commit.message, '[research-ai-test]')
