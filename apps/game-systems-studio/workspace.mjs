@@ -1,5 +1,6 @@
 import * as Cards from './model.mjs';
 import {template,validateSystem} from './systems-model.mjs';
+import {validateStudy} from './experiments.mjs';
 export const KEYS={cards:'pt.game-systems-studio.v1',incremental:'pt.gss.incremental.v1',rpg:'pt.gss.rpg.v1'};
 export const validateDesign=d=>d?.format===Cards.FORMAT?Cards.validate(d):validateSystem(d);
 export const designType=d=>d?.format===Cards.FORMAT?'cards':d?.gameType;
@@ -13,6 +14,7 @@ export function readWorkspace(storage,type){
  for(const e of [s.last,s.baseline])if(e){e.config=validateDesign(e.config);if(designType(e.config)!==type||!e.result||e.result.engineVersion!==e.config.engineVersion||!Number.isFinite(Date.parse(e.at)))throw Error('实验记录异常');const r=e.result,finite=k=>typeof r[k]==='number'&&Number.isFinite(r[k])&&r[k]>=0;
  if(type==='incremental'){if(!['earned','rate','currency','duration','spent','resets','prestigePoints','purchases','longestWait'].every(finite)||!Array.isArray(r.points)||!Array.isArray(r.log)||!Array.isArray(r.producers))throw Error('经济实验缺少详情')}
  else{if(!['runs','seed','wins','losses','draws','winRate'].every(finite)||!Number.isInteger(r.runs)||r.runs<1||r.runs>100000||r.wins+r.losses+r.draws!==r.runs||!r.ci||!Number.isFinite(r.ci.low)||!Number.isFinite(r.ci.high))throw Error('战斗实验缺少详情');if(type==='cards'&&(!r.byCard||!r.roundHistogram||!r.deathCauses||!r.samples))throw Error('卡牌实验缺少详情');if(type==='rpg'&&(!Array.isArray(r.curve)||!r.bySkill||!r.causes))throw Error('成长实验缺少详情')}}
+ if(s.studies!==undefined){if(!Array.isArray(s.studies)||s.studies.length>8)throw Error('实验档案格式异常');s.studies=s.studies.map(x=>validateStudy(x,type))}
  return{state:s,blocked:false};
  }catch(error){return{state:empty,blocked:true,error:error.message}}
 }

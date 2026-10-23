@@ -1,3 +1,29 @@
+# Game Systems Studio · POC 04
+
+The default native workspace is now **Start an experiment** (`#cards/start`, `#incremental/start`, `#rpg/start`). The previous editor / results / replay / asset / history addresses remain valid.
+
+## Task-driven workflow
+
+1. Try an isolated worked example, or snapshot the current design (including unsaved draft).
+2. Define a question, a target interval and one numeric parameter. At most seven candidate values plus the original baseline are evaluated with identical encounters / policy / seeds / sample sizes.
+3. A local Web Worker runs the existing simulation engines, shows target fit and collateral metrics, and exposes card contributions, purchase events or per-stage reach rates.
+4. Inspect the exact configuration difference, then explicitly adopt with a reason, retain the current design or mark the conclusion for real-game testing. Adoption never happens automatically. A changed current draft blocks adoption from an older current-data experiment.
+5. Export candidate JSON, a complete experiment archive, or a full workspace backup. Importing an experiment archive preserves the current design and results.
+
+The examples answer: bleed stacks at 70–80% win rate; factory pricing for a 4.5–5 minute production milestone; and enemy growth for a 45–65% 12-stage campaign completion rate. These are illustrative targets, not universal game design recommendations. Under seed 42, the card case produces 64.3% at three stacks and 78.9% at four; the RPG 500-run case produces 84.4% at 0.14 growth and 51% at 0.144.
+
+`experiments.mjs` owns parameter allowlists, validated snapshots and target assessment; `experiment-worker.mjs` owns controlled comparisons; `lab-view.mjs` renders the guided workflow; `study-actions.mjs` owns explicit adoption and decisions. The existing simulation engines are unchanged. Assessment ranks only the tested candidates by target inclusion then proximity to target midpoint. Confidence intervals describe individual win-rate estimates, not significance of the difference. This is neither a global optimizer nor a real-player A/B test.
+
+Existing local keys and version-1 workspace records are retained. Optional `studies` stores the latest eight completed experiments; cancelled or partial computations are not saved. Adoption archives the previous last result and baseline under the study's `replacedExperiments`, and preserves the old saved design in the existing bounded version history. Complete workspace export/import includes studies. Storage failures and stale revision leases remain protected. Use JSON exports for longer-term retention and moving browsers.
+
+Method references: [Machinations targets](https://machinations.io/docs/ai-balancer-target) and [influencers](https://machinations.io/docs/ai-balancer-influencers), [Balancy variants](https://en.docsv2.balancy.dev/liveops/ab_tests/), [Kongregate idle-game math](https://www.kongregate.com/en/pages/the-math-of-idle-games-part-i), and [Godot Resources](https://docs.godotengine.org/en/stable/tutorials/scripting/resources.html). No third-party SDK or service is added.
+
+The connection guide distinguishes supported Studio JSON / workspace backups / Card Lab data from arbitrary game formats. The supplied Godot importer supports only the card schema; incremental/RPG data require a game-side adapter. No external project repository or runtime is automatically imported or calibrated.
+
+Validation: `node scripts/game-systems/experiments-test.mjs` plus the existing engine, systems and workspace tests. Browser QA covers example execution, evidence inspection, adoption, baseline linkage, decisions and export. Archive/workspace roundtrip is validated in automated tests; the browser import recheck was interrupted by a browser-driver timeout.
+
+---
+
 # Game Systems Studio · PoC v0.3
 
 One native workbench for **Cards / Incremental / RPG** on PT Universe.
