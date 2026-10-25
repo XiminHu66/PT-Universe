@@ -18,3 +18,4 @@ jobs:
           node --check apps/knowledge-garden/app.mjs
           node --check apps/knowledge-garden/site-route.mjs
           node scripts/knowledge-garden/model-test.mjs
+          node scripts/knowledge-garden/workspace-test.mjs

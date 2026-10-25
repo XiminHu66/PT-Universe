@@ -14,7 +14,7 @@ export async function knowledgeRoute(request,env,knowledgeAssets){
     if(!['GET','HEAD'].includes(request.method))return new Response('Read only',{status:405});
     const file=path==='/knowledge/'?'index.html':path.slice('/knowledge/'.length),asset=Object.hasOwn(knowledgeAssets,file)?knowledgeAssets[file]:null;
     if(!asset)return new Response('Not found',{status:404});
-    return new Response(request.method==='HEAD'?null:asset.body,{headers:{...noStore,'content-type':asset.type,'content-security-policy':"default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self' data:;connect-src 'self';object-src 'none';base-uri 'self';frame-ancestors 'self'"}});
+    return new Response(request.method==='HEAD'?null:asset.body,{headers:{...noStore,'content-type':asset.type,'content-security-policy':"default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self' data:;connect-src 'self';worker-src 'self';object-src 'none';base-uri 'self';frame-ancestors 'self'"}});
   }
   const operation=path.slice('/__pt_knowledge/'.length);
   if(!['providers','models','chat'].includes(operation))return new Response('Not found',{status:404});
