@@ -2,6 +2,7 @@ const chatB64=bytes=>btoa(String.fromCharCode(...bytes)).replaceAll('+','-').rep
 // Knowledge Garden uses the existing owner-private Site and native Karakeep
 // cookie session. Provider keys never enter URLs or persisted page assets.
 export async function knowledgeRoute(request,env,knowledgeAssets){
+  const connection=await knowledgeConnection(request,env);if(connection)return connection;
   const url=new URL(request.url),path=url.pathname;
   if(!path.startsWith('/knowledge')&&!path.startsWith('/__pt_knowledge/'))return null;
   if(!request.headers.get('oai-authenticated-user-id')){
@@ -44,4 +45,38 @@ export async function knowledgeRoute(request,env,knowledgeAssets){
     else r=await fetch(api+operation,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload),redirect:'manual',signal:AbortSignal.timeout(170000)});
     return new Response(r.body,{status:r.status,headers:{...noStore,'content-type':r.headers.get('content-type')||'application/json','x-pt-model':r.headers.get('x-pt-model')||body.model||'','x-pt-attempts':r.headers.get('x-pt-attempts')||'1'}});
   }catch{return Response.json({error:'免费模型响应超时或连接失败，请稍后重试。'},{status:502,headers:noStore});}
+}
+
+const KNOWLEDGE_PAGES='https://ximinhu66.github.io/PT-Universe/apps/knowledge-garden/';
+const KNOWLEDGE_API='https://pt-universe-api.summer07-nanjolno.workers.dev/api/knowledge';
+async function knowledgeGrant(env,scope,seconds,extra={}){
+ const now=Math.floor(Date.now()/1000),encode=value=>chatB64(new TextEncoder().encode(JSON.stringify(value)));
+ const payload={iss:'https://pt-vps-tools.h1nano.chatgpt.site',aud:scope==='chat:gemini'?'pt-universe-anythingllm':'pt-universe-knowledge',sub:'pt-backend-owner',scope,iat:now,exp:now+seconds,nonce:chatB64(crypto.getRandomValues(new Uint8Array(24))),...extra};
+ const unsigned=encode({alg:'ES256',typ:'JWT'})+'.'+encode(payload),key=await crypto.subtle.importKey('jwk',JSON.parse(env.CHAT_CONNECT_PRIVATE_JWK),{name:'ECDSA',namedCurve:'P-256'},false,['sign']);
+ return unsigned+'.'+chatB64(new Uint8Array(await crypto.subtle.sign({name:'ECDSA',hash:'SHA-256'},key,new TextEncoder().encode(unsigned))));
+}
+async function knowledgeConnection(request,env){
+ const url=new URL(request.url),path=url.pathname,noStore={'cache-control':'private,no-store','referrer-policy':'no-referrer','x-content-type-options':'nosniff'};
+ if(path==='/knowledge'||path.startsWith('/knowledge/')){
+  if(!['GET','HEAD'].includes(request.method))return new Response('Read only',{status:405});return Response.redirect(KNOWLEDGE_PAGES+url.search,302);
+ }
+ if(path==='/__pt_knowledge_provision'){
+  // Fixed server-to-server deployment operation behind owner-private dispatch.
+  // Does not mint browser sessions, return transport secrets or accept a URL.
+  if(request.method!=='POST')return new Response('POST only',{status:405});
+  if(!env.CHAT_CONNECT_PRIVATE_JWK||!env.GATEWAY_ORIGIN||!env.GATEWAY_PRIVATE_JWK)return Response.json({ok:false,error:'Transport unavailable'},{status:503,headers:noStore});
+  try{const config=JSON.stringify({origin:env.GATEWAY_ORIGIN,jwk:JSON.parse(env.GATEWAY_PRIVATE_JWK),siteOrigin:'https://pt-vps-tools.h1nano.chatgpt.site'}),digest=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(config)))].map(x=>x.toString(16).padStart(2,'0')).join('');
+   const grant=await knowledgeGrant(env,'knowledge:configure',60,{digest});
+   const r=await fetch(KNOWLEDGE_API+'/configure',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+grant},body:config,redirect:'manual',signal:AbortSignal.timeout(30000)});
+   await r.body?.cancel();return Response.json({ok:r.ok,upstreamStatus:r.status,frontend:KNOWLEDGE_PAGES,backend:'existing-vps'},{status:r.ok?200:502,headers:noStore});
+  }catch{return Response.json({ok:false,error:'PT backend provisioning unavailable'},{status:502,headers:noStore});}
+ }
+ if(path!=='/__pt_knowledge_connect')return null;
+ if(request.method!=='GET')return new Response('GET only',{status:405});
+ const nonce=url.searchParams.get('nonce')||'';if(!/^[a-f0-9]{48}$/.test(nonce))return new Response('Invalid connection request',{status:400});
+ if(!request.headers.get('oai-authenticated-user-id'))return Response.redirect(url.origin+'/signin-with-chatgpt?return_to='+encodeURIComponent(path+url.search),302);
+ if(!env.CHAT_CONNECT_PRIVATE_JWK)return new Response('连接尚未配置',{status:503});
+ const token=await knowledgeGrant(env,'knowledge:session',86400),chat=await knowledgeGrant(env,'chat:gemini',3600);
+ const target=KNOWLEDGE_PAGES+'#knowledge='+encodeURIComponent(token)+'&backend='+encodeURIComponent(chat)+'&nonce='+nonce;
+ return new Response('<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="referrer" content="no-referrer"><title>返回 PT Universe</title><p>后台已连接，正在返回 PT Universe 知识库…</p><a href="'+target+'">返回 PT Universe →</a><script>location.replace('+JSON.stringify(target)+')</script></html>',{headers:{...noStore,'content-type':'text/html;charset=utf-8','content-security-policy':"default-src 'none';script-src 'unsafe-inline';base-uri 'none';frame-ancestors 'none'"}});
 }

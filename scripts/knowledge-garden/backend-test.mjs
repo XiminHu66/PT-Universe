@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+const source=await readFile(new URL('../../apps/knowledge-garden/backend.mjs',import.meta.url),'utf8');
+const storage=new Map();globalThis.sessionStorage={getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)};
+let assigned='',replaced='',called;
+globalThis.location={origin:'https://ximinhu66.github.io',pathname:'/PT-Universe/apps/knowledge-garden/',search:'',hash:'',assign:v=>assigned=v};
+globalThis.history={replaceState:(_,__,url)=>replaced=url};globalThis.document={dispatchEvent(){},querySelectorAll:()=>[]};
+const encode=v=>Buffer.from(JSON.stringify(v)).toString('base64url'),dummyToken='header.'+encode({exp:Math.floor(Date.now()/1000)+3600})+'.signature';
+const first=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64')+'#unconnected');
+assert.equal(first.hasConnection(),false);assert.equal(assigned,'','Loading the PT page must not redirect to a GPT-hosted UI');first.connectBackend();assert.ok(assigned.startsWith('https://pt-vps-tools.h1nano.chatgpt.site/__pt_knowledge_connect?nonce='));
+const nonce=storage.get('pt.knowledge.connect.nonce');location.hash='#knowledge='+dummyToken+'&backend='+dummyToken+'&nonce='+nonce;
+const connected=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64')+'#callback');assert.equal(connected.hasConnection(),true);assert.equal(replaced,'/PT-Universe/apps/knowledge-garden/');assert.equal(storage.has('pt.knowledge.connect.nonce'),false);
+globalThis.fetch=async(url,init)=>{called={url,init};return Response.json({ok:true})};
+await connected.backendFetch('/karakeep/api/v1/bookmarks');assert.equal(called.url,connected.API+'/knowledge/karakeep/api/v1/bookmarks');assert.equal(called.init.headers.get('authorization'),'Bearer '+dummyToken);assert.equal(called.init.credentials,'omit');
+await connected.backendFetch('/__pt_knowledge/chat',{method:'POST',headers:{'content-type':'application/json','x-pt-knowledge':'1'},body:JSON.stringify({provider:'gemini',messages:[]})});assert.equal(called.url,connected.API+'/anythingllm/chat');assert.equal(JSON.parse(called.init.body).backendSession,dummyToken);assert.equal(called.init.headers.get('authorization'),null);assert.equal(called.init.headers.has('x-pt-knowledge'),false);
+await connected.backendFetch('/__pt_knowledge/models',{method:'POST',body:JSON.stringify({provider:'gemini'})});assert.equal(called.url,connected.API+'/anythingllm/models?provider=gemini');assert.equal(called.init.body,undefined);
+await assert.rejects(()=>connected.backendFetch('https://evil.example'),/Unsupported/);
+console.log('PASS: PT Pages stays the application origin, explicit connection only, nonce-checked callback, immediate fragment removal, per-tab capability and fixed PT API/model routing.');

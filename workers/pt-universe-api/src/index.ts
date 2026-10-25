@@ -1,3 +1,4 @@
+import {knowledgeRoute} from './knowledge';
 import {sourceIsFresh,SITE_REFRESH_REVISION} from './site-updates';
 import {browserSiteList,browserChapterBatch} from './browser-site-parser';
 import { museRoute } from './muse';
@@ -46,7 +47,7 @@ const VSPO_YOUTUBE_CHANNELS=[
 
 function cors(request:Request){
   const origin=request.headers.get('origin')||'';
-  return {'access-control-allow-origin':allowedOrigins.has(origin)?origin:'https://ximinhu66.github.io','access-control-allow-methods':'GET,POST,PUT,OPTIONS','access-control-allow-headers':'authorization,content-type,range','access-control-max-age':'86400','vary':'Origin'};
+  return {'access-control-allow-origin':allowedOrigins.has(origin)?origin:'https://ximinhu66.github.io','access-control-allow-methods':'GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS','access-control-allow-headers':'authorization,content-type,range','access-control-expose-headers':'x-pt-model,x-pt-attempts,retry-after,content-disposition,content-range,accept-ranges','access-control-max-age':'86400','vary':'Origin'};
 }
 function reply(request:Request,value:unknown,status=200,extra:HeadersInit={}){return new Response(JSON.stringify(value),{status,headers:{...jsonHeaders,...cors(request),...extra}})}
 function error(request:Request,message:string,status=400){return reply(request,{error:message},status)}
@@ -586,6 +587,7 @@ export default {
         await env.DB.prepare('INSERT INTO analytics_daily(day,path,views) VALUES(?,?,1) ON CONFLICT(day,path) DO UPDATE SET views=views+1').bind(day,path).run();
         return new Response(null,{status:204,headers:cors(request)});
       }
+      const knowledge=await knowledgeRoute(request,env);if(knowledge){const headers=new Headers(knowledge.headers);for(const [key,value] of Object.entries(cors(request)))headers.set(key,value);return new Response(knowledge.body,{status:knowledge.status,headers})}
       const chat=await anythingLLMRoute(request,env,authenticate);if(chat){const headers=new Headers(chat.headers);for(const [key,value] of Object.entries(cors(request)))headers.set(key,value);return new Response(chat.body,{status:chat.status,headers})}
       const muse=await museRoute(request,env,authenticate);if(muse)return reply(request,muse.body,muse.status||200);
       const investment=await investmentRoute(request,env);if(investment)return reply(request,investment.body,investment.status||200);
