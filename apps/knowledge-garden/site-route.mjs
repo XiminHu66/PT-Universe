@@ -57,6 +57,9 @@ async function knowledgeGrant(env,scope,seconds,extra={}){
 }
 async function knowledgeConnection(request,env){
  const url=new URL(request.url),path=url.pathname,noStore={'cache-control':'private,no-store','referrer-policy':'no-referrer','x-content-type-options':'nosniff'};
+ if(request.method==='GET'&&(path==='/karakeep'||path==='/karakeep/'||path.startsWith('/karakeep/dashboard'))){
+  const id=path.match(/^\/karakeep\/dashboard\/preview\/([a-zA-Z0-9_-]{6,100})$/)?.[1];return Response.redirect(KNOWLEDGE_PAGES+(id?'?source='+encodeURIComponent(id):''),302);
+ }
  if(path==='/knowledge'||path.startsWith('/knowledge/')){
   if(!['GET','HEAD'].includes(request.method))return new Response('Read only',{status:405});return Response.redirect(KNOWLEDGE_PAGES+url.search,302);
  }

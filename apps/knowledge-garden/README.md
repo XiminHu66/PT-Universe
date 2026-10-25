@@ -2,6 +2,14 @@
 
 PT Universe's Karakeep knowledge workspace at https://ximinhu66.github.io/PT-Universe/apps/knowledge-garden/ . Daily Nexus links to this full static application. It stays on PT Universe; the previous tools-Site entry redirects here.
 
+## Single-library operating model
+
+Use Knowledge Garden in PT Universe as the only daily application. The existing VPS Karakeep database/data volume is the only durable knowledge store: original articles, PDF assets, reading metadata, Workspace settings, index snapshots, quotes and Q&A all live there. PT Universe does not keep a second knowledge library, and Cloudflare KV holds transport/session configuration and short-lived asset tickets rather than a copy of the documents.
+
+The standalone Karakeep UI is an internal administration surface. Its duplicate links are removed from Knowledge Garden, and the tools-hub card and legacy Karakeep tab lead to the same PT Universe knowledge page. There is no two-way library synchronization, import/migration task or original-file duplication. Refresh only reloads the same database. Browser settings and per-tab credentials are not a second document store.
+
+This retains the requested PT Universe interface while using server storage suited to persistent archives and PDFs. No new database, container, model server or data-volume migration is introduced. External free LLMs remain replaceable processors; their availability does not determine whether originals survive.
+
 ## Everyday use
 
 The interface follows Karakeep's original EditorCard, responsive BookmarksGrid and list sidebar: paste a link or write a note in one field, or use New for PDF/Markdown/TXT uploads. Save reason and category are optional. The main view is a card library with one full-text search. Source details, AI extraction, graph review and model settings are secondary views.
