@@ -10,6 +10,7 @@ assert.deepEqual(scoped.map(x=>x.id),['a','b']);
 const result=searchChunks(scoped,'epistemic uncertainty');assert.equal(result[0].page,23);assert.ok(result[0].start>=0);assert.ok(!result.some(c=>c.sourceId==='c'));
 assert.equal(reading({meta:{},archived:true}),'unread','Archiving must not fabricate a read event');
 assert.equal(reading(a),'deep');
+assert.equal(indexState({id:'note',content:{type:'text',text:'edited'},meta:{index:{parser:INDEX_VERSION,status:'ready',pages:[{text:'original'}]}}}),'stale');
 assert.equal(searchChunks(scoped,'不存在的词qzx').length,0);
 assert.ok(searchChunks(scoped,'不确定性',{expansion:'epistemic uncertainty'}).some(c=>c.page===23));
 const contexts=evidenceContexts([result[0]]);assert.ok(contexts[0].chunkId.startsWith('C'));assert.equal(contexts[0].id,'E1');
