@@ -28,7 +28,7 @@ Frontend code and `site-route.mjs` are maintained here. The existing Site build 
 - Current retrieval is lexical + one-hop typed/entity expansion, not embeddings.
 - Extraction input is capped at 46,000 characters, with actual coverage recorded. Query context is capped at eight documents and 6,500 characters per document. Omitted content cannot be used as evidence.
 - Graph visualization is limited to 100 nodes; category filters narrow it.
-- Full-page Monolith archival is currently pending a separately authorized VPS configuration deployment. Existing text and screenshots can be read; the UI never labels a missing archive as present.
+- Full-page Monolith archival is enabled on the existing VPS service. New links and explicitly refreshed existing links attempt a full-page snapshot; other existing bookmarks are not automatically recrawled. The UI labels an archive as saved only when the native archive asset exists.
 - Dynamic, login-only or blocked sources can fail native crawling; the page exposes the real failure and links to native Karakeep for retry.
 
 ## Sources
@@ -43,3 +43,10 @@ Frontend code and `site-route.mjs` are maintained here. The existing Site build 
 `node scripts/knowledge-garden/model-test.mjs` verifies preservation of native notes, safe URLs, duplicate canonicalization, paragraph and quote grounding, hallucinated entity rejection, relation review gating, graph retrieval and unsupported-answer isolation.
 
 The private Site additionally tests owner identity, CSRF rejection, route allowlisting, expiring backend capabilities, token limits and streaming. Browser acceptance uses the owner's existing native session and real public-page content.
+
+## Production acceptance (2026-10-25)
+
+- Existing private Site kept its owner-only audience and shared model connection.
+- Native Karakeep archive configuration deployment passed health and capacity checks (about 11 GiB available on the capped data volume).
+- A public Karakeep documentation bookmark was refreshed, a full-page archive asset appeared, and its saved HTML opened successfully from the native asset route.
+- The outdated Content Hub browser suite now exercises Studio's native classic sandbox, retained deck edits and validation, shared assets and legacy route forwarding. Engine simulation coverage remains in the existing deterministic engine tests.
