@@ -51,8 +51,8 @@ async function nativeRequest(env:KnowledgeEnv,config:Config,path:string,request:
 }
 export async function knowledgeRoute(request:Request,env:KnowledgeEnv,publicKey:JsonWebKey=PUBLIC_KEY):Promise<Response|null>{const u=new URL(request.url),prefix='/api/knowledge';if(!u.pathname.startsWith(prefix+'/'))return null;
  try{
- const origin=request.headers.get('origin');if(origin&&origin!==ORIGIN)return json({error:'Origin denied'},403);
- const op=u.pathname.slice(prefix.length),token=(request.headers.get('authorization')||'').replace(/^Bearer /,'');
+ const op=u.pathname.slice(prefix.length),origin=request.headers.get('origin');if(origin&&origin!==ORIGIN&&!(op.startsWith('/asset/')&&['GET','HEAD'].includes(request.method)&&origin===u.origin))return json({error:'Origin denied'},403);
+ const token=(request.headers.get('authorization')||'').replace(/^Bearer /,'');
  if(op==='/configure'){
   if(request.method!=='POST')return json({error:'POST required'},405);const grant=await verifyKnowledgeToken(token,'knowledge:configure',Date.now(),publicKey);if(!grant)return json({error:'Owner provisioning signature required'},401);
   const raw=await request.text();if(raw.length>6000||grant.digest!==await hash(raw))return json({error:'Invalid signed configuration'},400);let data;try{data=JSON.parse(raw)}catch{return json({error:'Invalid JSON'},400)}if(!validConfig(data))return json({error:'Invalid VPS transport'},400);

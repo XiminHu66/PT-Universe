@@ -47,7 +47,7 @@ const VSPO_YOUTUBE_CHANNELS=[
 
 function cors(request:Request){
   const origin=request.headers.get('origin')||'';
-  return {'access-control-allow-origin':allowedOrigins.has(origin)?origin:'https://ximinhu66.github.io','access-control-allow-methods':'GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS','access-control-allow-headers':'authorization,content-type,range','access-control-max-age':'86400','vary':'Origin'};
+  return {'access-control-allow-origin':allowedOrigins.has(origin)?origin:'https://ximinhu66.github.io','access-control-allow-methods':'GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS','access-control-allow-headers':'authorization,content-type,range','access-control-expose-headers':'x-pt-model,x-pt-attempts,retry-after,content-disposition,content-range,accept-ranges','access-control-max-age':'86400','vary':'Origin'};
 }
 function reply(request:Request,value:unknown,status=200,extra:HeadersInit={}){return new Response(JSON.stringify(value),{status,headers:{...jsonHeaders,...cors(request),...extra}})}
 function error(request:Request,message:string,status=400){return reply(request,{error:message},status)}
