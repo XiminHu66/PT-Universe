@@ -45,6 +45,7 @@ jobs:
           npm run check
           node tests/anythingllm.test.mjs
           node tests/anythingllm-auth.test.mjs
+          node tests/knowledge.test.mjs
           node tests/anythingllm-models.test.mjs
           node tests/anythingllm-transport.test.mjs
           node tests/site-updates.test.mjs

@@ -16,6 +16,8 @@ jobs:
         with: {node-version: '24'}
       - run: |
           node --check apps/knowledge-garden/app.mjs
+          node --check apps/knowledge-garden/backend.mjs
           node --check apps/knowledge-garden/site-route.mjs
           node scripts/knowledge-garden/model-test.mjs
           node scripts/knowledge-garden/workspace-test.mjs
+          node scripts/knowledge-garden/backend-test.mjs

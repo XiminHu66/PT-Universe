@@ -1,0 +1,35 @@
+import assert from 'node:assert/strict';
+import {build} from 'esbuild';
+const output=await build({entryPoints:['src/knowledge.ts'],bundle:true,platform:'node',format:'esm',write:false});
+const {knowledgeRoute,verifyKnowledgeToken,hash,allowedNativePath,nativeCookies}=await import('data:text/javascript;base64,'+Buffer.from(output.outputFiles[0].text).toString('base64'));
+const keys=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']),publicKey=await crypto.subtle.exportKey('jwk',keys.publicKey),gatewayKeys=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);
+const issued=Math.floor(Date.now()/1000),nonce='a'.repeat(32),api='https://pt-universe-api.summer07-nanjolno.workers.dev/api/knowledge';
+async function token(scope='knowledge:session',extra={}){const encode=v=>Buffer.from(JSON.stringify(v)).toString('base64url'),a=encode({alg:'ES256',typ:'JWT'}),b=encode({iss:'https://pt-vps-tools.h1nano.chatgpt.site',aud:'pt-universe-knowledge',sub:'pt-backend-owner',scope,iat:issued,exp:issued+(scope==='knowledge:configure'?60:86400),nonce,...extra});return a+'.'+b+'.'+Buffer.from(await crypto.subtle.sign({name:'ECDSA',hash:'SHA-256'},keys.privateKey,Buffer.from(a+'.'+b))).toString('base64url');}
+const valid=await token();assert.ok(await verifyKnowledgeToken(valid,'knowledge:session',Date.now(),publicKey));assert.equal(await verifyKnowledgeToken(valid,'knowledge:session'),null);
+for(const extra of [{aud:'chat'},{scope:'chat:gemini'},{sub:'another-owner'},{exp:issued-1},{exp:issued+86401},{nonce:'short'},{iat:issued+40}])assert.equal(await verifyKnowledgeToken(await token('knowledge:session',extra),'knowledge:session',Date.now(),publicKey),null);
+const map=new Map(),env={PT_UNIVERSE_DATA:{get:async k=>map.get(k)||null,put:async(k,v)=>map.set(k,v)}},origin='https://ximinhu66.github.io';
+const req=(path,method='GET',body,auth=valid,other={})=>new Request(api+path,{method,headers:{origin,authorization:'Bearer '+auth,...(body?{'content-type':'application/json'}:{}),...other},...(body?{body:typeof body==='string'?body:JSON.stringify(body)}:{})});
+assert.equal((await knowledgeRoute(req('/karakeep/api/v1/bookmarks','GET',null,''),env,publicKey)).status,401);
+assert.equal((await knowledgeRoute(req('/status','GET',null,valid,{origin:'https://evil.example'}),env,publicKey)).status,403);
+assert.equal((await knowledgeRoute(req('/status'),env,publicKey)).status,503);
+const config={origin:'https://existing-private-vps.trycloudflare.com',siteOrigin:'https://pt-vps-tools.h1nano.chatgpt.site',jwk:await crypto.subtle.exportKey('jwk',gatewayKeys.privateKey)},body=JSON.stringify(config),grant=await token('knowledge:configure',{digest:await hash(body)});
+assert.equal((await knowledgeRoute(req('/configure','POST',body,valid),env,publicKey)).status,401);
+assert.equal((await knowledgeRoute(req('/configure','POST',body,grant),env,publicKey)).status,200);
+assert.equal((await knowledgeRoute(req('/configure','POST',body+' ',grant),env,publicKey)).status,400);
+const bad=JSON.stringify({...config,origin:'http://127.0.0.1/'});assert.equal((await knowledgeRoute(req('/configure','POST',bad,await token('knowledge:configure',{digest:await hash(bad)})),env,publicKey)).status,400);
+for(const path of ['/hub/accounts','/karakeep/api/auth/session','/karakeep/api/v1/admin','/karakeep/api/v1/../admin','/karakeep/api/v1/bookmarks/%2e%2e/admin'])assert.equal(allowedNativePath(path,'GET'),false);
+assert.equal(allowedNativePath('/karakeep/api/v1/lists/abcdef/bookmarks/ghijkl','PUT'),true);assert.equal(allowedNativePath('/karakeep/api/v1/assets','POST'),true);
+const original=globalThis.fetch;let calls=[];
+try{globalThis.fetch=async(url,init)=>{const u=new URL(url);assert.equal(u.origin,config.origin);assert.equal(init.redirect,'manual');const h=init.headers,msg=['pt-gateway-v1','hub',init.method,u.pathname+u.search,h.get('x-pt-time'),h.get('x-pt-nonce'),config.siteOrigin,h.get('content-type')||''].join('\n');assert.ok(await crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},gatewayKeys.publicKey,Buffer.from(h.get('x-pt-signature'),'base64url'),Buffer.from(msg)));calls.push({path:u.pathname,cookie:h.get('cookie')});
+ if(u.pathname==='/hub/open/karakeep')return new Response(null,{status:302,headers:{'set-cookie':'__Secure-next-auth.session-token=PRIVATE_NATIVE_SESSION; Path=/karakeep/; Secure; HttpOnly',location:'/karakeep/'}});
+ assert.ok(h.get('cookie').includes('PRIVATE_NATIVE_SESSION'));
+ if(u.pathname.startsWith('/karakeep/api/assets/'))return new Response('<html>archived</html>',{headers:{'content-type':'text/html','content-security-policy':"sandbox; default-src 'none'",'set-cookie':'internal=must-not-leak'}});
+ return Response.json({bookmarks:[{id:'original',title:'Existing VPS record'}],nextCursor:null});};
+ const r=await knowledgeRoute(req('/karakeep/api/v1/bookmarks?limit=100'),env,publicKey);assert.equal(r.status,200);const text=await r.text();assert.ok(text.includes('Existing VPS record'));assert.ok(!text.includes('PRIVATE_NATIVE_SESSION'));assert.equal(r.headers.get('set-cookie'),null);assert.equal(calls[0].path,'/hub/open/karakeep');
+ const count=calls.length;assert.equal((await knowledgeRoute(req('/hub/accounts'),env,publicKey)).status,403);assert.equal(calls.length,count);
+ const t=await (await knowledgeRoute(req('/asset-ticket','POST',{id:'abcdef-asset'}),env,publicKey)).json();const asset=await knowledgeRoute(new Request(t.url),env,publicKey);assert.equal(asset.status,200);assert.equal(asset.headers.get('content-security-policy'),"sandbox; default-src 'none'");assert.equal(asset.headers.get('set-cookie'),null);
+ assert.equal((await knowledgeRoute(new Request(t.url.replace('/asset/abcdef-asset?','/asset/other-id?')),env,publicKey)).status,401);
+ assert.equal((await knowledgeRoute(req('/asset/abcdef-asset','GET',null,''),env,publicKey)).status,401);assert.equal((await knowledgeRoute(req('/status'),env,publicKey)).status,200);
+}finally{globalThis.fetch=original;}
+assert.ok(nativeCookies(new Headers({'set-cookie':'__Secure-next-auth.session-token=x; Secure; HttpOnly'})).includes('session-token=x'));
+console.log('PASS: pinned owner grants, scoped provisioning with bound digest, no anonymous/private-cookie leakage, signed fixed-VPS transport, native path allowlist, resource-scoped preview tickets and archived HTML sandbox.');

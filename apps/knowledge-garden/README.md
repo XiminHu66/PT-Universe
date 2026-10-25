@@ -1,6 +1,6 @@
 # Knowledge Garden
 
-PT Universe's owner-private Karakeep workspace at https://pt-vps-tools.h1nano.chatgpt.site/knowledge/ . Daily Nexus retains its existing toolbox link. The public Pages entry redirects to that private Site.
+PT Universe's Karakeep knowledge workspace at https://ximinhu66.github.io/PT-Universe/apps/knowledge-garden/ . Daily Nexus links to this full static application. It stays on PT Universe; the previous tools-Site entry redirects here.
 
 ## Everyday use
 
@@ -32,12 +32,19 @@ Source-grounded method/entity extraction, typed cross-source relations, one-hop 
 
 ## Deployment and validation
 
-The source of truth is `apps/knowledge-garden` in `XiminHu66/PT-Universe`. The existing private tools Site copies the page, model, knowledge module and bundled PDF parser with `scripts/sync-knowledge.mjs`; it does not fork the application. The bridge reuses native Karakeep login and the existing sustained-free LLM router. Its authentication, same-origin checks and audience are unchanged; only same-origin PDF module worker execution was added to the page CSP.
+The source of truth is `apps/knowledge-garden` in `XiminHu66/PT-Universe`. GitHub Pages serves the full page, model-independent retrieval module and PDF parser. `workers/pt-universe-api/src/knowledge.ts` owns the private knowledge API and reaches the existing VPS over its authenticated HTTPS tunnel. It permits only Karakeep bookmarks, lists, source content, uploads and assets; it does not expose the native admin, credential or login APIs. Native session cookies and the VPS transport key stay on the backend.
+
+The existing owner-private tools hub supplies the same initial identity bridge used by AnythingLLM, then returns automatically to the fixed PT Universe URL. It issues a dedicated, pinned ES256 knowledge capability (24 hours), plus the existing Gemini grant (one hour). Per-tab nonces are checked and URL fragments are removed immediately. API capabilities stay in sessionStorage and are excluded from exports. A fixed deployment-only provisioning operation binds the VPS transport to the PT API using a separate 60-second signed grant tied to the exact configuration digest; no secret appears in browser responses, the repository or deployment logs.
+
+Previews use short-lived tickets scoped to one asset, preserving native archived HTML sandbox headers. Uploads stream through the PT API with an 80 MiB ceiling. The original Karakeep database and data volume are reused, so Workspaces, PDF page indexes and saved Q&A require no data copy. New VPS tunnel addresses can be reprovisioned through the fixed private deployment operation.
 
 ```sh
 node --check apps/knowledge-garden/app.mjs
+node --check apps/knowledge-garden/backend.mjs
 node scripts/knowledge-garden/model-test.mjs
 node scripts/knowledge-garden/workspace-test.mjs
 ```
 
 The tests cover original-note preservation, canonical duplicates, source quote rejection, graph review, retrieval from PDF page 23, Workspace isolation, bilingual terms, stale parser/source versions, PDF coverage and independent reading-state semantics.
+
+The Worker also runs `node tests/knowledge.test.mjs`: rejected anonymous/foreign-scope requests, owner-only configuration, fixed signed VPS requests, native cookie isolation, path/method allowlists, resource-scoped tickets and archive sandbox preservation.
