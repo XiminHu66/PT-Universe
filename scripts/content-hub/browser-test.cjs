@@ -61,7 +61,7 @@ await p.locator('#classic-form [name="cards.0.cost"]').fill('4');
 await p.locator('[data-action=classic-save]').click();
 assert.equal(await p.locator('#dialog').isVisible(),true,'invalid sandbox edit stays open');
 assert.equal(await p.evaluate(()=>JSON.parse(localStorage.getItem('ptu.cardlab.config')).cards[0].cost),1,'invalid edit cannot mutate the retained deck');
-await p.locator('#dialog [data-action=close]').click();
+await p.locator('#dialog').getByRole('button',{name:'关闭',exact:true}).click();
 await p.locator('#sidebar a[href="#cards/assets"]').click();
 await p.locator('[data-action=asset-toggle]').first().click();
 await p.locator('#asset-saved').check();
