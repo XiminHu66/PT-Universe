@@ -1,0 +1,26 @@
+import assert from 'node:assert/strict';
+import {canonical,pack,unpack,item,paragraphs,validateExtraction,validateRelations,buildGraph,retrieve,groundedAnswer,safeUrl,matchQuote} from '../../apps/knowledge-garden/model.mjs';
+assert.equal(safeUrl('javascript:alert(1)'),'');
+assert.equal(canonical('https://example.org/x?utm_source=x&a=1#q'),'https://example.org/x?a=1');
+const text='Hybrid retrieval combines lexical and graph signals.\n\nExplicit evidence supports each relation in the graph.';
+const meta={version:1,reason:'用于工作台',category:'GraphRAG',status:'reading'};
+assert.deepEqual(unpack(pack('保留原笔记\n特殊字符 <-- \n',meta)),{note:'保留原笔记\n特殊字符 <-- \n',meta});
+assert.equal(unpack('原始旧笔记').note,'原始旧笔记');
+const ps=paragraphs(text),ex=validateExtraction({summary:'摘要',claims:[{text:'有效',paragraph:'P1',quote:'Hybrid retrieval combines lexical and graph signals.'},{text:'幻觉',paragraph:'P9',quote:'A made up quote that is not in the document.'}],entities:[{name:'Hybrid retrieval',type:'method',paragraph:'P1',quote:'Hybrid retrieval combines lexical and graph signals.'},{name:'Fake',type:'tool',paragraph:'P1',quote:'Fake tool'}]},ps);
+assert.equal(ex.claims[0].grounded,true);assert.equal(ex.claims[1].grounded,false);assert.equal(ex.entities[1].grounded,false);
+const a=item({id:'a',note:pack('',{...meta,extraction:ex}),content:{type:'link',url:'https://example.org/a'},title:'Graph retrieval'}),b=item({id:'b',note:pack('',{...meta,extraction:ex}),title:'Method B'});
+const rel=validateRelations({relations:[{from:'a',to:'b',type:'extends',quoteFrom:ps[0].text,quoteTo:ps[1].text,confidence:.9},{from:'a',to:'b',type:'improves',quoteFrom:'fabricated evidence that does not exist',quoteTo:ps[1].text}]},[{...a,text},{...b,text}]);
+assert.equal(rel[0].grounded,true);assert.equal(rel[0].status,'pending');assert.equal(rel[1].grounded,false);
+a.meta.relations=rel;assert.equal(buildGraph([a,b]).edges.filter(e=>e.type==='extends').length,0);
+a.meta.relations[0].status='accepted';const graph=buildGraph([a,b]);assert.equal(graph.edges.filter(e=>e.type==='extends').length,1);assert.ok(!graph.nodes.some(n=>n.label==='Fake'));
+assert.equal(retrieve([a,b],'unrelatedword').length,0);assert.ok(retrieve([a,b],'Hybrid').length===2);
+const answer=groundedAnswer({statements:[{text:'有依据',sources:[{id:'a',quote:ps[0].text}]},{text:'错误引用',sources:[{id:'b',quote:'This evidence does not exist in the input document.'}]},{text:'没有引用',sources:[]}]},[{...a,text},{...b,text}]);
+assert.deepEqual(answer.statements.map(s=>s.grounded),[true,false,false]);
+assert.equal(item({archived:true,note:pack('',meta)}).status,'archived');
+console.log('PASS: native note preservation, URL sanitization, quote/paragraph grounding, invalid entity rejection, relation review gate, 1-hop retrieval and answer citation isolation.');
+
+const wrapped='> Hybrid retrieval combines lexical\n> and graph signals.';
+assert.equal(matchQuote(wrapped,'Hybrid retrieval combines lexical and graph signals.'),'Hybrid retrieval combines lexical\n> and graph signals.');
+assert.equal(matchQuote(wrapped,'A fabricated claim.'),'');
+assert.equal(validateExtraction({claims:[{text:'段落选取',paragraph:'P1'}]},paragraphs(wrapped)).claims[0].grounded,true);
+console.log('PASS: wrapped Markdown citations map back to exact archived spans; invalid quotes remain rejected.');
