@@ -5,12 +5,12 @@ import {questionScope,retrievalSummary,emptyAnswer,answerHTML,hasNamedSource} fr
 import {modelSettings,chooseModel,discoveredModel} from './model-choice.mjs?v=model-deadline-20261025';
 import {readCompletion} from './completion.mjs?v=qa-fast-20261025';
 import {SEMANTIC_VERSION,semanticLabels,validateSemantic,semanticGraph,semanticCurrent,semanticStats} from './semantic.mjs?v=semantic-hub-20261026';
-import {mountNetwork,nodeColors} from './network.mjs?v=readable-20261026';
+import {mountNetwork,nodeColors} from './network.mjs?v=relations-20261026';
 import {relationSentence,relationshipGroups} from './graph-labels.mjs?v=readable-20261026';
 import {libraryState,trashPatch,restorePatch,sourceEdit} from './management.mjs';
 import {graphOverview,graphNeighbors,graphOutline,currentExtraction,entityLabels,samplePassages,relationDocuments,relationSnapshot} from './graph.mjs?v=semantic-hub-20261026';
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],views={inbox:'待读',library:'全部资料',graph:'知识图谱',ask:'问知识库',trash:'回收站'};
-let books=[],records=[],lists=[],nativeLists=[],members=new Map(),workspaceId='',view='library',category='',status='',typeFilter='',selected='',busy=false,connected=false,providers=[],models=[],answer=null,answerContexts=[],loadError='',addType='link',editWorkspaceId='',activeConversation='',questionDraft='',indexRunning=false,searchTimer=null,poll=null,readFilter='',askPhase='',questionController=null,graphRelation='',graphEntity='',graphReview='pending',graphController=null,graphProgress='',graphSources=false,graphLabels=false,graphRenderer=null;
+let books=[],records=[],lists=[],nativeLists=[],members=new Map(),workspaceId='',view='library',category='',status='',typeFilter='',selected='',busy=false,connected=false,providers=[],models=[],answer=null,answerContexts=[],loadError='',addType='link',editWorkspaceId='',activeConversation='',questionDraft='',indexRunning=false,searchTimer=null,poll=null,readFilter='',askPhase='',questionController=null,graphRelation='',graphEntity='',graphReview='pending',graphController=null,graphProgress='',graphSources=false,graphLabels=true,graphRenderer=null;
 const texts=new Map(),contentVersions=new Map(),runs=new Set(),indexLocks=new Map(),saveLocks=new Map();
 const readSettings=()=>{try{return JSON.parse(localStorage.getItem('pt.knowledge.settings')||'{}')}catch{return {}}};let settings=modelSettings(readSettings()),keys={};
 const now=()=>new Date().toISOString(),ws=()=>lists.find(l=>l.id===workspaceId),wsConfig=()=>records.find(b=>b.meta.kind==='workspace'&&b.meta.workspaceId===workspaceId)?.meta||{},scopeBooks=()=>books.filter(b=>inScope(b,workspaceId,members));
