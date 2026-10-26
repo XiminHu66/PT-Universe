@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {validateSemantic,semanticGraph,semanticCurrent,SEMANTIC_VERSION,paperIdentity,semanticStats} from '../../apps/knowledge-garden/semantic.mjs';
+import {validateSemantic,semanticGraph,semanticCurrent,SEMANTIC_VERSION,paperIdentity,semanticStats,directionSupported} from '../../apps/knowledge-garden/semantic.mjs';
 import {INDEX_VERSION,searchChunks} from '../../apps/knowledge-garden/knowledge.mjs';
 const text='Agima uses SFT to unify policy and world modeling. Agima is evaluated on Sokoban tasks. AUC measures ranking performance.',passages=[{id:'P1',text}];
 const raw={entities:[{name:'Agima',type:'method',paragraph:'P1',quote:'Agima uses SFT to unify policy and world modeling.'},{name:'SFT',type:'method',paragraph:'P1',quote:'Agima uses SFT to unify policy and world modeling.'},{name:'Sokoban',type:'task',paragraph:'P1',quote:'Agima is evaluated on Sokoban tasks.'},{name:'AUC',type:'metric',paragraph:'P1',quote:'AUC measures ranking performance.'}],relations:[{from:'Agima',to:'SFT',type:'uses',paragraph:'P1',quote:'Agima uses SFT to unify policy and world modeling.',confidence:.9},{from:'Agima',to:'Sokoban',type:'evaluated_on',paragraph:'P1',quote:'Agima is evaluated on Sokoban tasks.',confidence:.95},{from:'Agima',to:'AUC',type:'measured_by',paragraph:'P1',quote:'AUC measures ranking performance.',confidence:.95},{from:'Agima',to:'SFT',type:'improves',paragraph:'P1',quote:'Agima improves every SFT model on all tasks.',confidence:1},{from:'Agima',to:'SFT',type:'unlisted',paragraph:'P1',quote:text,confidence:1},{from:'Agima',to:'Agima',type:'uses',paragraph:'P1',quote:text,confidence:1}]};
@@ -15,3 +15,7 @@ const low=validateSemantic({...raw,relations:[{...raw.relations[0],confidence:.4
 console.log('PASS: source-internal semantic predicates, short entity aliases, endpoint/quote validation, distinct carriers, evidence/page provenance, stale/rejected gates and Workspace isolation.');
 
 const typedAlias=make('alias');typedAlias.meta.semantic.entities.find(e=>e.name==='Agima').type='concept';typedAlias.meta.semantic.relations.forEach(r=>{if(r.fromName==='Agima')r.from='concept:agima'});assert.equal(semanticGraph([a,typedAlias]).nodes.filter(n=>n.label==='Agima').length,1,'Cross-source type variation must not duplicate an entity');
+
+assert.equal(directionSupported('part_of','SurveyGraph','MEKG','SurveyGraph is a framework built around MEKG.'),false,'A framework built around a component is not part of its own component');
+assert.equal(directionSupported('part_of','Encoder','System','Encoder is a component of System.'),true);
+assert.equal(directionSupported('part_of','Encoder','System','System consists of an Encoder module.'),true);
