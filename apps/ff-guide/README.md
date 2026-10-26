@@ -1,9 +1,14 @@
-# 最终幻想 共鸣 · 中文攻略资料站
+# 最终幻想 共鸣 · 实用攻略手册
 
 静态子项目 `apps/ff-guide/`，由 PT Universe 现有 GitHub Pages 工作流发布。
 
-新版以参考资料站的顶部分类、两排图鉴入口、攻略分组和右侧收集进度组织内容。
-主线、石板、古老装备、精金、幻兵、召唤兽与强敌打法均可一步进入。
+首页优先展示角色强度、幻兵排行、角色搭配、武器推荐、隐藏路线与刷级六个专题。
+九篇中文长攻略覆盖八角色、二十六幻兵、三套整队、分阶段武器、隐藏回访、经验、精通、吉尔与技能组合。
+每篇先给结论，再列前置、操作、替代、判断边界及分节来源；图鉴作为深入查数值的入口。
+
+`practical.json` 由 `scripts/ff-guide/practical/*.json` 经 `build_practical.py` 合并。网页不在线抓取外站、不依赖翻译或模型API。
+新攻略与旧数据分别维护，加载时应用有来源的纠错；原始记录、收藏ID、原文及数值始终保留。
+古老弓前置、古老装备进阶试炼及商船章节的来源分歧已明确记录，模仿技能译名已修正。
 技能、装备、道具、敌人与地点以中文为主视图，英文仅保留作检索与折叠对照。
 
 ## 资料与翻译
@@ -26,6 +31,7 @@
 python scripts/ff-guide/import_database.py --cache-dir /tmp/ff-guide-cache --output /tmp/ff-guide-database.json
 python scripts/ff-guide/assemble.py --database /tmp/ff-guide-database.json --curated scripts/ff-guide/curated.json --output apps/ff-guide/data.json
 python scripts/ff-guide/localize.py
+python scripts/ff-guide/build_practical.py
 python scripts/ff-guide/validate.py
 node --check apps/ff-guide/app.js
 ```
