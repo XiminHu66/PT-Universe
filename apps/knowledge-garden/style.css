@@ -26,3 +26,5 @@
 .relation-overview>span{line-height:1.7;font-size:12px}
 .entity-relation strong{display:block;line-height:1.75}
 .entity-relation>span{margin:5px 0 0;color:#8d9aab}
+
+.side-bottom a[hidden]{display:none!important}
