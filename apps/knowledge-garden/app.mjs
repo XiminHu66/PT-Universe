@@ -2,7 +2,7 @@ import {esc,safeUrl,canonical,unpack,pack,item,paragraphs,validateExtraction,val
 import {INDEX_VERSION,readingLabels,typeLabels,reading,resourceType,inScope,digest,chunkPages,indexState,sourceChunks,searchChunks,evidenceContexts,verifyAnswer,coverage} from './knowledge.mjs?v=scope-20261025';
 import {backendFetch as fetch,hasConnection,connectBackend,bindAssets,PAGES} from './backend.mjs?v=auto-connect-20261025';
 import {questionScope,retrievalSummary,emptyAnswer,answerHTML,hasNamedSource} from './qa.mjs?v=qa-fast-20261025';
-import {modelSettings,chooseModel} from './model-choice.mjs?v=model-ready-20261025';
+import {modelSettings,chooseModel,discoveredModel} from './model-choice.mjs?v=model-deadline-20261025';
 import {readCompletion} from './completion.mjs?v=qa-fast-20261025';
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],views={inbox:'待读',library:'全部资料',graph:'主题与关系',ask:'问知识库'};
 let books=[],records=[],lists=[],members=new Map(),workspaceId='',view='library',category='',status='',typeFilter='',selected='',busy=false,connected=false,providers=[],models=[],answer=null,answerContexts=[],graphFilter='',loadError='',addType='link',editWorkspaceId='',activeConversation='',questionDraft='',indexRunning=false,searchTimer=null,poll=null,readFilter='',askPhase='',questionController=null;
@@ -134,8 +134,9 @@ async function loadModels(){
   const r=await fetch('/__pt_knowledge/models',{method:'POST',headers:{'content-type':'application/json','x-pt-knowledge':'1'},body:JSON.stringify({provider:id,apiKey:keys[id]||$('#settings-form [name=key]').value||'',accountId:$('#settings-form [name=accountId]').value||settings.accountId}),signal:AbortSignal.any([modelController.signal,AbortSignal.timeout(20000)])});
   const d=await responseJSON(r);if(request!==modelRequest)return;
   if(!Array.isArray(d.models)||!d.models.length)throw Error('实时列表暂未返回可用文字模型');
-  const chosen=showModelRows(d.models,selected,id);
-  if(id===settings.provider&&chosen){settings.model=chosen;localStorage.setItem('pt.knowledge.settings',JSON.stringify(settings));}
+  const dialogOpen=$('#settings-dialog').open,choice=discoveredModel(d.models,{provider:id,activeProvider:settings.provider,activeModel:settings.model,dialogOpen,uiModel:$('#model').value});
+  const chosen=showModelRows(d.models,choice,id);
+  if(!dialogOpen&&id===settings.provider&&chosen){settings.model=chosen;localStorage.setItem('pt.knowledge.settings',JSON.stringify(settings));}
   $('#model-status').textContent=models.length+' 个免费文字模型 · '+(d.fallback?'最近核实清单':'实时获取');
  }catch(e){if(request!==modelRequest)return;$('#model-status').textContent=known.length||$('#model').value?'实时更新暂不可用，保留最近核实的型号；可以直接提问。':'请填写此后端的个人 Key 后刷新模型。';}
 }

@@ -12,3 +12,6 @@ export function chooseModel(rows,selected,provider){
   if(provider==='gemini'&&ids.includes(DEFAULT_MODEL))return DEFAULT_MODEL;
   return ids[0]||(valid(selected)?selected:provider==='gemini'?DEFAULT_MODEL:'');
 }
+export function discoveredModel(rows,{provider,activeProvider,activeModel,dialogOpen,uiModel}){
+  return chooseModel(rows,dialogOpen?uiModel:provider===activeProvider?activeModel:'',provider);
+}

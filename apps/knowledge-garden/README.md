@@ -71,3 +71,5 @@ Model discovery runs independently of library loading and source deep links. A c
 Retrieval runs locally before optional query expansion, and matched source cards appear before generation completes. Direct compound/CamelCase paper-name matches skip the extra model rewrite. Ambiguous expansion is bounded to 10 seconds, answer calls to 90 seconds, and a Stop button aborts the model request while preserving the retrieved evidence and failed/cancelled conversation for retry.
 
 Structured model responses also finish on SSE `[DONE]` or `finish_reason`; an otherwise complete answer no longer waits indefinitely for the provider to close the stream. The parser supports array-shaped content, CRLF and upstream error events.
+
+Live model-list responses preserve the current settings draft, or the latest saved model if the dialog has already closed; an older request cannot silently revert a manual selection. Backend discovery has its own 8-second chat / 12-second listing budget and uses the existing verified-free fallback on timeout.
