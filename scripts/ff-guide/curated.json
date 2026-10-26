@@ -1,0 +1,6575 @@
+{
+  "sources": [
+    {
+      "id": "pp-visions",
+      "title": "PowerPyx · 全26幻兵位置",
+      "url": "https://www.powerpyx.com/final-fantasy-resonance-all-vision-locations/",
+      "scope": "正式版攻略；作者实测，未由本站运行游戏复验",
+      "checkedAt": "2026-10-25",
+      "author": "Darth_Krid / PowerPyx"
+    },
+    {
+      "id": "pp-espers",
+      "title": "PowerPyx · 全9召唤兽位置",
+      "url": "https://www.powerpyx.com/final-fantasy-resonance-all-esper-locations/",
+      "scope": "正式版攻略；作者实测，未由本站运行游戏复验",
+      "checkedAt": "2026-10-25",
+      "author": "Darth_Krid / PowerPyx"
+    },
+    {
+      "id": "pp-caves",
+      "title": "PowerPyx · 全15洞窟之主",
+      "url": "https://www.powerpyx.com/final-fantasy-resonance-all-cave-master-locations/",
+      "scope": "正式版攻略；作者实测，未由本站运行游戏复验",
+      "checkedAt": "2026-10-25",
+      "author": "Darth_Krid / PowerPyx"
+    },
+    {
+      "id": "pp-adamantite",
+      "title": "PowerPyx · 全8精金位置",
+      "url": "https://www.powerpyx.com/final-fantasy-resonance-all-adamantite-locations/",
+      "scope": "正式版攻略；作者实测，未由本站运行游戏复验",
+      "checkedAt": "2026-10-25",
+      "author": "Darth_Krid / PowerPyx"
+    },
+    {
+      "id": "pp-arms",
+      "title": "PowerPyx · 全12古代装备",
+      "url": "https://www.powerpyx.com/final-fantasy-resonance-all-legendary-arms-locations/",
+      "scope": "正式版攻略；作者实测，未由本站运行游戏复验",
+      "checkedAt": "2026-10-25",
+      "author": "Darth_Krid / PowerPyx"
+    },
+    {
+      "id": "pp-shards",
+      "title": "PowerPyx · 全99石板碎片位置",
+      "url": "https://www.powerpyx.com/final-fantasy-resonance-all-tablet-shard-locations/",
+      "scope": "正式版攻略；作者实测，未由本站运行游戏复验",
+      "checkedAt": "2026-10-25",
+      "author": "Darth_Krid / PowerPyx"
+    },
+    {
+      "id": "pp-trophies",
+      "title": "PowerPyx · 白金路线与成就条件",
+      "url": "https://www.powerpyx.com/final-fantasy-resonance-trophy-guide-roadmap/",
+      "scope": "正式版攻略；作者实测，未由本站运行游戏复验",
+      "checkedAt": "2026-10-25",
+      "author": "Darth_Krid / PowerPyx"
+    },
+    {
+      "id": "gs-achievements",
+      "title": "游民星空 · 全成就攻略（Steam社区 Andonbr）",
+      "url": "https://www.gamersky.com/handbook/202610/2233570.shtml",
+      "scope": "中文成就/收集交叉核验",
+      "checkedAt": "2026-10-25"
+    },
+    {
+      "id": "gs-resonances",
+      "title": "游民星空 · 全幻影共鸣（Game8）",
+      "url": "https://www.gamersky.com/handbook/202610/2233657.shtml",
+      "scope": "中文幻兵名称与共鸣效果对照",
+      "checkedAt": "2026-10-25"
+    },
+    {
+      "id": "rpg-walkthrough",
+      "title": "RPG Site · 八章全收集实测流程",
+      "url": "https://www.rpgsite.net/guide/21486-final-fantasy-resonance-walkthrough-100-items-all-achievements-tablet-shards-step-by-step-guide",
+      "author": "Adam Vitale / Bryan Vitale",
+      "checkedAt": "2026-10-25",
+      "scope": "完整正式版主线、机关、支线与部分战斗机制；文字由本站重组，非全文翻译"
+    },
+    {
+      "id": "appmedia-ch1",
+      "title": "AppMedia · 第1章流程",
+      "url": "https://appmedia.jp/ffrs/80502235",
+      "author": "AppMedia 编辑部",
+      "checkedAt": "2026-10-25",
+      "scope": "章节主线路线、剧情战前置与Boss；用于独立交叉核验"
+    },
+    {
+      "id": "appmedia-ch2",
+      "title": "AppMedia · 第2章流程",
+      "url": "https://appmedia.jp/ffrs/80502238",
+      "author": "AppMedia 编辑部",
+      "checkedAt": "2026-10-25",
+      "scope": "章节主线路线、剧情战前置与Boss；用于独立交叉核验"
+    },
+    {
+      "id": "appmedia-ch3",
+      "title": "AppMedia · 第3章流程",
+      "url": "https://appmedia.jp/ffrs/80502241",
+      "author": "AppMedia 编辑部",
+      "checkedAt": "2026-10-25",
+      "scope": "章节主线路线、剧情战前置与Boss；用于独立交叉核验"
+    },
+    {
+      "id": "appmedia-ch4",
+      "title": "AppMedia · 第4章流程",
+      "url": "https://appmedia.jp/ffrs/80502244",
+      "author": "AppMedia 编辑部",
+      "checkedAt": "2026-10-25",
+      "scope": "章节主线路线、剧情战前置与Boss；用于独立交叉核验"
+    },
+    {
+      "id": "appmedia-ch5",
+      "title": "AppMedia · 第5章流程",
+      "url": "https://appmedia.jp/ffrs/80505292",
+      "author": "AppMedia 编辑部",
+      "checkedAt": "2026-10-25",
+      "scope": "章节主线路线、剧情战前置与Boss；用于独立交叉核验"
+    },
+    {
+      "id": "appmedia-ch6",
+      "title": "AppMedia · 第6章流程",
+      "url": "https://appmedia.jp/ffrs/80508256",
+      "author": "AppMedia 编辑部",
+      "checkedAt": "2026-10-25",
+      "scope": "章节主线路线、剧情战前置与Boss；用于独立交叉核验"
+    },
+    {
+      "id": "appmedia-ch7",
+      "title": "AppMedia · 第7章流程",
+      "url": "https://appmedia.jp/ffrs/80511040",
+      "author": "AppMedia 编辑部",
+      "checkedAt": "2026-10-25",
+      "scope": "章节主线路线、剧情战前置与Boss；用于独立交叉核验"
+    },
+    {
+      "id": "appmedia-ch8",
+      "title": "AppMedia · 第8章流程",
+      "url": "https://appmedia.jp/ffrs/80511805",
+      "author": "AppMedia 编辑部",
+      "checkedAt": "2026-10-25",
+      "scope": "章节主线路线、剧情战前置与Boss；用于独立交叉核验"
+    },
+    {
+      "id": "appmedia-awakening",
+      "title": "AppMedia · 幻兵觉醒",
+      "url": "https://appmedia.jp/ffrs/80499601",
+      "author": "AppMedia 编辑部",
+      "checkedAt": "2026-10-25",
+      "scope": "正式版实际攻略；战斗机制和任务前置核对"
+    },
+    {
+      "id": "appmedia-forge",
+      "title": "AppMedia · 艾琳专武解锁与选择",
+      "url": "https://appmedia.jp/ffrs/80507665",
+      "author": "AppMedia 编辑部",
+      "checkedAt": "2026-10-25",
+      "scope": "正式版实际攻略；战斗机制和任务前置核对"
+    },
+    {
+      "id": "appmedia-radar",
+      "title": "AppMedia · 雷达三级强化与13处宝藏",
+      "url": "https://appmedia.jp/ffrs/80511181",
+      "author": "AppMedia 编辑部",
+      "checkedAt": "2026-10-25",
+      "scope": "正式版实际攻略；战斗机制和任务前置核对"
+    },
+    {
+      "id": "appmedia-sephiroth",
+      "title": "AppMedia · 萨菲罗斯分阶段打法",
+      "url": "https://appmedia.jp/ffrs/80512195",
+      "author": "AppMedia 编辑部",
+      "checkedAt": "2026-10-25",
+      "scope": "正式版实际攻略；战斗机制和任务前置核对"
+    },
+    {
+      "id": "appmedia-ultima",
+      "title": "AppMedia · 究极兵器四模式打法",
+      "url": "https://appmedia.jp/ffrs/80513581",
+      "author": "AppMedia 编辑部",
+      "checkedAt": "2026-10-25",
+      "scope": "正式版实际攻略；战斗机制和任务前置核对"
+    },
+    {
+      "id": "vorxu-visions",
+      "title": "Vorxu · 幻兵四阶段与MR表",
+      "url": "https://vorxu.com/final-fantasy-resonance/visions-and-summons",
+      "checkedAt": "2026-10-25",
+      "scope": "觉醒1–4、MR1–9与各幻兵能力数据"
+    }
+  ],
+  "entries": [
+    {
+      "id": "vision-1",
+      "category": "visions",
+      "title": "特隆",
+      "en": "Tronn",
+      "summary": "主线自动解锁",
+      "fields": {
+        "地点": "米特拉镇 · Town of Mitra",
+        "获取类型": "剧情",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "主线自动解锁"
+      ],
+      "sourceIds": [
+        "pp-visions"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 1,
+      "spoiler": false
+    },
+    {
+      "id": "vision-2",
+      "category": "visions",
+      "title": "莉亚",
+      "en": "Leah",
+      "summary": "主线自动解锁",
+      "fields": {
+        "地点": "米特拉镇 · Town of Mitra",
+        "获取类型": "剧情",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "主线自动解锁"
+      ],
+      "sourceIds": [
+        "pp-visions"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 1,
+      "spoiler": false
+    },
+    {
+      "id": "vision-3",
+      "category": "visions",
+      "title": "光之战士",
+      "en": "Warrior of Light",
+      "summary": "访问圣域并与水晶交互",
+      "fields": {
+        "地点": "格兰谢尔特 · Sanctum of Warrior of Light",
+        "获取类型": "圣域",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "访问圣域并与水晶交互"
+      ],
+      "sourceIds": [
+        "pp-visions"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 1,
+      "spoiler": false
+    },
+    {
+      "id": "vision-4",
+      "category": "visions",
+      "title": "蒂娜",
+      "en": "Terra",
+      "summary": "访问圣域并与水晶交互",
+      "fields": {
+        "地点": "格兰谢尔特 · Sanctum of Terra",
+        "获取类型": "圣域",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "访问圣域并与水晶交互"
+      ],
+      "sourceIds": [
+        "pp-visions"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 1,
+      "spoiler": false
+    },
+    {
+      "id": "vision-5",
+      "category": "visions",
+      "title": "克劳德",
+      "en": "Cloud",
+      "summary": "访问圣域并与水晶交互",
+      "fields": {
+        "地点": "格兰谢尔特 · Sanctum of Cloud",
+        "获取类型": "圣域",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "访问圣域并与水晶交互"
+      ],
+      "sourceIds": [
+        "pp-visions"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 1,
+      "spoiler": false
+    },
+    {
+      "id": "vision-6",
+      "category": "visions",
+      "title": "吉坦",
+      "en": "Zidane",
+      "summary": "访问圣域并与水晶交互",
+      "fields": {
+        "地点": "迪尔纳多 · Sanctum of Zidane",
+        "获取类型": "圣域",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "访问圣域并与水晶交互"
+      ],
+      "sourceIds": [
+        "pp-visions"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 2,
+      "spoiler": false
+    },
+    {
+      "id": "vision-7",
+      "category": "visions",
+      "title": "诺克提斯",
+      "en": "Noctis",
+      "summary": "访问圣域并与水晶交互",
+      "fields": {
+        "地点": "迪尔纳多 · Sanctum of Noctis",
+        "获取类型": "圣域",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "访问圣域并与水晶交互"
+      ],
+      "sourceIds": [
+        "pp-visions"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 2,
+      "spoiler": false
+    },
+    {
+      "id": "vision-8",
+      "category": "visions",
+      "title": "洋葱剑士",
+      "en": "Onion Knight",
+      "summary": "访问圣域并与水晶交互",
+      "fields": {
+        "地点": "迪尔纳多 · Sanctum of Onion Knight",
+        "获取类型": "圣域",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "访问圣域并与水晶交互"
+      ],
+      "sourceIds": [
+        "pp-visions"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 2,
+      "spoiler": false
+    },
+    {
+      "id": "vision-9",
+      "category": "visions",
+      "title": "菲利奥尼尔",
+      "en": "Firion",
+      "summary": "访问圣域并与水晶交互",
+      "fields": {
+        "地点": "奥尔德里昂 · Sanctum of Firion",
+        "获取类型": "圣域",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "访问圣域并与水晶交互"
+      ],
+      "sourceIds": [
+        "pp-visions"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 3,
+      "spoiler": false
+    },
+    {
+      "id": "vision-10",
+      "category": "visions",
+      "title": "提达",
+      "en": "Tidus",
+      "summary": "访问圣域并与水晶交互",
+      "fields": {
+        "地点": "奥尔德里昂 · Sanctum of Tidus",
+        "获取类型": "圣域",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "访问圣域并与水晶交互"
+      ],
+      "sourceIds": [
+        "pp-visions"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 3,
+      "spoiler": false
+    },
+    {
+      "id": "vision-11",
+      "category": "visions",
+      "title": "斯考尔",
+      "en": "Squall",
+      "summary": "访问圣域并与水晶交互",
+      "fields": {
+        "地点": "奥尔德里昂 · Sanctum of Squall",
+        "获取类型": "圣域",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "访问圣域并与水晶交互"
+      ],
+      "sourceIds": [
+        "pp-visions"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 3,
+      "spoiler": false
+    },
+    {
+      "id": "vision-12",
+      "category": "visions",
+      "title": "香托托",
+      "en": "Shantotto",
+      "summary": "访问圣域并与水晶交互",
+      "fields": {
+        "地点": "佐尔达德帝国 · Sanctum of Shantotto",
+        "获取类型": "圣域",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "访问圣域并与水晶交互"
+      ],
+      "sourceIds": [
+        "pp-visions"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 4,
+      "spoiler": false
+    },
+    {
+      "id": "vision-13",
+      "category": "visions",
+      "title": "塞西尔",
+      "en": "Cecil",
+      "summary": "访问圣域并与水晶交互",
+      "fields": {
+        "地点": "佐尔达德帝国 · Sanctum of Cecil",
+        "获取类型": "圣域",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "访问圣域并与水晶交互"
+      ],
+      "sourceIds": [
+        "pp-visions"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 4,
+      "spoiler": false
+    },
+    {
+      "id": "vision-14",
+      "category": "visions",
+      "title": "雅·修特拉",
+      "en": "Y’shtola",
+      "summary": "访问圣域并与水晶交互",
+      "fields": {
+        "地点": "佐尔达德帝国 · Sanctum of Y’shtola",
+        "获取类型": "圣域",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "访问圣域并与水晶交互"
+      ],
+      "sourceIds": [
+        "pp-visions"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 4,
+      "spoiler": false
+    },
+    {
+      "id": "vision-15",
+      "category": "visions",
+      "title": "萨菲罗斯",
+      "en": "Sephiroth",
+      "summary": "需要飞空艇；击败萨菲罗斯，攻略建议等级45",
+      "fields": {
+        "地点": "漩涡洞穴 · Whirlpool Hollow",
+        "获取类型": "战斗",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "需要飞空艇；击败萨菲罗斯，攻略建议等级45"
+      ],
+      "sourceIds": [
+        "pp-visions"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true
+    },
+    {
+      "id": "vision-16",
+      "category": "visions",
+      "title": "克莱夫",
+      "en": "Clive",
+      "summary": "需要飞空艇；访问圣域",
+      "fields": {
+        "地点": "格兰谢尔特 · Sanctum of Clive",
+        "获取类型": "圣域",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "需要飞空艇；访问圣域"
+      ],
+      "sourceIds": [
+        "pp-visions"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true
+    },
+    {
+      "id": "vision-17",
+      "category": "visions",
+      "title": "梵",
+      "en": "Vaan",
+      "summary": "需要飞空艇；访问圣域",
+      "fields": {
+        "地点": "米西迪亚 · Sanctum of Vaan",
+        "获取类型": "圣域",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "需要飞空艇；访问圣域"
+      ],
+      "sourceIds": [
+        "pp-visions"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true
+    },
+    {
+      "id": "vision-18",
+      "category": "visions",
+      "title": "巴兹",
+      "en": "Bartz",
+      "summary": "需要飞空艇；访问圣域",
+      "fields": {
+        "地点": "米西迪亚 · Sanctum of Bartz",
+        "获取类型": "圣域",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "需要飞空艇；访问圣域"
+      ],
+      "sourceIds": [
+        "pp-visions"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true
+    },
+    {
+      "id": "vision-19",
+      "category": "visions",
+      "title": "雷光",
+      "en": "Lightning",
+      "summary": "需要飞空艇；访问圣域",
+      "fields": {
+        "地点": "米西迪亚 · Sanctum of Lightning",
+        "获取类型": "圣域",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "需要飞空艇；访问圣域"
+      ],
+      "sourceIds": [
+        "pp-visions"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true
+    },
+    {
+      "id": "vision-20",
+      "category": "visions",
+      "title": "卡米尔",
+      "en": "Camille",
+      "summary": "完成 The Call from Beyond 支线",
+      "fields": {
+        "地点": "佐尔达德帝都 · Zoldaad, the Imperial Capital",
+        "获取类型": "支线",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "完成 The Call from Beyond 支线"
+      ],
+      "sourceIds": [
+        "pp-visions"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true
+    },
+    {
+      "id": "vision-21",
+      "category": "visions",
+      "title": "威廉",
+      "en": "Wilhelm",
+      "summary": "完成 O General! My General! 支线",
+      "fields": {
+        "地点": "佐尔达德帝都 · Zoldaad, the Imperial Capital",
+        "获取类型": "支线",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "完成 O General! My General! 支线"
+      ],
+      "sourceIds": [
+        "pp-visions"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true
+    },
+    {
+      "id": "vision-22",
+      "category": "visions",
+      "title": "艾琳",
+      "en": "Aileen",
+      "summary": "第5章在迪尔玛吉亚完成 Forger of Wills 支线获得；第6章才开放精金锻造。",
+      "fields": {
+        "地点": "迪尔玛吉亚 · Dilmagia, the Machinopolis",
+        "获取类型": "支线",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "第5章完成 Forger of Wills 支线获得幻兵。",
+        "专属武器打造另需推进到第6章，拥有精金后在飞空艇甲板找艾琳。"
+      ],
+      "sourceIds": [
+        "pp-visions",
+        "appmedia-forge"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true
+    },
+    {
+      "id": "vision-23",
+      "category": "visions",
+      "title": "维多利亚",
+      "en": "Victoria",
+      "summary": "完成 Victoria Revivified 支线",
+      "fields": {
+        "地点": "魔法都市米西迪亚 · Mysidia, the Magiapolis",
+        "获取类型": "支线",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "完成 Victoria Revivified 支线"
+      ],
+      "sourceIds": [
+        "pp-visions"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true
+    },
+    {
+      "id": "vision-24",
+      "category": "visions",
+      "title": "艾米莉亚",
+      "en": "Amelia",
+      "summary": "完成 Errand’s End 支线",
+      "fields": {
+        "地点": "佐尔达德帝都 · Zoldaad, the Imperial Capital",
+        "获取类型": "支线",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "完成 Errand’s End 支线"
+      ],
+      "sourceIds": [
+        "pp-visions"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 6,
+      "spoiler": true
+    },
+    {
+      "id": "vision-25",
+      "category": "visions",
+      "title": "夏洛特",
+      "en": "Charlotte",
+      "summary": "完成 The Shield of the Weak 支线",
+      "fields": {
+        "地点": "大港口 · Grandport Harbour",
+        "获取类型": "支线",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "完成 The Shield of the Weak 支线"
+      ],
+      "sourceIds": [
+        "pp-visions"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 7,
+      "spoiler": true
+    },
+    {
+      "id": "vision-26",
+      "category": "visions",
+      "title": "彩花",
+      "en": "Ayaka",
+      "summary": "完成 The Admirable Apprentice 支线",
+      "fields": {
+        "地点": "西安镇 · Town of Sian",
+        "获取类型": "支线",
+        "译名说明": "保留英文作为检索锚点；中文名称可能随游戏语言不同"
+      },
+      "steps": [
+        "完成 The Admirable Apprentice 支线"
+      ],
+      "sourceIds": [
+        "pp-visions"
+      ],
+      "tags": [
+        "幻兵",
+        "获取",
+        "收集"
+      ],
+      "chapter": 7,
+      "spoiler": true
+    },
+    {
+      "id": "esper-1",
+      "category": "espers",
+      "title": "塞壬",
+      "en": "Siren",
+      "summary": "第一章末尾主线战斗后获得。",
+      "fields": {
+        "地点": "塞壬之塔 · Siren’s Tower",
+        "是否需要战斗": "是"
+      },
+      "steps": [
+        "第一章末尾主线战斗后获得。"
+      ],
+      "sourceIds": [
+        "pp-espers"
+      ],
+      "tags": [
+        "召唤兽",
+        "收服",
+        "收集"
+      ],
+      "chapter": 1,
+      "spoiler": false
+    },
+    {
+      "id": "esper-2",
+      "category": "espers",
+      "title": "拉姆",
+      "en": "Ramuh",
+      "summary": "沿吉坦圣域南侧路线绕回上层入口；调查内部墓碑并获胜。",
+      "fields": {
+        "地点": "雷鸣山 · Mt. Thunderclap",
+        "是否需要战斗": "是"
+      },
+      "steps": [
+        "先从山的下半部走回世界地图。",
+        "沿吉坦圣域南侧路线绕回上层入口；调查内部墓碑并获胜。"
+      ],
+      "sourceIds": [
+        "pp-espers"
+      ],
+      "tags": [
+        "召唤兽",
+        "收服",
+        "收集"
+      ],
+      "chapter": 2,
+      "spoiler": false
+    },
+    {
+      "id": "esper-3",
+      "category": "espers",
+      "title": "卡邦库尔",
+      "en": "Carbuncle",
+      "summary": "带齐碎片后返回墓碑，无需收服战。",
+      "fields": {
+        "地点": "红玉洞窟 · Ruby Cave",
+        "是否需要战斗": "否"
+      },
+      "steps": [
+        "先调查洞内墓碑。",
+        "按顺序找三块红玉：大鹏洞窟东南双水池间；斯考尔圣域西南、东海岸平直处；水都以西七瀑布西侧，过两座木桥后的草坡。",
+        "带齐碎片后返回墓碑，无需收服战。"
+      ],
+      "sourceIds": [
+        "pp-espers"
+      ],
+      "tags": [
+        "召唤兽",
+        "收服",
+        "收集"
+      ],
+      "chapter": 3,
+      "spoiler": false
+    },
+    {
+      "id": "esper-4",
+      "category": "espers",
+      "title": "泰坦",
+      "en": "Titan",
+      "summary": "去科尔村以西砸开封印石，再击败泰坦。",
+      "fields": {
+        "地点": "封印之石 · Sealing Stone",
+        "是否需要战斗": "是"
+      },
+      "steps": [
+        "斗技场 Fledgling Battle 5 获胜，取得 Gaia Hammer。",
+        "去科尔村以西砸开封印石，再击败泰坦。"
+      ],
+      "sourceIds": [
+        "pp-espers"
+      ],
+      "tags": [
+        "召唤兽",
+        "收服",
+        "收集"
+      ],
+      "chapter": 4,
+      "spoiler": false
+    },
+    {
+      "id": "esper-5",
+      "category": "espers",
+      "title": "伊弗利特",
+      "en": "Ifrit",
+      "summary": "选择进入火山，赢得收服战。",
+      "fields": {
+        "地点": "佐尔达德南部火山 · Volcano",
+        "是否需要战斗": "是"
+      },
+      "steps": [
+        "获得飞空艇后飞向大陆南端冒烟的火山。",
+        "选择进入火山，赢得收服战。"
+      ],
+      "sourceIds": [
+        "pp-espers"
+      ],
+      "tags": [
+        "召唤兽",
+        "收服",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true
+    },
+    {
+      "id": "esper-6",
+      "category": "espers",
+      "title": "希瓦",
+      "en": "Shiva",
+      "summary": "进入暴风雪并击败希瓦。",
+      "fields": {
+        "地点": "米西迪亚西侧岛屿",
+        "是否需要战斗": "是"
+      },
+      "steps": [
+        "用飞空艇降落米西迪亚西侧的小岛。",
+        "进入暴风雪并击败希瓦。"
+      ],
+      "sourceIds": [
+        "pp-espers"
+      ],
+      "tags": [
+        "召唤兽",
+        "收服",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true
+    },
+    {
+      "id": "esper-7",
+      "category": "espers",
+      "title": "利维亚桑",
+      "en": "Leviathan",
+      "summary": "完成 Nichol’s Duty 支线。",
+      "fields": {
+        "地点": "奥尔德里昂水都 · Olderion, the Aquapolis",
+        "是否需要战斗": "是"
+      },
+      "steps": [
+        "获得飞空艇后回水都。",
+        "完成 Nichol’s Duty 支线。"
+      ],
+      "sourceIds": [
+        "pp-espers"
+      ],
+      "tags": [
+        "召唤兽",
+        "收服",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true
+    },
+    {
+      "id": "esper-8",
+      "category": "espers",
+      "title": "奥丁",
+      "en": "Odin",
+      "summary": "前往蓝色标记的剑雨石碑，完成 Iron Splitter 支线。",
+      "fields": {
+        "地点": "剑雨石碑 · Bladerain Stele",
+        "是否需要战斗": "是"
+      },
+      "steps": [
+        "第六章随主线学会 Holy 并清除瘴气。",
+        "前往蓝色标记的剑雨石碑，完成 Iron Splitter 支线。"
+      ],
+      "sourceIds": [
+        "pp-espers"
+      ],
+      "tags": [
+        "召唤兽",
+        "收服",
+        "收集"
+      ],
+      "chapter": 6,
+      "spoiler": true
+    },
+    {
+      "id": "esper-9",
+      "category": "espers",
+      "title": "巴哈姆特",
+      "en": "Bahamut",
+      "summary": "与舵旁的 Evan 交谈，选择拜访召唤兽；战胜后获得。",
+      "fields": {
+        "地点": "飞空艇 · Airship",
+        "是否需要战斗": "是"
+      },
+      "steps": [
+        "第七章进入飞空艇甲板触发场景。",
+        "与舵旁的 Evan 交谈，选择拜访召唤兽；战胜后获得。"
+      ],
+      "sourceIds": [
+        "pp-espers"
+      ],
+      "tags": [
+        "召唤兽",
+        "收服",
+        "收集"
+      ],
+      "chapter": 7,
+      "spoiler": true
+    },
+    {
+      "id": "cave-1",
+      "category": "bosses",
+      "title": "掠夺者",
+      "en": "Marauder",
+      "summary": "格兰谢尔特的 Marauder Cave；攻略建议等级 15。",
+      "fields": {
+        "区域": "格兰谢尔特",
+        "洞窟": "Marauder Cave",
+        "建议等级": 15,
+        "奖励用途": "魔石类素材，可觉醒幻兵"
+      },
+      "steps": [
+        "寻找与敌人同名的洞窟；入口显示推荐等级。",
+        "进入后与可见敌人互动开战，打不过可后期返回。"
+      ],
+      "sourceIds": [
+        "pp-caves"
+      ],
+      "tags": [
+        "洞窟之主",
+        "魔石",
+        "可选Boss"
+      ],
+      "chapter": 1,
+      "spoiler": false
+    },
+    {
+      "id": "cave-2",
+      "category": "bosses",
+      "title": "修格斯",
+      "en": "Shoggoth",
+      "summary": "迪尔纳多的 Shoggoth Cave；攻略建议等级 25。",
+      "fields": {
+        "区域": "迪尔纳多",
+        "洞窟": "Shoggoth Cave",
+        "建议等级": 25,
+        "奖励用途": "魔石类素材，可觉醒幻兵"
+      },
+      "steps": [
+        "寻找与敌人同名的洞窟；入口显示推荐等级。",
+        "进入后与可见敌人互动开战，打不过可后期返回。"
+      ],
+      "sourceIds": [
+        "pp-caves"
+      ],
+      "tags": [
+        "洞窟之主",
+        "魔石",
+        "可选Boss"
+      ],
+      "chapter": 2,
+      "spoiler": false
+    },
+    {
+      "id": "cave-3",
+      "category": "bosses",
+      "title": "大鹏",
+      "en": "Rukh",
+      "summary": "奥尔德里昂的 Rukh Cave；攻略建议等级 26。",
+      "fields": {
+        "区域": "奥尔德里昂",
+        "洞窟": "Rukh Cave",
+        "建议等级": 26,
+        "奖励用途": "魔石类素材，可觉醒幻兵"
+      },
+      "steps": [
+        "寻找与敌人同名的洞窟；入口显示推荐等级。",
+        "进入后与可见敌人互动开战，打不过可后期返回。"
+      ],
+      "sourceIds": [
+        "pp-caves"
+      ],
+      "tags": [
+        "洞窟之主",
+        "魔石",
+        "可选Boss"
+      ],
+      "chapter": 3,
+      "spoiler": false
+    },
+    {
+      "id": "cave-4",
+      "category": "bosses",
+      "title": "夺心魔",
+      "en": "Mindflayer",
+      "summary": "奥尔德里昂的 Mindflayer Cave；攻略建议等级 28。",
+      "fields": {
+        "区域": "奥尔德里昂",
+        "洞窟": "Mindflayer Cave",
+        "建议等级": 28,
+        "奖励用途": "魔石类素材，可觉醒幻兵"
+      },
+      "steps": [
+        "寻找与敌人同名的洞窟；入口显示推荐等级。",
+        "进入后与可见敌人互动开战，打不过可后期返回。"
+      ],
+      "sourceIds": [
+        "pp-caves"
+      ],
+      "tags": [
+        "洞窟之主",
+        "魔石",
+        "可选Boss"
+      ],
+      "chapter": 3,
+      "spoiler": false
+    },
+    {
+      "id": "cave-5",
+      "category": "bosses",
+      "title": "歌革玛各",
+      "en": "Gogmagog",
+      "summary": "佐尔达德帝国的 Gogmagog Cave；攻略建议等级 34。",
+      "fields": {
+        "区域": "佐尔达德帝国",
+        "洞窟": "Gogmagog Cave",
+        "建议等级": 34,
+        "奖励用途": "魔石类素材，可觉醒幻兵"
+      },
+      "steps": [
+        "寻找与敌人同名的洞窟；入口显示推荐等级。",
+        "进入后与可见敌人互动开战，打不过可后期返回。"
+      ],
+      "sourceIds": [
+        "pp-caves"
+      ],
+      "tags": [
+        "洞窟之主",
+        "魔石",
+        "可选Boss"
+      ],
+      "chapter": 4,
+      "spoiler": false
+    },
+    {
+      "id": "cave-6",
+      "category": "bosses",
+      "title": "炎蛇",
+      "en": "Pyroviper",
+      "summary": "佐尔达德帝国的 Pyroviper Cave；攻略建议等级 37。",
+      "fields": {
+        "区域": "佐尔达德帝国",
+        "洞窟": "Pyroviper Cave",
+        "建议等级": 37,
+        "奖励用途": "魔石类素材，可觉醒幻兵"
+      },
+      "steps": [
+        "寻找与敌人同名的洞窟；入口显示推荐等级。",
+        "进入后与可见敌人互动开战，打不过可后期返回。"
+      ],
+      "sourceIds": [
+        "pp-caves"
+      ],
+      "tags": [
+        "洞窟之主",
+        "魔石",
+        "可选Boss"
+      ],
+      "chapter": 4,
+      "spoiler": false
+    },
+    {
+      "id": "cave-7",
+      "category": "bosses",
+      "title": "莎乐美",
+      "en": "Salome",
+      "summary": "米西迪亚的 Salome Cave；攻略建议等级 39。",
+      "fields": {
+        "区域": "米西迪亚",
+        "洞窟": "Salome Cave",
+        "建议等级": 39,
+        "奖励用途": "魔石类素材，可觉醒幻兵"
+      },
+      "steps": [
+        "寻找与敌人同名的洞窟；入口显示推荐等级。",
+        "进入后与可见敌人互动开战，打不过可后期返回。"
+      ],
+      "sourceIds": [
+        "pp-caves"
+      ],
+      "tags": [
+        "洞窟之主",
+        "魔石",
+        "可选Boss"
+      ],
+      "chapter": 5,
+      "spoiler": true
+    },
+    {
+      "id": "cave-8",
+      "category": "bosses",
+      "title": "约顿",
+      "en": "Jotunn",
+      "summary": "米西迪亚的 Jotunn Cave；攻略建议等级 42。",
+      "fields": {
+        "区域": "米西迪亚",
+        "洞窟": "Jotunn Cave",
+        "建议等级": 42,
+        "奖励用途": "魔石类素材，可觉醒幻兵"
+      },
+      "steps": [
+        "寻找与敌人同名的洞窟；入口显示推荐等级。",
+        "进入后与可见敌人互动开战，打不过可后期返回。"
+      ],
+      "sourceIds": [
+        "pp-caves"
+      ],
+      "tags": [
+        "洞窟之主",
+        "魔石",
+        "可选Boss"
+      ],
+      "chapter": 5,
+      "spoiler": true
+    },
+    {
+      "id": "cave-9",
+      "category": "bosses",
+      "title": "变异魔界花",
+      "en": "Malboro Varietas",
+      "summary": "奥尔德里昂的 Malboro Varietas Cave；攻略建议等级 45。",
+      "fields": {
+        "区域": "奥尔德里昂",
+        "洞窟": "Malboro Varietas Cave",
+        "建议等级": 45,
+        "奖励用途": "魔石类素材，可觉醒幻兵"
+      },
+      "steps": [
+        "寻找与敌人同名的洞窟；入口显示推荐等级。",
+        "进入后与可见敌人互动开战，打不过可后期返回。"
+      ],
+      "sourceIds": [
+        "pp-caves"
+      ],
+      "tags": [
+        "洞窟之主",
+        "魔石",
+        "可选Boss"
+      ],
+      "chapter": 5,
+      "spoiler": true
+    },
+    {
+      "id": "cave-10",
+      "category": "bosses",
+      "title": "墓穴",
+      "en": "Catacumba",
+      "summary": "格罗诺亚的 Catacumba Cave；攻略建议等级 54。",
+      "fields": {
+        "区域": "格罗诺亚",
+        "洞窟": "Catacumba Cave",
+        "建议等级": 54,
+        "奖励用途": "魔石类素材，可觉醒幻兵"
+      },
+      "steps": [
+        "寻找与敌人同名的洞窟；入口显示推荐等级。",
+        "进入后与可见敌人互动开战，打不过可后期返回。"
+      ],
+      "sourceIds": [
+        "pp-caves"
+      ],
+      "tags": [
+        "洞窟之主",
+        "魔石",
+        "可选Boss"
+      ],
+      "chapter": 6,
+      "spoiler": true
+    },
+    {
+      "id": "cave-11",
+      "category": "bosses",
+      "title": "死灵君主",
+      "en": "Necromonarch",
+      "summary": "格罗诺亚的 Necromonarch Cave；攻略建议等级 55。",
+      "fields": {
+        "区域": "格罗诺亚",
+        "洞窟": "Necromonarch Cave",
+        "建议等级": 55,
+        "奖励用途": "魔石类素材，可觉醒幻兵"
+      },
+      "steps": [
+        "寻找与敌人同名的洞窟；入口显示推荐等级。",
+        "进入后与可见敌人互动开战，打不过可后期返回。"
+      ],
+      "sourceIds": [
+        "pp-caves"
+      ],
+      "tags": [
+        "洞窟之主",
+        "魔石",
+        "可选Boss"
+      ],
+      "chapter": 6,
+      "spoiler": true
+    },
+    {
+      "id": "cave-12",
+      "category": "bosses",
+      "title": "胡姆巴巴",
+      "en": "Humbaba",
+      "summary": "格罗诺亚的 Humbaba Cave；攻略建议等级 55。",
+      "fields": {
+        "区域": "格罗诺亚",
+        "洞窟": "Humbaba Cave",
+        "建议等级": 55,
+        "奖励用途": "魔石类素材，可觉醒幻兵"
+      },
+      "steps": [
+        "寻找与敌人同名的洞窟；入口显示推荐等级。",
+        "进入后与可见敌人互动开战，打不过可后期返回。"
+      ],
+      "sourceIds": [
+        "pp-caves"
+      ],
+      "tags": [
+        "洞窟之主",
+        "魔石",
+        "可选Boss"
+      ],
+      "chapter": 6,
+      "spoiler": true
+    },
+    {
+      "id": "cave-13",
+      "category": "bosses",
+      "title": "塔塔罗龙",
+      "en": "Tartarosaurus",
+      "summary": "法姆的 Tartarosaurus Cave；攻略建议等级 60。",
+      "fields": {
+        "区域": "法姆",
+        "洞窟": "Tartarosaurus Cave",
+        "建议等级": 60,
+        "奖励用途": "魔石类素材，可觉醒幻兵"
+      },
+      "steps": [
+        "寻找与敌人同名的洞窟；入口显示推荐等级。",
+        "进入后与可见敌人互动开战，打不过可后期返回。"
+      ],
+      "sourceIds": [
+        "pp-caves"
+      ],
+      "tags": [
+        "洞窟之主",
+        "魔石",
+        "可选Boss"
+      ],
+      "chapter": 7,
+      "spoiler": true
+    },
+    {
+      "id": "cave-14",
+      "category": "bosses",
+      "title": "泰坦巨像",
+      "en": "Titanoraidos",
+      "summary": "法姆的 Titanoraidos Cave；攻略建议等级 60。",
+      "fields": {
+        "区域": "法姆",
+        "洞窟": "Titanoraidos Cave",
+        "建议等级": 60,
+        "奖励用途": "魔石类素材，可觉醒幻兵"
+      },
+      "steps": [
+        "寻找与敌人同名的洞窟；入口显示推荐等级。",
+        "进入后与可见敌人互动开战，打不过可后期返回。"
+      ],
+      "sourceIds": [
+        "pp-caves"
+      ],
+      "tags": [
+        "洞窟之主",
+        "魔石",
+        "可选Boss"
+      ],
+      "chapter": 7,
+      "spoiler": true
+    },
+    {
+      "id": "cave-15",
+      "category": "bosses",
+      "title": "魔界花之祸",
+      "en": "Malboro Menace",
+      "summary": "法姆的 Malboro Menace Cave；攻略建议等级 60。",
+      "fields": {
+        "区域": "法姆",
+        "洞窟": "Malboro Menace Cave",
+        "建议等级": 60,
+        "奖励用途": "魔石类素材，可觉醒幻兵"
+      },
+      "steps": [
+        "寻找与敌人同名的洞窟；入口显示推荐等级。",
+        "进入后与可见敌人互动开战，打不过可后期返回。"
+      ],
+      "sourceIds": [
+        "pp-caves"
+      ],
+      "tags": [
+        "洞窟之主",
+        "魔石",
+        "可选Boss"
+      ],
+      "chapter": 7,
+      "spoiler": true
+    },
+    {
+      "id": "adamantite-1",
+      "category": "collectibles",
+      "title": "精金 1 · 斗技场 · 初阶第2战",
+      "en": "Grandshelt Colosseum — Fledgling Battle 2",
+      "summary": "首次胜利奖励；建议等级27。",
+      "fields": {
+        "类型": "精金",
+        "用途": "每块打造1名角色的专属武器，全队共8把"
+      },
+      "steps": [
+        "首次胜利奖励；建议等级27。"
+      ],
+      "sourceIds": [
+        "pp-adamantite"
+      ],
+      "tags": [
+        "精金",
+        "金刚矿石",
+        "专属武器",
+        "收集"
+      ],
+      "chapter": 4,
+      "spoiler": true,
+      "related": [
+        "item-20016",
+        "guide-forge-workflow"
+      ]
+    },
+    {
+      "id": "adamantite-2",
+      "category": "collectibles",
+      "title": "精金 2 · 斗技场 · 格斗家第2战",
+      "en": "Grandshelt Colosseum — Brawler Battle 2",
+      "summary": "首次胜利奖励；建议等级41。",
+      "fields": {
+        "类型": "精金",
+        "用途": "每块打造1名角色的专属武器，全队共8把"
+      },
+      "steps": [
+        "首次胜利奖励；建议等级41。"
+      ],
+      "sourceIds": [
+        "pp-adamantite"
+      ],
+      "tags": [
+        "精金",
+        "金刚矿石",
+        "专属武器",
+        "收集"
+      ],
+      "chapter": 4,
+      "spoiler": true,
+      "related": [
+        "item-20016",
+        "guide-forge-workflow"
+      ]
+    },
+    {
+      "id": "adamantite-3",
+      "category": "collectibles",
+      "title": "精金 3 · 斗技场 · 格斗家第3战",
+      "en": "Grandshelt Colosseum — Brawler Battle 3",
+      "summary": "首次胜利奖励；建议等级43。",
+      "fields": {
+        "类型": "精金",
+        "用途": "每块打造1名角色的专属武器，全队共8把"
+      },
+      "steps": [
+        "首次胜利奖励；建议等级43。"
+      ],
+      "sourceIds": [
+        "pp-adamantite"
+      ],
+      "tags": [
+        "精金",
+        "金刚矿石",
+        "专属武器",
+        "收集"
+      ],
+      "chapter": 4,
+      "spoiler": true,
+      "related": [
+        "item-20016",
+        "guide-forge-workflow"
+      ]
+    },
+    {
+      "id": "adamantite-4",
+      "category": "collectibles",
+      "title": "精金 4 · 商船购买",
+      "en": "Merchant Ship",
+      "summary": "准备35,000吉尔，与世界地图商船交易。",
+      "fields": {
+        "类型": "精金",
+        "用途": "每块打造1名角色的专属武器，全队共8把"
+      },
+      "steps": [
+        "准备35,000吉尔，与世界地图商船交易。"
+      ],
+      "sourceIds": [
+        "pp-adamantite"
+      ],
+      "tags": [
+        "精金",
+        "金刚矿石",
+        "专属武器",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "related": [
+        "item-20016",
+        "guide-forge-workflow"
+      ]
+    },
+    {
+      "id": "adamantite-5",
+      "category": "collectibles",
+      "title": "精金 5 · 遗忘宫殿 · 80碎片",
+      "en": "Oblivion Palace — 3-Star Chamber V",
+      "summary": "累计80块石板碎片后，开3星密室第5箱。",
+      "fields": {
+        "类型": "精金",
+        "用途": "每块打造1名角色的专属武器，全队共8把"
+      },
+      "steps": [
+        "累计80块石板碎片后，开3星密室第5箱。"
+      ],
+      "sourceIds": [
+        "pp-adamantite"
+      ],
+      "tags": [
+        "精金",
+        "金刚矿石",
+        "专属武器",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "related": [
+        "item-20016",
+        "guide-forge-workflow"
+      ]
+    },
+    {
+      "id": "adamantite-6",
+      "category": "collectibles",
+      "title": "精金 6 · 遗忘宫殿 · 89碎片",
+      "en": "Oblivion Palace — 4-Star Chamber I",
+      "summary": "累计89块石板碎片后，开4星密室第1箱。",
+      "fields": {
+        "类型": "精金",
+        "用途": "每块打造1名角色的专属武器，全队共8把"
+      },
+      "steps": [
+        "累计89块石板碎片后，开4星密室第1箱。"
+      ],
+      "sourceIds": [
+        "pp-adamantite"
+      ],
+      "tags": [
+        "精金",
+        "金刚矿石",
+        "专属武器",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "related": [
+        "item-20016",
+        "guide-forge-workflow"
+      ]
+    },
+    {
+      "id": "adamantite-7",
+      "category": "collectibles",
+      "title": "精金 7 · 奥尔德里昂北岸海湾",
+      "en": "Olderion — Northern Bay",
+      "summary": "用飞空艇的寻宝雷达扫描大陆北侧弯曲海湾。",
+      "fields": {
+        "类型": "精金",
+        "用途": "每块打造1名角色的专属武器，全队共8把"
+      },
+      "steps": [
+        "用飞空艇的寻宝雷达扫描大陆北侧弯曲海湾。"
+      ],
+      "sourceIds": [
+        "pp-adamantite"
+      ],
+      "tags": [
+        "精金",
+        "金刚矿石",
+        "专属武器",
+        "收集"
+      ],
+      "chapter": 6,
+      "spoiler": true,
+      "related": [
+        "item-20016",
+        "guide-forge-workflow"
+      ]
+    },
+    {
+      "id": "adamantite-8",
+      "category": "collectibles",
+      "title": "精金 8 · 崎岖山道宝箱",
+      "en": "Rugged Mountain Path",
+      "summary": "格罗诺亚主线路径上的宝箱。",
+      "fields": {
+        "类型": "精金",
+        "用途": "每块打造1名角色的专属武器，全队共8把"
+      },
+      "steps": [
+        "格罗诺亚主线路径上的宝箱。"
+      ],
+      "sourceIds": [
+        "pp-adamantite"
+      ],
+      "tags": [
+        "精金",
+        "金刚矿石",
+        "专属武器",
+        "收集"
+      ],
+      "chapter": 6,
+      "spoiler": true,
+      "related": [
+        "item-20016",
+        "guide-forge-workflow"
+      ]
+    },
+    {
+      "id": "ancient-1",
+      "category": "collectibles",
+      "title": "古老鞭",
+      "en": "Ancient Whip",
+      "summary": "遗忘宫殿累计84碎片；3星宝物室第6箱。",
+      "fields": {
+        "类型": "古代装备",
+        "获得原型": "遗忘宫殿累计84碎片；3星宝物室第6箱。",
+        "解放条件": "武具之间试炼；初次Lv50，两阶段。全12件完成后可挑战Lv75取得+版本。",
+        "解放后装备": "Fire Birch",
+        "试炼Boss": "Nunki"
+      },
+      "steps": [
+        "遗忘宫殿累计84碎片；3星宝物室第6箱。",
+        "携带原型回 Chamber of Arms，调查对应发光底座并完成试炼。"
+      ],
+      "sourceIds": [
+        "pp-arms"
+      ],
+      "tags": [
+        "古代装备",
+        "传奇武具",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "related": [
+        "guide-arms-workflow"
+      ]
+    },
+    {
+      "id": "ancient-2",
+      "category": "collectibles",
+      "title": "古老斗篷",
+      "en": "Ancient Cloak",
+      "summary": "第8章向世界地图商船支付40,000吉尔购买。",
+      "fields": {
+        "类型": "古代装备",
+        "获得原型": "第8章向世界地图商船支付40,000吉尔购买。",
+        "解放条件": "武具之间试炼；初次Lv50，两阶段。全12件完成后可挑战Lv75取得+版本。"
+      },
+      "steps": [
+        "第8章向世界地图商船支付40,000吉尔购买。",
+        "携带原型回 Chamber of Arms，调查对应发光底座并完成试炼。"
+      ],
+      "sourceIds": [
+        "pp-arms"
+      ],
+      "tags": [
+        "古代装备",
+        "传奇武具",
+        "收集"
+      ],
+      "chapter": 8,
+      "spoiler": true,
+      "related": [
+        "guide-arms-workflow"
+      ]
+    },
+    {
+      "id": "ancient-3",
+      "category": "collectibles",
+      "title": "古老饰品",
+      "en": "Ancient Accessory",
+      "summary": "飞空艇前往佐尔达德西海岸外的小岛，开 Quarry Cave 宝箱。",
+      "fields": {
+        "类型": "古代装备",
+        "获得原型": "飞空艇前往佐尔达德西海岸外的小岛，开 Quarry Cave 宝箱。",
+        "解放条件": "武具之间试炼；初次Lv50，两阶段。全12件完成后可挑战Lv75取得+版本。",
+        "解放后装备": "Gold Hairpin",
+        "试炼Boss": "Brachum"
+      },
+      "steps": [
+        "飞空艇前往佐尔达德西海岸外的小岛，开 Quarry Cave 宝箱。",
+        "携带原型回 Chamber of Arms，调查对应发光底座并完成试炼。"
+      ],
+      "sourceIds": [
+        "pp-arms"
+      ],
+      "tags": [
+        "古代装备",
+        "传奇武具",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "related": [
+        "guide-arms-workflow"
+      ]
+    },
+    {
+      "id": "ancient-4",
+      "category": "collectibles",
+      "title": "古老衣服",
+      "en": "Ancient Garment",
+      "summary": "格罗诺亚 Gaberada 旅馆后隐藏路取得雷达，再扫描该大陆东岸海湾。",
+      "fields": {
+        "类型": "古代装备",
+        "获得原型": "格罗诺亚 Gaberada 旅馆后隐藏路取得雷达，再扫描该大陆东岸海湾。",
+        "解放条件": "武具之间试炼；初次Lv50，两阶段。全12件完成后可挑战Lv75取得+版本。",
+        "解放后装备": "Mirage Vest",
+        "试炼Boss": "Vindemiatrix"
+      },
+      "steps": [
+        "第6章加贝拉达旅馆后隐藏路取Magi-tenna并交莉德；先取北奥尔德里昂的精金，再依序寻找古老轻装。",
+        "携带原型回 Chamber of Arms，调查对应发光底座并完成试炼。"
+      ],
+      "sourceIds": [
+        "pp-arms",
+        "appmedia-radar"
+      ],
+      "tags": [
+        "古代装备",
+        "传奇武具",
+        "收集"
+      ],
+      "chapter": 6,
+      "spoiler": true,
+      "related": [
+        "guide-arms-workflow"
+      ]
+    },
+    {
+      "id": "ancient-5",
+      "category": "collectibles",
+      "title": "古老刀",
+      "en": "Ancient Katana",
+      "summary": "第8章水晶塔 Middle Reach 飞空艇入口附近，存档点西边宝箱。",
+      "fields": {
+        "类型": "古代装备",
+        "获得原型": "第8章水晶塔 Middle Reach 飞空艇入口附近，存档点西边宝箱。",
+        "解放条件": "武具之间试炼；初次Lv50，两阶段。全12件完成后可挑战Lv75取得+版本。",
+        "解放后装备": "Sasuke’s Blade",
+        "试炼Boss": "Aldhafera"
+      },
+      "steps": [
+        "第8章水晶塔 Middle Reach 飞空艇入口附近，存档点西边宝箱。",
+        "携带原型回 Chamber of Arms，调查对应发光底座并完成试炼。"
+      ],
+      "sourceIds": [
+        "pp-arms"
+      ],
+      "tags": [
+        "古代装备",
+        "传奇武具",
+        "收集"
+      ],
+      "chapter": 8,
+      "spoiler": true,
+      "related": [
+        "guide-arms-workflow"
+      ]
+    },
+    {
+      "id": "ancient-6",
+      "category": "collectibles",
+      "title": "古老锤",
+      "en": "Ancient Hammer",
+      "summary": "第7章雷山取得Resonance Stone并升级雷达后，完成前5处寻宝，再扫描迪尔纳多西岸海湾。",
+      "fields": {
+        "类型": "古代装备",
+        "获得原型": "第7章雷山取得Resonance Stone并升级雷达后，完成前5处寻宝，再扫描迪尔纳多西岸海湾。",
+        "解放条件": "武具之间试炼；初次Lv50，两阶段。全12件完成后可挑战Lv75取得+版本。",
+        "解放后装备": "Thor’s Hammer",
+        "试炼Boss": "Tegmine"
+      },
+      "steps": [
+        "第7章雷山取得Resonance Stone并升级雷达后，完成前5处寻宝，再扫描迪尔纳多西岸海湾。",
+        "携带原型回 Chamber of Arms，调查对应发光底座并完成试炼。"
+      ],
+      "sourceIds": [
+        "appmedia-radar",
+        "pp-arms",
+        "rpg-walkthrough"
+      ],
+      "tags": [
+        "古代装备",
+        "传奇武具",
+        "收集"
+      ],
+      "chapter": 7,
+      "spoiler": true,
+      "related": [
+        "guide-arms-workflow"
+      ]
+    },
+    {
+      "id": "ancient-7",
+      "category": "collectibles",
+      "title": "古老火枪",
+      "en": "Ancient Firearm",
+      "summary": "遗忘宫殿累计76碎片；3星宝物室第4箱。",
+      "fields": {
+        "类型": "古代装备",
+        "获得原型": "遗忘宫殿累计76碎片；3星宝物室第4箱。",
+        "解放条件": "武具之间试炼；初次Lv50，两阶段。全12件完成后可挑战Lv75取得+版本。",
+        "解放后装备": "Arcturus",
+        "试炼Boss": "Alhena"
+      },
+      "steps": [
+        "遗忘宫殿累计76碎片；3星宝物室第4箱。",
+        "携带原型回 Chamber of Arms，调查对应发光底座并完成试炼。"
+      ],
+      "sourceIds": [
+        "pp-arms"
+      ],
+      "tags": [
+        "古代装备",
+        "传奇武具",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "related": [
+        "guide-arms-workflow"
+      ]
+    },
+    {
+      "id": "ancient-8",
+      "category": "collectibles",
+      "title": "古老书",
+      "en": "Ancient Tome",
+      "summary": "第8章向商船支付45,000吉尔购买。",
+      "fields": {
+        "类型": "古代装备",
+        "获得原型": "第8章向商船支付45,000吉尔购买。",
+        "解放条件": "武具之间试炼；初次Lv50，两阶段。全12件完成后可挑战Lv75取得+版本。",
+        "解放后装备": "Last Resort",
+        "试炼Boss": "Elnath"
+      },
+      "steps": [
+        "第8章向商船支付45,000吉尔购买。",
+        "携带原型回 Chamber of Arms，调查对应发光底座并完成试炼。"
+      ],
+      "sourceIds": [
+        "pp-arms"
+      ],
+      "tags": [
+        "古代装备",
+        "传奇武具",
+        "收集"
+      ],
+      "chapter": 8,
+      "spoiler": true,
+      "related": [
+        "guide-arms-workflow"
+      ]
+    },
+    {
+      "id": "ancient-9",
+      "category": "collectibles",
+      "title": "古老杖",
+      "en": "Ancient Rod",
+      "summary": "先调查法姆东北 Abandoned Cabin 的锁门；去西安镇旅馆前找男子拿钥匙，再返回开箱。",
+      "fields": {
+        "类型": "古代装备",
+        "获得原型": "先调查法姆东北 Abandoned Cabin 的锁门；去西安镇旅馆前找男子拿钥匙，再返回开箱。",
+        "解放条件": "武具之间试炼；初次Lv50，两阶段。全12件完成后可挑战Lv75取得+版本。",
+        "解放后装备": "Wizard’s Rod",
+        "试炼Boss": "Sheratan"
+      },
+      "steps": [
+        "先调查法姆东北 Abandoned Cabin 的锁门；去西安镇旅馆前找男子拿钥匙，再返回开箱。",
+        "携带原型回 Chamber of Arms，调查对应发光底座并完成试炼。"
+      ],
+      "sourceIds": [
+        "pp-arms"
+      ],
+      "tags": [
+        "古代装备",
+        "传奇武具",
+        "收集"
+      ],
+      "chapter": 7,
+      "spoiler": true,
+      "related": [
+        "guide-arms-workflow"
+      ]
+    },
+    {
+      "id": "ancient-10",
+      "category": "collectibles",
+      "title": "古老大剑",
+      "en": "Ancient Greatsword",
+      "summary": "斗技场 Fledgling Battle 3 胜利奖励。",
+      "fields": {
+        "类型": "古代装备",
+        "获得原型": "斗技场 Fledgling Battle 3 胜利奖励。",
+        "解放条件": "武具之间试炼；初次Lv50，两阶段。全12件完成后可挑战Lv75取得+版本。",
+        "解放后装备": "Ragnarok",
+        "试炼Boss": "Alpherg"
+      },
+      "steps": [
+        "斗技场 Fledgling Battle 3 胜利奖励。",
+        "携带原型回 Chamber of Arms，调查对应发光底座并完成试炼。"
+      ],
+      "sourceIds": [
+        "pp-arms"
+      ],
+      "tags": [
+        "古代装备",
+        "传奇武具",
+        "收集"
+      ],
+      "chapter": 4,
+      "spoiler": true,
+      "related": [
+        "guide-arms-workflow"
+      ]
+    },
+    {
+      "id": "ancient-11",
+      "category": "collectibles",
+      "title": "古老胸甲",
+      "en": "Ancient Cuirass",
+      "summary": "斗技场 Brawler Battle 5 胜利奖励。",
+      "fields": {
+        "类型": "古代装备",
+        "获得原型": "斗技场 Brawler Battle 5 胜利奖励。",
+        "解放条件": "武具之间试炼；初次Lv50，两阶段。全12件完成后可挑战Lv75取得+版本。",
+        "解放后装备": "Tatenashi Armour",
+        "试炼Boss": "Sadalsuud"
+      },
+      "steps": [
+        "斗技场 Brawler Battle 5 胜利奖励。",
+        "携带原型回 Chamber of Arms，调查对应发光底座并完成试炼。"
+      ],
+      "sourceIds": [
+        "pp-arms"
+      ],
+      "tags": [
+        "古代装备",
+        "传奇武具",
+        "收集"
+      ],
+      "chapter": 4,
+      "spoiler": true,
+      "related": [
+        "guide-arms-workflow"
+      ]
+    },
+    {
+      "id": "ancient-12",
+      "category": "collectibles",
+      "title": "古老弓",
+      "en": "Ancient Bow",
+      "summary": "获得飞空艇后，去费利西塔斯镇道具店找 Chloe；随后在武具之间再次对话。",
+      "fields": {
+        "类型": "古代装备",
+        "获得原型": "获得飞空艇后，去费利西塔斯镇道具店找 Chloe；随后在武具之间再次对话。",
+        "解放条件": "武具之间试炼；初次Lv50，两阶段。全12件完成后可挑战Lv75取得+版本。",
+        "解放后装备": "Artemis Bow",
+        "试炼Boss": "Dabih"
+      },
+      "steps": [
+        "获得飞空艇后，去费利西塔斯镇道具店找 Chloe；随后在武具之间再次对话。",
+        "携带原型回 Chamber of Arms，调查对应发光底座并完成试炼。"
+      ],
+      "sourceIds": [
+        "pp-arms"
+      ],
+      "tags": [
+        "古代装备",
+        "传奇武具",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "related": [
+        "guide-arms-workflow"
+      ]
+    },
+    {
+      "id": "shard-01",
+      "category": "collectibles",
+      "title": "石板碎片 01 · 格兰谢尔特王都",
+      "en": "Tablet Shard 1",
+      "summary": "商业区商贩左侧木箱",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "格兰谢尔特王都",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "商业区商贩左侧木箱"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 1,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-02",
+      "category": "collectibles",
+      "title": "石板碎片 02 · 科尔村",
+      "en": "Tablet Shard 2",
+      "summary": "村西南水池左边",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "科尔村",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "村西南水池左边"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 1,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-03",
+      "category": "collectibles",
+      "title": "石板碎片 03 · 费利西塔斯镇",
+      "en": "Tablet Shard 3",
+      "summary": "东侧木桥后石墙右边",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "费利西塔斯镇",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "东侧木桥后石墙右边"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 1,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-04",
+      "category": "collectibles",
+      "title": "石板碎片 04 · 费利西塔斯镇",
+      "en": "Tablet Shard 4",
+      "summary": "西木桥火把左转暗道，上梯后左墙后",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "费利西塔斯镇",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "西木桥火把左转暗道，上梯后左墙后"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 1,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-05",
+      "category": "collectibles",
+      "title": "石板碎片 05 · 科洛波斯遗迹",
+      "en": "Tablet Shard 5",
+      "summary": "第二区入口台阶下，双圆柱后",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "科洛波斯遗迹",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "第二区入口台阶下，双圆柱后"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 1,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-06",
+      "category": "collectibles",
+      "title": "石板碎片 06 · 科洛波斯遗迹",
+      "en": "Tablet Shard 6",
+      "summary": "断桥落下后爬回，倒柱后",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "科洛波斯遗迹",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "断桥落下后爬回，倒柱后"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 1,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-07",
+      "category": "collectibles",
+      "title": "石板碎片 07 · 大港口",
+      "en": "Tablet Shard 7",
+      "summary": "道具店南木栈桥，右侧桶后",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "大港口",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "道具店南木栈桥，右侧桶后"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 1,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-08",
+      "category": "collectibles",
+      "title": "石板碎片 08 · 大港口",
+      "en": "Tablet Shard 8",
+      "summary": "武器防具店西侧树根",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "大港口",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "武器防具店西侧树根"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 1,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-09",
+      "category": "collectibles",
+      "title": "石板碎片 09 · 剑之洞窟",
+      "en": "Tablet Shard 9",
+      "summary": "洞末石笋后",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "剑之洞窟",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "洞末石笋后"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 1,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-10",
+      "category": "collectibles",
+      "title": "石板碎片 10 · 塞壬之塔",
+      "en": "Tablet Shard 10",
+      "summary": "入口喷泉后右梯平台边",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "塞壬之塔",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "入口喷泉后右梯平台边"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 1,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-11",
+      "category": "collectibles",
+      "title": "石板碎片 11 · 塞壬之塔",
+      "en": "Tablet Shard 11",
+      "summary": "第一区顶部，进门前右侧平台末端",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "塞壬之塔",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "第一区顶部，进门前右侧平台末端"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 1,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-12",
+      "category": "collectibles",
+      "title": "石板碎片 12 · 塞壬之塔",
+      "en": "Tablet Shard 12",
+      "summary": "下一区上梯左侧平台尽头",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "塞壬之塔",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "下一区上梯左侧平台尽头"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 1,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-13",
+      "category": "collectibles",
+      "title": "石板碎片 13 · 迪尔玛吉亚",
+      "en": "Tablet Shard 13",
+      "summary": "入口首个左岔，电灯关门旁角落",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "迪尔玛吉亚",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "入口首个左岔，电灯关门旁角落"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 2,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-14",
+      "category": "collectibles",
+      "title": "石板碎片 14 · 迪尔玛吉亚",
+      "en": "Tablet Shard 14",
+      "summary": "主区第二路口木箱后",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "迪尔玛吉亚",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "主区第二路口木箱后"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 2,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-15",
+      "category": "collectibles",
+      "title": "石板碎片 15 · 迪尔玛吉亚船坞",
+      "en": "Tablet Shard 15",
+      "summary": "首梯后左梯，路径末端梯子旁",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "迪尔玛吉亚船坞",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "首梯后左梯，路径末端梯子旁"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 2,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-16",
+      "category": "collectibles",
+      "title": "石板碎片 16 · 迪尔玛吉亚船坞",
+      "en": "Tablet Shard 16",
+      "summary": "首梯后右下楼，第三根金属梁旁",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "迪尔玛吉亚船坞",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "首梯后右下楼，第三根金属梁旁"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 2,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-17",
+      "category": "collectibles",
+      "title": "石板碎片 17 · 雷鸣山",
+      "en": "Tablet Shard 17",
+      "summary": "困难路线，调查黄树后转角",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "雷鸣山",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "困难路线，调查黄树后转角"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 2,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-18",
+      "category": "collectibles",
+      "title": "石板碎片 18 · 雷鸣山",
+      "en": "Tablet Shard 18",
+      "summary": "付1000吉尔捷径，长梯后树旁",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "雷鸣山",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "付1000吉尔捷径，长梯后树旁"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 2,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-19",
+      "category": "collectibles",
+      "title": "石板碎片 19 · 雷鸣山",
+      "en": "Tablet Shard 19",
+      "summary": "吉坦圣域南绕上层入口，小石坡岩后",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "雷鸣山",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "吉坦圣域南绕上层入口，小石坡岩后"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 2,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-20",
+      "category": "collectibles",
+      "title": "石板碎片 20 · 矮人熔炉",
+      "en": "Tablet Shard 20",
+      "summary": "主区西南，过木桥向南尽头",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "矮人熔炉",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "主区西南，过木桥向南尽头"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 2,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-21",
+      "category": "collectibles",
+      "title": "石板碎片 21 · 矮人熔炉",
+      "en": "Tablet Shard 21",
+      "summary": "西北炸弹母体战斗区台阶下南侧",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "矮人熔炉",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "西北炸弹母体战斗区台阶下南侧"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 2,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-22",
+      "category": "collectibles",
+      "title": "石板碎片 22 · 莫布利兹船坞",
+      "en": "Tablet Shard 22",
+      "summary": "首区向西木箱后",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "莫布利兹船坞",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "首区向西木箱后"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 2,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-23",
+      "category": "collectibles",
+      "title": "石板碎片 23 · 莫布利兹船坞",
+      "en": "Tablet Shard 23",
+      "summary": "首升降机后东侧栅栏缺口，东南下梯向西",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "莫布利兹船坞",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "首升降机后东侧栅栏缺口，东南下梯向西"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 2,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-24",
+      "category": "collectibles",
+      "title": "石板碎片 24 · 莫布利兹船坞",
+      "en": "Tablet Shard 24",
+      "summary": "第二升降机后北行，围栏前集装箱后",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "莫布利兹船坞",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "第二升降机后北行，围栏前集装箱后"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 2,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-25",
+      "category": "collectibles",
+      "title": "石板碎片 25 · 风之神殿",
+      "en": "Tablet Shard 25",
+      "summary": "首室四绿晶升降机右侧柱后",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "风之神殿",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "首室四绿晶升降机右侧柱后"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 2,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-26",
+      "category": "collectibles",
+      "title": "石板碎片 26 · 风之神殿",
+      "en": "Tablet Shard 26",
+      "summary": "主线楼梯顶部升降机，右栏杆间隙",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "风之神殿",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "主线楼梯顶部升降机，右栏杆间隙"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 2,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-27",
+      "category": "collectibles",
+      "title": "石板碎片 27 · 风之神殿",
+      "en": "Tablet Shard 27",
+      "summary": "上一处向南坐下一升降机，平台左边",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "风之神殿",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "上一处向南坐下一升降机，平台左边"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 2,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-28",
+      "category": "collectibles",
+      "title": "石板碎片 28 · 奥尔德里昂水都",
+      "en": "Tablet Shard 28",
+      "summary": "入口中央平台右侧，游船NPC旁",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "奥尔德里昂水都",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "入口中央平台右侧，游船NPC旁"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 3,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-29",
+      "category": "collectibles",
+      "title": "石板碎片 29 · 奥尔德里昂水都",
+      "en": "Tablet Shard 29",
+      "summary": "城中心双石像池，左像后长椅",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "奥尔德里昂水都",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "城中心双石像池，左像后长椅"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 3,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-30",
+      "category": "collectibles",
+      "title": "石板碎片 30 · 奥尔德里昂水都",
+      "en": "Tablet Shard 30",
+      "summary": "双像池东北过水车，石桥中央花盆后",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "奥尔德里昂水都",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "双像池东北过水车，石桥中央花盆后"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 3,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-31",
+      "category": "collectibles",
+      "title": "石板碎片 31 · 奥尔德里昂水都",
+      "en": "Tablet Shard 31",
+      "summary": "双像池向北台阶上树后",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "奥尔德里昂水都",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "双像池向北台阶上树后"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 3,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-32",
+      "category": "collectibles",
+      "title": "石板碎片 32 · 水之洞窟",
+      "en": "Tablet Shard 32",
+      "summary": "第一段船迷宫出口码头左侧",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "水之洞窟",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "第一段船迷宫出口码头左侧"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 3,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-33",
+      "category": "collectibles",
+      "title": "石板碎片 33 · 水之洞窟",
+      "en": "Tablet Shard 33",
+      "summary": "长船迷宫后瀑布前，与存档梯同室",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "水之洞窟",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "长船迷宫后瀑布前，与存档梯同室"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 3,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-34",
+      "category": "collectibles",
+      "title": "石板碎片 34 · 水之洞窟",
+      "en": "Tablet Shard 34",
+      "summary": "剧情重返后入口左室新路，窄道梯上",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "水之洞窟",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "剧情重返后入口左室新路，窄道梯上"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 3,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-35",
+      "category": "collectibles",
+      "title": "石板碎片 35 · 瀑布小径",
+      "en": "Tablet Shard 35",
+      "summary": "第二室台阶上东侧梯旁",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "瀑布小径",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "第二室台阶上东侧梯旁"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 3,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-36",
+      "category": "collectibles",
+      "title": "石板碎片 36 · 瀑布小径",
+      "en": "Tablet Shard 36",
+      "summary": "大瀑布与石平台房间，平台上",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "瀑布小径",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "大瀑布与石平台房间，平台上"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 3,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-37",
+      "category": "collectibles",
+      "title": "石板碎片 37 · 瀑布小径",
+      "en": "Tablet Shard 37",
+      "summary": "同室向北过木桥，瀑布间岩石",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "瀑布小径",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "同室向北过木桥，瀑布间岩石"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 3,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-38",
+      "category": "collectibles",
+      "title": "石板碎片 38 · 阿莫尔镇",
+      "en": "Tablet Shard 38",
+      "summary": "武器道具店南，小草岛井旁",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "阿莫尔镇",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "武器道具店南，小草岛井旁"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 3,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-39",
+      "category": "collectibles",
+      "title": "石板碎片 39 · 阿莫尔镇",
+      "en": "Tablet Shard 39",
+      "summary": "道具店北，长桥前右侧树边",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "阿莫尔镇",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "道具店北，长桥前右侧树边"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 3,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-40",
+      "category": "collectibles",
+      "title": "石板碎片 40 · 水之神殿",
+      "en": "Tablet Shard 40",
+      "summary": "中央圆台四向岔路，降水后北梯下",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "水之神殿",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "中央圆台四向岔路，降水后北梯下"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 3,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-41",
+      "category": "collectibles",
+      "title": "石板碎片 41 · 水之神殿",
+      "en": "Tablet Shard 41",
+      "summary": "水晶机关后乘船，绿壶阳台东北平台",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "水之神殿",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "水晶机关后乘船，绿壶阳台东北平台"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 3,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-42",
+      "category": "collectibles",
+      "title": "石板碎片 42 · 水之神殿",
+      "en": "Tablet Shard 42",
+      "summary": "继续降水下长梯，梯左侧",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "水之神殿",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "继续降水下长梯，梯左侧"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 3,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-43",
+      "category": "collectibles",
+      "title": "石板碎片 43 · 摩组尔站",
+      "en": "Tablet Shard 43",
+      "summary": "车站西南角",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "摩组尔站",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "车站西南角"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 4,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-44",
+      "category": "collectibles",
+      "title": "石板碎片 44 · 帝都前车站",
+      "en": "Tablet Shard 44",
+      "summary": "东侧入口楼梯旁",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "帝都前车站",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "东侧入口楼梯旁"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 4,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-45",
+      "category": "collectibles",
+      "title": "石板碎片 45 · 佐尔达德帝都",
+      "en": "Tablet Shard 45",
+      "summary": "城堡广场，下电车正东",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "佐尔达德帝都",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "城堡广场，下电车正东"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 4,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-46",
+      "category": "collectibles",
+      "title": "石板碎片 46 · 佐尔达德帝都",
+      "en": "Tablet Shard 46",
+      "summary": "住宅区东南角",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "佐尔达德帝都",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "住宅区东南角"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 4,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-47",
+      "category": "collectibles",
+      "title": "石板碎片 47 · 佐尔达德帝都",
+      "en": "Tablet Shard 47",
+      "summary": "贫民区出生点东侧木桶边",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "佐尔达德帝都",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "贫民区出生点东侧木桶边"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 4,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-48",
+      "category": "collectibles",
+      "title": "石板碎片 48 · 帝都地下通道",
+      "en": "Tablet Shard 48",
+      "summary": "东行金属步道下梯后折西，下坡向南角落",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "帝都地下通道",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "东行金属步道下梯后折西，下坡向南角落"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 4,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-49",
+      "category": "collectibles",
+      "title": "石板碎片 49 · 帝都地下通道",
+      "en": "Tablet Shard 49",
+      "summary": "壶敌人后南行，金属桥下隐藏入口右室",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "帝都地下通道",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "壶敌人后南行，金属桥下隐藏入口右室"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 4,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-50",
+      "category": "collectibles",
+      "title": "石板碎片 50 · 反抗军据点",
+      "en": "Tablet Shard 50",
+      "summary": "西北杰克房间右侧绕后暗路，上梯转西南",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "反抗军据点",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "西北杰克房间右侧绕后暗路，上梯转西南"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 4,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-51",
+      "category": "collectibles",
+      "title": "石板碎片 51 · 反抗军据点",
+      "en": "Tablet Shard 51",
+      "summary": "东北会议室出口前右梯，栏杆金属柱后",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "反抗军据点",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "东北会议室出口前右梯，栏杆金属柱后"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 4,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-52",
+      "category": "collectibles",
+      "title": "石板碎片 52 · 武器工厂",
+      "en": "Tablet Shard 52",
+      "summary": "熔岩主区一路西上梯开水晶，过升起梁左转",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "武器工厂",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "熔岩主区一路西上梯开水晶，过升起梁左转"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 4,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-53",
+      "category": "collectibles",
+      "title": "石板碎片 53 · 武器工厂",
+      "en": "Tablet Shard 53",
+      "summary": "存档点旁长梯上，左机关转三次，北行第二左岔",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "武器工厂",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "存档点旁长梯上，左机关转三次，北行第二左岔"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 4,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-54",
+      "category": "collectibles",
+      "title": "石板碎片 54 · 地牢",
+      "en": "Tablet Shard 54",
+      "summary": "总钥匙后南侧牢房区，右手首间牢房",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "地牢",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "总钥匙后南侧牢房区，右手首间牢房"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 4,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-55",
+      "category": "collectibles",
+      "title": "石板碎片 55 · 地牢",
+      "en": "Tablet Shard 55",
+      "summary": "拿总钥匙后回初始被囚房间，西侧牢房",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "地牢",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "拿总钥匙后回初始被囚房间，西侧牢房"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 4,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-56",
+      "category": "collectibles",
+      "title": "石板碎片 56 · 佐尔达德城堡",
+      "en": "Tablet Shard 56",
+      "summary": "王座厅楼梯左马像后",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "佐尔达德城堡",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "王座厅楼梯左马像后"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 4,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-57",
+      "category": "collectibles",
+      "title": "石板碎片 57 · 佐尔达德城堡",
+      "en": "Tablet Shard 57",
+      "summary": "王座厅楼梯右走廊第一门，东南角",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "佐尔达德城堡",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "王座厅楼梯右走廊第一门，东南角"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 4,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-58",
+      "category": "collectibles",
+      "title": "石板碎片 58 · 格兰谢尔特斗技场",
+      "en": "Tablet Shard 58",
+      "summary": "入口通道一路向西",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "格兰谢尔特斗技场",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "入口通道一路向西"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 4,
+      "spoiler": false,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-59",
+      "category": "collectibles",
+      "title": "石板碎片 59 · 魔法都市米西迪亚",
+      "en": "Tablet Shard 59",
+      "summary": "入口右梯传送晶体，NPC后角落",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "魔法都市米西迪亚",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "入口右梯传送晶体，NPC后角落"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-60",
+      "category": "collectibles",
+      "title": "石板碎片 60 · 魔法都市米西迪亚",
+      "en": "Tablet Shard 60",
+      "summary": "商店区武器店正南，双木箱旁",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "魔法都市米西迪亚",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "商店区武器店正南，双木箱旁"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-61",
+      "category": "collectibles",
+      "title": "石板碎片 61 · 魔法都市米西迪亚",
+      "en": "Tablet Shard 61",
+      "summary": "道具店西蓝传送门，喷泉圆区右数第二柱",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "魔法都市米西迪亚",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "道具店西蓝传送门，喷泉圆区右数第二柱"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-62",
+      "category": "collectibles",
+      "title": "石板碎片 62 · 奥秘图书馆",
+      "en": "Tablet Shard 62",
+      "summary": "蓝门入场西南写字桌间",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "奥秘图书馆",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "蓝门入场西南写字桌间"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-63",
+      "category": "collectibles",
+      "title": "石板碎片 63 · 苏尼奥村",
+      "en": "Tablet Shard 63",
+      "summary": "村入口上方，长椅与罐子之间",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "苏尼奥村",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "村入口上方，长椅与罐子之间"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-64",
+      "category": "collectibles",
+      "title": "石板碎片 64 · 苏尼奥村",
+      "en": "Tablet Shard 64",
+      "summary": "东北端冰屋外雪人旁",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "苏尼奥村",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "东北端冰屋外雪人旁"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-65",
+      "category": "collectibles",
+      "title": "石板碎片 65 · 无名遗迹",
+      "en": "Tablet Shard 65",
+      "summary": "首室最西倒柱边",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "无名遗迹",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "首室最西倒柱边"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-66",
+      "category": "collectibles",
+      "title": "石板碎片 66 · 无名遗迹",
+      "en": "Tablet Shard 66",
+      "summary": "第二区存档点南下梯，倒吊灯旁",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "无名遗迹",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "第二区存档点南下梯，倒吊灯旁"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-67",
+      "category": "collectibles",
+      "title": "石板碎片 67 · 奥秘图书馆",
+      "en": "Tablet Shard 67",
+      "summary": "完成无名遗迹后，末室第二存档点东梯上绕西阳台",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "奥秘图书馆",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "完成无名遗迹后，末室第二存档点东梯上绕西阳台"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-68",
+      "category": "collectibles",
+      "title": "石板碎片 68 · 菲娜的精神世界Ⅰ",
+      "en": "Tablet Shard 68",
+      "summary": "大锁门左侧锁链下",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "菲娜的精神世界Ⅰ",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "大锁门左侧锁链下"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-69",
+      "category": "collectibles",
+      "title": "石板碎片 69 · 菲娜的精神世界Ⅰ",
+      "en": "Tablet Shard 69",
+      "summary": "门西侧最西帐篷，右上木箱间",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "菲娜的精神世界Ⅰ",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "门西侧最西帐篷，右上木箱间"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-70",
+      "category": "collectibles",
+      "title": "石板碎片 70 · 菲娜的精神世界Ⅰ",
+      "en": "Tablet Shard 70",
+      "summary": "第三个西侧区域末端，解开首锁剧情后的空地",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "菲娜的精神世界Ⅰ",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "第三个西侧区域末端，解开首锁剧情后的空地"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-71",
+      "category": "collectibles",
+      "title": "石板碎片 71 · 米西迪亚之塔",
+      "en": "Tablet Shard 71",
+      "summary": "入口主区大水晶后台阶顶",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "米西迪亚之塔",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "入口主区大水晶后台阶顶"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-72",
+      "category": "collectibles",
+      "title": "石板碎片 72 · 米西迪亚之塔",
+      "en": "Tablet Shard 72",
+      "summary": "继续盘旋楼梯的中途平台",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "米西迪亚之塔",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "继续盘旋楼梯的中途平台"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-73",
+      "category": "collectibles",
+      "title": "石板碎片 73 · 米西迪亚之塔",
+      "en": "Tablet Shard 73",
+      "summary": "蓝壶敌人前主线路上的楼梯平台",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "米西迪亚之塔",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "蓝壶敌人前主线路上的楼梯平台"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-74",
+      "category": "collectibles",
+      "title": "石板碎片 74 · 米西迪亚之塔",
+      "en": "Tablet Shard 74",
+      "summary": "蓝壶敌人后雪堆旁",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "米西迪亚之塔",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "蓝壶敌人后雪堆旁"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-75",
+      "category": "collectibles",
+      "title": "石板碎片 75 · 菲娜的精神世界Ⅱ",
+      "en": "Tablet Shard 75",
+      "summary": "过桥下一片区域向北营地，右下补给后",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "菲娜的精神世界Ⅱ",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "过桥下一片区域向北营地，右下补给后"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-76",
+      "category": "collectibles",
+      "title": "石板碎片 76 · 加贝拉达地下镇",
+      "en": "Tablet Shard 76",
+      "summary": "镇西北房屋右侧",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "加贝拉达地下镇",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "镇西北房屋右侧"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 6,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-77",
+      "category": "collectibles",
+      "title": "石板碎片 77 · 研究中心遗迹",
+      "en": "Tablet Shard 77",
+      "summary": "一级卡西路，写字桌与绿传送器房间",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "研究中心遗迹",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "一级卡西路，写字桌与绿传送器房间"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 6,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-78",
+      "category": "collectibles",
+      "title": "石板碎片 78 · 研究中心遗迹",
+      "en": "Tablet Shard 78",
+      "summary": "一级卡西路三终端室，东南架顶",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "研究中心遗迹",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "一级卡西路三终端室，东南架顶"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 6,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-79",
+      "category": "collectibles",
+      "title": "石板碎片 79 · 研究中心遗迹",
+      "en": "Tablet Shard 79",
+      "summary": "二级卡东路绿传送器室，长梯上右侧栈桥",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "研究中心遗迹",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "二级卡东路绿传送器室，长梯上右侧栈桥"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 6,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-80",
+      "category": "collectibles",
+      "title": "石板碎片 80 · 崎岖山道",
+      "en": "Tablet Shard 80",
+      "summary": "首存档点西，枯树下",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "崎岖山道",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "首存档点西，枯树下"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 6,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-81",
+      "category": "collectibles",
+      "title": "石板碎片 81 · 崎岖山道",
+      "en": "Tablet Shard 81",
+      "summary": "第二存档点东，下坡角落",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "崎岖山道",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "第二存档点东，下坡角落"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 6,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-82",
+      "category": "collectibles",
+      "title": "石板碎片 82 · 达格尔镇",
+      "en": "Tablet Shard 82",
+      "summary": "镇北武器道具店入口东，瀑布后",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "达格尔镇",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "镇北武器道具店入口东，瀑布后"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 6,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-83",
+      "category": "collectibles",
+      "title": "石板碎片 83 · 格罗诺亚神殿",
+      "en": "Tablet Shard 83",
+      "summary": "出首室平台南端，下梯前",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "格罗诺亚神殿",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "出首室平台南端，下梯前"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 6,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-84",
+      "category": "collectibles",
+      "title": "石板碎片 84 · 格罗诺亚神殿",
+      "en": "Tablet Shard 84",
+      "summary": "西梯下向南再东，倒柱封住的楼梯",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "格罗诺亚神殿",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "西梯下向南再东，倒柱封住的楼梯"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 6,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-85",
+      "category": "collectibles",
+      "title": "石板碎片 85 · 格罗诺亚神殿",
+      "en": "Tablet Shard 85",
+      "summary": "主线路长梯下，西侧平行梯上向南倒柱边",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "格罗诺亚神殿",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "主线路长梯下，西侧平行梯上向南倒柱边"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 6,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-86",
+      "category": "collectibles",
+      "title": "石板碎片 86 · 圣域神殿",
+      "en": "Tablet Shard 86",
+      "summary": "第二存档点北门横室，北梯后东侧火把暗室，爬紫壶旁梯",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "圣域神殿",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "第二存档点北门横室，北梯后东侧火把暗室，爬紫壶旁梯"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 6,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-87",
+      "category": "collectibles",
+      "title": "石板碎片 87 · 圣域神殿",
+      "en": "Tablet Shard 87",
+      "summary": "第三存档点上梯进水晶升降机室，第三机后第四机前",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "圣域神殿",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "第三存档点上梯进水晶升降机室，第三机后第四机前"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 6,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-88",
+      "category": "collectibles",
+      "title": "石板碎片 88 · 西安镇",
+      "en": "Tablet Shard 88",
+      "summary": "道具店东侧樱树下",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "西安镇",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "道具店东侧樱树下"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 7,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-89",
+      "category": "collectibles",
+      "title": "石板碎片 89 · 雷山",
+      "en": "Tablet Shard 89",
+      "summary": "首存档点主线路坡道交叉口，选下坡",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "雷山",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "首存档点主线路坡道交叉口，选下坡"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 7,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-90",
+      "category": "collectibles",
+      "title": "石板碎片 90 · 雷山",
+      "en": "Tablet Shard 90",
+      "summary": "双木桥之间平台，两棵松树旁",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "雷山",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "双木桥之间平台，两棵松树旁"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 7,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-91",
+      "category": "collectibles",
+      "title": "石板碎片 91 · 流星湖",
+      "en": "Tablet Shard 91",
+      "summary": "西侧树下",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "流星湖",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "西侧树下"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 7,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-92",
+      "category": "collectibles",
+      "title": "石板碎片 92 · 森林小径",
+      "en": "Tablet Shard 92",
+      "summary": "首存档点北，主线路转弯处",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "森林小径",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "首存档点北，主线路转弯处"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 7,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-93",
+      "category": "collectibles",
+      "title": "石板碎片 93 · 森林小径",
+      "en": "Tablet Shard 93",
+      "summary": "第二存档点西南死路",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "森林小径",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "第二存档点西南死路"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 7,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-94",
+      "category": "collectibles",
+      "title": "石板碎片 94 · 流浪之地",
+      "en": "Tablet Shard 94",
+      "summary": "存档点后首分岔左转主线路",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "流浪之地",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "存档点后首分岔左转主线路"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 7,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-95",
+      "category": "collectibles",
+      "title": "石板碎片 95 · 流浪之地",
+      "en": "Tablet Shard 95",
+      "summary": "后续剧情场景后石堆间",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "流浪之地",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "后续剧情场景后石堆间"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 7,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-96",
+      "category": "collectibles",
+      "title": "石板碎片 96 · 水晶塔",
+      "en": "Tablet Shard 96",
+      "summary": "入口主线路首岔右转",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "水晶塔",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "入口主线路首岔右转"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 8,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-97",
+      "category": "collectibles",
+      "title": "石板碎片 97 · 水晶塔",
+      "en": "Tablet Shard 97",
+      "summary": "上一处之后下一岔左转，再下一岔右转",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "水晶塔",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "上一处之后下一岔左转，再下一岔右转"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 8,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-98",
+      "category": "collectibles",
+      "title": "石板碎片 98 · 水晶塔",
+      "en": "Tablet Shard 98",
+      "summary": "透明桥区第三实体平台北行，转西沿桥",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "水晶塔",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "透明桥区第三实体平台北行，转西沿桥"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 8,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "shard-99",
+      "category": "collectibles",
+      "title": "石板碎片 99 · 龙之颚",
+      "en": "Tablet Shard 99",
+      "summary": "迷宫末段，可见魔导装甲敌人附近",
+      "fields": {
+        "类型": "石板碎片",
+        "地点": "龙之颚",
+        "编号口径": "PowerPyx 2026-10-25 顺序；与其他网站编号可能不同"
+      },
+      "steps": [
+        "迷宫末段，可见魔导装甲敌人附近"
+      ],
+      "sourceIds": [
+        "pp-shards"
+      ],
+      "tags": [
+        "石板",
+        "碎片",
+        "收集"
+      ],
+      "chapter": 8,
+      "spoiler": true,
+      "related": [
+        "guide-shard-threshold"
+      ]
+    },
+    {
+      "id": "guide-start",
+      "category": "guide",
+      "title": "开局该做什么",
+      "en": "",
+      "summary": "把攻略当查漏表：顺着主线走，沿途收集石板，遇到幻兵圣域就检查。",
+      "fields": {
+        "内容类型": "本站整理的操作路线；数值和前置条件见来源"
+      },
+      "steps": [
+        "先选当前章节，只查看已开放收集。",
+        "每次离开城镇前检查石板和支线。",
+        "幻兵精通练满后换下一名，逐渐扩大可继承能力范围。"
+      ],
+      "sourceIds": [
+        "pp-visions",
+        "pp-shards",
+        "pp-trophies"
+      ],
+      "tags": [
+        "入门",
+        "路线",
+        "系统"
+      ],
+      "chapter": 1,
+      "spoiler": false
+    },
+    {
+      "id": "guide-mastery",
+      "category": "guide",
+      "title": "觉醒与精通怎样区分",
+      "en": "",
+      "summary": "觉醒星级与MR精通是两套独立成长。",
+      "fields": {
+        "内容类型": "本站整理的操作路线；数值和前置条件见来源"
+      },
+      "steps": [
+        "觉醒：初始0星为阶段1，依次消耗Magicite Shard、Magicite、Magicite Cryst升至1/2/3星，对应阶段2/3/4。",
+        "精通：角色装备幻兵战斗赚MRP；MR最高9。",
+        "同一幻兵在不同队友身上的MR分别计算；换人不会共享MR。"
+      ],
+      "sourceIds": [
+        "pp-trophies",
+        "vorxu-visions",
+        "appmedia-awakening"
+      ],
+      "tags": [
+        "入门",
+        "路线",
+        "系统"
+      ],
+      "chapter": 1,
+      "spoiler": false
+    },
+    {
+      "id": "guide-collect-order",
+      "category": "guide",
+      "title": "通关后收集顺序",
+      "en": "",
+      "summary": "建议先提高可用能力和装备，再挑战高等级可选敌人。",
+      "fields": {
+        "内容类型": "本站整理的操作路线；数值和前置条件见来源"
+      },
+      "steps": [
+        "先补队员个人支线与幻兵。",
+        "再补精金专武、古代装备解放、缺少的召唤兽与石板。",
+        "最后处理高等级洞窟之主、究极兵器与斗技场。"
+      ],
+      "sourceIds": [
+        "pp-trophies",
+        "pp-arms",
+        "pp-adamantite"
+      ],
+      "tags": [
+        "入门",
+        "路线",
+        "系统"
+      ],
+      "chapter": 8,
+      "spoiler": true
+    },
+    {
+      "id": "guide-arms-workflow",
+      "category": "guide",
+      "title": "古老装备如何变成传奇武具",
+      "en": "",
+      "summary": "原型是试炼钥匙；找到古老装备并不等于拿到解放后的装备。",
+      "fields": {
+        "内容类型": "本站整理的操作路线；数值和前置条件见来源"
+      },
+      "steps": [
+        "第5章飞空艇开放后可去迪尔纳多与格罗诺亚之间山岛上的武具之间。",
+        "收集古老装备后，调查对应发光底座挑战Lv50两阶段试炼。",
+        "12件全部完成后可再战Lv75，取得+版本；白金不要求+版本。"
+      ],
+      "sourceIds": [
+        "pp-arms"
+      ],
+      "tags": [
+        "入门",
+        "路线",
+        "系统"
+      ],
+      "chapter": 5,
+      "spoiler": true
+    },
+    {
+      "id": "guide-forge-workflow",
+      "category": "guide",
+      "title": "专属武器打造",
+      "en": "",
+      "summary": "每名队友需要一块精金；合计8块。",
+      "fields": {
+        "内容类型": "本站整理的操作路线；数值和前置条件见来源"
+      },
+      "steps": [
+        "第5章完成迪尔玛吉亚 Forger of Wills 支线，取得艾琳幻兵。",
+        "主线推进到第6章后，在飞空艇甲板与艾琳交谈。",
+        "每把专武消耗1块精金，共8块可为全队打造；无需等待制作时间。"
+      ],
+      "sourceIds": [
+        "pp-adamantite",
+        "pp-visions",
+        "appmedia-forge"
+      ],
+      "tags": [
+        "入门",
+        "路线",
+        "系统"
+      ],
+      "chapter": 6,
+      "spoiler": true
+    },
+    {
+      "id": "guide-shard-threshold",
+      "category": "guide",
+      "title": "石板碎片重要门槛",
+      "en": "",
+      "summary": "99是全收集目标；白金相关最高必要门槛是89。",
+      "fields": {
+        "内容类型": "本站整理的操作路线；数值和前置条件见来源"
+      },
+      "steps": [
+        "3块：遗忘宫殿首个宝箱。60块：公主第二段记忆。",
+        "76块：古老火枪；80块：精金；84块：古老鞭；89块：另一块精金。",
+        "碎片编号是攻略顺序，不是游戏内官方编号；查漏时同时核对地点和章数。"
+      ],
+      "sourceIds": [
+        "pp-shards",
+        "pp-arms",
+        "pp-adamantite",
+        "pp-trophies"
+      ],
+      "tags": [
+        "入门",
+        "路线",
+        "系统"
+      ],
+      "chapter": 1,
+      "spoiler": false
+    },
+    {
+      "id": "guide-carbuncle",
+      "category": "guide",
+      "title": "卡邦库尔三碎片谜题",
+      "en": "",
+      "summary": "这是召唤兽收集中的非战斗解谜。",
+      "fields": {
+        "内容类型": "本站整理的操作路线；数值和前置条件见来源"
+      },
+      "steps": [
+        "先在 Ruby Cave 调查墓碑激活提示。",
+        "依次去大鹏洞窟东南双池间、斯考尔圣域西南东海岸、七瀑布西侧过桥草坡。",
+        "完成后回墓碑；未正确触发时先核对是否已经读过碑文。"
+      ],
+      "sourceIds": [
+        "pp-espers"
+      ],
+      "tags": [
+        "入门",
+        "路线",
+        "系统"
+      ],
+      "chapter": 3,
+      "spoiler": false
+    },
+    {
+      "id": "guide-resonance",
+      "category": "guide",
+      "title": "怎样发动共鸣",
+      "en": "",
+      "summary": "同一回合让场上全部敌人进入击破，触发全域击破的奖励行动。",
+      "fields": {
+        "内容类型": "本站整理的操作路线；数值和前置条件见来源"
+      },
+      "steps": [
+        "先装备幻兵，再根据敌人弱点规划击破。",
+        "让敌人在同一回合全部击破，完成奖励行动后选择共鸣。",
+        "共鸣400次是累计成就；正常流程中就多使用，减少通关后补刷。"
+      ],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "入门",
+        "路线",
+        "系统"
+      ],
+      "chapter": 1,
+      "spoiler": false
+    },
+    {
+      "id": "guide-treasure-radar",
+      "category": "guide",
+      "title": "飞空艇雷达与古老锤",
+      "en": "",
+      "summary": "两次探索升级决定部分海面宝藏的可获取范围。",
+      "fields": {
+        "内容类型": "本站整理的操作路线；数值和前置条件见来源"
+      },
+      "steps": [
+        "第6章加贝拉达旅馆后隐藏路找NPC取得Magi-tenna，回甲板找莉德强化。",
+        "第7章雷山宝箱取Resonance Stone后交莉德，开第二级。",
+        "按来源顺序依次取前9处宝藏；随后商船60,000吉尔买High-Power Generator开第三级。"
+      ],
+      "sourceIds": [
+        "appmedia-radar",
+        "rpg-walkthrough"
+      ],
+      "tags": [
+        "入门",
+        "路线",
+        "系统"
+      ],
+      "chapter": 6,
+      "spoiler": true
+    },
+    {
+      "id": "guide-cave-master",
+      "category": "guide",
+      "title": "洞窟之主何时挑战",
+      "en": "",
+      "summary": "洞窟入口给出的等级比主线章节更能帮助判断难度。",
+      "fields": {
+        "内容类型": "本站整理的操作路线；数值和前置条件见来源"
+      },
+      "steps": [
+        "先记录洞窟与建议等级，不必发现时立刻打。",
+        "准备好恢复、对应弱点的技能后再进入。",
+        "战利品中的魔石用于幻兵觉醒；高阶洞窟可留到通关后。"
+      ],
+      "sourceIds": [
+        "pp-caves",
+        "pp-trophies"
+      ],
+      "tags": [
+        "入门",
+        "路线",
+        "系统"
+      ],
+      "chapter": 1,
+      "spoiler": false
+    },
+    {
+      "id": "guide-dragon-maw",
+      "category": "guide",
+      "title": "龙之颚后的练级区域",
+      "en": "",
+      "summary": "法姆南端的可选迷宫后方有特殊遇敌岛屿。",
+      "fields": {
+        "内容类型": "本站整理的操作路线；数值和前置条件见来源"
+      },
+      "steps": [
+        "飞空艇可达龙之颚，攻略建议55级，低等级不必强推。",
+        "穿过迷宫后抵达小森林岛，随机遇敌分别提供经验、吉尔或MRP。",
+        "Metal Gigantuar偏经验、King Gil Snapper偏金钱、Gigantuar偏MRP。"
+      ],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "入门",
+        "路线",
+        "系统"
+      ],
+      "chapter": 8,
+      "spoiler": true
+    },
+    {
+      "id": "guide-completion-scope",
+      "category": "guide",
+      "title": "白金和100%有什么差别",
+      "en": "",
+      "summary": "不必把所有数据表记录都理解为白金要求。",
+      "fields": {
+        "内容类型": "本站整理的操作路线；数值和前置条件见来源"
+      },
+      "steps": [
+        "白金收集核心包括26幻兵、9召唤兽、15洞主、12传奇武具、8精金专武。",
+        "99石板里，89块即可满足相关奖杯路线；追求地图全清再补剩余10块。",
+        "传奇武具+版与最高阶斗技场不属于这份白金路线的必要项目。"
+      ],
+      "sourceIds": [
+        "pp-trophies",
+        "pp-arms"
+      ],
+      "tags": [
+        "入门",
+        "路线",
+        "系统"
+      ],
+      "chapter": 8,
+      "spoiler": true
+    },
+    {
+      "id": "achievement-01",
+      "category": "achievements",
+      "title": "终极幻想",
+      "en": "Ultimate Fantasy",
+      "summary": "取得其余全部奖杯。",
+      "fields": {
+        "条件": "取得其余全部奖杯。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 0,
+      "spoiler": false
+    },
+    {
+      "id": "achievement-02",
+      "category": "achievements",
+      "title": "启程",
+      "en": "A Journey Begins",
+      "summary": "完成第1章。",
+      "fields": {
+        "条件": "完成第1章。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies",
+        "gs-achievements"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 1,
+      "spoiler": false
+    },
+    {
+      "id": "achievement-03",
+      "category": "achievements",
+      "title": "知晓苍穹者",
+      "en": "Those Who Unite the Skies",
+      "summary": "完成第2章。",
+      "fields": {
+        "条件": "完成第2章。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies",
+        "gs-achievements"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 2,
+      "spoiler": false
+    },
+    {
+      "id": "achievement-04",
+      "category": "achievements",
+      "title": "再见，奥尔德里昂",
+      "en": "Olderion Blues",
+      "summary": "完成第3章。",
+      "fields": {
+        "条件": "完成第3章。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies",
+        "gs-achievements"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 3,
+      "spoiler": false
+    },
+    {
+      "id": "achievement-05",
+      "category": "achievements",
+      "title": "革命的终点",
+      "en": "Viva la Revolución",
+      "summary": "完成第4章。",
+      "fields": {
+        "条件": "完成第4章。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies",
+        "gs-achievements"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 4,
+      "spoiler": false
+    },
+    {
+      "id": "achievement-06",
+      "category": "achievements",
+      "title": "追求真理",
+      "en": "In Search of the Truth",
+      "summary": "完成第5章。",
+      "fields": {
+        "条件": "完成第5章。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies",
+        "gs-achievements"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 5,
+      "spoiler": true
+    },
+    {
+      "id": "achievement-07",
+      "category": "achievements",
+      "title": "了结",
+      "en": "And the Winner Is…",
+      "summary": "完成第6章。",
+      "fields": {
+        "条件": "完成第6章。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies",
+        "gs-achievements"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 6,
+      "spoiler": true
+    },
+    {
+      "id": "achievement-08",
+      "category": "achievements",
+      "title": "那一天的光芒",
+      "en": "Past Glory",
+      "summary": "完成第7章。",
+      "fields": {
+        "条件": "完成第7章。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies",
+        "gs-achievements"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 7,
+      "spoiler": true
+    },
+    {
+      "id": "achievement-09",
+      "category": "achievements",
+      "title": "梦的终结",
+      "en": "Aspiration’s End",
+      "summary": "完成第8章。",
+      "fields": {
+        "条件": "完成第8章。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies",
+        "gs-achievements"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 8,
+      "spoiler": true
+    },
+    {
+      "id": "achievement-10",
+      "category": "achievements",
+      "title": "集齐队员",
+      "en": "Those Who Defy Fate",
+      "summary": "解锁全部8名队员；第8人在第5章随主线加入。",
+      "fields": {
+        "条件": "解锁全部8名队员；第8人在第5章随主线加入。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 5,
+      "spoiler": true
+    },
+    {
+      "id": "achievement-11",
+      "category": "achievements",
+      "title": "重拾决心",
+      "en": "Conscience Renewed",
+      "summary": "完成全部8名队员的个人支线。",
+      "fields": {
+        "条件": "完成全部8名队员的个人支线。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies",
+        "gs-achievements"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 8,
+      "spoiler": true
+    },
+    {
+      "id": "achievement-12",
+      "category": "achievements",
+      "title": "获得陆行鸟",
+      "en": "Kweh!",
+      "summary": "第1章科尔村剧情获得陆行鸟。",
+      "fields": {
+        "条件": "第1章科尔村剧情获得陆行鸟。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 1,
+      "spoiler": false
+    },
+    {
+      "id": "achievement-13",
+      "category": "achievements",
+      "title": "获得飞空艇",
+      "en": "Airship Enterprise",
+      "summary": "第5章开头主线获得飞空艇。",
+      "fields": {
+        "条件": "第5章开头主线获得飞空艇。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 5,
+      "spoiler": true
+    },
+    {
+      "id": "achievement-14",
+      "category": "achievements",
+      "title": "初阶联赛通关",
+      "en": "Just Getting Started",
+      "summary": "完成斗技场 Fledgling League 全部5战。",
+      "fields": {
+        "条件": "完成斗技场 Fledgling League 全部5战。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 4,
+      "spoiler": false
+    },
+    {
+      "id": "achievement-15",
+      "category": "achievements",
+      "title": "格斗家联赛通关",
+      "en": "Arena Fighter",
+      "summary": "完成斗技场 Brawler League 全部5战。",
+      "fields": {
+        "条件": "完成斗技场 Brawler League 全部5战。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 4,
+      "spoiler": false
+    },
+    {
+      "id": "achievement-16",
+      "category": "achievements",
+      "title": "角斗士联赛通关",
+      "en": "Career Fighter",
+      "summary": "完成斗技场 Gladiator League 全部5战。",
+      "fields": {
+        "条件": "完成斗技场 Gladiator League 全部5战。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 4,
+      "spoiler": false
+    },
+    {
+      "id": "achievement-17",
+      "category": "achievements",
+      "title": "公主首个奖励",
+      "en": "Princess’s Reward",
+      "summary": "向遗忘宫殿公主累计提交3块石板碎片，打开第1箱。",
+      "fields": {
+        "条件": "向遗忘宫殿公主累计提交3块石板碎片，打开第1箱。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 1,
+      "spoiler": false
+    },
+    {
+      "id": "achievement-18",
+      "category": "achievements",
+      "title": "公主第二段记忆",
+      "en": "Memento",
+      "summary": "向遗忘宫殿公主累计提交60块石板碎片。",
+      "fields": {
+        "条件": "向遗忘宫殿公主累计提交60块石板碎片。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 5,
+      "spoiler": true
+    },
+    {
+      "id": "achievement-19",
+      "category": "achievements",
+      "title": "累计消费十万",
+      "en": "Gil Comes and Goes",
+      "summary": "累计花费100,000吉尔。",
+      "fields": {
+        "条件": "累计花费100,000吉尔。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 1,
+      "spoiler": false
+    },
+    {
+      "id": "achievement-20",
+      "category": "achievements",
+      "title": "累计收入百万",
+      "en": "Making Lid Proud",
+      "summary": "累计获得1,000,000吉尔，不要求同时持有。",
+      "fields": {
+        "条件": "累计获得1,000,000吉尔，不要求同时持有。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 1,
+      "spoiler": false
+    },
+    {
+      "id": "achievement-21",
+      "category": "achievements",
+      "title": "首位洞窟之主",
+      "en": "Magicite Hunter",
+      "summary": "击败任意1名洞窟之主。",
+      "fields": {
+        "条件": "击败任意1名洞窟之主。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 1,
+      "spoiler": false
+    },
+    {
+      "id": "achievement-22",
+      "category": "achievements",
+      "title": "五位洞窟之主",
+      "en": "The Bigger They Are…",
+      "summary": "累计击败5名洞窟之主。",
+      "fields": {
+        "条件": "累计击败5名洞窟之主。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 4,
+      "spoiler": false
+    },
+    {
+      "id": "achievement-23",
+      "category": "achievements",
+      "title": "全洞窟之主",
+      "en": "The Harder They Fall",
+      "summary": "击败全部15名洞窟之主。",
+      "fields": {
+        "条件": "击败全部15名洞窟之主。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 8,
+      "spoiler": true
+    },
+    {
+      "id": "achievement-24",
+      "category": "achievements",
+      "title": "金币龟初战",
+      "en": "Struck Gold",
+      "summary": "击败 King Gil Snapper。",
+      "fields": {
+        "条件": "击败 King Gil Snapper。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 8,
+      "spoiler": true
+    },
+    {
+      "id": "achievement-25",
+      "category": "achievements",
+      "title": "首把专属武器",
+      "en": "The Weapon that Suits the User",
+      "summary": "请艾琳打造任意1把队员专属武器。",
+      "fields": {
+        "条件": "请艾琳打造任意1把队员专属武器。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 6,
+      "spoiler": true
+    },
+    {
+      "id": "achievement-26",
+      "category": "achievements",
+      "title": "全队专属武器",
+      "en": "The Weaponsmith",
+      "summary": "给全部8名队员打造专属武器；总计8块精金。",
+      "fields": {
+        "条件": "给全部8名队员打造专属武器；总计8块精金。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 8,
+      "spoiler": true
+    },
+    {
+      "id": "achievement-27",
+      "category": "achievements",
+      "title": "首件传奇武具",
+      "en": "Ancient Artifact",
+      "summary": "完成1个武具之间试炼，解放任意古代装备。",
+      "fields": {
+        "条件": "完成1个武具之间试炼，解放任意古代装备。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 5,
+      "spoiler": true
+    },
+    {
+      "id": "achievement-28",
+      "category": "achievements",
+      "title": "全传奇武具",
+      "en": "Legendary Arms",
+      "summary": "完成全部12件古代装备的首次解放；不要求+版本。",
+      "fields": {
+        "条件": "完成全部12件古代装备的首次解放；不要求+版本。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 8,
+      "spoiler": true
+    },
+    {
+      "id": "achievement-29",
+      "category": "achievements",
+      "title": "金属巨型仙人掌初战",
+      "en": "Priceless Experience",
+      "summary": "击败 Metal Gigantuar。",
+      "fields": {
+        "条件": "击败 Metal Gigantuar。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 8,
+      "spoiler": true
+    },
+    {
+      "id": "achievement-30",
+      "category": "achievements",
+      "title": "首次MR满级",
+      "en": "The First Step Towards Mastery",
+      "summary": "任意幻兵在1名队员身上达到MR9。",
+      "fields": {
+        "条件": "任意幻兵在1名队员身上达到MR9。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 1,
+      "spoiler": false
+    },
+    {
+      "id": "achievement-31",
+      "category": "achievements",
+      "title": "首次满星觉醒",
+      "en": "Awakened Light",
+      "summary": "任意幻兵觉醒至3星。",
+      "fields": {
+        "条件": "任意幻兵觉醒至3星。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 5,
+      "spoiler": true
+    },
+    {
+      "id": "achievement-32",
+      "category": "achievements",
+      "title": "十名幻兵",
+      "en": "Visions Assemble",
+      "summary": "解锁10名幻兵。",
+      "fields": {
+        "条件": "解锁10名幻兵。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 3,
+      "spoiler": false
+    },
+    {
+      "id": "achievement-33",
+      "category": "achievements",
+      "title": "全部幻兵",
+      "en": "Will Crystallized",
+      "summary": "解锁全部26名幻兵。",
+      "fields": {
+        "条件": "解锁全部26名幻兵。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 7,
+      "spoiler": true
+    },
+    {
+      "id": "achievement-34",
+      "category": "achievements",
+      "title": "八名幻兵MR满级",
+      "en": "Vision Connoisseur",
+      "summary": "累计8名幻兵达到最高MR9。",
+      "fields": {
+        "条件": "累计8名幻兵达到最高MR9。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 8,
+      "spoiler": true
+    },
+    {
+      "id": "achievement-35",
+      "category": "achievements",
+      "title": "三只召唤兽",
+      "en": "Esper’s Covenant",
+      "summary": "获得3只召唤兽。",
+      "fields": {
+        "条件": "获得3只召唤兽。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 3,
+      "spoiler": false
+    },
+    {
+      "id": "achievement-36",
+      "category": "achievements",
+      "title": "全召唤兽",
+      "en": "The Sovereigns of the Planet",
+      "summary": "获得全部9只召唤兽。",
+      "fields": {
+        "条件": "获得全部9只召唤兽。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 7,
+      "spoiler": true
+    },
+    {
+      "id": "achievement-37",
+      "category": "achievements",
+      "title": "千次击破",
+      "en": "Keep Them on Their Toes",
+      "summary": "累计击破敌人1,000次。",
+      "fields": {
+        "条件": "累计击破敌人1,000次。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 1,
+      "spoiler": false
+    },
+    {
+      "id": "achievement-38",
+      "category": "achievements",
+      "title": "四百次共鸣",
+      "en": "Resonance Rapid Fire",
+      "summary": "累计发动共鸣400次。",
+      "fields": {
+        "条件": "累计发动共鸣400次。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 1,
+      "spoiler": false
+    },
+    {
+      "id": "achievement-39",
+      "category": "achievements",
+      "title": "梅卡博最终形态",
+      "en": "Mechabo Mania",
+      "summary": "完成梅卡博升级链并升级至最终形态。",
+      "fields": {
+        "条件": "完成梅卡博升级链并升级至最终形态。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 6,
+      "spoiler": true
+    },
+    {
+      "id": "achievement-40",
+      "category": "achievements",
+      "title": "究极兵器",
+      "en": "My Name Is Ultima…",
+      "summary": "通关后击败 Ultima Weapon。",
+      "fields": {
+        "条件": "通关后击败 Ultima Weapon。",
+        "名称说明": "英文为来源奖杯名称；中文使用说明性标题，非全部经过游戏本地化文本核验"
+      },
+      "steps": [],
+      "sourceIds": [
+        "pp-trophies"
+      ],
+      "tags": [
+        "奖杯",
+        "成就",
+        "白金"
+      ],
+      "chapter": 8,
+      "spoiler": true
+    },
+    {
+      "id": "walkthrough-chapter-1",
+      "category": "guide",
+      "title": "第一章 · 土之神殿到塞壬之塔",
+      "en": "Tailing the Truth",
+      "summary": "格兰谢尔特→米特拉→科尔→费利西塔斯→科洛波斯遗迹→大港口→塞壬之塔",
+      "fields": {
+        "路线": "格兰谢尔特→米特拉→科尔→费利西塔斯→科洛波斯遗迹→大港口→塞壬之塔",
+        "覆盖": "完整主线关键目标＋已核验机关与顺路收集；不承诺覆盖全部宝箱或限时对话",
+        "阅读方式": "【主线】必须推进；【顺路/可选】可稍后返回；Boss名和结局会剧透",
+        "编号提醒": "正文按地点索引；各攻略石板编号不同，不跨来源混用"
+      },
+      "steps": [
+        "【主线】完成序章3场教学；最后的铁巨人战等巴哈姆特百万核爆结束。序章没有需要回头搜的收集品。",
+        "【主线】出王城前往土之神殿。开场选择分别给雷因力量+3、体力+3或精神+3。",
+        "【主线】神殿入口可回复和买药；进深处前先检查存档点台阶旁支路宝箱，Boss Belmodar用火属性击破。",
+        "【主线】去米特拉镇北侧蓝屋顶的雷因家，调查里侧门；床边柜有200吉尔。剧情后取得莉亚与特隆。",
+        "【主线】返回格兰谢尔特，按事件路线登城；夏洛特临时参战。Hell’s Rider战先处理随从，准备解毒。",
+        "【主线】王座厅Umbra是剧情败北战；若伤害突然无法推进，不必重开刷级。",
+        "【顺路】王都商业区木箱旁拿石板；出城后菲娜加入并开放已访问地点的快速旅行。",
+        "【主线】前往科尔村住旅馆，次日找陆行鸟管理员。骑陆行鸟可越过沙漠蚁狮漩涡，不必硬打Lv20蚁狮。",
+        "【顺路】科尔西北圣域取光之战士；沙漠西北取克劳德；费利西塔斯西南圣域取蒂娜。",
+        "【顺路】科尔池旁、费利西塔斯两处与大港口两处石板可先收；遗忘宫殿用于累计石板换宝箱。",
+        "【主线】到费利西塔斯触发事件；下一站是东南的科洛波斯遗迹。",
+        "【主线】遗迹沿路处理幽鬼兵；断桥事件后爬回上层，顺手检查双圆柱与倒柱旁石板。",
+        "【Boss】The Hunger有复活阶段：初形态用冰，复活后的Ver2改用光；注意它重新召出的幽鬼兵。",
+        "【主线】回大港口找南栈桥船长；按事件要求转去北侧塞壬之塔。过早到塔时无法推进，是缺此剧情前置。",
+        "【主线】塔内沿楼梯和升降机上行；遇黄色壶用Ether喂它换MRP，宝箱吉尔伽美什为事件战。",
+        "【顺路】塔内共有3块石板；顶部存档点先回复再踏入绿色传送门。",
+        "【Boss】塞壬弱雷且会魅惑；给菲娜优先装Monk’s Prayer Beads，克劳德/特隆提供雷攻击。",
+        "【主线】战胜后获得塞壬；返回大港口完成觉醒教学，准备好再找船长出航结束本章。"
+      ],
+      "sourceIds": [
+        "appmedia-ch1",
+        "rpg-walkthrough",
+        "pp-shards"
+      ],
+      "chapter": 1,
+      "spoiler": true,
+      "tags": [
+        "主线",
+        "流程",
+        "章节攻略"
+      ]
+    },
+    {
+      "id": "walkthrough-chapter-2",
+      "category": "guide",
+      "title": "第二章 · 迪尔纳多与风之神殿",
+      "en": "Eternal Blue",
+      "summary": "迪尔玛吉亚→雷鸣山→矮人熔炉→莫布利兹船坞→风之神殿",
+      "fields": {
+        "路线": "迪尔玛吉亚→雷鸣山→矮人熔炉→莫布利兹船坞→风之神殿",
+        "覆盖": "完整主线关键目标＋已核验机关与顺路收集；不承诺覆盖全部宝箱或限时对话",
+        "阅读方式": "【主线】必须推进；【顺路/可选】可稍后返回；Boss名和结局会剧透",
+        "编号提醒": "正文按地点索引；各攻略石板编号不同，不跨来源混用"
+      },
+      "steps": [
+        "【主线】新大陆向西进入迪尔玛吉亚，询问3名标记NPC，再去船坞北部触发事件让莉德加入。",
+        "【顺路】市区2块、船坞2块石板；道具店后隐藏路有Insulated Gloves。蓝发女子的Elven Maven可顺路接取。",
+        "【主线】去东北雷鸣山。入口支付1000吉尔可开捷径，但两条路线都各有石板，最终仍需两边查漏。",
+        "【主线】困难路线调查黄树推进Elven Maven；尽头Liquid Thunder弱土，提前备好土技能。",
+        "【顺路】走回世界地图后访问吉坦圣域；吉坦能提供偷窃能力。",
+        "【可选】从吉坦圣域一带绕回雷鸣山上层入口，取该处石板并调查墓碑；拉姆弱土，打不过可之后回来。",
+        "【主线】沿路到矮人熔炉，找Borin；桥边Silvia可完成先前支线。",
+        "【Boss】炸弹之母低血时锁血并爆炸，转成4只大炸弹；这是机制阶段，不是伤害失效Bug。",
+        "【顺路】矮人熔炉西南尽头及Boss区南侧各1石板。洋葱剑士、诺克提斯圣域可在大陆探索时解锁。",
+        "【主线】去莫布利兹船坞救人，事件战后先拿西侧石板，再坐第一部升降机。",
+        "【机关】第一升降机后进东侧发电机围栏区，按发光开关启用中央升降机；东南下梯有另一块石板。",
+        "【机关】中央升降机上层继续按东北开关，沿主路触发事件后原路逃脱；莉德打开东南门后拉16号拉杆。",
+        "【Boss】Adrastea弱水、雷；完成事件后返回矮人熔炉。",
+        "【顺路】矮人熔炉自动接Arise, Mechabo!；外面打Ipooh取2块Dynamo Stone修理梅卡博。",
+        "【主线】风之神殿现在可以推进。按水晶机关乘平台下降；楼梯旁与平台侧各检查石板。",
+        "【顺路】绿壶需要Mist Ether；不要把途中拾到的这件道具全部用光。",
+        "【Boss】天风之维利亚斯/Aether弱冰。战后回迪尔玛吉亚，沿飞空艇事件前往奥尔德里昂。"
+      ],
+      "sourceIds": [
+        "appmedia-ch2",
+        "rpg-walkthrough",
+        "pp-shards"
+      ],
+      "chapter": 2,
+      "spoiler": true,
+      "tags": [
+        "主线",
+        "流程",
+        "章节攻略"
+      ]
+    },
+    {
+      "id": "walkthrough-chapter-3",
+      "category": "guide",
+      "title": "第三章 · 水都与水之神殿",
+      "en": "Wardens of the Aquapolis",
+      "summary": "奥尔德里昂→水之洞窟→旧市街→多尔湖→瀑布小径→水之神殿",
+      "fields": {
+        "路线": "奥尔德里昂→水之洞窟→旧市街→多尔湖→瀑布小径→水之神殿",
+        "覆盖": "完整主线关键目标＋已核验机关与顺路收集；不承诺覆盖全部宝箱或限时对话",
+        "阅读方式": "【主线】必须推进；【顺路/可选】可稍后返回；Boss名和结局会剧透",
+        "编号提醒": "正文按地点索引；各攻略石板编号不同，不跨来源混用"
+      },
+      "steps": [
+        "【顺路】大陆南部可解锁菲利奥尼尔；红玉洞窟读墓碑激活卡邦库尔谜题，三碎片按收集条目顺序取。",
+        "【顺路】斯考尔与提达圣域均在奥尔德里昂；三块红玉集齐后回洞窟，卡邦库尔无需战斗。",
+        "【主线】进入奥尔德里昂水都，与3名标记NPC交谈；城内4块石板分布在入口游船、双石像池、东北桥和北树后。",
+        "【主线】从城东北进入水之洞窟，尼科尔加入。乘船区先按东北开关，再通过船与机关开路。",
+        "【机关】后段按东北开关后坐船；西北支路可查宝箱，主线走中北出口。拿到第二块洞窟石板后踢下捷径梯。",
+        "【Boss】存档后战Wave Lopros，弱冰；获胜回水都。",
+        "【主线】调查3处受污染水点，剧情进入旧市街；此段拉斯韦尔与尼科尔暂时离队，先确认剩余角色恢复手段。",
+        "【Boss】旧市街连续事件战后打水龙，使用雷属性；之后重新回水之洞窟开放的隐藏路线。",
+        "【主线】新路线爬梯可取洞窟第3块石板，穿过后去多尔湖；利维亚桑主线战弱雷。此战并不等于立即获得可装备召唤兽。",
+        "【主线】回水都住旅馆，随后去城西的瀑布小径；按祭坛事件继续。",
+        "【顺路】瀑布小径3块石板；末端西北瀑布后隐藏路有Guardian Sword。",
+        "【主线】从小径东出口去北侧阿莫尔镇，更新装备与幻兵；井旁与道具店北树边各1石板。",
+        "【主线】前往水之神殿，首段用船穿瀑布可先拿宝箱，再回入口沿东南梯下降。",
+        "【机关】低层东侧先按机关、推箱，再按左→右→左开隐藏室；继续降水位，乘船够到中央大机关。",
+        "【顺路】神殿3块石板分别在北梯、绿壶阳台东北平台、后段长梯左侧。绿壶仍需要Mist Ether。",
+        "【Boss】水华之维利亚斯/Alluvion弱雷。回水都完成剧情，再乘船去佐尔达德。"
+      ],
+      "sourceIds": [
+        "appmedia-ch3",
+        "rpg-walkthrough",
+        "pp-shards"
+      ],
+      "chapter": 3,
+      "spoiler": true,
+      "tags": [
+        "主线",
+        "流程",
+        "章节攻略"
+      ]
+    },
+    {
+      "id": "walkthrough-chapter-4",
+      "category": "guide",
+      "title": "第四章 · 佐尔达德帝国",
+      "en": "Banner Oath",
+      "summary": "摩组尔站→帝都→地下通道→反抗军据点→兵器工厂→地牢→城堡",
+      "fields": {
+        "路线": "摩组尔站→帝都→地下通道→反抗军据点→兵器工厂→地牢→城堡",
+        "覆盖": "完整主线关键目标＋已核验机关与顺路收集；不承诺覆盖全部宝箱或限时对话",
+        "阅读方式": "【主线】必须推进；【顺路/可选】可稍后返回；Boss名和结局会剧透",
+        "编号提醒": "正文按地点索引；各攻略石板编号不同，不跨来源混用"
+      },
+      "steps": [
+        "【主线】进入摩组尔站，拿西南角石板后向北找NPC上车；列车段一路向右撤离帝国士兵。",
+        "【顺路】世界地图可解锁香托托、塞西尔与雅·修特拉；帝都前站东侧有石板。高等级洞窟可只登记传送点。",
+        "【可选】王都斗技场已开放；初阶第2战给精金，第3战给古老大剑，第5战给Gaia Hammer，可用于泰坦封印。",
+        "【主线】进入帝都依次按任务标记收集情报；商店、住宅区、贫民区都可顺路查漏石板。",
+        "【主线】在帝国旅馆小巷与队友会合，通过地下通道前往反抗军据点。",
+        "【顺路】地下通道两处隐藏石板及红壶；红壶要Turbo Ether。不要把这些与后续地牢混成同一区。",
+        "【主线】据点询问士兵、与杰克对话，剧情后杰克加入；住旅馆再去兵器工厂。",
+        "【Boss】工厂开场Ignis为事件战，数回合后结束；先保存补给，之后还有真正战斗。",
+        "【机关】工厂西路上坡按开关；下梯再按机关，爬两梯向东操作，沿新路径按大开关并放下捷径梯。",
+        "【机关】回入口东路，经升起的桥去西北大开关；存档点旁长梯上，用3个水晶开关连接平台。",
+        "【顺路】两块工厂石板，一块在西北机关侧，另一块在三开关区；左开关转3次可接石板路线。",
+        "【Boss】主桥事件战后真正对战Ignis，弱水；战后回据点找杰克。",
+        "【主线】再次从帝都地下通道入城，进入地牢后先走中央楼梯。",
+        "【机关】地牢北行再向西击败士兵取Dungeon Key；拿钥匙后折回开牢房，救出任务目标。",
+        "【顺路】地牢两处石板要拿钥匙后才能进牢房取得；其他牢房可取Pulse Cannon与回复品。",
+        "【主线】进入佐尔达德城堡，按钥匙与王座厅目标推进；留意左马像后、右走廊首室的两块石板。",
+        "【Boss】王座厅击败佐尔达德皇帝后登顶立旗，随后是Evan事件战。",
+        "【Boss】最终战Lazarov弱土；其召唤的The Hunger v5弱光，按当前敌人分别选择攻击。",
+        "【主线】事件后取得飞空艇；飞行时可进入甲板和船舱，不必一直留在世界地图驾驶状态。",
+        "【下一章前】此时可补艾琳、卡米尔、威廉等支线与克莱夫圣域；继续主线需在法姆东南海域用雷达寻找米西迪亚。"
+      ],
+      "sourceIds": [
+        "appmedia-ch4",
+        "rpg-walkthrough",
+        "pp-shards"
+      ],
+      "chapter": 4,
+      "spoiler": true,
+      "tags": [
+        "主线",
+        "流程",
+        "章节攻略"
+      ]
+    },
+    {
+      "id": "walkthrough-chapter-5",
+      "category": "guide",
+      "title": "第五章 · 米西迪亚与精神世界",
+      "en": "Scars of Time",
+      "summary": "米西迪亚→苏尼奥村→无名遗迹→奥秘图书馆→精神世界→米西迪亚之塔",
+      "fields": {
+        "路线": "米西迪亚→苏尼奥村→无名遗迹→奥秘图书馆→精神世界→米西迪亚之塔",
+        "覆盖": "完整主线关键目标＋已核验机关与顺路收集；不承诺覆盖全部宝箱或限时对话",
+        "阅读方式": "【主线】必须推进；【顺路/可选】可稍后返回；Boss名和结局会剧透",
+        "编号提醒": "正文按地点索引；各攻略石板编号不同，不跨来源混用"
+      },
+      "steps": [
+        "【主线】飞到法姆南侧偏东海面，用雷达脉冲寻找隐藏的米西迪亚；莉德会提示距离。",
+        "【主线】米西迪亚进入樱的家，樱加入；再去药剂工厂看事件，通过工厂西北路线进奥秘图书馆。",
+        "【顺路】城内3块石板；传送晶体可切换商店区与药剂工厂。可做三轮莫古利捉迷藏拿魔石。",
+        "【主线】图书馆初次来只能探索部分区域：入口书桌间的石板可拿，最终区域要等无名遗迹之后。",
+        "【顺路】大陆南/北/西圣域分别可取雷光、巴兹、梵；西岛暴风雪中可战希瓦，弱火。",
+        "【主线】飞向苏尼奥村任务点，先打Slagworm，弱风。村内入口及东北冰屋雪人边有石板。",
+        "【主线】与村中标记NPC交谈后前往无名遗迹。",
+        "【机关】遗迹先处理2名仆从，再推进王土之维利亚斯事件；这次Tellus战会在击杀前因剧情结束。",
+        "【顺路】遗迹首室最西倒柱与第二区存档点南侧各1石板；完成后可回末室取Impact Wand。",
+        "【主线】返回奥秘图书馆，消灭地图上5个任务标记的Monster Tome，解锁蓝色传送装置。",
+        "【顺路】末室书架互动前，先爬东侧梯绕阳台拿另一块石板；这块在剧情前拿不到。",
+        "【Boss】Byblos弱暗与火；战后进入菲娜精神世界Ⅰ。",
+        "【主线】精神世界Ⅰ没有普通战斗，追随菲娜向西，依次触发营地与大锁门事件；可用书返回现实。",
+        "【顺路】精神世界Ⅰ有3块石板：锁门链条下、最西帐篷木箱边、第三西侧区域末端。",
+        "【主线】回现实后去米西迪亚之塔，沿盘旋楼梯一直上行；塔内4块石板不要漏。",
+        "【准备】顶层先搜柱后的Guarding Gown再进入精神世界Ⅱ；本段菲娜再次暂离且开始有战斗。",
+        "【主线】精神世界Ⅱ向东再向北，过魔界花战后前往营地，和八杰逐一交谈；再回锁门处。",
+        "【顺路】第二精神世界北部营地右下补给后有石板；沿路花朵是后续主线交互点。",
+        "【Boss】战魔人菲娜（弱光/水），随后她加入；再战Tellus（弱风）。",
+        "【主线】回樱家结束本章事件；现在全8名队员齐备，下一目的地是格罗诺亚大陆。"
+      ],
+      "sourceIds": [
+        "appmedia-ch5",
+        "rpg-walkthrough",
+        "pp-shards"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "tags": [
+        "主线",
+        "流程",
+        "章节攻略"
+      ]
+    },
+    {
+      "id": "walkthrough-chapter-6",
+      "category": "guide",
+      "title": "第六章 · 格罗诺亚与至圣殿",
+      "en": "Tranquility",
+      "summary": "加贝拉达→研究中心遗迹→崎岖山道→格罗诺亚神殿→至圣殿",
+      "fields": {
+        "路线": "加贝拉达→研究中心遗迹→崎岖山道→格罗诺亚神殿→至圣殿",
+        "覆盖": "完整主线关键目标＋已核验机关与顺路收集；不承诺覆盖全部宝箱或限时对话",
+        "阅读方式": "【主线】必须推进；【顺路/可选】可稍后返回；Boss名和结局会剧透",
+        "编号提醒": "正文按地点索引；各攻略石板编号不同，不跨来源混用"
+      },
+      "steps": [
+        "【主线】在格罗诺亚南部半岛降落，向北进入地下镇加贝拉达，找西北屋内长老了解瘴气。",
+        "【顺路】旅馆后隐藏路找男子拿Magi-tenna，回飞空艇找莉德升级雷达；西北屋旁有石板。",
+        "【功能】第六章开始，已做艾琳支线的存档可在甲板消耗精金打造专武；不是只拿到艾琳幻兵就立刻能锻造。",
+        "【主线】进入研究中心遗迹，首室取1级门禁卡，走西侧路径。",
+        "【机关】西路通过写字桌绿传送器房，找到三终端房并全部开启；这两室各有1石板。",
+        "【机关】获得2级卡后走入口东路传送区；分岔右→左→右可拿Fortress Gear，之后回走左路上长梯。",
+        "【顺路】上层右栈桥拿石板，紫壶需要X-Ether；取得3级卡再从首室向北走。",
+        "【主线】遗迹深处获得White Jade Stone，回加贝拉达交任务；菲娜学会Holy后可清瘴气。",
+        "【主线】越过瘴气后走西侧崎岖山道，沿主线查宝箱，精金就在山道路径上。",
+        "【顺路】山道两块石板分布于第一存档点西枯树下、第二存档点东下坡角落。",
+        "【Boss】山道Lux弱暗；战后剧情把队伍带到达格尔镇，镇北瀑布后有石板。",
+        "【可选】剑雨石碑调查拿Broken Sword Hilt，推进Iron Splitter；奥丁分支需要后续Odin’s Shadow战与断刃。",
+        "【主线】去格罗诺亚神殿，岔路梯与倒柱后共3块石板；Elfdrit弱光/火。",
+        "【主线】离开神殿向东进入至圣殿。这里是连续试炼，先准备覆盖多属性、回复与复活。",
+        "【试炼】Archaroaevis会换弱点；Dad Bomb弱火；Test Rider弱光/土。",
+        "【试炼】Yakhanati弱暗/风但轮换物理与魔法无效阶段，按当前状态切攻击类型。",
+        "【试炼】两只Arch Gargoyle弱光/风，尽量同回合击败；随后Dragon弱雷。",
+        "【顺路】第二存档点北横室，梯后火把暗路可取紫壶和石板；升降机室第3部后、第4部前还有1块。",
+        "【主线】事件战后雷因学会The Power Within，接着打Gelidus，弱火。",
+        "【下一章】回飞空艇补给并确认第七章商店更新，向法姆南侧的大龙卷风飞行。"
+      ],
+      "sourceIds": [
+        "appmedia-ch6",
+        "rpg-walkthrough",
+        "pp-shards"
+      ],
+      "chapter": 6,
+      "spoiler": true,
+      "tags": [
+        "主线",
+        "流程",
+        "章节攻略"
+      ]
+    },
+    {
+      "id": "walkthrough-chapter-7",
+      "category": "guide",
+      "title": "第七章 · 法姆与流浪之地",
+      "en": "Reckoning",
+      "summary": "法姆龙卷风→西安镇→雷山→流星湖→森林小径→流浪之地",
+      "fields": {
+        "路线": "法姆龙卷风→西安镇→雷山→流星湖→森林小径→流浪之地",
+        "覆盖": "完整主线关键目标＋已核验机关与顺路收集；不承诺覆盖全部宝箱或限时对话",
+        "阅读方式": "【主线】必须推进；【顺路/可选】可稍后返回；Boss名和结局会剧透",
+        "编号提醒": "正文按地点索引；各攻略石板编号不同，不跨来源混用"
+      },
+      "steps": [
+        "【主线】接近法姆南部龙卷风触发Aether战，弱冰；胜利后去西安镇。",
+        "【主线】西安镇入口剧情后向北找彩花收集情报，下一站是雷山。",
+        "【顺路】与彩花再次交谈可接The Admirable Apprentice，需回瀑布小径、Infernal Hollow与雷鸣山等地点。",
+        "【顺路】大港口码头夏洛特支线现在开放；王都→科洛波斯遗迹→剑之洞窟→回夏洛特，可获得其幻兵。",
+        "【主线】雷山首存档点后坡道交叉口先走下坡拿石板，再回主线；双木桥间还有第2块。",
+        "【功能】雷山宝箱取Resonance Stone，回飞空艇找莉德后可开第二级寻宝。它不是第三级High-Power Generator。",
+        "【Boss】雷山先战Ignis，弱水；继续推进后战Alluvion，弱雷。",
+        "【顺路】战后到流星湖，西侧树下有1块石板。至此累计89块可拿遗忘宫殿最后一块精金。",
+        "【可选】在甲板与Evan交谈可挑战巴哈姆特；注意其频繁状态攻击，获胜获得召唤兽。",
+        "【主线】回法姆按任务标记进入森林小径，第一屏弯道拿石板。",
+        "【Boss】森林存档点后战Tellus，弱风；剧情后可回头拿第二存档点西南死路的另一石板。",
+        "【主线】前往流浪之地；第二屏首个东死路有Silver Key，左路与剧情后的石堆间各1石板。",
+        "【准备】接近末端存档点先拿Elixir、恢复并存档，准备光属性攻击。",
+        "【Boss】Umbra弱光，获胜后的一连串剧情结束本章。",
+        "【下一章】飞空艇前往新出现的水晶塔；进入最终传送点之前仍可离开补齐支线和装备。"
+      ],
+      "sourceIds": [
+        "appmedia-ch7",
+        "rpg-walkthrough",
+        "pp-shards"
+      ],
+      "chapter": 7,
+      "spoiler": true,
+      "tags": [
+        "主线",
+        "流程",
+        "章节攻略"
+      ]
+    },
+    {
+      "id": "walkthrough-chapter-8",
+      "category": "guide",
+      "title": "第八章 · 水晶塔与最终战",
+      "en": "Beyond Hope",
+      "summary": "水晶塔入口→中层→透明桥上层→Sol→混沌之暗→结局",
+      "fields": {
+        "路线": "水晶塔入口→中层→透明桥上层→Sol→混沌之暗→结局",
+        "覆盖": "完整主线关键目标＋已核验机关与顺路收集；不承诺覆盖全部宝箱或限时对话",
+        "阅读方式": "【主线】必须推进；【顺路/可选】可稍后返回；Boss名和结局会剧透",
+        "编号提醒": "正文按地点索引；各攻略石板编号不同，不跨来源混用"
+      },
+      "steps": [
+        "【准备】先更新全8名队友装备；最终战会用到替补，至少准备光、风、土与回复手段。",
+        "【主线】飞空艇进入水晶塔，沿入口区主路向上；首段两次岔路查石板与武器宝箱。",
+        "【战斗】存档点后是Dante与Specter；二者都有光弱点，可先用全体光清随从。",
+        "【顺路】继续爬塔，存档点左侧长通道可开放中层飞空艇停靠点，方便离塔补给。",
+        "【顺路】中层入口附近存档点旁拿Ancient Katana，这是12件古代装备的最后一件原型。",
+        "【Boss】Behemoth弱光/风，但开局暂时无法有效伤害；等待友方剧情援护解除魔法/物理限制，按开放类型攻击。",
+        "【机关】中层到上层是靠近才显现的透明桥。到第3处实体平台后向北再向西，支路有本塔第3块石板。",
+        "【顺路】透明桥末存档点前右侧可开上层停靠点；先回甲板补给、整理幻兵与继承技能。",
+        "【关键节点】上层存档点旁最终传送装置是本次结局段的不可返回点；在此另留手动档再进入。",
+        "【Boss】Sol本体弱暗，Dark Bahamut随从弱光。集中压本体同时用削击破的攻击控制随从，避免百万核爆。",
+        "【主线】继续上螺旋通道，途中商店与存档室必须检查；再上顶层开始最终战。",
+        "【最终战Ⅰ】混沌之暗本体弱光，右手弱土、左手弱风；按目标分别安排属性输出。",
+        "【最终战Ⅱ】先清融合怪物再打本体。Last Resonance使用者会离开本次战斗，由替补加入，尽量保留到需要换人或压本体时。",
+        "【结局】后续雷因与Sol单挑为事件战；观看结局并保存通关数据。",
+        "【通关后】载入通关档回到最终战前的世界，飞空艇会提示Ardra出现反应，可继续挑战究极兵器与其余收集。"
+      ],
+      "sourceIds": [
+        "appmedia-ch8",
+        "rpg-walkthrough",
+        "pp-shards"
+      ],
+      "chapter": 8,
+      "spoiler": true,
+      "tags": [
+        "主线",
+        "流程",
+        "章节攻略"
+      ]
+    },
+    {
+      "id": "guide-sephiroth-phases",
+      "category": "guide",
+      "title": "萨菲罗斯 · 三阶段怎样处理",
+      "en": "Sephiroth Phase Guide",
+      "summary": "反击姿态、属性变化与末段倒计时，分别需要不同应对。",
+      "fields": {
+        "地点": "Whirlpool Hollow；获得飞空艇后可访问",
+        "适用": "正式版；AppMedia包含Expert实战。阶段比例来自攻略观察，不是最低等级要求"
+      },
+      "steps": [
+        "【准备】角色分工先保留承伤者、主输出、支援与回复；若照抄反射打法，需要Reflect Ring、对应免疫与物品恢复，不能只装一件饰品就套用。",
+        "【100%–80%】Masamune in Waiting/正宗姿态持续2回合，物理无效；结束后有1回合物理窗口，提前准备增益再集中输出。",
+        "【80%–20%】属性强化会改弱点与抗性；按本轮状态换属性，避免无属性反击。攻略指出光属性此阶段保持等倍且不触发该反击。",
+        "【恢复节点】Heartless Angel可使全队HP到1。全体掩护能集中承伤，其余角色留恢复/复活动作，不要四人全押输出。",
+        "【20%以下】光成为固定弱点，倒计时结束全体99999伤害且无法靠Reraise挽救；应把光输出、LB与爆发资源留给此段。",
+        "【失败检查】若是倒计时耗尽，重点改善末段输出窗口；若是中段崩盘，先检查掩护、属性、回复顺序与资源。"
+      ],
+      "sourceIds": [
+        "appmedia-sephiroth",
+        "rpg-walkthrough"
+      ],
+      "chapter": 5,
+      "spoiler": true,
+      "tags": [
+        "Boss",
+        "萨菲罗斯",
+        "分阶段",
+        "配队"
+      ]
+    },
+    {
+      "id": "guide-ultima-modes",
+      "category": "guide",
+      "title": "究极兵器 · 四模式弱点与生存",
+      "en": "Ultima Weapon Modes",
+      "summary": "弱点随模式改变，不能把不同形态的元素合并成同时弱点。",
+      "fields": {
+        "地点": "Ardra Crater；通关档载入后有提示",
+        "等级/HP": "PowerPyx：Lv70，3,900,000HP",
+        "模式速查": "Inferno风/水；Keraunos冰/土；Cocytus火/光；Nemea雷/风"
+      },
+      "steps": [
+        "【准备】带Dispel与Protectga/Shellga，优先削击破而非仅堆HP伤害；麻痹、失明在攻略列为可生效。",
+        "【Inferno】弱风/水，火/土减半，偏物理；出现Bravery先驱散，维持Protectga。",
+        "【Keraunos】弱冰/土，雷/风减半，物理带异常；保护关键角色免受麻痹、沉默和失明影响。",
+        "【Cocytus】弱火/光，冰/暗减半，偏黑魔法；驱散Faith并维持Shellga。",
+        "【Nemea】弱雷/风，水/光减半，会清我方增益并自疗；可借机恢复，但不要放任连续治疗，尽快击破。",
+        "【危险技】Ultima Beam是穿透反射的强力全体魔法；优先在出手前击破，否则考虑掩护+Reraise或樱的防护LB。",
+        "【资源】PowerPyx实战用彩花系回复者先给全队Reraise，再轮流治疗、减伤、驱散；双施法Ultima是该作者的一种输出方案，并非唯一解。"
+      ],
+      "sourceIds": [
+        "appmedia-ultima",
+        "pp-trophies"
+      ],
+      "chapter": 8,
+      "spoiler": true,
+      "tags": [
+        "Boss",
+        "究极兵器",
+        "弱点",
+        "模式"
+      ]
+    },
+    {
+      "id": "guide-final-boss-practical",
+      "category": "guide",
+      "title": "最终战 · 部位弱点与替补安排",
+      "en": "Final Boss Preparation",
+      "summary": "最终战需要按部位分配属性，并控制Last Resonance的换人时机。",
+      "fields": {
+        "前置": "水晶塔上层最终传送点后",
+        "不可返回点": "本次结局段不能回飞空艇；通关存档可回到结局前继续"
+      },
+      "steps": [
+        "【入场前】给全8人配装备，主队至少1名光输出、2名覆盖其他属性的输出、1名回复；替补补上土和光。",
+        "【Sol】本体暗弱，Dark Bahamut光弱。尽快削本体HP，同时用击破控制随从危险行动。",
+        "【第一战】混沌之暗本体光、右手土、左手风。选择攻击前确认选中的是哪个部位。",
+        "【第二战】前半先清融合怪，不要为了低血斩杀效果过早耗尽所有Last Resonance。",
+        "【换人】Last Resonance触发后使用者退出，替补补位；给本体阶段保留能接续输出/回复的替补。",
+        "【完成后】保存通关数据，载入后可继续世界地图探索，并解锁Ardra反应提示。"
+      ],
+      "sourceIds": [
+        "appmedia-ch8",
+        "rpg-walkthrough"
+      ],
+      "chapter": 8,
+      "spoiler": true,
+      "tags": [
+        "Boss",
+        "最终战",
+        "替补",
+        "Last Resonance"
+      ]
+    },
+    {
+      "id": "guide-radar-order",
+      "category": "guide",
+      "title": "雷达三级强化 · 为什么扫不到宝",
+      "en": "Mysidia Radar Progression",
+      "summary": "先按阶段解锁，再依序取宝；只去正确海湾还不够。",
+      "fields": {
+        "一级": "第6章Magi-tenna / 魔导天线",
+        "二级": "第7章雷山Resonance Stone / 共鸣石",
+        "三级": "前9处完成后，商船60,000吉尔购买High-Power Generator",
+        "来源修正": "以AppMedia与RPGSite一致的阶段说明为准；PowerPyx将第7章素材名称误写成High-Power Generator"
+      },
+      "steps": [
+        "【一级解锁】加贝拉达旅馆后隐藏路找男子拿魔导天线，回甲板与莉德交谈。",
+        "【一级顺序】1精金→2古老轻装→3魔石→4Berserker Ring→5Spell Jacket。拿不到下一件时先检查前一件是否已取。",
+        "【二级解锁】第7章雷山主线路宝箱取得共鸣石，交莉德。",
+        "【二级顺序】6古老锤→7魔石结晶→8High Caster→9Philosopher’s Stone。",
+        "【三级解锁】完成前9个后寻找环大陆巡航商船，用60,000吉尔购高出力发电机，再找莉德。",
+        "【三级顺序】10魔石结晶→11Dark Rosary→12Evil Eye→13Mastery Pendant。",
+        "【定位】飞空艇在海面反复使用雷达脉冲，根据莉德的远近提示缩小范围；准确位置参照来源原图，不提供猜测坐标。"
+      ],
+      "sourceIds": [
+        "appmedia-radar",
+        "rpg-walkthrough"
+      ],
+      "chapter": 6,
+      "spoiler": true,
+      "tags": [
+        "雷达",
+        "飞空艇",
+        "寻宝",
+        "古代装备"
+      ]
+    },
+    {
+      "id": "guide-mastery-stages",
+      "category": "guide",
+      "title": "觉醒1–4与0–3星是同一条成长",
+      "en": "Awakening Stages and Mastery",
+      "summary": "初始阶段加3次觉醒，共4个阶段；MR精通另外计算。",
+      "fields": {
+        "阶段对照": "阶段1=初始0星；阶段2=1星；阶段3=2星；阶段4=3星",
+        "最高精通": "MR9；每名队友与每个幻兵分别记录",
+        "解锁时点": "第一章塞壬之塔完成后回大港口，触发光之莫古利教学"
+      },
+      "steps": [
+        "【觉醒】按顺序使用Magicite Shard、Magicite、Magicite Cryst，分别解锁下一阶段技能；表格写Awakening 4不代表需要做4次升级。",
+        "【精通】战斗获得MRP，MR提升给该角色属性、AP或继承能力；某角色MR9不代表换到另一人也是MR9。",
+        "【AP】当前装备幻兵的自带能力无需额外继承开销；把其他幻兵已学能力保留在身上时，要按AP容量取舍。",
+        "【素材分配】先补队伍缺少的治疗/解除异常，再补主力破韧与输出。吉坦的高星偷窃能力也适合收集装备时使用。",
+        "【轮换】达到MR9后可换下一名；先看目标奖励在哪一阶，不必盲目把所有幻兵同时练满。"
+      ],
+      "sourceIds": [
+        "vorxu-visions",
+        "appmedia-awakening",
+        "pp-trophies"
+      ],
+      "chapter": 1,
+      "spoiler": true,
+      "tags": [
+        "幻兵",
+        "AP",
+        "精通",
+        "觉醒"
+      ]
+    }
+  ]
+}
