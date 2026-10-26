@@ -58,3 +58,9 @@ assert.equal(JSON.parse((await readCompletion(streamResponse(['data: '+finish+'\
 await assert.rejects(()=>readCompletion(streamResponse(['data: {"error":{"message":"quota exhausted"}}\n\n'])),/quota exhausted/);
 assert.equal((await readCompletion(Response.json({choices:[{message:{content:'{"ok":true}'}}]}))).content,'{"ok":true}');
 console.log('PASS: SSE DONE/finish markers complete without EOF, source-reader cancellation, array content, upstream stream errors and JSON response compatibility.');
+
+const {discoveredModel}=await import('../../apps/knowledge-garden/model-choice.mjs');
+const discovered=[{id:'gemini-2.5-flash-lite'},{id:DEFAULT_MODEL}];
+assert.equal(discoveredModel(discovered,{provider:'gemini',activeProvider:'gemini',activeModel:'gemini-2.5-flash-lite',dialogOpen:true,uiModel:DEFAULT_MODEL}),DEFAULT_MODEL,'Discovery must preserve an unsaved model selection');
+assert.equal(discoveredModel(discovered,{provider:'gemini',activeProvider:'gemini',activeModel:DEFAULT_MODEL,dialogOpen:false,uiModel:'gemini-2.5-flash-lite'}),DEFAULT_MODEL,'A response arriving after Save must use the newly saved preference');
+console.log('PASS: late discovery cannot overwrite an unsaved selection or a model just saved by the user.');
