@@ -21,3 +21,4 @@ jobs:
           node scripts/knowledge-garden/model-test.mjs
           node scripts/knowledge-garden/workspace-test.mjs
           node scripts/knowledge-garden/backend-test.mjs
+          node scripts/knowledge-garden/management-graph-test.mjs
