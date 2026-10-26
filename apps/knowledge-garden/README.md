@@ -66,3 +66,8 @@ CamelCase, compound and space-separated English method names share lexical terms
 
 
 Model discovery runs independently of library loading and source deep links. A cold Gemini session starts with the existing verified PT lightweight model even before discovery finishes. Known catalog options appear immediately, live discovery is bounded to 20 seconds, stale UI requests are discarded, and a discovery failure keeps the selected model rather than blanking it. Completed discovery repairs removed model IDs without crossing providers.
+
+
+Retrieval runs locally before optional query expansion, and matched source cards appear before generation completes. Direct compound/CamelCase paper-name matches skip the extra model rewrite. Ambiguous expansion is bounded to 10 seconds, answer calls to 90 seconds, and a Stop button aborts the model request while preserving the retrieved evidence and failed/cancelled conversation for retry.
+
+Structured model responses also finish on SSE `[DONE]` or `finish_reason`; an otherwise complete answer no longer waits indefinitely for the provider to close the stream. The parser supports array-shaped content, CRLF and upstream error events.
