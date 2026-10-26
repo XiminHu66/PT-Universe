@@ -35,3 +35,14 @@ storage.clear();storage.set('pt.knowledge.connect.nonce','expected');location.ha
 const expired=await fresh('expired-callback');assert.equal(expired.hasConnection(),false);assert.equal(expired.connectBackend({automatic:true}),false);
 assert.equal(expired.connectBackend(),true,'An expired or malformed callback permits manual recovery');
 console.log('PASS: automatic VPS identity reuse, per-tab 60-second redirect budget, valid-session bypass, source-query restoration, nonce/expiry callback rejection, immediate fragment removal, provider isolation, 401 invalidation and manual recovery; fixed PT API/model routing unchanged.');
+
+const {modelSettings,chooseModel,DEFAULT_MODEL}=await import('../../apps/knowledge-garden/model-choice.mjs');
+const catalog=JSON.parse(await readFile(new URL('../../apps/anythingllm/providers.json',import.meta.url),'utf8'));
+assert.ok(catalog.providers.find(p=>p.id==='gemini').models.includes(DEFAULT_MODEL),'The startup default is in the existing verified PT catalog');
+for(const saved of [undefined,null,[],{}, {provider:'gemini',model:''},{provider:'gemini',model:'<invalid>'}])assert.equal(modelSettings(saved).model,DEFAULT_MODEL,'Cold startup never sends an empty Gemini model');
+assert.equal(modelSettings({provider:'gemini',model:'gemini-2.5-flash'}).model,'gemini-2.5-flash','Keep a valid explicit model preference');
+assert.equal(modelSettings({provider:'groq'}).model,'','Never silently switch providers or invent another provider model');
+assert.equal(chooseModel([],DEFAULT_MODEL,'gemini'),DEFAULT_MODEL,'Slow or failed discovery retains a usable startup model');
+assert.equal(chooseModel([{id:'gemini-2.5-flash'}],DEFAULT_MODEL,'gemini'),'gemini-2.5-flash','A completed discovery repairs a removed model');
+assert.equal(chooseModel([{id:DEFAULT_MODEL},{id:'gemini-2.5-flash'}],'gemini-2.5-flash','gemini'),'gemini-2.5-flash');
+console.log('PASS: cold-start model readiness, corrupted/empty preferences, explicit model preservation, slow-discovery fallback, removed-model recovery and provider isolation.');
