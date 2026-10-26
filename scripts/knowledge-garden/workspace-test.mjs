@@ -23,3 +23,20 @@ const chunks=chunkPages([{page:7,text:'A'.repeat(5000)}],version);assert.equal(c
 assert.equal(coverage([a,b,{id:'x',title:'pending',meta:{}}]).missing.length,1);
 assert.equal((await digest(new Uint8Array([1,2,3]))).length,64);
 console.log('PASS: page-23 retrieval, Workspace isolation, bilingual expansion, source/page/version citation validation, stale-index exclusion, OCR status, reading-history semantics and full-text coverage.');
+
+// Reading intent must not silently erase unread sources selected by the user.
+const {questionScope,retrievalSummary,emptyAnswer,answerHTML}=await import('../../apps/knowledge-garden/qa.mjs');
+const survey={id:'survey',title:'SurveyGraph original paper',content:{type:'asset',assetType:'pdf'},meta:{resourceType:'pdf',reading:'unread',index:{parser:INDEX_VERSION,status:'ready',version:'survey-v1',pages:[{page:23,text:'SurveyGraph generates surveys using methods-entity knowledge graphs and evidence gating.'}]}}};
+const surveyScope=questionScope([survey]);assert.equal(surveyScope.length,1);
+const surveyHits=searchChunks(surveyScope,'我读过哪些使用survey graph的论文');assert.equal(surveyHits[0]?.sourceId,'survey','Space-separated method names match compound paper titles without an LLM');
+assert.ok(searchChunks([{...survey,title:'survey graph',meta:{...survey.meta,index:{...survey.meta.index,pages:[{text:'The survey graph method organizes source evidence.'}]}}}],'SurveyGraph').length,'Compound and separated method names match in both directions');
+const summary=retrievalSummary([survey],surveyScope,surveyHits,{question:'我读过哪些使用survey graph的论文'});assert.equal(summary.coverage.total,1);assert.equal(summary.matchedDocuments,1);assert.equal(summary.emptyKind,'');assert.match(summary.readingNotice,/0 条标记为已读/);assert.equal(summary.matchedSources[0].reading,'unread');
+const readOnly=questionScope([survey],'read');assert.equal(readOnly.length,0,'Explicit read-only filtering is respected');
+const empty=emptyAnswer(retrievalSummary([survey],readOnly,[],{filter:'read'})),emptyHTML=answerHTML(empty);assert.equal(empty.emptyKind,'reading-filter');assert.match(emptyHTML,/在全部资料中重新检索/);assert.ok(!emptyHTML.includes('id="save-report"'),'An empty result cannot be adopted as a knowledge note');
+assert.equal(questionScope([a,b,survey],'deep').length,1);assert.equal(questionScope([a,b,survey],'read').length,2);assert.equal(questionScope([a,b,survey]).length,3);
+const noMatch=emptyAnswer(retrievalSummary([survey],[survey],[]));assert.equal(noMatch.emptyKind,'no-match');assert.match(answerHTML(noMatch),/查看当前资料/);
+const legacy=answerHTML({title:'Old empty answer',coverage:{total:0,indexed:0},statements:[]});assert.match(legacy,/旧版本/);assert.match(legacy,/重新检索/);
+const context=evidenceContexts(surveyHits),grounded=verifyAnswer({statements:[{text:'Method summary',sources:[{id:'E1',quote:surveyHits[0].text}]}]},context);
+const html=answerHTML({...grounded,...summary,saved:true},[...context,{...context[0],sourceId:'not-cited'}]);assert.match(html,/引用 1 篇/);assert.match(html,/2 个片段 \/ 2 条资料/);assert.match(html,/待读/);assert.ok(html.includes('id="save-report"'));
+const escaped=answerHTML({...noMatch,error:'<script>bad()</script>',matchedSources:[{sourceId:'x',title:'<img src=x>',snippet:'<script>x</script>',reading:'unread'}]});assert.ok(!escaped.includes('<script>'));assert.equal((escaped.match(/id="retry-answer"/g)||[]).length,1,'Failed answers have one recovery action');
+console.log('PASS: explicit reading scope, all-unread question regression, bidirectional compound names, truthful reading notices, actionable empty/history results, citation-versus-context counts and escaped retrieval cards.');
