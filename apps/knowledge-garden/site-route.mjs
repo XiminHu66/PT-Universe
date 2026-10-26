@@ -47,7 +47,7 @@ export async function knowledgeRoute(request,env,knowledgeAssets){
   }catch{return Response.json({error:'免费模型响应超时或连接失败，请稍后重试。'},{status:502,headers:noStore});}
 }
 
-const KNOWLEDGE_PAGES='https://ximinhu66.github.io/PT-Universe/apps/knowledge-garden/';
+const KNOWLEDGE_PAGES='https://pt-vps-tools.h1nano.chatgpt.site/knowledge/';
 const KNOWLEDGE_API='https://pt-universe-api.summer07-nanjolno.workers.dev/api/knowledge';
 async function knowledgeGrant(env,scope,seconds,extra={}){
  const now=Math.floor(Date.now()/1000),encode=value=>chatB64(new TextEncoder().encode(JSON.stringify(value)));
@@ -59,9 +59,6 @@ async function knowledgeConnection(request,env){
  const url=new URL(request.url),path=url.pathname,noStore={'cache-control':'private,no-store','referrer-policy':'no-referrer','x-content-type-options':'nosniff'};
  if(request.method==='GET'&&(path==='/karakeep'||path==='/karakeep/'||path.startsWith('/karakeep/dashboard'))){
   const id=path.match(/^\/karakeep\/dashboard\/preview\/([a-zA-Z0-9_-]{6,100})$/)?.[1];return Response.redirect(KNOWLEDGE_PAGES+(id?'?source='+encodeURIComponent(id):''),302);
- }
- if(path==='/knowledge'||path.startsWith('/knowledge/')){
-  if(!['GET','HEAD'].includes(request.method))return new Response('Read only',{status:405});return Response.redirect(KNOWLEDGE_PAGES+url.search,302);
  }
  if(path==='/__pt_knowledge_provision'){
   // Fixed server-to-server deployment operation behind owner-private dispatch.
@@ -79,7 +76,5 @@ async function knowledgeConnection(request,env){
  const nonce=url.searchParams.get('nonce')||'';if(!/^[a-f0-9]{48}$/.test(nonce))return new Response('Invalid connection request',{status:400});
  if(!request.headers.get('oai-authenticated-user-id'))return Response.redirect(url.origin+'/signin-with-chatgpt?return_to='+encodeURIComponent(path+url.search),302);
  if(!env.CHAT_CONNECT_PRIVATE_JWK)return new Response('连接尚未配置',{status:503});
- const token=await knowledgeGrant(env,'knowledge:session',86400),chat=await knowledgeGrant(env,'chat:gemini',3600);
- const target=KNOWLEDGE_PAGES+'#knowledge='+encodeURIComponent(token)+'&backend='+encodeURIComponent(chat)+'&nonce='+nonce;
- return new Response('<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="referrer" content="no-referrer"><title>返回 PT Universe</title><p>后台已连接，正在返回 PT Universe 知识库…</p><a href="'+target+'">返回 PT Universe →</a><script>location.replace('+JSON.stringify(target)+')</script></html>',{headers:{...noStore,'content-type':'text/html;charset=utf-8','content-security-policy':"default-src 'none';script-src 'unsafe-inline';base-uri 'none';frame-ancestors 'none'"}});
+ return Response.redirect(url.origin+'/knowledge/',302);
 }

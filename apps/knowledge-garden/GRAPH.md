@@ -1,6 +1,6 @@
 # Knowledge Garden graph and record management
 
-The PT Universe page remains the only user interface. Original files, native
+The knowledge page in the existing PT Tool hub is the only daily user interface. Original files, native
 lists, text snapshots, extraction and review records remain in existing VPS
 Karakeep storage. No additional graph database, account or synchronization is
 introduced.
@@ -56,3 +56,13 @@ Run the existing model, Workspace and backend tests, plus
 cover durable restore, hidden-source isolation, Workspace source preservation,
 version-invalidated edges, semantic review, local ranking, long-document
 sampling, and graph evidence inside the actual model-context budget.
+
+## Semantic network update
+
+The graph additionally models relationships within one source, avoiding a flat
+list of mentions when the library has few distinct papers. Exact quotations
+must contain both endpoint names; source versions and review decisions are
+persisted. A force-based SVG network labels directional predicates and supports
+node dragging, neighborhood focus, zoom, evidence inspection and optional source
+carriers. The existing owner-private PT Tool session is reused for both storage
+and model calls; GitHub Pages is only a compatibility entry.
