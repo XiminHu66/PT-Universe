@@ -1,75 +1,46 @@
 # Knowledge Garden
 
-PT Universe's Karakeep knowledge workspace at https://ximinhu66.github.io/PT-Universe/apps/knowledge-garden/ . Daily Nexus links to this full static application. It stays on PT Universe; the previous tools-Site entry redirects here.
+The sole daily UI is https://pt-vps-tools.h1nano.chatgpt.site/knowledge/ in the
+existing owner-private PT Tool hub. `/hub/` lists it beside other VPS tools.
+The GitHub Pages entry redirects here and preserves source/capture parameters.
+Source code is maintained in this repository; the exact browser modules are
+packaged into the existing tools Site by `scripts/sync-knowledge.mjs`.
 
-## Single-library operating model
+## Storage and identity
 
-Use Knowledge Garden in PT Universe as the only daily application. The existing VPS Karakeep database/data volume is the only durable knowledge store: original articles, PDF assets, reading metadata, Workspace settings, index snapshots, quotes and Q&A all live there. PT Universe does not keep a second knowledge library, and Cloudflare KV holds transport/session configuration and short-lived asset tickets rather than a copy of the documents.
+Existing VPS Karakeep stores originals, PDF assets, text snapshots, Workspace
+settings, reading state, semantic evidence, review decisions and Q&A history.
+There is no second document store or separate graph service.
 
-The standalone Karakeep UI is an internal administration surface. Its duplicate links are removed from Knowledge Garden, and the tools-hub card and legacy Karakeep tab lead to the same PT Universe knowledge page. There is no two-way library synchronization, import/migration task or original-file duplication. Refresh only reloads the same database. Browser settings and per-tab credentials are not a second document store.
+PT Tool supplies its existing native Site identity. The browser initializes the
+existing Karakeep HttpOnly session through `/hub/open/karakeep` and calls only
+same-origin native APIs. Model requests use `/__pt_knowledge/`; per-call signed
+backend authorization stays on the server. Neither a separate knowledge login
+nor a browser model capability is needed. The old public API transport remains
+compatible for pre-update tabs and is no longer the daily path.
 
-This retains the requested PT Universe interface while using server storage suited to persistent archives and PDFs. No new database, container, model server or data-volume migration is introduced. External free LLMs remain replaceable processors; their availability does not determine whether originals survive.
+## Semantic graph
 
-## Everyday use
+`semantic.mjs` validates source-internal typed triples, exact evidence spans,
+both endpoint names and current content versions. Supported predicates include
+uses, addresses, evaluated_on, measured_by, implements, part_of, produces and
+method-level evolution. Entity-name formatting is normalized; matching triples
+from multiple source carriers merge while keeping their separate evidence.
 
-The interface follows Karakeep's original EditorCard, responsive BookmarksGrid and list sidebar: paste a link or write a note in one field, or use New for PDF/Markdown/TXT uploads. Save reason and category are optional. The main view is a card library with one full-text search. Source details, AI extraction, graph review and model settings are secondary views.
+These are model-extracted interpretations with matching source evidence, not a
+claim that lexical quote matching proves the predicate. Users can inspect,
+confirm or ignore each relationship. Ignored or stale relationships disappear.
+Cross-paper extends/improves/competition remains a separate two-source human
+review workflow; duplicates of one work are not treated as independent papers.
 
-Workspaces use native manual Karakeep lists; one original can belong to multiple lists without duplicating the file. Project background, answer instructions and reusable prompts are durable, private Karakeep text bookmarks marked `meta.kind=workspace`. Existing categories and native notes remain intact. Unread/reading/read/deep-reading are explicit metadata events; archiving is never treated as evidence that a paper was read.
+`network.mjs` draws an animated, draggable SVG network with directional labeled
+edges, neighborhood focus, search and zoom. Bibliographic source nodes are an
+optional layer. Native sources and previous accepted reading/history records
+are preserved when the graph is rebuilt.
 
-## Durable sources and retrieval
+## Checks
 
-- Originals, HTML archives, PDF assets, notes, Workspace settings, source snapshots and Q&A remain in the existing Karakeep database and data volume on the VPS. No new port, vector database, or local model service is required.
-- The model-independent `pt-chunks-v2` index snapshot lives in the source bookmark's metadata and contains source text, PDF page boundaries, a SHA-256 source version, parser version and coverage. Chunks (1600 characters, 200 overlap) are deterministically reconstructed from that durable snapshot. Changing a generation model does not require re-uploading or re-indexing documents.
-- Search ranks all indexed chunks with BM25. Natural-language Q&A adds a free-model bilingual query expansion, then one-hop graph expansion. There is no vector/embedding index in this release. AI extraction is optional and is not a prerequisite for retrieval.
-- PDF.js 5.6.205 is bundled under Apache-2.0; no external CDN or document transmission is used for parsing. Each PDF citation includes page, source version, chunk and exact archived quote. Native PDF/HTML assets remain accessible separately from the reader.
-- Empty PDF pages are reported as needing OCR, not silently claimed as indexed. Mixed text/scanned PDFs display partial coverage. OCR itself is not included. Encrypted PDFs or malformed documents preserve the original and surface a parse error.
-- Initial loading indexes new/stale readable sources while the page is open. `Update index` refreshes an entire scope; individual sources can also be refreshed. Native Karakeep continues background crawling while this frontend is closed. Refresh the frontend to index newly crawled sources.
-- Text snapshots are capped at 1.5 million characters and PDFs at 1000 pages/80 MiB. Oversized originals are retained and ask for splitting rather than truncating silently. The reader API is paginated through the full supported source. Old native text content is preferred, with a sandboxed DOM-only archive-text fallback for unusually short reader output.
-
-## Evidence and cross-session Q&A
-
-Every submitted question and its result, actual evidence chunks, source versions, model, retrieval coverage and failure state are automatically persisted as native text bookmarks (`meta.kind=conversation`). These internal records are excluded from the Garden's source library. History reopens saved answers; follow-ups reuse the preceding question and answer for context, while retrieving original evidence afresh. Workspace data and history are independent of provider keys and browser storage. Only model preference is browser-local; personal provider keys are memory-only.
-
-For questions such as “which papers have I read,” the app restricts to explicit read/deep-read records, matches the document catalog, and separately selects evidence chunks. It reports indexed/missing sources and context limits. No hit is not evidence of never having read a paper. Complex proofs still require opening the complete document.
-
-Answers accept only valid evidence IDs and verbatim source spans; unmatched statements are isolated. Literal quote validation does not establish semantic entailment. Old citations keep a snapshot; if the source version changes, the reader warns and retains historical evidence. Deleted originals retain citation snapshots in history. Manual “Accept as knowledge note” is required to promote a generated answer, marked `resourceType=ai` to distinguish it from literature and personal reading notes.
-
-## SurveyGraph-inspired organization
-
-Source-grounded method/entity extraction, typed cross-source relations, one-hop expansion and evidence-gated synthesis remain available under Organize. Candidate semantic relations require a quote from each source and human acceptance before graph inclusion. This is a lightweight adaptation, not a full SurveyGraph reproduction.
-
-## Deployment and validation
-
-The source of truth is `apps/knowledge-garden` in `XiminHu66/PT-Universe`. GitHub Pages serves the full page, model-independent retrieval module and PDF parser. `workers/pt-universe-api/src/knowledge.ts` owns the private knowledge API and reaches the existing VPS over its authenticated HTTPS tunnel. It permits only Karakeep bookmarks, lists, source content, uploads and assets; it does not expose the native admin, credential or login APIs. Native session cookies and the VPS transport key stay on the backend.
-
-When a tab has no valid knowledge capability, the page automatically visits the existing owner-private tools hub identity bridge and returns to the fixed PT Universe URL. An existing ChatGPT login is reused; there is no separate Karakeep sign-in or initial connect button. A per-tab 60-second redirect budget and a rejected-callback guard stop failed connections from looping; manual retry remains available. The original query (including source deep links) and question draft survive the round trip. Read-only startup requests can renew a rejected capability once; failed mutations are never automatically replayed. The tools hub supplies the same initial identity bridge used by AnythingLLM. It issues a dedicated, pinned ES256 knowledge capability (24 hours), plus the existing Gemini grant (one hour). Per-tab nonces are checked and URL fragments are removed immediately. API capabilities stay in sessionStorage and are excluded from exports. A fixed deployment-only provisioning operation binds the VPS transport to the PT API using a separate 60-second signed grant tied to the exact configuration digest; no secret appears in browser responses, the repository or deployment logs.
-
-Previews use short-lived tickets scoped to one asset, preserving native archived HTML sandbox headers. Uploads stream through the PT API with an 80 MiB ceiling. The original Karakeep database and data volume are reused, so Workspaces, PDF page indexes and saved Q&A require no data copy. New VPS tunnel addresses can be reprovisioned through the fixed private deployment operation.
-
-```sh
-node --check apps/knowledge-garden/app.mjs
-node --check apps/knowledge-garden/backend.mjs
-node scripts/knowledge-garden/model-test.mjs
-node scripts/knowledge-garden/workspace-test.mjs
-```
-
-The tests cover original-note preservation, canonical duplicates, source quote rejection, graph review, retrieval from PDF page 23, Workspace isolation, bilingual terms, stale parser/source versions, PDF coverage and independent reading-state semantics.
-
-The Worker also runs `node tests/knowledge.test.mjs`: rejected anonymous/foreign-scope requests, owner-only configuration, fixed signed VPS requests, native cookie isolation, path/method allowlists, resource-scoped tickets and archive sandbox preservation.
-
-
-### Visible question scope and recovery
-
-Question wording never changes the selected reading scope. “全部资料” includes unread sources in the current Workspace; only the visible read/deep selector filters them. Counts beside the selector update immediately. Reading-intent questions receive a separate factual reading-status notice, and the answer prompt distinguishes saved material, confirmed reading records, method-origin papers, downstream usage and mere mentions. No source is automatically marked read.
-
-CamelCase, compound and space-separated English method names share lexical terms, so `SurveyGraph` and `survey graph` retrieve each other even if model expansion is unavailable. Empty results explain whether the scope is empty, a reading filter excluded sources, indexing is missing or no terms matched. Recovery keeps Workspace boundaries. Retrieved source cards remain available after a model failure, and empty answers cannot be adopted as notes. The UI labels contexts sent to the model separately from documents actually cited.
-
-
-Model discovery runs independently of library loading and source deep links. A cold Gemini session starts with the existing verified PT lightweight model even before discovery finishes. Known catalog options appear immediately, live discovery is bounded to 20 seconds, stale UI requests are discarded, and a discovery failure keeps the selected model rather than blanking it. Completed discovery repairs removed model IDs without crossing providers.
-
-
-Retrieval runs locally before optional query expansion, and matched source cards appear before generation completes. Direct compound/CamelCase paper-name matches skip the extra model rewrite. Ambiguous expansion is bounded to 10 seconds, answer calls to 90 seconds, and a Stop button aborts the model request while preserving the retrieved evidence and failed/cancelled conversation for retry.
-
-Structured model responses also finish on SSE `[DONE]` or `finish_reason`; an otherwise complete answer no longer waits indefinitely for the provider to close the stream. The parser supports array-shaped content, CRLF and upstream error events.
-
-Live model-list responses preserve the current settings draft, or the latest saved model if the dialog has already closed; an older request cannot silently revert a manual selection. Backend discovery has its own 8-second chat / 12-second listing budget and uses the existing verified-free fallback on timeout.
+Run the Knowledge Garden model, Workspace, backend, management-graph and
+semantic tests under `scripts/knowledge-garden/`. The tools Site additionally
+checks its private routes, CSRF, complete browser-module packaging and legacy
+redirects before building and publication.

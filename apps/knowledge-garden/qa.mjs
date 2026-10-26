@@ -1,5 +1,5 @@
-import {esc} from './model.mjs?v=knowledge-graph-20261026';
-import {coverage,reading,readingLabels,typeLabels} from './knowledge.mjs?v=knowledge-graph-20261026';
+import {esc} from './model.mjs?v=semantic-hub-20261026';
+import {coverage,reading,readingLabels,typeLabels} from './knowledge.mjs?v=semantic-hub-20261026';
 
 // Only the visible selector filters reading status. Question wording never does.
 export function questionScope(books,filter=''){

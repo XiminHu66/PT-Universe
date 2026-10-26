@@ -7,7 +7,7 @@ export function pack(note,meta){return String(note||'')+MARK+JSON.stringify({...
 export function item(b){const {note,meta}=unpack(b.note||'');return {...b,userNote:note,meta,title:b.title||b.content?.title||b.content?.url||'未命名资料',url:safeUrl(b.content?.url||b.content?.sourceUrl),category:meta.category||'未分类',reason:meta.reason||'',status:b.archived?'archived':meta.status==='reading'?'reading':'inbox'};}
 export function paragraphs(text){return String(text).replace(/\r/g,'').split(/\n\s*\n/).map(x=>x.trim()).filter(Boolean).map((text,i)=>({id:'P'+(i+1),text}));}
 export const relationTypes=['extends','improves','applies','compares_with','supports','contradicts','competes_with'];
-export const relationLabels={extends:'延伸',improves:'改进',applies:'应用',compares_with:'对比',supports:'支持',contradicts:'存在分歧',mentions:'提及',shared_entity:'共享实体',competes_with:'竞争方案',shares_method:'共享方法',shares_task:'共享任务',shares_dataset:'共享数据集'};
+export const relationLabels={extends:'延伸',improves:'改进',applies:'应用',compares_with:'对比',supports:'支持',contradicts:'存在分歧',mentions:'提及',shared_entity:'共享实体',competes_with:'竞争方案',shares_method:'共享方法',shares_task:'共享任务',shares_dataset:'共享数据集',uses:'采用',addresses:'解决任务',evaluated_on:'评测于',measured_by:'评估指标',implements:'实现',part_of:'组成部分',produces:'生成'};
 const str=(s,n=2000)=>typeof s==='string'?s.trim().slice(0,n):'';
 // Map formatting-equivalent citations back to an exact span in the archived
 // text. Markdown quote prefixes and line wrapping must not reject valid quotes.

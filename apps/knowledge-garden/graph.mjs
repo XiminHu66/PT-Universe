@@ -1,9 +1,10 @@
 // SurveyGraph-inspired MEKG: typed entities, audited edges and anchor-preserving
 // one-hop retrieval. Derived ranks are local connectivity, not citation impact.
-import {buildGraph,entityLabels,relationLabels,currentExtraction,matchQuote} from './model.mjs?v=knowledge-graph-20261026';
+import {buildGraph,entityLabels,relationLabels,currentExtraction,matchQuote} from './model.mjs?v=semantic-hub-20261026';
+import {semanticDocumentLinks} from './semantic.mjs?v=semantic-hub-20261026';
 export {entityLabels,currentExtraction};
 export function graphLinks(items) {
- const graph=buildGraph(items),links=graph.edges.filter(e=>e.type!=='mentions'),mentions=graph.edges.filter(e=>e.type==='mentions');
+ const graph=buildGraph(items),links=[...graph.edges.filter(e=>e.type!=='mentions'),...semanticDocumentLinks(items)],mentions=graph.edges.filter(e=>e.type==='mentions');
  for(const n of graph.nodes.filter(n=>['method','task','dataset'].includes(n.type))){
   const sources=mentions.filter(e=>e.to===n.id);
   for(let i=0;i<sources.length;i++)for(let j=i+1;j<sources.length;j++)links.push({from:sources[i].from,to:sources[j].from,type:'shares_'+n.type,entity:n.label,quoteFrom:sources[i].quote,quoteTo:sources[j].quote,fromVersion:sources[i].version,toVersion:sources[j].version,confidence:.7,grounded:true,derived:true});

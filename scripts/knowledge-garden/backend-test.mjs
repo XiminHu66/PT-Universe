@@ -64,3 +64,17 @@ const discovered=[{id:'gemini-2.5-flash-lite'},{id:DEFAULT_MODEL}];
 assert.equal(discoveredModel(discovered,{provider:'gemini',activeProvider:'gemini',activeModel:'gemini-2.5-flash-lite',dialogOpen:true,uiModel:DEFAULT_MODEL}),DEFAULT_MODEL,'Discovery must preserve an unsaved model selection');
 assert.equal(discoveredModel(discovered,{provider:'gemini',activeProvider:'gemini',activeModel:DEFAULT_MODEL,dialogOpen:false,uiModel:'gemini-2.5-flash-lite'}),DEFAULT_MODEL,'A response arriving after Save must use the newly saved preference');
 console.log('PASS: late discovery cannot overwrite an unsaved selection or a model just saved by the user.');
+
+// PT Tool uses its existing HttpOnly native session. No browser capability or
+// additional knowledge authorization is needed; model grants stay server-side.
+storage.clear();location.origin='https://pt-vps-tools.h1nano.chatgpt.site';location.pathname='/knowledge/';location.search='';location.hash='';assigned='';let nativeCalls=[];
+globalThis.fetch=async(path,init)=>{nativeCalls.push({path,init});return path==='/hub/open/karakeep'?new Response(null,{status:302,headers:{location:'/karakeep/'}}):Response.json({ok:true})};
+const native=await fresh('same-origin-native');assert.equal(native.SAME_ORIGIN,true);assert.equal(native.hasConnection(),true);assert.equal(native.connectBackend({automatic:true}),false);
+await native.backendFetch('/karakeep/api/v1/bookmarks');assert.equal(nativeCalls[0].path,'/hub/open/karakeep');assert.equal(nativeCalls[0].init.redirect,'manual');assert.equal(nativeCalls[1].path,'/karakeep/api/v1/bookmarks');assert.equal(nativeCalls[1].init.credentials,'same-origin');assert.equal(nativeCalls[1].init.headers.get('authorization'),null);
+await native.backendFetch('/__pt_knowledge/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({provider:'gemini'})});assert.equal(nativeCalls.at(-1).path,'/__pt_knowledge/chat');assert.equal(nativeCalls.at(-1).init.headers.get('x-pt-knowledge'),'1');assert.equal(JSON.parse(nativeCalls.at(-1).init.body).backendSession,undefined);
+assert.equal(await native.assetTicket('abcdef-asset',23),'/karakeep/api/assets/abcdef-asset#page=23');await assert.rejects(()=>native.backendFetch('https://evil.example'),/Unsupported/);
+let rejectedGet=false;nativeCalls=[];globalThis.fetch=async(path,init)=>{nativeCalls.push({path,init});if(path==='/karakeep/api/v1/bookmarks'&&!rejectedGet){rejectedGet=true;return new Response(null,{status:401})}return path==='/hub/open/karakeep'?new Response(null,{status:302}):Response.json({ok:true})};
+await native.backendFetch('/karakeep/api/v1/bookmarks');assert.deepEqual(nativeCalls.map(c=>c.path),['/karakeep/api/v1/bookmarks','/hub/open/karakeep','/karakeep/api/v1/bookmarks']);
+nativeCalls=[];globalThis.fetch=async(path,init)=>{nativeCalls.push({path,init});return new Response(null,{status:401})};await native.backendFetch('/karakeep/api/v1/bookmarks/abcdef',{method:'PATCH',body:'{}'});assert.equal(nativeCalls.length,1,'Never replay a mutation after a session rejection');
+assert.equal(native.connectBackend(),true);assert.equal(assigned,'/hub/open/karakeep');
+console.log('PASS: PT Tool native session reuse, fixed same-origin endpoints, server-only model authorization, protected direct assets, read-only renewal and no mutation replay.');

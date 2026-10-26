@@ -1,7 +1,7 @@
 // Model-independent, versioned source chunks. Native Karakeep owns the originals
 // and durable text snapshots; this module only builds replaceable retrieval state.
-import {matchQuote} from './model.mjs?v=knowledge-graph-20261026';
-import {graphNeighbors} from './graph.mjs?v=knowledge-graph-20261026';
+import {matchQuote} from './model.mjs?v=semantic-hub-20261026';
+import {graphNeighbors} from './graph.mjs?v=semantic-hub-20261026';
 export const INDEX_VERSION='pt-chunks-v2';
 export const readingLabels={unread:'待读',reading:'正在读',read:'已读',deep:'已精读'};
 export const typeLabels={web:'网页',pdf:'论文 PDF',note:'精读笔记',document:'技术文档',ai:'AI 整理'};
