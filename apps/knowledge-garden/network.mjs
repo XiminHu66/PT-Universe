@@ -4,7 +4,7 @@ import {nodeShape,relationSentence} from './graph-labels.mjs?v=readable-20261026
 export const nodeColors={method:'#b56a43',model:'#8468ae',tool:'#61819c',task:'#56866d',dataset:'#4d91a2',metric:'#b99a3e',innovation:'#b56882',concept:'#718596',document:'#456e59'};
 const colors=nodeColors;
 // A small bounded SVG simulation: no graph server or external CDN is needed.
-export function mountNetwork(svg,graph,{onNode,onEdge,showLabels=false}={}){
+export function mountNetwork(svg,graph,{onNode,onEdge,showLabels=true}={}){
  const nodes=graph.nodes.slice(0,80).map((n,i)=>({...n,shape:nodeShape(n.label),x:450+230*Math.cos(i*2.39996),y:270+180*Math.sin(i*2.39996),vx:0,vy:0})),map=new Map(nodes.map(n=>[n.id,n])),edges=graph.edges.filter(e=>map.has(e.from)&&map.has(e.to)),degree=new Map(nodes.map(n=>[n.id,edges.filter(e=>e.from===n.id||e.to===n.id).length]));
  const visited=new Set(),components=[];for(const n of nodes){if(visited.has(n.id))continue;const group=[],queue=[n.id];visited.add(n.id);while(queue.length){const id=queue.shift();group.push(id);for(const e of edges){const other=e.from===id?e.to:e.to===id?e.from:null;if(other&&!visited.has(other)){visited.add(other);queue.push(other)}}}components.push(group);}const centers=new Map();components.forEach((group,i)=>{const count=components.length,cols=count<=1?1:count<=4?2:3,rows=Math.ceil(count/cols),cx=(i%cols+.5)*900/cols,cy=(Math.floor(i/cols)+.5)*540/rows;group.forEach(id=>centers.set(id,{x:cx,y:cy}));});
 let disposed=false,frame=0,drag=null,panning=null,selected='',energy=1,box={x:0,y:0,w:900,h:560};
