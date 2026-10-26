@@ -56,3 +56,10 @@ node scripts/knowledge-garden/workspace-test.mjs
 The tests cover original-note preservation, canonical duplicates, source quote rejection, graph review, retrieval from PDF page 23, Workspace isolation, bilingual terms, stale parser/source versions, PDF coverage and independent reading-state semantics.
 
 The Worker also runs `node tests/knowledge.test.mjs`: rejected anonymous/foreign-scope requests, owner-only configuration, fixed signed VPS requests, native cookie isolation, path/method allowlists, resource-scoped tickets and archive sandbox preservation.
+
+
+### Visible question scope and recovery
+
+Question wording never changes the selected reading scope. “全部资料” includes unread sources in the current Workspace; only the visible read/deep selector filters them. Counts beside the selector update immediately. Reading-intent questions receive a separate factual reading-status notice, and the answer prompt distinguishes saved material, confirmed reading records, method-origin papers, downstream usage and mere mentions. No source is automatically marked read.
+
+CamelCase, compound and space-separated English method names share lexical terms, so `SurveyGraph` and `survey graph` retrieve each other even if model expansion is unavailable. Empty results explain whether the scope is empty, a reading filter excluded sources, indexing is missing or no terms matched. Recovery keeps Workspace boundaries. Retrieved source cards remain available after a model failure, and empty answers cannot be adopted as notes. The UI labels contexts sent to the model separately from documents actually cited.
