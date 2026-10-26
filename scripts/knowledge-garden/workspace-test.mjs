@@ -40,3 +40,10 @@ const context=evidenceContexts(surveyHits),grounded=verifyAnswer({statements:[{t
 const html=answerHTML({...grounded,...summary,saved:true},[...context,{...context[0],sourceId:'not-cited'}]);assert.match(html,/引用 1 篇/);assert.match(html,/2 个片段 \/ 2 条资料/);assert.match(html,/待读/);assert.ok(html.includes('id="save-report"'));
 const escaped=answerHTML({...noMatch,error:'<script>bad()</script>',matchedSources:[{sourceId:'x',title:'<img src=x>',snippet:'<script>x</script>',reading:'unread'}]});assert.ok(!escaped.includes('<script>'));assert.equal((escaped.match(/id="retry-answer"/g)||[]).length,1,'Failed answers have one recovery action');
 console.log('PASS: explicit reading scope, all-unread question regression, bidirectional compound names, truthful reading notices, actionable empty/history results, citation-versus-context counts and escaped retrieval cards.');
+
+const {hasNamedSource}=await import('../../apps/knowledge-garden/qa.mjs');
+assert.equal(hasNamedSource('我读过哪些使用survey graph的论文',[survey]),true,'A direct method-name question does not need an extra model call');
+assert.equal(hasNamedSource('SurveyGraph 有什么局限？',[survey]),true);
+assert.equal(hasNamedSource('这些论文的方法有什么区别？',[survey]),false,'Ambiguous follow-ups may still use bounded query expansion');
+const pending=answerHTML({...emptyAnswer(summary),pending:true});assert.match(pending,/正在生成回答/);assert.ok(!pending.includes('id="download-report"'),'An in-progress response is not an exportable answer');assert.ok(!pending.includes('不足以形成可核对'));
+console.log('PASS: direct method-name lookup skips expansion, ambiguous follow-ups retain expansion, and retrieved evidence is usable before generation finishes.');

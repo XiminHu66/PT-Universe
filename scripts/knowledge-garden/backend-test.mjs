@@ -46,3 +46,15 @@ assert.equal(chooseModel([],DEFAULT_MODEL,'gemini'),DEFAULT_MODEL,'Slow or faile
 assert.equal(chooseModel([{id:'gemini-2.5-flash'}],DEFAULT_MODEL,'gemini'),'gemini-2.5-flash','A completed discovery repairs a removed model');
 assert.equal(chooseModel([{id:DEFAULT_MODEL},{id:'gemini-2.5-flash'}],'gemini-2.5-flash','gemini'),'gemini-2.5-flash');
 console.log('PASS: cold-start model readiness, corrupted/empty preferences, explicit model preservation, slow-discovery fallback, removed-model recovery and provider isolation.');
+
+const {readCompletion}=await import('../../apps/knowledge-garden/completion.mjs');
+let cancelled=0;
+const streamResponse=events=>new Response(new ReadableStream({start(controller){for(const event of events)controller.enqueue(new TextEncoder().encode(event));},cancel(){cancelled++;}}),{headers:{'content-type':'text/event-stream'}});
+const delta=JSON.stringify({model:'test-model',choices:[{delta:{content:'{"title":"中文回答"}'}}]});
+const complete=await Promise.race([readCompletion(streamResponse(['data: '+delta+'\n\n','data: [DONE]\n'])),new Promise((_,reject)=>setTimeout(()=>reject(Error('Completion waited for EOF')),500))]);
+assert.equal(JSON.parse(complete.content).title,'中文回答');assert.equal(complete.model,'test-model');assert.equal(cancelled,1,'Close the reader after DONE even if the provider keeps SSE open');
+const finish=JSON.stringify({choices:[{delta:{content:[{text:'{"ok":true}'}]},finish_reason:'stop'}]});
+assert.equal(JSON.parse((await readCompletion(streamResponse(['data: '+finish+'\r\n\r\n']))).content).ok,true);
+await assert.rejects(()=>readCompletion(streamResponse(['data: {"error":{"message":"quota exhausted"}}\n\n'])),/quota exhausted/);
+assert.equal((await readCompletion(Response.json({choices:[{message:{content:'{"ok":true}'}}]}))).content,'{"ok":true}');
+console.log('PASS: SSE DONE/finish markers complete without EOF, source-reader cancellation, array content, upstream stream errors and JSON response compatibility.');
