@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';import {build} from 'esbuild';
 const b=await build({entryPoints:['src/anythingllm-models.ts'],bundle:true,platform:'node',format:'esm',write:false});
-const {parseGeminiFreePricing:parse,intersectGeminiModels:intersect,geminiFreeModels:discover}=await import('data:text/javascript;base64,'+Buffer.from(b.outputFiles[0].text).toString('base64'));
+const {parseGeminiFreePricing:parse,intersectGeminiModels:intersect,geminiFreeModels:discover,boundedDiscovery}=await import('data:text/javascript;base64,'+Buffer.from(b.outputFiles[0].text).toString('base64'));
 const table=(input,output)=>`<table><tr><th></th><th>Free Tier</th><th>Paid Tier</th></tr><tr><td>Input price</td><td>${input}</td><td>Free of charge</td></tr><tr><td>Output price</td><td>${output}</td><td>Free of charge</td></tr></table>`;
 const section=(id,name,standard,batch='')=>`<div><h2>${name}</h2><code>${id}</code></div><div><section><h3>Standard</h3>${standard}</section>${batch}</div>`;
 const html=section('gemini-new-flash','New Flash',table('Free of charge','Free of charge'))+section('gemini-paid-pro','Paid Pro',table('Not available','Not available'),table('Free of charge','Free of charge'))+section('gemini-input-only','Input Only',table('Free of charge','Not available'))+section('gemini-voice-tts','Voice',table('Free of charge','Free of charge'))+section('','Gemma 4',table('Free of charge','Free of charge'));
@@ -10,3 +10,10 @@ const result=intersect(prices,native);assert.deepEqual(result.models.map(m=>m.id
 const old=globalThis.fetch;let calls=[];
 try{globalThis.fetch=async(url,options)=>{calls.push({url,options});if(url.includes('ai.google.dev'))return new Response(html);const next=new URL(url).searchParams.get('pageToken');return Response.json(next?{models:native.slice(2)}:{models:native.slice(0,2),nextPageToken:'page-2'})};const d=await discover('test-not-real-key');assert.equal(d.source,'google-pricing-and-models');assert.deepEqual(d.models.map(m=>m.id),['gemini-new-flash','gemma-4-27b-it']);assert.equal(calls.length,3);assert.equal(calls[1].options.headers['x-goog-api-key'],'test-not-real-key');assert.ok(!calls[1].url.includes('test-not-real-key'));await discover('test-not-real-key');assert.equal(calls.length,3,'Read-only discovery must be cached');}finally{globalThis.fetch=old}
 console.log('Automatic free models: standard price columns, paid/output-only exclusion, family boundary, native API intersection, capabilities, pagination and key-isolated cache passed.');
+const fallback={models:[{id:'known-free-model'}],fallback:true};
+assert.equal(await boundedDiscovery(async()=>({models:[{id:'live-free-model'}]}),()=>fallback,20).then(r=>r.models[0].id),'live-free-model');
+assert.equal(await boundedDiscovery(()=>Promise.reject(Error('upstream failed')),()=>fallback,20),fallback);
+const hung=()=>new Promise(()=>{}),started=Date.now();
+assert.deepEqual(await Promise.all([boundedDiscovery(hung,()=>fallback,5),boundedDiscovery(hung,()=>fallback,5)]),[fallback,fallback]);
+assert.ok(Date.now()-started<500,'Hung shared discovery must not prevent independent callers from completing');
+console.log('Model discovery deadlines: live metadata retained; failures and hung shared lookups use the existing verified-free fallback without blocking completion.');

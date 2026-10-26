@@ -75,3 +75,16 @@ export function geminiModelFallback(){
  const p=catalog.providers.find(p=>p.id==='gemini')!;
  return {models:p.models.map(id=>({id,name:id})),unsupported:[],checkedAt:p.checkedAt,source:'last-verified-catalog',fallback:true,scope:'free-tier-text-chat',warning:'实时清单暂时不可用，显示最近核实的免费型号；稍后会自动重试。'};
 }
+
+// Discovery is advisory metadata and must not hold a completion indefinitely.
+// Keep the existing last-verified free catalog policy on failure or timeout.
+export async function boundedDiscovery<T>(operation:()=>Promise<T>,fallback:()=>T,timeoutMs=8000):Promise<T>{
+ let timer:ReturnType<typeof setTimeout>|undefined;
+ try{
+  return await Promise.race([Promise.resolve().then(operation),new Promise<T>((_,reject)=>{timer=setTimeout(()=>reject(Error('model-discovery-timeout')),timeoutMs)})]);
+ }catch{return fallback()}
+ finally{if(timer!==undefined)clearTimeout(timer)}
+}
+export function availableGeminiModels(key:string,timeoutMs=8000){
+ return boundedDiscovery(()=>geminiFreeModels(key),geminiModelFallback,timeoutMs);
+}

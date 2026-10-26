@@ -1,6 +1,6 @@
 import catalog from '../../../apps/anythingllm/providers.json';
 import {verifyBackendSession} from './anythingllm-auth';
-import {geminiFreeModels,geminiModelFallback,textChatModel} from './anythingllm-models';
+import {availableGeminiModels,geminiModelFallback,textChatModel} from './anythingllm-models';
 import {fetchChatWithRetry,geminiCompatiblePayload,TRANSIENT} from './anythingllm-transport';
 
 type ChatEnv={DB:D1Database;GEMINI_API_KEY?:string};
@@ -76,7 +76,7 @@ export async function anythingLLMRoute(request:Request,env:ChatEnv,authenticate:
    try{const r=await fetch('https://openrouter.ai/api/v1/models',{redirect:'manual',signal:AbortSignal.timeout(20000)});if(!r.ok)throw Error();const d:any=await r.json();return Response.json({models:(d.data||[]).filter((m:any)=>(m.id==='openrouter/free'||m.id?.endsWith(':free'))&&Number(m.pricing?.prompt)===0&&Number(m.pricing?.completion)===0).map((m:any)=>({id:m.id,name:str(m.name,180)||m.id})),checkedAt:new Date().toISOString(),source:'openrouter-zero-price-models',scope:'free-tier-text-chat',fallback:false},{headers:{'cache-control':'public,max-age=300'}})}catch{return fail('OpenRouter 免费型号查询暂时不可用',502)}
   }
   if(id!=='gemini')return fail('此后端需要先配置个人 Key',401);
-  let report;try{report=env.GEMINI_API_KEY?await geminiFreeModels(env.GEMINI_API_KEY.trim()):geminiModelFallback()}catch{report=geminiModelFallback()}
+  const report=env.GEMINI_API_KEY?await availableGeminiModels(env.GEMINI_API_KEY.trim(),12000):geminiModelFallback();
   return Response.json(report,{headers:{'cache-control':report.fallback?'public,max-age=30':'public,max-age=300'}});
  }
  if(!['/api/anythingllm/chat','/api/anythingllm/models','/api/anythingllm/status','/api/anythingllm/quota'].includes(path))return fail('Not found',404);
@@ -96,8 +96,7 @@ export async function anythingLLMRoute(request:Request,env:ChatEnv,authenticate:
  if(path.endsWith('/status'))return Response.json({configured:true,shared:!body.apiKey,provider:target.provider.id},{headers:{'cache-control':'no-store'}});
  let verifiedGeminiModels:{id:string}[]=[];
  if(target.provider.id==='gemini'&&(path.endsWith('/models')||path.endsWith('/chat'))){
-  let report;
-  try{report=await geminiFreeModels(key)}catch{report=geminiModelFallback()}
+  const report=await availableGeminiModels(key,path.endsWith('/chat')?8000:12000);
   if(path.endsWith('/models'))return Response.json(report,{headers:{'cache-control':'no-store'}});
   verifiedGeminiModels=report.models;
   if(!report.models.some((m:any)=>m.id===payload!.model))return fail('该型号不在官方免费层且支持文字聊天的实时清单中，请刷新模型列表',400);
