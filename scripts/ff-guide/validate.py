@@ -56,6 +56,46 @@ if data.get('localization'):
         for key in ['title','summary','fields','steps','tags','note','provenance','sections','version']:
             assert not any(re.search(r'[A-Za-z\u3040-\u30ff]',text) for text in text_strings(e.get(key))),('Untranslated display text',e['id'],key)
     assert data['localization']['residualStrings']==0
-print(json.dumps({'ok': True, 'entries': len(entries), 'sources': len(sources),
+practical = json.loads((root / 'apps/ff-guide/practical.json').read_text())
+articles = practical['entries']
+assert len(articles) == 9
+all_ids = {**ids, **{e['id']: e for e in articles}}
+all_sources = {**sources, **{s['id']: s for s in practical['sources']}}
+assert len(all_ids) == len(entries) + len(articles), 'Colliding strategy IDs'
+assert len({s['id'] for s in practical['sources']}) == len(practical['sources'])
+for e in articles:
+    assert e['category'] == 'guide' and e['practical']
+    assert e['conclusion'] and e['scope'] and e['blocks'], e['id']
+    assert set(e['stages']) <= {'early', 'mid', 'late'}
+    assert e['sourceIds'] and all(s in all_sources for s in e['sourceIds'])
+    assert all(i in all_ids for i in e.get('related', [])), e['id']
+    display = [e['title'], e['summary'], e['conclusion'], e['scope']]
+    for b in e['blocks']:
+        assert b.get('sourceIds') and all(i in all_sources for i in b['sourceIds']), (e['id'], b['title'])
+        display += [b['title']] + b.get('body', []) + b.get('steps', []) + b.get('headers', [])
+        for row in b.get('rows', []):
+            assert len(row) == len(b['headers']), (e['id'], b['title'])
+            for cell in row:
+                if isinstance(cell, dict):
+                    assert cell['id'] in all_ids, cell
+                    display.append(cell['text'])
+                else:
+                    display.append(cell)
+    assert not any(re.search(r'[A-Za-z\u3040-\u30ff]', str(t)) for t in display), e['id']
+for s in practical['sources']:
+    assert urlparse(s['url']).scheme == 'https', s['id']
+for patch in practical['corrections']:
+    assert patch['id'] in ids
+    assert all(s in all_sources for s in patch.get('sourceIds', []))
+    assert all(i in all_ids for i in patch.get('related', []))
+def refs(eid, category):
+    return {cell['id'] for b in all_ids[eid]['blocks'] for row in b.get('rows', [])
+            for cell in row if isinstance(cell, dict) and all_ids[cell['id']]['category'] == category}
+assert len(refs('play-characters', 'characters')) == 8
+assert len(refs('play-builds', 'characters')) == 8
+assert len(refs('play-visions', 'visions')) == 26
+assert sum('rows' in b for b in all_ids['play-weapons']['blocks']) == 8
+assert all(t['id'] in all_ids for t in practical['topics'])
+print(json.dumps({'ok': True, 'practical_articles': len(articles), 'entries': len(entries), 'sources': len(sources),
                   'enemy_details': len(enemies), 'tablet_shards': len(shards),
                   'chapters': 8, 'counts': dict(counts)}, ensure_ascii=False))
