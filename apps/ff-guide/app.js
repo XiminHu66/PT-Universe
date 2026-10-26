@@ -1,175 +1,199 @@
 (() => {
-  'use strict';
-  const $ = s => document.querySelector(s);
-  const $$ = s => [...document.querySelectorAll(s)];
-  const escape = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const valueText = v => Array.isArray(v) ? v.map(valueText).join(' / ') : v && typeof v === 'object' ? Object.entries(v).map(([k,val])=>`${k}: ${valueText(val)}`).join(' · ') : String(v ?? '');
-  const safeUrl = v => {try {const u = new URL(v,location.href);return ['https:','http:'].includes(u.protocol) ? u.href : ''}catch{return ''}};
-  const read = (key,fallback) => {try {return JSON.parse(localStorage.getItem(key)) ?? fallback}catch{return fallback}};
-  const KEY = 'ptu.ffguide.progress';
-  const PREFS = 'ptu.ffguide.preferences';
-  let state = read(KEY,{version:1,saved:[],completed:[],notes:{}});
-  let prefs = read(PREFS,{chapter:0,spoilers:true});
-  let db, entries = [], sources = [], lookup = new Map(), searchIndex = new Map(), currentPage = 1, filter = 'all', view = 'cards', sourceFilter = 'all';
-  let route = {category:'home',id:null}, lastCategory = '', searchTimer, toastTimer;
-  const categories = [
-    ['home','资料首页','⌂','YOUR JOURNEY','从这里继续你的冒险。'],
-    ['guide','攻略与路线','≋','FIELD NOTES','中文攻略、系统说明与收集路线。每条保留原始证据。'],
-    ['characters','角色图鉴','♙','THE PARTY','角色定位、武器与学习能力。保留英文名称以便核对游戏文本。'],
-    ['visions','幻兵图鉴','✧','VISIONS','查询幻兵的获取位置、能力与精通奖励。'],
-    ['espers','召唤兽图鉴','♜','ESPERS','契约条件、获取位置与能力资料。'],
-    ['skills','技能与被动','✴','ABILITIES','查询消耗、威力、破韧及学习来源。数值与实际伤害并不相同。'],
-    ['equipment','装备图鉴','⚔','EQUIPMENT','武器、防具与饰品的属性、效果和数据记录。'],
-    ['items','道具图鉴','♧','ITEMS','消耗品、素材与任务道具。'],
-    ['enemies','敌人与 Boss','♞','BESTIARY','敌人属性、弱点、掉落与偷窃资料；不同形态单独计数。'],
-    ['collectibles','收集清单','◇','COLLECTIONS','99 块石板、精金、古代装备与洞窟挑战。位置可逐项勾选。'],
-    ['quests','任务与地点','⌖','WORLD JOURNAL','任务条件、奖励及相关地点资料。'],
-    ['achievements','白金与成就','♕','ACHIEVEMENTS','成就条件与查漏路线。'],
-    ['saved','我的收藏','☆','MY ARCHIVE','收藏、已收集条目与自己的笔记。'],
-    ['sources','资料来源','↗','SOURCES & SCOPE','查看数据来源、版本范围与实际收录量。']
-  ];
-  const cat = id => categories.find(x=>x[0]===id) || categories[0];
-  const label = id => cat(id)[1];
-  const isCollectible = e => ['visions','espers','collectibles','achievements'].includes(e.category) || e.collectible === true;
-  const stats = category => entries.filter(e=>e.category===category).length;
-  const hash = (category,id) => '#/'+category+(id?'/'+encodeURIComponent(id):'');
-  const writeState = () => {try {localStorage.setItem(KEY,JSON.stringify(state));$('#savedCount').textContent=state.saved.length}catch{toast('浏览器无法保存记录，请使用导出记录保留进度。')}};
-  const writePrefs = () => {try{localStorage.setItem(PREFS,JSON.stringify(prefs))}catch{toast('浏览器无法保存设置')}};
-  const toast = msg => {$('#toast').textContent=msg;$('#toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('visible'),2300)};
-  const image = e => e.image && safeUrl(e.image) ? `<img class="entity-image" src="${escape(safeUrl(e.image))}" loading="lazy" alt="${escape(e.title)}" onerror="this.hidden=true">` : '';
-  const sourceFor = e => (e.sourceIds || []).map(id=>sources.find(s=>s.id===id)).filter(Boolean);
-  function navigate(category,id) {location.hash=hash(category,id)}
-  function toggleSaved(id) {state.saved=state.saved.includes(id)?state.saved.filter(x=>x!==id):[...state.saved,id];writeState();render();toast(state.saved.includes(id)?'已加入收藏':'已取消收藏')}
-  function toggleComplete(id,checked) {state.completed=state.completed.filter(x=>x!==id);if(checked)state.completed.push(id);writeState();$$(`[data-check="${CSS.escape(id)}"]`).forEach(el=>el.checked=checked);updateProgress();if(route.category==='saved'&&filter==='completed')render()}
-  const completeControl = (e,full=false) => isCollectible(e)?`<label class="check-label"><input type="checkbox" data-check="${escape(e.id)}" ${state.completed.includes(e.id)?'checked':''}>${full?'标记为已完成 / 已收集':'已收集'}</label>`:'';
-  function renderNav() {
-    $('#navigation').innerHTML=categories.map((c,i)=>`<a class="nav-link ${c[0]===route.category?'active':''} ${i===12?'nav-gap':''}" href="${hash(c[0])}" ${c[0]===route.category?'aria-current="page"':''}><span class="nav-icon" aria-hidden="true">${c[2]}</span>${c[1]}${!['home','saved','sources'].includes(c[0])?`<em>${stats(c[0])}</em>`:''}</a>`).join('');
-    $('#savedCount').textContent=state.saved.length;
+'use strict';
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const text=v=>Array.isArray(v)?v.map(text).join(' / '):v&&typeof v==='object'?Object.entries(v).map(([k,x])=>`${k}：${text(x)}`).join('；'):String(v??'');
+const url=v=>{try{const u=new URL(v,location.href);return /^https?:$/.test(u.protocol)?u.href:''}catch{return ''}};
+const read=(k,f)=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}};
+const KEY='ptu.ffguide.progress', PREF='ptu.ffguide.preferences';
+let state=read(KEY,{version:1,saved:[],completed:[],notes:{}}),prefs=read(PREF,{chapter:0,spoilers:true});
+let db,entries=[],lookup=new Map(),sources=[],groups=[],groupFor=new Map(),index=new Map(),nameIndex=new Map();
+let route={category:'home',id:null,kind:''},page=1,facet='all',view='cards',difficulty='普通',timer,toastTimer,lastScope='';
+const C={home:['资料首页','从这里开始查攻略。','⌂'],guide:['攻略导航','按目标查找路线、系统说明与强敌打法。','≋'],walkthrough:['主线流程','八章关键目标、机关、首领与顺路收集，按章连续查阅。','➤'],characters:['角色图鉴','定位、固有能力与学习条件放在同一页。','♙'],visions:['幻兵图鉴','获取路线、觉醒与精通奖励、技能说明集中查询。','✧'],espers:['召唤兽图鉴','契约条件、获取路线与可用能力。','♜'],skills:['技能图鉴','主动、被动与精通能力；查看消耗、效果和学习来源。','✴'],equipment:['装备道具','按武器、防具、饰品与道具查询属性和获取来源。','⚔'],items:['道具图鉴','道具效果、获取来源与用途。','♧'],enemies:['敌人图鉴','弱点、难度参数、掉落和偷窃。同名战斗记录合并显示。','♞'],collectibles:['收集清单','石板、古老装备、精金与洞窟挑战，逐项核对与勾选。','◇'],world:['地点索引','按地点反查奖励；同一地点的地图记录集中展示。','⌖'],quests:['任务图鉴','按章节查询支线、奖励与关联地点。','▣'],achievements:['白金成就','成就条件、收集要求与查漏路线。','♕'],saved:['我的记录','收藏、已完成收集和自己的笔记。','☆'],sources:['来源与译名','来源、版本范围与中英对照说明。','↗']};
+const nav=['home','guide','walkthrough','collectibles','characters','visions','espers','skills','equipment','enemies','quests','achievements'];
+const name=c=>C[c]?.[0]||'资料';
+const normal=t=>String(t??'').normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]/gu,'');
+const groupingName=t=>String(t??'').normalize('NFKC').toLowerCase().replace(/[’‘]/g,"'").replace(/\s+/g,' ').trim();
+const href=(c,id,kind)=>'#/'+c+(id?'/'+encodeURIComponent(id):'')+(kind?'?kind='+encodeURIComponent(kind):'');
+const go=(c,id,kind)=>{const h=href(c,id,kind);if(location.hash===h){parse();return}location.hash=h};
+const write=()=>{try{localStorage.setItem(KEY,JSON.stringify(state));$('#savedCount').textContent=state.saved.length}catch{toast('无法自动保存，请导出记录保留进度。')}};
+const writePrefs=()=>{try{localStorage.setItem(PREF,JSON.stringify(prefs))}catch{toast('此浏览器无法保存设置')}};
+function toast(msg){$('#toast').textContent=msg;$('#toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('visible'),2200)}
+const characterArt={"character-1001":"https://cdn.vorxu.com/images/final-fantasy-resonance/portraits/unit-1001-400w.webp","character-1002":"https://cdn.vorxu.com/images/final-fantasy-resonance/portraits/unit-1002-400w.webp","character-1003":"https://cdn.vorxu.com/images/final-fantasy-resonance/portraits/unit-1003-400w.webp","character-1004":"https://cdn.vorxu.com/images/final-fantasy-resonance/portraits/unit-1004-400w.webp","character-1005":"https://cdn.vorxu.com/images/final-fantasy-resonance/portraits/unit-1005-400w.webp","character-1006":"https://cdn.vorxu.com/images/final-fantasy-resonance/portraits/unit-1006-400w.webp","character-1007":"https://cdn.vorxu.com/images/final-fantasy-resonance/portraits/unit-1007-400w.webp","character-1008":"https://cdn.vorxu.com/images/final-fantasy-resonance/portraits/unit-1008-400w.webp"};
+const picture=e=>e?.image&&url(e.image)?`<img class="sprite" src="${esc(url(characterArt[e.id]||e.image))}" loading="lazy" alt="${esc(e.title)}" onerror="this.hidden=true">`:'';
+const isCollectible=e=>['visions','espers','collectibles','achievements'].includes(e.category)||e.collectible===true;
+const completed=e=>state.completed.includes(e.id);
+const fields=e=>Object.entries(e.fields||{});
+const value=(e,re)=>fields(e).filter(([k])=>re.test(k)&&!/内容类型|记录口径/.test(k)).map(([,v])=>text(v)).join('；');
+const isLocation=e=>e.id.startsWith('location-');
+const isCave=e=>e.collectible===true&&e.category==='enemies';
+const isShard=e=>e.category==='collectibles'&&/石板/.test(e.title);
+const isAdamant=e=>e.category==='collectibles'&&/精金/.test(e.title);
+const isArm=e=>e.category==='collectibles'&&!isShard(e)&&!isAdamant(e);
+const isWalk=e=>/^walkthrough-chapter-/.test(e.id);
+const isBossGuide=e=>e.category==='guide'&&(/首领|强敌|Boss|萨菲罗斯|究极|最终战/.test([e.title,...(e.tags||[])].join(' ')))&&!isWalk(e);
+const visible=e=>prefs.spoilers||!e.spoiler;
+const sentence=e=>e.summary||fields(e).filter(([k])=>!/说明|范围|版本|记录ID/.test(k)).slice(0,2).map(([k,v])=>k+'：'+text(v)).join('；');
+const sourceName=s=>(s.title||'来源资料').replace(/ATMA Databook/g,'阿特玛游戏资料库').replace(/FF Resonance Codex/g,'共鸣数据宝典').replace(/PowerPyx/g,'白金攻略站').replace(/RPG Site/g,'角色扮演游戏攻略站').replace(/AppMedia/g,'日文攻略站').replace(/Vorxu/g,'游戏资料手册').replace(/Steam社区/g,'玩家社区');
+function save(id){state.saved=state.saved.includes(id)?state.saved.filter(x=>x!==id):[...state.saved,id];write();render();toast(state.saved.includes(id)?'已加入收藏':'已取消收藏')}
+function check(id,on){state.completed=state.completed.filter(x=>x!==id);if(on)state.completed.push(id);write();if(route.category==='saved')render();else{const tr=$(`[data-row="${CSS.escape(id)}"]`);if(tr)tr.classList.toggle('done',on);updateProgress()}}
+const checkbox=(e,long=false)=>isCollectible(e)?`<label class="check-label"><input type="checkbox" data-check="${esc(e.id)}" ${completed(e)?'checked':''}>${long?'已完成 / 已收集':e.category==='achievements'?'已达成':isCave(e)?'已击败':'已收集'}</label>`:'';
+function prepare(){
+ lookup=new Map(entries.map(e=>[e.id,e]));groups=[];groupFor=new Map();index=new Map();nameIndex=new Map();const buckets=new Map();
+ for(const e of entries){
+  const grouping=e.category==='enemies'&&!isCave(e)||isLocation(e)||e.category==='skills';
+  const key=grouping?e.category+':'+(isLocation(e)?'location:':'')+groupingName(e.en||e.original?.title||e.title):'id:'+e.id;
+  let g=buckets.get(key);if(!g){g={entry:e,members:[],key};buckets.set(key,g);groups.push(g)}g.members.push(e);groupFor.set(e.id,g);
+  const raw=e.original||{};index.set(e.id,normal([e.title,e.en,e.summary,...Object.keys(e.fields||{}),...Object.values(e.fields||{}),...(e.steps||[]),...(e.tags||[]),text(raw)].map(text).join(' ')));
+  for(const n of [e.title,e.en]){if(!n)continue;const k=normal(n);if(!nameIndex.has(k))nameIndex.set(k,[]);nameIndex.get(k).push(e)}
+ }
+}
+const group=e=>groupFor.get(e.id)||{entry:e,members:[e]};
+const count=(category)=>groups.filter(g=>category==='world'?isLocation(g.entry):category==='quests'?g.entry.category==='quests'&&!isLocation(g.entry):category==='equipment'?['equipment','items'].includes(g.entry.category):g.entry.category===category).length;
+function renderNav(){
+ $('#navigation').innerHTML=nav.map(c=>`<a class="nav-link ${route.category===c||(c==='equipment'&&route.category==='items')?'active':''}" href="${href(c)}" ${route.category===c?'aria-current="page"':''}>${name(c)}</a>`).join('');$('#savedCount').textContent=state.saved.length;$('#heroBand').hidden=route.category!=='home'||!!route.id;
+}
+function progress(label,items,key){const done=items.filter(completed).length;return `<div class="progress-head"><span>${label}</span><b data-progress="${key}">${done} / ${items.length}</b></div><div class="progress-track"><i data-bar="${key}" style="width:${items.length?done/items.length*100:0}%"></i></div>`}
+function progressAside(){return `<section class="paper"><h2 class="aside-title">我的收集进度</h2>${progress('幻兵',entries.filter(e=>e.category==='visions'),'visions')}${progress('召唤兽',entries.filter(e=>e.category==='espers'),'espers')}${progress('石板碎片',entries.filter(isShard),'shards')}${progress('古老装备',entries.filter(isArm),'arms')}${progress('精金',entries.filter(isAdamant),'adamantite')}<a class="aside-link" href="#/saved">查看我的记录 →</a></section>`}
+function updateProgress(){const sets={visions:entries.filter(e=>e.category==='visions'),espers:entries.filter(e=>e.category==='espers'),shards:entries.filter(isShard),arms:entries.filter(isArm),adamantite:entries.filter(isAdamant),current:collectionEntries()};for(const [key,list]of Object.entries(sets)){const done=list.filter(completed).length;$$(`[data-progress="${key}"]`).forEach(x=>x.textContent=`${done} / ${list.length}`);$$(`[data-bar="${key}"]`).forEach(x=>x.style.width=(list.length?done/list.length*100:0)+'%')}}
+const tiles=items=>`<div class="guide-grid">${items.map(([title,subtitle,c,id,kind,icon])=>`<a class="guide-tile" href="${href(c,id,kind)}"><span aria-hidden="true">${icon||'◇'}</span><div><b>${title}</b><small>${subtitle}</small></div></a>`).join('')}</div>`;
+function home(){
+ const picks=[['characters','角色图鉴','8 名主要同伴','character-1001'],['visions','幻兵图鉴','26 名幻兵档案','vision-13110'],['espers','召唤兽图鉴','9 只契约召唤兽','esper-10451'],['skills','技能图鉴',count('skills')+' 项能力与被动',null],['equipment','装备道具','属性、效果与获取',null],['walkthrough','主线流程','8 章关键目标',null],['world','地点图鉴',count('world')+' 处地点与奖励',null],['enemies','敌人图鉴',count('enemies')+' 个档案 · 变体合并',null],['collectibles','收集清单','石板、精金与古老装备',null],['achievements','白金成就','40 项成就条件',null]];
+ const useful=['guide-start','guide-mastery','guide-forge-workflow','guide-sephiroth-phases'].map(id=>lookup.get(id)).filter(Boolean);
+ return `<div class="page-grid"><div><section class="paper"><div class="block-heading centered"><h2>重要导航索引</h2><span>常用资料 · 一步直达</span></div><div class="index-grid">${picks.map(([c,title,sub,id])=>{const e=id?lookup.get(id):null;return `<a class="index-card" href="${href(c)}"><span class="index-picture">${e?.image?`<img src="${esc(url(characterArt[e.id]||e.image))}" alt="" loading="lazy" onerror="this.hidden=true">`:C[c][2]}</span><strong>${title}</strong><small>${sub}</small></a>`}).join('')}</div></section>
+ <section class="paper"><div class="block-heading centered"><h2>攻略导航索引</h2><span>按目标查找</span></div><div class="index-group"><h3 class="group-title">剧情与委托</h3>${tiles([['主线流程','八章目标 · 机关 · 首领','walkthrough',null,null,'➤'],['角色与支线','前置、地区与任务奖励','quests',null,null,'♙'],['幻兵获取','获取位置、觉醒与精通','visions',null,null,'✧'],['全部攻略','系统与实用路线','guide',null,null,'≋']])}</div><div class="index-group"><h3 class="group-title">收集与养成</h3>${tiles([['石板碎片','99 处位置 · 逐项勾选','collectibles',null,'shards','◇'],['古老装备','12 件原型与解放路线','collectibles',null,'arms','⚔'],['精金专武','8 块精金与锻造条件','collectibles',null,'adamantite','♧'],['召唤兽契约','9 只召唤兽与前置','espers',null,null,'♜']])}</div><div class="index-group"><h3 class="group-title">战斗与查漏</h3>${tiles([['洞窟之主','15 处挑战与建议等级','collectibles',null,'caves','♞'],['强敌打法','萨菲罗斯、究极与最终战','guide',null,'boss','⚒'],['掉落与偷窃','按敌人查弱点和战利品','enemies',null,null,'♞'],['白金路线','成就条件与通关后补全','achievements',null,null,'♕']])}</div></section>
+ <section class="paper"><div class="block-heading"><h2>八章主线流程</h2><a href="#/walkthrough">展开全部 →</a></div><div class="chapter-grid">${Array.from({length:8},(_,i)=>lookup.get('walkthrough-chapter-'+(i+1))).filter(Boolean).map((e,i)=>`<a class="chapter-card" href="${href('guide',e.id)}"><small>第 ${i+1} 章</small><b>${esc(e.title.replace(/^第[一二三四五六七八1-8]+章[：:·\s]*/,''))}</b><span>${e.steps.length} 个关键步骤 →</span></a>`).join('')}</div></section></div>
+ <aside class="aside"><section class="paper"><h2 class="aside-title">关于本站</h2><p>围绕角色、能力与获取路线，把游戏数据和攻略连接起来。</p><div class="stat-triplet"><div><b>8</b>主要角色</div><div><b>26</b>幻兵档案</div><div><b>9</b>契约召唤兽</div></div><div class="small-note">中文主视图。译名与原文可在条目内展开比较，来源和版本同时保留。</div></section>${progressAside()}<section class="paper"><h2 class="aside-title">常用攻略</h2>${useful.map(e=>`<a class="aside-row" href="${href(e.category,e.id)}">${esc(e.title)}<small>${esc(sentence(e)).slice(0,65)}</small></a>`).join('')}</section><section class="paper"><h2 class="aside-title">参考攻略视频</h2><p>全角色专属装备<br>分析介绍与获取指南</p><a class="aside-link" href="https://www.bilibili.com/video/BV1fvH56cEkF/" target="_blank" rel="noopener noreferrer">观看作者原视频 ↗</a></section></aside></div>`;
+}
+function collectionEntries(){const kind=route.kind||'shards';return entries.filter(kind==='arms'?isArm:kind==='adamantite'?isAdamant:kind==='caves'?isCave:isShard)}
+function scoped(){
+ let list;
+ if(route.category==='search')list=groups;
+ else if(route.category==='saved')list=groups.filter(g=>g.members.some(e=>state.saved.includes(e.id)||completed(e)||state.notes[e.id]));
+ else if(route.category==='walkthrough')list=groups.filter(g=>isWalk(g.entry));
+ else if(route.category==='world')list=groups.filter(g=>isLocation(g.entry));
+ else if(route.category==='quests')list=groups.filter(g=>g.entry.category==='quests'&&!isLocation(g.entry));
+ else if(route.category==='collectibles')list=collectionEntries().map(e=>group(e));
+ else if(route.category==='equipment')list=groups.filter(g=>['equipment','items'].includes(g.entry.category));
+ else list=groups.filter(g=>g.entry.category===route.category);
+ list=list.filter(g=>g.members.some(visible));
+ if(route.category==='guide'){list=list.filter(g=>!isWalk(g.entry));if(route.kind==='boss')list=list.filter(g=>isBossGuide(g.entry))}
+ if(route.category==='collectibles'&&prefs.chapter)list=list.filter(g=>!g.entry.chapter||g.entry.chapter<=prefs.chapter);
+ const q=$('#search').value.trim();if(q){const parts=q.split(/\s+/).map(normal);list=list.filter(g=>parts.every(p=>g.members.some(e=>index.get(e.id).includes(p))));const n=normal(q);const rank=g=>{const e=g.entry;return (normal(e.title)===n||normal(e.en)===n?100:normal(e.title).includes(n)?80:normal(e.en).includes(n)?65:0)+(e.category==='guide'?45:['visions','characters','espers'].includes(e.category)?10:0)};list.sort((a,b)=>rank(b)-rank(a))}
+ if(facet!=='all'){
+  if(facet==='pending')list=list.filter(g=>isCollectible(g.entry)&&!completed(g.entry));
+  else if(route.category==='saved')list=list.filter(g=>g.members.some(e=>facet==='saved'?state.saved.includes(e.id):facet==='completed'?completed(e):state.notes[e.id]));
+  else if(route.category==='search')list=list.filter(g=>facet==='guide'?g.entry.category==='guide':facet==='battle'?['characters','visions','espers','skills'].includes(g.entry.category):facet==='gear'?['equipment','items'].includes(g.entry.category):facet==='collect'?['collectibles','achievements'].includes(g.entry.category):g.entry.category===facet);
+  else if(route.category==='equipment')list=list.filter(g=>facet==='items'?g.entry.category==='items':value(g.entry,/类型/)===facet||value(g.entry,/类别|分类/).includes(facet));
+  else list=list.filter(g=>(g.entry.tags||[]).includes(facet)||value(g.entry,/定位|类型|分类/).includes(facet));
+ }
+ if(route.category==='saved')list=list.map(g=>({...g,entry:g.members.find(e=>facet==='saved'?state.saved.includes(e.id):facet==='completed'?completed(e):facet==='notes'?state.notes[e.id]:state.saved.includes(e.id)||state.notes[e.id]||completed(e))||g.entry}));
+ if(!q&&['visions','espers','walkthrough'].includes(route.category))list.sort((a,b)=>(a.entry.chapter||0)-(b.entry.chapter||0));
+ return list;
+}
+function pills(options){return options.map(([id,label])=>`<button class="pill ${facet===id?'active':''}" data-facet="${esc(id)}">${label}</button>`).join('')}
+function controls(){let opts=[['all','全部']];
+ if(route.category==='saved')opts.push(['saved','已收藏'],['completed','已完成'],['notes','有笔记']);
+ else if(route.category==='search')opts.push(['guide','攻略路线'],['battle','角色与能力'],['gear','装备道具'],['enemies','敌人'],['collect','收集与成就']);
+ else if(route.category==='equipment')opts.push(['武器','武器'],['防具','防具'],['饰品','饰品'],['items','道具']);
+ else if(route.category==='visions')opts.push(...[...new Set(entries.filter(e=>e.category==='visions').map(e=>value(e,/定位/)))].filter(Boolean).map(x=>[x,x]));
+ else if(route.category==='skills')opts.push(...[...new Set(entries.filter(e=>e.category==='skills').flatMap(e=>(e.tags||[]).filter(x=>x!=='游戏数据')))].slice(0,6).map(x=>[x,x]));
+ else if(route.category==='collectibles')opts.push(['pending','尚未收集']);
+ else if(route.category==='enemies')opts.push(['普通敌人','普通敌人'],['首领','首领']);
+ const chapter=route.category==='collectibles'?`<select id="chapterFilter" aria-label="按进度筛选收集"><option value="0">全部进度</option>${Array.from({length:8},(_,i)=>`<option value="${i+1}" ${prefs.chapter===i+1?'selected':''}>截至第 ${i+1} 章</option>`).join('')}</select>`:'';
+ return `<div class="filters">${pills(opts)}${chapter}${!['collectibles','walkthrough'].includes(route.category)?`<button class="pill push view-toggle" id="viewToggle">${view==='cards'?'切换紧凑表格':'切换图鉴卡片'}</button>`:''}</div>`;
+}
+function card(g){const e=g.entry,saved=state.saved.includes(e.id),brief=fields(e).filter(([k])=>/地点|定位|类别|类型|消耗|普通·.*生命/.test(k)&&!/说明|口径|内容|范围|记录|版本/.test(k)).slice(0,2);return `<article class="entity-card ${completed(e)?'done':''}" data-row="${esc(e.id)}"><button class="star ${saved?'on':''}" data-save="${esc(e.id)}" aria-label="${saved?'取消收藏':'收藏'} ${esc(e.title)}" aria-pressed="${saved}">${saved?'★':'☆'}</button><div class="card-top">${picture(e)}<div><h3 class="entity-name"><a href="${href(e.category,e.id)}">${esc(e.title)}</a></h3>${g.members.length>1?`<div class="variant-count">${g.members.length} 个关联记录 · 已合并</div>`:''}</div></div><p>${esc(sentence(e))}</p>${brief.length?`<div class="card-facts">${brief.map(([k,v])=>`<div>${esc(k)}：${esc(text(v)).slice(0,110)}</div>`).join('')}</div>`:''}<div>${(e.tags||[]).filter(t=>!['游戏数据','数据记录','版本注明'].includes(t)).slice(0,2).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div><div class="card-bottom">${isCollectible(e)?checkbox(e):`<span class="chapter-link">${e.chapter?'第 '+e.chapter+' 章起':name(isLocation(e)?'world':e.category)}</span>`}<a href="${href(e.category,e.id)}">查看详情 →</a></div></article>`}
+function rows(list){return `<div class="table-wrap"><table><thead><tr><th>名称</th><th>类型 / 条件</th><th>关键信息</th><th>记录</th></tr></thead><tbody>${list.map(g=>{const e=g.entry;return `<tr class="${completed(e)?'done':''}" data-row="${esc(e.id)}"><td><a class="entity-name" href="${href(e.category,e.id)}">${esc(e.title)}</a>${g.members.length>1?`<small class="subtext">${g.members.length} 个记录已合并</small>`:''}</td><td class="nowrap">${esc(value(e,/类别|定位|类型/)||(e.tags||[])[0]||name(e.category))}${e.chapter?`<small class="subtext">第 ${e.chapter} 章起</small>`:''}</td><td class="summary-cell">${esc(value(e,/效果说明|效果原文|原文效果|地点|获取类型|属性加成|奖励|普通·.*生命/)||sentence(e)).slice(0,190)}</td><td class="nowrap">${checkbox(e)}<button data-save="${esc(e.id)}" aria-label="收藏 ${esc(e.title)}">${state.saved.includes(e.id)?'★':'☆'}</button></td></tr>`}).join('')}</tbody></table></div>`}
+function collectionTable(list){return `<div class="table-wrap"><table><thead><tr><th>序号 / 收集品</th><th>地点与位置提示</th><th>进度</th></tr></thead><tbody>${list.map(g=>{const e=g.entry;return `<tr class="${completed(e)?'done':''}" data-row="${esc(e.id)}"><td><a class="entity-name" href="${href(e.category,e.id)}">${esc(e.title)}</a><small class="subtext">${e.chapter?'第 '+e.chapter+' 章起':'参见前置条件'}</small></td><td class="summary-cell">${esc(e.summary||value(e,/地点|位置/))}${e.steps?.[0]&&e.steps[0]!==e.summary?`<small class="subtext">${esc(e.steps[0]).slice(0,120)}</small>`:''}</td><td class="nowrap">${checkbox(e)}</td></tr>`}).join('')}</tbody></table></div>`}
+function collectionTabs(){return `<nav class="collection-tabs" aria-label="收集品分类">${[['shards','石板碎片',99],['arms','古老装备',12],['adamantite','精金',8],['caves','洞窟之主',15]].map(([k,n,total])=>`<a class="${(route.kind||'shards')===k?'active':''}" href="${href('collectibles',null,k)}">${n} <small>${total}</small></a>`).join('')}</nav>`}
+function listing(){
+ const list=scoped(),isCollect=route.category==='collectibles',size=isCollect?30:view==='table'?40:route.category==='visions'?30:24,total=Math.max(1,Math.ceil(list.length/size));page=Math.min(page,total);const shown=list.slice((page-1)*size,page*size);
+ const title=route.category==='search'?'搜索结果':name(route.category),desc=route.category==='search'?'先展示相关攻略，再查图鉴数据；同名变体合并在详情中。':C[route.category]?.[1]||'';
+ const collect=collectionEntries();
+ const top=`<div class="page-title"><div><h1>${title}</h1><p>${desc}</p></div><span>${list.length} 个${route.category==='guide'?'攻略':'档案'}</span></div>`;
+ if(route.category==='guide')return guideIndex(top,list);
+ if(route.category==='walkthrough')return `<div class="page-grid"><div>${top}<div class="result-grid">${list.map(card).join('')}</div></div><aside class="aside">${progressAside()}<section class="paper"><h2 class="aside-title">顺路查收集</h2><a class="aside-row" href="#/collectibles?kind=shards">石板碎片 · 按章节查位置 →</a><a class="aside-row" href="#/visions">幻兵 · 获取与学习能力 →</a><a class="aside-row" href="#/quests">角色支线 · 条件与奖励 →</a></section></aside></div>`;
+ return top+(isCollect?collectionTabs():'')+controls()+(isCollect?`<div class="collect-summary"><span>此类收集 <b data-progress="current">${collect.filter(completed).length} / ${collect.length}</b></span><div class="progress-track"><i data-bar="current" style="width:${collect.length?collect.filter(completed).length/collect.length*100:0}%"></i></div><span>${prefs.chapter?'当前仅显示截至第 '+prefs.chapter+' 章的已知内容':'可按章节筛选，再逐项勾选'}</span></div>`:'')+
+ (list.length?(isCollect?collectionTable(shown):view==='table'?rows(shown):`<div class="result-grid">${shown.map(card).join('')}</div>`):`<div class="empty"><b>没有符合条件的内容</b><p>${route.category==='saved'?'先在图鉴中收藏、勾选或留下笔记。':'试试更短的关键词，或清除类型和进度筛选。'}</p><button class="button" id="clearFilters">清除筛选</button></div>`)+(list.length>size?`<nav class="pagination" aria-label="结果分页"><button data-page="${page-1}" ${page===1?'disabled':''}>← 上一页</button><span>${page} / ${total}</span><button data-page="${page+1}" ${page===total?'disabled':''}>下一页 →</button></nav>`:'');
+}
+function guideIndex(top,list){const sections=route.kind==='boss'?[['强敌打法',list]]:[['入门与战斗系统',list.filter(g=>/开局|觉醒|精通|共鸣|洞窟之主/.test(g.entry.title))],['收集与养成路线',list.filter(g=>/专属|古老|石板|雷达|碎片|练级|收集|白金|100%/.test(g.entry.title))],['强敌打法',list.filter(g=>isBossGuide(g.entry))]];const seen=new Set();return `<div class="page-grid"><div>${top}<section class="paper"><div class="group-title">主线与支线</div>${tiles([['八章主线','按顺序推进 · 关键机关','walkthrough',null,null,'➤'],['支线任务','章节、地区与奖励','quests',null,null,'▣'],['地点奖励','按地区反查宝箱记录','world',null,null,'⌖'],['逐点收集','石板、古老装备与精金','collectibles',null,null,'◇']])}</section>${sections.map(([n,gs])=>{gs=gs.filter(g=>!seen.has(g.entry.id));gs.forEach(g=>seen.add(g.entry.id));return gs.length?`<section class="paper"><div class="block-heading"><h2>${n}</h2></div><div class="result-grid">${gs.map(card).join('')}</div></section>`:''}).join('')}</div><aside class="aside">${progressAside()}<section class="paper"><h2 class="aside-title">查资料的顺序</h2><p>卡住主线 → 查章节流程。<br>缺少能力 → 查幻兵与技能。<br>配装或养成 → 查装备与获取。<br>准备补全 → 打开收集清单。</p></section></aside></div>`}
+function related(e){const g=group(e),out=[];const add=x=>{if(x&&x.id!==e.id&&!g.members.some(m=>m.id===x.id)&&visible(x))out.push(group(x).entry)};
+ for(const counterpart of nameIndex.get(normal(e.en||''))||[])add(counterpart);
+ const containsName=(body,en)=>{const escaped=String(en||'').replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return escaped&&new RegExp("(?:^|[;；/：:])\\s*"+escaped+"(?:$|[^A-Za-z0-9+’'-])",'i').test(body)};
+ const rawFields=x=>x.original?.fields||x.fields||{};
+ const lootOf=x=>Object.entries(rawFields(x)).filter(([k])=>/掉落|偷窃/.test(k)).map(([,v])=>text(v)).join('；');
+ if(e.category==='enemies'){
+  const loot=lootOf(e);for(const x of entries)if(['items','equipment'].includes(x.category)&&containsName(loot,x.en))add(x);
+ }
+ if(['items','equipment'].includes(e.category)&&e.en){
+  for(const x of groups.map(g=>g.entry)){
+   if(x.category==='enemies'&&containsName(lootOf(x),e.en))add(x);
+   else if(isLocation(x)&&group(x).members.some(m=>containsName(text(rawFields(m)),e.en)))add(x);
   }
-  const blurb = e => e.summary || Object.entries(e.fields||{}).slice(0,3).map(([k,v])=>`${k}：${valueText(v)}`).join(' · ');
-  function progressPanel() {
-    return `<div class="panel progress-panel"><div class="data-label">MY JOURNEY</div><h3>收集进度</h3>${['visions','espers','collectibles','achievements'].map(c=>{
-      const items=entries.filter(e=>e.category===c&&isCollectible(e)),done=items.filter(e=>state.completed.includes(e.id)).length;
-      return `<div class="progress-head"><span>${label(c)}</span><b data-progress="${c}">${done} / ${items.length}</b></div><div class="progress-track"><i data-bar="${c}" style="width:${items.length?done/items.length*100:0}%"></i></div>`
-    }).join('')}<a class="aside-link" href="#/saved">管理收藏与收集记录 →</a></div>`;
-  }
-  function updateProgress() {for(const c of ['visions','espers','collectibles','achievements']){const list=entries.filter(e=>e.category===c&&isCollectible(e)),done=list.filter(e=>state.completed.includes(e.id)).length;$$(`[data-progress="${c}"]`).forEach(x=>x.textContent=`${done} / ${list.length}`);$$(`[data-bar="${c}"]`).forEach(x=>x.style.width=(list.length?100*done/list.length:0)+'%')}}
-  function home() {
-    const guides=entries.filter(e=>e.category==='guide'&&(!e.spoiler||prefs.spoilers)).slice(0,5);
-    const indexes=['characters','visions','espers','skills','equipment','enemies','collectibles','achievements'];
-    const chapters=Array.from({length:8},(_,i)=>lookup.get('walkthrough-chapter-'+(i+1)));const names=chapters.map((e,i)=>e?.title.replace(/^第[一二三四五六七八1-8]+章[：:·\s]*/, '')||('第 '+(i+1)+' 章'));
-    return `<section class="hero"><div class="eyebrow">FINAL FANTASY RESONANCE</div><h1>在拉皮斯，找到答案。</h1><p>从第一场战斗到最后一块石板。<br>查数据、找路线，把冒险中的每一次发现记下来。</p><div class="hero-actions"><a class="primary" href="#/guide">开始查阅 <span>→</span></a><a class="button" href="#/collectibles">打开收集清单</a></div><span class="edition">玩家档案 / 2026.10.25</span></section>
-    <div class="home-layout"><div><div class="section-heading"><h2>资料索引</h2><span>${entries.length.toLocaleString()} 条实际收录</span></div><div class="index-grid">${indexes.map(c=>`<a class="index-card" href="${hash(c)}"><span aria-hidden="true">${cat(c)[2]}</span><strong>${label(c)}</strong><small>${stats(c).toLocaleString()} 条 · 点击查询 →</small></a>`).join('')}</div>
-    <div class="section-heading"><h2>冒险指南</h2><a href="#/guide">全部攻略 ↗</a></div><div class="guide-links">${guides.map((e,i)=>`<a class="guide-row" href="${hash(e.category,e.id)}"><span>0${i+1}</span><div><h3>${escape(e.title)}</h3><p>${escape(blurb(e))}</p></div><em>↗</em></a>`).join('')}</div>
-    <div class="section-heading"><h2>八章主线流程</h2><a href="#/guide">全部路线 →</a></div><div class="chapter-grid">${names.map((name,i)=>`<button class="chapter-card" data-walkthrough="${i+1}"><small>CHAPTER 0${i+1}</small><b>第 ${i+1} 章</b><span>${name}</span></button>`).join('')}</div>
-    <div class="reading-banner"><b>原始记录可查 · 每条附来源</b><span>正式版与试玩版的研究范围分开标注。</span><a href="#/sources">了解收录 ↗</a></div></div>
-    <aside class="home-aside">${progressPanel()}<div class="panel"><div class="data-label">QUICK REFERENCE</div><h3>常用查询</h3>${[['精金','专属武器怎么拿？'],['石板','石板碎片在哪里？'],['萨菲罗斯','萨菲罗斯如何获得？'],['MR','幻兵精通与技能学习'],['Ribbon','缎带与异常抗性']].map(([q,title])=>`<button class="related-link" data-query="${q}">${title} <span>↗</span></button>`).join('')}<p>中文攻略附英文地点对照，方便在不同汉化译名之间查找。</p></div><div class="panel"><div class="data-label">REFERENCE VIDEO</div><h3>你提供的参考攻略</h3><p>Pser_hanser · 全角色专属装备<br>分析介绍与获取攻略</p><a class="aside-link" href="https://www.bilibili.com/video/BV1fvH56cEkF/" target="_blank" rel="noopener noreferrer">打开原视频 ↗</a></div></aside></div>`;
-  }
-  function normalize(text) {return String(text??'').normalize('NFKC').toLowerCase().replace(/[’‘]/g,"'").replace(/[^\p{L}\p{N}]/gu,'')}
-  const aliases={ '精金':['adamantite','专武'], '专武':['adamantite','专属武器'], '缎带':['ribbon'], '萨菲罗斯':['sephiroth'], '克劳德':['cloud'], '雷因':['rain'], '拉斯韦尔':['lasswell'], '菲娜':['fina'], '蒂娜':['terra'], '巴哈姆特':['bahamut'], '石板':['tablet','石板碎片'], '二刀流':['dual wield','dualsword'], '幻影':['幻兵','vision'], '幻兽':['召唤兽','esper'], '究极':['ultima'], '欧米茄':['omega'], '治疗':['heal','cure','healing'], '偷窃':['steal'], '掉落':['drop'], 'mr':['mastery','精通'], '白金':['trophy','成就'] };
-  function matching(e,q) {const hay=searchIndex.get(e.id)||'';return q.trim().split(/\s+/).every(part=>[part,...(aliases[part.toLowerCase()]||[])].some(x=>hay.includes(normalize(x))))}
-  function filtered() {
-    let list=route.category==='search'?entries:route.category==='saved'?entries.filter(e=>state.saved.includes(e.id)||state.completed.includes(e.id)||state.notes[e.id]):entries.filter(e=>e.category===route.category);
-    const q=$('#search').value.trim();if(q){list=list.filter(e=>matching(e,q));const terms=[q,...(aliases[q.toLowerCase()]||[])].map(normalize);const score=e=>Math.max(...terms.map(t=>normalize(e.title)===t||normalize(e.en)===t?100:normalize(e.title).includes(t)?80:normalize(e.en).includes(t)?65:0))+(e.category==='guide'?40:e.category==='collectibles'?8:0);list.sort((a,b)=>score(b)-score(a));}
-    if(!prefs.spoilers)list=list.filter(e=>!e.spoiler);
-    if(prefs.chapter>0)list=list.filter(e=>!e.chapter||e.chapter<=prefs.chapter);
-    if(route.category==='saved'){if(filter==='saved')list=list.filter(e=>state.saved.includes(e.id));if(filter==='completed')list=list.filter(e=>state.completed.includes(e.id));if(filter==='notes')list=list.filter(e=>state.notes[e.id])}
-    else if(filter==='pending')list=list.filter(e=>isCollectible(e)&&!state.completed.includes(e.id));
-    else if(filter!=='all')list=list.filter(e=>(e.tags||[]).includes(filter)||e.category===filter);
-    if(sourceFilter!=='all')list=list.filter(e=>(e.sourceIds||[]).includes(sourceFilter));
-    return list;
-  }
-  function card(e) {
-    const saved=state.saved.includes(e.id),done=state.completed.includes(e.id);
-    const facts=Object.entries(e.fields||{}).filter(([k])=>!['原始页','原文','来源'].includes(k)).slice(0,2);
-    return `<article class="result-card ${done?'done':''}"><button class="star ${saved?'on':''}" data-save="${escape(e.id)}" aria-label="${saved?'取消收藏':'收藏'} ${escape(e.title)}" aria-pressed="${saved}">${saved?'★':'☆'}</button><div class="card-title">${image(e)}<div><h3><a class="stretched" href="${hash(e.category,e.id)}">${escape(e.title)}</a></h3>${e.en&&(e.en!==e.title||e.category==='enemies')?`<small>${escape(e.en)}${e.category==='enemies'?' · 记录 #'+escape(e.id.replace('enemy-','')):''}</small>`:''}</div></div><p>${escape(blurb(e))}</p>${facts.length?`<div class="card-facts">${facts.map(([k,v])=>`<div>${escape(k)} · ${escape(valueText(v)).slice(0,170)}</div>`).join('')}</div>`:''}<div>${(e.tags||[]).slice(0,2).map(t=>`<span class="chip">${escape(t)}</span>`).join('')}</div><div class="card-foot">${isCollectible(e)?completeControl(e):`<span class="source-badge">${escape(label(e.category))}</span>`}<a href="${hash(e.category,e.id)}">查看详情 →</a></div></article>`;
-  }
-  function rows(list) {
-    return `<div class="result-table-wrap"><table><thead><tr><th>名称</th><th>类别 / 条件</th><th>关键数据</th><th>记录</th></tr></thead><tbody>${list.map(e=>`<tr class="${state.completed.includes(e.id)?'done':''}"><td><a href="${hash(e.category,e.id)}">${escape(e.title)}</a>${e.en&&(e.en!==e.title||e.category==='enemies')?`<small>${escape(e.en)}${e.category==='enemies'?' · 记录 #'+escape(e.id.replace('enemy-','')):''}</small>`:''}</td><td class="nowrap">${escape((e.tags||[])[0]||label(e.category))}${e.chapter?`<small>第 ${e.chapter} 章起</small>`:''}</td><td class="data-cell">${escape(Object.entries(e.fields||{}).slice(0,3).map(([k,v])=>k+'：'+valueText(v)).join(' · ')||blurb(e)).slice(0,260)}</td><td class="nowrap">${completeControl(e)} <button data-save="${escape(e.id)}" aria-label="收藏 ${escape(e.title)}" aria-pressed="${state.saved.includes(e.id)}">${state.saved.includes(e.id)?'★':'☆'}</button></td></tr>`).join('')}</tbody></table></div>`;
-  }
-  function listPage() {
-    const list=filtered(),pageSize=view==='table'?50:['visions','espers','characters'].includes(route.category)?32:24,total=Math.max(1,Math.ceil(list.length/pageSize));currentPage=Math.min(currentPage,total);
-    const shown=list.slice((currentPage-1)*pageSize,currentPage*pageSize);
-    const c=cat(route.category),searching=route.category==='search',saved=route.category==='saved';
-    const title=searching?'搜索结果':c[1],description=searching?'搜索覆盖名称、别名、描述、学习来源与获取位置。':c[4];
-    const tags=[...new Set((searching?[]:entries.filter(e=>e.category===route.category)).flatMap(e=>e.tags||[]))].filter(x=>x.length<30).slice(0,22);
-    const activeSources=sources.filter(s=>entries.some(e=>(searching||saved||e.category===route.category)&&(e.sourceIds||[]).includes(s.id)));
-    return `<div class="page-heading"><div><div class="eyebrow">${searching?'SEARCH THE ARCHIVE':c[3]}</div><h1>${title}</h1><p>${description}</p></div><span class="count-label">${list.length.toLocaleString()} 条结果</span></div>
-    <div class="filters">${saved?['all','saved','completed','notes'].map((f,i)=>`<button data-filter="${f}" class="${filter===f?'active':''}">${['全部记录','我的收藏','已完成','有笔记'][i]}</button>`).join(''):`<button data-filter="all" class="${filter==='all'?'active':''}">全部</button>${['collectibles','visions','espers','achievements'].includes(route.category)?`<button data-filter="pending" class="${filter==='pending'?'active':''}">尚未收集</button>`:''}${searching?`<select id="tagFilter" aria-label="按资料类别筛选"><option value="all">全部类别</option>${categories.slice(1,12).map(c=>`<option value="${c[0]}" ${filter===c[0]?'selected':''}>${c[1]}</option>`).join('')}</select>`:tags.length?`<select id="tagFilter" aria-label="按类型筛选"><option value="all">全部类型</option>${tags.map(t=>`<option ${t===filter?'selected':''} value="${escape(t)}">${escape(t)}</option>`).join('')}</select>`:''}`}
-    <select id="chapterFilter" aria-label="章节进度筛选"><option value="0">全部进度</option>${Array.from({length:8},(_,i)=>`<option value="${i+1}" ${prefs.chapter===i+1?'selected':''}>截至第 ${i+1} 章</option>`).join('')}</select>${activeSources.length>1?`<select id="sourceFilter" aria-label="按来源筛选"><option value="all">全部来源</option>${activeSources.map(s=>`<option value="${escape(s.id)}" ${sourceFilter===s.id?'selected':''}>${escape(s.title)}</option>`).join('')}</select>`:''}<button class="view-toggle" id="viewToggle">${view==='cards'?'☷ 表格视图':'▦ 卡片视图'}</button></div>
-    ${prefs.chapter?`<div class="results-summary"><span>已隐藏晚于第 ${prefs.chapter} 章的已知内容；未标注章节的条目仍显示。</span><button id="resetChapter">查看全部进度 ×</button></div>`:''}
-    ${list.length?(view==='table'?rows(shown):`<div class="result-grid">${shown.map(card).join('')}</div>`):`<div class="empty"><strong>${saved?'还没有符合条件的记录':'没有找到符合条件的条目'}</strong><p>${saved?'在图鉴中点 ☆ 收藏，或勾选已收集，就会出现在这里。':'试试英文原名或较短关键词，也可以清除类型、来源和进度筛选。'}</p>${!saved?'<button class="button" id="resetFilters">清除全部筛选</button>':'<a class="button" href="#/collectibles">浏览收集清单 →</a>'}</div>`}
-    ${list.length>pageSize?`<nav class="pagination" aria-label="结果分页"><button data-page="${currentPage-1}" ${currentPage===1?'disabled':''}>← 上一页</button><span>${currentPage} / ${total}</span><button data-page="${currentPage+1}" ${currentPage===total?'disabled':''}>下一页 →</button></nav>`:''}`;
-  }
-  function renderFields(e) {return Object.entries(e.fields||{}).filter(([,v])=>v!==undefined&&v!==null&&v!=='').map(([k,v])=>`<tr><th scope="row">${escape(k)}</th><td>${escape(valueText(v)).replace(/\n/g,'<br>')}</td></tr>`).join('')}
-  function related(e) {
-    const direct=(e.related||[]).map(id=>lookup.get(typeof id==='object'?id.id:id)||entries.find(x=>x.en===id&&x.id!==e.id)).filter(Boolean);
-    const names=[e.en,e.title].filter(x=>x&&x.length>2).map(normalize);
-    const candidates=entries.filter(x=>x.id!==e.id&&((x.related||[]).includes(e.id)||(x.en&&e.en&&normalize(x.en)===normalize(e.en))||names.some(n=>(searchIndex.get(x.id)||'').includes(n))));
-    return [...new Map([...direct,...candidates].map(x=>[x.id,x])).values()].filter(x=>!x.spoiler||prefs.spoilers).sort((a,b)=>(b.category==='guide')-(a.category==='guide')).slice(0,10);
-  }
-  function detail(e) {
-    if(!e)return `<div class="empty"><strong>未找到这个条目</strong><p>资料 ID 可能已更新，请重新搜索。</p><a class="button" href="#/home">返回首页</a></div>`;
-    if(e.spoiler&&!prefs.spoilers)return `<div class="empty"><strong>此条目包含剧情信息</strong><p>可在设置中启用剧情条目。</p><button class="button" id="enableSpoiler">显示此类内容</button></div>`;
-    const fields=renderFields(e),relatedEntries=related(e),original=safeUrl(e.sourceUrl),entrySources=sourceFor(e);
-    const sections=(e.sections||[]).map(s=>`<section class="article-section"><h2>${escape(s.title||s.heading)}</h2>${(Array.isArray(s.body)?s.body:[s.body||s.text||'']).map(t=>`<p>${escape(valueText(t))}</p>`).join('')}${s.steps?`<ol class="steps">${s.steps.map(x=>`<li>${escape(valueText(x))}</li>`).join('')}</ol>`:''}</section>`).join('');
-    return `<nav class="breadcrumbs" aria-label="面包屑"><a href="#/home">档案首页</a><span>/</span><a href="${hash(e.category)}">${label(e.category)}</a><span>/</span><span>${escape(e.title)}</span></nav><div class="detail-layout"><article class="detail-body"><header class="detail-header"><div class="eyebrow">${cat(e.category)[3]}</div><div class="detail-title">${image(e)}<div><h1>${escape(e.title)}</h1>${e.en&&(e.en!==e.title||e.category==='enemies')?`<small>${escape(e.en)}</small>`:''}</div></div><p class="detail-summary">${escape(e.summary||'')}</p><div>${(e.tags||[]).map(t=>`<span class="chip">${escape(t)}</span>`).join('')}${e.chapter?`<span class="chip">第 ${e.chapter} 章起</span>`:''}</div><div class="detail-actions"><button data-save="${escape(e.id)}" aria-pressed="${state.saved.includes(e.id)}">${state.saved.includes(e.id)?'★ 已收藏':'☆ 收藏条目'}</button>${completeControl(e,true)}<button id="copyLink">复制条目链接 ↗</button></div></header>
-    ${fields?`<h2>资料与条件</h2><div class="facts-table"><table><tbody>${fields}</tbody></table></div>`:''}${e.steps?.length?`<h2>${e.category==='guide'?'操作与路线':'获取 / 详细记录'}</h2><ol class="steps">${e.steps.map(step=>`<li>${escape(valueText(step)).replace(/\n/g,'<br>')}</li>`).join('')}</ol>`:''}${sections}${e.note?`<div class="notice">${escape(e.note)}</div>`:''}${e.version?`<p class="fine-print">记录版本：${escape(e.version)}</p>`:''}
-    <h2>我的笔记</h2><textarea class="note-field" id="entryNote" aria-label="${escape(e.title)} 的个人笔记" placeholder="记录你的配装、测试结果，或下次要回来的位置…" maxlength="20000">${escape(state.notes[e.id]||'')}</textarea><div class="note-state" id="noteState">仅保存你的记录，不修改攻略资料。</div></article>
-    <aside class="detail-aside"><section class="panel"><div class="data-label">EVIDENCE</div><h3>本条资料来源</h3>${original?`<a class="source-link" target="_blank" rel="noopener noreferrer" href="${escape(original)}">原始条目 / 获取攻略 ↗<span>${escape(new URL(original).hostname)}</span></a>`:''}${entrySources.map(s=>`<a class="source-link" target="_blank" rel="noopener noreferrer" href="${escape(safeUrl(s.url))}">${escape(s.title)} ↗<span>${escape(s.kind||s.scope||'来源资料')}</span></a>`).join('')}<p class="source-note">${escape(e.provenance||'事实数据与攻略说明按来源整理；地点和名称保留英文对照。未进行游戏内逐条实测。')}</p><a class="aside-link" href="#/sources">收录范围与版本说明 →</a></section>${relatedEntries.length?`<section class="panel"><div class="data-label">CONNECTED ENTRIES</div><h3>相关资料</h3>${relatedEntries.map(x=>`<a class="related-link" href="${hash(x.category,x.id)}">${escape(x.title)} <small class="muted">${label(x.category)}</small> ↗</a>`).join('')}</section>`:''}<section class="panel"><h3>继续查找</h3><button class="aside-link" data-query="${escape(e.en||e.title)}">搜索所有关联记录 →</button><p>${e.category==='enemies'?'同名敌人可能有不同形态或难度。请核对原始 ID 与难度字段。':'获取条件以当前游戏进度为准，相关数值与说明可从原始来源核对。'}</p></section></aside></div>`;
-  }
-  function sourcesPage() {
-    return `<div class="page-heading"><div><div class="eyebrow">SOURCES & SCOPE</div><h1>有出处，才是资料。</h1><p>数据快照整理于 ${escape(db.updatedAt||'2026-10-25')}。下列数量来自当前实际收录，不代表全部内容都已在游戏内验证。</p></div></div><div class="source-stats">${categories.slice(1,12).map(c=>`<a class="chip" href="${hash(c[0])}">${c[1]} ${stats(c[0])}</a>`).join('')}</div><div class="notice">游戏数值以公开游戏数据记录为依据；记录存在不等于任意存档都能获得。获取路线与中文摘要按玩家攻略独立整理。正式版数据与试玩版机制研究分别注明，资料冲突会保留说明。</div><div class="source-grid">${sources.map(s=>`<article class="source-card"><div class="data-label">${escape(s.kind||s.scope||'REFERENCE')}</div><h3>${escape(s.title)}</h3><p>${escape(s.note||s.description||s.scope||'')}</p><a href="${escape(safeUrl(s.url))}" target="_blank" rel="noopener noreferrer">${escape(s.url)} ↗</a><small>核查日期 ${escape(s.checkedAt||s.checked||'2026-10-25')} · ${entries.filter(e=>(e.sourceIds||[]).includes(s.id)).length} 条关联记录</small></article>`).join('')}</div><div class="section-heading"><h2>如何阅读这些数据</h2></div><div class="panel"><p>① 幻兵、技能、装备、敌人条目保留数据来源与原始名称；中文名有译法差异时可用英文检索。</p><p>② 技能威力、基础属性和最终战斗结果是不同概念。物理、魔法、固定伤害和治疗不能使用同一倍率直接比较。</p><p>③ 敌人图鉴可能将同名变体分开计数；学习能力与敌方内部能力的统计口径也不同。仅展示本次导入的实际数据。</p><p>④ 收集说明使用中文重新整理；原站地图、图片步骤和视频解说请从对应来源链接查看。此站不声称完成游戏内全量实测。</p><p>⑤ 收藏与笔记属于你的浏览器记录，可在设置中导出；已配对 PT Universe 时沿用其同步。原始游戏数据和素材归各自权利人所有，本站为非官方攻略索引。</p></div>`;
-  }
-  function render() {
-    if(!db)return;
-    renderNav();
-    $('#content').innerHTML=route.id?detail(lookup.get(route.id)):route.category==='home'?home():route.category==='sources'?sourcesPage():listPage();
-    document.title=(route.id?lookup.get(route.id)?.title:route.category==='search'?'搜索':label(route.category))+' · FF Guide';
-    bind();
-  }
-  function bind() {
-    $$('[data-save]').forEach(el=>el.onclick=()=>toggleSaved(el.dataset.save));
-    $$('[data-check]').forEach(el=>el.onchange=()=>toggleComplete(el.dataset.check,el.checked));
-    $$('[data-query]').forEach(el=>el.onclick=()=>search(el.dataset.query));
-    $$('[data-filter]').forEach(el=>el.onclick=()=>{filter=el.dataset.filter;currentPage=1;render()});
-    $$('[data-page]').forEach(el=>el.onclick=()=>{currentPage=Number(el.dataset.page);render();$('#content').scrollIntoView({block:'start',behavior:'smooth'})});
-    $$('[data-walkthrough]').forEach(el=>el.onclick=()=>navigate('guide','walkthrough-chapter-'+el.dataset.walkthrough));
-    if($('#tagFilter'))$('#tagFilter').onchange=e=>{filter=e.target.value;currentPage=1;render()};
-    if($('#sourceFilter'))$('#sourceFilter').onchange=e=>{sourceFilter=e.target.value;currentPage=1;render()};
-    if($('#chapterFilter'))$('#chapterFilter').onchange=e=>{prefs.chapter=Number(e.target.value);writePrefs();currentPage=1;render()};
-    if($('#viewToggle'))$('#viewToggle').onclick=()=>{view=view==='cards'?'table':'cards';currentPage=1;render()};
-    if($('#resetChapter'))$('#resetChapter').onclick=()=>{prefs.chapter=0;writePrefs();render()};
-    if($('#resetFilters'))$('#resetFilters').onclick=()=>{filter='all';sourceFilter='all';prefs.chapter=0;writePrefs();$('#search').value='';$('#clearSearch').hidden=true;currentPage=1;render()};
-    if($('#enableSpoiler'))$('#enableSpoiler').onclick=()=>{prefs.spoilers=true;writePrefs();render()};
-    if($('#copyLink'))$('#copyLink').onclick=async()=>{try{await navigator.clipboard.writeText(location.href);toast('条目链接已复制')}catch{toast('请复制浏览器地址栏中的条目链接')}};
-    if($('#entryNote'))$('#entryNote').oninput=e=>{state.notes[route.id]=e.target.value;writeState();$('#noteState').textContent='已保存';};
-  }
-  function search(q) {$('#search').value=q;$('#clearSearch').hidden=!q;filter='all';sourceFilter='all';currentPage=1;const target='#/search?q='+encodeURIComponent(q);if(location.hash===target)render();else location.hash=target}
-  function parseRoute() {
-    const [path,qs]=location.hash.replace(/^#\/?/,'').split('?'),parts=path.split('/');
-    let category=parts[0]||'home';if(!categories.some(c=>c[0]===category)&&category!=='search')category='home';
-    let id=null;try{id=parts[1]?decodeURIComponent(parts.slice(1).join('/')):null}catch{}
-    route={category,id};
-    if(lastCategory!==category){currentPage=1;filter='all';sourceFilter='all';view=['equipment','skills','items','enemies','quests'].includes(category)?'table':'cards'}
-    const query=new URLSearchParams(qs||'').get('q')||'';$('#search').value=query;$('#clearSearch').hidden=!query;lastCategory=category;
-    $('#sidebar').classList.remove('open');$('#scrim').hidden=true;render();window.scrollTo({top:0});
-  }
-  $('#searchForm').onsubmit=e=>{e.preventDefault();search($('#search').value)};
-  $('#search').oninput=e=>{clearTimeout(searchTimer);const value=e.target.value;$('#clearSearch').hidden=!value;searchTimer=setTimeout(()=>search(value),220)};
-  $('#clearSearch').onclick=()=>{search('');$('#search').focus()};
-  $('#savedButton').onclick=()=>navigate('saved');
-  $('#menu').onclick=()=>{$('#sidebar').classList.toggle('open');$('#scrim').hidden=!$('#sidebar').classList.contains('open')};
-  $('#scrim').onclick=()=>{$('#sidebar').classList.remove('open');$('#scrim').hidden=true};
-  $('#settingsButton').onclick=()=>{$('#chapterSetting').value=prefs.chapter;$('#spoilerSetting').checked=prefs.spoilers;$('#settingsStatus').textContent=window.PTSync?.config()?'已连接 PT Universe 同步。':'当前记录自动保存在此浏览器。';$('#settings').showModal()};
-  $('#chapterSetting').onchange=e=>{prefs.chapter=Number(e.target.value);writePrefs();currentPage=1;render()};
-  $('#spoilerSetting').onchange=e=>{prefs.spoilers=e.target.checked;writePrefs();render()};
-  $('#exportProgress').onclick=()=>{const blob=new Blob([JSON.stringify({...state,preferences:prefs,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='ff-guide-progress.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);$('#settingsStatus').textContent='记录已导出。'};
-  $('#importProgress').onchange=async e=>{try{const f=e.target.files[0];if(!f)return;if(f.size>2000000)throw Error('文件过大');const data=JSON.parse(await f.text());if(data.version!==1||!Array.isArray(data.saved)||!Array.isArray(data.completed)||!data.notes||typeof data.notes!=='object'||Array.isArray(data.notes))throw Error('记录格式不正确');const known=ids=>ids.filter(id=>typeof id==='string'&&lookup.has(id));state.saved=[...new Set([...state.saved,...known(data.saved)])];state.completed=[...new Set([...state.completed,...known(data.completed)])];for(const [id,note] of Object.entries(data.notes)){if(lookup.has(id)&&typeof note==='string')state.notes[id]=note.slice(0,20000)}writeState();render();$('#settingsStatus').textContent='已合并导入收藏、收集进度与笔记。'}catch(err){$('#settingsStatus').textContent='导入失败：'+err.message}e.target.value=''};
-  addEventListener('hashchange',parseRoute);
-  addEventListener('keydown',e=>{if(e.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)){e.preventDefault();$('#search').focus()}if(e.key==='Escape'){$('#sidebar').classList.remove('open');$('#scrim').hidden=true}});
-  addEventListener('pt-sync-applied',()=>{state=read(KEY,state);prefs=read(PREFS,prefs);render()});
-  addEventListener('storage',e=>{if(e.key===KEY){state=read(KEY,state);render()}});
-  async function init(){try{const response=await fetch('data.json?v=20261025-1');if(!response.ok)throw Error('HTTP '+response.status);db=await response.json();entries=db.entries||[];sources=db.sources||[];lookup=new Map(entries.map(e=>[e.id,e]));for(const e of entries)searchIndex.set(e.id,normalize([e.title,e.en,e.summary,...(e.tags||[]),...Object.entries(e.fields||{}).flat(),...(e.steps||[])].map(valueText).join(' ')));parseRoute();bind()}catch(err){$('#content').innerHTML=`<div class="empty"><strong>资料暂时无法打开</strong><p>${escape(err.message)}</p><button class="button" id="retry">重新载入</button></div>`;$('#retry').onclick=init}}
-  init();
+ }
+ for(const id of e.related||[]){if(lookup.has(id))add(lookup.get(id));else(nameIndex.get(normal(typeof id==='object'?id.id:id))||[]).forEach(add)}
+ for(const x of entries)if((x.related||[]).includes(e.id))add(x);
+ const keys=[e.en,e.title].filter(t=>t&&t.length>=2).map(normal);for(const x of entries)if(x.id!==e.id&&x.category==='guide'&&keys.some(key=>(index.get(x.id)||'').includes(key)))add(x);
+ if(e.category==='guide'){
+  const ch=e.chapter;if(ch){for(const category of ['visions','espers']){entries.filter(x=>x.category===category&&x.chapter===ch).slice(0,3).forEach(add)}}
+  if(/精金|锻造|专武/.test(e.title))entries.filter(isAdamant).forEach(add);
+  if(/古老/.test(e.title))entries.filter(isArm).slice(0,4).forEach(add);
+ }
+ if(isLocation(e)){const s=e.original?.title||e.en||e.title;for(const x of entries)if(x.category==='guide'&&(index.get(x.id)||'').includes(normal(s)))add(x)}
+ return [...new Map(out.map(x=>[x.id,x])).values()].sort((a,b)=>(b.category==='guide')-(a.category==='guide'));
+}
+const relatedCards=es=>`<div class="related-grid">${es.map(e=>`<a class="related-card" href="${href(e.category,e.id)}">${picture(e)}<div><b>${esc(e.title)}</b><small>${esc(value(e,/类型|类别|定位/)||name(e.category))}</small></div></a>`).join('')}</div>`;
+function fieldRows(e){return fields(e).filter(([k,v])=>v!==null&&v!==''&&!/译名|范围|记录口径|关联技能数|固有技能记录数|地图记录ID|内容类型|阅读方式|编号提醒/.test(k)).filter(([k])=>e.category!=='enemies'||!/^简单|^普通|^专家/.test(k)||k.startsWith(difficulty+'·')).map(([k,v])=>`<tr><th scope="row">${esc(k.replace(difficulty+'·',''))}</th><td>${esc(text(v)).replace(/\n/g,'<br>')}</td></tr>`).join('')}
+function compare(e){const o=e.original||{},parts=[];if(e.en||o.title)parts.push(['名称',e.title,e.en||o.title]);if(o.summary&&o.summary!==e.summary)parts.push(['概述',e.summary,o.summary]);for(const [k,v]of Object.entries(o.fields||{})){const keys=Object.keys(e.fields||{}),nk=keys.includes(k)?k:keys[Object.keys(o.fields).indexOf(k)]||k;const current=e.fields?.[nk];if(String(v)!==String(current)||/[a-z]{3}/i.test(text(v)))parts.push([nk,text(current??''),text(v)])}if(o.steps?.length)parts.push(['详细说明',(e.steps||[]).join('\n'),o.steps.join('\n')]);return `<details class="collapsible"><summary>中英对照与资料来源</summary><p class="fine-print">中文名称按原文、系列惯用语和中文攻略对照整理；未核验为游戏官方译名的内容使用本站对照译名。数字与原始数据分别保留，便于核对。</p>${parts.map(([k,zh,en])=>`<div class="comparison-block"><h3>${esc(k)}</h3><div class="table-wrap"><table class="comparison-table"><thead><tr><th>中文说明</th><th>原始文本</th></tr></thead><tbody><tr><td>${esc(zh).replace(/\n/g,'<br>')}</td><td class="english-original" lang="en">${esc(en).replace(/\n/g,'<br>')}</td></tr></tbody></table></div></div>`).join('')}<h3>来源</h3>${(e.sourceIds||[]).map(id=>sources.find(s=>s.id===id)).filter(Boolean).map(s=>`<a class="source-link" href="${esc(url(s.url))}" target="_blank" rel="noopener noreferrer">${esc(sourceName(s))} ↗<small>${esc(s.note||s.scope||'')}</small></a>`).join('')}${e.sourceUrl?`<a class="source-link" href="${esc(url(e.sourceUrl))}" target="_blank" rel="noopener noreferrer">打开原始条目 / 攻略 ↗</a>`:''}</details>`}
+function detail(e){
+ if(!e)return `<div class="empty"><b>没有找到此条目</b><a class="button" href="#/home">返回资料首页</a></div>`;
+ if(!visible(e))return `<div class="empty"><b>此条目包含后期或剧情内容</b><button class="button" id="showSpoilers">显示此类条目</button></div>`;
+ const g=group(e),relatedEntries=related(e),relatedGuides=relatedEntries.filter(x=>x.category==='guide'),skills=relatedEntries.filter(x=>x.category==='skills'),other=relatedEntries.filter(x=>x.category!=='guide'&&x.category!=='skills');
+ const cat=isLocation(e)?'world':e.category,metaFields=fields(e),hasFields=metaFields.length>0;
+ const steps=e.steps||[],isGrowth=s=>e.category==='visions'&&/^(觉醒|精通)/.test(s),gain=steps.filter(s=>!isGrowth(s)),growth=steps.filter(isGrowth);
+ const fieldTitle=e.category==='enemies'?'弱点、战利品与战斗参数':e.category==='skills'?'技能效果与消耗':e.category==='equipment'||e.category==='items'?'效果、属性与获取来源':e.category==='quests'?'任务条件与奖励':'资料与条件';
+ const section=(id,title,body)=>`<section class="paper detail-section" id="${id}"><h2>${title}</h2>${body}</section>`;
+ const variant=g.members.length>1?`<div class="variant-control"><label for="variantSelect">同名记录已集中在此</label><select id="variantSelect" aria-label="选择同名记录">${g.members.map((m,i)=>`<option value="${esc(m.id)}" ${m.id===e.id?'selected':''}>${e.category==='enemies'?'战斗记录':'资料记录'} ${i+1}${value(m,/^等级$/)?' · 等级 '+value(m,/^等级$/):''}（编号 ${esc(m.id.replace(/^\w+-/,''))}）</option>`).join('')}</select></div>`:'';
+ const allLocationRewards=isLocation(e)&&g.members.length>1?[...new Set(g.members.flatMap(m=>fields(m).filter(([k])=>/奖励/.test(k)).map(([,v])=>text(v))))].join('；'):'';
+ const relatedSection=skills.length?section('abilities','关联技能与学习能力',`<div class="table-wrap"><table><thead><tr><th>技能</th><th>效果摘要</th><th>消耗 / 条件</th></tr></thead><tbody>${skills.map(s=>`<tr><td><a href="${href(s.category,s.id)}">${esc(s.title)}</a></td><td class="summary-cell">${esc(value(s,/效果说明|原文效果|效果原文/)||sentence(s))}</td><td>${esc(value(s,/消耗|装备.*点/))}</td></tr>`).join('')}</tbody></table></div>`):'';
+ const fieldsHtml=hasFields?section('facts',fieldTitle,variant+(e.category==='enemies'?`<div class="filters">${['普通','简单','专家'].map(d=>`<button class="pill ${difficulty===d?'active':''}" data-difficulty="${d}">${d}难度</button>`).join('')}</div>`:'')+`<div class="table-wrap"><table class="facts-table"><tbody>${fieldRows(e)}</tbody></table></div>`+(allLocationRewards?`<div class="notice"><b>此地点各地图记录的合并奖励：</b>${esc(allLocationRewards)}</div>`:'')):'';
+ const stepsHtml=gain.length?section('route',e.category==='guide'?'操作流程':e.category==='skills'?'学习来源':e.category==='characters'?'学习能力':/visions|espers/.test(e.category)?'获取与能力说明':'获取 / 详细说明',`<ol class="steps">${gain.map(s=>`<li>${esc(text(s)).replace(/\n/g,'<br>')}</li>`).join('')}</ol>`):'';
+ const growthHtml=growth.length?section('growth','觉醒与精通成长',`<ol class="steps">${growth.map(s=>`<li>${esc(s)}</li>`).join('')}</ol>`):'';
+ const sections=(e.sections||[]).map((s,i)=>section('section-'+i,s.title||s.heading,`<div class="section-body">${(Array.isArray(s.body)?s.body:[s.body||s.text||'']).map(t=>`<p>${esc(text(t))}</p>`).join('')}${s.steps?`<ol class="steps">${s.steps.map(t=>`<li>${esc(text(t))}</li>`).join('')}</ol>`:''}</div>`)).join('');
+ const acquisitionFirst=['guide','visions','espers','collectibles','achievements'].includes(e.category);
+ return `<nav class="breadcrumbs" aria-label="面包屑"><a href="#/home">资料首页</a><span>›</span><a href="${href(isWalk(e)?'walkthrough':cat)}">${isWalk(e)?'主线流程':name(cat)}</a><span>›</span><span>${esc(e.title)}</span></nav><div class="detail-layout"><article class="detail-main"><section class="paper"><div class="detail-header">${picture(e)}<div><div class="category-label">${isWalk(e)?'主线流程':name(cat)}${e.chapter?' · 第 '+e.chapter+' 章起':''}</div><h1>${esc(e.title)}</h1></div></div><p class="detail-summary">${esc(e.summary||'')}</p><div>${(e.tags||[]).filter(t=>!['游戏数据','数据记录'].includes(t)).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div><div class="detail-actions"><button data-save="${esc(e.id)}" aria-pressed="${state.saved.includes(e.id)}">${state.saved.includes(e.id)?'★ 已收藏':'☆ 收藏条目'}</button>${checkbox(e,true)}<button id="copyLink">复制链接</button></div></section>
+ <nav class="jump-nav" aria-label="页内目录">${gain.length?'<a href="#route" data-jump="route">'+(e.category==='guide'?'操作流程':'获取 / 学习')+'</a>':''}${hasFields?'<a href="#facts" data-jump="facts">属性与条件</a>':''}${growth.length?'<a href="#growth" data-jump="growth">成长说明</a>':''}${skills.length?'<a href="#abilities" data-jump="abilities">关联技能</a>':''}<a href="#note" data-jump="note">我的笔记</a></nav>
+ ${relatedGuides.length?section('linked-guides','相关实用攻略',relatedCards(relatedGuides.slice(0,4))):''}${acquisitionFirst?stepsHtml+fieldsHtml:fieldsHtml+stepsHtml}${growthHtml}${sections}${relatedSection}${other.length?section('related','关联资料',relatedCards(other.slice(0,12))):''}${e.note?`<div class="notice">${esc(e.note)}</div>`:''}
+ ${section('note','我的笔记',`<textarea id="entryNote" class="note-field" aria-label="${esc(e.title)} 的个人笔记" placeholder="记下你的配装、测试结果或下次要回来的位置…" maxlength="20000">${esc(state.notes[e.id]||'')}</textarea><p id="noteState" class="fine-print">自动保存你的记录。</p>`)}${compare(e)}</article>
+ <aside class="aside"><section class="paper"><h2 class="aside-title">继续查阅</h2>${isWalk(e)?[e.chapter>1?lookup.get('walkthrough-chapter-'+(e.chapter-1)):null,e.chapter<8?lookup.get('walkthrough-chapter-'+(e.chapter+1)):null].filter(Boolean).map(m=>`<a class="aside-row" href="${href(m.category,m.id)}">${esc(m.title)} →</a>`).join(''):''}${relatedEntries.slice(0,7).map(m=>`<a class="aside-row" href="${href(m.category,m.id)}">${esc(m.title)}<small>${name(m.category)}</small></a>`).join('')}<button class="aside-link" data-query="${esc(e.title)}">搜索全部关联资料 →</button></section><section class="paper"><h2 class="aside-title">使用与核对</h2><p>获取路线、能力与数值在同页查阅。中英对照和来源收在正文底部，可按需展开。</p>${g.members.length>1?`<p>${g.members.length} 个同名记录已合并；不同阶段的数值仍可从记录选择器切换。</p>`:''}${e.version?`<p>${esc(e.version)}</p>`:''}<a class="aside-link" href="#/sources">来源与译名说明 →</a></section></aside></div>`;
+}
+function sourcePage(){return `<div class="page-title"><div><h1>来源与译名说明</h1><p>中文主视图保留原始证据，未核验的译名不冒称游戏官方文本。</p></div></div><div class="paper"><h2>中文与原文怎样对照</h2><div class="section-body"><p>角色、技能、装备、敌人、地点和效果说明均以中文展示。系列惯用译名与中文攻略可核对的名称优先；其余内容使用本站对照译名。</p><p>每个条目的“中英对照与资料来源”可展开比较原始文本。数值、概率、记录编号与来源链接保留；翻译不会把试玩版研究升级为正式版实测。</p><p>同名敌人、技能及地图变体在列表中合并，详情中仍能切换各原始记录。合并只减少重复展示，不删除数据。</p></div></div><div class="coverage">${Object.keys(db.counts||{}).map(c=>`<span class="tag">${name(c)} ${db.counts[c]} 条原始记录</span>`).join('')}</div><div class="source-grid">${sources.map(s=>`<article class="paper source-card"><h3>${esc(sourceName(s))}</h3><p>${esc(s.note||s.scope||s.description||'原始资料与数据记录。')}</p><a href="${esc(url(s.url))}" target="_blank" rel="noopener noreferrer">查看原始来源 ↗</a><small>核查日期 ${esc(s.checkedAt||s.checked||db.updatedAt||'2026-10-25')}</small></article>`).join('')}</div>`}
+function render(){if(!db)return;renderNav();$('#content').innerHTML=route.id?detail(lookup.get(route.id)):route.category==='home'?home():route.category==='sources'?sourcePage():listing();document.title=(route.id?lookup.get(route.id)?.title:route.category==='search'?'搜索结果':name(route.category))+' · 最终幻想 共鸣';bind()}
+function bind(){
+ $$('[data-save]').forEach(el=>el.onclick=()=>save(el.dataset.save));$$('[data-check]').forEach(el=>el.onchange=()=>check(el.dataset.check,el.checked));$$('[data-query]').forEach(el=>el.onclick=()=>search(el.dataset.query));
+ $$('[data-facet]').forEach(el=>el.onclick=()=>{facet=el.dataset.facet;page=1;render()});$$('[data-page]').forEach(el=>el.onclick=()=>{page=Number(el.dataset.page);render();$('#content').scrollIntoView({block:'start'})});
+ $$('[data-difficulty]').forEach(el=>el.onclick=()=>{difficulty=el.dataset.difficulty;render()});
+ $$('[data-jump]').forEach(el=>el.onclick=ev=>{ev.preventDefault();$('#'+el.dataset.jump)?.scrollIntoView({behavior:'smooth',block:'start'})});
+ if($('#variantSelect'))$('#variantSelect').onchange=ev=>go(lookup.get(ev.target.value).category,ev.target.value);
+ if($('#chapterFilter'))$('#chapterFilter').onchange=ev=>{prefs.chapter=Number(ev.target.value);writePrefs();page=1;render()};
+ if($('#viewToggle'))$('#viewToggle').onclick=()=>{view=view==='table'?'cards':'table';page=1;render()};
+ if($('#clearFilters'))$('#clearFilters').onclick=()=>{facet='all';prefs.chapter=0;writePrefs();$('#search').value='';$('#clearSearch').hidden=true;page=1;render()};
+ if($('#copyLink'))$('#copyLink').onclick=async()=>{try{await navigator.clipboard.writeText(location.href);toast('条目链接已复制')}catch{toast('可从浏览器地址栏复制条目链接')}};
+ if($('#entryNote'))$('#entryNote').oninput=ev=>{state.notes[route.id]=ev.target.value;write();$('#noteState').textContent='已保存'};
+ if($('#showSpoilers'))$('#showSpoilers').onclick=()=>{prefs.spoilers=true;writePrefs();render()};
+}
+function search(q){$('#search').value=q;$('#clearSearch').hidden=!q;facet='all';page=1;const h='#/search?q='+encodeURIComponent(q);if(location.hash===h)render();else location.hash=h}
+function parse(){const [path,query]=location.hash.replace(/^#\/?/,'').split('?'),p=path.split('/'),params=new URLSearchParams(query||'');let c=p[0]||'home';if(!C[c]&&c!=='search')c='home';let id=null;try{id=p[1]?decodeURIComponent(p.slice(1).join('/')):null}catch{}const scope=c+':'+(params.get('kind')||'');if(scope!==lastScope){page=1;facet='all';view=['skills','equipment','items','enemies','world','quests'].includes(c)?'table':'cards'}lastScope=scope;route={category:c,id,kind:params.get('kind')||''};$('#search').value=params.get('q')||'';$('#clearSearch').hidden=!$('#search').value;render();window.scrollTo({top:0})}
+$('#searchForm').onsubmit=ev=>{ev.preventDefault();search($('#search').value)};$('#search').oninput=ev=>{clearTimeout(timer);const q=ev.target.value;$('#clearSearch').hidden=!q;timer=setTimeout(()=>search(q),220)};$('#clearSearch').onclick=()=>{search('');$('#search').focus()};
+$('#savedButton').onclick=()=>go('saved');$('#settingsButton').onclick=()=>{$('#chapterSetting').value=prefs.chapter;$('#spoilerSetting').checked=prefs.spoilers;$('#settingsStatus').textContent=window.PTSync?.config()?'已连接现有加密同步。':'记录自动保存在此浏览器。';$('#settings').showModal()};
+$('#chapterSetting').onchange=ev=>{prefs.chapter=Number(ev.target.value);writePrefs();page=1;render()};$('#spoilerSetting').onchange=ev=>{prefs.spoilers=ev.target.checked;writePrefs();render()};
+$('#exportProgress').onclick=()=>{const blob=new Blob([JSON.stringify({...state,preferences:prefs,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'}),u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download='ff-guide-progress.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);$('#settingsStatus').textContent='记录已导出。'};
+$('#importProgress').onchange=async ev=>{try{const f=ev.target.files[0];if(!f)return;if(f.size>2000000)throw Error('文件过大');const d=JSON.parse(await f.text());if(d.version!==1||!Array.isArray(d.saved)||!Array.isArray(d.completed)||!d.notes||typeof d.notes!=='object'||Array.isArray(d.notes))throw Error('记录格式不正确');const known=ids=>ids.filter(id=>typeof id==='string'&&lookup.has(id));state.saved=[...new Set([...state.saved,...known(d.saved)])];state.completed=[...new Set([...state.completed,...known(d.completed)])];for(const [id,n]of Object.entries(d.notes))if(lookup.has(id)&&typeof n==='string')state.notes[id]=n.slice(0,20000);write();render();$('#settingsStatus').textContent='已合并导入收藏、收集状态与笔记。'}catch(err){$('#settingsStatus').textContent='导入失败：'+err.message}ev.target.value=''};
+$('.skip').onclick=ev=>{ev.preventDefault();$('#content').focus();$('#content').scrollIntoView()};
+addEventListener('hashchange',parse);addEventListener('keydown',ev=>{if(ev.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)){ev.preventDefault();$('#search').focus()}});addEventListener('pt-sync-applied',()=>{state=read(KEY,state);prefs=read(PREF,prefs);render()});addEventListener('storage',ev=>{if(ev.key===KEY){state=read(KEY,state);render()}});
+const measureHeader=()=>document.documentElement.style.setProperty('--header-height',Math.ceil($('.site-header').getBoundingClientRect().height)+'px');
+new ResizeObserver(measureHeader).observe($('.site-header'));measureHeader();
+async function init(){try{const r=await fetch('data.json?v=zh2');if(!r.ok)throw Error('资料请求失败：'+r.status);db=await r.json();entries=db.entries||[];sources=db.sources||[];prepare();parse()}catch(err){$('#content').innerHTML=`<div class="empty"><b>资料暂时无法打开</b><p>${esc(err.message)}</p><button class="button" id="retry">重新载入</button></div>`;$('#retry').onclick=init}}
+init();
 })();

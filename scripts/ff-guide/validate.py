@@ -2,6 +2,7 @@
 """Validate guide coverage, evidence links, and numeric source-boundary regressions."""
 import collections
 import json
+import re
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -30,14 +31,31 @@ for chapter in range(1, 9):
     assert e['chapter'] == chapter and len(e['steps']) >= 10, e['id']
 enemies = [e for e in entries if e['id'].startswith('enemy-')]
 assert len(enemies) == 596
-assert all('普通·HP' in e['fields'] for e in enemies), 'Partial enemy detail import'
-assert ids['enemy-2']['fields']['普通·HP'] == 68, 'Steel Bat normal HP source regression'
-assert ids['enemy-2']['fields']['专家·HP'] == 109, 'Steel Bat expert HP source regression'
-assert ids['enemy-2']['fields']['简单·HP'] == 41, 'Steel Bat easy HP source regression'
+assert all('普通·HP' in e.get('original', e)['fields'] for e in enemies), 'Partial enemy detail import'
+assert ids['enemy-2'].get('original',ids['enemy-2'])['fields']['普通·HP'] == 68, 'Steel Bat normal HP source regression'
+assert ids['enemy-2'].get('original',ids['enemy-2'])['fields']['专家·HP'] == 109, 'Steel Bat expert HP source regression'
+assert ids['enemy-2'].get('original',ids['enemy-2'])['fields']['简单·HP'] == 41, 'Steel Bat easy HP source regression'
 assert all(any('0 星' in step for step in e['steps']) for e in entries if e['category'] == 'visions'), 'Awakening initial state omitted'
 assert any('24032336' in str(e['fields']) for e in entries if e['category'] == 'espers'), 'Demo provenance lost'
 assert ids['vision-13080']['chapter'] == 5, 'Aileen recruitment/crafting stages confused'
 assert ids['guide-forge-workflow']['chapter'] == 6
+if data.get('localization'):
+    def text_strings(value):
+        if isinstance(value,str):yield value
+        elif isinstance(value,list):
+            for item in value:yield from text_strings(item)
+        elif isinstance(value,dict):
+            for key,item in value.items():
+                yield key;yield from text_strings(item)
+    for e in entries:
+        assert e.get('original'),('Original source text missing',e['id'])
+        assert len(e['fields'])==len(e['original'].get('fields',{})),('Lost fields',e['id'])
+        before=[v for v in e['original'].get('fields',{}).values() if isinstance(v,(int,float))]
+        after=[v for v in e['fields'].values() if isinstance(v,(int,float))]
+        assert before==after,('Numeric field values changed',e['id'])
+        for key in ['title','summary','fields','steps','tags','note','provenance','sections','version']:
+            assert not any(re.search(r'[A-Za-z\u3040-\u30ff]',text) for text in text_strings(e.get(key))),('Untranslated display text',e['id'],key)
+    assert data['localization']['residualStrings']==0
 print(json.dumps({'ok': True, 'entries': len(entries), 'sources': len(sources),
                   'enemy_details': len(enemies), 'tablet_shards': len(shards),
                   'chapters': 8, 'counts': dict(counts)}, ensure_ascii=False))
