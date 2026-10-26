@@ -1,0 +1,397 @@
+{
+  "schemaVersion": 1,
+  "game": "FINAL FANTASY RESONANCE",
+  "checkedAt": "2026-10-26T16:56:02.911201+00:00",
+  "instruction": "展示原始字母档级；不同来源的档级系统各自保留，不合并、不升降、不用统一中文等级替代。",
+  "rankings": [
+    {
+      "id": "appmedia-visions",
+      "sourceId": "practical-appmedia-vision-rank",
+      "title": "AppMedia 幻兵榜",
+      "sourceUrl": "https://appmedia.jp/ffrs/80488855",
+      "category": "visions",
+      "publishedAt": "2026-10-16T11:27:19+09:00",
+      "updatedAt": "2026-10-26T14:45:59+09:00",
+      "sourceDateDisplay": "2026年10月26日 14時45分",
+      "originalTierLabels": [
+        "SS",
+        "S",
+        "A"
+      ],
+      "tiers": [
+        {
+          "tier": "SS",
+          "members": [
+            {
+              "id": "vision-13101",
+              "name": "菲利奥尼尔",
+              "en": "Firion"
+            },
+            {
+              "id": "vision-13105",
+              "name": "巴兹",
+              "en": "Bartz"
+            },
+            {
+              "id": "vision-13108",
+              "name": "蒂娜",
+              "en": "Terra"
+            },
+            {
+              "id": "vision-13127",
+              "name": "雅·修特拉",
+              "en": "Y’shtola"
+            },
+            {
+              "id": "vision-13113",
+              "name": "萨菲罗斯",
+              "en": "Sephiroth"
+            },
+            {
+              "id": "vision-13051",
+              "name": "彩香",
+              "en": "Ayaka"
+            }
+          ]
+        },
+        {
+          "tier": "S",
+          "members": [
+            {
+              "id": "vision-13100",
+              "name": "光之战士",
+              "en": "Warrior of Light"
+            },
+            {
+              "id": "vision-13102",
+              "name": "洋葱剑士",
+              "en": "Onion Knight"
+            },
+            {
+              "id": "vision-13103",
+              "name": "塞西尔",
+              "en": "Cecil"
+            },
+            {
+              "id": "vision-13110",
+              "name": "克劳德",
+              "en": "Cloud"
+            },
+            {
+              "id": "vision-13116",
+              "name": "斯考尔",
+              "en": "Squall"
+            },
+            {
+              "id": "vision-13120",
+              "name": "提达",
+              "en": "Tidus"
+            },
+            {
+              "id": "vision-13123",
+              "name": "香托托",
+              "en": "Shantotto"
+            },
+            {
+              "id": "vision-13128",
+              "name": "诺克提斯",
+              "en": "Noctis"
+            },
+            {
+              "id": "vision-13045",
+              "name": "莉亚",
+              "en": "Leah"
+            },
+            {
+              "id": "vision-13017",
+              "name": "艾米莉亚",
+              "en": "Amelia"
+            }
+          ]
+        },
+        {
+          "tier": "A",
+          "members": [
+            {
+              "id": "vision-13118",
+              "name": "吉坦",
+              "en": "Zidane"
+            },
+            {
+              "id": "vision-13124",
+              "name": "梵",
+              "en": "Vaan"
+            },
+            {
+              "id": "vision-13125",
+              "name": "雷光",
+              "en": "Lightning"
+            },
+            {
+              "id": "vision-13130",
+              "name": "克莱夫",
+              "en": "Clive"
+            },
+            {
+              "id": "vision-13024",
+              "name": "特隆",
+              "en": "Tronn"
+            },
+            {
+              "id": "vision-13033",
+              "name": "卡米尔",
+              "en": "Camille"
+            },
+            {
+              "id": "vision-13062",
+              "name": "威廉",
+              "en": "Wilhelm"
+            },
+            {
+              "id": "vision-13080",
+              "name": "艾琳",
+              "en": "Aileen"
+            },
+            {
+              "id": "vision-13060",
+              "name": "夏洛特",
+              "en": "Charlotte"
+            },
+            {
+              "id": "vision-13027",
+              "name": "维多利亚",
+              "en": "Victoria"
+            }
+          ]
+        }
+      ],
+      "previousChineseLabelMapping": {
+        "顶级": "SS",
+        "强力": "S",
+        "按需": "A"
+      },
+      "verification": {
+        "method": "重新读取源网页榜单表格与档级图标文字；核对HTML时间元数据；下载并目视检查文章封面，确认其不是整张节奏榜。",
+        "scope": "优先评价直接装备时的能力、攻击/回复、属性泛用性，不能当成精通传承优先级。档级直接由原表SS_icon/S_icon/A_icon及对应人物列表核对。",
+        "originalRepresentation": "HTML表格，含单独档级徽标和角色/幻兵图标；不是一张整图。",
+        "fullTierChartImage": {
+          "found": false,
+          "url": null,
+          "note": "该篇原始榜单是HTML表格。文章有封面，但封面没有完整档级名单，不能作为原榜图片呈现。"
+        },
+        "coverImage": {
+          "url": "https://appmedia.jp/wp-content/uploads/2026/10/190556_2dsbr.webp",
+          "isTierChart": false,
+          "visuallyChecked": true
+        },
+        "reconstructedImagePolicy": "如要显示整张图片，只能明确标注“本站依原网页表格重绘”，不得标为原站节奏榜原图。"
+      }
+    },
+    {
+      "id": "game8-characters",
+      "sourceId": "practical-game8-character-rank",
+      "title": "Game8 角色榜",
+      "sourceUrl": "https://game8.jp/ffrs/836310",
+      "category": "characters",
+      "publishedAt": "2026-10-25T18:45:12.000+09:00",
+      "updatedAt": "2026-10-26T11:07:28.000+09:00",
+      "sourceDateDisplay": "最終更新日：2026.10.26 11:07",
+      "originalTierLabels": [
+        "SS",
+        "S",
+        "A"
+      ],
+      "tiers": [
+        {
+          "tier": "SS",
+          "members": [
+            {
+              "id": "character-1001",
+              "name": "雷因",
+              "en": "Rain"
+            },
+            {
+              "id": "character-1005",
+              "name": "尼柯尔",
+              "en": "Nichol"
+            }
+          ]
+        },
+        {
+          "tier": "S",
+          "members": [
+            {
+              "id": "character-1008",
+              "name": "樱",
+              "en": "Sakura"
+            },
+            {
+              "id": "character-1006",
+              "name": "魔人菲娜",
+              "en": "Archwitch Fina"
+            },
+            {
+              "id": "character-1004",
+              "name": "莉德",
+              "en": "Lid"
+            }
+          ]
+        },
+        {
+          "tier": "A",
+          "members": [
+            {
+              "id": "character-1003",
+              "name": "菲娜",
+              "en": "Fina"
+            },
+            {
+              "id": "character-1002",
+              "name": "拉斯韦尔",
+              "en": "Lasswell"
+            },
+            {
+              "id": "character-1007",
+              "name": "杰克",
+              "en": "Jake"
+            }
+          ]
+        }
+      ],
+      "previousChineseLabelMapping": {
+        "顶级": "SS",
+        "强力": "S",
+        "按需": "A"
+      },
+      "verification": {
+        "method": "重新读取源网页榜单表格与档级图标文字；核对HTML时间元数据；下载并目视检查文章封面，确认其不是整张节奏榜。",
+        "scope": "以适合的幻兵与精通培养后，角色在队伍中的编成优先级为标准；原文明确同档不分先后。SS两人/S三人/A三人由原表直接读取。",
+        "originalRepresentation": "HTML表格，含单独档级徽标和角色/幻兵图标；不是一张整图。",
+        "fullTierChartImage": {
+          "found": false,
+          "url": null,
+          "note": "该篇原始榜单是HTML表格。文章有封面，但封面没有完整档级名单，不能作为原榜图片呈现。"
+        },
+        "coverImage": {
+          "url": "https://img.game8.jp/13130734/22825787e1cbf4fcb8ed31d055dd6ef7.webp/show",
+          "isTierChart": false,
+          "visuallyChecked": true
+        },
+        "reconstructedImagePolicy": "如要显示整张图片，只能明确标注“本站依原网页表格重绘”，不得标为原站节奏榜原图。"
+      }
+    },
+    {
+      "id": "keengamer-characters",
+      "sourceId": "practical-keengamer-character-rank",
+      "title": "KeenGamer 角色榜",
+      "sourceUrl": "https://www.keengamer.com/articles/guides/final-fantasy-resonance-best-characters-tier-list/",
+      "category": "characters",
+      "publishedAt": "2026-10-25T04:23:34+00:00",
+      "updatedAt": null,
+      "sourceDateDisplay": "October 25, 2026；dateModified元数据仅2026-10-25日期，无独立时分",
+      "originalTierLabels": [
+        "S",
+        "A",
+        "B"
+      ],
+      "tiers": [
+        {
+          "tier": "S",
+          "members": [
+            {
+              "id": "character-1001",
+              "name": "雷因",
+              "en": "Rain"
+            },
+            {
+              "id": "character-1005",
+              "name": "尼柯尔",
+              "en": "Nichol"
+            },
+            {
+              "id": "character-1008",
+              "name": "樱",
+              "en": "Sakura"
+            }
+          ]
+        },
+        {
+          "tier": "A",
+          "members": [
+            {
+              "id": "character-1003",
+              "name": "菲娜",
+              "en": "Fina"
+            },
+            {
+              "id": "character-1002",
+              "name": "拉斯韦尔",
+              "en": "Lasswell"
+            },
+            {
+              "id": "character-1006",
+              "name": "魔人菲娜",
+              "en": "Archwitch Fina"
+            }
+          ]
+        },
+        {
+          "tier": "B",
+          "members": [
+            {
+              "id": "character-1007",
+              "name": "杰克",
+              "en": "Jake"
+            },
+            {
+              "id": "character-1004",
+              "name": "莉德",
+              "en": "Lid"
+            }
+          ]
+        }
+      ],
+      "previousChineseLabelMapping": {
+        "顶级": "S",
+        "强力": "A",
+        "按需": "B"
+      },
+      "verification": {
+        "method": "重新读取源网页榜单表格与档级图标文字；核对HTML时间元数据；下载并目视检查文章封面，确认其不是整张节奏榜。",
+        "scope": "原表Tier列为S/A/B，没有SS；按主线与终盘的整体表现、协同和生存评价。不能为了与日站对齐把S自动升成SS。",
+        "originalRepresentation": "HTML表格，含单独档级徽标和角色/幻兵图标；不是一张整图。",
+        "fullTierChartImage": {
+          "found": false,
+          "url": null,
+          "note": "该篇原始榜单是HTML表格。文章有封面，但封面没有完整档级名单，不能作为原榜图片呈现。"
+        },
+        "coverImage": {
+          "url": "https://images.keengamer.com/wp-content/uploads/2026/10/Final-Fantasy-Resonance-Best-Characters-Tier-List-1024x577.jpeg",
+          "isTierChart": false,
+          "visuallyChecked": true
+        },
+        "reconstructedImagePolicy": "如要显示整张图片，只能明确标注“本站依原网页表格重绘”，不得标为原站节奏榜原图。"
+      },
+      "updatedAtDateOnly": "2026-10-25"
+    }
+  ],
+  "verificationSummary": {
+    "appmediaCounts": {
+      "SS": 6,
+      "S": 10,
+      "A": 10
+    },
+    "game8Counts": {
+      "SS": 2,
+      "S": 3,
+      "A": 3
+    },
+    "keengamerCounts": {
+      "S": 3,
+      "A": 3,
+      "B": 2
+    },
+    "fullOriginalTierChartImagesFound": 0,
+    "imageFinding": "三篇均为HTML榜单；已下载目视检查各封面，均不是完整节奏榜。"
+  }
+}

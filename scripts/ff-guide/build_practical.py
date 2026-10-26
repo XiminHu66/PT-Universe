@@ -5,7 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / 'scripts/ff-guide/practical'
-out = {'schemaVersion': 1, 'checkedAt': '2026-10-25', 'sources': [], 'entries': [],
+out = {'schemaVersion': 1, 'checkedAt': '2026-10-26', 'sources': [], 'entries': [], 'rankings': [],
        'topics': [
            {'title': '角色强度', 'subtitle': '八人定位与培养顺序', 'id': 'play-characters'},
            {'title': '幻兵排行', 'subtitle': '上场与传承分开看', 'id': 'play-visions'},
@@ -22,6 +22,7 @@ for path in sorted(SOURCE.glob('*.json')):
     out['sources'].extend(part.get('sources', []))
     out['entries'].extend(part.get('entries', []))
     out['corrections'].extend(part.get('corrections', []))
+    out['rankings'].extend(part.get('rankings', []))
 # Names are the existing site's Chinese comparison names, not a claim of official text.
 aliases = {'尼科尔': '尼柯尔', '利德': '莉德', '蕾因': '雷因', '雅修特拉': '雅·修特拉'}
 def names(value):
@@ -35,6 +36,12 @@ def names(value):
         return {k: names(v) for k, v in value.items()}
     return value
 out['entries'] = names(out['entries'])
+image_manifest = json.loads((SOURCE / 'original-images.json').read_text())
+for im in image_manifest['images']:
+    article = next(e for e in out['entries'] if e['id'] == im['articleId'])
+    block = next(b for b in article['blocks'] if im['blockTitle'] in
+                 [b['title'], b.get('originalTitle'), names(b.get('originalTitle', ''))])
+    block.setdefault('images', []).append(im)
 connections = {
     'play-characters': ['play-builds', 'play-visions', 'play-mastery'],
     'play-visions': ['play-mastery', 'play-builds', 'play-combos'],

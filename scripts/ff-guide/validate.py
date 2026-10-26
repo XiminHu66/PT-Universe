@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Validate guide coverage, evidence links, and numeric source-boundary regressions."""
 import collections
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -81,7 +82,12 @@ for e in articles:
                     display.append(cell['text'])
                 else:
                     display.append(cell)
-    assert not any(re.search(r'[A-Za-z\u3040-\u30ff]', str(t)) for t in display), e['id']
+    for t in display:
+        # Retain the exact tier labels and attribution names used by the original guides.
+        clean = re.sub(r'Game8|AppMedia|KeenGamer', '', str(t))
+        if re.fullmatch(r'SS|S|A|B|C|D', clean):
+            continue
+        assert not re.search(r'[A-Za-z\u3040-\u30ff]', clean), (e['id'], t)
 for s in practical['sources']:
     assert urlparse(s['url']).scheme == 'https', s['id']
 for patch in practical['corrections']:
@@ -96,6 +102,31 @@ assert len(refs('play-builds', 'characters')) == 8
 assert len(refs('play-visions', 'visions')) == 26
 assert sum('rows' in b for b in all_ids['play-weapons']['blocks']) == 8
 assert all(t['id'] in all_ids for t in practical['topics'])
+boards = {r['id']: r for r in practical['rankings']}
+expected = {'appmedia-visions': [('SS', 6), ('S', 10), ('A', 10)],
+            'game8-characters': [('SS', 2), ('S', 3), ('A', 3)],
+            'keengamer-characters': [('S', 3), ('A', 3), ('B', 2)]}
+for rid, tiers in expected.items():
+    board = boards[rid]
+    assert [(t['tier'], len(t['members'])) for t in board['tiers']] == tiers
+    members = [m['id'] for tier in board['tiers'] for m in tier['members']]
+    assert len(members) == len(set(members))
+    assert all(i in all_ids for i in members)
+    assert board['sourceId'] in all_sources
+    assert not board['verification']['fullTierChartImage']['found']
+image_count = 0
+for e in articles:
+    for b in e['blocks']:
+        assert all(rid in boards for rid in b.get('rankIds', []))
+        for im in b.get('images', []):
+            image_count += 1
+            assert im['path'].startswith('images/guides/') and '..' not in im['path']
+            assert (root / 'apps/ff-guide' / im['path']).is_file()
+            assert hashlib.sha256((root / 'apps/ff-guide' / im['path']).read_bytes()).hexdigest() == im['sha256']
+            assert im['caption'] and im['credit'] and im['width'] and im['height']
+            assert urlparse(im['url']).scheme == 'https'
+            assert urlparse(im['sourceUrl']).scheme == 'https'
+assert image_count == 18, image_count
 print(json.dumps({'ok': True, 'practical_articles': len(articles), 'entries': len(entries), 'sources': len(sources),
                   'enemy_details': len(enemies), 'tablet_shards': len(shards),
                   'chapters': 8, 'counts': dict(counts)}, ensure_ascii=False))
