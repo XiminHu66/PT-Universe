@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {BENCH_TEMPLATES,parseJsonAnswer,checkSchemaDefinition,validateValue,evaluateAnswer,runStats,recommendedModels} from '../../apps/anythingllm/benchmark-core.mjs';
+assert.equal(BENCH_TEMPLATES.length,4);
+const schema=checkSchemaDefinition(JSON.parse(BENCH_TEMPLATES[0].schema));
+assert.equal(validateValue({summary:'OK',key_points:['a','b','c'],takeaway:'yes'},schema),true);
+assert.equal(validateValue({summary:'OK',key_points:['a'],takeaway:'yes'},schema),false);
+assert.throws(()=>checkSchemaDefinition({type:'object',patternProperties:{}}),/暂不支持/);
+assert.equal(parseJsonAnswer('{"x":1}').x,1);
+assert.equal(evaluateAnswer('{"summary":"检索","key_points":["a","b","c"],"takeaway":"yes"}',{schema,reference:'检索'}).schemaPass,true);
+assert.equal(evaluateAnswer('not json',{schema}).schemaPass,false);
+assert.equal(evaluateAnswer('nice',{reference:'missing'}).referencePass,false);
+const runs=[{taskId:'paper',entries:[{provider:'A',model:'m1',status:'ok',elapsedMs:1500,usage:{total_tokens:100},rating:5},{provider:'B',model:'m2',status:'error',elapsedMs:900},{provider:'A',model:'m1',status:'substituted',substituted:true,elapsedMs:500,usage:{total_tokens:50}}]}];
+const stats=runStats(runs[0].entries);
+assert.equal(stats.n,3);assert.equal(stats.ok,1);assert.equal(stats.tokens,100);assert.equal(stats.rating,5);
+assert.equal(recommendedModels(runs,'paper')[0].key,'A/m1');
+console.log('Benchmark core tests passed');
