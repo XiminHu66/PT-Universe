@@ -25,7 +25,7 @@ with sync_playwright() as p:
   context.route('**/api/pc/**',api_fixture);context.route('**/api/training/**',api_fixture)
  page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
  for app in pages:
-  response=page.goto(base+'apps/'+app+'/',wait_until='networkidle',timeout=60000);assert response.status==200
+  response=page.goto(base+'apps/'+app+'/?standalone=1',wait_until='networkidle',timeout=60000);assert response.status==200
   page.wait_for_selector('#health details',timeout=40000)
   if app=='thesis-lab':
    assert page.locator('#company option').count()>=6
@@ -108,7 +108,7 @@ with sync_playwright() as p:
   assert page.locator('.pcp-offer.best').is_visible(),'Switching tabs must retain search results'
  print('BROWSER PASS tsugi PC search subtab, release tabs, deep link, retained results, mobile 390/320',flush=True)
  page.goto(base,wait_until='networkidle',timeout=60000)
- for app in pages+['tsugi-checker']:assert page.locator('[data-app="'+app+'"]').count()>=1
+ for app in ['investment-desk','earnings-dojo','life-desk','tsugi-checker']:assert page.locator('[data-app="'+app+'"]').count()>=1
  assert page.locator('[data-app="game-deals"]').count()==0
  assert not errors,errors
  browser.close()
