@@ -205,7 +205,7 @@ function renderSiteUpdates(){
         <div class="site-meta"><span>${esc(updated)}</span><span>${meaningfulLatest(x.latest)&&x.latest_url?'直达最新章节 ↗':'打开作品页 ↗'}</span></div>
       </div>
     </a>
-    <div class="site-card-actions">${x.chapter_count?`<span class="site-open-link">共 ${esc(x.chapter_count)} 章 / 话</span>`:''}<button class="shelf-btn ${added?'added':''}" data-add-shelf="${esc(x.id)}" aria-label="${added?'已在书架：':'加入书架：'}${esc(x.title)}" ${added?'disabled':''}>${added?'✓ 已在书架':'＋ 加入书架'}</button></div>
+    <button class="shelf-btn shelf-corner ${added?'added':''}" type="button" data-add-shelf="${esc(x.id)}" title="${added?'已在书架：':'加入书架：'}${esc(x.title)}" aria-label="${added?'已在书架：':'加入书架：'}${esc(x.title)}" ${added?'disabled':''}><span aria-hidden="true">${added?'✓':'＋'}</span></button>
   </article>`}).join(''):`<div class="empty"><div>这个筛选下暂无站点更新。<small>来源失败时可以到“来源状态”查看原因。</small></div></div>`;
   $$('[data-add-shelf]').forEach(btn=>btn.onclick=e=>{e.preventDefault();e.stopPropagation();const item=all.find(x=>String(x.id)===btn.dataset.addShelf);if(item)addToLocalShelf(item)});
 }
@@ -238,7 +238,7 @@ function renderLibrary(){
       ${imageHTML({cover:x.cover,type:x.type,className:'book-cover',placeholderClass:'book-placeholder'})}
       ${x.kind==='local'?`<div class="book-card-controls"><button data-remove-local="${esc(x.id)}">取消订阅</button></div>`:''}
       <div class="book-card-body"><div class="badge-row"><span class="badge">${x.type==='manga'?'漫画':'小说'}</span><span class="badge ${x.kind==='local'?'local-library-tag':'status-ok'}">${x.kind==='local'?'本机追踪':'云端追踪'}</span>${fresh?'<span class="badge library-new">NEW</span>':''}</div><h3>${esc(x.title)}</h3><p class="book-latest">${esc(x.latest)}</p><p class="book-meta">${esc(sourceLabel(x.source,'site_updates')||x.source)} · 检查 ${fmt(x.checked_at)}</p><span class="book-open">打开最新章节 ↗</span></div>
-    </article>`}).join(''):`<div class="empty"><div>书架还是空的。<small>可以直接从“更新流”点击“加入书架”，也可以通过 <code>config/library.json</code> 建立云端深度追踪。</small></div></div>`;
+    </article>`}).join(''):`<div class="empty"><div>书架还是空的。<small>可以直接从“更新流”点击卡片右上角的“＋”加入书架，也可以通过 <code>config/library.json</code> 建立云端深度追踪。</small></div></div>`;
   $$('[data-remove-local]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();removeLocalShelf(b.dataset.removeLocal)});
 }
 
