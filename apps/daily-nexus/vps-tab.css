@@ -25,4 +25,4 @@
 @media(min-width:1600px){.vps-tool-grid{grid-auto-rows:88px}.vps-tool-title b{font-size:17px}.vps-tool p{font-size:14px}.vps-tool-status{top:15px}}
 @media(max-width:620px){.vps-tool-title b{font-size:15px}.vps-tool p{font-size:12px}.vps-tool-grid{grid-auto-rows:82px}.vps-tool{padding:9px 8px}.vps-heading p{font-size:12px}.vps-open-hub{font-size:12px}.vps-metric h3{font-size:14px}}
 @media(min-width:1000px){.vps-workspace{grid-template-columns:clamp(310px,26%,360px) minmax(0,1fr)}}
-@media(min-width:1000px) and (max-width:1599px) and (max-height:850px){.vps-tool-grid{grid-auto-rows:70px}.workspace-tool-groups{gap:10px}.vps-tools-section{gap:8px}}
+@media(min-width:1000px) and (max-width:1599px) and (max-height:850px){.vps-tool-grid{grid-auto-rows:68px}.workspace-tool-groups{gap:10px}.vps-tools-section{gap:8px}}
