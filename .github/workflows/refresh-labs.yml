@@ -1,9 +1,9 @@
 name: Refresh Research Tools
 on:
   schedule:
-    # Covers Pacific 08:35 through the evening in both DST seasons.
-    # Successful sources are skipped; these extra ticks recover dropped runs.
-    - cron: '35 0-4,15-23 * * *'
+    # Lightweight official event checks can run overnight; other datasets
+    # remain gated to Pacific morning. Successes are deduplicated in schedule.py.
+    - cron: '35 * * * *'
   push:
     branches: [main]
     paths:

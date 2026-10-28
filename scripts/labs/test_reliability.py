@@ -25,11 +25,18 @@ class SchedulingTests(unittest.TestCase):
         self.assertEqual(set(pending_targets(NOW, {})), set(TARGETS))
 
     def test_before_morning_skips(self):
-        self.assertEqual(pending_targets(datetime(2026, 9, 14, 14, 35, tzinfo=timezone.utc), {}), [])
+        self.assertEqual(pending_targets(datetime(2026, 9, 14, 14, 35, tzinfo=timezone.utc), {}), ['upcoming'])
 
     def test_winter_time(self):
-        self.assertEqual(pending_targets(datetime(2026, 12, 14, 15, 35, tzinfo=timezone.utc), {}), [])
+        self.assertEqual(pending_targets(datetime(2026, 12, 14, 15, 35, tzinfo=timezone.utc), {}), ['upcoming'])
         self.assertEqual(len(pending_targets(datetime(2026, 12, 14, 16, 35, tzinfo=timezone.utc), {})), len(TARGETS))
+
+    def test_upcoming_four_hour_gate_keeps_other_jobs_morning_only(self):
+        from datetime import timedelta
+        now = datetime(2026, 9, 14, 10, tzinfo=timezone.utc)
+        recent = {'upcoming': {'refresh': {'state': 'ok', 'lastAttemptAt': now.isoformat()}}}
+        self.assertEqual(pending_targets(now, recent), [])
+        self.assertEqual(pending_targets(now+timedelta(hours=4), recent), ['upcoming'])
 
     def test_success_deduplicates_only_that_dataset(self):
         healthy = {'refresh': {'state': 'ok', 'lastCompleteAt': NOW_TEXT}}

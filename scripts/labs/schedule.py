@@ -3,15 +3,24 @@ from datetime import datetime, timezone, time
 import json
 import os
 from urllib.request import Request, urlopen
-from reliability import PACIFIC, due
+from reliability import PACIFIC, due, parse_time
 from refresh import TARGETS, ROOT, data_path, read_data
 
 
 def pending_targets(now, snapshots, force=False):
     local = now.astimezone(PACIFIC)
-    if not force and local.time() < time(8, 35):
-        return []
-    return [target for target in TARGETS if force or due(snapshots.get(target, {}), now)]
+    if force:
+        return list(TARGETS)
+    targets = []
+    # Game announcements may arrive overnight: check the lightweight official
+    # calendar every four hours while retaining morning-only local/finance jobs.
+    upcoming = snapshots.get('upcoming', {})
+    last = parse_time(upcoming.get('refresh', {}).get('lastAttemptAt'))
+    if not last or (now-last).total_seconds() >= 4*3600 or upcoming.get('refresh', {}).get('state') != 'ok':
+        targets.append('upcoming')
+    if local.time() >= time(8, 35):
+        targets.extend(target for target in TARGETS if target != 'upcoming' and due(snapshots.get(target, {}), now))
+    return [target for target in TARGETS if target in targets]
 
 
 def publication_pending(snapshots, fetch):
