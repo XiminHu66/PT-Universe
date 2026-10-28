@@ -40,6 +40,13 @@ async function signedFetch(config:Config,path:string,method:string,body:BodyInit
 // A separate read-only capability uses the existing server-owned transport.
 // Its caller cannot supply a method, URL, cookie, or arbitrary native API path.
 export {PUBLIC_KEY as OWNER_CONNECT_PUBLIC_KEY};
+// A bounded monitor adapter reuses the provisioned transport without exposing
+// its signing key, cookies, arbitrary paths or upstream configuration.
+export async function monitorTransport(env:KnowledgeEnv,path:string,method:string,body:string|null){
+ if(!/^\/(state|export|objects|sources|events|settings|evidence)(\/|$)/.test(path)||/[?%\\]/.test(path))throw Error('invalid-monitor-path');
+ const raw=await env.PT_UNIVERSE_DATA.get(CONFIG_KEY);if(!raw)throw Error('transport-not-configured');const config=JSON.parse(raw) as Config;if(!validConfig(config))throw Error('transport-invalid');
+ return signedFetch(config,'/__pt_monitor/api'+path,method,body,'application/json','','',30000);
+}
 export async function readVpsSnapshot(env:KnowledgeEnv){
  const stored=await env.PT_UNIVERSE_DATA.get(CONFIG_KEY);
  if(!stored)throw Error('transport-not-configured');

@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+const source=await readFile(new URL('../../apps/monitor-center/connection.mjs',import.meta.url),'utf8'),storage=new Map();globalThis.sessionStorage={getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)};let assigned='',replaced='',calls=0;
+globalThis.location={origin:'https://ximinhu66.github.io',pathname:'/PT-Universe/apps/monitor-center/',search:'',hash:'',assign:v=>assigned=v};globalThis.history={replaceState:(_,__,v)=>replaced=v};globalThis.document={dispatchEvent(){}};
+const load=name=>import('data:text/javascript;base64,'+Buffer.from(source).toString('base64')+'#'+name),enc=v=>Buffer.from(JSON.stringify(v)).toString('base64url');
+const t=Math.floor(Date.now()/1000),grant=nonce=>'header.'+enc({iss:'https://pt-vps-tools.h1nano.chatgpt.site',aud:'pt-universe-monitor',sub:'pt-backend-owner',scope:'monitor:manage',iat:t,exp:t+3600,nonce})+'.signature';
+let app=await load('new');assert.equal(app.connected(),false);assert.equal(assigned,'');assert.equal(app.connect({automatic:true}),true);assert.equal(app.connect({automatic:true}),false);const p=JSON.parse(storage.get('pt.monitor.pending.v1'));assert.ok(assigned.startsWith('https://pt-vps-tools.h1nano.chatgpt.site/__pt_monitor_connect?nonce='));
+location.hash='#monitor-session='+grant(p.nonce)+'&nonce='+p.nonce;app=await load('returned');assert.equal(app.connected(),true);assert.ok(!replaced.includes('#'));assert.equal(storage.has('pt.monitor.pending.v1'),false);
+globalThis.fetch=async(url,options)=>{calls++;assert.equal(url,app.API+'/state');assert.equal(options.credentials,'omit');assert.ok(options.headers.authorization.startsWith('Bearer '));return Response.json({objects:[]})};await app.api('/state');assert.equal(calls,1);await assert.rejects(()=>app.api('https://evil.example'));
+globalThis.fetch=async()=>Response.json({error:'Expired'},{status:401});await assert.rejects(()=>app.api('/state'));assert.equal(app.connected(),false);assert.equal(app.connect({automatic:true}),false);
+storage.clear();location.hash='#monitor-session='+grant('b'.repeat(48))+'&nonce='+'b'.repeat(48);app=await load('unsolicited');assert.equal(app.connected(),false);assert.equal(app.connect({automatic:true}),false);assert.equal(app.connect(),true);
+console.log('PASS: per-tab capabilities, nonce-bound callbacks, immediate URL cleanup, redirect budget, 401 recovery and fixed private API');

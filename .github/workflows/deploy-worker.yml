@@ -47,6 +47,7 @@ jobs:
           node tests/anythingllm-auth.test.mjs
           node tests/knowledge.test.mjs
           node tests/vps.test.mjs
+          node tests/monitor.test.mjs
           node tests/vps-ui.test.mjs
           node tests/anythingllm-models.test.mjs
           node tests/anythingllm-transport.test.mjs
