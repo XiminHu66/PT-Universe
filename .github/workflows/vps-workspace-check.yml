@@ -21,8 +21,9 @@ jobs:
           node-version: '24'
       - run: npm ci
         working-directory: workers/pt-universe-api
-      - run: npm run check && node tests/vps.test.mjs && node tests/vps-ui.test.mjs
+      - run: npm run check && node tests/vps.test.mjs && node tests/vps-ui.test.mjs && node tests/nexus-streamline.test.mjs
         working-directory: workers/pt-universe-api
+      - run: TZ=America/Los_Angeles node scripts/daily-nexus/navigation-test.cjs
       - run: npm install --no-save --package-lock=false playwright@1.58.2
       - run: npx playwright install --with-deps chromium
       - run: node scripts/daily-nexus/vps-browser-test.cjs

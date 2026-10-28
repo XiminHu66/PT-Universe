@@ -367,88 +367,6 @@
     }
     .embed-frame{display:block;width:100%;height:100%;border:0;background:transparent}
 
-    /* Music · compact YouTube player + Tsugi library */
-    .music-shell{
-      height:100%;min-height:0;border:1px solid var(--line);border-radius:var(--radius);
-      background:color-mix(in srgb,var(--panel) 80%,transparent);box-shadow:var(--shadow);overflow:hidden
-    }
-    .music-main{height:100%;min-height:0;overflow:auto;padding:14px 16px 24px}
-    .music-top{
-      position:sticky;top:-14px;z-index:5;display:flex;align-items:center;gap:7px;padding:10px 0 12px;
-      background:linear-gradient(to bottom,color-mix(in srgb,var(--panel) 98%,transparent) 75%,transparent)
-    }
-    .music-brand{display:flex;align-items:center;gap:8px;margin-right:8px;white-space:nowrap;font-weight:850}
-    .music-brand i{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#ff0033;color:white;font-style:normal;font-size:13px}
-    .music-search{flex:1;min-width:170px;border:1px solid var(--line);background:var(--panel2);border-radius:999px;padding:10px 14px}
-    .music-top button,.music-top a{border:1px solid var(--line);background:var(--panel2);border-radius:999px;padding:9px 12px;font-size:11px}
-
-    .music-playerbar{
-      border:1px solid var(--line);border-radius:18px;background:var(--panel2);
-      display:grid;grid-template-columns:minmax(420px,1fr) 220px;gap:12px;padding:12px;margin-bottom:18px;align-items:stretch
-    }
-    .music-controls{min-width:0;display:flex;flex-direction:column;justify-content:center;padding:5px 8px}
-    .music-kicker{font-size:9px;letter-spacing:.13em;color:var(--muted);font-weight:850}
-    .music-controls h2{font-size:22px;line-height:1.08;margin:6px 0 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .music-controls p{font-size:11px;color:var(--muted);margin:0 0 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .music-buttons{display:flex;align-items:center;gap:7px;margin-bottom:9px}
-    .music-buttons button{width:34px;height:34px;border:1px solid var(--line);background:var(--panel);border-radius:50%;padding:0;font-size:14px}
-    .music-buttons .play{width:40px;height:40px;background:var(--text);color:var(--bg);font-size:15px}.music-buttons .play svg{width:15px;height:15px;display:block;margin:auto;fill:currentColor}
-    .music-time{margin-left:auto;font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums}
-    .music-progress{width:100%;height:6px;border-radius:999px;background:color-mix(in srgb,var(--muted) 20%,transparent);appearance:none;cursor:pointer}
-    .music-progress::-webkit-slider-thumb{appearance:none;width:12px;height:12px;border-radius:50%;background:var(--accent)}
-    .music-progress::-moz-range-thumb{width:12px;height:12px;border:0;border-radius:50%;background:var(--accent)}
-    .music-queue-wrap{margin-top:13px;border-top:1px solid var(--line);padding-top:10px;min-height:0}
-    .music-queue-head{display:flex;align-items:center;gap:7px;margin-bottom:6px}
-    .music-queue-head b{font-size:12px}.music-queue-head span{font-size:9px;color:var(--muted)}
-    .music-queue-head button{margin-left:auto;border:0;background:transparent;color:var(--muted);font-size:9px;padding:3px}
-    .music-queue{
-      max-height:190px;overflow:auto;border:1px solid var(--line);border-radius:11px;
-      background:color-mix(in srgb,var(--panel) 58%,transparent);scrollbar-width:thin
-    }
-    .music-queue-row{
-      display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:7px;align-items:center;
-      min-height:38px;padding:5px 8px;border:0;border-bottom:1px solid var(--line);
-      background:transparent;color:var(--text);width:100%;text-align:left;cursor:pointer
-    }
-    .music-queue-row:last-child{border-bottom:0}
-    .music-queue-row:hover{background:var(--panel2)}
-    .music-queue-row.active{background:color-mix(in srgb,var(--accent) 12%,var(--panel2))}
-    .music-queue-row.active .mq-index{color:var(--accent);font-weight:800}
-    .mq-index{font-size:9px;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums}
-    .mq-copy{min-width:0}
-    .mq-title{display:block;font-size:10px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .mq-id{display:block;font-size:8px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .mq-play{font-size:10px;color:var(--muted)}
-    .music-queue-empty{padding:16px;text-align:center;color:var(--muted);font-size:10px;line-height:1.5}
-    .music-video{
-      width:220px;height:200px;min-width:220px;min-height:200px;border-radius:13px;overflow:hidden;background:#111;border:1px solid var(--line);position:relative
-    }
-    .music-video iframe,.music-video>div{width:100%;height:100%;min-height:200px;border:0}
-    .music-player-empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:15px;color:#c5cad3;background:linear-gradient(145deg,#13161e,#272d3b);font-size:10px;line-height:1.55}
-
-    .music-section{margin-top:19px}
-    .music-section-head{display:flex;align-items:center;gap:8px;margin-bottom:9px}
-    .music-section-head h3{font-size:18px;margin:0}.music-section-head span{font-size:10px;color:var(--muted)}
-    .music-section-head button{margin-left:auto;border:1px solid var(--line);background:var(--panel2);border-radius:9px;padding:6px 9px;font-size:10px}
-    .music-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:9px}
-    .music-card{min-width:0;border:1px solid var(--line);background:var(--panel2);border-radius:15px;padding:11px}
-    .music-cover{aspect-ratio:1.35;border-radius:12px;display:grid;place-items:center;font-size:28px;margin-bottom:9px;background:linear-gradient(145deg,color-mix(in srgb,var(--accent) 20%,var(--panel)),color-mix(in srgb,var(--accent2) 22%,var(--panel2)))}
-    .music-card b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .music-card small{display:block;font-size:10px;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .music-card-actions{display:flex;gap:5px;margin-top:9px}.music-card-actions button,.music-card-actions a{flex:1;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px;font-size:9px;text-align:center}
-    .music-artists{display:flex;gap:10px;overflow:auto;padding:2px 0 4px}
-    .music-artist{flex:0 0 100px;text-align:center;cursor:pointer;border:0;background:transparent;color:var(--text);padding:3px}
-    .music-avatar{width:68px;height:68px;border-radius:50%;margin:0 auto 6px;display:grid;place-items:center;border:1px solid var(--line);background:linear-gradient(145deg,color-mix(in srgb,var(--accent2) 24%,var(--panel)),var(--panel2));font-size:21px}
-    .music-artist b{display:block;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .music-sync-note{font-size:11px;color:var(--muted);line-height:1.55;padding:9px 11px;border:1px dashed var(--line);border-radius:11px;margin-bottom:10px}
-    .music-library-add{display:grid;grid-template-columns:1fr 1.6fr auto;gap:7px;margin-top:9px}.music-library-add input{min-width:0}
-    .artist-bind{display:none;position:fixed;inset:0;z-index:60;background:rgba(8,10,14,.45);backdrop-filter:blur(9px);place-items:center;padding:16px}
-    .artist-bind.open{display:grid}.artist-bind-card{width:min(620px,96vw);border:1px solid var(--line);border-radius:18px;background:var(--panel);padding:16px;box-shadow:var(--shadow)}
-    .artist-bind-actions{display:flex;gap:7px;margin-top:9px}.artist-bind-actions input{flex:1}
-    @media(max-width:900px){.music-playerbar{grid-template-columns:1fr}.music-video{width:100%;height:220px}.music-video iframe,.music-video>div{min-height:220px}}
-    @media(max-width:740px){.music-main{padding:10px}.music-top{top:-10px;flex-wrap:wrap}.music-brand{width:100%}.music-search{flex:1 1 100%}.music-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.music-library-add{grid-template-columns:1fr}}
-
-
     .embed-loading{
       position:absolute;inset:0;z-index:2;display:grid;place-items:center;
       background:color-mix(in srgb,var(--panel) 94%,transparent);
@@ -542,26 +460,24 @@
   </style>
   <link rel="stylesheet" href="home-tools.css?v=20261007-10">
   <link rel="stylesheet" href="../../pt-bridge.css?v=20260827-1">
-<style>.nexus-toolbox-layout{height:100%;overflow:auto;padding:4px 4px 24px}.nexus-tool-pages{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.nexus-tool-page{display:flex;flex-direction:column;color:var(--text);text-decoration:none;min-height:260px;padding:26px;border-radius:22px;transition:transform .18s,box-shadow .18s}.nexus-tool-page:hover{transform:translateY(-3px);box-shadow:0 14px 30px #0001}.nexus-tool-symbol{font-size:30px;width:58px;height:58px;border-radius:17px;display:grid;place-items:center;background:var(--accent-soft,#c4c9ff30);color:var(--accent)}.nexus-tool-page h3{font-size:19px;margin:22px 0 9px}.nexus-tool-page p{font-size:13px;line-height:1.8;color:var(--muted);margin:0 0 22px}.nexus-tool-open{margin-top:auto;font-size:12px;font-weight:650;color:var(--accent);display:flex;justify-content:space-between}.nexus-small-tools{margin-top:25px;border-top:1px solid var(--line);padding-top:18px}.nexus-small-tools>summary{font-size:13px;color:var(--muted);cursor:pointer;margin-bottom:15px}.nexus-small-tools .tools-layout{height:auto}.nexus-small-tools .bigcard{height:auto}@media(max-width:1000px){.nexus-tool-pages{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:650px){.nexus-tool-pages{grid-template-columns:1fr;gap:12px}.nexus-tool-page{min-height:200px;padding:20px}.nexus-tool-page h3{margin-top:14px}.nexus-tool-symbol{height:44px;width:44px;font-size:25px}.nexus-small-tools .tools-layout{grid-template-columns:1fr}}</style><link rel="stylesheet" href="boox-connector.css?v=20261021-1"><link rel="stylesheet" href="vps-tab.css?v=20261028-auto3"><script src="vps-tab.js?v=20261028-auto3" defer></script></head>
-<body>
+<link rel="stylesheet" href="boox-connector.css?v=20261021-1"><link rel="stylesheet" href="vps-tab.css?v=20261028-slim1"><script src="vps-tab.js?v=20261028-slim1" defer></script><link rel="stylesheet" href="streamline.css?v=20261028-slim1"></head>
+<body data-nexus-view="home">
 <div id="themeBg"></div><div class="bgShade"></div>
 <div class="app">
   <aside class="sidebar glass">
     <div class="logo" id="appLogo">DN</div>
     <button class="navbtn active" data-view="home"><div><div class="navicon">⌂</div><span>今日</span></div></button>
-    <button class="navbtn" data-view="todo"><div><div class="navicon">✎</div><span>Idea Pad</span></div></button>
+    <button class="navbtn" data-view="todo"><div><div class="navicon">✎</div><span>记录</span></div></button>
     <button class="navbtn" data-view="board"><div><div class="navicon">▦</div><span>看板</span></div></button>
     <button class="navbtn" data-view="tsugi"><div><div class="navicon">📚</div><span>追更</span></div></button>
     <button class="navbtn" data-view="vps"><div><div class="navicon">▥</div><span>VPS</span></div></button>
     <button class="navbtn" data-view="meal"><div><div class="navicon">🍜</div><span>吃什么</span></div></button>
     <button class="navbtn" data-view="focus"><div><div class="navicon">◎</div><span>专注</span></div></button>
-    <button class="navbtn" data-view="countdown"><div><div class="navicon">⏳</div><span>倒数</span></div></button>
-    <button class="navbtn" data-view="tools"><div><div class="navicon">⌘</div><span>工具箱</span></div></button>
     <button class="navbtn" data-view="settings"><div><div class="navicon">⚙</div><span>设置</span></div></button>
     <div class="spacer"></div><button class="navbtn themeSide" id="themeBtn"><div><div class="navicon">◐</div><span>主题</span></div></button>
   </aside>
   <main class="shell">
-    <header class="topbar glass">
+    <header class="topbar glass"><div id="compactViewTitle" class="compact-view-title">Daily Nexus</div>
       <div class="header-clock">
         <div id="headerClockPhoto" class="header-clock-photo" aria-hidden="true"></div>
         <div class="time" id="clock">--:--</div>
@@ -634,9 +550,9 @@
         <div class="cardhead"><h2>备忘本</h2><span class="sub" id="memoStatus">自动保存</span></div><textarea id="memo" placeholder="随手记下想法、计划和待办。&#10;内容自动保存，之后可以接着写。"></textarea>
         <div class="memo-task-heading"><b>小任务</b><span id="taskSummary" aria-live="polite"></span></div><div class="memo-foot"><input id="taskInput" aria-label="新任务内容" placeholder="添加一个小任务…"/><button class="miniadd" id="addTask">＋ 添加</button></div><div class="tasks" id="tasks"></div><div class="memo-empty" id="memoEmpty">添加后可随时编辑，也可在「专注」页选为目标。</div>
       </article>
-      <aside class="home-side-stack" aria-label="倒数与常用链接">
+      <aside class="home-side-stack" aria-label="到期提醒与常用链接">
         <article class="card glass home-countdown-card">
-          <div class="cardhead"><h2>最近倒数</h2><span class="sub"><button id="memoCountdownMore" type="button">查看全部</button></span></div>
+          <div class="cardhead"><h2>到期提醒</h2><span class="sub"><button id="memoCountdownMore" type="button">查看全部</button></span></div>
           <div class="memo-countdown-list" id="memoCountdownList"></div>
         </article>
         <article class="card glass home-links-card">
@@ -709,153 +625,27 @@
       </div>
     </section>
 
-    <section class="view music-view" id="view-music">
-      <div class="music-shell">
-        <main class="music-main">
-          <div class="music-top">
-            <div class="music-brand"><i>▶</i><span>Daily Nexus Music</span></div>
-            <input class="music-search" id="musicInput" placeholder="搜索音乐，或粘贴 YouTube / YouTube Music 视频、Playlist URL">
-            <button id="musicPlay">播放</button>
-            <button id="musicSearch">搜索 YT Music ↗</button>
-            <a href="https://music.youtube.com/" target="_blank" rel="noopener">打开 YT Music ↗</a>
-          </div>
-
-          <div class="music-playerbar">
-            <div class="music-controls">
-              <div class="music-kicker">NOW PLAYING</div>
-              <h2 id="musicNowTitle">Daily Nexus Music</h2>
-              <p id="musicNowMeta">选择播放列表或艺人开始播放</p>
-              <div class="music-buttons">
-                <button id="musicPrev" title="上一首">◀</button>
-                <button class="play" id="musicToggle" title="播放 / 暂停" aria-label="播放">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
-                </button>
-                <button id="musicNext" title="下一首">▶|</button>
-                <span class="music-time"><span id="musicCurrent">0:00</span> / <span id="musicDuration">0:00</span></span>
-              </div>
-              <input class="music-progress" id="musicProgress" type="range" min="0" max="1000" value="0" aria-label="播放进度">
-              <div class="music-queue-wrap">
-                <div class="music-queue-head">
-                  <b>播放队列</b>
-                  <span id="musicQueueCount">单曲模式</span>
-                  <button id="musicQueueCurrent">定位当前歌曲</button>
-                </div>
-                <div class="music-queue" id="musicQueue">
-                  <div class="music-queue-empty">播放 Playlist 后，这里会显示完整歌单并可点击切歌。</div>
-                </div>
-              </div>
-            </div>
-            <div class="music-video" id="musicVideoBox">
-              <div id="musicYTPlayer"></div>
-              <div class="music-player-empty" id="musicPlayerEmpty">YouTube 官方播放器必须保持可见。<br>选择内容后这里会显示最小尺寸播放器。</div>
-            </div>
-          </div>
-
-          <section class="music-section">
-            <div class="music-section-head"><h3>你的播放列表</h3><span>第一个显示 · 本地只保存 URL</span></div>
-            <div class="music-cards" id="musicLibraryCards"></div>
-            <div class="music-library-add">
-              <input class="field" id="musicPlaylistName" placeholder="播放列表名称">
-              <input class="field" id="musicPlaylistUrl" placeholder="YouTube / YouTube Music Playlist URL">
-              <button class="save" id="addMusicPlaylist">＋ 添加</button>
-            </div>
-          </section>
-
-          <section class="music-section">
-            <div class="music-section-head"><h3>关注艺人</h3><span>点击艺人直接播放已绑定歌单</span><button id="manageArtistsInTsugi">在追更管理</button></div>
-            <div class="music-sync-note">艺人名单与 Playlist 绑定都写入 <b>Tsugi</b> 的 <code>tsugi-followed-artists-v1</code>。第一次点击尚未绑定的艺人时，只需绑定一次公开 YouTube / YouTube Music Playlist。</div>
-            <div class="music-artists" id="musicArtistRow"></div>
-          </section>
-
-          <section class="music-section">
-            <div class="music-section-head"><h3>关注艺人 · 最近新曲</h3><span id="musicSyncStatus">自动读取 Tsugi</span><button id="refreshMusic">重新同步</button></div>
-            <div class="music-cards" id="musicReleaseCards"></div>
-          </section>
-        </main>
-      </div>
-
-      <div class="artist-bind" id="artistBindModal">
-        <div class="artist-bind-card">
-          <div class="modaltop"><h3 id="artistBindTitle">绑定艺人播放列表</h3><button class="iconbtn" id="closeArtistBind">×</button></div>
-          <p class="hint">YouTube 官方 Embed 已不支持“按搜索词生成播放队列”，因此纯静态网页无法仅凭艺人名自动解析官方播放列表。这里把 Playlist URL 直接保存进 Tsugi 的艺人记录，之后点击艺人即可直接播放。</p>
-          <div class="artist-bind-actions">
-            <input class="field" id="artistPlaylistUrl" placeholder="粘贴 YouTube / YouTube Music Playlist URL">
-            <button class="save" id="saveArtistPlaylist">保存到 Tsugi</button>
-          </div>
-          <div style="margin-top:8px"><a id="artistYTSearch" target="_blank" rel="noopener" class="pillbtn">在 YouTube Music 搜索这个艺人 ↗</a></div>
-        </div>
-      </div>
-    </section>
-
-
-    <section class="view" id="view-countdown">
-      <div class="nexus-workspace">
-        <div class="nexus-pagehead">
-          <div><h2>Countdown Collection</h2><p>订阅扣费与家庭维护统一倒数，自动按紧急程度排序；所有数据仅保存在当前浏览器。</p></div>
-        </div>
-        <div class="countdown-stats">
-          <div class="nexus-stat"><span>7 天内到期</span><strong id="countdownSoonStat">0</strong><small>订阅 + 家庭维护</small></div>
-          <div class="nexus-stat"><span>已逾期</span><strong id="countdownOverdueStat">0</strong><small>完成后自动推到下期</small></div>
-          <div class="nexus-stat"><span>订阅月均</span><strong id="subscriptionMonthlyStat">—</strong><small id="subscriptionCurrencyHint">按币种分别统计</small></div>
-        </div>
-        <div class="countdown-columns">
-          <article class="nexus-panel glass">
-            <div class="nexus-panel-head"><h3>订阅费用</h3><span class="nexus-muted"><b id="subscriptionCount">0</b> 项</span></div>
-            <form class="countdown-form" id="subscriptionForm">
-              <label>订阅名称<input class="field" id="subName" required placeholder="iCloud"></label>
-              <label>金额<input class="field" id="subAmount" required type="number" min="0" step="0.01" placeholder="9.99"></label>
-              <label>币种<select class="field" id="subCurrency"><option>USD</option><option>CNY</option><option>JPY</option><option>EUR</option></select></label>
-              <label>频率<select class="field" id="subFrequency"><option value="weekly">每周</option><option value="monthly" selected>每月</option><option value="quarterly">每季度</option><option value="yearly">每年</option></select></label>
-              <label>下次扣费<input class="field" id="subNextDate" required type="date"></label>
-              <div class="nexus-form-actions"><button class="nexus-mini-btn" id="cancelSubscriptionEdit" type="button" hidden>取消编辑</button><button class="pillbtn" id="subscriptionSubmit" type="submit">＋ 添加</button></div>
-            </form>
-            <div class="nexus-list countdown-section" id="subscriptionList"></div>
-          </article>
-          <article class="nexus-panel glass">
-            <div class="nexus-panel-head"><h3>家庭维护</h3><span class="nexus-muted"><b id="maintenanceCount">0</b> 项</span></div>
-            <form class="countdown-form maintenance-form" id="maintenanceForm">
-              <label>维护事项<input class="field" id="maintenanceName" required placeholder="更换空调滤网"></label>
-              <label>下次日期<input class="field" id="maintenanceDue" required type="date"></label>
-              <label>每隔<input class="field" id="maintenanceEvery" required type="number" min="1" value="3"></label>
-              <label>周期<select class="field" id="maintenanceUnit"><option value="days">天</option><option value="weeks">周</option><option value="months" selected>月</option><option value="years">年</option></select></label>
-              <label>备注<input class="field" id="maintenanceNote" placeholder="尺寸 / 型号"></label>
-              <div class="nexus-form-actions"><button class="nexus-mini-btn" id="cancelMaintenanceEdit" type="button" hidden>取消编辑</button><button class="pillbtn" id="maintenanceSubmit" type="submit">＋ 添加</button></div>
-            </form>
-            <div class="nexus-list countdown-section" id="maintenanceList"></div>
-          </article>
-        </div>
-      </div>
-    </section>
     <section class="view" id="view-focus"><div class="workspace">
       <article class="bigcard glass focus-main">
         <div class="section-title"><h2>专注时钟</h2><p id="focusModeLabel">25 分钟工作</p></div>
         <div class="focus-target"><select class="field" id="focusTaskSelect"><option value="">自由专注</option></select><input class="field" id="focusCustomTask" placeholder="或者输入当前要做的事…"></div>
-        <div class="focus-learning"><div class="focus-learning-head"><b>课程专注</b><div class="focus-learning-actions"><a class="pillbtn" id="focusLearningHome" href="../self-learning/" target="_blank" rel="noopener">Self Learning 主页 ↗</a><button class="pillbtn" id="focusResumeLesson">继续正在学的章节</button></div></div><div class="focus-learning-select"><select class="field" id="focusCourse" aria-label="专注课程"><option>载入课程…</option></select><select class="field" id="focusLesson" aria-label="专注章节"><option>选择章节</option></select><button class="pillbtn" id="focusOpenLesson" disabled>打开章节 ↗</button></div><p id="focusLearningStatus" role="status"></p></div>
+        <div class="focus-resume"><button class="pillbtn" id="focusResumeLesson">继续学习 ↗</button><span>从上次章节接着学</span></div>
+        <details class="focus-fold"><summary>选择课程与章节</summary>        <div class="focus-learning"><div class="focus-learning-head"><b>课程专注</b><div class="focus-learning-actions"><a class="pillbtn" id="focusLearningHome" href="../self-learning/" target="_blank" rel="noopener">Self Learning 主页 ↗</a></div></div><div class="focus-learning-select"><select class="field" id="focusCourse" aria-label="专注课程"><option>载入课程…</option></select><select class="field" id="focusLesson" aria-label="专注章节"><option>选择章节</option></select><button class="pillbtn" id="focusOpenLesson" disabled>打开章节 ↗</button></div><p id="focusLearningStatus" role="status"></p></div></details>
         <div class="focusclock" id="focusClock">25:00</div><div class="focus-progress"><i id="focusProgressBar"></i></div>
         <div class="focusactions"><button class="save" id="focusToggle">开始</button><button class="pillbtn" id="focusReset">重置</button><button class="pillbtn" id="focusBreak">休息 5m</button></div>
         <div class="preset-row"><button data-min="15">15m</button><button data-min="25">25m</button><button data-min="45">45m</button><button data-min="60">60m</button><button data-min="90">90m</button></div>
         <div class="focus-stats"><div class="focus-stat"><span>今日完成</span><b id="focusToday">0</b></div><div class="focus-stat"><span>今日分钟</span><b id="focusMinutes">0</b></div><div class="focus-stat"><span>连续完成</span><b id="focusStreak">0</b></div></div>
       </article>
-      <article class="bigcard glass focus-desk">
-        <div class="section-title"><h2>Focus Desk</h2><p>任务 · 环境声 · 记录</p></div>
-        <label>Session Note</label><textarea id="focusNote" placeholder="写下这一轮要避免跑偏的边界，或临时想到的事情…"></textarea>
-        <label>环境声（本地生成，不联网）</label>
-        <div class="noise-row">
-          <button data-noise="off" class="active">关闭</button>
-          <button data-noise="white">白噪声</button>
-          <button data-noise="pink">粉红噪声</button>
-          <button data-noise="brown">棕噪声</button>
-          <button data-noise="rain">雨声</button>
-          <button data-noise="fan">风扇</button>
-          <button data-noise="ocean">海浪</button>
-        </div>
-        <label>最近完成</label><div class="session-log" id="sessionLog"></div>
-      </article>
+      <div class="focus-extras">
+        <details class="focus-fold glass"><summary>本轮笔记</summary><div class="focus-fold-body"><textarea id="focusNote" aria-label="本轮专注笔记" placeholder="写下这一轮要做的事，或临时想到的事情…"></textarea></div></details>
+        <details class="focus-fold glass"><summary>环境声</summary><div class="focus-fold-body"><p class="hint">浏览器本地生成</p><div class="noise-row"><button data-noise="off" class="active">关闭</button><button data-noise="white">白噪声</button><button data-noise="pink">粉红噪声</button><button data-noise="brown">棕噪声</button><button data-noise="rain">雨声</button><button data-noise="fan">风扇</button><button data-noise="ocean">海浪</button></div></div></details>
+        <details class="focus-fold glass"><summary>最近完成</summary><div class="focus-fold-body"><div class="session-log" id="sessionLog"></div></div></details>
+      </div>
     </div></section>
 
 <section class="view" id="view-vps" aria-label="VPS 工作台">
  <div class="vps-page">
-  <header class="vps-heading"><div><span class="eyebrow">PRIVATE VPS</span><h2>VPS 工作台</h2><p>查看服务器状态，快速打开你的私有工具。</p></div><a class="vps-open-hub" href="https://pt-vps-tools.h1nano.chatgpt.site/hub/#home" target="_blank" rel="noopener">打开工具中心 ↗</a></header>
+  <header class="vps-heading"><div><span class="eyebrow">PRIVATE VPS</span><h2>VPS 工作台</h2><p>服务器监控与所有工具，集中在一页。</p></div><a class="vps-open-hub" href="https://pt-vps-tools.h1nano.chatgpt.site/hub/#home" target="_blank" rel="noopener">打开工具中心 ↗</a></header>
   <div class="vps-workspace"><aside class="vps-monitor-panel" aria-label="只读服务器监控"><div class="vps-connection glass"><div><span class="vps-state" id="vpsState">正在自动连接</span><p id="vpsMessage" role="status">正在恢复工具中心授权，仅你的账号可访问。</p></div><div class="vps-actions"><button id="vpsConnect" class="vps-primary">重试连接</button><button id="vpsRefresh" disabled>刷新</button><label>刷新间隔<select id="vpsInterval"><option value="60" selected>60 秒</option><option value="30">30 秒</option><option value="0">手动</option></select></label><button id="vpsDisconnect" hidden>断开</button></div></div>
   <div class="vps-metrics" aria-label="服务器监控">
    <article class="glass vps-metric"><h3>CPU</h3><strong id="vpsCpu">—</strong><p id="vpsLoad">连接后显示负载</p><svg id="vpsCpuChart" viewBox="0 0 300 50" role="img" aria-label="CPU 最近趋势"></svg></article>
@@ -865,42 +655,14 @@
   </div>
   <div class="vps-timestamps"><span id="vpsSample">采样时间 —</span><span id="vpsUptime">运行时间 —</span><span id="vpsFetched">读取时间 —</span></div>
   <p class="vps-footnote">只读监控；文件与设置在工具中心操作。离开此页或切到后台时暂停刷新。</p></aside>
-  <section class="vps-tools-section"><div class="vps-tools-heading"><h3>工具入口</h3><span id="vpsToolCount"></span></div><div id="vpsFilters" class="vps-filters" aria-label="按用途筛选工具"></div><div id="vpsTools" class="vps-tool-grid"></div></section>
+  <section class="vps-tools-section"><div class="vps-tools-heading"><h3>工具工作台</h3><span id="vpsToolCount"></span></div><div class="workspace-tool-groups"><section class="workspace-tool-group"><h4>VPS 工具 <span>15</span></h4><div id="vpsTools" class="vps-tool-grid"></div></section><section class="workspace-tool-group"><h4>其他工具 <span>7</span></h4><div id="otherTools" class="vps-tool-grid"></div></section></div></section>
  </div>
 
  </div>
 </section>
 
-<section class="view" id="view-tools"><div class="nexus-toolbox-layout"><div class="section-title"><h2>工具箱</h2><p>偶尔用到，随时打开</p></div><div class="nexus-tool-pages"><a class="nexus-tool-page glass" id="ffGuideEntry" href="../ff-guide/" target="_blank" rel="noopener"><span class="nexus-tool-symbol">✧</span><h3>最终幻想 共鸣 · 实用攻略手册</h3><p>中文流程攻略、游戏图鉴与逐点收集清单；查询真实数值，保存收藏和冒险进度。</p><span class="nexus-tool-open">打开攻略站 <span>↗</span></span></a><a class="nexus-tool-page glass" id="knowledgeGardenEntry" href="https://pt-vps-tools.h1nano.chatgpt.site/knowledge/" target="_blank" rel="noopener"><span class="nexus-tool-symbol">❧</span><h3>Knowledge Garden</h3><p>Workspace、网页与 PDF 资料库，全文检索、带出处问答和跨会话知识复用。</p><span class="nexus-tool-open">打开知识库 <span>↗</span></span></a><a class="nexus-tool-page glass" id="anythingLLMEntry" href="../anythingllm/" target="_blank" rel="noopener"><span class="nexus-tool-symbol">✳</span><h3>AnythingLLM</h3><p>工作区、多模型流式聊天与免费 API 目录；配置一次后端，随时切换模型。</p><span class="nexus-tool-open">开始对话 <span>↗</span></span></a><a class="nexus-tool-page glass" id="storyHubEntry" href="../story-hub/?v=20261009-1" target="_blank" rel="noopener"><span class="nexus-tool-symbol">◈</span><h3>作品与话题</h3><p>作品地图、兴趣话题、番剧分集与完结作品库，集中在一个独立页面。</p><span class="nexus-tool-open">打开工具 <span>↗</span></span></a><a class="nexus-tool-page glass" id="cardLabEntry" href="../game-systems-studio/" target="_blank" rel="noopener"><span class="nexus-tool-symbol">♠</span><h3>Game Systems Studio</h3><p>设计与模拟卡牌、增量和 RPG；接着使用原有卡牌试玩与素材收藏。</p><span class="nexus-tool-open">打开工具 <span>↗</span></span></a><a class="nexus-tool-page glass" id="mediaVaultEntry" href="../media-vault/" target="_blank" rel="noopener"><span class="nexus-tool-symbol">▣</span><h3>Media Vault</h3><p>小说阅读与下载，整理媒体链接与资料。</p><span class="nexus-tool-open">打开工具 <span>↗</span></span></a><button type="button" class="nexus-tool-page glass" id="booxEntry"><span class="nexus-tool-symbol">⇄</span><h3>BOOX 传书</h3><p>自动寻找同一 Wi-Fi 下的 BOOX，连接原生互传页面，不用记住变化的地址。</p><span class="nexus-tool-open">自动连接 <span>→</span></span></button></div>
-<section class="boox-panel" id="booxPanel" aria-label="BOOX 自动连接器" hidden>
-<div class="boox-head"><div><h3>BOOX 传书</h3><p>在 BOOX 上开启原生互传，并让两台设备连接同一 Wi-Fi。扫描范围：192.168.4.1–254，端口 8085。</p></div><button id="booxClose" type="button" aria-label="关闭 BOOX 连接器">×</button></div>
-<div class="boox-actions"><button id="booxScan" type="button">扫描并连接</button><button id="booxStop" type="button" hidden>停止扫描</button><a id="booxNative" class="boox-native" target="_blank" rel="noopener noreferrer" hidden>独立打开 ↗</a><label class="boox-auto"><input type="checkbox" id="booxAuto">进入工具箱时自动重连</label></div>
-<p id="booxPermission" class="boox-permission" role="status">本地网络：点击扫描检查权限</p><p id="booxStatus" role="status" aria-live="polite">点击扫描开始连接。</p><div class="boox-progress"><progress id="booxProgress" max="254" value="0" aria-label="局域网扫描进度"></progress><span id="booxCount">0 / 254</span></div><div id="booxResults" class="boox-results" aria-label="发现的设备"></div>
-<details class="boox-manual"><summary>已知地址 / 连接帮助</summary><p>推荐使用最新版 Chrome 或 Edge，并允许网站访问本地网络。IP 只记在当前浏览器，书籍直接通过本地网络传给 BOOX。若浏览器阻止嵌入，可点击“独立打开”。</p><div class="boox-actions"><label for="booxHost">BOOX 地址</label><input id="booxHost" placeholder="192.168.4.xx" inputmode="decimal" autocomplete="off"><button id="booxConnect" type="button">连接此地址</button></div></details>
-<div id="booxFrameWrap" class="boox-frame-wrap" hidden><p id="booxFrameNote" class="boox-frame-note"></p><iframe id="booxFrame" title="BOOX 原生互传" src="about:blank" allow="local-network-access *; local-network *" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-forms allow-downloads allow-popups"></iframe></div>
-</section><details class="nexus-small-tools"><summary>随手小工具 · 随机任务、决策器、骰子与生成器</summary><div class="tools-layout">
-      <article class="bigcard glass questbox">
-        <div class="section-title"><h2>今天做什么</h2><p><span id="questPoolCount">0</span> 个候选</p></div>
-        <div class="category-row" id="questCategories"></div>
-        <div class="quest-card"><div class="eyebrow">RANDOM QUEST</div><h3 id="questTitle">加载中…</h3><p id="questDesc"></p><div class="quest-meta" id="questMeta"></div></div>
-        <div class="quest-actions"><button class="save" id="newQuest">随机下一条</button><button class="pillbtn" id="questNoRepeat">无重复模式：开</button><button class="pillbtn" id="questFavorite">☆ 收藏</button></div>
-      </article>
-      <article class="bigcard glass">
-        <div class="section-title"><h2>微工具箱</h2></div><p style="color:var(--muted);font-size:12px;margin:0 0 12px">牌组、对战模拟与游戏素材库在独立页面中。</p>
-        <div class="tool-grid">
-          <div class="toolbox"><h3>决策器</h3><p>卡住的时候随机一下</p><div class="tool-output" id="decisionOut">—</div><div class="tool-actions"><button id="decisionBtn">帮我决定</button></div></div>
-          <div class="toolbox"><h3>骰子</h3><p>D6 / D20</p><div class="tool-output" id="diceOut">—</div><div class="tool-actions"><button data-dice="6">D6</button><button data-dice="20">D20</button></div></div>
-          <div class="toolbox"><h3>UUID</h3><p>浏览器本地生成</p><div class="tool-output" id="uuidOut">—</div><div class="tool-actions"><button id="uuidBtn">生成</button><button data-copy="#uuidOut">复制</button></div></div>
-          <div class="toolbox"><h3>随机密码</h3><p>默认 20 位</p><div class="tool-output" id="passwordOut">—</div><div class="tool-actions"><button id="passwordBtn">生成</button><button data-copy="#passwordOut">复制</button></div></div>
-          <div class="toolbox"><h3>随机数字</h3><p>包含两端</p><div class="range-row"><input class="field" id="randMin" type="number" value="1"><input class="field" id="randMax" type="number" value="100"></div><div class="tool-actions"><button id="randomNumBtn">生成</button><b id="randomNumOut">—</b></div></div>
-          <div class="toolbox"><h3>Unix Timestamp</h3><p>当前秒级时间戳</p><div class="tool-output" id="timestampOut">—</div><div class="tool-actions"><button id="timestampBtn">刷新</button><button data-copy="#timestampOut">复制</button></div></div>
-        </div>
-      </article>
-    </div></details></div></section>
-
-    <section class="view" id="view-settings"><div class="bigcard glass" style="height:100%"><div class="section-title"><h2>设置</h2><p>全部保存在 localStorage</p></div>
-      <div class="settings-grid">
-        <div class="formbox">
+    <section class="view" id="view-settings"><div class="bigcard glass" style="height:100%"><div class="section-title"><h2>设置</h2><p>外观、内容与数据备份</p></div>
+      <details class="settings-group" open><summary><b>外观</b><span>主题、个人标识与导航</span></summary><div class="settings-grid"><div class="formbox"><h3>主题</h3><label for="themeSelect">颜色主题</label><select class="field" id="themeSelect"><option value="auto">自动</option><option value="dark">深色</option><option value="light">浅色</option></select></div><div class="formbox">
           <h3 style="margin-top:0;font-size:14px">个人标识</h3>
           <div class="formrow">
             <div><label>问候语后的昵称</label><input class="field" id="nicknameInput" placeholder="Daily Nexus"></div>
@@ -921,19 +683,6 @@
           <button class="save" id="saveNavConfig">保存导航设置</button>
           <button class="pillbtn" id="resetNavConfig">恢复默认顺序</button>
         </div>
-        <div class="formbox">
-          <h3 style="margin-top:0;font-size:14px">全局天气 / AQI</h3>
-          <div class="formrow">
-            <div><label>城市 / 地区</label><input class="field" id="cityInput" value="Seattle" placeholder="Seattle / Bellevue / Tokyo"></div>
-            <div><label>温度单位</label><select class="field" id="weatherUnit"><option value="F">°F · 华氏</option><option value="C">°C · 摄氏</option></select></div>
-          </div>
-          <button class="save" id="saveCity">保存并刷新</button>
-          <button class="pillbtn" id="geoBtn">使用并保存当前位置</button>
-          <p class="hint" id="weatherSettingHint">城市模式。点击 Header 中的地区名称也可以直接来到这里。</p>
-        </div>
-        <div class="formbox"><h3 style="margin-top:0;font-size:14px">YouTube 直播频道</h3><div class="formrow"><div><label>显示名称</label><input class="field" id="ytName" placeholder="例如 Nintendo"></div><div><label>Channel ID</label><input class="field" id="ytId" placeholder="UC…"></div></div><button class="save" id="saveYT">保存频道</button><p class="hint">静态 GitHub Pages 不使用 Data API Key；Live Monitor 通过频道 Live 页面与官方播放器检查。</p></div>
-        <div class="formbox"><h3 style="margin-top:0;font-size:14px">主题</h3><div class="formrow"><div><label>颜色主题</label><select class="field" id="themeSelect"><option value="auto">自动</option><option value="dark">深色</option><option value="light">浅色</option></select></div><div><label>本地数据</label><button class="field" id="exportBtn">导出 JSON</button></div></div><button class="pillbtn" id="clearBtn">清空本地设置</button></div>
-        <div class="formbox"><h3 style="margin-top:0;font-size:14px">发现流</h3><p class="hint">小工具与频道从内置精选池随机；Hacker News 使用官方 Firebase API；GitHub 使用公开 REST Search API，并在浏览器缓存结果以减少限流。</p><button class="pillbtn" id="refreshFeedsNow">立即刷新在线信息</button></div>
         <div class="formbox full">
           <h3 style="margin-top:0;font-size:14px">时间卡主题图</h3>
           <div class="bg-controls">
@@ -969,12 +718,85 @@
     </select>
   </div>
 </div>
-<div class="sliderrow"><span>透明度</span><input id="bgOpacity" type="range" min="0" max="80" value="28"><output id="bgOpacityOut">28%</output></div><div class="sliderrow"><span>模糊</span><input id="bgBlur" type="range" min="0" max="20" value="0"><output id="bgBlurOut">0px</output></div><div class="sliderrow"><span>水平位置</span><input id="bgX" type="range" min="0" max="100" value="50"><output id="bgXOut">50%</output></div><div class="sliderrow"><span>垂直位置</span><input id="bgY" type="range" min="0" max="100" value="50"><output id="bgYOut">50%</output></div><div class="sliderrow"><span>缩放</span><input id="bgZoom" type="range" min="40" max="200" value="100"><output id="bgZoomOut">100%</output></div><button class="save" id="saveBg">保存主题图设置</button> <button class="pillbtn" id="toggleBg">暂时关闭</button> <button class="pillbtn" id="resetBg">移除图片</button><p class="hint">图片只保存在当前浏览器。填充/完整显示时缩放用于进一步放大画面；平铺模式下用于调整单个图案块大小。上传时会缩到约 1920px 以内，避免 localStorage 过大。</p></div>
-      </div>
+<div class="sliderrow"><span>透明度</span><input id="bgOpacity" type="range" min="0" max="80" value="28"><output id="bgOpacityOut">28%</output></div><div class="sliderrow"><span>模糊</span><input id="bgBlur" type="range" min="0" max="20" value="0"><output id="bgBlurOut">0px</output></div><div class="sliderrow"><span>水平位置</span><input id="bgX" type="range" min="0" max="100" value="50"><output id="bgXOut">50%</output></div><div class="sliderrow"><span>垂直位置</span><input id="bgY" type="range" min="0" max="100" value="50"><output id="bgYOut">50%</output></div><div class="sliderrow"><span>缩放</span><input id="bgZoom" type="range" min="40" max="200" value="100"><output id="bgZoomOut">100%</output></div><button class="save" id="saveBg">保存主题图设置</button> <button class="pillbtn" id="toggleBg">暂时关闭</button> <button class="pillbtn" id="resetBg">移除图片</button><p class="hint">图片只保存在当前浏览器。填充/完整显示时缩放用于进一步放大画面；平铺模式下用于调整单个图案块大小。上传时会缩到约 1920px 以内，避免 localStorage 过大。</p></div></div></details><details class="settings-group"><summary><b>内容</b><span>天气与首页发现</span></summary><div class="settings-grid"><div class="formbox">
+          <h3 style="margin-top:0;font-size:14px">全局天气 / AQI</h3>
+          <div class="formrow">
+            <div><label>城市 / 地区</label><input class="field" id="cityInput" value="Seattle" placeholder="Seattle / Bellevue / Tokyo"></div>
+            <div><label>温度单位</label><select class="field" id="weatherUnit"><option value="F">°F · 华氏</option><option value="C">°C · 摄氏</option></select></div>
+          </div>
+          <button class="save" id="saveCity">保存并刷新</button>
+          <button class="pillbtn" id="geoBtn">使用并保存当前位置</button>
+          <p class="hint" id="weatherSettingHint">城市模式。点击 Header 中的地区名称也可以直接来到这里。</p>
+        </div>
+        <div class="formbox"><h3 style="margin-top:0;font-size:14px">发现流</h3><p class="hint">首页折叠显示 3C 小物、GitHub 新星与 VSPO! 直播。展开或手动刷新时读取，并缓存结果。</p><button class="pillbtn" id="refreshFeedsNow">立即刷新在线信息</button></div>
+        </div></details><details class="settings-group"><summary><b>数据备份</b><span>导出与本机数据</span></summary><div class="settings-grid"><div class="formbox"><h3>Daily Nexus 数据</h3><p class="hint">导出本页的任务、备忘、日历、到期提醒和设置。项目管理与随手记的完整备份仍在各自页面中。</p><button class="save" id="exportBtn">导出 JSON</button><button class="pillbtn" id="clearBtn">清空本地设置</button></div></div></details>
     </div></section>
   </main>
 </div>
 
+<dialog id="remindersDialog" class="nexus-dialog" aria-labelledby="remindersTitle"><div class="dialog-title"><h2 id="remindersTitle">到期提醒</h2><button type="button" data-close-dialog="remindersDialog" aria-label="关闭到期提醒">×</button></div>
+      <div class="nexus-workspace">
+        <div class="nexus-pagehead">
+          <div><h3>订阅与家庭维护</h3><p>订阅扣费与家庭维护统一提醒，自动按紧急程度排序；所有数据仅保存在当前浏览器。</p></div>
+        </div>
+        <div class="countdown-stats">
+          <div class="nexus-stat"><span>7 天内到期</span><strong id="countdownSoonStat">0</strong><small>订阅 + 家庭维护</small></div>
+          <div class="nexus-stat"><span>已逾期</span><strong id="countdownOverdueStat">0</strong><small>完成后自动推到下期</small></div>
+          <div class="nexus-stat"><span>订阅月均</span><strong id="subscriptionMonthlyStat">—</strong><small id="subscriptionCurrencyHint">按币种分别统计</small></div>
+        </div>
+        <div class="countdown-columns">
+          <article class="nexus-panel glass">
+            <div class="nexus-panel-head"><h3>订阅费用</h3><span class="nexus-muted"><b id="subscriptionCount">0</b> 项</span></div>
+            <form class="countdown-form" id="subscriptionForm">
+              <label>订阅名称<input class="field" id="subName" required placeholder="iCloud"></label>
+              <label>金额<input class="field" id="subAmount" required type="number" min="0" step="0.01" placeholder="9.99"></label>
+              <label>币种<select class="field" id="subCurrency"><option>USD</option><option>CNY</option><option>JPY</option><option>EUR</option></select></label>
+              <label>频率<select class="field" id="subFrequency"><option value="weekly">每周</option><option value="monthly" selected>每月</option><option value="quarterly">每季度</option><option value="yearly">每年</option></select></label>
+              <label>下次扣费<input class="field" id="subNextDate" required type="date"></label>
+              <div class="nexus-form-actions"><button class="nexus-mini-btn" id="cancelSubscriptionEdit" type="button" hidden>取消编辑</button><button class="pillbtn" id="subscriptionSubmit" type="submit">＋ 添加</button></div>
+            </form>
+            <div class="nexus-list countdown-section" id="subscriptionList"></div>
+          </article>
+          <article class="nexus-panel glass">
+            <div class="nexus-panel-head"><h3>家庭维护</h3><span class="nexus-muted"><b id="maintenanceCount">0</b> 项</span></div>
+            <form class="countdown-form maintenance-form" id="maintenanceForm">
+              <label>维护事项<input class="field" id="maintenanceName" required placeholder="更换空调滤网"></label>
+              <label>下次日期<input class="field" id="maintenanceDue" required type="date"></label>
+              <label>每隔<input class="field" id="maintenanceEvery" required type="number" min="1" value="3"></label>
+              <label>周期<select class="field" id="maintenanceUnit"><option value="days">天</option><option value="weeks">周</option><option value="months" selected>月</option><option value="years">年</option></select></label>
+              <label>备注<input class="field" id="maintenanceNote" placeholder="尺寸 / 型号"></label>
+              <div class="nexus-form-actions"><button class="nexus-mini-btn" id="cancelMaintenanceEdit" type="button" hidden>取消编辑</button><button class="pillbtn" id="maintenanceSubmit" type="submit">＋ 添加</button></div>
+            </form>
+            <div class="nexus-list countdown-section" id="maintenanceList"></div>
+          </article>
+        </div>
+      </div>
+    </dialog>
+<dialog class="boox-panel nexus-dialog" id="booxPanel" aria-label="BOOX 自动连接器">
+<div class="boox-head"><div><h3>BOOX 传书</h3><p>在 BOOX 上开启原生互传，并让两台设备连接同一 Wi-Fi。扫描范围：192.168.4.1–254，端口 8085。</p></div><button id="booxClose" type="button" aria-label="关闭 BOOX 连接器">×</button></div>
+<div class="boox-actions"><button id="booxScan" type="button">扫描并连接</button><button id="booxStop" type="button" hidden>停止扫描</button><a id="booxNative" class="boox-native" target="_blank" rel="noopener noreferrer" hidden>独立打开 ↗</a><label class="boox-auto"><input type="checkbox" id="booxAuto">打开面板时优先自动重连</label></div>
+<p id="booxPermission" class="boox-permission" role="status">本地网络：点击扫描检查权限</p><p id="booxStatus" role="status" aria-live="polite">点击扫描开始连接。</p><div class="boox-progress"><progress id="booxProgress" max="254" value="0" aria-label="局域网扫描进度"></progress><span id="booxCount">0 / 254</span></div><div id="booxResults" class="boox-results" aria-label="发现的设备"></div>
+<details class="boox-manual"><summary>已知地址 / 连接帮助</summary><p>推荐使用最新版 Chrome 或 Edge，并允许网站访问本地网络。IP 只记在当前浏览器，书籍直接通过本地网络传给 BOOX。若浏览器阻止嵌入，可点击“独立打开”。</p><div class="boox-actions"><label for="booxHost">BOOX 地址</label><input id="booxHost" placeholder="192.168.4.xx" inputmode="decimal" autocomplete="off"><button id="booxConnect" type="button">连接此地址</button></div></details>
+<div id="booxFrameWrap" class="boox-frame-wrap" hidden><p id="booxFrameNote" class="boox-frame-note"></p><iframe id="booxFrame" title="BOOX 原生互传" src="about:blank" allow="local-network-access *; local-network *" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-forms allow-downloads allow-popups"></iframe></div>
+</dialog><dialog id="smallToolsDialog" class="nexus-dialog" aria-labelledby="smallToolsTitle"><div class="dialog-title"><h2 id="smallToolsTitle">随手工具</h2><button type="button" data-close-dialog="smallToolsDialog" aria-label="关闭随手工具">×</button></div><div class="tools-layout">
+      <article class="bigcard glass questbox">
+        <div class="section-title"><h2>今天做什么</h2><p><span id="questPoolCount">0</span> 个候选</p></div>
+        <div class="category-row" id="questCategories"></div>
+        <div class="quest-card"><div class="eyebrow">RANDOM QUEST</div><h3 id="questTitle">加载中…</h3><p id="questDesc"></p><div class="quest-meta" id="questMeta"></div></div>
+        <div class="quest-actions"><button class="save" id="newQuest">随机下一条</button><button class="pillbtn" id="questNoRepeat">无重复模式：开</button><button class="pillbtn" id="questFavorite">☆ 收藏</button></div>
+      </article>
+      <article class="bigcard glass">
+        <div class="section-title"><h2>微工具箱</h2></div><p style="color:var(--muted);font-size:12px;margin:0 0 12px">牌组、对战模拟与游戏素材库在独立页面中。</p>
+        <div class="tool-grid">
+          <div class="toolbox"><h3>决策器</h3><p>卡住的时候随机一下</p><div class="tool-output" id="decisionOut">—</div><div class="tool-actions"><button id="decisionBtn">帮我决定</button></div></div>
+          <div class="toolbox"><h3>骰子</h3><p>D6 / D20</p><div class="tool-output" id="diceOut">—</div><div class="tool-actions"><button data-dice="6">D6</button><button data-dice="20">D20</button></div></div>
+          <div class="toolbox"><h3>UUID</h3><p>浏览器本地生成</p><div class="tool-output" id="uuidOut">—</div><div class="tool-actions"><button id="uuidBtn">生成</button><button data-copy="#uuidOut">复制</button></div></div>
+          <div class="toolbox"><h3>随机密码</h3><p>默认 20 位</p><div class="tool-output" id="passwordOut">—</div><div class="tool-actions"><button id="passwordBtn">生成</button><button data-copy="#passwordOut">复制</button></div></div>
+          <div class="toolbox"><h3>随机数字</h3><p>包含两端</p><div class="range-row"><input class="field" id="randMin" type="number" value="1"><input class="field" id="randMax" type="number" value="100"></div><div class="tool-actions"><button id="randomNumBtn">生成</button><b id="randomNumOut">—</b></div></div>
+          <div class="toolbox"><h3>Unix Timestamp</h3><p>当前秒级时间戳</p><div class="tool-output" id="timestampOut">—</div><div class="tool-actions"><button id="timestampBtn">刷新</button><button data-copy="#timestampOut">复制</button></div></div>
+        </div>
+      </article>
+    </div></dialog>
 <div class="modal" id="calendarModal"><div class="modalcard glass" style="width:min(860px,96vw)">
   <div class="modaltop"><h3>日历 · 日期清单</h3><button class="iconbtn closeModal">×</button></div>
   <div class="calendar-modal-layout">
@@ -1055,7 +877,6 @@
   <p id="linkIconError" role="status"></p><button class="pillbtn" id="linkIconReset" type="button">居中重置</button>
   <div class="link-icon-actions"><button class="pillbtn" id="clearLinkIcon">改用 emoji</button><button class="pillbtn" id="cancelLinkIcon">取消</button><button class="save" id="saveLinkIcon" disabled>应用图标</button></div>
 </dialog>
-<div class="modal" id="liveModal"><div class="modalcard glass"><div class="modaltop"><h3 id="liveModalTitle">YouTube Live</h3><button class="iconbtn closeModal">×</button></div><iframe class="video" id="liveFrame" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe><p class="hint">若当前没有可嵌入的直播，播放器会显示不可用；可同时使用“频道 ↗”打开频道 Live 页面确认。</p></div></div>
 
 <!-- ===== INTEGRATED DESKBOARD SOURCE · EDIT BELOW ===== -->
 <template id="deskboardSource">
@@ -2282,14 +2103,12 @@ function migrateUpcomingManual(){
 }
 const DEFAULT_NAV_CONFIG=[
   {view:"home",icon:"⌂",label:"今日"},
-  {view:"todo",icon:"✎",label:"Idea Pad"},
+  {view:"todo",icon:"✎",label:"记录"},
   {view:"board",icon:"▦",label:"看板"},
   {view:"tsugi",icon:"📚",label:"追更"},
   {view:"vps",icon:"▥",label:"VPS"},
   {view:"meal",icon:"🍜",label:"吃什么"},
   {view:"focus",icon:"◎",label:"专注"},
-  {view:"countdown",icon:"⏳",label:"倒数"},
-  {view:"tools",icon:"⌘",label:"工具箱"},
   {view:"settings",icon:"⚙",label:"设置"}
 ];
 const state={
@@ -2499,7 +2318,7 @@ function normalizedNavConfig(){
   const seen=new Set(),out=[];
   incoming.forEach(x=>{
     const d=defaults.get(x?.view);if(!d||seen.has(x.view))return;
-    seen.add(x.view);out.push({view:x.view,icon:String(x.icon||d.icon).slice(0,6),label:String(x.view==='todo'&&['Todo','To-do','PT Todo Dashboard'].includes(x.label)?'Idea Pad':(x.view==='tools'&&x.label==='工具'?'工具箱':x.label)||d.label).slice(0,12)});
+    seen.add(x.view);out.push({view:x.view,icon:String(x.icon||d.icon).slice(0,6),label:String(x.view==='todo'&&['Todo','To-do','PT Todo Dashboard','Idea Pad'].includes(x.label)?'记录':(x.view==='tools'&&x.label==='工具'?'工具箱':x.label)||d.label).slice(0,12)});
   });
   DEFAULT_NAV_CONFIG.forEach(d=>{if(!seen.has(d.view)){if(d.view==="vps"){const i=out.findIndex(x=>x.view==="tsugi");out.splice(i<0?out.length:i+1,0,{...d});}else out.push({...d});}});
   // Move saved layouts once; subsequent manual reordering remains available.
@@ -2562,6 +2381,9 @@ function resetNexusViewScroll(target){
   });
 }
 function switchNexusView(view){
+  const reminders=view==='countdown';
+  if(view==='tools')view='vps';
+  if(reminders)view='home';
   if(!DEFAULT_NAV_CONFIG.some(item=>item.view===view)||!$("#view-"+view))view="home";
   // Keep the URL aligned with the visible tab, including retired view links.
   const url=new URL(location.href);
@@ -2571,15 +2393,16 @@ function switchNexusView(view){
   $$('.navbtn[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===view));
   $$('.view').forEach(v=>v.classList.remove('active'));
   const target=$("#view-"+view);if(target)target.classList.add('active');
+  document.body.dataset.nexusView=view;
+  const compactTitle=$('#compactViewTitle');if(compactTitle)compactTitle.textContent=(state.navConfig.find(x=>x.view===view)||DEFAULT_NAV_CONFIG.find(x=>x.view===view))?.label||'Daily Nexus';
   setDeskBoardActive(view==='board');
   if(view==='tsugi')ensureEmbeddedSite('tsugi');
   if(view==='meal')ensureEmbeddedSite('meal');
   if(view==='todo')switchIdeaTab(store.get('ideaTab','projects'));
   dispatchEvent(new CustomEvent('nexus-view-change',{detail:{view}}));
-  if(view==='music')ensureMusicTab();
   if(view==='focus')renderFocusTasks();
-  if(view==='countdown')renderCountdown();
   resetNexusViewScroll(target);
+  if(reminders)openReminderManager();
 }
 
 // ---------- Shared dashboard helpers ----------
@@ -2600,6 +2423,8 @@ function fetchWithTimeout(url,ms=15000){
   return fetch(url,{signal:controller.signal}).finally(()=>clearTimeout(timer));
 }
 // ---------- Countdown collection ----------
+function openReminderManager(){renderCountdown();const dialog=$('#remindersDialog');if(!dialog.open)dialog.showModal();}
+
 function nexusDayDiff(dateString){
   const date=new Date(`${dateString}T00:00:00`),today=new Date();
   const target=Date.UTC(date.getFullYear(),date.getMonth(),date.getDate());
@@ -2716,9 +2541,9 @@ function renderHomeCountdown(){
       <span class="memo-countdown-copy"><span class="memo-countdown-title">${escapeHtml(item.name)}</span><span class="memo-countdown-meta">${escapeHtml(item.detail)}</span></span>
       <span class="memo-countdown-due ${due.kind}">${escapeHtml(due.label)}</span>
     </button>`;
-  }).join(""):'<button class="memo-countdown-empty" id="memoCountdownEmpty" type="button">还没有倒数项目 · 点击添加</button>';
-  $$('[data-home-countdown]').forEach(button=>button.onclick=()=>switchNexusView("countdown"));
-  $("#memoCountdownEmpty")?.addEventListener("click",()=>switchNexusView("countdown"));
+  }).join(""):'<button class="memo-countdown-empty" id="memoCountdownEmpty" type="button">还没有到期提醒 · 点击添加</button>';
+  $$('[data-home-countdown]').forEach(button=>button.onclick=()=>openReminderManager());
+  $("#memoCountdownEmpty")?.addEventListener("click",()=>openReminderManager());
 }
 function renderCountdown(){
   const subList=$("#subscriptionList"),maintList=$("#maintenanceList");if(!subList||!maintList)return;
@@ -2756,7 +2581,7 @@ function renderCountdown(){
   }).join(""):'<div class="nexus-empty">添加滤芯、滤网或清扫计划，到期与逾期会醒目标记。</div>';
   bindCountdownActions();
 }
-$("#memoCountdownMore")?.addEventListener("click",()=>switchNexusView("countdown"));
+$("#memoCountdownMore")?.addEventListener("click",()=>openReminderManager());
 $("#subscriptionForm")?.addEventListener("submit",event=>{
   event.preventDefault();
   const name=$("#subName").value.trim(),amount=Number($("#subAmount").value),nextDate=$("#subNextDate").value;
@@ -2780,303 +2605,6 @@ $("#cancelMaintenanceEdit")?.addEventListener("click",resetMaintenanceEditor);
 if($("#subNextDate")&&!$("#subNextDate").value)$("#subNextDate").value=nexusDateInputValue();
 if($("#maintenanceDue")&&!$("#maintenanceDue").value)$("#maintenanceDue").value=nexusDateInputValue();
 renderCountdown();
-
-/* ---------- Music ---------- */
-let musicSyncBusy=false,musicPlayer=null,musicPlayerReady=false,musicProgressTimer=null,currentBindArtist="",musicQueueObserver=null,musicQueueIds=[],musicMetaCache=store.get("musicMetaCache",{});
-function parseYTMedia(raw){
-  const text=String(raw||"").trim();if(!text)return null;
-  try{
-    const u=new URL(/^https?:\/\//i.test(text)?text:`https://www.youtube.com/watch?v=${text}`);
-    const list=u.searchParams.get("list"),video=u.searchParams.get("v");
-    if(list)return{type:"playlist",id:list,video};
-    if(video)return{type:"video",id:video};
-    if(/youtu\.be$/i.test(u.hostname)){const id=u.pathname.replace(/^\/+/,"").split("/")[0];if(id)return{type:"video",id}}
-    const short=u.pathname.match(/\/shorts\/([^/?]+)/);if(short)return{type:"video",id:short[1]};
-  }catch{}
-  if(/^[\w-]{11}$/.test(text))return{type:"video",id:text};
-  if(/^(PL|OLAK5uy_|RD)[\w-]+/.test(text))return{type:"playlist",id:text};
-  return null;
-}
-function ytMusicSearchUrl(q){return`https://music.youtube.com/search?q=${encodeURIComponent(q)}`}
-function setMusicToggleIcon(isPlaying){
-  const btn=$("#musicToggle");if(!btn)return;
-  btn.innerHTML=isPlaying
-    ?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>'
-    :'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
-  btn.setAttribute("aria-label",isPlaying?"暂停":"播放");
-}
-function formatMusicTime(sec){
-  sec=Math.max(0,Math.floor(Number(sec)||0));return`${Math.floor(sec/60)}:${String(sec%60).padStart(2,"0")}`;
-}
-async function fetchMusicVideoMeta(id){
-  if(!id)return null;
-  if(musicMetaCache[id])return musicMetaCache[id];
-  const endpoint=`https://www.youtube.com/oembed?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${id}`)}&format=json`;
-  const targets=[endpoint,`https://api.allorigins.win/raw?url=${encodeURIComponent(endpoint)}`];
-  for(const target of targets){
-    try{
-      const ctrl=new AbortController(),tm=setTimeout(()=>ctrl.abort(),6500);
-      const r=await fetch(target,{signal:ctrl.signal});clearTimeout(tm);
-      if(!r.ok)throw new Error("metadata HTTP "+r.status);
-      const j=await r.json();
-      if(j?.title){
-        musicMetaCache[id]={title:j.title,author:j.author_name||"",thumb:j.thumbnail_url||""};
-        store.set("musicMetaCache",musicMetaCache);
-        return musicMetaCache[id];
-      }
-    }catch(_){}
-  }
-  return null;
-}
-function updateQueueCurrentTitle(){
-  if(!musicPlayerReady||!musicPlayer)return;
-  try{
-    const index=musicPlayer.getPlaylistIndex?.()??-1,data=musicPlayer.getVideoData?.();
-    if(index>=0&&data?.title){
-      const row=$(`[data-music-queue-index="${index}"]`);
-      if(row){
-        const title=row.querySelector(".mq-title"),sub=row.querySelector(".mq-id");
-        if(title)title.textContent=data.title;
-        if(sub&&data.author)sub.textContent=data.author;
-      }
-      const id=musicQueueIds[index];
-      if(id&&!musicMetaCache[id]){
-        musicMetaCache[id]={title:data.title,author:data.author||"",thumb:""};
-        store.set("musicMetaCache",musicMetaCache);
-      }
-    }
-  }catch(_){}
-}
-function highlightMusicQueue(){
-  const index=musicPlayerReady&&musicPlayer?.getPlaylistIndex?musicPlayer.getPlaylistIndex():-1;
-  $$("[data-music-queue-index]").forEach(row=>row.classList.toggle("active",+row.dataset.musicQueueIndex===index));
-  updateQueueCurrentTitle();
-}
-function observeMusicQueueRows(){
-  musicQueueObserver?.disconnect();
-  const host=$("#musicQueue");if(!host||!("IntersectionObserver" in window))return;
-  musicQueueObserver=new IntersectionObserver(entries=>{
-    entries.forEach(async entry=>{
-      if(!entry.isIntersecting)return;
-      const row=entry.target,id=row.dataset.videoId;
-      musicQueueObserver.unobserve(row);
-      const cached=musicMetaCache[id];
-      const meta=cached||await fetchMusicVideoMeta(id);
-      if(!meta)return;
-      const title=row.querySelector(".mq-title"),sub=row.querySelector(".mq-id");
-      if(title)title.textContent=meta.title;
-      if(sub)sub.textContent=meta.author||id;
-    });
-  },{root:host,rootMargin:"100px 0px"});
-  $$("[data-video-id]",host).forEach(row=>musicQueueObserver.observe(row));
-}
-function renderMusicQueue(){
-  const host=$("#musicQueue"),count=$("#musicQueueCount");if(!host)return;
-  let ids=[];
-  try{ids=musicPlayerReady&&musicPlayer?.getPlaylist?musicPlayer.getPlaylist()||[]:[]}catch(_){}
-  musicQueueIds=Array.isArray(ids)?ids:[];
-  if(!musicQueueIds.length){
-    if(count)count.textContent="单曲模式";
-    host.innerHTML='<div class="music-queue-empty">当前不是 Playlist。播放歌单后会在这里显示全部歌曲。</div>';
-    musicQueueObserver?.disconnect();
-    return;
-  }
-  if(count)count.textContent=`${musicQueueIds.length} 首`;
-  const current=musicPlayer.getPlaylistIndex?.()??-1;
-  host.innerHTML=musicQueueIds.map((id,i)=>{
-    const meta=musicMetaCache[id];
-    return `<button class="music-queue-row ${i===current?"active":""}" data-music-queue-index="${i}" data-video-id="${escapeAttr(id)}">
-      <span class="mq-index">${i+1}</span>
-      <span class="mq-copy"><span class="mq-title">${escapeHtml(meta?.title||`Track ${i+1}`)}</span><span class="mq-id">${escapeHtml(meta?.author||id)}</span></span>
-      <span class="mq-play">${i===current?"▶":"›"}</span>
-    </button>`;
-  }).join("");
-  $$("[data-music-queue-index]",host).forEach(row=>row.onclick=()=>{
-    if(!musicPlayerReady||!musicPlayer)return;
-    musicPlayer.playVideoAt(+row.dataset.musicQueueIndex);
-  });
-  observeMusicQueueRows();
-  updateQueueCurrentTitle();
-}
-function scrollToCurrentMusicQueue(){
-  const index=musicPlayerReady&&musicPlayer?.getPlaylistIndex?musicPlayer.getPlaylistIndex():-1;
-  const row=index>=0?$(`[data-music-queue-index="${index}"]`):null;
-  row?.scrollIntoView({behavior:"smooth",block:"center"});
-}
-function loadYTApi(){
-  if(window.YT?.Player)return Promise.resolve();
-  if(window.__ytApiPromise)return window.__ytApiPromise;
-  window.__ytApiPromise=new Promise((resolve,reject)=>{
-    const old=window.onYouTubeIframeAPIReady;
-    window.onYouTubeIframeAPIReady=()=>{try{old?.()}catch(_){}resolve()};
-    if(!document.querySelector('script[src*="youtube.com/iframe_api"]')){
-      const sc=document.createElement("script");sc.src="https://www.youtube.com/iframe_api";sc.async=true;sc.onerror=()=>reject(new Error("YouTube IFrame API failed"));document.head.appendChild(sc);
-    }
-    setTimeout(()=>window.YT?.Player&&resolve(),6000);
-  });
-  return window.__ytApiPromise;
-}
-async function ensureMusicPlayer(){
-  if(musicPlayerReady&&musicPlayer)return musicPlayer;
-  if(location.protocol==="file:"){
-    $("#musicPlayerEmpty").innerHTML="本地 file:// 无法可靠提供 YouTube HTTP Referer。<br>请在 GitHub Pages HTTPS 地址测试。";
-    return null;
-  }
-  await loadYTApi();
-  if(musicPlayer)return musicPlayer;
-  musicPlayer=await new Promise(resolve=>{
-    const p=new YT.Player("musicYTPlayer",{
-      width:220,height:200,
-      playerVars:{playsinline:1,origin:location.origin,rel:0},
-      events:{
-        onReady:()=>{musicPlayerReady=true;$("#musicPlayerEmpty").style.display="none";startMusicProgress();renderMusicQueue();resolve(p)},
-        onStateChange:e=>{
-          setMusicToggleIcon(e.data===YT.PlayerState.PLAYING);
-          if(e.data===YT.PlayerState.PLAYING)startMusicProgress();
-          if(e.data===YT.PlayerState.PLAYING||e.data===YT.PlayerState.CUED||e.data===YT.PlayerState.PAUSED){
-            const ids=musicPlayer?.getPlaylist?.()||[];
-            if(ids.length!==musicQueueIds.length||ids.some((id,i)=>id!==musicQueueIds[i]))renderMusicQueue();
-            else highlightMusicQueue();
-          }
-        },
-        onError:e=>{
-          $("#musicNowMeta").textContent=`YouTube 播放错误 ${e.data}`;
-        }
-      }
-    });
-  });
-  return musicPlayer;
-}
-function startMusicProgress(){
-  clearInterval(musicProgressTimer);
-  musicProgressTimer=setInterval(()=>{
-    if(!musicPlayerReady||!musicPlayer)return;
-    try{
-      const cur=musicPlayer.getCurrentTime()||0,dur=musicPlayer.getDuration()||0;
-      $("#musicCurrent").textContent=formatMusicTime(cur);$("#musicDuration").textContent=formatMusicTime(dur);
-      if(dur>0)$("#musicProgress").value=Math.round(cur/dur*1000);
-      const data=musicPlayer.getVideoData?.();
-      if(data?.title&&$("#musicNowTitle").textContent!==data.title)$("#musicNowTitle").textContent=data.title;
-      highlightMusicQueue();
-    }catch(_){}
-  },500);
-}
-async function playMusicMedia(raw,title=""){
-  const parsed=parseYTMedia(raw);if(!parsed)return false;
-  const p=await ensureMusicPlayer();if(!p)return true;
-  $("#musicNowTitle").textContent=title||(parsed.type==="playlist"?"Playlist":"YouTube");
-  $("#musicNowMeta").textContent=parsed.type==="playlist"?"YouTube Playlist":"YouTube";
-  if(parsed.type==="playlist"){
-    p.loadPlaylist({list:parsed.id,listType:"playlist",index:0,startSeconds:0});
-    setTimeout(renderMusicQueue,900);
-    setTimeout(renderMusicQueue,2200);
-  }else{
-    p.loadVideoById(parsed.id);
-    setTimeout(renderMusicQueue,500);
-  }
-  return true;
-}
-$("#musicToggle").onclick=async()=>{
-  const p=await ensureMusicPlayer();if(!p)return;
-  const st=p.getPlayerState();st===YT.PlayerState.PLAYING?p.pauseVideo():p.playVideo();
-};
-$("#musicPrev").onclick=async()=>{const p=await ensureMusicPlayer();p?.previousVideo?.()};
-$("#musicNext").onclick=async()=>{const p=await ensureMusicPlayer();p?.nextVideo?.()};
-$("#musicQueueCurrent").onclick=scrollToCurrentMusicQueue;
-$("#musicProgress").oninput=e=>{
-  if(!musicPlayerReady||!musicPlayer)return;
-  const dur=musicPlayer.getDuration()||0;if(dur)musicPlayer.seekTo(dur*(+e.target.value/1000),true);
-};
-
-function tsugiArtistsRaw(){
-  try{const a=JSON.parse(localStorage.getItem(TSUGI_ARTIST_KEY)||"[]");return Array.isArray(a)?a:[]}catch{return[]}
-}
-function writeTsugiArtists(rows){
-  localStorage.setItem(TSUGI_ARTIST_KEY,JSON.stringify(rows||[]));
-  renderUpcomingArtists();renderMusicArtists();
-}
-function artistPlaylist(a){
-  return a?.youtubePlaylist||a?.youtube_music_playlist||a?.playlistUrl||"";
-}
-function bindArtistPlaylist(name){
-  currentBindArtist=name;
-  $("#artistBindTitle").textContent=`${name} · 绑定播放列表`;
-  $("#artistPlaylistUrl").value="";
-  $("#artistYTSearch").href=ytMusicSearchUrl(`${name} popular songs`);
-  $("#artistBindModal").classList.add("open");
-}
-$("#closeArtistBind").onclick=()=>$("#artistBindModal").classList.remove("open");
-$("#artistBindModal").onclick=e=>{if(e.target===$("#artistBindModal"))$("#artistBindModal").classList.remove("open")};
-$("#saveArtistPlaylist").onclick=()=>{
-  const url=$("#artistPlaylistUrl").value.trim(),parsed=parseYTMedia(url);
-  if(!currentBindArtist||!parsed||parsed.type!=="playlist"){alert("请粘贴有效的公开 YouTube / YouTube Music Playlist URL。");return}
-  const rows=tsugiArtistsRaw(),idx=rows.findIndex(a=>String(a.name).toLowerCase()===currentBindArtist.toLowerCase());
-  if(idx<0){alert("Tsugi 中没有找到该艺人。");return}
-  rows[idx]={...rows[idx],youtubePlaylist:url};
-  writeTsugiArtists(rows);
-  $("#artistBindModal").classList.remove("open");
-  playMusicMedia(url,currentBindArtist);
-};
-
-function renderMusicArtists(){
-  const host=$("#musicArtistRow"),artists=readFollowedArtists();if(!host)return;
-  host.innerHTML=artists.length?artists.map(a=>`
-    <button class="music-artist" data-music-artist="${escapeAttr(a.name)}">
-      <span class="music-avatar">${artistPlaylist(a)?"▶":"♫"}</span><b>${escapeHtml(a.name)}</b>
-    </button>`).join(""):'<div class="upcoming-empty" style="min-width:100%">Tsugi 当前没有关注艺人。请在「追更」Tab 中管理。</div>';
-  $$("[data-music-artist]").forEach(b=>b.onclick=()=>{
-    const name=b.dataset.musicArtist,a=readFollowedArtists().find(x=>x.name===name),url=artistPlaylist(a);
-    url?playMusicMedia(url,name):bindArtistPlaylist(name);
-  });
-}
-function renderMusicReleases(){
-  const host=$("#musicReleaseCards");if(!host)return;
-  const rows=(Array.isArray(upcomingMusic)?upcomingMusic:[]).slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,16);
-  host.innerHTML=rows.length?rows.map(x=>{
-    const artist=x.artist||String(x.title||"").split(" · ")[0]||"Artist";
-    const title=String(x.title||"").replace(`${artist} · `,"")||x.title;
-    const q=`${artist} ${title}`;
-    return `<article class="music-card"><div class="music-cover">♫</div><b>${escapeHtml(title)}</b><small>${escapeHtml(artist)} · ${escapeHtml(upMonthDay(x.date))}</small><div class="music-card-actions"><a href="${escapeAttr(ytMusicSearchUrl(q))}" target="_blank" rel="noopener">YT Music ↗</a>${x.url?`<a href="${escapeAttr(x.url)}" target="_blank" rel="noopener">原曲 ↗</a>`:""}</div></article>`
-  }).join(""):'<div class="upcoming-empty" style="grid-column:1/-1">暂时没有 Tsugi 关注艺人的近期新曲。</div>';
-}
-function renderMusicLibrary(){
-  const host=$("#musicLibraryCards"),rows=Array.isArray(state.musicLibrary)?state.musicLibrary:[];if(!host)return;
-  host.innerHTML=rows.length?rows.map((x,i)=>`<article class="music-card"><div class="music-cover">▶</div><b>${escapeHtml(x.name||"Playlist")}</b><small>YouTube Playlist</small><div class="music-card-actions"><button data-music-list-play="${i}">播放</button><button data-music-list-del="${i}">删除</button></div></article>`).join(""):'<div class="upcoming-empty" style="grid-column:1/-1">还没有保存播放列表。</div>';
-  $$("[data-music-list-play]").forEach(b=>b.onclick=()=>{const x=state.musicLibrary[+b.dataset.musicListPlay];if(x)playMusicMedia(x.url,x.name)});
-  $$("[data-music-list-del]").forEach(b=>b.onclick=()=>{state.musicLibrary.splice(+b.dataset.musicListDel,1);store.set("musicLibrary",state.musicLibrary);renderMusicLibrary()});
-}
-async function syncMusicFromTsugi(force=true){
-  if(musicSyncBusy)return;musicSyncBusy=true;
-  const status=$("#musicSyncStatus");if(status)status.textContent="正在同步 Tsugi…";
-  try{
-    await syncArtistsFromTsugiOrigin();renderMusicArtists();
-    const artists=readFollowedArtists();
-    if(artists.length){
-      await loadUpcoming(force);renderMusicReleases();
-      if(status)status.textContent=`Tsugi · ${artists.length} 位艺人 · 已同步`;
-    }else{
-      upcomingMusic=[];renderMusicReleases();if(status)status.textContent="Tsugi · 0 位艺人";
-    }
-  }finally{musicSyncBusy=false}
-}
-function ensureMusicTab(){
-  window.__musicInitialized=true;
-  renderMusicLibrary();renderMusicArtists();syncMusicFromTsugi(false);
-}
-$("#musicPlay").onclick=()=>{
-  const q=$("#musicInput").value.trim();if(!q)return;
-  playMusicMedia(q).then(ok=>{if(!ok)window.open(ytMusicSearchUrl(q),"_blank","noopener")});
-};
-$("#musicSearch").onclick=()=>{const q=$("#musicInput").value.trim();if(q)window.open(ytMusicSearchUrl(q),"_blank","noopener")};
-$("#musicInput").onkeydown=e=>{if(e.key==="Enter")$("#musicPlay").click()};
-$("#refreshMusic").onclick=()=>syncMusicFromTsugi(true);
-$("#manageArtistsInTsugi").onclick=()=>switchNexusView("tsugi");
-$("#addMusicPlaylist").onclick=()=>{
-  const name=$("#musicPlaylistName").value.trim()||"Playlist",url=$("#musicPlaylistUrl").value.trim(),parsed=parseYTMedia(url);
-  if(!parsed||parsed.type!=="playlist"){alert("请粘贴有效的 YouTube / YouTube Music Playlist URL。");return}
-  state.musicLibrary.push({name,url});store.set("musicLibrary",state.musicLibrary);
-  $("#musicPlaylistName").value="";$("#musicPlaylistUrl").value="";renderMusicLibrary();
-};
 
 $$('.navbtn[data-view]').forEach(b=>b.onclick=()=>switchNexusView(b.dataset.view));
 
@@ -3318,7 +2846,6 @@ window.addEventListener('storage',e=>{
 window.addEventListener("storage",e=>{
   if(e.key===TSUGI_ARTIST_KEY){
     renderUpcomingArtists();
-    if(window.__musicInitialized)syncMusicFromTsugi(false);
   }
 });
 renderDeskLinks();
@@ -3955,7 +3482,6 @@ $('#discoverPanel').open=store.get('discoverExpanded',false)===true;
 $('#discoverPanel').addEventListener('toggle',()=>{store.set('discoverExpanded',$('#discoverPanel').open);if($('#discoverPanel').open&&!discoverLoaded){discoverLoaded=true;refreshDiscover(false)}});
 $("#refreshDiscover").onclick=()=>{discoverLoaded=true;refreshDiscover(true)};$("#refreshFeedsNow").onclick=()=>{discoverLoaded=true;refreshDiscover(true)};
 if($('#discoverPanel').open){discoverLoaded=true;refreshDiscover(false)}
-function renderYT(){const y=state.youtube,liveName=$("#liveName"),livePage=$("#livePage");if(liveName)liveName.textContent=y.name||'直播监控';if(livePage)livePage.href=y.id?`https://www.youtube.com/channel/${encodeURIComponent(y.id)}/live`:'https://www.youtube.com';$("#ytName").value=y.name||'';$("#ytId").value=y.id||''}renderYT();$("#saveYT").onclick=()=>{state.youtube={name:$("#ytName").value.trim(),id:$("#ytId").value.trim()};store.set('youtube',state.youtube);renderYT()};if($("#openLive"))$("#openLive").onclick=()=>{if(!state.youtube.id)return;$("#liveModalTitle").textContent=(state.youtube.name||'YouTube')+' · Live';$("#liveFrame").src=`https://www.youtube.com/embed/live_stream?channel=${encodeURIComponent(state.youtube.id)}&autoplay=0&rel=0`;openModal('#liveModal')};
 
 let focusSessionTask=null,focusSessionLearning=null;
 let focusMode='work',focusTotal=25*60,focusSecs=focusTotal,focusRunning=false,focusTimer=null,focusStart=null;$("#focusNote").value=state.focus.note||'';$("#focusNote").oninput=e=>{state.focus.note=e.target.value;store.set('focus',state.focus)};
@@ -4087,7 +3613,7 @@ $("#geoBtn").onclick=()=>navigator.geolocation?.getCurrentPosition(p=>{
   store.set('weatherGeo',state.weatherGeo);
   refreshWeatherSettingHint();loadWeather(state.weatherGeo);
 },()=>$("#weatherMeta").textContent='无法读取定位，请检查浏览器权限');
-$("#weatherPlace").onclick=()=>switchNexusView("settings");
+$("#weatherPlace").onclick=()=>{switchNexusView("settings");const input=$("#cityInput");input.closest("details").open=true;input.scrollIntoView({block:"center"});input.focus()};
 $("#themeSelect").onchange=e=>{state.theme=e.target.value;store.set('theme',state.theme);applyTheme()};$("#exportBtn").onclick=()=>{const data={...state,memo:$("#memo").value};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='daily-nexus-v13-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};$("#clearBtn").onclick=()=>{if(confirm('清空 Daily Nexus 的全部本地设置？')){Object.keys(localStorage).filter(k=>k.startsWith('dn_')).forEach(k=>localStorage.removeItem(k));location.reload()}};
 
 function resizeImageToDataUrl(file,max=1200,quality=.84){
@@ -4157,7 +3683,9 @@ function updateBgFromControls(){
 $("#bgMode").onchange=updateBgFromControls;$("#saveBg").onclick=()=>{if(!store.set('bg',state.bg))alert('图片数据太大，浏览器无法保存。请换一张更小的图片或使用 URL。');else applyBg()};$("#toggleBg").onclick=()=>{state.bg.enabled=!state.bg.enabled;store.set('bg',state.bg);applyBg()};$("#resetBg").onclick=()=>{state.bg.image='';state.bg.enabled=true;store.set('bg',state.bg);applyBg()};$("#applyBgUrl").onclick=()=>{const u=$("#bgUrl").value.trim();if(!u)return;state.bg.image=u;state.bg.enabled=true;applyBg()};
 $("#bgUpload").onchange=e=>{const f=e.target.files?.[0];if(!f)return;const img=new Image(),reader=new FileReader();reader.onload=()=>{img.onload=()=>{const max=1920,scale=Math.min(1,max/Math.max(img.width,img.height)),w=Math.max(1,Math.round(img.width*scale)),h=Math.max(1,Math.round(img.height*scale)),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);state.bg.image=c.toDataURL('image/jpeg',.82);state.bg.enabled=true;applyBg();if(!store.set('bg',state.bg))alert('图片仍然太大，建议使用图片 URL。')};img.src=reader.result};reader.readAsDataURL(f)};
 
-function openModal(sel){$(sel).classList.add('open')}function closeModals(){$$('.modal').forEach(m=>m.classList.remove('open'));$("#liveFrame").src=''}$$('.closeModal').forEach(b=>b.onclick=closeModals);$$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModals()}));addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.getElementById('linkIconDialog').open)closeModals()});
+document.querySelectorAll('[data-close-dialog]').forEach(button=>button.onclick=()=>document.getElementById(button.dataset.closeDialog).close());
+function openSmallTools(){const dialog=$('#smallToolsDialog');if(!dialog.open)dialog.showModal();}
+function openModal(sel){$(sel).classList.add('open')}function closeModals(){$$('.modal').forEach(m=>m.classList.remove('open'))}$$('.closeModal').forEach(b=>b.onclick=closeModals);$$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModals()}));addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.getElementById('linkIconDialog').open)closeModals()});
 </script>
 <iframe id="tsugiArtistBridge" src="about:blank" title="Tsugi artist sync" aria-hidden="true" style="display:none"></iframe>
 
@@ -4172,11 +3700,11 @@ function openModal(sel){$(sel).classList.add('open')}function closeModals(){$$('
 </style>
 <a id="ptu-home-link" href="../../" aria-label="返回 PT Universe"><i aria-hidden="true">‹</i><span>PT Universe</span></a>
 <script src="./decision-tabs.js?v=20261012-navigation3"></script>
-<script src="learning-focus.js?v=20261007-2"></script>
+<script src="learning-focus.js?v=20261028-slim1"></script>
 <script src="../../pt-sync.js?v=20260827-1"></script>
 <script src="../../pt-bridge.js?v=20260827-1"></script>
 <script>const requestedNexusView=new URLSearchParams(location.search).get("view");if(requestedNexusView)switchNexusView(requestedNexusView);</script>
-<script src="boox-connector.js?v=20261026-1"></script>
+<script src="boox-connector.js?v=20261028-slim1" defer></script>
 </body>
 </html>
 

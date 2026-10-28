@@ -222,20 +222,20 @@
     finally { if (ticket === generation) { if (signal.aborted && networkPermission?.state !== 'denied') status('已停止扫描。'); controller = null; setBusy(false); } }
   }
   function open(automatic = false) {
-    panel.hidden = false; panel.scrollIntoView({behavior:'smooth', block:'start'});
+    panel.hidden = false; panel.showModal?.();
     if (!initialized) { initialized = true; start(automatic); }
   }
-  $('booxEntry').onclick = () => open();
+  $('booxEntry').onclick = () => open(!!prefs.auto);
   $('booxScan').onclick = () => start(); $('booxConnect').onclick = openManual;
   $('booxStop').onclick = () => { if (controller) controller.abort(); else { ++generation; setBusy(false); status('已停止扫描。'); } };
   $('booxHost').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); openManual(); } };
   $('booxAuto').onchange = () => { prefs.auto = $('booxAuto').checked; save(); };
-  $('booxClose').onclick = () => { ++generation; controller?.abort(); controller = null; setBusy(false); panel.hidden = true; selected = null; initialized = false; $('booxEntry').focus(); };
+  function closePanel(){ ++generation; controller?.abort(); controller = null; setBusy(false); if(panel.open)panel.close(); panel.hidden = true; selected = null; initialized = false; $('booxEntry').focus(); }
+  $('booxClose').onclick=closePanel;
+  panel.addEventListener('cancel',event=>{event.preventDefault();closePanel();});
+  panel.addEventListener('close',closePanel);
   addEventListener('pagehide', () => controller?.abort());
   addEventListener('nexus-view-change', event => {
-    if (event.detail?.view === 'tools' && prefs.auto && !initialized) open(true);
-    else if (event.detail?.view !== 'tools') { ++generation; initialized = false; controller?.abort(); controller = null; setBusy(false); }
+    if (event.detail?.view !== 'vps') { ++generation; initialized = false; controller?.abort(); controller = null; setBusy(false); if(panel.open)closePanel(); }
   });
-  if (new URL(location.href).searchParams.get('view') === 'tools' && prefs.auto) open(true);
 })(globalThis);
-

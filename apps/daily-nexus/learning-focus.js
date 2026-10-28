@@ -16,7 +16,7 @@
     catch(e){if(ticket===generation)status.textContent=e.message}
   }
   courseSelect.onchange=()=>choose(courseSelect.value,1);lessonSelect.onchange=()=>choose(courseSelect.value,+lessonSelect.value);
-  document.getElementById('focusResumeLesson').onclick=async()=>{const last=reading();if(!last){status.textContent='还没有学习记录，请先选择课程和章节。';return}await choose(last.courseId,Number(last.lessonId.split('-').pop()))};
+  document.getElementById('focusResumeLesson').onclick=async()=>{const last=reading();if(!last){document.querySelector('.focus-main .focus-fold').open=true;status.textContent='还没有学习记录，请先选择课程和章节。';return}await choose(last.courseId,Number(last.lessonId.split('-').pop()));if(window.nexusLearningTask)document.getElementById('focusOpenLesson').click()};
   document.getElementById('focusOpenLesson').onclick=()=>{
     const target=window.nexusLearningTask;if(!target)return;
     const url=new URL('../self-learning/',location.href);url.hash=`/course/${target.courseId}/${String(target.number).padStart(2,'0')}`;

@@ -7,6 +7,7 @@ const server=http.createServer((req,res)=>{try{let file=path.join(root,new URL(r
  await new Promise(r=>server.listen(0,'127.0.0.1',r));const browser=await chromium.launch({headless:true});
  try {
   const context=await browser.newContext();let lan=0,probes=0;
+  await context.addInitScript(()=>sessionStorage.setItem('pt-nexus-vps-paused-v1','1'));
   await context.route(/^https:\/\//,r=>r.fulfill({json:{}}));
   await context.route('http://192.168.4.*:8085/**',r=>{lan++;if(r.request().url().endsWith('/api/device'))probes++;return r.request().url().includes('192.168.4.23:8085')?r.fulfill(r.request().url().endsWith('/api/device')?{json:{type:'server',model:'BOOX fixture'}}:{contentType:'text/html',body:'<h1>BOOX native fixture</h1><input type="file">'}):r.abort()});
   await context.addInitScript(()=>{Object.defineProperty(navigator,'permissions',{value:{query:async()=>({state:'granted'})}})});
@@ -21,7 +22,7 @@ const server=http.createServer((req,res)=>{try{let file=path.join(root,new URL(r
   assert.ok((await page.locator('#booxNative').getAttribute('rel')).includes('noopener'));
   assert.ok((await page.locator('#booxNative').innerText()).includes('打开 BOOX 互传'));
 
-  await page.locator('#booxAuto').check();const prior=lan;await page.reload();await page.waitForFunction(()=>document.querySelector('#booxCount').textContent.includes('已停止其余扫描'));assert.ok(lan>prior,'Opt-in reconnect on tools reload');assert.ok(lan-prior<=3,'Remembered reconnect must not scan other addresses');
+  await page.locator('#booxAuto').check();const prior=lan;await page.reload();assert.equal(lan,prior,'No background LAN scan on VPS reload');await page.locator('#booxEntry').click();await page.waitForFunction(()=>document.querySelector('#booxCount').textContent.includes('已停止其余扫描'));assert.ok(lan>prior,'Opt-in reconnect when BOOX is opened');assert.ok(lan-prior<=3,'Remembered reconnect must not scan other addresses');
   // A known IP opens directly without probing, even if browser LAN scanning is unavailable.
   await page.locator('.boox-manual summary').click();
   await page.locator('#booxHost').fill('192.168.4.23');
@@ -33,9 +34,10 @@ const server=http.createServer((req,res)=>{try{let file=path.join(root,new URL(r
   assert.equal(probes,priorProbes,'Manual navigation must never perform an HTTP fetch/probe');
   await popup.close();
   await page.locator('#booxClose').click();assert.equal(await page.locator('#booxPanel').isVisible(),false);assert.equal(await page.locator('#booxFrame').count(),0);
-  await page.locator('[data-view=home]').click();await page.locator('[data-view=tools]').click();await page.waitForFunction(()=>document.querySelector('#booxCount').textContent.includes('已停止其余扫描'));assert.equal(await page.locator('#booxPanel').isVisible(),true);
+  await page.locator('[data-view=home]').click();await page.locator('[data-view=vps]').click();assert.equal(await page.locator('#booxPanel').isVisible(),false);await page.locator('#booxEntry').click();await page.waitForFunction(()=>document.querySelector('#booxCount').textContent.includes('已停止其余扫描'));assert.equal(await page.locator('#booxPanel').isVisible(),true);
   assert.deepEqual(errors,[]);await context.close();
   const opaque=await browser.newContext();let opaqueLan=0;
+  await opaque.addInitScript(()=>sessionStorage.setItem('pt-nexus-vps-paused-v1','1'));
   await opaque.route(/^https:\/\//,r=>r.fulfill({json:{}}));
   await opaque.route('http://192.168.4.*:8085/**',r=>{
     opaqueLan++;if(!r.request().url().includes('192.168.4.23:8085'))return r.abort();
@@ -51,12 +53,14 @@ const server=http.createServer((req,res)=>{try{let file=path.join(root,new URL(r
   assert.ok(opaqueLan<254,'An opaque candidate must open before finishing the subnet scan');
   await opaque.close();
   const denied=await browser.newContext();let deniedRequests=0;
+  await denied.addInitScript(()=>sessionStorage.setItem('pt-nexus-vps-paused-v1','1'));
   await denied.route(/^https:\/\//,r=>r.fulfill({json:{}}));await denied.route('http://192.168.4.*:8085/**',r=>{deniedRequests++;return r.abort()});
   await denied.addInitScript(()=>{Object.defineProperty(navigator,'permissions',{value:{query:async()=>({state:'denied'})}})});
   const blocked=await denied.newPage();await blocked.goto(url);await blocked.locator('#booxEntry').click();await blocked.getByText('本地网络权限已被拒绝。',{exact:false}).waitFor();assert.equal(deniedRequests,0);assert.equal(await blocked.locator('#booxScan').isEnabled(),true);await denied.close();
   // A firmware without the metadata endpoint, on another home subnet, must
   // still yield an explicitly unverified native transfer page.
   const firmware=await browser.newContext();
+  await firmware.addInitScript(()=>sessionStorage.setItem('pt-nexus-vps-paused-v1','1'));
   await firmware.route(/^https:\/\//,r=>r.fulfill({json:{}}));
   await firmware.route('http://192.168.*:8085/**',r=>{
     if(!r.request().url().includes('192.168.6.42:8085'))return r.abort();
@@ -73,6 +77,7 @@ const server=http.createServer((req,res)=>{try{let file=path.join(root,new URL(r
   // Denying the permission dialog during the first probe must stop the scan,
   // preserve the actionable error and leave the controls reusable.
   const prompt=await browser.newContext();let promptRequests=0;
+  await prompt.addInitScript(()=>sessionStorage.setItem('pt-nexus-vps-paused-v1','1'));
   await prompt.route(/^https:\/\//,r=>r.fulfill({json:{}}));
   await prompt.addInitScript(()=>{
     const state=new EventTarget();state.state='prompt';
