@@ -1,4 +1,5 @@
 import {knowledgeRoute} from './knowledge';
+import {vpsRoute} from './vps';
 import {sourceIsFresh,SITE_REFRESH_REVISION} from './site-updates';
 import {browserSiteList,browserChapterBatch} from './browser-site-parser';
 import { museRoute } from './muse';
@@ -587,6 +588,7 @@ export default {
         await env.DB.prepare('INSERT INTO analytics_daily(day,path,views) VALUES(?,?,1) ON CONFLICT(day,path) DO UPDATE SET views=views+1').bind(day,path).run();
         return new Response(null,{status:204,headers:cors(request)});
       }
+      const vps=await vpsRoute(request,env);if(vps){const headers=new Headers(vps.headers);for(const [key,value] of Object.entries(cors(request)))headers.set(key,value);return new Response(vps.body,{status:vps.status,headers})}
       const knowledge=await knowledgeRoute(request,env);if(knowledge){const headers=new Headers(knowledge.headers);for(const [key,value] of Object.entries(cors(request)))headers.set(key,value);return new Response(knowledge.body,{status:knowledge.status,headers})}
       const chat=await anythingLLMRoute(request,env,authenticate);if(chat){const headers=new Headers(chat.headers);for(const [key,value] of Object.entries(cors(request)))headers.set(key,value);return new Response(chat.body,{status:chat.status,headers})}
       const muse=await museRoute(request,env,authenticate);if(muse)return reply(request,muse.body,muse.status||200);

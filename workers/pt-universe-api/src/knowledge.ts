@@ -31,11 +31,26 @@ export function allowedNativePath(path:string,method:string){
  if(new RegExp('^'+base+'lists/'+id+'/bookmarks$').test(pathname))return method==='GET';
  return new RegExp('^'+base+'lists/'+id+'/bookmarks/'+id+'$').test(pathname)&&['PUT','DELETE'].includes(method);
 }
-async function signedFetch(config:Config,path:string,method:string,body:BodyInit|null=null,contentType='',cookie='',range=''){
+async function signedFetch(config:Config,path:string,method:string,body:BodyInit|null=null,contentType='',cookie='',range='',timeoutMs=110000){
  const timestamp=Date.now().toString(),nonce=b64(crypto.getRandomValues(new Uint8Array(18))),message=['pt-gateway-v1','hub',method,path,timestamp,nonce,config.siteOrigin,contentType].join('\n');
  const key=await crypto.subtle.importKey('jwk',config.jwk,{name:'ECDSA',namedCurve:'P-256'},false,['sign']),sig=b64(new Uint8Array(await crypto.subtle.sign({name:'ECDSA',hash:'SHA-256'},key,new TextEncoder().encode(message))));
  const h=new Headers({'x-pt-time':timestamp,'x-pt-nonce':nonce,'x-pt-signature':sig,'x-pt-role':'hub','x-forwarded-proto':'https','x-forwarded-host':new URL(config.siteOrigin).host,origin:config.siteOrigin});if(contentType)h.set('content-type',contentType);if(cookie)h.set('cookie',cookie);if(range&&/^bytes=\d*-\d*$/.test(range))h.set('range',range);
- return fetch(config.origin.replace(/\/$/,'')+path,{method,headers:h,body:['GET','HEAD'].includes(method)?undefined:body,redirect:'manual',signal:AbortSignal.timeout(110000)});
+ return fetch(config.origin.replace(/\/$/,'')+path,{method,headers:h,body:['GET','HEAD'].includes(method)?undefined:body,redirect:'manual',signal:AbortSignal.timeout(timeoutMs)});
+}
+// A separate read-only capability uses the existing server-owned transport.
+// Its caller cannot supply a method, URL, cookie, or arbitrary native API path.
+export {PUBLIC_KEY as OWNER_CONNECT_PUBLIC_KEY};
+export async function readVpsSnapshot(env:KnowledgeEnv){
+ const stored=await env.PT_UNIVERSE_DATA.get(CONFIG_KEY);
+ if(!stored)throw Error('transport-not-configured');
+ const config=JSON.parse(stored) as Config;if(!validConfig(config))throw Error('transport-invalid');
+ const results=await Promise.allSettled(['/hub/api/metrics','/hub/status'].map(async path=>{
+  const r=await signedFetch(config,path,'GET',null,'','','',12000);
+  if(!r.ok){await r.body?.cancel();throw Error('read-unavailable');}
+  return r.json();
+ }));
+ if(results[0].status!=='fulfilled')throw Error('metrics-unavailable');
+ return {metrics:results[0].value,services:results[1].status==='fulfilled'?results[1].value:null};
 }
 export function nativeCookies(h:Headers){const extended=h as Headers&{getAll?:(name:string)=>string[]};const lines=typeof h.getSetCookie==='function'?h.getSetCookie():extended.getAll?extended.getAll('Set-Cookie'):[h.get('set-cookie')||''];return lines.flatMap(s=>s.split(/,(?=\s*(?:__Secure-|__Host-)?next-auth\.)/)).map(s=>s.trim().split(';',1)[0]).filter(s=>/^(?:__Secure-|__Host-)?next-auth\.(?:session-token(?:\.\d{1,2})?|csrf-token|callback-url)=/.test(s)).join('; ');}
 async function nativeSession(env:KnowledgeEnv,config:Config,fresh=false){if(!fresh){const raw=await env.PT_UNIVERSE_DATA.get(SESSION_KEY);if(raw){try{const s=JSON.parse(raw);if(s.revision===config.revision&&s.exp>Date.now())return s.cookie as string;}catch{}}}

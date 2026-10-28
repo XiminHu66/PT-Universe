@@ -542,7 +542,7 @@
   </style>
   <link rel="stylesheet" href="home-tools.css?v=20261007-10">
   <link rel="stylesheet" href="../../pt-bridge.css?v=20260827-1">
-<style>.nexus-toolbox-layout{height:100%;overflow:auto;padding:4px 4px 24px}.nexus-tool-pages{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.nexus-tool-page{display:flex;flex-direction:column;color:var(--text);text-decoration:none;min-height:260px;padding:26px;border-radius:22px;transition:transform .18s,box-shadow .18s}.nexus-tool-page:hover{transform:translateY(-3px);box-shadow:0 14px 30px #0001}.nexus-tool-symbol{font-size:30px;width:58px;height:58px;border-radius:17px;display:grid;place-items:center;background:var(--accent-soft,#c4c9ff30);color:var(--accent)}.nexus-tool-page h3{font-size:19px;margin:22px 0 9px}.nexus-tool-page p{font-size:13px;line-height:1.8;color:var(--muted);margin:0 0 22px}.nexus-tool-open{margin-top:auto;font-size:12px;font-weight:650;color:var(--accent);display:flex;justify-content:space-between}.nexus-small-tools{margin-top:25px;border-top:1px solid var(--line);padding-top:18px}.nexus-small-tools>summary{font-size:13px;color:var(--muted);cursor:pointer;margin-bottom:15px}.nexus-small-tools .tools-layout{height:auto}.nexus-small-tools .bigcard{height:auto}@media(max-width:1000px){.nexus-tool-pages{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:650px){.nexus-tool-pages{grid-template-columns:1fr;gap:12px}.nexus-tool-page{min-height:200px;padding:20px}.nexus-tool-page h3{margin-top:14px}.nexus-tool-symbol{height:44px;width:44px;font-size:25px}.nexus-small-tools .tools-layout{grid-template-columns:1fr}}</style><link rel="stylesheet" href="boox-connector.css?v=20261021-1"></head>
+<style>.nexus-toolbox-layout{height:100%;overflow:auto;padding:4px 4px 24px}.nexus-tool-pages{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.nexus-tool-page{display:flex;flex-direction:column;color:var(--text);text-decoration:none;min-height:260px;padding:26px;border-radius:22px;transition:transform .18s,box-shadow .18s}.nexus-tool-page:hover{transform:translateY(-3px);box-shadow:0 14px 30px #0001}.nexus-tool-symbol{font-size:30px;width:58px;height:58px;border-radius:17px;display:grid;place-items:center;background:var(--accent-soft,#c4c9ff30);color:var(--accent)}.nexus-tool-page h3{font-size:19px;margin:22px 0 9px}.nexus-tool-page p{font-size:13px;line-height:1.8;color:var(--muted);margin:0 0 22px}.nexus-tool-open{margin-top:auto;font-size:12px;font-weight:650;color:var(--accent);display:flex;justify-content:space-between}.nexus-small-tools{margin-top:25px;border-top:1px solid var(--line);padding-top:18px}.nexus-small-tools>summary{font-size:13px;color:var(--muted);cursor:pointer;margin-bottom:15px}.nexus-small-tools .tools-layout{height:auto}.nexus-small-tools .bigcard{height:auto}@media(max-width:1000px){.nexus-tool-pages{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:650px){.nexus-tool-pages{grid-template-columns:1fr;gap:12px}.nexus-tool-page{min-height:200px;padding:20px}.nexus-tool-page h3{margin-top:14px}.nexus-tool-symbol{height:44px;width:44px;font-size:25px}.nexus-small-tools .tools-layout{grid-template-columns:1fr}}</style><link rel="stylesheet" href="boox-connector.css?v=20261021-1"><link rel="stylesheet" href="vps-tab.css?v=20261028-1"><script src="vps-tab.js?v=20261028-1" defer></script></head>
 <body>
 <div id="themeBg"></div><div class="bgShade"></div>
 <div class="app">
@@ -551,6 +551,7 @@
     <button class="navbtn active" data-view="home"><div><div class="navicon">⌂</div><span>今日</span></div></button>
     <button class="navbtn" data-view="todo"><div><div class="navicon">✎</div><span>Idea Pad</span></div></button>
     <button class="navbtn" data-view="board"><div><div class="navicon">▦</div><span>看板</span></div></button>
+    <button class="navbtn" data-view="vps"><div><div class="navicon">▥</div><span>VPS</span></div></button>
     <button class="navbtn" data-view="tsugi"><div><div class="navicon">📚</div><span>追更</span></div></button>
     <button class="navbtn" data-view="check"><div><div class="navicon">⌕</div><span>核查台</span></div></button>
     <button class="navbtn" data-view="meal"><div><div class="navicon">🍜</div><span>吃什么</span></div></button>
@@ -859,6 +860,22 @@
         <label>最近完成</label><div class="session-log" id="sessionLog"></div>
       </article>
     </div></section>
+
+<section class="view" id="view-vps" aria-label="VPS 工作台">
+ <div class="vps-page">
+  <header class="vps-heading"><div><span class="eyebrow">PRIVATE VPS</span><h2>VPS 工作台</h2><p>查看服务器状态，快速打开你的私有工具。</p></div><a class="vps-open-hub" href="https://pt-vps-tools.h1nano.chatgpt.site/hub/#home" target="_blank" rel="noopener">打开工具中心 ↗</a></header>
+  <div class="vps-connection glass"><div><span class="vps-state" id="vpsState">尚未连接监控</span><p id="vpsMessage" role="status">使用现有工具中心登录后，这里会显示真实监控数据。工具入口可直接使用。</p></div><div class="vps-actions"><button id="vpsConnect" class="vps-primary">连接监控</button><button id="vpsRefresh" disabled>刷新</button><label>刷新间隔<select id="vpsInterval"><option value="60" selected>60 秒</option><option value="30">30 秒</option><option value="0">手动</option></select></label><button id="vpsDisconnect" hidden>断开</button></div></div>
+  <div class="vps-metrics" aria-label="服务器监控">
+   <article class="glass vps-metric"><h3>CPU</h3><strong id="vpsCpu">—</strong><p id="vpsLoad">连接后显示负载</p><svg id="vpsCpuChart" viewBox="0 0 300 50" role="img" aria-label="CPU 最近趋势"></svg></article>
+   <article class="glass vps-metric"><h3>内存</h3><strong id="vpsMemory">—</strong><p id="vpsMemoryDetail">连接后显示用量</p><svg id="vpsMemoryChart" viewBox="0 0 300 50" role="img" aria-label="内存最近趋势"></svg></article>
+   <article class="glass vps-metric"><h3>根盘</h3><strong id="vpsDisk">—</strong><p id="vpsDiskDetail">连接后显示剩余空间</p><svg id="vpsDiskChart" viewBox="0 0 300 50" role="img" aria-label="磁盘最近趋势"></svg></article>
+   <article class="glass vps-metric"><h3>网络速率</h3><strong id="vpsDownload">↓ —</strong><p id="vpsUpload">↑ —</p><p class="vps-metric-note">实时采样速率 · 非累计流量</p></article>
+  </div>
+  <div class="vps-timestamps"><span id="vpsSample">采样时间 —</span><span id="vpsUptime">运行时间 —</span><span id="vpsFetched">读取时间 —</span></div>
+  <section class="vps-tools-section"><div class="vps-tools-heading"><h3>工具入口</h3><span id="vpsToolCount"></span></div><div id="vpsFilters" class="vps-filters" aria-label="按用途筛选工具"></div><div id="vpsTools" class="vps-tool-grid"></div></section>
+  <p class="vps-footnote">这里只读取状态。文件、下载和设置操作在私有工具中心内完成。监控通常每分钟产生一个样本；离开此标签页或切到后台时暂停刷新。</p>
+ </div>
+</section>
 
 <section class="view" id="view-tools"><div class="nexus-toolbox-layout"><div class="section-title"><h2>工具箱</h2><p>偶尔用到，随时打开</p></div><div class="nexus-tool-pages"><a class="nexus-tool-page glass" id="ffGuideEntry" href="../ff-guide/" target="_blank" rel="noopener"><span class="nexus-tool-symbol">✧</span><h3>最终幻想 共鸣 · 实用攻略手册</h3><p>中文流程攻略、游戏图鉴与逐点收集清单；查询真实数值，保存收藏和冒险进度。</p><span class="nexus-tool-open">打开攻略站 <span>↗</span></span></a><a class="nexus-tool-page glass" id="knowledgeGardenEntry" href="https://pt-vps-tools.h1nano.chatgpt.site/knowledge/" target="_blank" rel="noopener"><span class="nexus-tool-symbol">❧</span><h3>Knowledge Garden</h3><p>Workspace、网页与 PDF 资料库，全文检索、带出处问答和跨会话知识复用。</p><span class="nexus-tool-open">打开知识库 <span>↗</span></span></a><a class="nexus-tool-page glass" id="anythingLLMEntry" href="../anythingllm/" target="_blank" rel="noopener"><span class="nexus-tool-symbol">✳</span><h3>AnythingLLM</h3><p>工作区、多模型流式聊天与免费 API 目录；配置一次后端，随时切换模型。</p><span class="nexus-tool-open">开始对话 <span>↗</span></span></a><a class="nexus-tool-page glass" id="storyHubEntry" href="../story-hub/?v=20261009-1" target="_blank" rel="noopener"><span class="nexus-tool-symbol">◈</span><h3>作品与话题</h3><p>作品地图、兴趣话题、番剧分集与完结作品库，集中在一个独立页面。</p><span class="nexus-tool-open">打开工具 <span>↗</span></span></a><a class="nexus-tool-page glass" id="cardLabEntry" href="../game-systems-studio/" target="_blank" rel="noopener"><span class="nexus-tool-symbol">♠</span><h3>Game Systems Studio</h3><p>设计与模拟卡牌、增量和 RPG；接着使用原有卡牌试玩与素材收藏。</p><span class="nexus-tool-open">打开工具 <span>↗</span></span></a><a class="nexus-tool-page glass" id="mediaVaultEntry" href="../media-vault/" target="_blank" rel="noopener"><span class="nexus-tool-symbol">▣</span><h3>Media Vault</h3><p>小说阅读与下载，整理媒体链接与资料。</p><span class="nexus-tool-open">打开工具 <span>↗</span></span></a><button type="button" class="nexus-tool-page glass" id="booxEntry"><span class="nexus-tool-symbol">⇄</span><h3>BOOX 传书</h3><p>自动寻找同一 Wi-Fi 下的 BOOX，连接原生互传页面，不用记住变化的地址。</p><span class="nexus-tool-open">自动连接 <span>→</span></span></button></div>
 <section class="boox-panel" id="booxPanel" aria-label="BOOX 自动连接器" hidden>
@@ -2273,6 +2290,7 @@ const DEFAULT_NAV_CONFIG=[
   {view:"home",icon:"⌂",label:"今日"},
   {view:"todo",icon:"✎",label:"Idea Pad"},
   {view:"board",icon:"▦",label:"看板"},
+  {view:"vps",icon:"▥",label:"VPS"},
   {view:"tsugi",icon:"📚",label:"追更"},
   {view:"check",icon:"⌕",label:"核查台"},
   {view:"meal",icon:"🍜",label:"吃什么"},
@@ -2490,7 +2508,7 @@ function normalizedNavConfig(){
     const d=defaults.get(x?.view);if(!d||seen.has(x.view))return;
     seen.add(x.view);out.push({view:x.view,icon:String(x.icon||d.icon).slice(0,6),label:String(x.view==='todo'&&['Todo','To-do','PT Todo Dashboard'].includes(x.label)?'Idea Pad':(x.view==='tools'&&x.label==='工具'?'工具箱':x.label)||d.label).slice(0,12)});
   });
-  DEFAULT_NAV_CONFIG.forEach(d=>{if(!seen.has(d.view))out.push({...d})});
+  DEFAULT_NAV_CONFIG.forEach(d=>{if(!seen.has(d.view)){if(d.view==="vps"){const i=out.findIndex(x=>x.view==="board");out.splice(i<0?out.length:i+1,0,{...d});}else out.push({...d});}});
   return out;
 }
 function applyNavConfig(){
