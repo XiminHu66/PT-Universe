@@ -6,6 +6,8 @@ import {Store} from './store.mjs';
 import {Engine} from './engine.mjs';
 import {money,parseProduct,validateObject,normalizeSource,hotelDecision,fingerprint,HOTEL_FIELDS,detectChange,MonitorError} from './model.mjs';
 import {publicAddress,safeURL} from './network.mjs';
+import {createServer} from 'node:http';
+import {createCollector} from './server.mjs';
 const hotel={type:'hotel',config:{property:'Hotel Example',checkIn:'2027-01-10',checkOut:'2027-01-12',rooms:1,adults:2,children:'无',roomType:'City View',bedType:'King',mealPlan:'No meals',cancellation:'Free until Jan 8',payment:'Pay later',currency:'USD',originalTotal:50000,cancelLoss:0,cancelBy:'2027-01-08T12:00:00Z',claimBy:'2027-01-01T12:00:00Z',policyVerified:true,policyURL:'https://example.com/policy'}};
 const source={contextVerified:true,termsHash:fingerprint('King refundable'),confirmedContext:Object.fromEntries(HOTEL_FIELDS.map(k=>[k,hotel.config[k]])),quotedTotal:true};
 const quote={priceMinor:40000,currency:'USD',totalConfirmed:true,termsText:'King refundable'};
@@ -23,3 +25,18 @@ test('failed checks keep last valid observation and never create a false price e
 test('confirmation binds to current observation and object changes invalidate it',async()=>{const dir=mkdtempSync(tmpdir()+'/pt-monitor-'),store=new Store(dir);try{const e=new Engine(store),o=store.put('object',validateObject({type:'shopping',title:'Phone',config:{currency:'USD'}})),s=store.put('source',{objectId:o.id,last:{id:'old'},lastSuccess:new Date().toISOString(),baselineConfirmed:false},o.id);await assert.rejects(()=>e.confirm(s.id,{observationId:'stale'}));await e.confirm(s.id,{observationId:'old'});assert.equal(store.get(s.id).baselineConfirmed,true);await e.update(o.id,{config:{targetMinor:5000}});assert.equal(store.get(s.id).baselineConfirmed,false);}finally{store.close();rmSync(dir,{recursive:true,force:true})}});
 test('booking removes session and referral values from stored source URLs',()=>{const s=normalizeSource({url:'https://www.booking.com/hotel/us/example.html?sid=secret&aid=123&checkin=2027-01-10'},'hotel');assert.ok(!s.url.includes('secret'));assert.ok(s.url.includes('checkin=2027-01-10'))});
 test('events are idempotent while a further price drop creates a distinct event',async()=>{const dir=mkdtempSync(tmpdir()+'/pt-monitor-'),store=new Store(dir);try{const e=new Engine(store),o=store.put('object',{title:'Phone'}),s={id:'source'},p=store.put('observation',{priceMinor:9000},o.id),q=store.put('observation',{priceMinor:8000},o.id),v={kind:'price_drop',title:'Drop',detail:'Lower'};await e.event(o,s,v,p.id);await e.event(o,s,v,p.id);await e.event(o,s,v,q.id);assert.equal(store.list('event',o.id).length,2)}finally{store.close();rmSync(dir,{recursive:true,force:true})}});
+test('hotel API creates parented sources, confirms a baseline, records a lower quote and downloads evidence',async()=>{
+ const dir=mkdtempSync(tmpdir()+'/pt-monitor-'),store=new Store(dir);let price='USD 500.00',clock=Date.now();const engine=new Engine(store,{clock:()=>clock,validateURL:async()=>{},browser:async url=>({url,priceText:price,currency:'USD',termsText:'King refundable',screenshot:null})}),handler=createCollector({engine}),server=createServer((req,res)=>void handler(req,res,new URL(req.url,'https://example.com')));
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port+'/__pt_monitor/api',origin='https://pt-vps-tools.h1nano.chatgpt.site';
+ const call=(p,method='GET',body)=>fetch(base+p,{method,headers:{origin,...(body?{'content-type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});
+ try{
+  assert.equal((await fetch(base+'/state')).status,403);
+  const created=await call('/objects','POST',{...hotel,title:'Hotel QA',source:{url:'https://www.hilton.com/quote',priceSelector:'.total',termsSelector:'.terms',quotedTotal:true,browser:true,currency:'USD'}});assert.equal(created.status,201);const object=await created.json();
+  for(let i=0;i<20&&engine.running.size;i++)await new Promise(r=>setImmediate(r));
+  const d=await call('/objects/'+object.id).then(r=>r.json());assert.equal(d.sources.length,1,'source must belong to its object in details');assert.equal(d.sources[0].last.priceMinor,50000);assert.equal(d.observations.length,1);
+  const id=d.sources[0].id;const confirmed=await call('/sources/'+id+'/confirm','POST',{observationId:d.sources[0].last.id,conditionsMatch:true});assert.equal(confirmed.status,200);
+  const rateLimit=await call('/sources/'+id+'/check','POST',{});assert.equal(rateLimit.status,429);
+  clock+=61000;price='USD 400.00';await engine.check(id);const state=await call('/state').then(r=>r.json());assert.equal(state.objects[0].sources.length,1);assert.equal(state.events.filter(e=>e.kind==='hotel_opportunity').length,1);
+  const updated=await call('/objects/'+object.id).then(r=>r.json()),evidence=await call('/evidence/'+updated.sources[0].last.evidenceId).then(r=>r.json());assert.equal(evidence.quote.priceMinor,40000);assert.equal(evidence.orderBaseline.originalTotal,50000);assert.equal(evidence.policySnapshot.verified,true);assert.ok(!JSON.stringify(evidence).includes('encryption.key'));
+ }finally{server.closeAllConnections();await new Promise(r=>server.close(r));store.close();rmSync(dir,{recursive:true,force:true})}
+});
