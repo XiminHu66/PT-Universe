@@ -1,7 +1,7 @@
 import https from 'node:https';
 import {lookup} from 'node:dns/promises';
 import {isIP} from 'node:net';
-import {MonitorError} from './model.mjs';
+import {MonitorError,verificationPage,text} from './model.mjs';
 export function publicAddress(ip){
  if(isIP(ip)===6)return /^[23][a-f\d]{3}:/i.test(ip)&&!/^2001:(?:0:|db8:)|^2002:/i.test(ip);
  if(isIP(ip)!==4)return false;const [a,b]=ip.split('.').map(Number);return ![0,10,127].includes(a)&&a<224&&!(a===169&&b===254)&&!(a===172&&b>=16&&b<=31)&&!(a===192&&[0,168].includes(b))&&!(a===198&&[18,19,51].includes(b))&&!(a===203&&b===0)&&!(a===100&&b>=64&&b<=127);
@@ -22,5 +22,5 @@ export async function fetchPublic(value,{redirects=4,resolver=lookup}={}){
  });
  if(result.redirect){if(redirects<=0)throw new MonitorError('redirect','网页重定向过多');return fetchPublic(new URL(result.redirect,url).href,{redirects:redirects-1,resolver});}
  if(result.status!==200)throw new MonitorError('access',`网站返回 ${result.status}，本次检查未成功`);
- if(/<title>[^<]*(?:captcha|robot|access denied|just a moment)|validateCaptcha|challenge-platform/i.test(result.html))throw new MonitorError('challenge','网站要求验证，请稍后重试');return result;
+ if(verificationPage({title:text(result.html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]),headings:[...result.html.matchAll(/<h[12][^>]*>([\s\S]*?)<\/h[12]>/gi)].map(m=>text(m[1])).join(' | '),body:text(result.html)}))throw new MonitorError('challenge','网站要求验证，请稍后重试');return result;
 }

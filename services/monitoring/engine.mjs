@@ -17,7 +17,7 @@ export class Engine{
  async observe(o,s){
   let page;if(s.browser||o.type==='uscis'||o.type==='hotel')page=await this.browser(s.url,{source:s,receipt:o.type==='uscis'?o.config.receipt:'',screenshot:o.type==='hotel'});else page=await this.fetcher(s.url);
   if(o.type==='uscis'){
-   const status=text(page.status),body=text(page.statusBody);if(!status||!body||!/(case|card|request|interview|application|petition|notice|document|oath|fingerprint)/i.test(status)||/check case status|case status online/i.test(status))throw new MonitorError('parse','未取得案件结果，请核对编号或稍后重试');
+   const status=text(page.status),body=text(page.statusBody);if(!status||!body||!/(case|card|request|interview|application|petition|notice|document|oath|fingerprint|biometric|certificate|naturalization|name|birth|decision)/i.test(status)||/check case status|case status online/i.test(status))throw new MonitorError('parse','未取得案件结果，请核对编号或稍后重试');
    const date=body.match(/\bOn\s+([A-Z][a-z]+ \d{1,2}, \d{4})/);return {status,body:body.replaceAll(o.config.receipt,'[receipt]'),officialDate:date&&Number.isFinite(Date.parse(date[1]))?new Date(date[1]).toISOString().slice(0,10):null,evidence:{url:'https://egov.uscis.gov/casestatus/landing.do',text:body.replaceAll(o.config.receipt,'[receipt]')}};
   }
   if(o.type==='shopping'){
@@ -40,11 +40,11 @@ export class Engine{
    if(o.type==='hotel'&&s.termsHash!==fingerprint(current.termsText)){source.contextVerified=false;source.baselineConfirmed=false;}
    this.store.put('source',source,o.id);this.store.put('check',{sourceId,createdAt:at,ok:true},o.id);
    const change=s.baselineConfirmed?detectChange(o,s,s.last,current,this.clock()):null;if(change)await this.event(o,s,change,observation.id);
-   if(!s.last&&o.type==='uscis')this.store.put('source',{...source,baselineConfirmed:true},o.id);
+   if(o.type==='uscis'&&!s.baselineConfirmed)this.store.put('source',{...source,baselineConfirmed:true},o.id);
    return {ok:true,observationId:observation.id};
   }catch(error){
    const code=error instanceof MonitorError?error.code:'network',message=error instanceof MonitorError?error.message:'本次连接失败，请稍后重试';const failures=(s.failures||0)+1;
-   this.store.put('source',{...s,checking:false,lastAttempt:at,nextDue:this.clock()+Math.min(o.hours*3600000,Math.max(15*60000,failures*15*60000)),error:message,errorCode:code,failures},o.id);this.store.put('check',{sourceId,createdAt:at,ok:false,error:message,code},o.id);
+   this.store.put('source',{...s,checking:false,lastAttempt:at,nextDue:this.clock()+(code==='challenge'?Math.max(o.hours*3600000,24*3600000):Math.min(o.hours*3600000,Math.max(15*60000,failures*15*60000))),error:message,errorCode:code,failures},o.id);this.store.put('check',{sourceId,createdAt:at,ok:false,error:message,code},o.id);
    if(s.lastSuccess&&this.clock()-Date.parse(s.lastSuccess)>86400000||!s.lastSuccess&&failures>=3)await this.event(o,s,{kind:'check_failed',title:'监控需要处理',detail:message});return {ok:false,error:message,code};
   }finally{this.running.delete(sourceId);}
  }

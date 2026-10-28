@@ -40,3 +40,38 @@ test('hotel API creates parented sources, confirms a baseline, records a lower q
   const updated=await call('/objects/'+object.id).then(r=>r.json()),evidence=await call('/evidence/'+updated.sources[0].last.evidenceId).then(r=>r.json());assert.equal(evidence.quote.priceMinor,40000);assert.equal(evidence.orderBaseline.originalTotal,50000);assert.equal(evidence.policySnapshot.verified,true);assert.ok(!JSON.stringify(evidence).includes('encryption.key'));
  }finally{server.closeAllConnections();await new Promise(r=>server.close(r));store.close();rmSync(dir,{recursive:true,force:true})}
 });
+
+import {verificationPage} from './model.mjs';
+import {pageSnapshot,caseFormAction,submitCaseForm} from './browser.mjs';
+import vm from 'node:vm';
+test('verification detection ignores dormant scripts and product copy, but recognizes actual blocks',()=>{
+ assert.equal(verificationPage({title:'Wireless keyboard',body:'Supports security keys and CAPTCHA',html:'<script>var validateCaptcha="challenge-platform";</script>'}),false);
+ for(const page of [{title:'Attention Required! | Cloudflare'},{title:'Robot Check'},{headings:'Sorry, you have been blocked'},{body:'Enter the characters you see below'},{activeChallenge:true}])assert.equal(verificationPage(page),true);
+});
+test('React-style receipt input gets native setter, input/change events, then an enabled button click without a form',()=>{
+ let value='',nativeSetterCalls=0,clicked=0;class Input{};Object.defineProperty(Input.prototype,'value',{get:()=>value,set:v=>{nativeSetterCalls++;value=v}});
+ const button={textContent:'Check Status',disabled:true,getClientRects:()=>[{}],click:()=>clicked++};
+ const input=new Input();Object.assign(input,{id:'modern-input',name:'query',placeholder:'EAC1234567890',getAttribute:()=>null,getClientRects:()=>[{}],dispatchEvent:e=>{if(e.type==='input')button.disabled=false}});
+ const document={querySelector:()=>null,querySelectorAll:s=>s==='input'?[input]:s==='button,input[type="submit"]'?[button]:[]};
+ const context=vm.createContext({document,HTMLInputElement:Input,Event:class{constructor(type){this.type=type}}});
+ const fill=vm.runInContext('('+caseFormAction.toString()+')',context),submit=vm.runInContext('('+submitCaseForm.toString()+')',context);
+ assert.equal(fill('IOE0000000000').found,true);assert.equal(value,'IOE0000000000');assert.equal(nativeSetterCalls,1);assert.equal(submit(),true);assert.equal(clicked,1);
+});
+test('modern case result headings and paragraph extraction exclude the search page title',()=>{
+ const p={innerText:'On October 1, 2026, we received your application.',getClientRects:()=>[{}]};const container={querySelectorAll:s=>s==='p'?[p]:[],parentElement:null};
+ const headings=['Case Status Online','Check Case Status','Case Was Received'].map(innerText=>({innerText,parentElement:container,getClientRects:()=>[{}]}));
+ const document={title:'Case Status Online',readyState:'complete',body:{innerText:'Case Was Received'},documentElement:{outerHTML:'<main>result</main>'},querySelector:()=>null,querySelectorAll:s=>s==='h1,h2,h3'?headings:[]};
+ const result=vm.runInNewContext('('+pageSnapshot.toString()+')({casePage:true})',{document,location:{href:'https://egov.uscis.gov/'}});
+ assert.equal(result.status,'Case Was Received');assert.equal(result.statusBody,p.innerText);assert.equal(result.activeChallenge,false);
+});
+test('price extraction prefers the main buybox and never collapses multiple offers into one price',()=>{
+ let values=['$239.99'];const document={title:'Product',readyState:'complete',body:{innerText:'Product'},documentElement:{outerHTML:'<main>Product</main>'},querySelector:()=>null,querySelectorAll:s=>s==='#corePriceDisplay_desktop_feature_div .a-price:not(.a-text-price) .a-offscreen'?values.map(innerText=>({innerText,getClientRects:()=>[{}]})):[]};
+ const read=()=>vm.runInNewContext('('+pageSnapshot.toString()+')({})',{document,location:{href:'https://www.amazon.com/dp/EXAMPLE'}});
+ assert.equal(read().priceText,'$239.99');values=['$239.99','$249.99'];assert.equal(read().priceText,null);assert.equal(read().priceCount,2);
+});
+test('blocked checks back off for a day and preserve prior observation without generating false changes',async()=>{
+ const dir=mkdtempSync(tmpdir()+'/pt-monitor-'),store=new Store(dir);try{
+ const now=Date.now(),e=new Engine(store,{clock:()=>now,browser:async()=>{throw new MonitorError('challenge','Blocked')}}),o=store.put('object',validateObject({type:'shopping',title:'Product',hours:1,config:{currency:'USD'}})),s=store.put('source',{objectId:o.id,browser:true,url:'https://www.amazon.com/dp/EXAMPLE',last:{id:'old',priceMinor:10000},lastSuccess:new Date(now-3600000).toISOString()},o.id);
+ await e.check(s.id);assert.equal(store.get(s.id).nextDue,now+86400000);assert.equal(store.get(s.id).last.id,'old');assert.equal(store.list('observation',o.id).length,0);assert.equal(store.list('event',o.id).length,0);
+ }finally{store.close();rmSync(dir,{recursive:true,force:true})}
+});

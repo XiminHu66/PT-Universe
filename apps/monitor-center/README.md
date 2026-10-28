@@ -35,3 +35,11 @@ node tests/monitor.test.mjs
 ```
 
 上线验证不得使用虚构状态冒充成功，不应把真实私人订单或案件写入公共仓库、Actions日志或公共artifact。
+
+## Collection repair (2026-10-28)
+
+UI checks do not establish live collection support. The receipt adapter now waits for a visible form, uses the native input setter plus input/change events, clicks an enabled Check Status button for SPA forms, and waits for a unique result heading with its paragraph. It detects a real verification/access page before trying to enter a receipt. The retained official route and browser identity/network remain unchanged.
+
+Verification detection now uses rendered page signals rather than incidental CAPTCHA-related words in scripts or product descriptions. Price extraction prefers a unique current main-buybox amount and excludes crossed-out list prices. Multiple current prices still fail as ambiguous. Real source verification failures remain failures, retain prior observations, and back off for at least 24 hours. The UI labels these sources as blocked, shows the next retry and links to the original page. Fresh shopping observations can be confirmed from the list; stale observations still require a new successful check.
+
+20 backend tests cover these behaviors, including native setter events and button submission without a form, modern result headings, true versus incidental challenge markers, distinct offers, and challenge backoff. No test fixture receipt is a real case. The cloud browser was blocked by the official USCIS site during investigation; the adapter cannot guarantee access from the VPS or any particular network. The deployment check reports sanitized real-monitor outcomes and must not be interpreted as full source support merely because the service health check passes.

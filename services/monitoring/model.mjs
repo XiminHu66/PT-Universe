@@ -75,3 +75,10 @@ export function detectChange(object,source,previous,current,now=Date.now()){
  const d=hotelDecision(object,source,current,now);if(current.priceMinor===previous.priceMinor)return null;
  return d.matchCandidate||d.rebookCandidate?{kind:'hotel_opportunity',title:'酒店出现低价机会',detail:d.matchCandidate?'发现可核对的价格匹配候选':'发现可核对的重新预订机会',decision:d}:null;
 }
+
+// Only active, visible verification pages count as challenges. Product descriptions
+// and script bundles can legitimately mention CAPTCHA without blocking a quote.
+export function verificationPage(page){
+ const title=String(page.title||''),heading=String(page.headings||''),lead=String(page.body||'').slice(0,2500);
+ return page.activeChallenge===true||/attention required|just a moment|robot check|access denied|sorry.{0,20}blocked/i.test(title+' '+heading)||/enter the characters you see below|sorry, we just need to make sure you.re not a robot|verify (?:that )?you are human|complete the security check/i.test(lead);
+}
