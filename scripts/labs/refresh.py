@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[2]
 TARGETS = {
     "financials": ("thesis-lab", "financials.json", "companies"),
     "events": ("eastside-weekend", "events.json", "events"),
+    "upcoming": ("daily-nexus", "upcoming-events.json", "items"),
 }
 
 

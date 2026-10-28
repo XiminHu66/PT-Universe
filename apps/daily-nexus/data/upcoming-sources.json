@@ -1,0 +1,147 @@
+{
+  "events": [
+    {
+      "id": "tga",
+      "title": "The Game Awards 2026",
+      "category": "event",
+      "source": "The Game Awards",
+      "url": "https://thegameawards.com/faq",
+      "date": "2026-12-10T16:30:00-08:00",
+      "endDate": "2026-12-10",
+      "location": "洛杉矶 · 全球直播",
+      "priority": 110,
+      "pattern": "December\\s+(?P<day>\\d{1,2}),?\\s+(?P<year>20\\d{2})",
+      "month": 12,
+      "verifiedAt": "2026-10-28",
+      "dateKey": "2026-12-10"
+    },
+    {
+      "id": "pax-unplugged",
+      "title": "PAX Unplugged 2026",
+      "category": "event",
+      "source": "PAX",
+      "url": "https://www.paxsite.com/unplugged/en-us/info/faq.html",
+      "date": "2026-12-04T12:00:00",
+      "endDate": "2026-12-06",
+      "location": "费城 · 桌游展",
+      "priority": 98,
+      "pattern": "December\\s+(?P<day>\\d{1,2})\\s*[-–—]\\s*(?P<end>\\d{1,2}),?\\s+(?P<year>20\\d{2})",
+      "month": 12,
+      "verifiedAt": "2026-10-28",
+      "dateKey": "2026-12-04"
+    },
+    {
+      "id": "pax-east",
+      "title": "PAX East 2027",
+      "category": "event",
+      "source": "PAX East",
+      "url": "https://east.paxsite.com/",
+      "date": "2027-04-22T12:00:00",
+      "endDate": "2027-04-25",
+      "location": "波士顿",
+      "priority": 98,
+      "pattern": "Apr(?:il)?\\.?\\s+(?P<day>\\d{1,2})\\s*[-–—]\\s*(?P<end>\\d{1,2}),?\\s+(?P<year>20\\d{2})",
+      "month": 4,
+      "verifiedAt": "2026-10-28",
+      "dateKey": "2027-04-22"
+    },
+    {
+      "id": "ignite",
+      "title": "Microsoft Ignite 2026",
+      "category": "tech",
+      "source": "Microsoft",
+      "url": "https://ignite.microsoft.com/en-US/home",
+      "date": "2026-11-17T12:00:00",
+      "endDate": "2026-11-20",
+      "location": "旧金山 · 可在线参加",
+      "priority": 106,
+      "pattern": "Nov(?:ember)?\\.?\\s+(?P<day>\\d{1,2})\\s*[-–—]\\s*(?P<end>\\d{1,2}),?\\s+(?P<year>20\\d{2})",
+      "month": 11,
+      "verifiedAt": "2026-10-28",
+      "dateKey": "2026-11-17"
+    },
+    {
+      "id": "ces",
+      "title": "CES 2027",
+      "category": "tech",
+      "source": "CES / CTA",
+      "url": "https://www.ces.tech/about-ces/about-ces/",
+      "date": "2027-01-06T12:00:00",
+      "endDate": "2027-01-09",
+      "location": "拉斯维加斯",
+      "priority": 110,
+      "pattern": "CES\\s+(?P<year>20\\d{2})\\s*:\\s*Jan(?:uary)?\\.?\\s+(?P<day>\\d{1,2})\\s*[-–—]\\s*(?P<end>\\d{1,2})",
+      "month": 1,
+      "verifiedAt": "2026-10-28",
+      "dateKey": "2027-01-06"
+    },
+    {
+      "id": "gtc",
+      "title": "NVIDIA GTC 2027",
+      "category": "tech",
+      "source": "NVIDIA",
+      "url": "https://www.nvidia.com/gtc/faq/",
+      "date": "2027-03-14T12:00:00",
+      "endDate": "2027-03-18",
+      "location": "圣何塞 · 可在线参加",
+      "priority": 104,
+      "pattern": "(?:from\\s+)?March\\s+(?P<day>\\d{1,2})\\s*[-–—]\\s*(?P<end>\\d{1,2}),?\\s+(?P<year>20\\d{2})",
+      "month": 3,
+      "verifiedAt": "2026-10-28",
+      "dateKey": "2027-03-14"
+    },
+    {
+      "id": "snowflake-lane",
+      "title": "Snowflake Lane · 贝尔维尤飘雪巡游",
+      "category": "local",
+      "source": "Visit Bellevue",
+      "url": "https://www.visitbellevue.com/events/annual-events/snowflake-lane/",
+      "date": "2026-11-27T19:00:00-08:00",
+      "endDate": "2026-12-24",
+      "location": "Bellevue · Bellevue Way · 每晚19:00 · 免费",
+      "city": "Bellevue",
+      "priority": 112,
+      "pattern": "November\\s+(?P<day>\\d{1,2})\\s*[-–—]\\s*December\\s+(?P<end>\\d{1,2}),?\\s+(?P<year>20\\d{2})",
+      "month": 11,
+      "endMonth": 12,
+      "verifiedAt": "2026-10-28",
+      "dateKey": "2026-11-27"
+    },
+    {
+      "id": "redmond-lights",
+      "title": "Redmond Lights · 雷德蒙灯光节开幕",
+      "category": "local",
+      "source": "City of Redmond",
+      "url": "https://www.redmond.gov/1139/Redmond-Lights",
+      "date": "2026-12-05T16:00:00-08:00",
+      "endDate": "2026-12-05",
+      "location": "Redmond · Downtown Park · 16:00–20:00",
+      "city": "Redmond",
+      "priority": 112,
+      "pattern": "Dec\\.?\\s+(?P<day>\\d{1,2}),?\\s+(?P<year>20\\d{2})",
+      "month": 12,
+      "verifiedAt": "2026-10-28",
+      "dateKey": "2026-12-05"
+    }
+  ],
+  "watchlist": [
+    {
+      "id": "nintendo-direct",
+      "title": "Nintendo Direct",
+      "url": "https://www.nintendo.com/us/nintendo-direct/",
+      "kind": "html"
+    },
+    {
+      "id": "state-of-play",
+      "title": "State of Play",
+      "url": "https://blog.playstation.com/tag/state-of-play/feed/",
+      "kind": "rss"
+    },
+    {
+      "id": "xbox-showcase",
+      "title": "Xbox Games Showcase",
+      "url": "https://news.xbox.com/en-us/feed/",
+      "kind": "rss"
+    }
+  ]
+}

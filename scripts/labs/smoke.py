@@ -24,7 +24,7 @@ def verify():
         assert isinstance(live[key], list), target
         assert live.get('refresh', {}).get('runId') == expected.get('refresh', {}).get('runId'), target + ' publication version mismatch'
         assert live.get('updatedAt') == expected.get('updatedAt'), target + ' snapshot mismatch'
-    print('PUBLICATION CHECK PASSED: four pages and two independent snapshots')
+    print(f'PUBLICATION CHECK PASSED: four pages and {len(TARGETS)} independent snapshots')
 
 for attempt in range(3):
     try:

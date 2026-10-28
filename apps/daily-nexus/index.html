@@ -460,7 +460,7 @@
   </style>
   <link rel="stylesheet" href="home-tools.css?v=20261007-10">
   <link rel="stylesheet" href="../../pt-bridge.css?v=20260827-1">
-<link rel="stylesheet" href="boox-connector.css?v=20261021-1"><link rel="stylesheet" href="vps-tab.css?v=20261028-slim1"><script src="vps-tab.js?v=20261028-slim1" defer></script><link rel="stylesheet" href="streamline.css?v=20261028-slim1"></head>
+<link rel="stylesheet" href="boox-connector.css?v=20261021-1"><link rel="stylesheet" href="vps-tab.css?v=20261028-readable1"><script src="vps-tab.js?v=20261028-slim1" defer></script><link rel="stylesheet" href="streamline.css?v=20261028-readable1"></head>
 <body data-nexus-view="home">
 <div id="themeBg"></div><div class="bgShade"></div>
 <div class="app">
@@ -528,20 +528,20 @@
       <article class="card glass upcomingcard">
         <div class="cardhead">
           <h2>接下来</h2>
-          <span class="sub"><button class="pillbtn" id="openUpcoming">未来 45 天</button></span>
+          <span class="sub"><button class="pillbtn" id="openUpcoming">全部日程</button></span>
         </div>
         <div class="upcoming-toolbar">
           <button class="upcoming-filter active" data-upfilter="all" data-up-label="全部">全部</button>
-          <button class="upcoming-filter" data-upfilter="local" data-up-label="📍 本地">📍 本地</button>
-          <button class="upcoming-filter" data-upfilter="event" data-up-label="🎟 展会">🎟 展会</button>
-          <button class="upcoming-filter" data-upfilter="pinned" data-up-label="★ 关注">★ 关注</button>
+          <button class="upcoming-filter" data-upfilter="local" data-up-label="本地">本地</button>
+          <button class="upcoming-filter" data-upfilter="event" data-up-label="游戏">游戏</button><button class="upcoming-filter" data-upfilter="tech" data-up-label="科技">科技</button>
+          <button class="upcoming-filter" data-upfilter="pinned" data-up-label="★">★</button>
         </div>
         <div class="upcoming-home-list" id="upcomingHomeList">
-          <div class="upcoming-empty">正在读取 Seattle 本地活动与未来展会…</div>
+          <div class="upcoming-empty">正在读取 Seattle / Eastside 活动与官方展会…</div>
         </div>
         <div class="upcoming-foot">
           <i id="upcomingStatusDot" class="upcoming-status-dot loading"></i>
-          <span id="upcomingStatus">Seattle Center + 官方展会 · 正在刷新</span>
+          <span id="upcomingStatus">本地活动 · 游戏活动 · 科技展会 · 自动更新</span>
           <button id="addUpcomingQuick">＋ 添加</button>
         </div>
       </article>
@@ -815,11 +815,11 @@
 </div></div>
 <div class="modal" id="upcomingModal">
   <div class="modalcard glass" style="width:min(930px,96vw)">
-    <div class="modaltop"><h3>接下来 · 本地活动与展会</h3><button class="iconbtn closeModal">×</button></div>
+    <div class="modaltop"><h3>接下来 · 本地 / 游戏 / 科技</h3><button class="iconbtn closeModal">×</button></div>
     <div class="upcoming-modal-top">
       <button class="upcoming-filter active" data-upmodalfilter="all">全部</button>
       <button class="upcoming-filter" data-upmodalfilter="local">📍 本地活动</button>
-      <button class="upcoming-filter" data-upmodalfilter="event">🎟 大型展会</button>
+      <button class="upcoming-filter" data-upmodalfilter="event">🎮 游戏展会 / 发布会</button><button class="upcoming-filter" data-upmodalfilter="tech">💻 科技展会</button>
       <button class="upcoming-filter" data-upmodalfilter="pinned">★ 已关注</button>
       <span class="spacer"></span>
       <label style="margin:0">范围</label>
@@ -829,7 +829,7 @@
         <option value="30">30 天</option>
         <option value="45" selected>45 天</option>
         <option value="90">90 天</option>
-        <option value="180">180 天</option>
+        <option value="180">180 天</option><option value="365">365 天</option>
       </select>
       <button class="pillbtn" id="refreshUpcoming">刷新自动发现</button>
     </div>
@@ -840,7 +840,7 @@
         <input class="field" id="upcomingAddName" placeholder="事件名，例如：周末市集 / 发布会">
         <select class="field" id="upcomingAddCategory">
           <option value="local">📍 本地活动</option>
-          <option value="event">🎟 大型展会</option>
+          <option value="event">🎮 游戏展会 / 发布会</option>
           <option value="tech">💻 科技</option>
           <option value="acg">📚 ACG</option>
         </select>
@@ -849,7 +849,7 @@
       </div>
       <div style="margin-top:8px"><button class="save" id="saveUpcomingManual">＋ 添加到 Upcoming</button></div>
     </div>
-    <p class="hint" style="margin:10px 0 0">自动发现优先显示 Seattle Center 近期活动、Seattle 地区重点节庆，以及大型 ACG / 科技展会。点 ★ 后会保留为你的关注项；任何项目都可以一键加入 Daily Nexus 日历。</p>
+    <p class="hint" style="margin:10px 0 0">后台每天自动更新本地与官方展会日程，失败时保留已核验日期。首页展示本地 45 天、游戏与科技 180 天；未官宣日期的发布会不推测时间。点 ★ 关注，或一键加入日历。</p>
   </div>
 </div>
 <div class="modal" id="linksModal"><div class="modalcard glass" style="width:min(960px,96vw)">
@@ -2072,6 +2072,7 @@ async function importConfigFile(ev){
 </template>
 <!-- ===== END INTEGRATED DESKBOARD SOURCE ===== -->
 
+<script src="upcoming-policy.js?v=20261028-sources1"></script>
 <script src="home-tools.js?v=20261007-2"></script>
 <script>
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
@@ -2123,7 +2124,7 @@ const state={
   tasks:store.get("tasks",[]),
   upcomingManual:migrateUpcomingManual(),
   upcomingPins:store.get("upcomingPins",[]),
-  upcomingHorizon:store.get("upcomingHorizon",45),
+  upcomingHorizon:store.get("upcomingHorizon",180),
   youtube:store.get("youtube",{name:"Nintendo",id:"UCGIY_O-8vW4rfX98KlMkvRg"}),
   bg:store.get("bg",{enabled:true,image:"",opacity:28,blur:0,x:50,y:50,zoom:100,mode:"cover"}),
   clockPhoto:store.get("clockPhoto",{enabled:true,image:"",opacity:88,x:50,y:50,zoom:100,mode:"cover"}),
@@ -2328,6 +2329,7 @@ function normalizedNavConfig(){
   }
   return out;
 }
+function nexusNavIcon(view){const paths={"home": "M3 10 12 3l9 7 M5 9v12h14V9 M9 21v-7h6v7", "todo": "M9 5h12v16H3V5h3 M8 3h8v4H8z M7 12l2 2 3-3 M14 12h4 M7 18h11", "board": "M4 20V4 M4 20h17 M8 16v-5 M13 16V7 M18 16v-8", "tsugi": "M3 4h7v17H3z M10 4h7v17h-7z M18 4l3 16 M5 8h3 M12 8h3", "vps": "M3 3h18v7H3z M3 14h18v7H3z M6 6h.1 M6 17h.1 M10 6h8 M10 17h8", "meal": "M5 3v6c0 2 6 2 6 0V3 M8 3v18 M19 3c-4 3-4 9 0 9 M19 3v18", "focus": "M12 3a9 9 0 1 0 9 9 M12 7a5 5 0 1 0 5 5 M12 12l8-8 M16 3h5v5", "settings": "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8 M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1z"};return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${paths[view]||paths.home}"/></svg>`}
 function applyNavConfig(){
   state.navConfig=normalizedNavConfig();
   if(store.get("navLayoutVersion",0)<3&&store.set("navConfig",state.navConfig))store.set("navLayoutVersion",3);
@@ -2337,7 +2339,7 @@ function applyNavConfig(){
   state.navConfig.forEach(item=>{
     const btn=nodes.get(item.view);if(!btn)return;
     const icon=btn.querySelector('.navicon'),label=btn.querySelector('span');
-    if(icon)icon.textContent=item.icon;if(label)label.textContent=item.label;
+    if(icon){const d=DEFAULT_NAV_CONFIG.find(x=>x.view===item.view);if(item.icon===d?.icon)icon.innerHTML=nexusNavIcon(item.view);else icon.textContent=item.icon;}if(label)label.textContent=item.label;
     sidebar.insertBefore(btn,spacer);
   });
   renderNavEditor();
@@ -2908,73 +2910,7 @@ const TSUGI_ARTIST_KEY="tsugi-followed-artists-v1";
 const NEXUS_ARTIST_KEY="nexus-followed-artists-v1";
 const TSUGI_PAGE_URL=`${TSUGI_BASE}/`;
 
-const OFFICIAL_UPCOMING_SEEDS=[
-  {
-    id:"official:gamescom-onl-2026",title:"gamescom Opening Night Live 2026",
-    date:"2026-08-25T12:00:00",category:"event",source:"gamescom · Official",
-    url:"https://www.gamescom.global/en/",manual:false,priority:100
-  },
-  {
-    id:"official:gamescom-2026",title:"gamescom 2026",
-    date:"2026-08-26T12:00:00",category:"event",source:"gamescom · 8/26–8/30",
-    url:"https://www.gamescom.global/en/",manual:false,priority:96
-  },
-  {
-    id:"official:pax-west-2026",title:"PAX West 2026 · Seattle",
-    date:"2026-09-04T12:00:00",category:"local",source:"Seattle · PAX · 9/4–9/7",
-    url:"https://west.paxsite.com/",manual:false,priority:94
-  },
-  {
-    id:"local:bumbershoot-2026",title:"Bumbershoot 2026",
-    date:"2026-09-05T12:00:00",category:"local",source:"Seattle Center · 9/5–9/6",
-    url:"https://visitseattle.org/",manual:false,priority:98
-  },
-  {
-    id:"local:live-aloha-2026",title:"Live Aloha Hawaiian Cultural Festival",
-    date:"2026-09-13T11:00:00",category:"local",source:"Seattle Center Festál · 免费",
-    url:"https://www.seattlecenter.com/events/featured-events/festal",manual:false,priority:96
-  },
-  {
-    id:"local:urban-x-2026",title:"Urban X · Downtown Seattle 城市探索",
-    date:"2026-09-13T10:00:00",category:"local",source:"Seattle Sports Commission",
-    url:"https://www.visitseattle.org/seattle-sports-commission/upcoming-sporting-events/",manual:false,priority:88
-  },
-  {
-    id:"local:fiestas-patrias-2026",title:"Sea Mar Fiestas Patrias",
-    date:"2026-09-19T11:00:00",category:"local",source:"Seattle Center Festál · 9/19–9/20 · 免费",
-    url:"https://www.seattlecenter.com/events/featured-events/festal",manual:false,priority:94
-  },
-  {
-    id:"local:italian-festival-2026",title:"The Italian Festival",
-    date:"2026-09-26T10:00:00",category:"local",source:"Seattle Center Festál · 9/26–9/27 · 免费",
-    url:"https://www.seattlecenter.com/events/featured-events/festal",manual:false,priority:93
-  },
-  {
-    id:"local:croatiafest-2026",title:"CroatiaFest",
-    date:"2026-10-04T12:00:00",category:"local",source:"Seattle Center Festál · 免费",
-    url:"https://www.seattlecenter.com/events/featured-events/festal",manual:false,priority:90
-  },
-  {
-    id:"official:ifa-2026",title:"IFA Berlin 2026",
-    date:"2026-09-04T12:00:00",category:"tech",source:"IFA · 9/4–9/8",
-    url:"https://www.ifa-berlin.com/",manual:false,priority:92
-  },
-  {
-    id:"official:tgs-2026",title:"Tokyo Game Show 2026",
-    date:"2026-09-17T12:00:00",category:"event",source:"TGS · 9/17–9/21",
-    url:"https://tgs.cesa.or.jp/2026/en",manual:false,priority:98
-  },
-  {
-    id:"official:tga-2026",title:"The Game Awards 2026",
-    date:"2026-12-10T16:30:00-08:00",category:"event",source:"The Game Awards · Official",
-    url:"https://thegameawards.com/",manual:false,priority:100
-  },
-  {
-    id:"official:ces-2027",title:"CES 2027 · Las Vegas",
-    date:"2027-01-06T12:00:00",category:"tech",source:"CES · 1/6–1/9",
-    url:"https://www.ces.tech/",manual:false,priority:96
-  }
-];
+const OFFICIAL_UPCOMING_SEEDS=[];
 
 const MAJOR_PUBLISHER_RE=/(Nintendo|Sony|PlayStation|Xbox|Microsoft|CAPCOM|Capcom|Square Enix|SQUARE ENIX|SEGA|ATLUS|Atlus|Bandai Namco|BANDAI NAMCO|KONAMI|Konami|Electronic Arts|EA\b|Activision|Blizzard|Bethesda|Ubisoft|2K\b|Rockstar|Take-Two|Warner Bros|WB Games|FromSoftware|CD PROJEKT|Koei Tecmo|KOEI TECMO|Focus Entertainment|Team17|Playstack|Spike Chunsoft)/i;
 const MAJOR_GAME_RE=/(Final Fantasy|ファイナルファンタジー|Dragon Quest|ドラゴンクエスト|Mario|マリオ|Zelda|ゼルダ|Pok[eé]mon|ポケモン|Metroid|メトロイド|Fire Emblem|ファイアーエムブレム|Persona|ペルソナ|Sonic|ソニック|Metal Gear|メタルギア|Silent Hill|サイレントヒル|Resident Evil|バイオハザード|Monster Hunter|モンスターハンター|Devil May Cry|デビル メイ クライ|Elden Ring|エルデンリング|STAR WARS|スター.?ウォーズ|Call of Duty|Battlefield|Assassin'?s Creed|Grand Theft Auto|GTA\b|Marvel'?s Wolverine|ウルヴァリン|ACE COMBAT|Kingdom Hearts|キングダム ハーツ|HADES|Onimusha|鬼武者|A Plague Tale|Witcher|Cyberpunk|Mass Effect|DOOM|Halo|Gears of War|Fallout|The Elder Scrolls|Mortal Shell|The Sinking City|Aliens|Mortal Kombat|Street Fighter|Tekken|鉄拳|Yakuza|Like a Dragon|龍が如く|NieR|Nioh|仁王)/i;
@@ -2984,7 +2920,7 @@ let upcomingLocal=[],upcomingOfficialDynamic=[];
 let upcomingHomeFilter="all",upcomingModalFilter="all";
 
 function upcomingCategoryLabel(cat){
-  return {local:"📍 本地",event:"🎟 展会",tech:"💻 科技",acg:"📚 ACG"}[cat]||"⭐ 关注";
+  return {local:"📍 本地",event:"🎮 游戏",tech:"💻 科技",acg:"📚 ACG"}[cat]||"⭐ 关注";
 }
 function upDateObj(x){const d=new Date(x?.date);return isNaN(d)?null:d}
 function upDayStart(d=new Date()){const x=new Date(d);x.setHours(0,0,0,0);return x}
@@ -3020,9 +2956,9 @@ function upDateTime(date){
   const hasTime=!(d.getHours()===12&&d.getMinutes()===0);
   return hasTime?`${day} · ${d.toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"})}`:day;
 }
-function isPinnedUpcoming(id){return state.upcomingPins.includes(id)}
+function isPinnedUpcoming(id){const aliases={"official:tga":"official:tga-2026","official:ces":"official:ces-2027"};return state.upcomingPins.includes(id)||state.upcomingPins.includes(aliases[id])}
 function setUpcomingPin(id,on){
-  const set=new Set(state.upcomingPins);on?set.add(id):set.delete(id);
+  const set=new Set(state.upcomingPins);if(!on){set.delete(id);const aliases={"official:tga":"official:tga-2026","official:ces":"official:ces-2027"};set.delete(aliases[id]);}else set.add(id);
   state.upcomingPins=[...set];store.set("upcomingPins",state.upcomingPins);
   renderUpcomingHome();renderUpcomingModal();
 }
@@ -3214,33 +3150,17 @@ const OFFICIAL_WATCHERS=[
   {id:"samsung",title:"Samsung Galaxy Unpacked",category:"tech",source:"Samsung · Official",url:"https://news.samsung.com/global/tag/galaxy-unpacked",keywords:["Unpacked"]}
 ];
 async function officialLaunchWatchers(){
-  const out=[];
-  await Promise.all(OFFICIAL_WATCHERS.map(async c=>{
-    try{
-      const text=await fetchUpcomingText(c.url),d=pickOfficialDate(text,c.keywords||[]);
-      if(!d)return;
-      out.push({
-        ...c,id:`official-live:${c.id}:${d.toISOString().slice(0,10)}`,
-        date:d.toISOString(),manual:false,priority:104,liveSource:true
-      });
-    }catch(_){}
-  }));
-  return out;
+  const response=await fetchWithTimeout(`data/upcoming-events.json?v=${Math.floor(Date.now()/3600000)}`,8000);
+  if(!response.ok)throw Error('官方日程暂不可用');
+  const data=await response.json();
+  return Array.isArray(data.items)?data.items.filter(x=>x?.id&&x?.date&&upDateObj(x)&&['local','event','tech','acg'].includes(x.category)):[];
 }
 function allUpcomingItems(){
-  const map=new Map(),liveFamilies=new Set(upcomingOfficialDynamic.map(x=>String(x.id).split(":")[1]));
-  const seeds=OFFICIAL_UPCOMING_SEEDS.filter(x=>{
-    const id=String(x.id);
-    if(id.includes("gamescom"))return !liveFamilies.has("gamescom");
-    if(id.includes("pax-west"))return !liveFamilies.has("pax-west");
-    if(id.includes("ifa-"))return !liveFamilies.has("ifa");
-    if(id.includes("tgs-"))return !liveFamilies.has("tgs");
-    if(id.includes("tga-"))return !liveFamilies.has("tga");
-    if(id.includes("ces-"))return !liveFamilies.has("ces");
-    return true;
-  });
-  [...seeds,...upcomingOfficialDynamic,...upcomingLocal,...state.upcomingManual.filter(x=>x.category!=="game"&&x.category!=="music")].forEach(x=>{
+  const map=new Map(),seen=new Set();
+  [...upcomingOfficialDynamic,...upcomingLocal,...state.upcomingManual.filter(x=>x.category!=="game"&&x.category!=="music")].forEach(x=>{
     if(!x?.id||!x?.date||!upDateObj(x))return;
+    const key=x.manual?x.id:String(x.url||x.title).toLowerCase().replace(/\/$/,'')+'|'+upCalendarKey(x);
+    if(seen.has(key))return;seen.add(key);
     map.set(x.id,{...x,pinned:isPinnedUpcoming(x.id)});
   });
   return [...map.values()].sort((a,b)=>new Date(a.date)-new Date(b.date)||(b.priority||0)-(a.priority||0));
@@ -3255,39 +3175,20 @@ function upcomingWithin(days=14){
 function filterUpcoming(items,mode){
   if(mode==="pinned")return items.filter(x=>x.pinned);
   if(mode==="local")return items.filter(x=>x.category==="local");
-  if(mode==="event")return items.filter(x=>x.category==="event"||x.category==="tech"||x.category==="acg");
+  if(mode==="event")return items.filter(x=>x.category==="event"||x.category==="acg");
+  if(mode==="tech")return items.filter(x=>x.category==="tech");
   return items;
 }
-function smartHomeUpcoming(items){
-  const chronological=[...items].sort((a,b)=>new Date(a.date)-new Date(b.date)||(b.priority||0)-(a.priority||0));
-  if(upcomingHomeFilter!=="all")return chronological.slice(0,4);
-  const result=[];
-  const add=x=>{if(x&&!result.some(r=>r.id===x.id))result.push(x)};
-  const best=pred=>chronological.filter(pred).sort((a,b)=>{
-    const sa=(a.priority||0)-Math.max(0,upDaysAway(a))*1.15;
-    const sb=(b.priority||0)-Math.max(0,upDaysAway(b))*1.15;
-    return sb-sa||new Date(a.date)-new Date(b.date);
-  })[0];
-  // Pinned interest + nearby Seattle activity + the next major convention.
-  add(best(x=>x.pinned));
-  add(best(x=>x.category==="local"&&/免费/.test(x.source||"")));
-  add(best(x=>x.category==="local"));
-  add(best(x=>x.category==="event"||x.category==="tech"||x.category==="acg"));
-  for(const x of chronological){
-    if(result.length>=4)break;
-    add(x);
-  }
-  return result.sort((a,b)=>new Date(a.date)-new Date(b.date));
-}
+function smartHomeUpcoming(items){return NexusUpcoming.select(items,upcomingHomeFilter,ymdLocal(new Date()));}
 function renderUpcomingHome(){
-  const horizonItems=upcomingWithin(45),items=smartHomeUpcoming(filterUpcoming(horizonItems,upcomingHomeFilter)),host=$("#upcomingHomeList");
+  const horizonItems=NexusUpcoming.overview(allUpcomingItems(),ymdLocal(new Date())),items=smartHomeUpcoming(filterUpcoming(horizonItems,upcomingHomeFilter)),host=$("#upcomingHomeList");
   if(!host)return;
   $$('[data-upfilter]').forEach(b=>{
     const count=filterUpcoming(horizonItems,b.dataset.upfilter).length;
     b.textContent=`${b.dataset.upLabel||b.textContent.replace(/\s+\d+$/,'')} ${count}`;
   });
   if(!items.length){
-    const empty={pinned:"还没有关注事件。点任意项目右侧的 ★ 即可关注。",local:"Seattle 官方活动源暂时没有近期项目，可稍后刷新或手动添加。",event:"未来 45 天暂时没有新展会，切换到 90–180 天可查看更远的官方展会。"}[upcomingHomeFilter]||"未来 45 天当前没有匹配项目。可手动添加，或稍后刷新自动发现。";
+    const empty={pinned:"还没有关注事件。点任意项目右侧的 ★ 即可关注。",local:"未来 45 天暂无合适的 Seattle / Eastside 活动；系统会自动更新。",event:"未来 180 天暂无已官宣日期的游戏活动。Nintendo Direct、State of Play、Xbox Showcase 官宣后再加入。",tech:"未来 180 天暂无已确认日期的科技展会。"}[upcomingHomeFilter]||"未来 45 天当前没有匹配项目。可手动添加，或稍后刷新自动发现。";
     host.innerHTML=`<div class="upcoming-empty">${empty}</div>`;
   }else{
     host.innerHTML=items.map(x=>`
@@ -3311,7 +3212,7 @@ function renderUpcomingHome(){
 }
 function renderUpcomingModal(){
   const host=$("#upcomingModalList");if(!host)return;
-  const horizon=Number($("#upcomingHorizon")?.value||state.upcomingHorizon||45);
+  const horizon=Number($("#upcomingHorizon")?.value||state.upcomingHorizon||180);
   const items=filterUpcoming(upcomingWithin(horizon),upcomingModalFilter);
   if(!items.length){host.innerHTML='<div class="upcoming-empty">这个范围内暂无匹配项目。</div>';return}
   host.innerHTML=items.map(x=>`
@@ -3354,56 +3255,39 @@ function validUpcomingLocal(rows){
   return Array.isArray(rows)?rows.filter(x=>x?.id&&x?.date&&upDateObj(x)).map(x=>({...x,category:"local",manual:false})):[];
 }
 async function fetchSeattleLocalEvents(){
-  try{
-    const r=await fetchWithTimeout(`${PTU_CLOUD_API}/api/events/seattle?v=${Date.now()}`,6000);
-    if(!r.ok)throw new Error(`Seattle Center ${r.status}`);
-    const data=await r.json(),items=validUpcomingLocal(data.items);
-    if(items.some(x=>upDaysAway(x)>=0&&upDaysAway(x)<=45))return {items,mode:"live"};
-  }catch(_){}
-  // Reuse the independently collected official snapshot on our own origin.
-  const r=await fetchWithTimeout(`../eastside-weekend/data/events.json?v=${Date.now()}`,6000);
-  if(!r.ok)throw new Error(`官方活动快照 ${r.status}`);
-  const data=await r.json(),seen=new Set();
-  const events=(Array.isArray(data.events)?data.events:[]).filter(x=>x?.city==="Seattle"&&x?.start&&x?.url).sort((a,b)=>String(a.start).localeCompare(String(b.start)));
-  const items=[];
-  for(const x of events){
-    const row={id:`seattle-center:${String(x.url).split('/').pop()}`,title:x.title,date:String(x.start).includes('T')?x.start:`${x.start}T12:00:00`,dateKey:String(x.start).slice(0,10),category:"local",source:`Seattle Center · ${x.free?'免费':x.cost||'官方活动'} · ${x.venue||'Seattle Center'}`,url:x.url,manual:false,priority:x.free?113:82};
-    const days=upDaysAway(row),key=String(row.title||row.id).normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim();
-    if(days<0||days>45||seen.has(key)||!upDateObj(row))continue;
-    seen.add(key);items.push(row);
-  }
-  if(!items.length)throw new Error('官方活动快照暂不可用');
-  return {items,mode:"snapshot"};
+  const r=await fetchWithTimeout(`../eastside-weekend/data/events.json?v=${Math.floor(Date.now()/3600000)}`,8000);
+  if(!r.ok)throw Error('本地日程暂不可用');
+  const data=await r.json(),items=NexusUpcoming.localItems(data,ymdLocal(new Date()));
+  return {items,mode:'snapshot',updatedAt:data.updatedAt};
 }
+let upcomingLoading=false;
 async function loadUpcoming(force=false){
-  setUpcomingStatus("loading","Seattle Center + 官方展会 · 正在刷新");
-  const cache=store.get("upcomingCacheV4",null),savedLocal=validUpcomingLocal(cache?.local);
-  upcomingLocal=savedLocal;upcomingOfficialDynamic=Array.isArray(cache?.dynamic)?cache.dynamic:[];
-  const freshCache=!force&&cache&&Date.now()-cache.time<UPCOMING_CACHE_MS&&savedLocal.some(x=>upDaysAway(x)>=0&&upDaysAway(x)<=45);
-  const showStatus=(ok,mode)=>{
-    const radar=upcomingWithin(45),hint=mode==='snapshot'?' · 官方活动快照':mode==='cache'?' · 已保存活动':'';
-    setUpcomingStatus(ok?"ok":"bad",`未来 45 天 · 本地 ${filterUpcoming(radar,"local").length} · 展会 ${filterUpcoming(radar,"event").length} · 关注 ${filterUpcoming(radar,"pinned").length}${hint}`);
+  if(upcomingLoading)return;
+  const cache=store.get('upcomingCacheV5',null);
+  upcomingLocal=validUpcomingLocal(cache?.local);upcomingOfficialDynamic=Array.isArray(cache?.dynamic)?cache.dynamic:[];
+  const showStatus=()=>{
+    const radar=NexusUpcoming.overview(allUpcomingItems(),ymdLocal(new Date()));
+    setUpcomingStatus(radar.length?'ok':'bad',`自动更新 · 本地 ${filterUpcoming(radar,'local').length} / 游戏 ${filterUpcoming(radar,'event').length} / 科技 ${filterUpcoming(radar,'tech').length}`);
     renderUpcomingHome();renderUpcomingModal();
   };
-  renderUpcomingHome();renderUpcomingModal();
-  if(freshCache){showStatus(true,cache.localMode||'cache');return}
-  let localOk=false,localMode='cache',dynamicOk=false,localTime=cache?.time||0;
+  showStatus();
+  if(!force&&cache&&Date.now()-cache.time<UPCOMING_CACHE_MS)return;
+  upcomingLoading=true;setUpcomingStatus('loading','正在自动读取最新日程…');
   try{
-    const result=await fetchSeattleLocalEvents();upcomingLocal=result.items;localMode=result.mode;localOk=true;
-    localTime=Date.now();store.set("upcomingCacheV4",{time:localTime,local:upcomingLocal,dynamic:upcomingOfficialDynamic,localMode});
-  }catch(_){}
-  // Show activities as soon as they load; slow convention sources cannot blank the panel.
-  showStatus(localOk||upcomingLocal.length>0,localMode);
-  try{const items=await officialLaunchWatchers();if(items.length){upcomingOfficialDynamic=items;dynamicOk=true}}catch(_){}
-  if(localOk||dynamicOk)store.set("upcomingCacheV4",{time:localTime,local:upcomingLocal,dynamic:upcomingOfficialDynamic,localMode});
-  showStatus(localOk||upcomingLocal.length>0,localMode);
+    const [local,official]=await Promise.allSettled([fetchSeattleLocalEvents(),officialLaunchWatchers()]);
+    if(local.status==='fulfilled')upcomingLocal=local.value.items;
+    if(official.status==='fulfilled')upcomingOfficialDynamic=official.value;
+    if(local.status==='fulfilled'||official.status==='fulfilled')store.set('upcomingCacheV5',{time:Date.now(),local:upcomingLocal,dynamic:upcomingOfficialDynamic});
+    showStatus();
+    if(local.status==='rejected'&&official.status==='rejected')setUpcomingStatus('bad','暂时无法更新，保留上次日程；稍后自动重试。');
+  }finally{upcomingLoading=false;}
 }
 function defaultUpcomingLocal(){
   const d=new Date(Date.now()+7*86400000),z=n=>String(n).padStart(2,"0");
   return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}T${z(d.getHours())}:${z(d.getMinutes())}`;
 }
 function openUpcomingModal(){
-  $("#upcomingHorizon").value=String(state.upcomingHorizon||45);
+  $("#upcomingHorizon").value=String(state.upcomingHorizon||180);
   $("#upcomingAddDate").value=$("#upcomingAddDate").value||defaultUpcomingLocal();
   renderUpcomingModal();openModal("#upcomingModal");
 }
@@ -3430,6 +3314,8 @@ $("#saveUpcomingManual").onclick=()=>{
   setUpcomingPin(id,true);renderUpcomingHome();renderUpcomingModal();
 };
 renderUpcomingHome();loadUpcoming(false);
+setInterval(()=>{if(!document.hidden&&($('#view-home').classList.contains('active')||$('#upcomingModal').classList.contains('open')))loadUpcoming(false)},10*60*1000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadUpcoming(false)});
 
 const products=[
 ['桌面极客','M5Stack Cardputer','小型 ESP32-S3 终端：键盘、屏幕、无线，适合做快捷控制器或迷你信息终端。','M5Stack Cardputer'],['桌面收纳','磁吸理线器','把临时充电线固定在桌边，减少线头掉到桌后的频率。','magnetic cable organizer desk'],['EDC','USB-C 功率计','查看 PD 协议、电压、电流和实时功率，排查充电问题非常方便。','USB C power meter tester'],['桌面工具','电动精密螺丝刀','拆键盘、手柄、小主机和电子设备时更顺手。','electric precision screwdriver'],['极客玩具','手机热成像模块','看设备温度、供电热点、窗户漏风，也很适合折腾硬件。','USB C thermal camera phone'],['音频周边','桌面耳机挂架','把头戴耳机从桌面移走，保持桌面清爽且方便拿取。','desk headphone hanger clamp'],['网络工具','2.5G USB-C 网卡','给笔记本或小主机快速补 2.5GbE。','2.5gbe usb c ethernet adapter'],['收纳','电子配件抽屉盒','按线材、转接头、Dongle、SD 卡分类。','small electronics organizer drawers'],['小工具','迷你电动气吹','清键盘、机箱滤网和桌面缝隙，比气罐更适合日常使用。','mini electric air duster'],['显示','USB-C 迷你状态屏','显示 CPU、天气、时间或 Home Assistant 状态。','USB C mini monitor status display'],['工具','电子卡尺','测键帽、螺丝、零件、模型尺寸，桌面 DIY 很实用。','digital caliper'],['极客','USB 逻辑分析仪','调试串口、I2C、SPI 等基础数字信号。','USB logic analyzer'],['桌搭','屏幕挂灯','减少桌面占用，夜间照亮键盘区。','monitor light bar'],['收纳','磁吸零件盘','拆设备时临时放螺丝，避免滚走。','magnetic parts tray'],['EDC','迷你棘轮螺丝刀','体积小但扭矩够，适合桌边工具包。','mini ratchet screwdriver set'],['桌面','USB-C KVM 切换器','两台设备共用键鼠或显示链路。','USB C KVM switch'],['网络','便携 Wi-Fi 6 路由器','旅行或临时网络环境下很方便。','travel router wifi 6'],['DIY','焊接练习套件','低成本练手焊接并获得一个可工作的成品。','electronics soldering practice kit'],['桌面','带夹臂小托盘','夹在桌边放耳机盒、手柄、线材。','clamp desk tray accessory'],['极客','NFC 标签套装','做手机自动化、场景切换、访客 Wi-Fi。','NFC tags NTAG215'],['测量','红外测温枪','查机箱出风、充电头、厨房设备温度。','infrared thermometer gun'],['电源','USB-C 诱骗测试板','做 PD 电压测试或小型 DIY 供电。','USB C PD trigger board'],['显示','电子墨水桌面牌','低功耗显示日程、天气、二维码或状态。','e ink desk display'],['桌搭','洞洞板小配件','把 Dongle、线材、小工具从桌面竖向收纳。','desk pegboard organizer accessories'],['键盘','宏键小键盘','给常用快捷键、脚本、媒体控制做独立按键。','macro keypad programmable'],['极客','迷你 HDMI 捕获卡','快速把相机、掌机、树莓派画面接进电脑。','USB HDMI capture card'],['维修','精密镊子套装','处理排线、贴纸、小螺丝和细小零件。','precision tweezers electronics'],['桌面','无线充电支架','高频拿手机时比平放充电板顺手。','Qi2 charging stand'],['小工具','标签打印机','线材、抽屉、充电器和收纳盒都能快速标记。','mini label maker bluetooth'],['极客','ESP32-S3 开发板','低成本做传感器、按钮、网络小工具。','ESP32 S3 development board'],['桌搭','可调角度小层架','把迷你主机、Dock、充电盒做垂直分层。','small adjustable desktop shelf'],['收纳','线材卷线扣','短线和备用线不再在抽屉里打结。','reusable cable organizer ties'],['网络','USB-C 网线测试器','快速验证线序、带宽与网络链路问题。','ethernet cable tester usb c'],['影音','HDMI 2.1 切换器','主机、掌机 Dock、PC 多设备切换。','HDMI 2.1 switch 4k 120hz'],['电源','GaN 充电器功率屏','带实时功率显示的多口充电器更适合桌搭诊断。','GaN charger display wattage'],['极客','迷你示波器','低频电子 DIY 和电源纹波排查的入门工具。','portable mini oscilloscope'],['桌面','旋钮控制器','音量、滚动、快捷操作都可以放到一个实体旋钮上。','programmable knob controller usb'],['EDC','小型万用表','测电压、通断、电池和小电子设备。','pocket multimeter'],['桌搭','桌边耳塞收纳盒','给常用真无线耳机盒固定一个高频拿取位置。','desk side small storage tray'],['收纳','SD卡/转接头小盒','集中管理容易丢的微型存储和转接件。','SD card organizer case']];

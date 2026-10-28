@@ -29,17 +29,17 @@ class SchedulingTests(unittest.TestCase):
 
     def test_winter_time(self):
         self.assertEqual(pending_targets(datetime(2026, 12, 14, 15, 35, tzinfo=timezone.utc), {}), [])
-        self.assertEqual(len(pending_targets(datetime(2026, 12, 14, 16, 35, tzinfo=timezone.utc), {})), 2)
+        self.assertEqual(len(pending_targets(datetime(2026, 12, 14, 16, 35, tzinfo=timezone.utc), {})), len(TARGETS))
 
     def test_success_deduplicates_only_that_dataset(self):
         healthy = {'refresh': {'state': 'ok', 'lastCompleteAt': NOW_TEXT}}
-        self.assertEqual(pending_targets(NOW, {'financials': healthy}), ['events'])
+        self.assertEqual(pending_targets(NOW, {'financials': healthy}), [x for x in TARGETS if x!='financials'])
 
     def test_same_day_failed_manual_refresh_still_retries(self):
         self.assertTrue(due({'refresh': {'state': 'partial', 'lastCompleteAt': NOW_TEXT}}, NOW))
 
     def test_force_runs_even_before_morning(self):
-        self.assertEqual(len(pending_targets(datetime(2026, 9, 14, 10, tzinfo=timezone.utc), {}, True)), 2)
+        self.assertEqual(len(pending_targets(datetime(2026, 9, 14, 10, tzinfo=timezone.utc), {}, True)), len(TARGETS))
 
     def test_failed_deployment_is_detected_and_repaired(self):
         data = {'financials': {'updatedAt': NOW_TEXT, 'refresh': {'runId': 'new'}}}

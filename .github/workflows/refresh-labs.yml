@@ -12,6 +12,7 @@ on:
       - 'apps/thesis-lab/**'
       - 'apps/earnings-dojo/**'
       - 'apps/eastside-weekend/**'
+      - 'apps/daily-nexus/data/upcoming-sources.json'
       - '.github/workflows/refresh-labs.yml'
   workflow_dispatch:
 permissions:
@@ -108,7 +109,7 @@ jobs:
         run: |
           git config user.name "pt-universe-labs-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/thesis-lab/data apps/eastside-weekend/data
+          git add apps/thesis-lab/data apps/eastside-weekend/data apps/daily-nexus/data/upcoming-events.json
           if ! git diff --cached --quiet; then
             git commit -m "data(labs): publish independent snapshots and source health"
             for attempt in 1 2 3; do
