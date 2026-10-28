@@ -44,18 +44,17 @@ function updateComposer(){
  const type=formValue('type'),title=formValue('title').trim(),currency=formValue('currency')||'USD';
  const rule=type==='uscis'?'官方状态或正文变化':type==='hotel'?'同条件低价 / 截止时间':formValue('target')?'降价且不高于 '+currency+' '+formValue('target'):'商品价格下降';
  const delivery=state.settings.enabled&&state.settings.notificationURL?'站内提醒 + 外部推送':'站内提醒';
- $('#preview-title').textContent=title||'还未填写名称';$('#preview-type').textContent=TYPES[type].name;
- $('#preview-frequency').textContent=type==='uscis'?'每天一次':'每'+formValue('hours')+'小时';$('#preview-rule').textContent=rule;$('#preview-delivery').textContent=delivery;
+ const frequency=type==='uscis'?'每天一次':'每'+formValue('hours')+'小时';
  $('#delivery-description').textContent=delivery==='站内提醒'?'当前仅在站内提醒。外部推送可在「通知与设置」中统一配置。':'已启用全局外部推送，无需在每个监控中重复配置。';
  $('#rules-description').textContent=type==='hotel'?'填写原订单条件，分别判断重新预订和价格匹配机会。':type==='uscis'?'使用官方状态建立时间线，只在变化时提醒。':'只比较你核对过的商品规格和报价。';
- const rows=[['监控名称',title],['类型',TYPES[type].name],['检查频率',$('#preview-frequency').textContent],['提醒条件',rule],['通知渠道',delivery]];
+ const rows=[['监控名称',title],['类型',TYPES[type].name],['检查频率',frequency],['提醒条件',rule],['通知渠道',delivery]];
  if(type==='hotel')rows.push(['住宿日期',formValue('checkIn')+' → '+formValue('checkOut')],['房间 / 人数',formValue('rooms')+'间 / '+formValue('adults')+'位成人 / 儿童：'+formValue('children')],['房型 / 床型',formValue('roomType')+' / '+formValue('bedType')],['餐食 / 付款',formValue('mealPlan')+' / '+formValue('payment')],['取消政策',formValue('cancellation')],['原单总价',currency+' '+formValue('originalTotal')],['取消截止',formValue('cancelBy')||'未设置'],['Price match',formValue('claimBy')?'申请截止 '+formValue('claimBy'):'未设置申请窗口']);if(type==='uscis'){const r=formValue('receipt').replace(/[\s-]/g,'').toUpperCase();rows.push(['案件编号',r.slice(0,3)+' •••••• '+r.slice(-4)])}
  if(type!=='uscis'&&!editObject)rows.push(['报价来源',formValue('url')]);
  $('#review-summary').innerHTML='<dl>'+rows.map(([k,v])=>'<dt>'+esc(k)+'</dt><dd>'+esc(v||'未填写')+'</dd>').join('')+'</dl>';
  $('#after-save-confirm').textContent=type==='uscis'?'首次成功查询后自动建立基线，无需核对商品报价。':type==='hotel'?'核对房型、日期、人数和政策，点击「核对并启用比较」。':'核对规格与报价，点击「核对并启用比较」。';
 }
 function showStep(index,{focus=true}={}){
- formStep=index;$$('[data-stage]').forEach(el=>el.hidden=Number(el.dataset.stage)!==index);$$('[data-step]').forEach(el=>{el.classList.toggle('active',Number(el.dataset.step)===index);if(Number(el.dataset.step)===index)el.setAttribute('aria-current','step');else el.removeAttribute('aria-current')});
+ formStep=index;$$('[data-stage]').forEach(el=>el.hidden=Number(el.dataset.stage)!==index);
  $('#step-back').hidden=index===0;$('#step-next').hidden=index===2;$('#add-form button[type=submit]').hidden=index!==2;$('#step-caption').textContent='第 '+(index+1)+' 步，共 3 步';
  updateComposer();$('.composer-layout').scrollTop=0;
  if(focus)requestAnimationFrame(()=>$('#add-form [data-stage="'+index+'"] input:not([type=radio]),#add-form [data-stage="'+index+'"] h3')?.focus());
@@ -87,7 +86,6 @@ async function claimText(id){const s=detail.sources.find(s=>s.id===id),o=detail.
 document.addEventListener('click',async event=>{const b=event.target.closest('button,[data-object]');if(!b)return;try{
  if(b.dataset.rowCheck){b.disabled=true;try{await api('/sources/'+b.dataset.rowCheck+'/check',{method:'POST',body:{}});toast('已提交检查，列表稍后自动更新');setTimeout(()=>void refresh({quiet:true}),1800)}finally{b.disabled=false}return;}
  if(b.dataset.stat){$('#status-filter').value=['active','attention'].includes(b.dataset.stat)?b.dataset.stat:'all';switchView(b.dataset.stat==='events'?'events':b.dataset.stat==='hotel'?'hotel':'all');return;}
- if(b.dataset.step!==undefined){advanceStep(Number(b.dataset.step));return;}
  if(b.dataset.close){$('#'+b.dataset.close).close();return}if(b.dataset.view){switchView(b.dataset.view);return}if(b.hasAttribute('data-add'))return openAdd(view in TYPES?view:'shopping');if(b.dataset.object)return openDetail(b.dataset.object);if(b.dataset.openEvent)return openDetail(b.dataset.openEvent);
  if(b.dataset.read){await api('/events/'+b.dataset.read,{method:'PATCH',body:{read:true}});return refresh({quiet:true})}
  if(b.hasAttribute('data-edit-object'))return openEdit();if(b.dataset.editSource)return openSource(b.dataset.editSource);
