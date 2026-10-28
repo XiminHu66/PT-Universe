@@ -32,3 +32,9 @@ Review images: [watchlist](overview.jpg), [current single-column composer](compo
 Not verified here: real order/case scraping, delivery to a phone, physical-device virtual keyboard behavior, or production publication. Feature changes remain on a review branch until publishing is authorized.
 
 Follow-up validation: single-column rendering, forward navigation and final review verified with the isolated browser fixture. JavaScript syntax and diff checks passed.
+
+## Existing-monitor editing
+
+Each watchlist row now has an explicit Edit action, and details expose an Edit monitor button. Editing pre-fills an unpaginated single-column form with the existing title, conditions, frequency and hotel baseline. Existing source settings are accessible from the same editor and are saved separately without resetting unsaved object fields. Object updates use PATCH on the existing ID; history is retained. USCIS receipt numbers remain read-only to preserve case-history separation.
+
+Isolated browser validation: changed a shopping title and target; edited its source URL and selector without losing unsaved values; saved onto the original monitor; re-opened from details; changed frequency from 6h to 2h; verified the list still contained exactly three monitors and displayed the saved values. Verified the USCIS receipt was read-only with an explanatory hint. Connection authorization, JavaScript syntax and diff checks passed. [Editing preview](edit-monitor.jpg) uses local fixtures.
