@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="games.css" />
   <link rel="stylesheet" href="pc-prices.css?v=2" />
   <link rel="stylesheet" href="ui-settings.css" />
-  <link rel="stylesheet" href="stream-visuals.css?v=20261007-4">
+  <link rel="stylesheet" href="stream-visuals.css?v=20261028-compact-feed">
   <link rel="alternate" type="application/atom+xml" title="Tsugi Updates" href="data/feed.xml" />
   <link rel="stylesheet" href="../../pt-bridge.css?v=20260827-1">
 <script>const storyTab=new URLSearchParams(location.search).get('tab');if(['works','topics','anime','discovery'].includes(storyTab)){const next=new URL('../story-hub/',location.href);next.searchParams.set('tab',storyTab);location.replace(next);}</script></head>
@@ -145,19 +145,15 @@
           </article>
         </div>
 
-        <div class="feed-head modern-feed-head site-feed-head">
-          <div>
-            <p class="section-kicker">LATEST / DISCOVER</p>
-            <h2>更新流</h2>
-            <p>直接汇总漫画柜、BiliNovel / Linovelib、拷贝漫画等来源的最新更新，并尽量解析具体章节 / 话数。</p>
-          </div>
-          <div class="chips" id="siteFilterChips">
+        <div class="site-stream-toolbar" role="group" aria-label="更新流筛选">
+          <h2 class="stream-sr-only">更新流</h2>
+          <div class="chips" id="siteFilterChips" aria-label="作品类型">
             <button class="chip active" data-site-filter="all">全部</button>
             <button class="chip" data-site-filter="novel">小说</button>
             <button class="chip" data-site-filter="manga">漫画</button>
           </div>
+          <div id="siteSourceBar" class="source-filter-bar" aria-label="更新来源"></div>
         </div>
-        <div id="siteSourceBar" class="source-filter-bar"></div>
         <div id="siteUpdatesGrid" class="site-updates-grid"></div>
       </section>
 
@@ -341,8 +337,8 @@
     </main>
   </div>
   <div id="tsugiToast" class="tsugi-toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20261014-scan-quality2"></script>
-  <script src="stream-visuals.js?v=20261007-3"></script>
+  <script src="app.js?v=20261028-compact-feed"></script>
+  <script src="stream-visuals.js?v=20261028-compact-feed"></script>
   <script src="games.js?v=20261012-dayfix"></script>
   <script src="pc-prices.js?v=2"></script>
   <script src="ui-settings.js?v=20260914-pc-search-tab"></script>

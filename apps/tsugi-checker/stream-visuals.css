@@ -44,3 +44,39 @@
   .sidebar-footer .sync-card{padding:10px;border-radius:14px}.sidebar-footer .sync-card p,.sidebar-footer .tiny-label{display:none}.sidebar-footer .rss-link{height:28px;margin-top:8px;border-radius:9px;font-size:11px}
 }
 @media(max-width:840px){.sidebar-navigation{display:contents}.stream-last-refresh{margin:0 2px 8px}}
+
+/* Content-first reading feed: reclaim space without scaling down the text. */
+.stream-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+#updates .site-stream-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;margin:0 0 8px}
+#updates .site-stream-toolbar .chips{flex:none;min-height:38px;padding:3px;gap:3px}
+#updates .site-stream-toolbar .chip{min-height:32px;padding:5px 12px;font-size:13px}
+#updates #siteSourceBar{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:0;min-width:0}
+#updates #siteSourceBar .source-filter{min-height:34px;padding:5px 10px;font-size:12px}
+#updates .stream-refresh-legend{margin:0 0 8px;min-height:32px;font-size:12px}
+#updates .stream-refresh-legend button{min-height:32px;font-size:12px;padding:5px 10px}
+#updates .site-updates-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+#updates .site-update-card{border-radius:15px;align-content:start;box-shadow:none;transition:border-color .15s,background .15s}
+#updates .site-update-card:hover{transform:none;box-shadow:none}
+#updates .site-card-main{grid-template-columns:68px minmax(0,1fr);gap:10px;padding:10px 10px 7px;align-items:start}
+#updates .site-card-main .site-update-cover,#updates .site-card-main .site-update-placeholder{width:68px;height:96px;border-radius:9px}
+#updates .site-update-copy{justify-content:flex-start;gap:5px}
+#updates .site-update-copy h3{font-size:15px;line-height:1.4;letter-spacing:0}
+#updates .site-latest{font-size:13px;line-height:1.4}
+#updates .site-meta{gap:5px;flex-wrap:nowrap;font-size:11px;line-height:1.4;min-width:0}
+#updates .site-meta .type-pill{padding:3px 6px;font-size:11px;line-height:1.25;flex:none}
+#updates .site-source{padding:0;border:0;background:none;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:11px}
+#updates .site-update-copy>.site-meta:last-child>span:last-child{display:none}
+#updates .site-update-copy>.site-meta:last-child>span:first-child{display:block}
+#updates .refresh-new-badge{display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:20px;height:20px;padding:0 4px;font-size:11px;line-height:1;border-radius:5px}
+#updates .site-card-actions{padding:0 10px 9px;gap:8px;min-height:36px;justify-content:flex-end}
+#updates .site-card-actions .site-open-link{margin-right:auto;font-size:11px}
+#updates .shelf-btn{font-size:12px;min-height:34px;padding:6px 10px;white-space:nowrap}
+#updates a:focus-visible,#updates button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media(max-width:700px){
+  #updates .site-updates-grid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+  #updates .site-stream-toolbar{gap:8px}
+  #updates .site-stream-toolbar .chip,#updates #siteSourceBar .source-filter,#updates .shelf-btn,#updates .stream-refresh-legend button{min-height:44px}
+  #updates .site-card-main{grid-template-columns:64px minmax(0,1fr)}
+  #updates .site-card-main .site-update-cover,#updates .site-card-main .site-update-placeholder{width:64px;height:90px}
+}
+@media(max-width:380px){#updates .site-updates-grid{grid-template-columns:minmax(0,1fr)}}

@@ -200,12 +200,12 @@ function renderSiteUpdates(){
     <a class="site-card-main" href="${esc(x.latest_url||x.url)}" target="_blank" rel="noopener">
       ${imageHTML({cover:x.cover,type:x.type,className:'site-update-cover',placeholderClass:'site-update-placeholder'})}
       <div class="site-update-copy">
-        <div class="site-meta"><span class="type-pill ${x.type==='manga'?'manga':'novel'}">${x.type==='manga'?'漫画':'小说'}</span><span class="site-source">${esc(x.source_label||x.source)}</span></div>
-        <h3>${esc(x.title)}</h3><p class="site-latest">${esc(latest)}</p>
+        <div class="site-meta"><span class="type-pill ${x.type==='manga'?'manga':'novel'}">${x.type==='manga'?'漫画':'小说'}</span><span class="site-source" title="${esc(x.source_label||x.source)}">${esc(x.source_label||x.source)}</span></div>
+        <h3 title="${esc(x.title)}">${esc(x.title)}</h3><p class="site-latest" title="${esc(latest)}">${esc(latest)}</p>
         <div class="site-meta"><span>${esc(updated)}</span><span>${meaningfulLatest(x.latest)&&x.latest_url?'直达最新章节 ↗':'打开作品页 ↗'}</span></div>
       </div>
     </a>
-    <div class="site-card-actions"><span class="site-open-link">${x.chapter_count?`共 ${esc(x.chapter_count)} 章 / 话`:meaningfulLatest(x.latest)?'已解析最新章节':'作品详情'}</span><button class="shelf-btn ${added?'added':''}" data-add-shelf="${esc(x.id)}" ${added?'disabled':''}>${added?'✓ 已在书架':'＋ 加入书架'}</button></div>
+    <div class="site-card-actions">${x.chapter_count?`<span class="site-open-link">共 ${esc(x.chapter_count)} 章 / 话</span>`:''}<button class="shelf-btn ${added?'added':''}" data-add-shelf="${esc(x.id)}" aria-label="${added?'已在书架：':'加入书架：'}${esc(x.title)}" ${added?'disabled':''}>${added?'✓ 已在书架':'＋ 加入书架'}</button></div>
   </article>`}).join(''):`<div class="empty"><div>这个筛选下暂无站点更新。<small>来源失败时可以到“来源状态”查看原因。</small></div></div>`;
   $$('[data-add-shelf]').forEach(btn=>btn.onclick=e=>{e.preventDefault();e.stopPropagation();const item=all.find(x=>String(x.id)===btn.dataset.addShelf);if(item)addToLocalShelf(item)});
 }
