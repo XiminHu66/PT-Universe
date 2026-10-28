@@ -2503,7 +2503,7 @@ function normalizedNavConfig(){
   });
   DEFAULT_NAV_CONFIG.forEach(d=>{if(!seen.has(d.view)){if(d.view==="vps"){const i=out.findIndex(x=>x.view==="tsugi");out.splice(i<0?out.length:i+1,0,{...d});}else out.push({...d});}});
   // Move saved layouts once; subsequent manual reordering remains available.
-  if(store.get("navLayoutVersion",0)<1){
+  if(store.get("navLayoutVersion",0)<3){
     const index=out.findIndex(x=>x.view==="vps"),[vps]=out.splice(index,1);
     out.splice(out.findIndex(x=>x.view==="tsugi")+1,0,vps);
   }
@@ -2511,7 +2511,7 @@ function normalizedNavConfig(){
 }
 function applyNavConfig(){
   state.navConfig=normalizedNavConfig();
-  if(store.get("navLayoutVersion",0)<1&&store.set("navConfig",state.navConfig))store.set("navLayoutVersion",1);
+  if(store.get("navLayoutVersion",0)<3&&store.set("navConfig",state.navConfig))store.set("navLayoutVersion",3);
   const sidebar=document.querySelector('.sidebar'),spacer=sidebar?.querySelector('.spacer');
   if(!sidebar||!spacer)return;
   const nodes=new Map($$('.navbtn[data-view]').map(b=>[b.dataset.view,b]));
@@ -4046,11 +4046,6 @@ $("#saveNavConfig").onclick=()=>{
 $("#resetNavConfig").onclick=()=>{
   state.navConfig=DEFAULT_NAV_CONFIG.map(x=>({...x}));store.set("navConfig",state.navConfig);applyNavConfig();
 };
-if(store.get("navLayoutVersion",0)<2){
-  const previous=new Map(normalizedNavConfig().map(item=>[item.view,item]));
-  state.navConfig=DEFAULT_NAV_CONFIG.map(item=>({...previous.get(item.view)}));
-  if(store.set("navConfig",state.navConfig))store.set("navLayoutVersion",2);
-}
 applyNavConfig();
 $("#saveProfile").onclick=()=>{
   state.profile.nickname=$("#nicknameInput").value.trim()||"Daily Nexus";
