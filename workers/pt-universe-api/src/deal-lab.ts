@@ -153,7 +153,7 @@ async function mcpExecute(operation:string,args:unknown,env:LabEnv){
 }
 function cleanHTML(s:string){return s.replace(/<[^>]*>/g,' ').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim();}
 export function parseSteam(html:string){
- const rows:Dict[]=[];const re=/<a\b[^>]*class="[^"]*\bsearch_result_row\b[^"]*"[^>]*>[\s\S]*?<\/a>/gi;
+ const rows:Array<{rank:number;appid:number;title:string;image:string;release:string;url:string}>=[];const re=/<a\b[^>]*class="[^"]*\bsearch_result_row\b[^"]*"[^>]*>[\s\S]*?<\/a>/gi;
  for(const hit of html.matchAll(re)){
   const body=hit[0];const id=body.match(/\bdata-ds-appid="(\d{1,9})"/)?.[1]||body.match(/\/app\/(\d{1,9})/)?.[1];
   const title=body.match(/<span[^>]*class="[^"]*\btitle\b[^"]*"[^>]*>([\s\S]*?)<\/span>/i)?.[1];
@@ -196,7 +196,7 @@ async function upstream(provider:string,operation:string,args:Dict,env:LabEnv){
  if(def.method==='POST')headers['content-type']='application/json';
  const {response,text}=await fetchLimited(u.toString(),{method:def.method||'GET',headers,body:def.method==='POST'?JSON.stringify(validated.body):undefined});
  if(response.status===429)throw Object.assign(Error(provider+' 上游限流 (429)'),{httpStatus:429,retryAfter:response.headers.get('retry-after')});
- if(!response.ok&&!(provider==='gamerpower'&&response.status===201))throw Object.assign(Error(provider+' 上游 HTTP '+response.status+': '+text.slice(0,170)),{httpStatus:response.status});
+ if(!response.ok&&!(provider==='gamerpower'&&response.status===201))throw Object.assign(Error(provider+' 上游 HTTP '+response.status),{httpStatus:response.status});
  const data=response.status===201?[]:json(text);
  if(data===null)throw Error('上游未返回合法 JSON');
  return data;
