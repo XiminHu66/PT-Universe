@@ -30,10 +30,10 @@ async function query(provider,operation,args,signal,force=false){
   while(until>Date.now()){note('正在整理结果 · 来源额度保护，'+Math.ceil((until-Date.now())/1000)+' 秒后继续。切换页面可取消。');await pause(Math.min(1000,until-Date.now()),signal);}
  }
  if(signal?.aborted)throw new DOMException('Aborted','AbortError');
- const started=Date.now(),response=await fetch(BASE+'query',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+(sessionStorage.getItem('pt.monitor.session.v1')||'')},body:JSON.stringify({...request,...(force?{force:true}:{})}),credentials:'omit',cache:'no-store',signal:signal?AbortSignal.any([signal,AbortSignal.timeout(70000)]):AbortSignal.timeout(70000)});
+ const response=await fetch(BASE+'query',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+(sessionStorage.getItem('pt.monitor.session.v1')||'')},body:JSON.stringify({...request,...(force?{force:true}:{})}),credentials:'omit',cache:'no-store',signal:signal?AbortSignal.any([signal,AbortSignal.timeout(70000)]):AbortSignal.timeout(70000)});
  const data=await response.json();
  if(!response.ok){if(data.retryAfter)state.cooldowns[provider]=Date.now()+data.retryAfter*1000;if(data.lastGood){return {...data.lastGood,args,cache:'stale',warning:data.error};}throw Error(data.error||'查询失败 HTTP '+response.status);}
- if(data.cache==='miss'){const gap=Math.max(provider==='steam'?2:0,state.status?.sources?.[provider]?.budget?.cooldown||0);state.cooldowns[provider]=started+gap*1000;}
+ if(data.cache==='miss'){const gap=Math.max(provider==='steam'?2:0,state.status?.sources?.[provider]?.budget?.cooldown||0);state.cooldowns[provider]=Date.now()+gap*1000;}
  state.cacheKnown.add(key);return {...data,args};
 }
 function freshness(packet){return packet?`${packet.cache==='stale'?'旧数据 · 上游失败':packet.cache==='hit'?'缓存':'已获取'} · ${when(packet.fetchedAt)}`:'';}
@@ -70,10 +70,10 @@ function products(root){
  root.append(panel);
 }
 async function searchProducts(more=false){return work(async signal=>{const term=more?state.productQuery:$('#productTerm').value.trim();if(!term)throw Error('请输入商品名称');store.write('productTerm',term);if(!more){state.productQuery=term;state.offset=0;state.variants=[];state.selected=null;state.variantFilter='all';}else state.offset+=20;note('正在查找商品及不同规格…');const p=await query('shopsavvy','product_search',{query:term,limit:20,offset:state.offset},signal);state.variants=mergeVariants(state.variants,productMatches(p));if(!state.variants.length){render();return note('没有找到商品匹配项。');}render();if(!more){const first=state.variants.find(x=>variantKind(x)==='product')||state.variants[0];await loadVariant(first,signal);}else note('已加入更多匹配项，选择页签读取报价。');});}
-async function selectVariant(item){if(state.busy){state.controller?.abort();state.busy=false;}state.selected=item;const cached=state.variantData.get(item.identifier);if(cached&&!cached.loading&&!cached.offerError&&cached.offerPacket?.freshUntil>Date.now()){render();return;}return work(signal=>loadVariant(item,signal));}
+async function selectVariant(item){if(state.busy){state.controller?.abort();state.busy=false;}state.selected=item;const cached=state.variantData.get(item.identifier);if(cached&&!cached.loading&&!cached.detailError&&!cached.offerError&&cached.offerPacket?.freshUntil>Date.now()){render();return;}return work(signal=>loadVariant(item,signal));}
 async function loadVariant(item,signal,force=false){state.selected=item;const data={loading:true,offers:null};state.variantData.set(item.identifier,data);render();
  try{data.detailPacket=await query('shopsavvy','product_lookup',{identifier:item.identifier},signal);data.detail=productDetails(data.detailPacket,item);}catch(e){if(signal.aborted)throw e;data.detailError=e.message;}if(signal.aborted)return;render();
- try{data.offerPacket=await query('shopsavvy','product_offers',{identifier:item.identifier},signal,force);data.offers=productOffers(data.offerPacket);if(data.offerPacket.warning)data.offerError=data.offerPacket.warning;}catch(e){if(signal.aborted)throw e;data.offerError=e.message;}finally{data.loading=false;}if(!signal.aborted){render();note('详情与报价已整理完成。');}}
+ try{data.offerPacket=await query('shopsavvy','product_offers',{identifier:item.identifier},signal,force);data.offers=productOffers(data.offerPacket);if(data.offerPacket.warning)data.offerError=data.offerPacket.warning;}catch(e){if(signal.aborted)throw e;data.offerError=e.message;}finally{data.loading=false;}if(!signal.aborted){render();note(data.detailError||data.offerError?'已显示可用结果，部分详情或报价暂未取得，可重试当前页签。':'详情与报价已整理完成。',!!(data.detailError||data.offerError));}}
 function cell(text,cls=''){return el('td',cls,text);}
 function row(values,header=false){const r=el('tr');for(const v of values)r.append(el(header?'th':'td','',v));return r;}
 function games(root){
