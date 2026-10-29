@@ -1,6 +1,6 @@
 """Publish only browser assets and public snapshots; exclude source runtimes and CI evidence."""
 from pathlib import Path
-import shutil
+import shutil, json, subprocess, os
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'_site'
 EXT={'.html','.css','.js','.mjs','.json','.webmanifest','.xml','.svg','.png','.jpg','.jpeg','.webp','.gif','.ico','.woff','.woff2','.ttf','.txt','.pdf','.mp3','.ogg','.wav','.wasm'}
@@ -18,6 +18,9 @@ for name in ['apps','assets','styles','fonts','images','data','licenses']:
     if directory.exists():
         for p in directory.rglob('*'):copy(p)
 (OUT/'.nojekyll').touch()
+revision=subprocess.run(['git','rev-parse','HEAD'],cwd=ROOT,capture_output=True,text=True)
+sha=revision.stdout.strip() if revision.returncode==0 else os.environ.get('GITHUB_SHA','local-preview')
+(OUT/'deployment.json').write_text(json.dumps({'sourceCommit':sha,'pipeline':'shared-pages-v2'})+'\n')
 files=[p for p in OUT.rglob('*') if p.is_file()]
 total=sum(p.stat().st_size for p in files)
 assert total<80*1024**2,f'Unexpected static bundle growth: {total} bytes'

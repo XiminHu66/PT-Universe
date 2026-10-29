@@ -47,6 +47,15 @@ export async function monitorTransport(env:KnowledgeEnv,path:string,method:strin
  const raw=await env.PT_UNIVERSE_DATA.get(CONFIG_KEY);if(!raw)throw Error('transport-not-configured');const config=JSON.parse(raw) as Config;if(!validConfig(config))throw Error('transport-invalid');
  return signedFetch(config,'/__pt_monitor/api'+path,method,body,'application/json','','',30000);
 }
+export async function readVpsGameSnapshot(env:KnowledgeEnv){
+ const raw=await env.PT_UNIVERSE_DATA.get(CONFIG_KEY);if(!raw)throw Error('transport-not-configured');
+ const config=JSON.parse(raw) as Config;if(!validConfig(config))throw Error('transport-invalid');
+ const response=await signedFetch(config,'/hub/api/public-feeds/games','GET',null,'','','',12000);
+ if(!response.ok){await response.body?.cancel();throw Error('vps-game-feed-unavailable');}
+ const snapshot=await response.json<any>();
+ if(!snapshot.generated_at||!snapshot.items||!snapshot.sources)throw Error('invalid-vps-game-feed');
+ return snapshot;
+}
 export async function readVpsSnapshot(env:KnowledgeEnv){
  const stored=await env.PT_UNIVERSE_DATA.get(CONFIG_KEY);
  if(!stored)throw Error('transport-not-configured');

@@ -15,7 +15,6 @@ name: Refresh Research Tools
     - apps/earnings-dojo/**
     - apps/eastside-weekend/**
     - apps/daily-nexus/data/upcoming-sources.json
-    - .github/workflows/refresh-labs.yml
   workflow_dispatch: null
 permissions:
   contents: read
@@ -128,84 +127,11 @@ jobs:
         fi
     outputs:
       changed: ${{ steps.snapshot_change.outputs.changed }}
-  deploy:
-    needs:
-    - gate
-    - publish
-    if: (always() && needs.gate.outputs.run == 'yes' && needs.publish.result == 'success') && needs.publish.outputs.changed
-      == 'true'
-    runs-on: ubuntu-latest
-    concurrency:
-      group: pages
-      cancel-in-progress: false
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        ref: main
-    - uses: actions/configure-pages@v5
-    - name: Prepare bounded frontend distribution
-      run: python scripts/build-pages.py
-    - uses: actions/upload-pages-artifact@v3
-      with:
-        path: _site
-        retention-days: 1
-    - uses: actions/deploy-pages@v4
-      id: deployment
-    timeout-minutes: 15
-  verify:
-    needs:
-    - gate
-    - deploy
-    if: always() && needs.gate.outputs.run == 'yes' && needs.deploy.result == 'success'
-    runs-on: ubuntu-latest
-    timeout-minutes: 12
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        ref: main
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.12'
-    - name: Check published pages and snapshot versions on every deployment
-      run: python scripts/labs/smoke.py
-    - if: github.event_name != 'schedule'
-      run: pip install playwright
-    - if: github.event_name != 'schedule'
-      run: python -m playwright install --with-deps chromium
-    - uses: actions/setup-node@v4
-      if: github.event_name != 'schedule'
-      with:
-        node-version: '24'
-    - name: Verify live PC quotes and repeated upstream financial refresh
-      if: github.event_name != 'schedule'
-      env:
-        LABS_API_URL: https://pt-universe-api.summer07-nanjolno.workers.dev
-      run: node --experimental-strip-types scripts/labs/test_research.mjs
-    - name: Verify published interactive flows
-      if: github.event_name != 'schedule'
-      env:
-        LABS_BASE_URL: https://ximinhu66.github.io/PT-Universe/
-      run: python scripts/labs/browser_test.py
-    - uses: actions/upload-artifact@v4
-      if: (always() && github.event_name != 'schedule') && (failure() || github.event_name == 'workflow_dispatch')
-      with:
-        name: published-research-tools
-        path: test-results/labs
-        retention-days: 3
   report:
     needs:
     - gate
     - collect
     - publish
-    - deploy
-    - verify
     if: always() && needs.gate.outputs.run == 'yes'
     runs-on: ubuntu-latest
     steps:
@@ -213,12 +139,7 @@ jobs:
       env:
         COLLECT: ${{ needs.collect.result }}
         PUBLISH: ${{ needs.publish.result }}
-        DEPLOY: ${{ needs.deploy.result }}
-        VERIFY: ${{ needs.verify.result }}
       run: |
-        echo "Collection: $COLLECT; publication: $PUBLISH; deployment: $DEPLOY; verification: $VERIFY" >> "$GITHUB_STEP_SUMMARY"
-        if [ "$COLLECT" = "failure" ] || [ "$COLLECT" = "cancelled" ] || [ "$PUBLISH" != "success" ] || [ "$DEPLOY" != "success" ] || [ "$VERIFY" != "success" ]; then
-          echo "::error::Some updates remain incomplete. Available snapshots were published where possible; scheduled retries will recheck missing sources and deployment."
-          exit 1
-        fi
+        echo "Collection: $COLLECT; publication: $PUBLISH. Pages is handled by the shared publication workflow." >> "$GITHUB_STEP_SUMMARY"
+        if [[ "$COLLECT" == failure || "$COLLECT" == cancelled || "$PUBLISH" != success ]]; then exit 1; fi
     timeout-minutes: 15

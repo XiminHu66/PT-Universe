@@ -8,7 +8,6 @@ name: Refresh Tsugi reading/music (08:30 conditional fallback)
     - apps/tsugi-checker/scraper/**
     - apps/tsugi-checker/config/content.json
     - scripts/tsugi/**
-    - .github/workflows/refresh-tsugi.yml
   schedule:
   - cron: 30 8 * * *
     timezone: America/Los_Angeles
@@ -223,37 +222,3 @@ jobs:
         PY
     outputs:
       changed: ${{ steps.snapshot_change.outputs.changed }}
-  deploy:
-    needs: refresh
-    if: (always() && needs.refresh.result != 'cancelled') && needs.refresh.outputs.changed == 'true'
-    runs-on: ubuntu-latest
-    concurrency:
-      group: pages
-      cancel-in-progress: true
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        ref: main
-    - uses: actions/configure-pages@v5
-      with:
-        enablement: true
-    - name: Prepare bounded frontend distribution
-      run: python scripts/build-pages.py
-    - uses: actions/upload-pages-artifact@v3
-      with:
-        name: tsugi-reading-pages-${{ github.run_attempt }}
-        path: _site
-        retention-days: 1
-    - name: Deploy the latest PT Universe
-      id: deployment
-      uses: actions/deploy-pages@v4
-      with:
-        artifact_name: tsugi-reading-pages-${{ github.run_attempt }}
-    timeout-minutes: 15

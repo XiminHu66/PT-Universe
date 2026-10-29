@@ -1,3 +1,4 @@
+import {readVpsGameSnapshot} from './knowledge';
 import {knowledgeRoute} from './knowledge';
 import {vpsRoute} from './vps';
 import {monitorRoute} from './monitor';
@@ -520,18 +521,24 @@ async function refreshGames(env:Env){
   const cached=safeJson<any>(cachedRaw,{items:{mobile:[],pc:[],console:[]},sources:{}});
   let current=cached,imported=false,remoteError='';
   try{
+    const vps=await readVpsGameSnapshot(env);
+    const stamp=Date.parse(vps.generated_at),old=Date.parse(current.generated_at||'');
+    const count=['mobile','pc','console'].reduce((n,k)=>n+(vps.items[k]?.length||0),0);
+    if(count&&Number.isFinite(stamp)&&stamp<=Date.now()+300000&&(!Number.isFinite(old)||stamp>old)){current=vps;await putData(env,'game-releases.json',vps);imported=true;}
+  }catch(e){console.warn('vps_game_feed_unavailable',String(e));}
+  try{
     const response=await timedFetch(`${RAW}game-releases.json?refresh=${Date.now()}`,{headers:{'user-agent':'PT-Universe/1.0','accept':'application/json','cache-control':'no-cache'}},15_000);
     if(!response.ok)throw new Error(`GitHub raw ${response.status}`);
     const remote=await response.json<any>(),items=remote.items||{},total=['mobile','pc','console'].reduce((sum,key)=>sum+(Array.isArray(items[key])?items[key].length:0),0);
     if(!remote.generated_at||!total)throw new Error('GitHub 游戏快照无效或为空');
-    const remoteGenerated=Date.parse(remote.generated_at),cachedGenerated=Date.parse(cached.generated_at||'');
+    const remoteGenerated=Date.parse(remote.generated_at),cachedGenerated=Date.parse(current.generated_at||'');
     if(Number.isFinite(remoteGenerated)&&(!Number.isFinite(cachedGenerated)||remoteGenerated>cachedGenerated)){
       current=remote;await putData(env,'game-releases.json',remote);imported=true;
     }
   }catch(e){remoteError=String(e);console.warn('game_snapshot_import_failed',{error:remoteError})}
   const items=current.items||{},counts={mobile:(items.mobile||[]).length,pc:(items.pc||[]).length,console:(items.console||[]).length};
   if(!counts.mobile&&!counts.pc&&!counts.console)throw new Error(remoteError||'游戏快照不可用');
-  return {...counts,generatedAt:current.generated_at||null,imported,pipeline:'Tsugi 游戏独立每日任务 · 08:00 America/Los_Angeles',qf:'paused',sources:current.sources||{},remoteError:remoteError||undefined};
+  return {...counts,generatedAt:current.generated_at||null,imported,pipeline:current.refresh_source?.startsWith('vps:')?'VPS 08:00 Pacific · GitHub 08:30 fallback':'GitHub conditional fallback · 08:30 Pacific',qf:'paused',sources:current.sources||{},remoteError:remoteError||undefined};
 }
 
 async function runRefresh(env:Env,scope:RefreshScope,source:RefreshOrigin='manual'){

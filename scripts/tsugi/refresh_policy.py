@@ -2,7 +2,7 @@
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from pathlib import Path
-import json, os
+import json, os, urllib.request
 PACIFIC=ZoneInfo('America/Los_Angeles')
 REQUIRED=('appstore','googleplay','taptap_cn_new','taptap_cn_upcoming','steam_popular_new','steam_popular_upcoming','famitsu')
 def fresh(value,now):
@@ -23,6 +23,13 @@ def main():
     file=Path('apps/tsugi-checker/data/game-releases.json')
     try:data=json.loads(file.read_text())
     except (OSError,ValueError):data={}
+    if os.environ.get('REFRESH_EVENT')=='schedule':
+        try:
+            req=urllib.request.Request('https://pt-universe-api.summer07-nanjolno.workers.dev/api/data/game-releases.json',headers={'User-Agent':'PT-Universe-game-fallback/1','Cache-Control':'no-cache'})
+            with urllib.request.urlopen(req,timeout=20) as r:remote=json.load(r)
+            if isinstance(remote,str):remote=json.loads(remote)
+            if remote.get('generated_at','')>data.get('generated_at',''):data=remote
+        except Exception:pass
     run,reason=game_decision(data,datetime.now(timezone.utc),os.environ.get('REFRESH_EVENT','schedule'))
     output=f'refresh={str(run).lower()}\nreason={reason}\n'
     with open(os.environ['GITHUB_OUTPUT'],'a') as f:f.write(output)

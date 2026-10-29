@@ -43,31 +43,3 @@ jobs:
         fi
     outputs:
       changed: ${{ steps.snapshot_change.outputs.changed }}
-  deploy:
-    needs: refresh
-    runs-on: ubuntu-latest
-    concurrency:
-      group: pages
-      cancel-in-progress: false
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        ref: main
-    - uses: actions/configure-pages@v5
-    - name: Prepare bounded frontend distribution
-      run: python scripts/build-pages.py
-    - uses: actions/upload-pages-artifact@v3
-      with:
-        path: _site
-        retention-days: 1
-    - uses: actions/deploy-pages@v4
-      id: deployment
-    timeout-minutes: 15
-    if: (success()) && needs.refresh.outputs.changed == 'true'

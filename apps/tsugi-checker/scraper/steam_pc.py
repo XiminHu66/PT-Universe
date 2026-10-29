@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from datetime import date, datetime
 from pathlib import Path
@@ -222,7 +223,7 @@ def main() -> None:
         return rows
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=True, executable_path=os.environ.get("PT_CHROMIUM_EXECUTABLE"), args=["--disable-dev-shm-usage"])
         context = browser.new_context(
             user_agent=UA,
             locale="en-US",

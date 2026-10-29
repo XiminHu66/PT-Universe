@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import html as html_lib
 import json
+import os
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, datetime, timedelta, timezone
@@ -80,7 +81,7 @@ def get_browser_html(url: str, ua: str, locale: str = "ja-JP", wait_ms: int = 22
     from playwright.sync_api import sync_playwright
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=True, executable_path=os.environ.get("PT_CHROMIUM_EXECUTABLE"), args=["--disable-dev-shm-usage"])
         context = browser.new_context(user_agent=ua, locale=locale, viewport={"width": 1440, "height": 1200})
         page = context.new_page()
         page.goto(url, wait_until="domcontentloaded", timeout=45000)
