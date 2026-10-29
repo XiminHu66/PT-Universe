@@ -1,11 +1,11 @@
 import {connected,connect} from '../monitor-center/connection.mjs';
-import {safeURL,money,productMatches,productDetails,productOffers,sourceLinks,variantKind,mergeVariants,toCNY,steamOffer,cheapOffers,itadOffers,retainedGiveaways,giveawayPlatforms,trendItems} from './data.mjs?v=poc3';
+import {safeURL,money,productMatches,productDetails,productOffers,productVariants,captureTime,sourceLinks,variantKind,mergeVariants,toCNY,steamOffer,cheapOffers,itadOffers,retainedGiveaways,giveawayPlatforms,trendItems} from './data.mjs?v=serp4';
 const BASE='https://pt-universe-api.summer07-nanjolno.workers.dev/api/deal-lab/';
 const $=s=>document.querySelector(s),el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=String(text);return n;},add=(p,...nodes)=>{for(const n of nodes)if(n)p.append(n);return p;};
 const store={read(k,f){try{return JSON.parse(localStorage.getItem('ptu.deal-lab.poc.'+k))??f}catch{return f}},write(k,v){try{localStorage.setItem('ptu.deal-lab.poc.'+k,JSON.stringify(v))}catch{}}};
 const TITLES={products:'商品比价',games:'游戏低价 · 含国区',free:'Steam / Epic 免费领',steam:'热门愿望单与近期趋势'};
 const COUNTRIES={CN:'中国大陆',US:'美国',HK:'香港',JP:'日本',GB:'英国',DE:'德国',BR:'巴西',CA:'加拿大',AU:'澳洲',KR:'韩国',TR:'土耳其',IN:'印度'};
-const state={page:'products',status:null,busy:false,controller:null,cooldowns:{},cacheKnown:new Set(),variants:[],selected:null,variantData:new Map(),variantFilter:'all',productQuery:'',offset:0,gameItems:[],game:null,offers:[],gameErrors:[],fx:null,stores:{},countries:store.read('countries',['CN','US']),giveaways:[],freePacket:null,rankItems:[],rankPages:new Map(),rankCatalogDay:null,rankPacket:null,rankPage:0,rankSearch:'',rankMode:'current',rankProgress:'',trends:null,trendPage:0,trendSearch:''};
+const state={page:'products',status:null,busy:false,controller:null,cooldowns:{},cacheKnown:new Set(),variants:[],selected:null,variantData:new Map(),variantFilter:'all',productQuery:'',productPacket:null,serpAccount:null,productSort:store.read('productSort',''),gameItems:[],game:null,offers:[],gameErrors:[],fx:null,stores:{},countries:store.read('countries',['CN','US']),giveaways:[],freePacket:null,rankItems:[],rankPages:new Map(),rankCatalogDay:null,rankPacket:null,rankPage:0,rankSearch:'',rankMode:'current',rankProgress:'',trends:null,trendPage:0,trendSearch:''};
 function note(text,error=false){$('#notice').textContent=text;$('#notice').classList.toggle('error',error);}
 function button(text,action,primary=false){const b=el('button',primary?'primary':'',text);b.type='button';b.onclick=action;return b;}
 function link(url,label){const href=safeURL(url);if(!href)return null;const a=el('a','',label);a.href=href;a.target='_blank';a.rel='noopener noreferrer';return a;}
@@ -15,7 +15,7 @@ function when(v){if(!v||v==='N/A')return '未提供';const d=new Date(v);return 
 function badge(text,cls=''){return el('span','badge '+cls,text);}
 function empty(text){return el('div','empty',text);}
 function initConnect(){sessionStorage.setItem('pt.deal-lab.return.v1',JSON.stringify({path:location.pathname,expiresAt:Date.now()+600000}));connect();}
-async function status(){try{const r=await fetch(BASE+'status',{headers:{authorization:'Bearer '+(sessionStorage.getItem('pt.monitor.session.v1')||'')},credentials:'omit',cache:'no-store',signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error('状态 HTTP '+r.status);state.status=await r.json();for(const [p,s] of Object.entries(state.status.sources||{})){const t=Date.parse(s.usage?.lastCall||'')+1000*(s.budget?.cooldown||0);if(Number.isFinite(t))state.cooldowns[p]=Math.max(state.cooldowns[p]||0,t);}$('#sessionStatus').textContent=state.status.authorized?'私有后台已连接':'尚未连接';$('#connect').textContent=state.status.authorized?'重新连接':'连接私有后台';}catch(e){$('#sessionStatus').textContent='后台暂时不可用';note(e.message,true);}}
+async function status(){try{const r=await fetch(BASE+'status',{headers:{authorization:'Bearer '+(sessionStorage.getItem('pt.monitor.session.v1')||'')},credentials:'omit',cache:'no-store',signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error('状态 HTTP '+r.status);state.status=await r.json();for(const [p,s] of Object.entries(state.status.sources||{})){const t=Date.parse(s.usage?.lastCall||'')+1000*(s.budget?.cooldown||0);if(Number.isFinite(t))state.cooldowns[p]=Math.max(state.cooldowns[p]||0,t);}$('#sessionStatus').textContent=state.status.authorized?'私有后台已连接':'尚未连接';$('#connect').textContent=state.status.authorized?'重新连接':'连接私有后台';if(state.page==='products'&&!state.busy&&document.activeElement?.id!=='productTerm')render();}catch(e){$('#sessionStatus').textContent='后台暂时不可用';note(e.message,true);}}
 function setPage(page){state.controller?.abort();state.busy=false;state.page=Object.hasOwn(TITLES,page)?page:'products';history.replaceState(null,'','#'+state.page);note('');document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===state.page));$('#heading').textContent=TITLES[state.page];render();}
 function render(){const root=$('#view');root.replaceChildren();if(state.page==='products')products(root);else if(state.page==='games')games(root);else if(state.page==='free')free(root);else wishlist(root);}
 function jobButtons(){document.querySelectorAll('[data-work]').forEach(b=>b.disabled=state.busy||b.dataset.boundDisabled==='true');}
@@ -23,7 +23,7 @@ function workButton(label,action,primary=false){const b=button(label,action,prim
 async function work(fn){if(state.busy)return;if(!connected())return note('请先连接现有 PT 私有后台。',true);const controller=new AbortController();state.controller=controller;state.busy=true;jobButtons();try{await fn(controller.signal);}catch(e){if(!controller.signal.aborted)note(e.message,true);}finally{if(state.controller===controller){state.controller=null;state.busy=false;render();jobButtons();void status();}}}
 function pause(ms,signal){return new Promise((resolve,reject)=>{const abort=()=>{clearTimeout(timer);reject(new DOMException('Aborted','AbortError'));};const timer=setTimeout(()=>{signal?.removeEventListener('abort',abort);resolve();},ms);signal?.addEventListener('abort',abort,{once:true});if(signal?.aborted)abort();});}
 async function query(provider,operation,args,signal,force=false){
- const request={provider,operation,args},key=JSON.stringify(request),known=!force&&(state.cacheKnown.has(key)||(provider==='steam'&&operation==='trends'));
+ const request={provider,operation,args},key=JSON.stringify(request),known=!force&&(state.cacheKnown.has(key)||(provider==='steam'&&operation==='trends')||(provider==='serpapi'&&operation==='account'));
  const until=state.cooldowns[provider]||0;
  if(!known&&until>Date.now()){
   if(until-Date.now()>31000)throw Error('来源冷却中，请 '+Math.ceil((until-Date.now())/1000)+' 秒后再试。');
@@ -38,42 +38,37 @@ async function query(provider,operation,args,signal,force=false){
 }
 function freshness(packet){return packet?`${packet.cache==='stale'?'旧数据 · 上游失败':packet.cache==='hit'?'缓存':'已获取'} · ${when(packet.fetchedAt)}`:'';}
 function products(root){
- const form=el('form','toolbar');form.onsubmit=e=>{e.preventDefault();void searchProducts();};form.append(input('商品名称','productTerm',store.read('productTerm',''),'例如 HD 490 Pro、Superlight 2'),workButton('搜索并比价',()=>searchProducts(),true));root.append(form);
- if(!state.variants.length){root.append(empty('输入商品名，自动读取最佳匹配的商品详情和跨商家报价。不同规格与套装分开查看。'));return;}
+ const source=state.status?.sources?.serpapi;
+ const info=el('section','coverage');info.append(badge(source?.configured?'SerpApi 已配置':'SerpApi 待配置',source?.configured?'':'warn'));
+ info.append(el('span','',source?.configured?'密钥由后端读取；仅私有授权可查询。':'请在 pt-universe-api 的 Cloudflare Secrets 中配置 SERPAPI_KEY；前端不收集或保存密钥。'));
+ if(source?.usage)info.append(el('span','',`本工具滚动31天 ${source.usage.month} / 175 次 · 今日 ${source.usage.day} / 20 次`));
+ if(state.serpAccount){const a=state.serpAccount;info.append(el('span','',`${a.planName} · 官方剩余 ${a.searchesLeft} / ${a.monthlyLimit} 次 · 余额检查 ${when(a.checkedAt)}`));if(!a.freePlanVerified)info.append(el('p','warning','当前套餐未通过免费验证，已停止商品搜索。'));}
+ info.append(workButton('检查接入与官方余额',()=>work(async signal=>{await status();if(!state.status?.sources?.serpapi?.configured){render();return note('待配置：SERPAPI_KEY',true);}const p=await query('serpapi','account',{},signal);state.serpAccount=p.data;render();note(p.data.freePlanVerified?'免费套餐验证通过。':'套餐未通过 Free 验证，搜索将安全停止。',!p.data.freePlanVerified);})));root.append(info);
+ const form=el('form','toolbar');form.onsubmit=e=>{e.preventDefault();void searchProducts();};form.append(input('商品名称','productTerm',store.read('productTerm',''),'例如 HD 490 Pro、Superlight 2'),select('排序','productSort',[['','Google 默认'],['1','价格从低到高'],['2','价格从高到低']],state.productSort),workButton('搜索并比价',()=>searchProducts(),true));root.append(form);
+ root.append(el('p','fine','美国市场 · USD · 只在搜索和选择规格时调用。一次搜索及首个详情通常合计2次额度；不自动遍历全部商品。'));
+ if(!state.variants.length){root.append(empty('输入商品名，读取 Google Shopping 结果及首个可用详情。没有 Key 时不会产生外部搜索。'));return;}
  const counts=state.variants.reduce((o,x)=>(o[variantKind(x)]=(o[variantKind(x)]||0)+1,o),{}),groups=el('div','segments');
  for(const [k,title] of [['all','全部匹配'],['product','单品 / 其他规格'],['package','Plus / 套装'],['accessory','配件']])if(k==='all'||counts[k]){const b=button(title+(k==='all'?' '+state.variants.length:' '+counts[k]),()=>{state.variantFilter=k;render();});b.classList.toggle('active',state.variantFilter===k);groups.append(b);}root.append(groups);
- const tabs=el('div','variant-tabs');tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','不同商品规格与套装');
- for(const item of state.variants.filter(x=>state.variantFilter==='all'||variantKind(x)===state.variantFilter)){
-  const b=button(item.title,()=>selectVariant(item));b.title=item.title;b.setAttribute('role','tab');b.setAttribute('aria-selected',String(state.selected?.identifier===item.identifier));b.classList.toggle('active',state.selected?.identifier===item.identifier);tabs.append(b);
- }root.append(tabs);
- if(state.offset<200)root.append(workButton('更多匹配项',()=>searchProducts(true)));
- const data=state.selected&&state.variantData.get(state.selected.identifier),panel=el('section','product-panel');panel.setAttribute('role','tabpanel');
- if(!state.selected){panel.append(empty('选择一个规格或套装。'));root.append(panel);return;}
- const detail=data?.detail||state.selected;panel.append(el('h3','',detail.title||state.selected.title));
- const specs=el('div','specs');for(const [k,v] of [['品牌',detail.brand],['型号',detail.model],['颜色',detail.color],['MPN',detail.mpn],['条码',detail.barcode],['ASIN',detail.asin]])if(v&&v!=='N/A')specs.append(add(el('div'),el('span','muted',k),el('strong','',v)));panel.append(specs);
- if(data?.detailError)panel.append(el('p','warning','详情：'+data.detailError));
- if(!data||data.loading)panel.append(el('p','loading','正在读取这个规格的详情与报价…'));
- if(data?.offers){
-  const offers=[...data.offers].sort((a,b)=>(a.amount??Infinity)-(b.amount??Infinity));
-  const available=offers.filter(x=>x.availability.toLowerCase()==='in'&&x.condition.toLowerCase()==='new'&&x.checkedAt&&Date.now()-Date.parse(x.checkedAt)<7*86400000);
-  panel.append(add(el('div','section-title'),el('h3','','跨商家报价'),badge(offers.length+' 条 · 此规格独立比较')));
-  if(available.length)panel.append(el('p','best','近期有货新品最低：'+available[0].price));
-  panel.append(el('p','muted',freshness(data.offerPacket)+' · '+(/US dollars/i.test(data.offerPacket?.data?.toolDescription||'')?'报价币种 USD':'币种以来源标注为准')));
-  const table=el('table');table.append(row(['商家 / 卖家','报价','成色 / 库存（源报）','上游检查时间','链接'],true));
-  for(const o of offers){const tr=el('tr');tr.append(cell(o.merchant+(o.seller?' · '+o.seller:'')),cell(o.price,'price-cell'),cell(({new:'全新',used:'二手',refurbished:'翻新'}[o.condition.toLowerCase()]||o.condition||'未标注')+' / '+({in:'有货',out:'无货'}[o.availability.toLowerCase()]||o.availability||'未标注')));const time=cell(when(o.checkedAt));if(!o.checkedAt||Date.now()-Date.parse(o.checkedAt)>7*86400000)time.append(badge('请核实当前价','warn'));tr.append(time,add(el('td'),link(o.url,'查看商家 ↗')));table.append(tr);}panel.append(table);
-  if(!offers.length)panel.append(empty('来源成功返回，但这个商品标识没有可用报价。'));
- }
- if(data?.offerError)panel.append(el('p','error-panel','报价暂不可用：'+data.offerError));
- const sources=new Set([...(data?.detailPacket?sourceLinks(data.detailPacket):[]),...(data?.offerPacket?sourceLinks(data.offerPacket):[])]);for(const u of sources)panel.append(link(u,'ShopSavvy 原始商品来源 ↗'));
- panel.append(workButton('刷新此规格报价',()=>work(signal=>loadVariant(state.selected,signal,true))));
- panel.append(el('p','fine','每个页签对应来源返回的独立商品标识；规格、套装及兼容配件以原始标题和详情为准。'));
- root.append(panel);
+ const tabs=el('div','variant-tabs');tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','不同商品规格与套装');for(const item of state.variants.filter(x=>state.variantFilter==='all'||variantKind(x)===state.variantFilter)){const b=button(item.title,()=>selectVariant(item));b.title=item.title;b.setAttribute('role','tab');b.setAttribute('aria-selected',String(state.selected?.identifier===item.identifier));b.classList.toggle('active',state.selected?.identifier===item.identifier);tabs.append(b);}root.append(tabs);
+ const data=state.selected&&state.variantData.get(state.selected.identifier),panel=el('section','product-panel');panel.setAttribute('role','tabpanel');if(!state.selected){root.append(panel);return;}
+ const detail=data?.detail||state.selected;panel.append(el('h3','',detail.title));if(detail.image){const img=el('img');img.src=detail.image;img.alt='';img.width=110;img.height=110;img.style.objectFit='contain';img.referrerPolicy='no-referrer';img.onerror=()=>img.remove();panel.append(img);}
+ const specs=el('div','specs');for(const [k,v] of [['品牌',detail.brand],['评分',detail.rating],['评论数',detail.reviews],...Object.entries(detail.features||{}).slice(0,12)])if(v!==undefined&&v!==null)specs.append(add(el('div'),el('span','muted',k),el('strong','',typeof v==='object'?JSON.stringify(v):v)));panel.append(specs);if(detail.description)panel.append(el('p','',detail.description));
+ if(!data||data.loading)panel.append(el('p','loading','正在读取所选规格的详情和商家报价…'));
+ if(data?.offers){const offers=[...data.offers].sort((a,b)=>(a.amount??Infinity)-(b.amount??Infinity)),captured=captureTime(data.packet),fresh=data.packet.cache!=='stale'&&captured&&Date.now()-Date.parse(captured)<86400000;const eligible=offers.filter(x=>!x.installment&&x.amount!==null&&x.condition==='未标注'&&!/out of stock|unavailable/i.test(x.availability));
+  panel.append(add(el('div','section-title'),el('h3','','跨商家页面报价'),badge(offers.length+' 条 · '+new Set(offers.map(x=>x.merchant)).size+' 个商家名称')));
+  if(fresh&&eligible.length)panel.append(el('p','best','Google 页面最低报价：'+money(eligible[0].amount,'USD')+' · 请核对成色和结算价'));
+  panel.append(el('p','muted',freshness(data.packet)+' · Google 抓取时间 '+when(captured)));
+  panel.append(el('p','fine','商家实际核价时间未提供。抓取时间代表读取 Google 页面，不能保证商家价格同步；分期月供不计入最低价，二手和翻新单独标注。'));
+  const table=el('table');table.append(row(['商家','页面报价 USD','成色 / 报价类型','运费 / 总价 / 条件','链接'],true));for(const o of offers){const tr=el('tr');tr.append(cell(o.merchant),cell(o.price,'price-cell'),cell(o.condition+(o.installment?' · 分期 / 月供，不参与最低价':'')),cell([o.shipping,o.total?'总价 '+o.total:'',o.coupon?'优惠码 '+o.coupon:'',o.availability].filter(Boolean).join(' · ')),add(el('td'),link(o.url,'核实商家价 ↗')));table.append(tr);}panel.append(table);if(!offers.length)panel.append(empty('详情已返回，但没有可展示的商家报价。'));}
+ if(data?.error)panel.append(el('p','error-panel','详情暂不可用：'+data.error));if(!state.selected.token)panel.append(el('p','warning','此搜索条目没有可调用的商品详情令牌，只展示搜索结果信息。'));
+ panel.append(link(state.selected.url,'Google 商品 / 原始来源 ↗'));if(data?.packet)for(const u of sourceLinks(data.packet))panel.append(link(u,'Google 来源 ↗'));
+ if(state.selected.token)panel.append(workButton('重新抓取此规格（可能消耗1次额度）',()=>work(signal=>loadVariant(state.selected,signal,true))));
+ panel.append(el('p','fine','每个页签对应来源商品或规格。规格字段以 Google 返回为准；不混合不同套装报价。'));root.append(panel);
 }
-async function searchProducts(more=false){return work(async signal=>{const term=more?state.productQuery:$('#productTerm').value.trim();if(!term)throw Error('请输入商品名称');store.write('productTerm',term);if(!more){state.productQuery=term;state.offset=0;state.variants=[];state.selected=null;state.variantFilter='all';}else state.offset+=20;note('正在查找商品及不同规格…');const p=await query('shopsavvy','product_search',{query:term,limit:20,offset:state.offset},signal);state.variants=mergeVariants(state.variants,productMatches(p));if(!state.variants.length){render();return note('没有找到商品匹配项。');}render();if(!more){const first=state.variants.find(x=>variantKind(x)==='product')||state.variants[0];await loadVariant(first,signal);}else note('已加入更多匹配项，选择页签读取报价。');});}
-async function selectVariant(item){if(state.busy){state.controller?.abort();state.busy=false;}state.selected=item;const cached=state.variantData.get(item.identifier);if(cached&&!cached.loading&&!cached.detailError&&!cached.offerError&&cached.offerPacket?.freshUntil>Date.now()){render();return;}return work(signal=>loadVariant(item,signal));}
-async function loadVariant(item,signal,force=false){state.selected=item;const data={loading:true,offers:null};state.variantData.set(item.identifier,data);render();
- try{data.detailPacket=await query('shopsavvy','product_lookup',{identifier:item.identifier},signal);data.detail=productDetails(data.detailPacket,item);}catch(e){if(signal.aborted)throw e;data.detailError=e.message;}if(signal.aborted)return;render();
- try{data.offerPacket=await query('shopsavvy','product_offers',{identifier:item.identifier},signal,force);data.offers=productOffers(data.offerPacket);if(data.offerPacket.warning)data.offerError=data.offerPacket.warning;}catch(e){if(signal.aborted)throw e;data.offerError=e.message;}finally{data.loading=false;}if(!signal.aborted){render();note(data.detailError||data.offerError?'已显示可用结果，部分详情或报价暂未取得，可重试当前页签。':'详情与报价已整理完成。',!!(data.detailError||data.offerError));}}
+async function searchProducts(){return work(async signal=>{const term=$('#productTerm').value.trim();if(!term)throw Error('请输入商品名称');if(!state.status?.sources?.serpapi?.configured){await status();if(!state.status?.sources?.serpapi?.configured)throw Error('待配置 Cloudflare Secret：SERPAPI_KEY');}store.write('productTerm',term);state.productSort=$('#productSort').value;store.write('productSort',state.productSort);state.productQuery=term;state.variants=[];state.selected=null;state.variantFilter='all';note('正在查询 Google Shopping…');const p=await query('serpapi','search',{q:term,...(state.productSort?{sort_by:state.productSort}:{})},signal);state.productPacket=p;state.variants=productMatches(p);if(!state.variants.length){render();return note(p.warning||'没有找到商品匹配项。',!!p.warning);}await loadVariant(state.variants.find(x=>x.token&&variantKind(x)==='product')||state.variants[0],signal);});}
+async function selectVariant(item){if(state.busy){state.controller?.abort();state.busy=false;}state.selected=item;const cached=state.variantData.get(item.identifier);if(cached&&!cached.loading&&!cached.error&&cached.packet?.freshUntil>Date.now()){render();return;}return work(signal=>loadVariant(item,signal));}
+async function loadVariant(item,signal,force=false){state.selected=item;const data={loading:!!item.token,detail:item,offers:null};state.variantData.set(item.identifier,data);render();if(!item.token){note('来源未提供详情令牌，请打开原始来源核实报价。');return;}
+ try{data.packet=await query('serpapi','product',{page_token:item.token},signal,force);data.detail=productDetails(data.packet,item);data.offers=productOffers(data.packet);state.variants=mergeVariants(state.variants,productVariants(data.packet,item));if(data.packet.warning)data.error=data.packet.warning;}catch(e){if(signal.aborted)throw e;data.error=e.message;}finally{data.loading=false;}if(!signal.aborted){render();note(data.error?'已显示可用数据；详情或报价暂不可用。':'详情与商家页面报价已整理完成。',!!data.error);}}
 function cell(text,cls=''){return el('td',cls,text);}
 function row(values,header=false){const r=el('tr');for(const v of values)r.append(el(header?'th':'td','',v));return r;}
 function games(root){

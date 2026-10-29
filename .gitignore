@@ -3,3 +3,8 @@
 __pycache__/
 *.pyc
 test-results/
+
+# Worker secrets: local-only; never publish or commit keys.
+workers/pt-universe-api/.dev.vars
+workers/pt-universe-api/.dev.vars.*
+!workers/pt-universe-api/.dev.vars.example
