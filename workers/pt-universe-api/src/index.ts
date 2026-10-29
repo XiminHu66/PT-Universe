@@ -1,4 +1,5 @@
 import {readVpsGameSnapshot} from './knowledge';
+import {onDemandRoute} from './on-demand-data';
 import {knowledgeRoute} from './knowledge';
 import {vpsRoute} from './vps';
 import {monitorRoute} from './monitor';
@@ -604,7 +605,8 @@ export default {
       const investment=await investmentRoute(request,env);if(investment)return reply(request,investment.body,investment.status||200);
       const decision=await decisionRoute(request,env,authenticate);if(decision)return reply(request,decision.body,decision.status||200);
       const media=await mediaRoute(request,env);if(media)return media instanceof Response?media:reply(request,media);
-      const research=await researchRoute(request);if(research)return reply(request,research);
+      const demand=await onDemandRoute(request,env);if(demand)return reply(request,demand.body,demand.status);
+      const research=await researchRoute(request,env);if(research)return reply(request,research);
       const foodRecipes=await foodRecipesRoute(request,env,authenticate);if(foodRecipes)return reply(request,foodRecipes.body,foodRecipes.status);
       const lifeAi=await lifeAiRoute(request,env,authenticate);if(lifeAi)return reply(request,lifeAi.body,lifeAi.status);
       const gemini=await geminiProbeRoute(request,env);if(gemini)return reply(request,gemini.body,gemini.status);

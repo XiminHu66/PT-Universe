@@ -12,9 +12,9 @@
 
 当前来源包括少数派、爱范儿、IT之家、UNWIRE、Cool3C、Engadget、The Verge、Tom's Hardware、MacRumors、9to5Mac、9to5Toys、DealNews、The Deal Guy、Dealmoon 分类搜索、Product Hunt、New Atlas、Yanko Design、The Gadgeteer，以及中英文新品 / 好价 / 众筹主题搜索。
 
-## 自动更新
+## 按需更新
 
-`.github/workflows/daily-refresh.yml` 会在每天 `15:15 UTC` 自动运行，对应西雅图冬令时约 `07:15`、夏令时约 `08:15`。也可在仓库 **Actions → Refresh products and deploy → Run workflow** 手动刷新。
+打开页面或点击“刷新商品”会通过 Cloudflare 请求现有 VPS 的完整 Python 采集器。打开时共享 1 小时缓存，手动可绕过缓存（至少间隔 60 秒）。无后台定时采集，也不由网页触发 Actions。原 `refresh-3c.yml` 仅保留 GitHub 手动应急刷新。详见 [按需数据说明](../../docs/on-demand-data.md)。
 
 每个来源独立抓取；单个源失败不会阻断其他数据。最近 14 天的可用条目会被保留，页面底部会显示本轮来源健康状态。
 

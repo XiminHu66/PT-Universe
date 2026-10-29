@@ -1,6 +1,8 @@
 
 import {$,esc,link,pct,compact,change,read,save,toast,json,meta,boot,backups,financialTable,bars,labels,day,expired} from '../_lab/core.js?v=2';
 boot();
+import {API} from '../_shared/on-demand.mjs';
+let financialBusy=new Set();
 let data,selected='',theses=read('theses',[]),editing=null;
 const rules={revenueYoY:'营收同比（%）',margin:'营业利润率（%）',fcf:'自由现金流（百万 USD）',sbcRatio:'SBC / 营收（%）',sharesYoY:'稀释股数同比（%）'};
 function yoyQuarter(c,q){return c.quarters.find(p=>Math.abs((Date.parse(q.end)-Date.parse(p.end))/86400000-365)<18)}
@@ -8,7 +10,7 @@ function value(c,metric){const q=c.quarters.at(-1),y=yoyQuarter(c,q);if(!q)retur
 function evaluate(t){const c=data.companies.find(c=>c.ticker===t.ticker),v=c?value(c,t.metric):null;if(!Number.isFinite(v)||c.stale||expired(c.updatedAt))return {text:'待确认',cls:'muted',detail:'指标缺失或数据未及时更新'};const ok=t.op==='gte'?v>=t.threshold:v<=t.threshold;return {text:ok?'条件满足':'条件未满足',cls:ok?'good':'bad',detail:'当前 '+v.toFixed(2)+' · '+c.quarters.at(-1).end}}
 function render(){
  $('#app').innerHTML='<div class="toolbar"><label>观察公司<select id="company">'+data.companies.map(c=>'<option value="'+esc(c.ticker)+'" '+(c.ticker===selected?'selected':'')+'>'+esc(c.ticker+' · '+c.name)+'</option>').join('')+'</select></label><span class="tag">'+data.companies.length+' 家公司</span></div><div id="companyView"></div><section class="panel"><div class="row"><h2>投资论点</h2><button id="newThesis" class="primary">＋ 添加论点</button></div><p class="muted">写下理由，并用一个可验证的指标跟踪。条件满足不等于买入建议。</p><div id="thesisForm"></div><div id="theses" class="grid"></div></section>';
- $('#company').onchange=e=>{selected=e.target.value;renderCompany();renderTheses();dispatchEvent(new CustomEvent('workspace-symbol-changed',{detail:{symbol:selected}}))};
+ $('#company').onchange=e=>{selected=e.target.value;renderCompany();renderTheses();refreshFinancials();dispatchEvent(new CustomEvent('workspace-symbol-changed',{detail:{symbol:selected}}))};
  $('#newThesis').onclick=()=>form();
  if(selected&&!data.companies.some(c=>c.ticker===selected)){const o=new Option(selected+' · 暂无财报快照',selected,true,true);$('#company').append(o)}
  renderCompany();renderTheses();
@@ -28,7 +30,24 @@ function form(t={}){editing=t.id||null;$('#thesisForm').innerHTML='<form id="edi
  $('#editor').onsubmit=e=>{e.preventDefault();const v=Object.fromEntries(new FormData(e.target));v.threshold=Number(v.threshold);if(!Number.isFinite(v.threshold))return;const item={...v,id:editing||crypto.randomUUID(),history:t.history||[],updatedAt:new Date().toISOString()};theses=editing?theses.map(x=>x.id===editing?item:x):[...theses,item];save('theses',theses);dispatchEvent(new Event('decision-thesis-updated'));selected=item.ticker;render();toast('论点已保存')};$('#editor input[name=title]').focus();
 }
 backups('theses',()=>theses,v=>{if(!Array.isArray(v)||v.length>1000||!v.every(x=>x&&typeof x.id==='string'&&typeof x.title==='string'&&rules[x.metric]&&['gte','lte'].includes(x.op)&&Number.isFinite(x.threshold)&&(!x.history||Array.isArray(x.history))))throw new Error('记录格式不正确');theses=v;save('theses',v);render()});
-try{data=await json('./data/financials.json');selected=new URLSearchParams(location.search).get('symbol')||data.companies[0]?.ticker||'';meta(data);render()}catch(e){$('#app').innerHTML='<div class="empty">'+esc(e.message)+'，请稍后读取最新快照。</div>'}
+try{data=await json('./data/financials.json');selected=new URLSearchParams(location.search).get('symbol')||data.companies[0]?.ticker||'';data.refreshMode='on-demand';meta(data);render();refreshFinancials()}catch(e){$('#app').innerHTML='<div class="empty">'+esc(e.message)+'，请稍后读取最新快照。</div>'}
 
-addEventListener('workspace-select-symbol',e=>{if(data&&selected!==e.detail.symbol){selected=e.detail.symbol;editing=null;render()}});
+addEventListener('workspace-select-symbol',e=>{if(data&&selected!==e.detail.symbol){selected=e.detail.symbol;editing=null;render();refreshFinancials()}});
 addEventListener('workspace-records',e=>{if(data&&(e.detail.key==='ptu.labs.theses'||e.detail.key==='sync')){theses=read('theses',[]);renderTheses()}});
+
+async function refreshFinancials(force=false){
+ const ticker=selected;if(!data||financialBusy.has(ticker))return;financialBusy.add(ticker);
+ $('#updated').textContent='正在按需核对 '+ticker+' 财报…';
+ try{
+  const company=await json(API+'/api/training/financials?symbol='+encodeURIComponent(ticker)+(force?'&force=1':''));
+  if(company.stale)throw Error(company.error||'来源不可用');
+  if(company.ticker!==ticker||!company.quarters?.length)throw Error('财报格式无效');
+  data.companies=data.companies.map(c=>c.ticker===ticker?{...c,...company}:c);
+  data.updatedAt=company.updatedAt;data.refreshMode='on-demand';
+  data.sources=(data.sources||[]).filter(s=>s.id!==ticker&&!s.name?.startsWith(ticker+' · '));
+  data.sources.push({id:ticker,name:ticker+' · 按需核对',url:company.sourceURL,ok:true,count:company.quarters.length,lastSuccessAt:company.updatedAt});
+  meta(data);if(selected===ticker){renderCompany();renderTheses();$('#updated').textContent=ticker+' 最近核对：'+new Date(company.updatedAt).toLocaleString('zh-CN');}
+ }catch(e){if(selected===ticker){$('#updated').textContent=ticker+' 更新失败，保留旧财报：'+e.message;toast(e.message);}}
+ finally{financialBusy.delete(ticker);}
+}
+$('#refresh').textContent='↻ 刷新当前公司财报';$('#refresh').onclick=()=>refreshFinancials(true);

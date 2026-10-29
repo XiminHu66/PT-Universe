@@ -1,5 +1,19 @@
 {
   "version": 1,
   "source_mode": "primary",
-  "canonical_repository": "XiminHu66/PT-Universe"
+  "canonical_repository": "XiminHu66/PT-Universe",
+  "manual_only_workflows": [
+    "refresh-3c.yml",
+    "refresh-investment.yml",
+    "refresh-stock.yml"
+  ],
+  "on_demand_datasets": [
+    "3c",
+    "disclosures",
+    "financials",
+    "topics",
+    "assets",
+    "discover",
+    "stock"
+  ]
 }

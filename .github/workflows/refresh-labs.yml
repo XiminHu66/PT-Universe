@@ -15,7 +15,13 @@ name: Refresh Research Tools
     - apps/earnings-dojo/**
     - apps/eastside-weekend/**
     - apps/daily-nexus/data/upcoming-sources.json
-  workflow_dispatch: null
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Explicit manual dataset (financials has no automatic collection)
+        type: choice
+        default: all
+        options: [all, financials, events, upcoming]
 permissions:
   contents: read
 concurrency:
@@ -37,6 +43,7 @@ jobs:
     - id: check
       env:
         EVENT: ${{ github.event_name }}
+        MANUAL_TARGET: ${{ inputs.target }}
       run: python scripts/labs/schedule.py
   collect:
     needs: gate

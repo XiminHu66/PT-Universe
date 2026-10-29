@@ -1,8 +1,5 @@
 name: Refresh public investment disclosures
 'on':
-  schedule:
-  - cron: 12 9 * * *
-    timezone: America/Los_Angeles
   workflow_dispatch: null
 permissions:
   contents: read

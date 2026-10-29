@@ -22,13 +22,14 @@ function render(){const c=cases[index];if(!c){$('#app').innerHTML='<div class="e
   $('#next').onclick=()=>{selectCase();window.scrollTo({top:0,behavior:'smooth'})};toast('练习结果已保存');
  };
 }
-async function refreshFinancials(){
+async function refreshFinancials(force=false){
  if(busy||!data)return;busy=true;$('#refresh').disabled=true;$('#refresh').textContent='正在查询财报…';
  const cursor=read('dojoTickerCursor',0),company=data.companies[cursor%data.companies.length];save('dojoTickerCursor',cursor+1);
  document.querySelectorAll('#app input,#app select,#app button,#app textarea').forEach(e=>e.disabled=true);
  liveMessage='正在向财报来源重新查询一家公司的季度数据…';if($('#liveStatus'))$('#liveStatus').textContent=liveMessage;
  try{
-  const fresh=await json(API+'/api/training/financials?symbol='+encodeURIComponent(company.ticker)+'&t='+Date.now());
+  const fresh=await json(API+'/api/training/financials?symbol='+encodeURIComponent(company.ticker)+(force?'&force=1':''));
+  if(fresh.stale)throw new Error(fresh.error||'财报来源暂不可用');
   if(!fresh.live||fresh.ticker!==company.ticker||!Array.isArray(fresh.quarters))throw new Error('来源响应未通过检查');
   const changed=valueSignature(company.quarters)!==valueSignature(fresh.quarters);
   const cache=read('dojoFinancials',{});cache[company.ticker]=fresh;save('dojoFinancials',cache);
@@ -41,10 +42,10 @@ async function refreshFinancials(){
  }catch(e){liveMessage='本次实时核对失败：'+e.message+'。继续使用最后取得的财报生成练习，未将旧数据标成新抓取。';selectCase()}
  finally{busy=false;document.querySelectorAll('#app input,#app select,#app button,#app textarea').forEach(e=>e.disabled=false);$('#refresh').disabled=false;$('#refresh').textContent='↻ 刷新财报并换题'}
 }
-$('#refresh').onclick=refreshFinancials;
+$('#refresh').onclick=()=>refreshFinancials(true);
 backups('dojo',()=>history,v=>{if(!Array.isArray(v)||v.length>500||!v.every(x=>x&&typeof x.company==='string'&&Number.isInteger(x.score)&&x.score>=0&&x.score<=3))throw new Error('记录格式不正确');history=v;save('dojo',v);render()});
 try{
  data=await json('../thesis-lab/data/financials.json');
  const cache=read('dojoFinancials',{});data.companies=data.companies.map(c=>cache[c.ticker]&&Date.parse(cache[c.ticker].updatedAt)>Date.parse(c.updatedAt)?{...c,...cache[c.ticker]}:c);
- meta(data);selectCase();await refreshFinancials();
+ data.refreshMode='on-demand';meta(data);selectCase();await refreshFinancials();
 }catch(e){$('#app').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}

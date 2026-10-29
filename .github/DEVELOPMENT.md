@@ -11,3 +11,6 @@
 - Pages artifacts contain only the frontend distribution, never node_modules, tests, backend services or generated screenshots.
 - Prefer local validation before cloud runs. Do not repeatedly re-run a failing pipeline without diagnosing the failed step. One failure must not erase other successful sources.
 - Any new VPS service must first verify projected free disk and memory remain at least 15%; do not install self-hosted CI on the production VPS as a default.
+
+- Owner-selected on-demand datasets: 3C Scout, public investment disclosures, financial statements, interest topics, Kenney assets, completed works, Stock Alert. Do not add cron, push-triggered collection, scheduled prewarming or webpage-triggered Actions for these. Opening their actual view or pressing Refresh may request bounded upstream work through Cloudflare/VPS. Cached data must retain its real timestamp; failed sources must retain last-good data. Changes to events/upcoming, Anime1, calendars, RSS and Tsugi schedules are separate from this selection.
+- Run the on-demand service, request-boundary and schedule regression tests for changes to these collectors. The VPS service must remain single-job, time/memory/CPU/cache bounded, with no scheduler or published host port.

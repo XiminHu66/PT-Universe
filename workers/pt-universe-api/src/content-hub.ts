@@ -35,6 +35,7 @@ async function json(raw:string,init:RequestInit={}){return JSON.parse(await down
 async function keyFor(value:string){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');}
 async function cached(env:HubEnv,key:string,seconds:number,loader:()=>Promise<Obj>,force=false){
  const previous=await env.PT_UNIVERSE_DATA.get<Obj>('hub/'+key,'json');
+ if(force&&['topics','discover-v2','assets'].includes(key)&&previous&&Date.now()-Date.parse(previous.checked_at||'')<60000)return {...previous,cached:true};
  const coldCompletion=key==='discover-v2'&&previous?.sources?.completed?.ok===false&&!(previous.items||[]).some((x:Obj)=>x.source==='manhuagui-completed');
  const check=key.startsWith('check-v5/'),ttl=check&&!previous?.items?.length?30:seconds;
  if(previous&&!force&&!coldCompletion&&Date.now()-Date.parse(previous.checked_at||'')<ttl*1000)return {...previous,cached:true};
@@ -117,13 +118,13 @@ export function parseCompletedNovels(html:string){
  }).filter(Boolean).slice(0,40) as Obj[];
 }
 export function mergeHistory(current:Obj[],prior:Obj[],limit=200){const old=new Map(prior.map(x=>[x.id,x]));const seen=new Set<string>();const rows:Obj[]=[...current.map(x=>({...old.get(x.id),...x,first_seen:old.get(x.id)?.first_seen||x.first_seen||stamp()})),...prior];return rows.filter(x=>{if(seen.has(x.id))return false;seen.add(x.id);return true;}).slice(0,limit);}
-async function collectTopics(env:HubEnv){return cached(env,'topics',1800,async()=>{
+async function collectTopics(env:HubEnv,force=false){return cached(env,'topics',1800,async()=>{
  const old=await env.PT_UNIVERSE_DATA.get<Obj>('hub/topics','json'),sources:Obj={},rows:Obj[]=[];
  const result=await Promise.allSettled([download('https://bgm.tv/rakuen/topiclist?type=subject'),json('https://www.v2ex.com/api/topics/latest.json')]);
  for(let i=0;i<result.length;i++){const source=i===0?'bangumi':'v2ex',r=result[i];if(r.status==='fulfilled'){const items=i===0?parseTopics(r.value as string):(r.value as Obj[]).filter(x=>x.id&&x.title).map(x=>({id:'v2ex-'+x.id,source:'v2ex',source_label:'V2EX · '+(x.node?.title||'社区'),title:x.title,url:x.url,excerpt:clean(x.content).slice(0,300),replies:x.replies||0,category:x.node?.name||'',published_at:new Date(x.created*1000).toISOString(),activity_text:'',spoiler:false}));if(items.length){rows.push(...items);sources[source]={ok:true,count:items.length,checked_at:stamp()};continue;}}sources[source]={ok:false,error:r.status==='rejected'?String(r.reason):'未解析到条目',checked_at:old?.sources?.[source]?.checked_at||null};rows.push(...(old?.items||[]).filter((x:Obj)=>x.source===source));}
  if(!Object.values(sources).some(x=>x.ok))throw Error('话题来源暂不可用');return {items:mergeHistory(rows,old?.items||[]),sources};
- });}
-async function collectDiscovery(env:HubEnv){return cached(env,'discover-v2',7200,async()=>{
+ },force);}
+async function collectDiscovery(env:HubEnv,force=false){return cached(env,'discover-v2',7200,async()=>{
  const old=await env.PT_UNIVERSE_DATA.get<Obj>('hub/discover-v2','json');
  const raw=await env.PT_UNIVERSE_DATA.get<Obj>('data/site-updates.json','json');
  let site=raw;if(!site){const r=await fetch('https://raw.githubusercontent.com/XiminHu66/PT-Universe/main/apps/tsugi-checker/data/site-updates.json');if(!r.ok)throw Error('更新来源暂不可用');site=await r.json<Obj>();}
@@ -137,14 +138,14 @@ async function collectDiscovery(env:HubEnv){return cached(env,'discover-v2',7200
  }
  try{const entries=await novelsTask;if(!entries.length)throw Error('未解析到明确完结小说');rows.push(...entries);sources.novels={ok:true,count:entries.length,checked_at:stamp()};}catch(e){sources.novels={ok:false,error:String(e),checked_at:old?.sources?.novels?.checked_at||null};let historical=(old?.items||[]).filter((x:Obj)=>x.source==='linovelib-completed');if(!historical.length){try{const snapshot=await json('https://raw.githubusercontent.com/XiminHu66/PT-Universe/main/apps/tsugi-checker/data/hub-discover.json');if(snapshot.snapshot&&Number.isFinite(Date.parse(snapshot.checked_at)))historical=(snapshot.items||[]).filter((x:Obj)=>x.source==='linovelib-completed'&&x.status==='completed'&&String(x.url).startsWith('https://tw.linovelib.com/novel/')).slice(0,40).map((x:Obj)=>({...x,cached_source_at:x.cached_source_at||snapshot.sources?.novels?.checked_at||snapshot.checked_at}));}catch{}}rows.push(...historical);}
  if(!rows.length)throw Error('暂无可用发现数据');const updateURLs=new Set(updates.map((x:Obj)=>canonicalWorkURL(x.url))),updateTitles=new Set(updates.map((x:Obj)=>simplified(clean(x.title)).toLowerCase().replace(/[^\p{L}\p{N}]/gu,'')));const independent=rows.filter(x=>!updateURLs.has(canonicalWorkURL(x.url))&&!updateTitles.has(simplified(clean(x.title)).toLowerCase().replace(/[^\p{L}\p{N}]/gu,'')));const excluded=rows.length-independent.length;const dedup=new Map<string,Obj>();for(const r of independent){const u=String(r.url).replace(/\/$/,'');dedup.set(u,{...dedup.get(u),...r});}const previousURL=new Map((old?.items||[]).map((x:Obj)=>[String(x.url).replace(/\/$/,''),x]));const normalized=[...dedup.values()].map(x=>({...x,id:(previousURL.get(String(x.url).replace(/\/$/,'')) as Obj)?.id||x.id}));return {items:mergeHistory(normalized,(old?.items||[]).filter((x:Obj)=>!updateURLs.has(canonicalWorkURL(x.url))&&!updateTitles.has(simplified(clean(x.title)).toLowerCase().replace(/[^\p{L}\p{N}]/gu,''))),320),sources,excluded_updates:excluded,catalog_only:true,date_basis:'first_seen 是本站首次发现，不是作品出版日；初始化批次不代表新连载'};
- });}
-async function collectAssets(env:HubEnv){return cached(env,'assets',86400,async()=>{
+ },force);}
+async function collectAssets(env:HubEnv,force=false){return cached(env,'assets',86400,async()=>{
  const first=await download('https://kenney.nl/assets'),initial=parseAssets(first);if(!initial.length)throw Error('素材目录结构暂不支持');const old=await env.PT_UNIVERSE_DATA.get<Obj>('hub/assets','json'),pages=Math.min(14,Math.max(1,...[...first.matchAll(/assets\/page:(\d+)/g)].map(x=>Number(x[1])))),sources:Obj={1:{ok:true,count:initial.length}},rows:Obj[]=[...initial];
  const results=await Promise.allSettled(Array.from({length:pages-1},(_,i)=>download('https://kenney.nl/assets/page:'+(i+2))));for(let i=0;i<results.length;i++){const r=results[i];if(r.status==='fulfilled'){const parsed=parseAssets(r.value);if(parsed.length){rows.push(...parsed);sources[i+2]={ok:true,count:parsed.length};continue;}}sources[i+2]={ok:false,error:r.status==='rejected'?String(r.reason):'未解析到素材'};}
  // Keep previously fetched packs when one directory page fails.
  if(Object.values(sources).some(x=>!x.ok))rows.push(...(old?.items||[]));return {items:[...new Map(rows.map(x=>[x.id,x])).values()].slice(0,250),source:'Kenney',source_url:'https://kenney.nl/assets',sources,pages};
-});}
-export async function hubTick(env:HubEnv){await Promise.allSettled([collectTopics(env),collectDiscovery(env),collectAnime1(env),cached(env,'calendar',21600,async()=>({days:(await json(BGM+'/calendar')).map((d:Obj)=>({weekday:d.weekday,items:d.items.map(normalizeSubject)})),source:'Bangumi 放送日历',source_url:'https://bgm.tv/calendar'})),collectAssets(env)]);}
+},force);}
+export async function hubTick(env:HubEnv){await Promise.allSettled([collectAnime1(env),cached(env,'calendar',21600,async()=>({days:(await json(BGM+'/calendar')).map((d:Obj)=>({weekday:d.weekday,items:d.items.map(normalizeSubject)})),source:'Bangumi 放送日历',source_url:'https://bgm.tv/calendar'}))]);}
 export async function contentHubRoute(request:Request,env:HubEnv):Promise<{body:Obj;status?:number}|null>{
  const u=new URL(request.url);if(!u.pathname.startsWith('/api/hub/'))return null;
  if(request.method!=='GET')return {body:{error:'Method not allowed'},status:405};
@@ -152,9 +153,9 @@ export async function contentHubRoute(request:Request,env:HubEnv):Promise<{body:
   const route=u.pathname.slice(9);let data:Obj;
   if(route==='calendar')data=await cached(env,'calendar',21600,async()=>({days:(await json(BGM+'/calendar')).map((d:Obj)=>({weekday:d.weekday,items:d.items.map(normalizeSubject)})),source:'Bangumi 放送日历',source_url:'https://bgm.tv/calendar'}));
   else if(route==='anime1')data=await collectAnime1(env);
-  else if(route==='topics')data=await collectTopics(env);
-  else if(route==='discover')data=await collectDiscovery(env);
-  else if(route==='assets')data=await collectAssets(env);
+  else if(route==='topics'){const force=u.searchParams.get('refresh')==='1';if(force)await acquire(env,request);data=await collectTopics(env,force);}
+  else if(route==='discover'){const force=u.searchParams.get('refresh')==='1';if(force)await acquire(env,request);data=await collectDiscovery(env,force);}
+  else if(route==='assets'){const force=u.searchParams.get('refresh')==='1';if(force)await acquire(env,request);data=await collectAssets(env,force);}
   else if(route==='search'){const q=query(u);data=await cached(env,'search/'+await keyFor(q),3600,async()=>({items:(await json(BGM+'/v0/search/subjects?limit=16',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({keyword:q,filter:{type:[1,2,4],nsfw:false}})})).data.map(normalizeSubject),source:'Bangumi',query:q}));}
   else if(/^subject\/\d+$/.test(route)){const id=route.split('/')[1];data=await cached(env,route,86400,async()=>{const s=normalizeSubject(await json(BGM+'/v0/subjects/'+id));let relations:Obj[]=[],relation_error='';try{relations=(await json(BGM+'/v0/subjects/'+id+'/subjects')).map(normalizeSubject);}catch(e){relation_error=String(e);}return {subject:s,relations,relation_error,source:'Bangumi 条目关系',source_url:s.url};});}
   else if(/^episodes\/\d+$/.test(route)){const id=route.split('/')[1];data=await cached(env,route,21600,async()=>{const r=await json(BGM+'/v0/episodes?subject_id='+id+'&type=0&limit=100');return {items:(r.data||[]).map((x:Obj)=>({id:x.id,sort:x.sort,title:x.name_cn||x.name,airdate:x.airdate||null,url:`https://bgm.tv/ep/${x.id}`,basis:'Bangumi 记录日期；不证明流媒体已上线'})),total:r.total||0,source:'Bangumi 章节记录'};});}

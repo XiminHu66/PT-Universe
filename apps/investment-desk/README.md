@@ -11,3 +11,5 @@
 - Ask GPT 降为持仓证据卡的可选深入提问动作。旧 Signal Audit 地址自动进入本工作台；旧记录保留，可用 `?standalone=1` 访问。
 
 验证：`node scripts/investment/test.mjs`；HTTP 静态站运行在 8765 时执行 `node scripts/investment/browser-test.cjs`。后台测试在 Worker 目录执行 `node tests/muse.test.mjs`。
+
+公开披露现为进入“公开交易核验”或点击“刷新披露”时按需抓取，1 小时共享缓存，手动至少间隔 60 秒；`refresh-investment.yml` 仅保留手动应急任务。财报也按公司即时核对，不再随 Research Tools 定时采集。详见 [按需数据说明](../../docs/on-demand-data.md)。

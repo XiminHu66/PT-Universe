@@ -34,7 +34,7 @@ export function meta(data){
   let banner=$('#freshness');if(!banner){banner=document.createElement('div');banner.id='freshness';banner.setAttribute('role','status');$('#app').before(banner)}
   banner.className='freshness '+f.state;banner.dataset.state=f.state;
   const title=f.state==='expired'?'数据已过期，请核对来源':f.state==='partial'?'部分来源更新失败，已保留旧数据':'数据更新正常';
-  const detail=f.state==='ok'?'每日约 08:35 PT 更新；失败后自动重试并按小时补跑。':(f.failed?f.failed+' 个来源获取失败。':'')+(f.old?f.old+' 个来源超过 '+f.hours+' 小时未成功更新或尚无成功记录。':'')+'其他成功来源仍会独立更新。';
+  const detail=data.refreshMode==='on-demand'?'仅打开、切换公司或手动刷新时核对；其他公司的时间分别保留。':f.state==='ok'?'每日约 08:35 PT 更新；失败后自动重试并按小时补跑。':(f.failed?f.failed+' 个来源获取失败。':'')+(f.old?f.old+' 个来源超过 '+f.hours+' 小时未成功更新或尚无成功记录。':'')+'其他成功来源仍会独立更新。';
   banner.innerHTML='<strong>'+title+'</strong><span>'+esc(detail)+'</span><small>最近完整成功：'+esc(stamp(data.refresh?.lastCompleteAt))+' · 最近尝试：'+esc(stamp(data.refresh?.lastAttemptAt||data.attemptedAt))+'</small>';
  };
  draw();clearInterval(healthTimer);healthTimer=setInterval(draw,60000);

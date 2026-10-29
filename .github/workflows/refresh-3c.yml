@@ -1,14 +1,6 @@
 name: Refresh 3C Scout data
 'on':
   workflow_dispatch: null
-  push:
-    branches:
-    - main
-    paths:
-    - apps/3c-scout/scripts/**
-    - apps/3c-scout/tests/**
-  schedule:
-  - cron: 15 15 * * *
 permissions:
   contents: write
 concurrency:

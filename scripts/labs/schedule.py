@@ -19,7 +19,7 @@ def pending_targets(now, snapshots, force=False):
     if not last or (now-last).total_seconds() >= 4*3600 or upcoming.get('refresh', {}).get('state') != 'ok':
         targets.append('upcoming')
     if local.time() >= time(8, 35):
-        targets.extend(target for target in TARGETS if target != 'upcoming' and due(snapshots.get(target, {}), now))
+        targets.extend(target for target in TARGETS if target not in ('upcoming', 'financials') and due(snapshots.get(target, {}), now))
     return [target for target in TARGETS if target in targets]
 
 
@@ -38,9 +38,20 @@ def publication_pending(snapshots, fetch):
 
 def main():
     snapshots = {target: read_data(data_path(target)) for target in TARGETS}
-    force = os.getenv("EVENT") != "schedule"
+    event = os.getenv("EVENT", "schedule")
+    force = event != "schedule"
     now = datetime.now(timezone.utc)
     targets = pending_targets(now, snapshots, force)
+    if event != 'workflow_dispatch':
+        targets = [t for t in targets if t != 'financials']
+        snapshots.pop('financials', None)
+    else:
+        selected = os.getenv('MANUAL_TARGET', 'all') or 'all'
+        if selected not in ('all', *TARGETS):
+            raise ValueError('Invalid manual dataset')
+        if selected != 'all':
+            targets = [selected]
+            snapshots = {selected: snapshots[selected]}
     def fetch(target):
         path = data_path(target).relative_to(ROOT).as_posix()
         req = Request("https://ximinhu66.github.io/PT-Universe/" + path,

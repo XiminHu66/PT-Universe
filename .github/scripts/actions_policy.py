@@ -18,6 +18,8 @@ def validate(root):
         if not isinstance(d, dict): errors.append(f'{path.name}: invalid mapping'); continue
         if not d.get('concurrency'): errors.append(f'{path.name}: explicit concurrency required')
         on = d.get('on') or {}
+        if path.name in config.get('manual_only_workflows', []) and set(on) != {'workflow_dispatch'}:
+            errors.append(f'{path.name}: owner selected on-demand mode; Actions must be manual-only')
         if config.get('source_mode')=='canonical-client' and 'schedule' in on:
             errors.append(f'{path.name}: canonical data clients must not schedule a duplicate scraper')
         if path.name == 'windows.yml' and (root/'version.py').exists() or path.name == 'windows.yml' and (root/'videolib').exists():

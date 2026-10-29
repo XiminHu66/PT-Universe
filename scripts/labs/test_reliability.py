@@ -22,14 +22,14 @@ def snapshot(key='companies', ok=True):
 
 class SchedulingTests(unittest.TestCase):
     def test_delayed_start_still_runs(self):
-        self.assertEqual(set(pending_targets(NOW, {})), set(TARGETS))
+        self.assertEqual(set(pending_targets(NOW, {})), set(TARGETS)-{'financials'})
 
     def test_before_morning_skips(self):
         self.assertEqual(pending_targets(datetime(2026, 9, 14, 14, 35, tzinfo=timezone.utc), {}), ['upcoming'])
 
     def test_winter_time(self):
         self.assertEqual(pending_targets(datetime(2026, 12, 14, 15, 35, tzinfo=timezone.utc), {}), ['upcoming'])
-        self.assertEqual(len(pending_targets(datetime(2026, 12, 14, 16, 35, tzinfo=timezone.utc), {})), len(TARGETS))
+        self.assertEqual(len(pending_targets(datetime(2026, 12, 14, 16, 35, tzinfo=timezone.utc), {})), len(TARGETS)-1)
 
     def test_upcoming_four_hour_gate_keeps_other_jobs_morning_only(self):
         from datetime import timedelta
@@ -47,6 +47,17 @@ class SchedulingTests(unittest.TestCase):
 
     def test_force_runs_even_before_morning(self):
         self.assertEqual(len(pending_targets(datetime(2026, 9, 14, 10, tzinfo=timezone.utc), {}, True)), len(TARGETS))
+
+    def test_financials_run_only_after_explicit_manual_selection(self):
+        import os
+        from schedule import main
+        for event,target,expected in [('push','all',False),('schedule','all',False),('workflow_dispatch','financials',True)]:
+            with tempfile.TemporaryDirectory() as folder:
+                output=Path(folder)/'output'
+                with patch.dict(os.environ,{'EVENT':event,'MANUAL_TARGET':target,'GITHUB_OUTPUT':str(output)}),patch('schedule.read_data',return_value={}):
+                    main()
+                matrix=json.loads(next(line.split('=',1)[1] for line in output.read_text().splitlines() if line.startswith('matrix=')))
+                self.assertEqual('financials' in matrix['target'],expected)
 
     def test_failed_deployment_is_detected_and_repaired(self):
         data = {'financials': {'updatedAt': NOW_TEXT, 'refresh': {'runId': 'new'}}}

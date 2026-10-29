@@ -10,17 +10,6 @@ name: Refresh Stock data
         options:
         - full
         - quotes
-  push:
-    branches:
-    - main
-    paths:
-    - apps/stock-alert/scripts/**
-    - apps/stock-alert/requirements.txt
-  schedule:
-  - cron: 17 8 * * 1-5
-    timezone: America/New_York
-  - cron: 11,41 9-16 * * 1-5
-    timezone: America/New_York
 permissions:
   contents: write
 concurrency:

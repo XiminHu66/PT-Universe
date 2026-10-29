@@ -1,3 +1,4 @@
+import {refreshData} from '../_shared/on-demand.mjs';
 const state = {
   data: { items: [], sources: [], generated_at: null },
   stream: "new",
@@ -220,14 +221,34 @@ function bindEvents() {
   });
 }
 
+let refreshing=false;
+async function refreshProducts(force=false) {
+ if(refreshing)return;refreshing=true;
+ const button=document.querySelector('#refreshProducts'),status=document.querySelector('#refreshStatus');
+ button.disabled=true;status.textContent='正在按需抓取商品来源…';
+ try{
+  const result=await refreshData('3c',{force});
+  if(!Array.isArray(result.data.items))throw Error('数据格式无效');
+  state.data=result.data;try{localStorage.setItem('3c-demand-data',JSON.stringify(state.data))}catch{}
+  updateMetrics();renderSources();render();
+  const failed=state.data.sources.filter(s=>!s.ok).length;
+  status.textContent='按需更新完成'+(failed?' · '+failed+' 个来源失败，保留历史':'')+' · '+new Date(state.data.generated_at).toLocaleString('zh-CN');
+ }catch(e){status.textContent=e.message+' · 继续显示上次成功数据';}
+ finally{refreshing=false;button.disabled=false;}
+}
 async function init() {
   const savedTheme = localStorage.getItem("3c-scout-theme");
   if (savedTheme) document.documentElement.dataset.theme = savedTheme;
   bindEvents();
+  const controls=document.createElement('div');controls.className='intro-copy';
+  controls.innerHTML='<button id="refreshProducts" type="button">↻ 刷新商品</button><p id="refreshStatus" role="status">打开时按需更新；无需定时 Actions</p>';
+  document.querySelector('.intro').after(controls);
+  document.querySelector('#refreshProducts').onclick=()=>refreshProducts(true);
   try {
     const response = await fetch(`data/products.json?v=${Date.now()}`, { cache: "no-store" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     state.data = await response.json();
+    try{const cached=JSON.parse(localStorage.getItem('3c-demand-data'));if(cached?.items&&Date.parse(cached.generated_at)>Date.parse(state.data.generated_at))state.data=cached}catch{}
     if (!Array.isArray(state.data.items)) throw new Error("Invalid data format");
   } catch (error) {
     console.error("Could not load product feed", error);
@@ -237,6 +258,7 @@ async function init() {
   updateMetrics();
   renderSources();
   render();
+  refreshProducts();
 }
 
 init();

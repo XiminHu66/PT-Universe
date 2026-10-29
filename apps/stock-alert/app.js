@@ -1,3 +1,4 @@
+import {refreshData} from '../_shared/on-demand.mjs';
 import {portfolioDecision} from '../_decision/portfolio.mjs';
 const DEFAULT_WATCHLIST = [
   ["^GSPC", "SPX", "S&P 500"], ["QQQ", "QQQ", "Nasdaq 100 ETF"],
@@ -93,9 +94,11 @@ async function loadMarketData(showFeedback = false) {
     const directCarry = directItem ? { symbol: state.directQuoteSymbol, at: state.directQuoteAt, price: directItem.price, previousClose: directItem.previousClose, change: directItem.change, changePct: directItem.changePct, lastTradeAt: directItem.lastTradeAt, liveSource: directItem.liveSource } : null;
     const previous = state.data.symbols;
     state.data = loaded;
+    for(const [symbol,item] of Object.entries(readStorage('stock-demand-data',{})))
+      if(!state.data.symbols[symbol]||Date.parse(item.fetchedAt||'')>Date.parse(state.data.symbols[symbol].fetchedAt||state.data.generatedAt||''))state.data.symbols[symbol]=item;
     if (quotes?.symbols) {
       Object.entries(quotes.symbols).forEach(([symbol, quote]) => {
-        if (state.data.symbols[symbol]) Object.assign(state.data.symbols[symbol], quote);
+        if (state.data.symbols[symbol]&&Date.parse(quote.lastTradeAt||'')>=Date.parse(state.data.symbols[symbol].lastTradeAt||'')) Object.assign(state.data.symbols[symbol], quote);
       });
       state.data.quoteGeneratedAt = quotes.generatedAt;
     }
@@ -116,58 +119,25 @@ async function loadMarketData(showFeedback = false) {
   return Boolean(loaded?.symbols);
 }
 
-async function fetchCustomSymbol(symbol, showFeedback = true) {
-  if (!symbol) return;
-  try {
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=1y&interval=1d&includePrePost=true`;
-    const payload = await fetchJson(url, 10000);
-    const result = payload?.chart?.result?.[0];
-    if (!result) throw new Error("No quote result");
-    const q = result.indicators?.quote?.[0] || {}; const adj = result.indicators?.adjclose?.[0]?.adjclose || q.close || [];
-    const history = (result.timestamp || []).map((timestamp, index) => ({
-      d: new Date(timestamp * 1000).toISOString().slice(0,10), o: finite(q.open?.[index]),
-      h: finite(q.high?.[index]), l: finite(q.low?.[index]), c: finite(adj[index]), v: finite(q.volume?.[index])
-    })).filter(row => row.c !== null);
-    const meta = result.meta || {}; const price = finite(meta.regularMarketPrice) ?? history.at(-1)?.c;
-    const previousClose = finite(meta.chartPreviousClose) ?? history.at(-2)?.c;
-    state.data.symbols[symbol] = {
-      symbol, display: displayFor(symbol), name: meta.longName || meta.shortName || displayFor(symbol),
-      exchange: meta.fullExchangeName || meta.exchangeName || "YAHOO", currency: meta.currency || "USD",
-      price, previousClose, change: price - previousClose, changePct: previousClose ? (price / previousClose - 1) * 100 : null,
-      history, news: [], options: null, lastTradeAt: meta.regularMarketTime ? new Date(meta.regularMarketTime * 1000).toISOString() : null,
-      source: "Yahoo Finance browser"
-    };
-    const known = state.watchlist.find(item => item.symbol === symbol); if (known && known.name === symbol) known.name = state.data.symbols[symbol].name;
-    writeStorage(KEYS.watchlist, state.watchlist); renderAll(); if (showFeedback) toast(`${displayFor(symbol)} 已载入`);
-  } catch (error) {
-    console.warn(error); renderAll(); if (showFeedback) toast(`${displayFor(symbol)} 暂无可用数据`);
-  }
+const stockJobs=new Map();let stockStatus='';
+async function refreshStock(symbol=state.selected,force=false,feedback=false){
+ if(stockJobs.has(symbol))return stockJobs.get(symbol);
+ const task=(async()=>{
+  if(symbol===state.selected){stockStatus='正在按需更新 '+symbol+'…';updateMarketStatus();}
+  try{
+   const result=await refreshData('stock',{symbol,force});const item=result.data;
+   if(item.symbol!==symbol||!item.history?.length||item.price==null)throw Error('行情数据无效');
+   state.data.symbols[symbol]={...dataFor(symbol),...item};
+   const cached=readStorage('stock-demand-data',{});cached[symbol]=item;try{writeStorage('stock-demand-data',cached)}catch{}
+   if(symbol===state.selected)stockStatus='按需更新 '+ageText(item.fetchedAt);
+   if(feedback)toast(symbol+' 行情、新闻与期权已核对；来源可能延迟');
+   return true;
+  }catch(e){if(symbol===state.selected)stockStatus=e.message+' · 保留旧数据';if(feedback)toast(e.message);return false;}
+  finally{stockJobs.delete(symbol);if(symbol===state.selected){updateMarketStatus();renderAll();}}
+ })();stockJobs.set(symbol,task);return task;
 }
-
-async function fetchLiveSelectedQuote(force = false) {
-  if (state.directQuoteDisabled && !force) return false;
-  const symbol = state.selected; const item = dataFor(symbol); if (!symbol || !item) return false;
-  try {
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=1d&interval=1m&includePrePost=true&events=div%2Csplits`;
-    const payload = await fetchJson(url, 9000); const result = payload?.chart?.result?.[0]; if (!result) throw new Error("No live quote result");
-    const timestamps = result.timestamp || []; const closes = result.indicators?.quote?.[0]?.close || [];
-    let price = null, lastTradeAt = null;
-    for (let index = Math.min(timestamps.length, closes.length) - 1; index >= 0; index--) {
-      const candidate = finite(closes[index]);
-      if (candidate !== null) { price = candidate; lastTradeAt = new Date(timestamps[index] * 1000).toISOString(); break; }
-    }
-    const meta = result.meta || {}; price ??= finite(meta.regularMarketPrice); if (price === null) throw new Error("No live price");
-    const previousClose = finite(meta.chartPreviousClose) ?? finite(item.previousClose); const change = previousClose === null ? null : price - previousClose;
-    Object.assign(item, { price, previousClose, change, changePct: previousClose ? change / previousClose * 100 : null, lastTradeAt: lastTradeAt || item.lastTradeAt, liveSource: "Yahoo browser chart" });
-    state.directQuoteAt = new Date().toISOString(); state.directQuoteSymbol = symbol;
-    if (state.selected === symbol) { updateMarketStatus(); renderAll(); }
-    return true;
-  } catch (error) {
-    state.directQuoteDisabled = true;
-    console.warn("Direct quote unavailable; using scheduled snapshot", error);
-    return false;
-  }
-}
+async function fetchCustomSymbol(symbol,feedback=true){return refreshStock(symbol,false,feedback);}
+async function fetchLiveSelectedQuote(force=false){return refreshStock(state.selected,force,force);}
 
 function ageText(timestamp) {
   if (!timestamp) return "等待更新";
@@ -183,7 +153,8 @@ function updateMarketStatus() {
   if (!snapshotAt && !direct) { $("updatedAt").textContent = "等待报价 · 模型随报价更新"; return; }
   const tradeAt = item?.lastTradeAt || snapshotAt;
   $("updatedAt").textContent = `行情 ${ageText(tradeAt)} · ${direct ? "浏览器直连" : `后台快照 ${ageText(snapshotAt)}`} · 模型已同步`;
-  $("updatedAt").title = direct ? `直连请求 ${ageText(state.directQuoteAt)}` : "GitHub Actions 自动快照";
+  $("updatedAt").title='仅打开、切换股票或手动刷新时更新；价格提醒仅在页面取数后判断';
+  if(stockStatus)$("updatedAt").textContent+=' · '+stockStatus;
 }
 function inferMarketState() {
   const parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(new Date());
@@ -531,12 +502,8 @@ function bindEvents() {
   $("resetWatchlist").addEventListener("click",()=>{state.watchlist=structuredClone(DEFAULT_WATCHLIST);writeStorage(KEYS.watchlist,state.watchlist);renderAll();toast("已恢复 deskboard 默认列表");});
   $("refreshButton").addEventListener("click",async()=>{
     dispatchEvent(new Event('workspace-refresh-investment'));
-    await loadMarketData(false);
-    $("refreshButton").classList.add("loading");
-    const direct = await fetchLiveSelectedQuote(true);
-    $("refreshButton").classList.remove("loading");
-    const optionAt = selectedOptionSnapshot(dataFor()?.options)?.capturedAt;
-    toast(`${direct ? "当前价已直连更新" : "已读取最新后台报价"} · 期权快照 ${ageText(optionAt)} · 模型已重算`);
+    $("refreshButton").classList.add('loading');$("refreshButton").disabled=true;
+    try{await refreshStock(state.selected,true,true)}finally{$("refreshButton").classList.remove('loading');$("refreshButton").disabled=false;}
   });
   $("optionsBody").addEventListener("change", event => {
     if (event.target.id !== "expirySelect") return;
@@ -558,7 +525,7 @@ function init() {
   if (localStorage.getItem(KEYS.notifications)==="on") $("notifyButton").textContent="●";
   if (state.list==='holdings' && !holdings().some(h=>h.symbol===state.selected)) state.selected=holdings()[0].symbol;
   bindEvents(); updateMarketStatus(); renderAll(); loadMarketData(false).then(()=>fetchLiveSelectedQuote(false));
-  setInterval(()=>fetchLiveSelectedQuote(false),60*1000); setInterval(()=>loadMarketData(false),2*60*1000);
+
 }
 init();
 
@@ -567,7 +534,7 @@ addEventListener('workspace-select-symbol',e=>{
   if(!/^[A-Z0-9.^-]{1,20}$/.test(symbol)||state.selected===symbol)return;
   state.list=holdings().some(h=>h.symbol===symbol)?'holdings':'watch';
   if(state.list==='watch'&&!state.watchlist.some(w=>w.symbol===symbol)){state.watchlist.push({symbol,display:symbol,name:symbol});writeStorage(KEYS.watchlist,state.watchlist);}
-  state.selected=symbol;localStorage.setItem(KEYS.selected,symbol);renderAll();
+  state.selected=symbol;localStorage.setItem(KEYS.selected,symbol);renderAll();refreshStock(symbol);
 });
 function reloadRecords(e){
   state.watchlist=readStorage(KEYS.watchlist,DEFAULT_WATCHLIST);

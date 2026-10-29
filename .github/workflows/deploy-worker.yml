@@ -47,6 +47,7 @@ jobs:
         node tests/anythingllm-transport.test.mjs
         node tests/site-updates.test.mjs
         node tests/content-hub.test.mjs
+        node tests/on-demand-data.test.mjs
         node tests/check-ai.test.mjs
         node tests/muse.test.mjs
         node tests/gemini-probe.test.mjs

@@ -94,11 +94,19 @@ async function financials(ticker:string){
  const fingerprint=[...digest].map(n=>n.toString(16).padStart(2,'0')).join('').slice(0,16);
  return {ticker,name:companies[ticker],quarters,provider:'Yahoo Finance 标准化财报（即时核对）',sourceURL:`https://finance.yahoo.com/quote/${ticker}/financials/`,updatedAt:new Date().toISOString(),stale:false,fingerprint,live:true};
 }
-export async function researchRoute(request:Request):Promise<any|null>{
+export async function researchRoute(request:Request,env?:{PT_UNIVERSE_DATA:KVNamespace}):Promise<any|null>{
  const url=new URL(request.url);
  if(!['/api/pc/search','/api/pc/prices','/api/training/financials'].includes(url.pathname))return null;
  if(request.method!=='GET')throw new Error('仅支持 GET');
- if(url.pathname==='/api/training/financials')return financials((url.searchParams.get('symbol')||'').toUpperCase());
+ if(url.pathname==='/api/training/financials'){
+  const ticker=(url.searchParams.get('symbol')||'').toUpperCase();if(!Object.hasOwn(companies,ticker))throw Error('请选择支持的财报公司');
+  if(!env)return financials(ticker);
+  const key='on-demand/financials/'+ticker,old=await env.PT_UNIVERSE_DATA.get<any>(key,'json');
+  const age=Date.now()-Date.parse(old?.updatedAt||'');
+  if(old&&age<(url.searchParams.get('force')==='1'?60000:4*3600000))return {...old,cached:true};
+  try{const result=await financials(ticker);await env.PT_UNIVERSE_DATA.put(key,JSON.stringify(result),{expirationTtl:30*86400});return result;}
+  catch(e){if(old)return {...old,stale:true,error:'本次财报核对失败，保留上次成功数据'};throw e;}
+ }
  // Short shared price/search cache reduces duplicate upstream requests; no browser rendering.
  const key=new Request(url.origin+url.pathname+'?'+new URLSearchParams([...url.searchParams].filter(([k])=>['q','steamId','cheapId'].includes(k)).sort()),{method:'GET'});
  const cache=await caches.open('pt-pc-prices-v1');
