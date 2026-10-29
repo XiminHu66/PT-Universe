@@ -1,5 +1,5 @@
 import {connected,connect} from '../monitor-center/connection.mjs';
-import {safeURL,money,productMatches,productDetails,productOffers,sourceLinks,variantKind,mergeVariants,toCNY,steamOffer,cheapOffers,itadOffers,retainedGiveaways,giveawayPlatforms,trendItems} from './data.mjs';
+import {safeURL,money,productMatches,productDetails,productOffers,sourceLinks,variantKind,mergeVariants,toCNY,steamOffer,cheapOffers,itadOffers,retainedGiveaways,giveawayPlatforms,trendItems} from './data.mjs?v=poc3';
 const BASE='https://pt-universe-api.summer07-nanjolno.workers.dev/api/deal-lab/';
 const $=s=>document.querySelector(s),el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=String(text);return n;},add=(p,...nodes)=>{for(const n of nodes)if(n)p.append(n);return p;};
 const store={read(k,f){try{return JSON.parse(localStorage.getItem('ptu.deal-lab.poc.'+k))??f}catch{return f}},write(k,v){try{localStorage.setItem('ptu.deal-lab.poc.'+k,JSON.stringify(v))}catch{}}};
