@@ -10,6 +10,8 @@ name: Refresh Tsugi games
     - apps/tsugi-checker/scraper/run_games.py
     - apps/tsugi-checker/scraper/steam_pc.py
   schedule:
+  - cron: 0 8 * * *
+    timezone: America/Los_Angeles
   - cron: 30 8 * * *
     timezone: America/Los_Angeles
 permissions:
