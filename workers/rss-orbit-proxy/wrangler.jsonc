@@ -1,17 +1,25 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "rss-orbit-proxy",
-  "main": "src/index.js",
+  "main": "src/hot-topics-entry.js",
   "compatibility_date": "2026-08-28",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "workers_dev": true,
   "kv_namespaces": [
     {
       "binding": "RSS_CACHE"
+    },
+    {
+      "binding": "PT_UNIVERSE_DATA",
+      "id": "e5fb48d6d06146a1af1da219f1dde818"
     }
   ],
   "triggers": {
-    "crons": ["0 * * * *"]
+    "crons": [
+      "0 * * * *"
+    ]
   },
   "observability": {
     "enabled": true

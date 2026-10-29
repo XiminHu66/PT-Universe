@@ -1,0 +1,62 @@
+name: Deploy RSS Orbit hotspot addon
+'on':
+  workflow_dispatch: null
+  push:
+    branches: [main]
+    paths:
+      - workers/rss-orbit-proxy/src/hot-topics*.js
+      - workers/rss-orbit-proxy/test/hot-topics.test.js
+      - workers/rss-orbit-proxy/wrangler.jsonc
+      - apps/rss-dashboard/hot-topics.*
+      - .github/workflows/rss-hot-topics.yml
+permissions:
+  contents: read
+concurrency:
+  group: rss-orbit-proxy-production
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - name: Validate original reader and isolated hotspot routes
+        run: |
+          python3 .github/scripts/actions_policy.py .
+          node --check apps/rss-dashboard/hot-topics.js
+          node --test workers/rss-orbit-proxy/test/*.test.js
+      - name: Install existing Worker dependencies
+        working-directory: workers/rss-orbit-proxy
+        run: npm ci --no-audit --no-fund
+      - name: Deploy the same RSS Worker with additive news routes
+        working-directory: workers/rss-orbit-proxy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler deploy --dry-run
+          npx wrangler deploy
+      - name: Verify live news plus the unchanged RSS contract
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          const root='https://rss-orbit-proxy.summer07-nanjolno.workers.dev';
+          const options=()=>({headers:{origin:'https://ximinhu66.github.io','user-agent':'Mozilla/5.0'},signal:AbortSignal.timeout(25000)});
+          const health=await fetch(root+'/health',options()).then(r=>r.json());assert.equal(health.service,'rss-orbit-proxy');assert.equal(health.feeds,12);
+          const rss=await fetch(root+'/feed/ithome',options());assert.ok(rss.ok);assert.match(await rss.text(),/<(?:rss|feed)\b/);
+          let news;
+          for(let n=0;n<8;n++){
+           const r=await fetch(root+'/hot-topics',options());news=await r.json();if(r.ok&&news.items?.length)break;
+           if(n===7)throw Error(JSON.stringify(news));await new Promise(resolve=>setTimeout(resolve,10000));
+          }
+          assert.equal(news.revision,'rss-hot-topics-v1');assert.ok(news.items.some(x=>x.kind==='hotlist'));assert.ok(news.items.some(x=>x.kind==='rss'));
+          assert.ok(!news.stale);assert.ok(!JSON.stringify(news).includes('private/knowledge'));
+          assert.equal((await fetch(root+'/hot-topics',{method:'POST',headers:options().headers})).status,405);
+          assert.equal((await fetch(root+'/hot-topics',{headers:{origin:'https://evil.example'}})).status,403);
+          console.log('PASS: live combined sources',news.sources.length,'items',news.items.length,'collected',news.generated_at,'original RSS feeds',health.feeds);
+          JS
