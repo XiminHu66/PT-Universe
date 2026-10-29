@@ -151,7 +151,7 @@ export async function fetchDealSource(provider:string,operation:string,args:Dict
   if(args.__fresh===true)u.searchParams.set('no_cache','true');
   const {response,text}=await fetchLimited(u.toString(),{headers:{accept:'application/json'}},55000);
   if(!response.ok)throw Object.assign(Error('SerpApi HTTP '+response.status),{httpStatus:response.status,retryAfter:response.headers.get('retry-after')});
-  const data=json(text);if(!data||data.error||data.search_metadata?.status!=='Success')throw Error('SerpApi 未返回成功结果：'+String(data?.error||'响应格式变化').slice(0,180));
+  const data=json(text);if(!data||data.error||data.search_metadata?.status!=='Success')throw Error('SerpApi 未返回成功结果，请检查账户状态或重新搜索');
   if(operation==='product'&&!data.product_results)throw Error('未返回商品详情；令牌可能已失效，请重新搜索');
   return {data,httpStatus:response.status};
  }
@@ -297,10 +297,10 @@ export async function dealLabRoute(request:Request,env:LabEnv,publicKey?:JsonWeb
    const status=Number(e?.httpStatus)||502;
    const retry=retrySeconds(e?.retryAfter,status===429?1800:0);
    if(status===429)await env.PT_UNIVERSE_DATA.put('deal-lab/backoff/'+provider,String(now()+Math.max(retry,60)*1000),{expirationTtl:Math.max(retry,60)});
-   const error=redact(asString(e?.message,500)||'上游请求失败',env) as string;
+   const error=asString(redact(e?.message,env),500)||'上游请求失败';
    const previous=json(await env.PT_UNIVERSE_DATA.get('deal-lab/health/'+provider)||'');
    await env.PT_UNIVERSE_DATA.put('deal-lab/health/'+provider,JSON.stringify({...previous,state:status===429?'rate_limited':'failed',lastAttempt:new Date().toISOString(),httpStatus:status,error}),{expirationTtl:90*86400});
    return fail(error,status>=400&&status<=599?status:502,{retryAfter:retry||null,lastGood:cached||null});
   }
- }catch(e:any){return fail(redact(asString(e?.message,500)||'数据服务不可用（已安全停止上游请求）',env) as string,503);}
+ }catch(e:any){return fail(asString(redact(e?.message,env),500)||'数据服务不可用（已安全停止上游请求）',503);}
 }
