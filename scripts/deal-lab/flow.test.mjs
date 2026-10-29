@@ -35,5 +35,6 @@ assert.equal(lab.state.selected.identifier,'products/a');assert.equal(lab.state.
 await lab.selectVariant(lab.state.variants[1]);assert.equal(lab.state.selected.identifier,'products/b');assert.equal(requests.filter(q=>q.operation==='product_search').length,1,'switching pack tabs does not rerun keyword search');
 lab.state.cooldowns.shopsavvy=clock+2000;cancelWait=true;const before=requests.length;await lab.work(signal=>lab.query('shopsavvy','product_lookup',{identifier:'products/c'},signal));assert.equal(requests.length,before,'navigation cancels queued API work');assert.equal(lab.state.page,'games');cancelWait=false;
 lab.state.countries=['CN','US'];await lab.work(signal=>lab.loadGame({id:1,name:'Game'},signal));assert.deepEqual(Array.from(lab.state.offers,x=>x.currency),['CNY','USD','USD']);assert.equal(requests.some(q=>q.provider==='serpapi'),false);assert.equal(requests.some(q=>q.provider==='itad'),false,'missing optional key is skipped independently');
+assert.ok(!window.document.querySelector('.loading'),'completed comparisons clear the in-progress indicator');
 assert.ok(!window.document.querySelector('[data-page=playground]'));
 console.log('PASS: one-click product details + offers, independent variation tabs, cancellable quota waits, native CN/US game quotes and retired Google/no extra navigation.');
