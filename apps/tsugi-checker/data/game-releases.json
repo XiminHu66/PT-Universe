@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-29T04:01:05Z",
+  "generated_at": "2026-10-29T04:16:54Z",
   "date_jst": "2026-10-29",
   "window": {
     "past_days": 7,
@@ -1467,19 +1467,7 @@
         "featured": true,
         "popularity_label": "Steam 热门",
         "steam_appid": "4017880",
-        "title_en": "ANOMALITH",
-        "title_zh": "异界揭踪／ANOMALITH",
-        "developers": [
-          "FURYU CORPORATION",
-          "Winning Entertainment Group Inc."
-        ],
-        "publishers": [
-          "FURYU CORPORATION"
-        ],
-        "tags": [
-          "动作",
-          "角色扮演"
-        ],
+        "metadata_error": "appdetails: HTTPError: 403 Client Error: Forbidden for url: https://store.steampowered.com/api/appdetails?appids=4017880&cc=cn&l=schinese",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
@@ -1504,6 +1492,7 @@
         "featured": true,
         "popularity_label": "Steam 热门",
         "steam_appid": "4559630",
+        "metadata_error": "appdetails: HTTPError: 403 Client Error: Forbidden for url: https://store.steampowered.com/api/appdetails?appids=4559630&cc=cn&l=schinese",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
@@ -1528,20 +1517,7 @@
         "featured": true,
         "popularity_label": "Steam 热门",
         "steam_appid": "3818450",
-        "title_en": "Everlast: Undying Tale",
-        "title_zh": "Everlast: Undying Tale",
-        "developers": [
-          "InSpades"
-        ],
-        "publishers": [
-          "InSpades"
-        ],
-        "tags": [
-          "动作",
-          "冒险",
-          "角色扮演",
-          "抢先体验"
-        ],
+        "metadata_error": "appdetails: HTTPError: 403 Client Error: Forbidden for url: https://store.steampowered.com/api/appdetails?appids=3818450&cc=cn&l=schinese",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
@@ -1566,20 +1542,7 @@
         "featured": true,
         "popularity_label": "Steam 热门",
         "steam_appid": "3447280",
-        "title_en": "Fantasy World Manager",
-        "title_zh": "Fantasy World Manager",
-        "developers": [
-          "Florian Alushaj"
-        ],
-        "publishers": [
-          "Legendary Pixels"
-        ],
-        "tags": [
-          "独立",
-          "角色扮演",
-          "模拟",
-          "抢先体验"
-        ],
+        "metadata_error": "appdetails: HTTPError: 403 Client Error: Forbidden for url: https://store.steampowered.com/api/appdetails?appids=3447280&cc=cn&l=schinese",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
@@ -1604,19 +1567,7 @@
         "featured": true,
         "popularity_label": "Steam 热门",
         "steam_appid": "940230",
-        "title_en": "Geoplanetical",
-        "title_zh": "Geoplanetical",
-        "developers": [
-          "Polytale Games"
-        ],
-        "publishers": [
-          "Polytale Games"
-        ],
-        "tags": [
-          "独立",
-          "模拟",
-          "抢先体验"
-        ],
+        "metadata_error": "appdetails: HTTPError: 403 Client Error: Forbidden for url: https://store.steampowered.com/api/appdetails?appids=940230&cc=cn&l=schinese",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
@@ -1641,21 +1592,7 @@
         "featured": true,
         "popularity_label": "Steam 热门",
         "steam_appid": "3978110",
-        "title_en": "Neuron Activation",
-        "title_zh": "Neuron Activation",
-        "developers": [
-          "DR Studio"
-        ],
-        "publishers": [
-          "Pretty Soon"
-        ],
-        "tags": [
-          "冒险",
-          "休闲",
-          "独立",
-          "模拟",
-          "策略"
-        ],
+        "metadata_error": "appdetails: HTTPError: 403 Client Error: Forbidden for url: https://store.steampowered.com/api/appdetails?appids=3978110&cc=cn&l=schinese",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
@@ -1680,18 +1617,7 @@
         "featured": true,
         "popularity_label": "Steam 热门",
         "steam_appid": "4115450",
-        "title_en": "Phantom Blade Zero",
-        "title_zh": "影之刃零",
-        "developers": [
-          "S-GAME Studio"
-        ],
-        "publishers": [
-          "S-GAME Publishing"
-        ],
-        "tags": [
-          "动作",
-          "角色扮演"
-        ],
+        "metadata_error": "appdetails: HTTPError: 403 Client Error: Forbidden for url: https://store.steampowered.com/api/appdetails?appids=4115450&cc=cn&l=schinese",
         "heat_label": "",
         "heat_labels": [],
         "heat_level": "none",
@@ -5501,28 +5427,28 @@
       "label": "App Store 日本 · 新着精选",
       "ok": true,
       "count": 8,
-      "checked_at": "2026-10-29T04:01:05Z",
+      "checked_at": "2026-10-29T04:16:54Z",
       "fallback": false
     },
     "googleplay": {
       "label": "Google Play 日本 · 新規リリース精选",
       "ok": true,
       "count": 4,
-      "checked_at": "2026-10-29T04:01:05Z",
+      "checked_at": "2026-10-29T04:16:54Z",
       "fallback": false
     },
     "taptap_cn_new": {
       "label": "TapTap 中国 · 新品榜",
       "ok": true,
       "count": 8,
-      "checked_at": "2026-10-29T04:01:05Z",
+      "checked_at": "2026-10-29T04:16:54Z",
       "fallback": false
     },
     "taptap_cn_upcoming": {
       "label": "TapTap 中国 · 即将首发",
       "ok": true,
       "count": 8,
-      "checked_at": "2026-10-29T04:01:05Z",
+      "checked_at": "2026-10-29T04:16:54Z",
       "fallback": false
     },
     "steam_popular_new": {
@@ -5531,7 +5457,7 @@
       "count": 34,
       "raw_count": 50,
       "dom_count": 50,
-      "checked_at": "2026-10-29T04:01:05Z",
+      "checked_at": "2026-10-29T04:16:54Z",
       "fallback": false
     },
     "steam_popular_upcoming": {
@@ -5540,17 +5466,17 @@
       "count": 49,
       "raw_count": 49,
       "dom_count": 50,
-      "checked_at": "2026-10-29T04:01:05Z",
+      "checked_at": "2026-10-29T04:16:54Z",
       "fallback": false
     },
     "famitsu": {
       "label": "Famitsu 日本游戏发行日",
       "ok": true,
       "count": 131,
-      "checked_at": "2026-10-29T04:01:05Z",
+      "checked_at": "2026-10-29T04:16:54Z",
       "fallback": false
     }
   },
-  "metadata_enriched_at": "2026-10-29T04:01:27Z",
+  "metadata_enriched_at": "2026-10-29T04:17:16Z",
   "refresh_source": "github:manual-or-push"
 }
