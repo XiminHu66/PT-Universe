@@ -17,6 +17,12 @@ def validate(root):
         d = yaml.load(path.read_text(), Loader=Loader)
         if not isinstance(d, dict): errors.append(f'{path.name}: invalid mapping'); continue
         if not d.get('concurrency'): errors.append(f'{path.name}: explicit concurrency required')
+        concurrency = d.get('concurrency')
+        if isinstance(concurrency, dict):
+            cancel = concurrency.get('cancel-in-progress', False)
+            if not isinstance(cancel, bool) and not (isinstance(cancel, str) and cancel.startswith('${{') and cancel.endswith('}}')):
+                errors.append(f'{path.name}: cancel-in-progress must be a boolean or expression, never a quoted boolean')
+
         on = d.get('on') or {}
         if path.name in config.get('manual_only_workflows', []) and set(on) != {'workflow_dispatch'}:
             errors.append(f'{path.name}: owner selected on-demand mode; Actions must be manual-only')

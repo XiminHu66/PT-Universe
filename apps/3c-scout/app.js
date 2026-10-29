@@ -244,6 +244,7 @@ async function init() {
   controls.innerHTML='<button id="refreshProducts" type="button">↻ 刷新商品</button><p id="refreshStatus" role="status">打开时按需更新；无需定时 Actions</p>';
   document.querySelector('.intro').after(controls);
   document.querySelector('#refreshProducts').onclick=()=>refreshProducts(true);
+  try{const cached=JSON.parse(localStorage.getItem('3c-demand-data'));if(Array.isArray(cached?.items))state.data=cached}catch{}
   try {
     const response = await fetch(`data/products.json?v=${Date.now()}`, { cache: "no-store" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);

@@ -10,9 +10,6 @@ name: Refresh Research Tools
     - main
     paths:
     - scripts/labs/**
-    - apps/_lab/**
-    - apps/thesis-lab/**
-    - apps/earnings-dojo/**
     - apps/eastside-weekend/**
     - apps/daily-nexus/data/upcoming-sources.json
   workflow_dispatch:

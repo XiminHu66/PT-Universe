@@ -27,7 +27,7 @@ const state = {
   evidenceBusy: false,
   ranges: readStorage(KEYS.ranges, {}),
   selected: new URLSearchParams(location.search).get("symbol")?.toUpperCase() || localStorage.getItem(KEYS.selected) || "NVDA",
-  data: { generatedAt: null, symbols: {} },
+  data: { generatedAt: null, symbols: readStorage('stock-demand-data', {}) },
   period: "1Y",
   analysis: null,
   dismissedAlert: false,
