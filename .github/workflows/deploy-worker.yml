@@ -37,6 +37,9 @@ jobs:
     - name: Validate Worker
       run: |
         npm run check
+        node tests/deal-lab.test.mjs
+        node ../../scripts/deal-lab/ui.test.mjs
+        node ../../scripts/monitor-center/connection-test.mjs
         node tests/anythingllm.test.mjs
         node tests/anythingllm-auth.test.mjs
         node tests/knowledge.test.mjs
@@ -215,5 +218,11 @@ jobs:
         if(!health.ok)throw Error('Worker health failed');
         const denied=await fetch(api+'/api/decision/11111111-1111-4111-8111-111111111111/sources',{headers});
         if(denied.status!==401)throw Error('Collector endpoint did not enforce authentication: '+denied.status);
+        const lab=await fetch(api+'/api/deal-lab/status',{headers});
+        const labStatus=await lab.json();
+        if(!lab.ok||labStatus.revision!=='deal-lab-20261029-v2')throw Error('Deal Lab deployed revision missing');
+        const labDenied=await fetch(api+'/api/deal-lab/query',{method:'POST',headers:{...headers,'content-type':'application/json'},body:JSON.stringify({provider:'cheapshark',operation:'games',args:{title:'Hades'}})});
+        if(labDenied.status!==401)throw Error('Deal Lab failed owner authentication enforcement');
+        console.log('Deal Lab deployed revision verified; anonymous query denied without upstream usage');
         console.log('Deployed collector endpoint responds and enforces owner authentication');
         JS

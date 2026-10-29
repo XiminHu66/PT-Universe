@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {normalize,mcpItems,money,safeURL,giveawayKind} from '../../apps/deal-lab/data.mjs';
+import {readFile} from 'node:fs/promises';
+assert.equal(safeURL('javascript:alert(1)'), '');assert.equal(safeURL('https://user:secret@example.com'), '');assert.equal(money('0.00','USD'),'$0.00');
+let rows=normalize({provider:'cheapshark',operation:'games',data:[{gameID:'1',external:'Hades',cheapest:'0.00',cheapestDealID:'ab%2Fcd%3D'}]});assert.equal(rows[0].price,'$0.00');assert.equal(rows[0].url,'https://www.cheapshark.com/redirect?dealID=ab%2Fcd%3D');
+rows=normalize({provider:'cheapshark',operation:'game',args:{id:'1'},data:{info:{title:'Hades'},cheapestPriceEver:{price:'2.00'},deals:[{dealID:'abc',price:'3.00',storeID:'1'}]}});assert.equal(rows[0].price,'$3.00');assert.equal(rows[0].historyLow,'$2.00');
+const text='## Results\n### 1. Mouse\n- Brand: Logitech\n- ASIN: ABC\n- Path: products/123\n\n### 2. Mouse 2\n- Path: products/456\n';rows=mcpItems({content:[{type:'text',text}]});assert.equal(rows.length,2);assert.equal(rows[0].identifier,'products/123');
+rows=mcpItems({content:[{type:'text',text:'## Offers\n1. **Amazon** - $124.69\n   - Condition: used\n   - Last checked: 2026-09-19T13:11:45.064Z\n   - [View Offer](https://amazon.com/test)\n\n2. **Best Buy** - $134.99\n   - Availability: in\n   - [View Offer](https://bestbuy.com/test)\n'}]});assert.equal(rows.length,2);assert.equal(rows[0].condition,'used');assert.equal(rows[1].link,'https://bestbuy.com/test');
+assert.equal(giveawayKind({type:'loot',title:'Example DLC'}),'DLC（Loot 分类）');
+assert.equal(normalize({provider:'serpapi',operation:'search',data:{categorized_shopping_results:[{shopping_results:[{title:'Mouse',price:'$10'}]}]}}).length,1);
+const frontend=await readFile(new URL('../../apps/deal-lab/app.js',import.meta.url),'utf8');assert.ok(!frontend.includes('innerHTML'));assert.ok(!frontend.includes('setInterval'));assert.ok(!frontend.includes('api_key'));
+console.log('PASS: Deal Lab display adapters: free zero prices, CheapShark redirect encoding, MCP text search/offers, missing currency, safe links and giveaway distinctions.');
