@@ -3,11 +3,11 @@
 import {verifyMonitorToken} from './monitor';
 import {recordRankPage,readRankTrends} from './deal-rank';
 
-type LabEnv={DB:D1Database;PT_UNIVERSE_DATA:KVNamespace;ITAD_API_KEY?:string};
+type LabEnv={DB:D1Database;PT_UNIVERSE_DATA:KVNamespace;ITAD_API_KEY?:string;SERPAPI_KEY?:string};
 type Dict=Record<string,unknown>;
 type Op={path:string;method?:'GET'|'POST';params:Record<string,'text'|'id'|'number'|'enum'|'uuid'|'ids'|'token'|'price'>;body?:string;description:string};
 const docs:Record<string,string>={
- shopsavvy:'https://shopsavvy.com/data/documentation/mcp-server',
+ serpapi:'https://serpapi.com/google-shopping-api',
  itad:'https://docs.isthereanydeal.com/',
  cheapshark:'https://apidocs.cheapshark.com/',
  gamerpower:'https://www.gamerpower.com/api-read',
@@ -15,6 +15,7 @@ const docs:Record<string,string>={
  steam:'https://store.steampowered.com/search/?filter=popularwishlist&ignore_preferences=1'
 };
 export const OPERATIONS:Record<string,Record<string,Op>>={
+ serpapi:{search:{path:'/search.json',params:{q:'text',sort_by:'number'},description:'美国 Google Shopping 搜索，USD；不自动分页'},product:{path:'/search.json',params:{page_token:'token'},description:'所选规格详情和跨商家报价'},account:{path:'/account.json',params:{},description:'只读免费套餐与官方余额（白名单字段）'}},
  itad:{
   search:{path:'/games/search/v1',params:{title:'text',results:'number'},description:'Find games by title'},
   lookup:{path:'/games/lookup/v1',params:{title:'text',appid:'number'},description:'Lookup Steam AppID or exact title'},
@@ -44,9 +45,8 @@ export const OPERATIONS:Record<string,Record<string,Op>>={
  fx:{latest:{path:'/stats/eurofxref/eurofxref-daily.xml',params:{},description:'ECB 官方参考汇率'}}
 };
 for(const [p,ops] of Object.entries({itad:['search','lookup','prices'],cheapshark:['games','game','deals','stores'],gamerpower:['giveaways','filter']}))for(const k of Object.keys(OPERATIONS[p]))if(!ops.includes(k))delete OPERATIONS[p][k];
-const READ_ONLY_MCP=new Set(['product_search','product_lookup','product_offers']);
 export const budgets:Record<string,{day:number;minute:number;hour:number;month:number;cooldown:number;ttl:number}>={
- shopsavvy:{day:120,minute:6,hour:60,month:2000,cooldown:4,ttl:21600},
+ serpapi:{day:20,minute:6,hour:20,month:175,cooldown:5,ttl:3600},
  itad:{day:90,minute:5,hour:60,month:1800,cooldown:10,ttl:10800},
  cheapshark:{day:120,minute:8,hour:40,month:2500,cooldown:2,ttl:10800},
  gamerpower:{day:80,minute:4,hour:30,month:1600,cooldown:15,ttl:7200},
@@ -55,7 +55,7 @@ export const budgets:Record<string,{day:number;minute:number;hour:number;month:n
  fx:{day:2,minute:1,hour:1,month:40,cooldown:60,ttl:86400}
 };
 export const POLICIES:Record<string,{free:string;terms:string;note:string}>={
- shopsavvy:{free:'匿名：每 IP 10 次工具调用/分钟、100 次/小时',terms:'https://shopsavvy.com/data/documentation/mcp-tools',note:'共享出口可能与其他客户端共用配额。仅个人按需探索；缓存用于降低请求量，不再分发完整目录。'},
+ serpapi:{free:'Free：250次/月、50次/小时；缓存命中不扣官方搜索额度',terms:'https://serpapi.com/pricing',note:'仅允许免费套餐；本工具滚动31天175次上限，保留官方余额75次。Google抓取时间不是商家核价时间。'},
 
  itad:{free:'已验证邮箱默认1000请求/5分钟；以开发者后台为准',terms:'https://docs.isthereanydeal.com/',note:'个人研究使用；署名、保留原始报价和购买链接；禁止竞争性服务。'},
  cheapshark:{free:'无需Key；未公布固定数值限流，遵守429 Retry-After',terms:'https://apidocs.cheapshark.com/',note:'用户主动搜索；购买链接必须经过 CheapShark redirect；不镜像完整目录。'},
@@ -66,7 +66,7 @@ export const POLICIES:Record<string,{free:string;terms:string;note:string}>={
 };
 export function retrySeconds(value:unknown,fallback=0){const n=Number(value);if(value!==null&&value!==''&&value!==undefined&&Number.isFinite(n)&&n>=0)return Math.ceil(n);const t=Date.parse(String(value));return Number.isFinite(t)?Math.max(0,Math.ceil((t-Date.now())/1000)):fallback;}
 function redact(value:unknown,env:LabEnv):unknown{
- const secrets=[env.ITAD_API_KEY].filter(Boolean) as string[];
+ const secrets=[env.ITAD_API_KEY,env.SERPAPI_KEY].filter(Boolean) as string[];
  if(typeof value==='string'){let s=value;for(const key of secrets)s=s.replaceAll(key,'[REDACTED]').replaceAll(encodeURIComponent(key),'[REDACTED]');return s;}
  if(Array.isArray(value))return value.map(v=>redact(v,env));
  if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).filter(([k])=>!['api_key','key','authorization','ITAD-API-Key'].includes(k)).map(([k,v])=>[k,redact(v,env)]));return value;
@@ -102,6 +102,7 @@ function validate(provider:string,operation:string,input:unknown){
   if(ids.length<1||ids.length>5||ids.some(x=>typeof x!=='string'||!validUUID(x)))throw Error('需要 1–5 个有效 ITAD UUID');
   return {params:result,body:ids};
  }
+ if(provider==='serpapi'){if(operation==='search'&&!result.q)throw Error('请输入商品名称');if(operation==='product'&&!result.page_token)throw Error('需要来源返回的商品详情令牌');if(result.sort_by&&!['1','2'].includes(result.sort_by))throw Error('不支持的排序');}
  if(provider==='itad'&&operation==='search'&&!result.title)throw Error('请输入游戏名');
  if(provider==='cheapshark'&&operation==='game'&&!result.id)throw Error('需要 CheapShark 游戏 ID');
  if(provider==='gamerpower'&&operation==='giveaway'&&!result.id)throw Error('需要 giveaway ID');
@@ -119,40 +120,6 @@ function validate(provider:string,operation:string,input:unknown){
  if(provider==='cheapshark'&&operation==='deal'&&!result.id)throw Error('需要 CheapShark Deal ID');
  return {params:result,body:null};
 }
-export function sanitizeMcpArgs(raw:unknown,schema:any){
- if(!raw||typeof raw!=='object'||Array.isArray(raw))throw Error('MCP 参数必须为 JSON 对象');
- if(!schema||schema.type!=='object'||!schema.properties)throw Error('MCP 未返回可验证的工具输入 Schema');
- if(Object.keys(raw).length>15||JSON.stringify(raw).length>3000)throw Error('MCP 参数过大');
- function check(value:any,d:any,depth=0):boolean{
-  if(depth>6||!d||typeof d!=='object'||d.$ref)return false;
-  if(d.type&&!['object','array','string','number','integer','boolean','null'].includes(d.type))return false;
-  if(d.type==='null'&&value!==null)return false;
-  if(d.pattern||d.format||d.not||d.$dynamicRef)return false; // Fail closed on an unsupported future schema.
-  if(d.const!==undefined&&JSON.stringify(d.const)!==JSON.stringify(value))return false;
-  if(d.anyOf&&!d.anyOf.some((x:any)=>check(value,x,depth+1)))return false;
-  if(d.oneOf&&d.oneOf.filter((x:any)=>check(value,x,depth+1)).length!==1)return false;
-  if(d.allOf&&!d.allOf.every((x:any)=>check(value,x,depth+1)))return false;
-  if(d.required&&(!value||typeof value!=='object'||!d.required.every((k:string)=>Object.hasOwn(value,k))))return false;
-  if(d.enum&&!d.enum.includes(value))return false;
-  if(d.type==='string'&&(typeof value!=='string'||value.length>250||value.length<(d.minLength||0)||value.length>(d.maxLength||250)))return false;
-  if(d.type==='number'&&(typeof value!=='number'||!Number.isFinite(value)))return false;
-  if(d.type==='integer'&&!Number.isInteger(value))return false;
-  if((d.type==='number'||d.type==='integer')&&(Math.abs(value)>1000||value<(d.minimum??-1000)||value>(d.maximum??1000)))return false;
-  if(d.type==='boolean'&&typeof value!=='boolean')return false;
-  if(d.type==='array'&&(!Array.isArray(value)||value.length>5||!value.every((x:any)=>check(x,d.items,depth+1))))return false;
-  if(d.type==='object'){
-   if(!value||typeof value!=='object'||Array.isArray(value))return false;
-   for(const k of Object.keys(value))if(['__proto__','prototype','constructor'].includes(k)||!Object.hasOwn(d.properties||{},k)||!check(value[k],d.properties[k],depth+1))return false;
-  }
-  return true;
- }
- if(!check(raw,schema))throw Error('MCP 参数不符合真实 Tool Schema（类型、必填项或范围错误）');
- const v=raw as Dict;
- if(typeof v.identifiers==='string'&&v.identifiers.split(',').filter(Boolean).length>5)throw Error('批量查询最多5个标识');
- if(v.limit!==undefined&&(!Number.isInteger(v.limit)||Number(v.limit)<1||Number(v.limit)>40))throw Error('本工具 MCP limit 上限为 40');
- if(v.offset!==undefined&&(!Number.isInteger(v.offset)||Number(v.offset)<0||Number(v.offset)>200))throw Error('本工具 MCP offset 上限为 200');
- return v;
-}
 async function fetchLimited(url:string,init:RequestInit={},timeout=17000){
  const r=await fetch(url,{...init,redirect:'manual',signal:AbortSignal.timeout(timeout)});
  if(r.status>=300&&r.status<400)throw Error('上游重定向被阻止');
@@ -161,46 +128,6 @@ async function fetchLimited(url:string,init:RequestInit={},timeout=17000){
  if(reader)try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>850000){await reader.cancel();throw Error('上游响应超出 850 KB 安全限制');}chunks.push(value);}}finally{reader.releaseLock();}
  const bytes=new Uint8Array(size);let offset=0;for(const c of chunks){bytes.set(c,offset);offset+=c.length;}const content=new TextDecoder().decode(bytes);
  return {response:r,text:content};
-}
-async function mcpRequest(method:string,params:unknown,session:string|null=null){
- const headers:Record<string,string>={'content-type':'application/json','accept':'application/json, text/event-stream','mcp-protocol-version':'2025-06-18'};
- if(session)headers['mcp-session-id']=session;
- const packet={jsonrpc:'2.0',id:crypto.randomUUID(),method,params};
- const {response,text}=await fetchLimited('https://api.shopsavvy.com/mcp',{method:'POST',headers,body:JSON.stringify(packet)});
- if(!response.ok)throw Object.assign(new Error('ShopSavvy MCP HTTP '+response.status),{httpStatus:response.status,retryAfter:response.headers.get('retry-after')});
- let value:any;
- if((response.headers.get('content-type')||'').includes('text/event-stream')){
-  const events=text.split(/\r?\n\r?\n/).map(part=>part.split(/\r?\n/).filter(line=>line.startsWith('data:')).map(line=>line.slice(5).trim()).join('')).filter(Boolean);
-  value=events.map(json).find(event=>event?.id===packet.id)||events.map(json).find(event=>event?.result||event?.error);
- }else value=json(text);
- if(!value||value.jsonrpc!=='2.0'||value.id!==packet.id||value.error)throw Error(asString(value?.error?.message,500)||'MCP 协议响应无效');
- return {value:value.result,session:response.headers.get('mcp-session-id')||session,status:response.status};
-}
-async function mcpConnect(){
- const init=await mcpRequest('initialize',{protocolVersion:'2025-06-18',capabilities:{},clientInfo:{name:'PT-Universe Deal Lab',version:'1.0'}});
- if(init.value?.protocolVersion!=='2025-06-18')throw Error('MCP 协议版本协商失败');
- // Initialized notification is an MCP protocol notification, not an arbitrary REST request.
- const notification=await fetchLimited('https://api.shopsavvy.com/mcp',{method:'POST',headers:{'content-type':'application/json','accept':'application/json, text/event-stream','mcp-protocol-version':'2025-06-18',...(init.session?{'mcp-session-id':init.session}:{})},body:JSON.stringify({jsonrpc:'2.0',method:'notifications/initialized'})},7000);if(!notification.response.ok)throw Error('MCP initialized notification 失败');
- return init.session;
-}
-async function mcpExecute(operation:string,args:unknown,env:LabEnv){
- const key='deal-lab/mcp-tools-v2';
- let catalog=json(await env.PT_UNIVERSE_DATA.get(key)||'');
- if(operation==='tools'&&Array.isArray(catalog?.tools))return {tools:catalog.tools.filter((t:any)=>READ_ONLY_MCP.has(t.name)&&t.annotations?.readOnlyHint!==false&&t.annotations?.destructiveHint!==true),protocol:'MCP Streamable HTTP',source:docs.shopsavvy};
- const session=await mcpConnect();
- if(!catalog||!Array.isArray(catalog.tools)){
-  catalog=(await mcpRequest('tools/list',{},session)).value;
-  if(catalog?.nextCursor)throw Error('MCP 工具目录需要分页，停止使用不完整目录');
-  if(catalog?.tools)await env.PT_UNIVERSE_DATA.put(key,JSON.stringify(catalog),{expirationTtl:86400});
- }
- const tools=(catalog?.tools||[]).filter((tool:any)=>READ_ONLY_MCP.has(tool?.name)&&tool.annotations?.readOnlyHint!==false&&tool.annotations?.destructiveHint!==true);
- if(operation==='tools')return {tools,protocol:'MCP Streamable HTTP',source:docs.shopsavvy};
- const tool=tools.find((t:any)=>t.name===operation);
- if(!tool)throw Error('MCP 只允许服务端已公布的只读工具');
- const checked=sanitizeMcpArgs(args,tool.inputSchema);
- const result=await mcpRequest('tools/call',{name:operation,arguments:checked},session);
- if((result.value as any)?.isError)throw Error('MCP 工具报告失败：'+JSON.stringify(result.value).slice(0,350));
- return {tool:operation,toolSchema:tool.inputSchema,toolDescription:tool.description,result:result.value};
 }
 function cleanHTML(s:string){return s.replace(/<[^>]*>/g,' ').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim();}
 export function parseSteam(html:string,offset=0,limit=100){
@@ -216,7 +143,18 @@ export function parseSteam(html:string,offset=0,limit=100){
  return rows.slice(0,limit);
 }
 export async function fetchDealSource(provider:string,operation:string,args:Dict,env:LabEnv){
- if(provider==='shopsavvy')return {data:await mcpExecute(operation,args,env),httpStatus:200};
+ if(provider==='serpapi'){
+  const {__fresh,...cleanArgs}=args;const v=validate(provider,operation,cleanArgs),u=new URL('https://serpapi.com/search.json');u.searchParams.set('api_key',env.SERPAPI_KEY||'');
+  u.searchParams.set('engine',operation==='search'?'google_shopping':'google_immersive_product');
+  if(operation==='search'){u.searchParams.set('q',v.params.q);u.searchParams.set('gl','us');u.searchParams.set('hl','en');u.searchParams.set('location','Seattle, Washington, United States');if(v.params.sort_by)u.searchParams.set('sort_by',v.params.sort_by);}
+  else{u.searchParams.set('page_token',v.params.page_token);u.searchParams.set('more_stores','true');}
+  if(args.__fresh===true)u.searchParams.set('no_cache','true');
+  const {response,text}=await fetchLimited(u.toString(),{headers:{accept:'application/json'}},55000);
+  if(!response.ok)throw Object.assign(Error('SerpApi HTTP '+response.status),{httpStatus:response.status,retryAfter:response.headers.get('retry-after')});
+  const data=json(text);if(!data||data.error||data.search_metadata?.status!=='Success')throw Error('SerpApi 未返回成功结果：'+String(data?.error||'响应格式变化').slice(0,180));
+  if(operation==='product'&&!data.product_results)throw Error('未返回商品详情；令牌可能已失效，请重新搜索');
+  return {data,httpStatus:response.status};
+ }
  if(provider==='steam'){
   if(operation==='trends')return {data:await readRankTrends(env,Number(args.days||30)),httpStatus:200};
   const page=Number(args.page||0),u=new URL('https://store.steampowered.com/search/results/');
@@ -267,6 +205,16 @@ export async function fetchDealSource(provider:string,operation:string,args:Dict
  if(data?.error||data?.errors||data?.search_metadata?.status==='Error')throw Error('上游报告查询失败：'+JSON.stringify(data.error||data.errors||data.search_metadata.status).slice(0,200));
  return {data,httpStatus:response.status};
 }
+async function serpAccount(env:LabEnv){
+ const fingerprint=(await hash(env.SERPAPI_KEY||'')).slice(0,24),key='deal-lab/serp-account/'+fingerprint;
+ const cached=json(await env.PT_UNIVERSE_DATA.get(key)||'');if(cached?.validUntil>now())return cached;
+ const u=new URL('https://serpapi.com/account.json');u.searchParams.set('api_key',env.SERPAPI_KEY||'');
+ const {response,text}=await fetchLimited(u.toString(),{headers:{accept:'application/json'}},12000);
+ if(!response.ok)throw Object.assign(Error('SerpApi 套餐验证 HTTP '+response.status),{httpStatus:response.status,retryAfter:response.headers.get('retry-after')});
+ const a=json(text);if(!a||a.error||!Number.isFinite(a.plan_searches_left)||!Number.isFinite(a.searches_per_month))throw Error('SerpApi 套餐验证失败，已停止搜索');
+ const data={planName:String(a.plan_name||''),freePlanVerified:Number(a.plan_monthly_price)===0&&/free/i.test(String(a.plan_name||a.plan_id||''))&&String(a.account_status).toLowerCase()==='active',searchesLeft:Number(a.plan_searches_left),monthlyLimit:Number(a.searches_per_month),hourlyLimit:Number(a.account_rate_limit_per_hour)||null,renewalDate:typeof a.plan_renewal_date==='string'?a.plan_renewal_date:null,checkedAt:new Date().toISOString(),validUntil:now()+300000};
+ await env.PT_UNIVERSE_DATA.put(key,JSON.stringify(data),{expirationTtl:300});return data;
+}
 async function bootstrap(env:LabEnv){
  await env.DB.prepare('CREATE TABLE IF NOT EXISTS deal_lab_usage (id TEXT PRIMARY KEY, provider TEXT NOT NULL, created_at INTEGER NOT NULL, status TEXT NOT NULL)').run();
  await env.DB.prepare('CREATE INDEX IF NOT EXISTS deal_lab_usage_idx ON deal_lab_usage(provider,created_at)').run();
@@ -304,25 +252,26 @@ export async function dealLabRoute(request:Request,env:LabEnv,publicKey?:JsonWeb
   let usage:Dict={};
   if(owner)try{await bootstrap(env);usage=Object.fromEntries(await Promise.all(Object.keys(budgets).map(async p=>[p,await metrics(env,p)])))}catch{}
   const health=owner?Object.fromEntries(await Promise.all(Object.keys(budgets).map(async p=>[p,json(await env.PT_UNIVERSE_DATA.get('deal-lab/health/'+p)||'')]))):{};
-  return out({revision:'deal-lab-poc-v3',usageWindow:'rolling31days',ok:true,authorized:owner,sources:Object.fromEntries(Object.keys(budgets).map(p=>[p,{doc:docs[p],keyRequired:p==='itad',configured:p==='itad'?!!env.ITAD_API_KEY:true,budget:budgets[p],usage:owner?usage[p]:null,policy:POLICIES[p],health:health[p]||null}])),operations:OPERATIONS,mcpReadOnlyTools:[...READ_ONLY_MCP],notice:'Usage numbers are Deal Lab internal calls, not official provider balances.'});
+  return out({revision:'deal-lab-serpapi-v4',usageWindow:'rolling31days',ok:true,authorized:owner,sources:Object.fromEntries(Object.keys(budgets).map(p=>[p,{doc:docs[p],keyRequired:['itad','serpapi'].includes(p),configured:p==='itad'?!!env.ITAD_API_KEY:p==='serpapi'?!!env.SERPAPI_KEY:true,budget:budgets[p],usage:owner?usage[p]:null,policy:POLICIES[p],health:health[p]||null}])),operations:OPERATIONS,notice:'Usage numbers are Deal Lab internal calls, not official provider balances.'});
  }
  if(!await verifyMonitorToken((request.headers.get('authorization')||'').replace(/^Bearer /i,''),Date.now(),publicKey))return fail('请先使用现有监控中心完成私有工具中心授权',401,{code:'connect_required'});
  if(request.method!=='POST'||!['/api/deal-lab/query','/api/deal-lab/clear'].includes(path))return fail('Unsupported action',405);
  const raw=await request.text();if(raw.length>5000)return fail('请求体超过安全限制',413);
  const body=json(raw) as any;if(!body||typeof body!=='object')return fail('参数不是 JSON',400);
  const provider=asString(body.provider,24),operation=asString(body.operation,70),force=body.force===true;
- if(provider==='serpapi')return fail('Google Shopping 已停用',410,{code:'provider_retired'});
+ if(provider==='shopsavvy')return fail('ShopSavvy 已由 SerpApi 替换',410,{code:'provider_retired'});
  if(!Object.hasOwn(budgets,provider))return fail('不支持的数据源');
- if(provider==='shopsavvy'&&operation!=='tools'&&!READ_ONLY_MCP.has(operation))return fail('只允许 ShopSavvy 的只读 MCP 工具',403);
- if(provider!=='shopsavvy'&&!OPERATIONS[provider]?.[operation])return fail('未知 API Endpoint',400);
+ if(!OPERATIONS[provider]?.[operation])return fail('未知 API Endpoint',400);
+ if(provider==='serpapi'&&!env.SERPAPI_KEY)return fail('待配置 Cloudflare Secret：SERPAPI_KEY',503,{code:'key_missing'});
  if(provider==='itad'&&!env.ITAD_API_KEY)return fail('待配置 Cloudflare Secret：ITAD_API_KEY',503,{code:'key_missing'});
  let args:Dict={};
  if(body.args&&typeof body.args==='object'&&!Array.isArray(body.args))args=body.args;
  if(JSON.stringify(args).length>3500)return fail('参数超过安全限制',413);
  try{
-  let normalized:unknown;try{normalized=provider==='shopsavvy'?args:validate(provider,operation,args);}catch(e:any){return fail(asString(e.message,300),400);}
+  let normalized:unknown;try{normalized=validate(provider,operation,args);}catch(e:any){return fail(asString(e.message,300),400);}
+  if(provider==='serpapi'&&operation==='account')return out({ok:true,provider,operation,data:await serpAccount(env),cache:'account',httpStatus:200});
   const stable=(v:any):any=>Array.isArray(v)?v.map(stable):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,stable(v[k])])):v;
-  const cacheKey='deal-lab/poc-v3/'+await hash(JSON.stringify([provider,operation,stable(normalized)]));
+  const cacheKey=(provider==='serpapi'?'deal-lab/serp-v4/':'deal-lab/poc-v3/')+await hash(JSON.stringify([provider,operation,stable(normalized)]));
   const cached=json(await env.PT_UNIVERSE_DATA.get(cacheKey)||'') as any;
   if(provider==='steam'&&operation==='trends')return out({ok:true,provider,operation,data:await readRankTrends(env,Number(args.days||30)),cache:'local',httpStatus:200,fetchedAt:new Date().toISOString(),source:docs.steam});
   if(path.endsWith('/clear')){if(cached)await env.PT_UNIVERSE_DATA.put(cacheKey,JSON.stringify({...cached,freshUntil:0}),{expirationTtl:14*86400});return out({ok:true,cleared:true,lastGoodRetained:!!cached});}
@@ -335,7 +284,8 @@ export async function dealLabRoute(request:Request,env:LabEnv,publicKey?:JsonWeb
   if(!reservation){const usage=await metrics(env,provider);return fail('Deal Lab 服务端额度或冷却已达到保护阈值',429,{usage,retryAfter:await budgetRetry(env,provider,usage),lastGood:cached||null});}
   const start=now();
   try{
-   const upstream=await fetchDealSource(provider,operation,args,env);
+   if(provider==='serpapi'){const a=await serpAccount(env);if(!a.freePlanVerified)throw Object.assign(Error('安全停止：仅允许已验证的 SerpApi Free 套餐'),{httpStatus:403});if(a.searchesLeft<=75)throw Object.assign(Error('安全停止：SerpApi 官方剩余额度已进入75次保留区'),{httpStatus:429,retryAfter:3600});}
+   const upstream=await fetchDealSource(provider,operation,provider==='serpapi'?{...args,__fresh:force}:args,env);
    const data=redact(upstream.data,env);
    await env.DB.prepare('UPDATE deal_lab_usage SET status=? WHERE id=?').bind('success',reservation).run();
    const packet={provider,operation,data,region:provider==='steamstore'?String(args.country||'CN'):provider==='itad'?String(args.country||'US'):['cheapshark','steam'].includes(provider)?'US':null,currency:provider==='cheapshark'?'USD':null,source:docs[provider],fetchedAt:new Date().toISOString(),durationMs:now()-start,httpStatus:upstream.httpStatus,cache:'miss',freshUntil:now()+budgets[provider].ttl*1000};

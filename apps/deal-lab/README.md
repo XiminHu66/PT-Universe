@@ -1,16 +1,30 @@
-# Deal Lab — shopping/game PoC v3
+# Deal Lab — shopping/game PoC v4
 
 https://ximinhu66.github.io/PT-Universe/apps/deal-lab/
 
-The current product has **four workspaces only**. Google/SerpApi is retired server-side (`410 provider_retired`); the source overview, general API playground, JSON debugger and saved-items/history UI are removed. Existing browser records from those features are preserved, not deleted. PT Universe entry and the existing owner connection/nonce-bound return flow remain intact.
+The current product has **four workspaces only**. ShopSavvy is replaced by SerpApi and retired server-side (`410 provider_retired`); the source overview, general API playground, JSON debugger and saved-items/history UI are removed. Existing browser records from those features are preserved, not deleted. PT Universe entry and the existing owner connection/nonce-bound return flow remain intact.
 
 ## 1. Product comparison
 
-One keyword search calls ShopSavvy MCP `product_search`, then reads `product_lookup` and `product_offers` for the first matching product. Every result with a distinct source identifier gets its own variation tab. Literal title cues separate single items, Plus/bundles and accessories; these are browsing groups, not inferred authoritative parent/child SKU relationships. The original title, model, MPN, color, barcode and ASIN remain visible when the actual source provides them.
+One explicit search calls SerpApi `google_shopping` (US, English, Seattle market context). The first matching item with a real immersive-product token gets one `google_immersive_product` call, with `more_stores=true`. Other products and source-provided variants are loaded only on selection, never swept automatically. No offset pagination: the current Google Shopping layout ignores `start`. Single items, Plus/bundles and compatible accessories keep independent tabs and caches. Products without a detail token show their search identity and original link, never invented quotes.
 
-Selecting another variation reads that variation's details/quotes, with separate caches and partial errors. No automatic sweep of all search results. The explicit refresh button refreshes the selected quote. Prices show seller, condition, source-reported stock and the actual last-check time. Old/undated offers are visibly marked; only new, in-stock offers checked within seven days are eligible for a recent-offer minimum. All ShopSavvy attribution URLs are preserved. No synthetic product images or invented specifications.
+Images, title, brand, features, reviews, seller links, shipping, coupons and prices are displayed only when returned. Monthly installments are identified and excluded from full-price minimums. Used/refurbished listings are marked. Google capture time and tool retrieval time remain separate: neither is a merchant's price verification timestamp. Undated or >24h/stale responses do not receive a minimum-price headline. Explicit refresh bypasses both the local cache and SerpApi cache and may consume another credit.
 
-MCP initialization, initialized notification, real tool discovery, exact input schema validation and the fixed read-only allowlist remain server-side. Only product_search, product_lookup and product_offers are allowed for this PoC.
+### Configure the key safely
+
+Production: Cloudflare Dashboard → Workers & Pages → **pt-universe-api** → Settings → Variables and Secrets → Add → type **Secret** → name **SERPAPI_KEY** → enter the key → save/deploy. Use an account on SerpApi **Free**, with no payment method or automatic early renewal. Existing Worker secrets survive ordinary Wrangler deployments. No GitHub secret, frontend edit or separate service is needed.
+
+Alternatively, use `npx wrangler secret put SERPAPI_KEY` from `workers/pt-universe-api` and paste into its interactive prompt. Do not put the key in a command argument, GitHub file, issue, PR, browser storage or frontend form. The public UI exposes only a configured boolean. This repository never receives your real key.
+
+For local development only, copy `workers/pt-universe-api/.dev.vars.example` to `.dev.vars`, set filesystem permissions to owner-only (`chmod 600 .dev.vars` on Unix), and edit it privately. `.dev.vars` and its variants are git-ignored; the example contains an empty placeholder. This local file is plaintext, not encrypted; use Cloudflare Secrets for production storage. The Pages distribution excludes the entire Worker directory.
+
+Owner-only API contract:
+- `POST /api/deal-lab/query` with `{ "provider": "serpapi", "operation": "search", "args": { "q": "HD 490 Pro" } }`.
+- `operation: "product"`, args `{ "page_token": "<actual source token>" }`.
+- `operation: "account"`, args `{}` checks official allowance without spending search credits, caching the sanitized projection for five minutes. It never returns account email, account ID or key.
+- No key → HTTP 503 `key_missing`, no outbound API call. ShopSavvy → 410.
+
+Every cache miss first requires an active, verified **Free** plan with `plan_monthly_price=0` and official `plan_searches_left > 75`; unverifiable/paid accounts stop safely. Account checks use a fixed endpoint and a key-specific cache, with no credentials in cached values. Account balance is a dated snapshot, not a real-time guarantee across other apps. Independent D1 limits conservatively count all attempts, even failures/provider cache hits. Search and product queries share the same cap. No billing, plan upgrade, top-up, arbitrary engines or URL proxy is exposed. Raw results and upstream errors are redacted before client responses or cache writes.
 
 ## 2. Game prices, including China
 
@@ -46,7 +60,7 @@ No new VPS service, cron, GitHub Actions collector, paid plan, account system or
 
 | Source | Internal limits: minute / hour / UTC day / rolling 31 days | Cooldown | Cache |
 | --- | --- | --- | --- |
-| ShopSavvy | 6 / 60 / 120 / 2000 | 4s | 6h |
+| SerpApi | 6 / 20 / 20 / 175 | 5s | 1h |
 | Steam ranking pages | 40 / 120 / 160 / 2600 | 1s server, at least 2s UI | 24h, same observation date |
 | Steam store | 12 / 60 / 160 / 2500 | 1s | 1h |
 | CheapShark | 8 / 40 / 120 / 2500 | 2s | 3h |
@@ -54,7 +68,7 @@ No new VPS service, cron, GitHub Actions collector, paid plan, account system or
 | ITAD, optional | 5 / 60 / 90 / 1800 | 10s | 3h |
 | ECB FX | 1 / 1 / 2 / 40 | 60s | 24h |
 
-At the 2026-10-29 observed 5,884 wishlist entries, one manually requested complete scan takes 59 page requests, typically around two minutes. One scan/day is about 1,770 page requests per 30 days, below the 2,600 rolling allowance. Repeating current-day cached pages makes no new upstream request. Monthly trend reads are local D1 reads and do not spend upstream request allowance. Limits count attempted calls including failures; they are this tool's limits, not official account balances. ShopSavvy anonymous limits remain shared per exit IP (official 10 tool calls/minute, 100/hour). Upstream 429 is respected even below internal limits.
+At the 2026-10-29 observed 5,884 wishlist entries, one manually requested complete scan takes 59 page requests, typically around two minutes. One scan/day is about 1,770 page requests per 30 days, below the 2,600 rolling allowance. Repeating current-day cached pages makes no new upstream request. Monthly trend reads are local D1 reads and do not spend upstream request allowance. Limits count attempted calls including failures; they are this tool's limits, not official account balances. SerpApi Free currently provides 250 searches/month and 50/hour; only configured, owner-authorized calls can use it. Official and internal usage are shown separately. Upstream 429 is respected even below internal limits.
 
 ## Validation
 
@@ -81,10 +95,13 @@ npx wrangler deploy --dry-run
 
 `node tests/deal-lab.live.mjs` explicitly calls actual public upstream services through an isolated local route/SQLite/KV adapter. It is not run in routine CI and is not evidence of deployment. The final production URL, source revision, deployment run and browser flows must be independently verified after release.
 
-2026-10-29 real local-route upstream results: ShopSavvy search/lookup/model/16 offers; Hades CN CNY 92.00 / US USD 24.99; Steam title search; ECB dated 2026-10-29; matching CheapShark offers; five Steam/Epic full-game activities; wishlist pages 1 and 2 with 100 items each and source total 5,884; D1 daily history reflects one actual date, not 30 simulated days. Repeats hit cache, Google returns retired 410 and missing ITAD key returns 503. No keyed ITAD live success is claimed.
+Validation boundaries for v4: backend fixtures cover missing key, Free/paid plan guard, official reserve, secret redaction, cache reuse and explicit refresh; UI/controller fixtures cover product/variant flow and installment handling. These fixtures are not live SerpApi price validation. Real SerpApi query validation remains pending the owner's key. The other three workspaces retain their previous verified data paths and cache namespace.
 
 Primary references:
-- https://shopsavvy.com/data/documentation/mcp-tools
+- https://serpapi.com/pricing
+- https://serpapi.com/google-shopping-api
+- https://serpapi.com/google-immersive-product-api
+- https://serpapi.com/account-api
 - https://store.steampowered.com/search/?filter=popularwishlist&ignore_preferences=1
 - https://partner.steamgames.com/doc/webapi/IPartnerFinancialsService
 - https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html

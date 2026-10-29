@@ -1,0 +1,3 @@
+# LOCAL DEVELOPMENT ONLY: copy to .dev.vars, chmod 600; never commit the copy.
+# Production: use the encrypted Cloudflare Worker Secret with this exact name.
+SERPAPI_KEY=""
