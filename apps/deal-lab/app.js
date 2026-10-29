@@ -1,269 +1,156 @@
 import {connected,connect} from '../monitor-center/connection.mjs';
-import {NAMES,safeURL,normalize,giveawayKind} from './data.mjs';
+import {safeURL,money,productMatches,productDetails,productOffers,sourceLinks,variantKind,mergeVariants,toCNY,steamOffer,cheapOffers,itadOffers,retainedGiveaways,giveawayPlatforms,trendItems} from './data.mjs';
 const BASE='https://pt-universe-api.summer07-nanjolno.workers.dev/api/deal-lab/';
-const $=s=>document.querySelector(s);
-const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=String(text);return n;};
-const add=(p,...nodes)=>{for(const n of nodes)if(n)p.append(n);return p;};
-const store={read(k,f){try{return JSON.parse(localStorage.getItem('ptu.deal-lab.'+k))??f}catch{return f}},write(k,v){try{localStorage.setItem('ptu.deal-lab.'+k,JSON.stringify(v))}catch{notify('浏览器存储不可用；本次结果仍可查看，收藏暂时无法保存。')}}};
-const TITLES={overview:'数据源总览',products:'商品探索',games:'游戏折扣',free:'免费领取',steam:'Steam 热门愿望单',playground:'API Playground',saved:'收藏与查询历史'};
-const state={page:'overview',status:null,packets:[],errors:[],busy:false,provider:store.read('provider','cheapshark'),operation:'games',playArgs:{},lastQuery:null,cooldowns:{},cacheKnown:new Set(),active:null};
-let saved=store.read('saved',[]),historyItems=store.read('history',[]),jsonValue=null;
-function notify(text,error=false){$('#notice').textContent=text;$('#notice').classList.toggle('error',error);}
-function button(text,fn,primary=false){const b=el('button',primary?'primary':'',text);b.type='button';b.onclick=fn;return b;}
-function link(url,text){const href=safeURL(url);if(!href)return null;const a=el('a','',text);a.href=href;a.target='_blank';a.rel='noopener noreferrer';return a;}
-function field(text,id,value='',type='text',placeholder=''){const l=el('label');const i=el('input');i.id=id;i.type=type;i.value=value;i.maxLength=type==='text'?2400:180;i.placeholder=placeholder;return add(l,el('span','',text),i);}
-function choice(text,id,options,value){const l=el('label');const s=el('select');s.id=id;for(const [id,title] of options){const o=el('option','',title);o.value=id;o.selected=id===value;s.append(o);}return add(l,el('span','',text),s);}
-function pill(text,kind=''){return el('span','status '+kind,text);}
-function when(value){if(!value||value==='N/A')return '未提供';const date=new Date(value);return isNaN(date)?String(value):date.toLocaleString('zh-CN',{timeZone:'America/Los_Angeles'});}
-async function request(path,body,signal){const response=await fetch(BASE+path,{method:body?'POST':'GET',headers:{...(body?{'content-type':'application/json'}:{}),authorization:'Bearer '+(sessionStorage.getItem('pt.monitor.session.v1')||'')},body:body?JSON.stringify(body):undefined,credentials:'omit',cache:'no-store',signal:signal?AbortSignal.any([signal,AbortSignal.timeout(70000)]):AbortSignal.timeout(70000)});const data=await response.json().catch(()=>({error:'服务未返回有效 JSON'}));if(!response.ok){const e=new Error(data.error||'HTTP '+response.status);e.packet=data;e.httpStatus=response.status;throw e;}return data;}
-function initConnect({automatic=false}={}){sessionStorage.setItem('pt.deal-lab.return.v1',JSON.stringify({path:location.pathname,expiresAt:Date.now()+600000}));connect({automatic});}
-function setPage(page){state.active?.abort();notify('');state.page=Object.hasOwn(TITLES,page)?page:'overview';state.packets=[];state.errors=[];window.history.replaceState(null,'','#'+state.page);document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===state.page));$('#heading').textContent=TITLES[state.page];render();}
-function render(){const root=$('#view');root.replaceChildren();if(state.page==='overview')overview(root);else if(['products','games','free'].includes(state.page))searchForm(root,state.page);else if(state.page==='steam')steam(root);else if(state.page==='playground')playground(root);else savedView(root);renderPackets();setBusy(state.busy);}
-function setBusy(busy){state.busy=busy;$('#view').setAttribute('aria-busy',String(busy));document.querySelectorAll('#view button[data-query]').forEach(b=>b.disabled=busy);}
-function queryButton(label,fn,primary=false){const b=button(label,fn,primary);b.dataset.query='true';b.disabled=state.busy;return b;}
-function overview(root){
- root.append(el('p','lead','按需探索真实数据。所有外部查询需要现有私有后台授权；打开页面只读取本工具状态，不请求第三方 API。'));
- const grid=el('div','grid source-grid');
- for(const [id,name] of Object.entries(NAMES)){
-  const source=state.status?.sources?.[id],b=source?.budget||{},u=source?.usage||{},health=source?.health;
-  const title=!source?'状态未知':!source.configured?'待配置 Key':health?.state==='rate_limited'?'最近调用限流':health?.state==='failed'?'最近调用失败':health?.state==='success'?'最近调用成功':'已接入 · 尚未调用';
-  const card=add(el('article','panel'),el('h3','',name),pill(title,health?.state==='success'?'good':!source?.configured||health?.state==='failed'?'warn':''));
-  card.append(el('p','lead',source?.policy?.free||'正在读取服务端配置…'));
-  for(const [name,value] of [['滚动31天 · 本工具调用',(u.month??'—')+' / '+(b.month??'—')],['今日 / 每小时',`${u.day??'—'} / ${u.hour??'—'}`],['最近调用',when(u.lastCall)],['最近成功',when(health?.lastSuccess)],['缓存 / 最短间隔',`${b.ttl?b.ttl/60:'—'} 分钟 / ${b.cooldown??'—'} 秒`]])card.append(add(el('div','stats'),el('span','',name),el('b','',value)));
-  if(u.month>=b.month*.8)card.append(el('p','warning','已使用80%以上内部额度；达到上限将停止新请求。'));
-  if(health?.error)card.append(el('p','warning',health.error));
-  card.append(el('p','muted',source?.policy?.note||''),add(el('div','result-head'),link(source?.doc,'API 文档'),link(source?.policy?.terms,'条款 / 额度'),button('探索端点',()=>{state.provider=id;setPage('playground');})));
-  grid.append(card);
+const $=s=>document.querySelector(s),el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=String(text);return n;},add=(p,...nodes)=>{for(const n of nodes)if(n)p.append(n);return p;};
+const store={read(k,f){try{return JSON.parse(localStorage.getItem('ptu.deal-lab.poc.'+k))??f}catch{return f}},write(k,v){try{localStorage.setItem('ptu.deal-lab.poc.'+k,JSON.stringify(v))}catch{}}};
+const TITLES={products:'商品比价',games:'游戏低价 · 含国区',free:'Steam / Epic 免费领',steam:'热门愿望单与近期趋势'};
+const COUNTRIES={CN:'中国大陆',US:'美国',HK:'香港',JP:'日本',GB:'英国',DE:'德国',BR:'巴西',CA:'加拿大',AU:'澳洲',KR:'韩国',TR:'土耳其',IN:'印度'};
+const state={page:'products',status:null,busy:false,controller:null,cooldowns:{},cacheKnown:new Set(),variants:[],selected:null,variantData:new Map(),variantFilter:'all',productQuery:'',offset:0,gameItems:[],game:null,offers:[],gameErrors:[],fx:null,stores:{},countries:store.read('countries',['CN','US']),giveaways:[],freePacket:null,rankItems:[],rankPages:new Map(),rankCatalogDay:null,rankPacket:null,rankPage:0,rankSearch:'',rankMode:'current',rankProgress:'',trends:null,trendPage:0,trendSearch:''};
+function note(text,error=false){$('#notice').textContent=text;$('#notice').classList.toggle('error',error);}
+function button(text,action,primary=false){const b=el('button',primary?'primary':'',text);b.type='button';b.onclick=action;return b;}
+function link(url,label){const href=safeURL(url);if(!href)return null;const a=el('a','',label);a.href=href;a.target='_blank';a.rel='noopener noreferrer';return a;}
+function input(label,id,value='',placeholder=''){const l=el('label'),i=el('input');i.id=id;i.value=value;i.type='search';i.placeholder=placeholder;i.maxLength=180;return add(l,el('span','',label),i);}
+function select(label,id,options,value){const l=el('label'),s=el('select');s.id=id;for(const [k,title] of options){const o=el('option','',title);o.value=k;o.selected=k===value;s.append(o);}return add(l,el('span','',label),s);}
+function when(v){if(!v||v==='N/A')return '未提供';const d=new Date(v);return isNaN(d)?String(v):d.toLocaleString('zh-CN',{timeZone:'America/Los_Angeles'});}
+function badge(text,cls=''){return el('span','badge '+cls,text);}
+function empty(text){return el('div','empty',text);}
+function initConnect(){sessionStorage.setItem('pt.deal-lab.return.v1',JSON.stringify({path:location.pathname,expiresAt:Date.now()+600000}));connect();}
+async function status(){try{const r=await fetch(BASE+'status',{headers:{authorization:'Bearer '+(sessionStorage.getItem('pt.monitor.session.v1')||'')},credentials:'omit',cache:'no-store',signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error('状态 HTTP '+r.status);state.status=await r.json();for(const [p,s] of Object.entries(state.status.sources||{})){const t=Date.parse(s.usage?.lastCall||'')+1000*(s.budget?.cooldown||0);if(Number.isFinite(t))state.cooldowns[p]=Math.max(state.cooldowns[p]||0,t);}$('#sessionStatus').textContent=state.status.authorized?'私有后台已连接':'尚未连接';$('#connect').textContent=state.status.authorized?'重新连接':'连接私有后台';}catch(e){$('#sessionStatus').textContent='后台暂时不可用';note(e.message,true);}}
+function setPage(page){state.controller?.abort();state.busy=false;state.page=Object.hasOwn(TITLES,page)?page:'products';history.replaceState(null,'','#'+state.page);note('');document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===state.page));$('#heading').textContent=TITLES[state.page];render();}
+function render(){const root=$('#view');root.replaceChildren();if(state.page==='products')products(root);else if(state.page==='games')games(root);else if(state.page==='free')free(root);else wishlist(root);}
+function jobButtons(){document.querySelectorAll('[data-work]').forEach(b=>b.disabled=state.busy||b.dataset.boundDisabled==='true');}
+function workButton(label,action,primary=false){const b=button(label,action,primary);b.dataset.work='true';b.disabled=state.busy;return b;}
+async function work(fn){if(state.busy)return;if(!connected())return note('请先连接现有 PT 私有后台。',true);const controller=new AbortController();state.controller=controller;state.busy=true;jobButtons();try{await fn(controller.signal);}catch(e){if(!controller.signal.aborted)note(e.message,true);}finally{if(state.controller===controller){state.controller=null;state.busy=false;jobButtons();void status();}}}
+function pause(ms,signal){return new Promise((resolve,reject)=>{const abort=()=>{clearTimeout(timer);reject(new DOMException('Aborted','AbortError'));};const timer=setTimeout(()=>{signal?.removeEventListener('abort',abort);resolve();},ms);signal?.addEventListener('abort',abort,{once:true});if(signal?.aborted)abort();});}
+async function query(provider,operation,args,signal,force=false){
+ const request={provider,operation,args},key=JSON.stringify(request),known=!force&&(state.cacheKnown.has(key)||(provider==='steam'&&operation==='trends'));
+ const until=state.cooldowns[provider]||0;
+ if(!known&&until>Date.now()){
+  if(until-Date.now()>31000)throw Error('来源冷却中，请 '+Math.ceil((until-Date.now())/1000)+' 秒后再试。');
+  while(until>Date.now()){note('正在整理结果 · 来源额度保护，'+Math.ceil((until-Date.now())/1000)+' 秒后继续。切换页面可取消。');await pause(Math.min(1000,until-Date.now()),signal);}
  }
- root.append(grid,el('p','note','使用量为本工具记录的请求尝试（包含失败），不是账户官方剩余额度。SerpApi 采用滚动31天175次硬上限，覆盖不同账期；其他应用可能共用账户额度。缓存结果可随时回看。'));
- root.append(button('刷新接入状态',()=>status()));
+ if(signal?.aborted)throw new DOMException('Aborted','AbortError');
+ const started=Date.now(),response=await fetch(BASE+'query',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+(sessionStorage.getItem('pt.monitor.session.v1')||'')},body:JSON.stringify({...request,...(force?{force:true}:{})}),credentials:'omit',cache:'no-store',signal:signal?AbortSignal.any([signal,AbortSignal.timeout(70000)]):AbortSignal.timeout(70000)});
+ const data=await response.json();
+ if(!response.ok){if(data.retryAfter)state.cooldowns[provider]=Date.now()+data.retryAfter*1000;if(data.lastGood){return {...data.lastGood,args,cache:'stale',warning:data.error};}throw Error(data.error||'查询失败 HTTP '+response.status);}
+ if(data.cache==='miss'){const gap=Math.max(provider==='steam'?2:0,state.status?.sources?.[provider]?.budget?.cooldown||0);state.cooldowns[provider]=started+gap*1000;}
+ state.cacheKnown.add(key);return {...data,args};
 }
-function searchForm(root,mode){
- const prefs=store.read('form-'+mode,{}),toolbar=el('form','toolbar');
- toolbar.onsubmit=e=>{e.preventDefault();void search(mode);};
- if(mode!=='free')toolbar.append(field(mode==='products'?'关键词 / 商品标识':'游戏名 / Steam AppID','term',prefs.term||'','search',mode==='products'?'名称、ASIN、UPC、型号':'例如 Hades 或 1145360'));
- const sourceOptions=mode==='products'?[['shopsavvy','ShopSavvy MCP'],['serpapi','Google Shopping'],['compare','分别查询并对照']]:mode==='games'?[['cheapshark','CheapShark'],['itad','IsThereAnyDeal'],['compare','分别查询并对照']]:[['gamerpower','GamerPower']];
- toolbar.append(choice('数据源','source',sourceOptions,prefs.source||sourceOptions[0][0]));
- if(mode==='products'){
-  toolbar.append(choice('查询方式','mode',[['search','关键词搜索'],['lookup','标识查询'],['offers','跨商家报价'],['history','价格历史'],['guide','购买指南'] ],prefs.mode||'search'));
-  const extra=el('div','toolbar extra');
-  const update=()=>{extra.replaceChildren();if($('#mode').value==='history')extra.append(field('开始日期','start_date',prefs.start_date||new Date(Date.now()-90*86400000).toISOString().slice(0,10),'date'),field('结束日期','end_date',prefs.end_date||new Date().toISOString().slice(0,10),'date'));};
-  root.append(toolbar,extra);$('#mode').onchange=update;update();
-  toolbar.append(choice('Google 排序','sort_by',[['','相关度'],['1','价格从低到高'],['2','价格从高到低']],prefs.sort_by||''));
- }else if(mode==='games'){
-  toolbar.append(choice('输入类型','mode',[['title','游戏名称'],['appid','Steam AppID'],['deals','当前折扣（CheapShark）']],prefs.mode||'title'));
-  toolbar.append(field('商店 ID（当前折扣可选）','storeID',prefs.storeID||'','number','例如 1；在实验台 stores 查看'));
- }else{
-  toolbar.append(choice('平台','platform',[['','所有平台'],['pc','PC'],['steam','Steam'],['epic-games-store','Epic'],['gog','GOG'],['ps5','PS5'],['ps4','PS4'],['xbox-series-xs','Xbox Series X/S'],['xbox-one','Xbox One'],['switch','Switch']],prefs.platform||''));
-  toolbar.append(choice('类型','type',[['game','完整游戏'],['dlc','DLC（从 Loot 中筛选）'],['loot','Loot / 道具'],['beta','Beta / 测试']],prefs.type||'game'));
-  toolbar.append(choice('排序','sort',[['date','最新发布'],['end','即将截止'],['popularity','热门']],prefs.sort||'date'));
+function freshness(packet){return packet?`${packet.cache==='stale'?'旧数据 · 上游失败':packet.cache==='hit'?'缓存':'已获取'} · ${when(packet.fetchedAt)}`:'';}
+function products(root){
+ const form=el('form','toolbar');form.onsubmit=e=>{e.preventDefault();void searchProducts();};form.append(input('商品名称','productTerm',store.read('productTerm',''),'例如 HD 490 Pro、Superlight 2'),workButton('搜索并比价',()=>searchProducts(),true));root.append(form);
+ if(!state.variants.length){root.append(empty('输入商品名，自动读取最佳匹配的商品详情和跨商家报价。不同规格与套装分开查看。'));return;}
+ const counts=state.variants.reduce((o,x)=>(o[variantKind(x)]=(o[variantKind(x)]||0)+1,o),{}),groups=el('div','segments');
+ for(const [k,title] of [['all','全部匹配'],['product','单品 / 其他规格'],['package','Plus / 套装'],['accessory','配件']])if(k==='all'||counts[k]){const b=button(title+(k==='all'?' '+state.variants.length:' '+counts[k]),()=>{state.variantFilter=k;render();});b.classList.toggle('active',state.variantFilter===k);groups.append(b);}root.append(groups);
+ const tabs=el('div','variant-tabs');tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','不同商品规格与套装');
+ for(const item of state.variants.filter(x=>state.variantFilter==='all'||variantKind(x)===state.variantFilter)){
+  const b=button(item.title,()=>selectVariant(item));b.title=item.title;b.setAttribute('role','tab');b.setAttribute('aria-selected',String(state.selected?.identifier===item.identifier));b.classList.toggle('active',state.selected?.identifier===item.identifier);tabs.append(b);
+ }root.append(tabs);
+ if(state.offset<200)root.append(workButton('更多匹配项',()=>searchProducts(true)));
+ const data=state.selected&&state.variantData.get(state.selected.identifier),panel=el('section','product-panel');panel.setAttribute('role','tabpanel');
+ if(!state.selected){panel.append(empty('选择一个规格或套装。'));root.append(panel);return;}
+ const detail=data?.detail||state.selected;panel.append(el('h3','',detail.title||state.selected.title));
+ const specs=el('div','specs');for(const [k,v] of [['品牌',detail.brand],['型号',detail.model],['颜色',detail.color],['MPN',detail.mpn],['条码',detail.barcode],['ASIN',detail.asin]])if(v&&v!=='N/A')specs.append(add(el('div'),el('span','muted',k),el('strong','',v)));panel.append(specs);
+ if(data?.detailError)panel.append(el('p','warning','详情：'+data.detailError));
+ if(!data||data.loading)panel.append(el('p','loading','正在读取这个规格的详情与报价…'));
+ if(data?.offers){
+  const offers=[...data.offers].sort((a,b)=>(a.amount??Infinity)-(b.amount??Infinity));
+  const available=offers.filter(x=>x.availability.toLowerCase()==='in'&&x.condition.toLowerCase()==='new'&&x.checkedAt&&Date.now()-Date.parse(x.checkedAt)<7*86400000);
+  panel.append(add(el('div','section-title'),el('h3','','跨商家报价'),badge(offers.length+' 条 · 此规格独立比较')));
+  if(available.length)panel.append(el('p','best','近期有货新品最低：'+available[0].price));
+  panel.append(el('p','muted',freshness(data.offerPacket)+' · '+(/US dollars/i.test(data.offerPacket?.data?.toolDescription||'')?'报价币种 USD':'币种以来源标注为准')));
+  const table=el('table');table.append(row(['商家 / 卖家','报价','成色 / 库存（源报）','上游检查时间','链接'],true));
+  for(const o of offers){const tr=el('tr');tr.append(cell(o.merchant+(o.seller?' · '+o.seller:'')),cell(o.price,'price-cell'),cell(({new:'全新',used:'二手',refurbished:'翻新'}[o.condition.toLowerCase()]||o.condition||'未标注')+' / '+({in:'有货',out:'无货'}[o.availability.toLowerCase()]||o.availability||'未标注')));const time=cell(when(o.checkedAt));if(!o.checkedAt||Date.now()-Date.parse(o.checkedAt)>7*86400000)time.append(badge('请核实当前价','warn'));tr.append(time,add(el('td'),link(o.url,'查看商家 ↗')));table.append(tr);}panel.append(table);
+  if(!offers.length)panel.append(empty('来源成功返回，但这个商品标识没有可用报价。'));
  }
- if(mode!=='products')root.append(toolbar);
- toolbar.append(queryButton(mode==='free'?'读取免费活动':'搜索',()=>search(mode),true));
- if(mode==='games')root.append(el('p','lead','选择游戏后可手动读取跨商店报价、历史低价与详情。CheapShark 价格为 USD / 美国市场；ITAD 保留原始国家和币种。'));
- if(mode==='products')root.append(el('p','lead','ShopSavvy 支持商品标识、报价、历史与指南。Google 未配置 Key 时会单独报告，不影响其他来源。不同型号、成色和地区的报价需分别核实。'));
- if(mode==='free')root.append(el('p','lead','由 GamerPower 提供。完整游戏、道具/DLC 与 Beta 分别标注；永久入库、账户要求和额外任务以活动原文为准。'));
- root.append(el('p','empty','选择条件后点击查询；不会自动获取第三方数据。'));
+ if(data?.offerError)panel.append(el('p','error-panel','报价暂不可用：'+data.offerError));
+ const sources=new Set([...(data?.detailPacket?sourceLinks(data.detailPacket):[]),...(data?.offerPacket?sourceLinks(data.offerPacket):[])]);for(const u of sources)panel.append(link(u,'ShopSavvy 原始商品来源 ↗'));
+ panel.append(workButton('刷新此规格报价',()=>work(signal=>loadVariant(state.selected,signal,true))));
+ panel.append(el('p','fine','每个页签对应来源返回的独立商品标识；规格、套装及兼容配件以原始标题和详情为准。'));
+ root.append(panel);
 }
-async function search(mode){
- if(state.busy)return;
- const prefs={};for(const i of $('#view').querySelectorAll('input,select'))prefs[i.id]=i.value;store.write('form-'+mode,prefs);
- const term=prefs.term?.trim();if(mode!=='free'&&!term)return notify('请输入查询内容');
- const sources=prefs.source==='compare'?(mode==='products'?['shopsavvy','serpapi']:['cheapshark','itad']):[prefs.source];
- state.packets=[];state.errors=[];setBusy(true);const contextPage=state.page;
- for(const provider of sources){
-  if(state.page!==contextPage)break;
-  let operation,args;
-  if(mode==='free'){operation='giveaways';args={type:prefs.type==='dlc'?'loot':prefs.type,'sort-by':prefs.sort==='end'?'date':prefs.sort};if(prefs.platform)args.platform=prefs.platform;}
-  else if(mode==='products'){
-   if(provider==='shopsavvy'){
-    operation={search:'product_search',lookup:'product_lookup',offers:'product_offers',history:'product_price_history',guide:'content_buying_guide'}[prefs.mode];
-    args=['search','guide'].includes(prefs.mode)?{query:term}:{identifier:term};
-    if(prefs.mode==='search')args.limit=20;
-    if(prefs.mode==='history'){args.start_date=prefs.start_date;args.end_date=prefs.end_date;}
-   }else{if(prefs.mode!=='search'){state.errors.push({provider,message:'该方式使用 ShopSavvy。Google 商品详情请在搜索结果或实验台使用真实 page_token。'});continue;}operation='search';args={q:term};if(prefs.sort_by)args.sort_by=prefs.sort_by;}
-  }else if(provider==='itad'){operation=prefs.mode==='appid'?'lookup':'search';args=prefs.mode==='appid'?{appid:term}:{title:term,results:20};}
-  else{operation=prefs.mode==='deals'?'deals':'games';args=prefs.mode==='deals'?{title:term,pageSize:20}:prefs.mode==='appid'?{steamAppID:term,limit:20}:{title:term,limit:20};if(prefs.mode==='deals'&&prefs.storeID)args.storeID=prefs.storeID;}
-  await query(provider,operation,args,{append:true,keepBusy:true});
+async function searchProducts(more=false){return work(async signal=>{const term=more?state.productQuery:$('#productTerm').value.trim();if(!term)throw Error('请输入商品名称');store.write('productTerm',term);if(!more){state.productQuery=term;state.offset=0;state.variants=[];state.selected=null;state.variantFilter='all';}else state.offset+=20;note('正在查找商品及不同规格…');const p=await query('shopsavvy','product_search',{query:term,limit:20,offset:state.offset},signal);state.variants=mergeVariants(state.variants,productMatches(p));if(!state.variants.length){render();return note('没有找到商品匹配项。');}render();if(!more){const first=state.variants.find(x=>variantKind(x)==='product')||state.variants[0];await loadVariant(first,signal);}else note('已加入更多匹配项，选择页签读取报价。');});}
+async function selectVariant(item){if(state.busy){state.controller?.abort();state.busy=false;}state.selected=item;const cached=state.variantData.get(item.identifier);if(cached&&!cached.loading&&!cached.offerError&&cached.offerPacket?.freshUntil>Date.now()){render();return;}return work(signal=>loadVariant(item,signal));}
+async function loadVariant(item,signal,force=false){state.selected=item;const data={loading:true,offers:null};state.variantData.set(item.identifier,data);render();
+ try{data.detailPacket=await query('shopsavvy','product_lookup',{identifier:item.identifier},signal);data.detail=productDetails(data.detailPacket,item);}catch(e){if(signal.aborted)throw e;data.detailError=e.message;}if(signal.aborted)return;render();
+ try{data.offerPacket=await query('shopsavvy','product_offers',{identifier:item.identifier},signal,force);data.offers=productOffers(data.offerPacket);if(data.offerPacket.warning)data.offerError=data.offerPacket.warning;}catch(e){if(signal.aborted)throw e;data.offerError=e.message;}finally{data.loading=false;}if(!signal.aborted){render();note('详情与报价已整理完成。');}}
+function cell(text,cls=''){return el('td',cls,text);}
+function row(values,header=false){const r=el('tr');for(const v of values)r.append(el(header?'th':'td','',v));return r;}
+function games(root){
+ const form=el('form','toolbar');form.onsubmit=e=>{e.preventDefault();void searchGames();};form.append(input('游戏名 / Steam AppID','gameTerm',store.read('gameTerm',''),'中文或英文名称'),workButton('搜索最低价',searchGames,true));root.append(form);
+ const regions=el('details','regions');regions.append(el('summary','','比价地区：'+state.countries.map(x=>COUNTRIES[x]).join('、')+' · 点击调整'));
+ for(const [id,name] of Object.entries(COUNTRIES)){const l=el('label'),i=el('input');i.type='checkbox';i.value=id;i.checked=state.countries.includes(id);i.onchange=()=>{const countries=[...regions.querySelectorAll('input:checked')].map(x=>x.value);if(countries.length>6){i.checked=false;return note('一次最多对照6个地区。',true);}state.countries=countries;store.write('countries',countries);};regions.append(add(l,i,el('span','',name)));}root.append(regions);
+ if(state.gameItems.length){const tabs=el('div','game-tabs');for(const g of state.gameItems)tabs.append(button(g.name,()=>selectGame(g)));root.append(tabs);}
+ if(!state.game){root.append(empty('默认对照国区与美国。搜索后自动读取 Steam 地区价及 CheapShark 商店报价；ITAD 配置后补充所选地区商店。'));return;}
+ root.append(el('h3','',state.game.name));const compared=state.offers.map(x=>({...x,cny:toCNY(x,state.fx)})).sort((a,b)=>(a.cny??Infinity)-(b.cny??Infinity));const best=compared.find(x=>x.cny!==null);
+ if(best)root.append(add(el('div','best-strip'),el('span','','已接入来源最低参考价'),el('strong','',money(best.cny,'CNY')),el('span','',best.merchant+' · '+(COUNTRIES[best.country]||best.country)+' · 原价 '+money(best.amount,best.currency))));
+ if(state.busy)root.append(el('p','loading','正在逐项对照地区和商店，结果会陆续显示…'));
+ const t=el('table');t.append(row(['地区','商店','原币报价','人民币参考','折扣','获取时间','购买链接'],true));for(const o of compared){const tr=el('tr');tr.append(cell(COUNTRIES[o.country]||o.country),add(el('td'),el('strong','',o.merchant),el('div','muted',o.source)),cell(o.free?'免费':money(o.amount,o.currency),'price-cell'),cell(o.cny===null?'无法换算':money(o.cny,'CNY')),cell(o.discount?Math.round(o.discount)+'%':'—'),cell(when(o.fetchedAt)),add(el('td'),link(o.url,'查看 ↗')));tr.title=o.availability+' · '+o.source;t.append(tr);}root.append(t);
+ for(const e of state.gameErrors)root.append(el('p','warning',e));
+ if(!state.status?.sources?.itad?.configured)root.append(el('p','fine','跨商店补充源 ITAD 尚未配置 Key；当前仍可读取国区等 Steam 地区价和 CheapShark。'));
+ root.append(el('p','fine','仅比较已接入来源、所选地区及当前游戏标识的报价，不能保证覆盖全网所有商店。'+(state.fx?'ECB 参考汇率日期 '+state.fx.date+'，不含手续费/结算汇差。':'汇率未取得时保留原币，不强行排序。')+' 跨区购买资格、版本及激活限制以账号和商店为准。'));
+ root.append(workButton('刷新此游戏报价',()=>selectGame(state.game,true)));
+}
+async function searchGames(){return work(async signal=>{const term=$('#gameTerm').value.trim();if(!term)throw Error('请输入游戏名');if(!state.countries.length)throw Error('至少选择一个地区');store.write('gameTerm',term);state.game=null;state.offers=[];state.gameErrors=[];note('正在匹配游戏…');if(/^\d{1,9}$/.test(term))state.gameItems=[{id:Number(term),name:'Steam App '+term}];else{const p=await query('steamstore','search',{term},signal);const normalized=x=>String(x||'').normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]/gu,'');state.gameItems=(p.data.items||[]).filter(x=>(!x.type||x.type==='app')&&Number.isInteger(x.id)&&x.id>0).sort((a,b)=>Number(normalized(b.name)===normalized(term))-Number(normalized(a.name)===normalized(term))).slice(0,12);}if(!state.gameItems.length){render();return note('没有找到 Steam 游戏匹配项。');}await loadGame(state.gameItems[0],signal);});}
+async function selectGame(game,force=false){if(state.busy){state.controller?.abort();state.busy=false;}return work(signal=>loadGame(game,signal,force));}
+async function loadGame(game,signal,force=false){state.game=game;state.offers=[];state.gameErrors=[];render();
+ const attempt=async(label,fn)=>{try{await fn();}catch(e){if(signal.aborted)throw e;state.gameErrors.push(label+'：'+e.message);}if(!signal.aborted)render();};
+ await attempt('汇率',async()=>{state.fx=(await query('fx','latest',{},signal)).data;});
+ for(const country of state.countries)await attempt(COUNTRIES[country]+' Steam',async()=>{const p=await query('steamstore','price',{appid:String(game.id),country},signal,force);const offer=steamOffer(p);if(offer)state.offers.push(offer);else state.gameErrors.push(COUNTRIES[country]+'：该地区未提供可购买报价。');if(p.data.game?.name&&String(game.name).startsWith('Steam App'))state.game.name=p.data.game.name;if(p.warning)state.gameErrors.push(COUNTRIES[country]+'：显示旧报价，'+p.warning);});
+ await attempt('商店名称',async()=>{if(!Object.keys(state.stores).length){const p=await query('cheapshark','stores',{},signal);state.stores=Object.fromEntries((p.data||[]).map(x=>[x.storeID,x.storeName]));}});
+ await attempt('CheapShark',async()=>{const p=await query('cheapshark','deals',{steamAppID:String(game.id),pageSize:40},signal,force);const offers=cheapOffers(p,state.stores).filter(x=>String(x.appid)===String(game.id));state.offers.push(...offers);if(!offers.length&&p.data?.length)state.gameErrors.push('CheapShark 条目无法确认相同 Steam AppID，未计入最低价。');if(p.warning)state.gameErrors.push('CheapShark：显示旧报价，'+p.warning);});
+ if(state.status?.sources?.itad?.configured){let id;await attempt('ITAD 游戏匹配',async()=>{const p=await query('itad','lookup',{appid:String(game.id)},signal);id=p.data.game?.id;});if(id)for(const country of state.countries)await attempt('ITAD '+COUNTRIES[country],async()=>{const p=await query('itad','prices',{ids:[id],country},signal,force);state.offers.push(...itadOffers(p,country,game.name));});}
+ if(!signal.aborted){render();note('已完成当前来源与地区的比价。');}}
+function free(root){
+ const form=el('div','toolbar');form.append(select('平台','freePlatform',[['','Steam + Epic'],['Steam','Steam'],['Epic','Epic']],store.read('freePlatform','')),select('排序','freeSort',[['date','最新发布'],['end','即将截止']],store.read('freeSort','date')),workButton('查看免费游戏',loadFree,true));root.append(form);
+ if(!state.freePacket){root.append(empty('只显示 Steam 与 Epic 的完整游戏领取活动。'));return;}
+ let items=retainedGiveaways(state.giveaways,$('#freePlatform').value);if($('#freeSort').value==='end')items.sort((a,b)=>(Date.parse(a.end_date)||Infinity)-(Date.parse(b.end_date)||Infinity));
+ root.append(el('p','muted',freshness(state.freePacket)+' · GamerPower · '+items.length+'项'));
+ const grid=el('div','giveaway-grid');for(const x of items){const card=el('article','giveaway');const image=safeURL(x.thumbnail||x.image);if(image){const img=el('img');img.src=image;img.alt='';img.loading='lazy';img.referrerPolicy='no-referrer';card.append(img);}card.append(add(el('div','badges'),...giveawayPlatforms(x).map(p=>badge(p))),el('h3','',x.title),el('p','muted',x.end_date&&x.end_date!=='N/A'?'截止 '+x.end_date:'未提供明确截止时间'),el('p','',x.description||''));const details=el('details');details.append(el('summary','','领取条件与步骤'),el('p','detail-text',x.instructions||'请查看原文领取条件。'));card.append(details,link(x.open_giveaway_url||x.gamerpower_url,'查看领取活动 ↗'));grid.append(card);}root.append(grid);if(!items.length)root.append(empty('当前筛选没有完整游戏活动。'));
+ root.append(el('p','fine','免费领取活动由 GamerPower 提供。永久入库、账户、积分或额外任务要求以活动原文为准。'));
+ $('#freePlatform').onchange=()=>{store.write('freePlatform',$('#freePlatform').value);render();};$('#freeSort').onchange=()=>{store.write('freeSort',$('#freeSort').value);render();};
+}
+async function loadFree(){return work(async signal=>{const platform=$('#freePlatform').value;store.write('freePlatform',platform);store.write('freeSort',$('#freeSort').value);note('正在读取 Steam / Epic 完整游戏活动…');const p=await query('gamerpower','filter',{platform:platform==='Steam'?'steam':platform==='Epic'?'epic-games-store':'steam+epic-games-store',type:'game','sort-by':'date'},signal);state.giveaways=p.data;state.freePacket=p;render();note(p.warning||'活动已更新。',!!p.warning);});}
+function wishlist(root){
+ const modes=el('div','segments');for(const [k,label] of [['current','当前全部'],['month','近30天平均排名'],['risers','近30天上升'],['new','近30天新上榜']]){const b=button(label,()=>{state.controller?.abort();state.busy=false;state.rankMode=k;state.trendPage=0;render();if(k!=='current')void loadTrends();});b.classList.toggle('active',state.rankMode===k);modes.append(b);}root.append(modes);
+ if(state.rankMode!=='current'){renderTrends(root);return;}
+ const toolbar=el('div','toolbar');toolbar.append(workButton('读取榜单',()=>loadRank(0),true),workButton('采集完整榜单快照',collectRanks),input('搜索已读取的榜单','rankTerm',state.rankSearch,'名称 / AppID'));if(state.busy)toolbar.append(button('取消读取',()=>state.controller?.abort()));root.append(toolbar);
+ root.append(el('p','fine','官方公开搜索顺序，每页100项，可浏览全部页面。完整采集按需逐页读取，可取消；不在后台定时抓取。'));
+ if(state.rankProgress)root.append(el('p','loading',state.rankProgress));
+ if(!state.rankPacket){root.append(empty('点击读取，查看完整榜单入口。'));return;}
+ const p=state.rankPacket.data;root.append(el('p','muted',freshness(state.rankPacket)+` · 上游共 ${p.total} 项 · 当前第 ${state.rankPage+1} / ${p.totalPages} 页`));
+ const controls=el('div','pager');const prev=workButton('上一页',()=>loadRank(state.rankPage-1));prev.dataset.boundDisabled=String(state.rankPage===0);prev.disabled=state.busy||state.rankPage===0;const next=workButton('下一页',()=>loadRank(state.rankPage+1));next.dataset.boundDisabled=String(state.rankPage+1>=p.totalPages);next.disabled=state.busy||state.rankPage+1>=p.totalPages;
+ const jump=el('input');jump.type='number';jump.id='rankPage';jump.min='1';jump.max=String(p.totalPages);jump.value=String(state.rankPage+1);jump.setAttribute('aria-label','跳转到榜单页码');controls.append(prev,el('span','',`第 ${state.rankPage+1} / ${p.totalPages} 页`),jump,workButton('跳转',()=>{const page=Number(jump.value)-1;if(!Number.isInteger(page)||page<0||page>=p.totalPages)return note('页码超出范围',true);return loadRank(page);}),next);root.append(controls);
+ const term=state.rankSearch.trim().toLowerCase(),catalog=term?[...state.rankPages.values()].flat():state.rankItems,items=catalog.filter(x=>!term||x.title.toLowerCase().includes(term)||String(x.appid).includes(term));rankTable(root,items);
+ $('#rankTerm').oninput=()=>{const i=$('#rankTerm'),start=i.selectionStart;state.rankSearch=i.value;render();$('#rankTerm')?.focus();$('#rankTerm')?.setSelectionRange(start,start);};
+ root.append(link('https://store.steampowered.com/search/?filter=popularwishlist&ignore_preferences=1','Steam 官方榜单 ↗'));
+}
+function rankTable(root,items){const t=el('table');t.append(row(['名次','游戏','发售','与前一观测日对照','商店'],true));for(const x of items)t.append(add(el('tr'),cell('#'+x.rank,'rank'),cell(x.title),cell(x.release||'未提供'),cell(x.change===null||x.change===undefined?'暂无对照':x.change>0?'↑ '+x.change:x.change<0?'↓ '+Math.abs(x.change):'持平'),add(el('td'),link(x.url,'Steam ↗'))));root.append(t);if(!items.length)root.append(empty('当前页面没有匹配项；可翻页查看其他排名。'));}
+async function loadRank(page){return work(async signal=>{note('正在读取第 '+(page+1)+' 页…');const p=await query('steam','leaderboard',{page},signal);if(state.rankCatalogDay!==p.data.day){state.rankPages.clear();state.rankCatalogDay=p.data.day;}state.rankPacket=p;state.rankItems=p.data.items;state.rankPages.set(page,p.data.items);state.rankPage=page;state.rankProgress='';render();note(p.warning||'榜单已读取。',!!p.warning);});}
+async function collectRanks(){return work(async signal=>{
+ note('开始读取完整榜单，进度将逐页更新。');let totalPages=1,received=0;const snapshotDay=new Date().toISOString().slice(0,10);state.rankProgress='正在读取第1页…';render();
+ for(let page=0;page<totalPages;page++){
+  const p=await query('steam','leaderboard',{page},signal);if(!p.data.snapshotStored)throw Error('榜单可读取，但本次快照保存失败，已停止完整采集。');if(p.data.day!==snapshotDay)throw Error('采集跨越了日期边界，已停止，避免把不同日期拼成同一快照。');if(p.cache==='stale')throw Error('完整采集停止：第'+(page+1)+'页仅有旧缓存，不能算作成功新快照。');
+  totalPages=p.data.totalPages;if(totalPages>150)throw Error('榜单超过单次150页安全上限，已停止。');received+=p.data.items.length;if(state.rankCatalogDay!==p.data.day){state.rankPages.clear();state.rankCatalogDay=p.data.day;}state.rankPacket=p;state.rankItems=p.data.items;state.rankPages.set(page,p.data.items);state.rankPage=page;state.rankProgress=`正在采集 ${page+1} / ${totalPages} 页 · 已读取 ${received} 个游戏条目`;render();
  }
- setBusy(false);renderPackets();
+ state.rankProgress=`已读完上游 ${totalPages} 页，共 ${received} 个游戏条目。`;state.trends=null;render();note('完整榜单读取完成。月份趋势按实际观测日期逐步积累。');
+});}
+function renderTrends(root){
+ const d=state.trends;root.append(workButton('更新趋势视图',loadTrends,true));
+ root.append(el('p','fine','这里是实际观测快照的30天窗口：平均名次、名次上升与新进入全榜。Steam 不公开任意游戏的真实月新增愿望单人数，本工具不以 Followers 或排名变化替代。'));
+ if(!d){root.append(empty('尚未读取历史快照。'));return;}
+ root.append(add(el('div','coverage'),badge('已观测 '+d.observedDays+' / '+d.windowDays+' 天'),badge('完整全榜 '+d.completeDays+' 天'),el('span','',d.firstObserved?d.firstObserved+' 至 '+d.lastObserved:'尚无历史')));
+ if(d.historyWarning)root.append(el('p','warning',d.historyWarning));
+ const search=input('搜索趋势榜','trendTerm',state.trendSearch,'游戏名称 / AppID');root.append(search);
+ const term=state.trendSearch.trim().toLowerCase(),items=trendItems(d,state.rankMode).filter(x=>!term||x.title.toLowerCase().includes(term)||String(x.appid).includes(term));
+ if(state.rankMode==='new'&&!d.newEntryBaseline)root.append(empty('还没有完整全榜基准，无法可靠判定新上榜。先在「当前全部」采集完整榜单。'));
+ const pages=Math.max(1,Math.ceil(items.length/100));state.trendPage=Math.min(state.trendPage,pages-1);
+ const controls=el('div','pager'),prev=button('上一页',()=>{state.trendPage--;render();}),next=button('下一页',()=>{state.trendPage++;render();});prev.disabled=state.trendPage===0;next.disabled=state.trendPage+1>=pages;controls.append(prev,el('span','',`${items.length} 项 · 第 ${state.trendPage+1} / ${pages} 页`),next);root.append(controls);
+ const t=el('table');t.append(row(['游戏','观测平均名次','最佳名次','最新观测名次','观测天数','名次涨幅','首次观测'],true));for(const x of items.slice(state.trendPage*100,(state.trendPage+1)*100))t.append(add(el('tr'),add(el('td'),link(x.url,x.title)),cell(x.averageRank),cell('#'+x.bestRank),cell('#'+x.currentRank),cell(x.observedDays),cell(x.change===null?'不足2个日期':x.change>0?'↑ '+x.change:String(x.change)),cell(x.firstSeen)));root.append(t);
+ if(!items.length)root.append(empty('当前观测窗口没有可展示的条目。历史不足时不会填入模拟排行。'));
+ $('#trendTerm').oninput=()=>{const i=$('#trendTerm'),pos=i.selectionStart;state.trendSearch=i.value;state.trendPage=0;render();$('#trendTerm')?.focus();$('#trendTerm')?.setSelectionRange(pos,pos);};
+
 }
-function steam(root){
- root.append(el('p','lead','来源为 Steam 官方公开商店搜索排序，按需读取并缓存24小时。无正式稳定排行榜 API；这里只显示公开排名，不是愿望单人数、每日新增或 Followers。'));
- const t=el('div','toolbar');t.append(queryButton('读取热门愿望单榜单',()=>query('steam','leaderboard',{}),true),field('筛选已读取榜单','rankSearch','','search','游戏名 / AppID'),choice('排名变化','rankFilter',[['all','全部'],['new','新进入当前榜单'],['up','上升'],['down','下降']],'all'));
- root.append(t,el('p','note','只有成功请求才保存一次快照。首次读取不显示变化；“新上榜”仅指新进入本工具已读取的前50项。自动快照默认关闭，也未新增定时任务。'));
- $('#rankSearch').oninput=renderPackets;$('#rankFilter').onchange=renderPackets;
-}
-function playground(root){
- root.append(el('p','lead','选择已批准的只读端点。参数恢复到上次使用的值；MCP 输入控件由真实 tools/list Schema 生成，可切换 JSON 输入。所有调用均经服务端验证。'));
- const toolbar=add(el('div','toolbar'),choice('数据源','provider',Object.entries(NAMES),state.provider));root.append(toolbar);
- const form=el('form','panel');form.onsubmit=e=>e.preventDefault();root.append(form);
- function rebuild(){
-  const provider=$('#provider').value;state.provider=provider;store.write('provider',provider);form.replaceChildren();
-  const tools=store.read('mcp-schema',[]),operations=state.status?.operations?.[provider]||{};
-  const entries=provider==='shopsavvy'?[['tools','发现 / 刷新 MCP 工具目录'],...tools.map(t=>[t.name,t.name])]:Object.entries(operations).map(([k,v])=>[k,k+' · '+v.description]);
-  form.append(choice('Endpoint / MCP Tool','endpoint',entries,state.playArgs[provider+'/'+state.operation]?state.operation:store.read('operation-'+provider,state.operation)));const desc=el('p','lead'),fields=el('div','form-fields');form.append(desc,fields);
-  function refields(){
-   const op=$('#endpoint').value;state.operation=op;store.write('operation-'+provider,op);fields.replaceChildren();
-   const defaults=state.playArgs[provider+'/'+op]||store.read('args-'+provider+'-'+op,{});
-   const def=provider==='shopsavvy'?tools.find(t=>t.name===op):operations[op];desc.textContent=def?.description||'发现真实 MCP 只读工具目录；不会执行调度或账户修改。';
-   if(provider==='shopsavvy'&&op!=='tools'){
-    const schema=def?.inputSchema||{};
-    for(const [k,v] of Object.entries(schema.properties||{})){
-     if(v.type==='boolean')fields.append(choice(k,'arg-'+k,[['','不传（默认）'],['true','true'],['false','false']],defaults[k]===undefined?'':String(defaults[k])));
-     else if(v.enum)fields.append(choice(k,'arg-'+k,[['','不传（默认）'],...v.enum.map(x=>[String(x),String(x)])],String(defaults[k]??'')));
-     else fields.append(field(k+(schema.required?.includes(k)?' *':''),'arg-'+k,defaults[k]??'',v.type==='number'||v.type==='integer'?'number':'text',v.description||k));
-    }
-    const detail=el('details','schema');detail.append(el('summary','','真实 Tool Schema'),el('pre','',JSON.stringify(schema,null,2)));fields.append(detail);
-    const raw=el('details','schema');const area=el('textarea');area.id='mcpArgs';area.rows=6;area.value=JSON.stringify(defaults,null,2);raw.append(el('summary','','直接输入 JSON（展开后以此为准）'),area);fields.append(raw);
-   }else if(provider!=='shopsavvy'){
-    for(const k of Object.keys(def?.params||{}))fields.append(field(k,'arg-'+k,defaults[k]??'','text',k==='page_token'?'搜索结果中的 immersive_product_page_token':k));
-    if(def?.body)fields.append(field('ids · ITAD UUID，最多5个','arg-ids',Array.isArray(defaults.ids)?defaults.ids.join(','):defaults.ids||''));
-   }
-  }
-  $('#endpoint').onchange=refields;refields();
-  form.append(queryButton('执行查询',async()=>{
-   const op=$('#endpoint').value;let args={};
-   if($('#mcpArgs')?.parentElement.open){try{args=JSON.parse($('#mcpArgs').value||'{}');}catch{return notify('参数 JSON 格式错误',true);}}
-   else for(const i of fields.querySelectorAll('input,select'))if(i.id.startsWith('arg-')&&i.value.trim()){
-    const k=i.id.slice(4),schema=tools.find(t=>t.name===op)?.inputSchema?.properties?.[k];
-    args[k]=provider==='shopsavvy'&&['integer','number'].includes(schema?.type)?Number(i.value):schema?.type==='boolean'?i.value==='true':i.value.trim();
-   }
-   if(!args||typeof args!=='object'||Array.isArray(args))return notify('参数必须为 JSON 对象',true);
-   if(Object.keys(args).some(k=>/^(api.?key|key|authorization|password|secret|access.?token|refresh.?token)$/i.test(k)))return notify('不能输入或保存密钥；密钥只能配置在服务器端。',true);
-   if(provider==='shopsavvy'&&op!=='tools'&&Object.keys(args).some(k=>!Object.hasOwn(tools.find(t=>t.name===op)?.inputSchema?.properties||{},k)))return notify('参数含有 Tool Schema 未声明的字段，不会保存或执行。',true);
-   store.write('args-'+provider+'-'+op,args);await query(provider,op,args);
-  },true));
-  const doc=state.status?.sources?.[provider]?.doc;form.append(link(doc,'查看官方文档 ↗'));
- }
- $('#provider').onchange=rebuild;rebuild();
-}
-async function query(provider,operation,args={},options={}){
- if(!connected()){notify('请点击「连接 PT 私有后台」。将复用现有授权并返回本页。',true);return null;}
- if(state.busy&&!options.keepBusy)return null;
- if(!options.append){state.packets=[];state.errors=[];}
- setBusy(true);notify('正在查询 '+NAMES[provider]+'…');const query={provider,operation,args};state.lastQuery=query;const controller=new AbortController();state.active=controller;const contextPage=state.page,queryKey=JSON.stringify(query);
- try{
-  const cooldown=state.cooldowns[provider]||0;
-  if(cooldown>Date.now()&&(options.force||!state.cacheKnown.has(queryKey))){
-   const seconds=Math.ceil((cooldown-Date.now())/1000);
-   if(seconds>30){notify('此来源仍在冷却，请 '+seconds+' 秒后手动重试。',true);return null;}
-   while(cooldown>Date.now()){
-    notify(`${NAMES[provider]} 配额保护：${Math.ceil((cooldown-Date.now())/1000)} 秒后执行刚才的查询。切换页面可取消。`);
-    await new Promise((resolve,reject)=>{const onAbort=()=>{clearTimeout(timer);reject(new DOMException('Aborted','AbortError'));};const timer=setTimeout(()=>{controller.signal.removeEventListener('abort',onAbort);resolve();},Math.min(1000,cooldown-Date.now()));controller.signal.addEventListener('abort',onAbort,{once:true});if(controller.signal.aborted)onAbort();});
-   }
-  }
-  if(controller.signal.aborted)return null;
-  const startedAt=Date.now();notify('正在查询 '+NAMES[provider]+'…');
-  const packet=await request('query',{...query,...(options.force?{force:true}:{})},controller.signal);packet.args=args;
-  if(packet.cache==='miss')state.cooldowns[provider]=startedAt+(state.status?.sources?.[provider]?.budget?.cooldown||0)*1000;
-  state.cacheKnown.add(queryKey);
-  if(state.page!==contextPage)return packet;
-  packet.contextTitle=options.label||'';state.packets.push(packet);
-  if(provider==='shopsavvy'&&operation==='tools'){store.write('mcp-schema',packet.data?.tools||[]);if(state.page==='playground'){state.playArgs[provider+'/'+operation]=args;render();}}
-  historyItems=[{...query,time:new Date().toISOString()},...historyItems.filter(h=>JSON.stringify([h.provider,h.operation,h.args])!==JSON.stringify([provider,operation,args]))].slice(0,40);store.write('history',historyItems);
-  notify(`${NAMES[provider]} · ${packet.cache==='hit'?'命中缓存，不消耗新额度':'请求成功'} · ${when(packet.fetchedAt)}`);
-  return packet;
- }catch(e){
-  if(controller.signal.aborted||state.page!==contextPage)return null;
-  if(e.packet?.retryAfter)state.cooldowns[provider]=Date.now()+e.packet.retryAfter*1000;
-  const error={provider,message:e.message,httpStatus:e.httpStatus||0,details:e.packet||{},operation,args};state.errors.push(error);
-  if(e.packet?.lastGood)state.packets.push({...e.packet.lastGood,args,cache:'last-good'});
-  notify(NAMES[provider]+'：'+e.message+(e.packet?.lastGood?'；保留最后成功数据。':''),true);return null;
- }finally{if(state.active===controller)state.active=null;if(!options.keepBusy||controller.signal.aborted)setBusy(false);renderPackets();void status({render:false});}
-}
-function details(item,packet){
- const d=item.raw;const dialog=$('#detailModal');$('#detailTitle').textContent=item.title;const body=$('#detailBody');body.replaceChildren();
- if(item.image){const image=el('img','detail-image');image.src=item.image;image.alt='';image.referrerPolicy='no-referrer';body.append(image);}
- body.append(el('p','price',item.price),el('p','muted',NAMES[packet.provider]+' · '+when(packet.fetchedAt)));
- for(const [label,value] of [['类型',packet.provider==='gamerpower'?giveawayKind(d):''],['活动状态',d.status],['发布时间',d.published_date],['截止时间',d.end_date],['领取说明',d.instructions],['描述',item.text],['上游报价检查时间',item.checkedAt]])if(value)body.append(el('h4','',label),el('p','detail-text',value));
- body.append(link(item.url,'前往来源 / 领取说明 ↗'),button('原始 JSON',()=>jsonDialog(d)));
- const actions=el('div','toolbar');addActions(actions,item,packet,()=>dialog.close());body.append(actions);dialog.showModal();
-}
-function openEndpoint(provider,operation,args){state.provider=provider;state.operation=operation;state.playArgs[provider+'/'+operation]=args;setPage('playground');notify('参数已填好，点击「执行查询」才会请求。');}
-function addActions(root,item,packet,before=()=>{}){
- const action=(label,provider,op,args)=>root.append(queryButton(label,()=>{before();return query(provider,op,args,{label:item.title});}));
- if(packet.provider==='shopsavvy'&&item.identifier){
-  action('跨商家报价','shopsavvy','product_offers',{identifier:item.identifier});
-  action('商品详情','shopsavvy','product_lookup',{identifier:item.identifier});
-  root.append(button('价格历史',()=>{before();openEndpoint('shopsavvy','product_price_history',{identifier:item.identifier,start_date:new Date(Date.now()-90*86400000).toISOString().slice(0,10),end_date:new Date().toISOString().slice(0,10)});}));
- }
- if(packet.provider==='cheapshark'&&item.gameID)action('报价 / 历史低价','cheapshark','game',{id:String(item.gameID)});
- if(packet.provider==='itad'&&item.gameID){action('当前 / 历史最低','itad','overview',{ids:[item.gameID],country:'US'});action('所有商店报价','itad','prices',{ids:[item.gameID],country:'US'});action('价格历史','itad','history',{id:item.gameID,country:'US'});action('游戏详情','itad','info',{id:item.gameID});}
- if(packet.provider==='steam'&&item.appid){action('CheapShark 报价','cheapshark','games',{steamAppID:String(item.appid),limit:20});action('ITAD 匹配','itad','lookup',{appid:String(item.appid)});}
- const token=item.raw.immersive_product_page_token;if(packet.provider==='serpapi'&&token)root.append(button('Google 商品详情 / 商家',()=>{before();openEndpoint('serpapi','product',{page_token:token,more_stores:1});}));
-}
-function saveItem(item,packet){const identifier=item.identifier||packet.args?.identifier;const offer=packet.provider==='shopsavvy'&&packet.operation.includes('offers');const id=packet.provider+':'+String(item.gameID||item.raw.id||item.appid||identifier||item.title)+(offer?':'+(item.url||item.source):'');const title=offer&&item.productTitle?item.productTitle+' · '+item.title:item.title;if(!saved.some(s=>s.id===id))saved.unshift({id,title,url:item.url,image:item.image,provider:packet.provider,kind:packet.operation,target:'',currency:item.currency,query:{provider:packet.provider,operation:packet.operation,args:packet.args},claimed:false});store.write('saved',saved);notify('已保存至本机观察列表');return saved.find(s=>s.id===id);}
-function card(item,packet){
- const d=item.raw,p=el('article','item');if(item.image){const img=el('img','image');img.src=item.image;img.alt='';img.loading='lazy';img.referrerPolicy='no-referrer';img.onerror=()=>{img.remove();};p.append(img);}
- if(item.rank)p.append(el('div','rank','#'+item.rank+' '+(item.isNew?'新进入':item.change===null?'暂无对照':item.change>0?'↑ '+item.change:item.change<0?'↓ '+Math.abs(item.change):'持平')));
- p.append(el('h3','',item.title));if(item.price)p.append(el('p','price',item.price));
- for(const [label,value] of [['历史低价',item.historyLow],['折扣',item.discount],['商家',item.source],['型号',d.model],['品牌',d.brand],['评分',d.rating!==undefined?`${d.rating} · ${d.reviews??'—'} 条评论`:null],['成色',d.condition],['库存',d.availability],['上游检查',item.checkedAt],['平台',d.platforms],['福利',packet.provider==='gamerpower'?giveawayKind(d):null],['截止',d.end_date&&d.end_date!=='N/A'?d.end_date:null],['发售',item.release]])if(value!==undefined&&value!==null&&value!=='')p.append(el('p','muted',label+'：'+String(value)));
- if(item.checkedAt&&Date.now()-Date.parse(item.checkedAt)>7*86400000)p.append(el('p','warning','上游报价超过7天未检查，请核实商家当前价格。'));
- if(item.text)p.append(el('p','excerpt',item.text.slice(0,200)));
- const actions=el('footer');add(actions,link(item.url,packet.provider==='gamerpower'?'领取原文 ↗':'来源 / 购买 ↗'),button('详情',()=>details(item,packet)),button('JSON',()=>jsonDialog(d)),button('☆ 收藏',()=>saveItem(item,packet)));
- if(packet.provider==='gamerpower')actions.append(button('✓ 已领取',()=>{saveItem(item,packet).claimed=true;store.write('saved',saved);notify('已标记领取；可在收藏页修改。');}));
- addActions(actions,item,packet);p.append(actions);return p;
-}
-function renderPackets(){
- const root=$('#view');root.querySelector('#results')?.remove();const box=el('section');box.id='results';
- for(const error of state.errors){const note=el('div','error-panel');note.append(el('b','',NAMES[error.provider]+' · HTTP '+(error.httpStatus||'—')),el('p','',error.message),button('错误详情 JSON',()=>jsonDialog(error.details)));if(error.details?.retryAfter)note.append(el('p','','请在 '+error.details.retryAfter+' 秒后重试'));box.append(note);}
- for(const packet of state.packets){
-  const section=el('section','source-results'),items=normalize(packet),head=el('div','result-head');
-  add(head,el('h3','',NAMES[packet.provider]+' · '+items.length+' 条'),pill(packet.cache==='hit'?'缓存':packet.cache==='last-good'?'旧缓存 · 上游失败':packet.cache==='expired'?'缓存已失效':'真实请求',packet.cache==='last-good'?'warn':'good'),el('span','muted',`HTTP ${packet.httpStatus} · ${packet.durationMs}ms · ${when(packet.fetchedAt)}`));
-  head.append(button('完整 JSON',()=>jsonDialog(packet)),queryButton('检查缓存',()=>query(packet.provider,packet.operation,packet.args)),queryButton('重新向上游查询',()=>query(packet.provider,packet.operation,packet.args,{force:true})));
-  head.append(button('清除此查询缓存',async()=>{try{await request('clear',{provider:packet.provider,operation:packet.operation,args:packet.args});state.cacheKnown.delete(JSON.stringify({provider:packet.provider,operation:packet.operation,args:packet.args}));packet.cache='expired';renderPackets();notify('缓存已失效；保留最后成功数据。下次查询会消耗真实额度。');}catch(e){notify(e.message,true);}}));
-  section.append(head,el('p','muted',`来源：${packet.source} · 地区：${packet.region||'上游未统一声明'} · 数据获取于 ${when(packet.fetchedAt)} · 上游报价时间以各项为准`));
-  if(packet.provider==='shopsavvy'&&packet.operation!=='tools'){
-   section.append(el('p','note','ShopSavvy MCP 本次返回文本；卡片仅提取明确提供的字段。'+(packet.data.toolDescription?.includes('Prices are in US dollars')?'工具说明标明报价为 USD。':'币种或地区缺失时不进行跨来源最低价判定。')));
-   const text=(packet.data.result?.content||[]).filter(x=>x.type==='text').map(x=>x.text).join('\n');
-   const sources=[...new Set(text.match(/https:\/\/(?:www\.)?shopsavvy\.com\/[^\s)]+/g)||[])];
-   for(const url of sources.slice(0,8))section.append(link(url,'ShopSavvy 原始商品 / 指南来源 ↗'));
-  }
-  if(packet.provider==='steam'&&packet.data.snapshotStored===false)section.append(el('p','warning','榜单已读取，但本次历史快照保存失败，不能作为下次变化对照。'));
-  let shown=items;
-  if(packet.provider==='steam'){const term=$('#rankSearch')?.value?.trim().toLowerCase()||'',filter=$('#rankFilter')?.value||'all';shown=items.filter(x=>(!term||x.title.toLowerCase().includes(term)||String(x.appid).includes(term))&&(filter==='all'||filter==='new'&&x.isNew||filter==='up'&&x.change>0||filter==='down'&&x.change<0));}
-  if(packet.provider==='gamerpower'){const prefs=store.read('form-free',{});if(prefs.type==='dlc')shown=shown.filter(x=>/\bdlc\b/i.test(x.title));if(prefs.sort==='end')shown.sort((a,b)=>(Date.parse(a.raw.end_date)||Infinity)-(Date.parse(b.raw.end_date)||Infinity));}
-  const controls=add(el('div','toolbar'),button(store.read('list',false)?'切换卡片视图':'切换列表视图',()=>{store.write('list',!store.read('list',false));renderPackets();}));section.append(controls);
-  const grid=el('div',store.read('list',false)?'result-list':'grid');for(const item of shown.slice(0,100))grid.append(card(item,packet));section.append(grid);
-  if(!shown.length)section.append(el('p','empty',items.length?'当前筛选下无条目。':'上游成功返回，但无可展示条目。请查看原始 JSON；这不代表接口失败。'));
-  section.append(link(packet.source,'数据来源 / API 文档 ↗'));
-  const history=historyPoints(packet);if(history.length)section.append(historyTable(history));
-  box.append(section);
- }
- if(state.packets.length)root.querySelector('.empty')?.remove();root.append(box);setBusy(state.busy);
-}
-function historyPoints(packet){if(packet.provider==='itad'&&packet.operation==='history'&&Array.isArray(packet.data))return packet.data.filter(x=>x.deal?.price).map(x=>({time:x.timestamp,shop:x.shop?.name,amount:x.deal.price.amount,currency:x.deal.price.currency}));return [];}
-function historyTable(points){
- const box=el('div','panel');box.append(el('h3','','历史价格 · 按商店和币种分别查看'));
- const groups=[...new Set(points.map(x=>(x.shop||'未提供商店')+' · '+x.currency))];
- const group=choice('曲线：商店 / 币种','history-group',groups.map(x=>[x,x]),groups[0]);box.append(group);const chart=el('div','history-chart');box.append(chart);
- function draw(){chart.replaceChildren();const data=points.filter(x=>(x.shop||'未提供商店')+' · '+x.currency===group.querySelector('select').value).filter(x=>Number.isFinite(Number(x.amount))&&Number.isFinite(Date.parse(x.time))).sort((a,b)=>Date.parse(a.time)-Date.parse(b.time));if(data.length<2){chart.append(el('p','muted','此商店/币种的有效点不足两个，保留明细，不绘制趋势。'));return;}
- const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 800 210');svg.setAttribute('role','img');svg.setAttribute('aria-label','历史价格；横轴时间、纵轴价格，币种以选项为准');
- const amounts=data.map(x=>Number(x.amount)),times=data.map(x=>Date.parse(x.time)),min=Math.min(...amounts),max=Math.max(...amounts),begin=times[0],end=times.at(-1);
- const path=document.createElementNS(ns,'polyline');path.setAttribute('points',data.map(x=>`${40+(Date.parse(x.time)-begin)/Math.max(1,end-begin)*730},${175-(Number(x.amount)-min)/Math.max(1,max-min)*150}`).join(' '));path.setAttribute('fill','none');path.setAttribute('stroke','#2e83be');path.setAttribute('stroke-width','3');svg.append(path);
- for(const [x,y,text] of [[5,20,max.toFixed(2)],[5,178,min.toFixed(2)],[40,205,new Date(begin).toISOString().slice(0,10)],[665,205,new Date(end).toISOString().slice(0,10)]]){const t=document.createElementNS(ns,'text');t.setAttribute('x',x);t.setAttribute('y',y);t.setAttribute('fill','currentColor');t.setAttribute('font-size','12');t.textContent=text;svg.append(t);}chart.append(svg);
- }
- group.querySelector('select').onchange=draw;draw();
- const table=el('table');const h=el('tr');for(const k of ['时间','商店','价格','币种'])h.append(el('th','',k));table.append(h);for(const x of points.slice(0,100)){const tr=el('tr');for(const v of [when(x.time),x.shop,x.amount,x.currency])tr.append(el('td','',v));table.append(tr);}box.append(table);return box;
-}
-function savedView(root){
- const grid=el('div','grid');for(const item of saved){const panel=el('article','panel');panel.append(el('h3','',item.title),el('p','muted',NAMES[item.provider]+' · '+item.kind),link(item.url,'打开保存的来源 ↗'),field('目标价格','target-'+saved.indexOf(item),item.target||'','number'),field('币种','currency-'+saved.indexOf(item),item.currency||'','text','例如 USD'));
-  panel.append(button('保存目标',()=>{const values=panel.querySelectorAll('input');if(values[0].value&&(Number(values[0].value)<0||!Number.isFinite(Number(values[0].value))))return notify('目标价格必须为非负数',true);if(values[1].value&&!/^[A-Za-z]{3}$/.test(values[1].value))return notify('币种请使用三个字母，例如 USD',true);item.target=values[0].value;item.currency=values[1].value.toUpperCase();store.write('saved',saved);notify('目标价已保存；未启用自动监控。');}),button(item.claimed?'✓ 已领取（取消）':'标记已领取',()=>{item.claimed=!item.claimed;store.write('saved',saved);render();}),button('移除',()=>{saved=saved.filter(x=>x.id!==item.id);store.write('saved',saved);render();}));
-  if(item.query)panel.append(queryButton('重新查询',()=>query(item.query.provider,item.query.operation,item.query.args)));grid.append(panel);
- }
- root.append(grid);if(!saved.length)root.append(el('p','empty','还没有观察对象。搜索后点击收藏，可保存目标价和领取状态。'));
- root.append(el('h3','','最近查询（本机）'));const list=el('div','history-list');for(const q of historyItems)list.append(queryButton(`${when(q.time)} · ${NAMES[q.provider]} / ${q.operation} · ${JSON.stringify(q.args).slice(0,130)}`,()=>{openEndpoint(q.provider,q.operation,q.args);}));
- root.append(list,button('清空查询历史',()=>{historyItems=[];store.write('history',[]);render();}));
-}
-function tree(value,key='root',depth=0){if(value&&typeof value==='object'&&depth<9){const d=el('details');d.open=depth===0;const entries=Object.entries(value);d.append(el('summary','',`${key} ${Array.isArray(value)?'[':'{'}${entries.length}${Array.isArray(value)?']':'}'}`));for(const [k,v] of entries.slice(0,500))d.append(tree(v,k,depth+1));return d;}return el('div','json-leaf',key+': '+JSON.stringify(value));}
-function jsonDialog(value){jsonValue=value;$('#jsonText').textContent=JSON.stringify(value,null,2);$('#jsonTree').replaceChildren(tree(value));$('#jsonModal').showModal();}
-async function status(options={render:true}){try{state.status=await request('status');for(const [p,source] of Object.entries(state.status.sources||{})){const t=Date.parse(source.usage?.lastCall||'')+(source.budget?.cooldown||0)*1000;if(Number.isFinite(t))state.cooldowns[p]=Math.max(state.cooldowns[p]||0,t);}$('#sessionStatus').textContent=state.status.authorized?'私有后台已连接':'尚未授权';$('#connect').textContent=state.status.authorized?'重新连接':'连接 PT 私有后台';if(options.render)render();}catch(e){$('#sessionStatus').textContent='后台状态不可用';notify(e.message,true);}}
-$('#connect').onclick=()=>initConnect();$('#theme').onclick=()=>{document.body.classList.toggle('dark');store.write('dark',document.body.classList.contains('dark'));};document.body.classList.toggle('dark',store.read('dark',false));
-$('#closeJson').onclick=()=>$('#jsonModal').close();$('#closeDetail').onclick=()=>$('#detailModal').close();$('#copyJson').onclick=()=>navigator.clipboard.writeText(JSON.stringify(jsonValue,null,2)).then(()=>notify('JSON 已复制')).catch(()=>notify('浏览器不允许复制，请从格式化文本手动复制。'));
-$('#toggleJson').onclick=()=>{const showing=$('#jsonTree').hidden;$('#jsonTree').hidden=!showing;$('#jsonText').hidden=showing;};
-$('#expandJson').onclick=()=>$('#jsonTree').querySelectorAll('details').forEach(d=>d.open=true);$('#collapseJson').onclick=()=>$('#jsonTree').querySelectorAll('details').forEach(d=>d.open=false);
-for(const b of document.querySelectorAll('[data-page]'))b.onclick=()=>setPage(b.dataset.page);
-window.addEventListener('hashchange',()=>setPage(location.hash.slice(1)));
-if(new URLSearchParams(location.search).get('embed')==='1')document.body.classList.add('embedded');
-setPage(location.hash.slice(1));void status();if(!connected()&&location.origin==='https://ximinhu66.github.io')initConnect({automatic:true});
+async function loadTrends(){return work(async signal=>{state.trends=(await query('steam','trends',{days:30},signal)).data;render();note('已读取实际历史，不消耗外部查询额度。');});}
+$('#connect').onclick=initConnect;$('#theme').onclick=()=>{document.body.classList.toggle('dark');store.write('dark',document.body.classList.contains('dark'));};document.body.classList.toggle('dark',store.read('dark',false));for(const b of document.querySelectorAll('[data-page]'))b.onclick=()=>setPage(b.dataset.page);window.addEventListener('hashchange',()=>setPage(location.hash.slice(1)));
+setPage(location.hash.slice(1));void status();if(!connected()&&location.origin==='https://ximinhu66.github.io'){sessionStorage.setItem('pt.deal-lab.return.v1',JSON.stringify({path:location.pathname,expiresAt:Date.now()+600000}));connect({automatic:true});}
