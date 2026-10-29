@@ -68,6 +68,7 @@ From repository root:
 ```sh
 node --check apps/deal-lab/app.js
 node scripts/deal-lab/ui.test.mjs
+node scripts/deal-lab/flow.test.mjs
 node scripts/monitor-center/connection-test.mjs
 python .github/scripts/actions_policy.py .
 python scripts/build-pages.py
@@ -86,10 +87,16 @@ npx wrangler deploy --dry-run
 `node tests/deal-lab.live.mjs` is an **explicit manual** public-upstream integration check. It uses isolated local SQLite/KV and real external HTTP; it is not a claim of production deployment or production owner-login verification. Routine CI does not call upstream providers. Deployed UI and Worker must be checked independently after release.
 
 2026-10-29 pre-release verification:
-- 54 fixture assertions passed: actual SQLite atomic/rolling quotas, auth and origins, missing-key behavior, cache normalization, stale fallback after invalidation, MCP initialization/session/SSE/Schema, timeout, size, 429 and secret redaction.
+- 56 fixture assertions passed: actual SQLite atomic/rolling quotas, auth and origins, missing-key behavior, cache normalization, stale fallback after invalidation, MCP initialization/session/SSE/Schema, timeout, size, 429 and secret redaction.
 - Live local route: CheapShark Hades (2 games), GamerPower Steam games (2 events), Steam (50 ranked apps), MCP discovery (11 allowed tools), product search (3 products), product offers (66 offers). Every repeated query returned cache hit. These counts describe that test time, not permanent availability.
 - ITAD/SerpApi missing-key handling passed; no keyed-provider success is claimed.
 - Full existing Worker deployment regression suite passed locally, plus Worker type checking, binding-type verification, dry-run packaging and Pages build.
 - PR's pre-existing unrelated browser checks used stale Daily Nexus nav/Idea Pad label assertions (Decision, Daily Nexus, Todo jobs). No unrelated application code or tests were changed to conceal those failures. Production release results must be recorded separately.
 
 Known limitations: keyed provider live responses require secrets; source licenses/plans can change; Steam ranking is an experimental public-page adapter and stops on schema/access failures; chart for ITAD history requires that provider's real data; ShopSavvy text-only fields are conservatively extracted, with original text/JSON preserved. No cross-provider identity equivalence or region equivalence is inferred from matching titles.
+
+Production verification, 2026-10-29 (initial release `3dc392e` / PR #151):
+- Pages source revision matched the release commit. Worker version `47d7f905-590c-4265-b429-8f19fd287498`; both deployment Actions, resource policy and Monitor Center validation succeeded.
+- Official browser UI: CheapShark Hades search (16 matches), repeat cache hit, game detail (USD 24.99 at test time; historical low USD 6.24); GamerPower Steam (2 events); Steam official top 50 with `snapshotStored: true` and no fabricated initial comparison.
+- ShopSavvy search returned 20 products through the deployed Worker. SerpApi's missing secret produced an independent 503 while the successful MCP results remained visible.
+- A real early detail click triggered the intended internal 429 protection. Follow-up polish adds a visible cancellable countdown for manually initiated queries, server Retry-After for budget denials, source-specific store-deal search, and clears old-page notices. There is still no automatic data fetching or automatic retry after an upstream failure.
