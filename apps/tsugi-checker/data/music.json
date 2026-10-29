@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-29T04:01:13Z",
+  "generated_at": "2026-10-29T04:16:55Z",
   "chart_date": "2026/10/28",
   "weekly_chart": [
     {
@@ -1019,8 +1019,9 @@
       "youtube_music_url": "https://music.youtube.com/search?q=Pang+Pang+Pang+Kyary+Pamyu+Pamyu",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": false
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/4c/a3/79/4ca379f6-0d48-42ae-58af-0744c159148e/885288562576.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/pang-pang-pang/6810134250?i=6810134253&uo=4"
     },
     {
       "id": "83a950333533007c",
@@ -1037,8 +1038,9 @@
       "youtube_music_url": "https://music.youtube.com/search?q=Golden+Sun+ONE+N%27+ONLY",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": false
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/d5/69/56/d569568c-c21d-9dd7-df16-ef06b0a2aeb6/26UM1IM12186.rgb.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/golden-sun/6810953509?i=6810953513&uo=4"
     },
     {
       "id": "ff0192cbdf433dce",
@@ -1091,8 +1093,9 @@
       "youtube_music_url": "https://music.youtube.com/search?q=It%E2%80%99s+not+a+bad+life+%28Live%29+BE%3AFIRST",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": false
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/ed/f2/36/edf236d5-4773-2ad5-94ce-42f1f400b296/ANTCD-A0000020993.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/its-not-a-bad-life/6817729828?i=6817729836&uo=4"
     },
     {
       "id": "f9df26f745e166b0",
@@ -1109,8 +1112,9 @@
       "youtube_music_url": "https://music.youtube.com/search?q=%E6%B1%9D%E3%80%81%E6%98%9F%E3%81%AE%E3%81%94%E3%81%A8%E3%81%8F+Radwimps",
       "source": "youtube_japan_recent",
       "source_label": "YouTube Japan Weekly · 8 周内",
-      "artwork": "",
-      "artwork_checked": false
+      "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/50/60/30/506030b1-aa11-6bb4-2d4b-d2136790ff5c/26UM1IM29233.rgb.jpg/300x300bb.jpg",
+      "artwork_checked": true,
+      "apple_music_url": "https://music.apple.com/jp/album/%E6%B1%9D-%E6%98%9F%E3%81%AE%E3%81%94%E3%81%A8%E3%81%8F/6819570455?i=6819570457&uo=4"
     }
   ],
   "sources": {
@@ -1118,13 +1122,13 @@
       "label": "Billboard JAPAN Hot 100",
       "ok": true,
       "count": 30,
-      "checked_at": "2026-10-29T04:01:13Z"
+      "checked_at": "2026-10-29T04:16:55Z"
     },
     "apple_music_weekly_new": {
       "label": "Apple Music Japan · 本周新曲",
       "ok": true,
       "count": 8,
-      "checked_at": "2026-10-29T04:01:13Z",
+      "checked_at": "2026-10-29T04:16:55Z",
       "fallback": "Billboard JAPAN Hot 100 本周新进榜",
       "error": "RuntimeError: Apple Music Best New Songs heading not found"
     },
@@ -1132,8 +1136,8 @@
       "label": "YouTube Japan · 近期热门榜",
       "ok": true,
       "count": 30,
-      "cover_count": 23,
-      "checked_at": "2026-10-29T04:01:13Z",
+      "cover_count": 27,
+      "checked_at": "2026-10-29T04:16:55Z",
       "chart_date": "2026/10/22",
       "endpoint": "https://kworb.net/youtube/insights/jp.html"
     }
