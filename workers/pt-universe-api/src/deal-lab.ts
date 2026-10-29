@@ -71,7 +71,7 @@ function redact(value:unknown,env:LabEnv):unknown{
 const h={'referrer-policy':'no-referrer','cache-control':'private,no-store','x-content-type-options':'nosniff'};
 const out=(body:unknown,status=200)=>Response.json(body,{status,headers:h});
 const asString=(v:unknown,max=180)=>typeof v==='string'?v.trim().slice(0,max):'';
-const fail=(error:string,status=400,more:Dict={})=>out({ok:false,error,...more},status);
+const fail=(error:string,status=400,more:Dict={})=>Response.json({ok:false,error,...more},{status,headers:{...h,...(status===429&&more.retryAfter?{'retry-after':String(more.retryAfter)}:{})}});
 const json=(s:string)=>{try{return JSON.parse(s)}catch{return null}};
 const now=()=>Date.now();
 const hash=async(v:string)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)))).map(x=>x.toString(16).padStart(2,'0')).join('');
@@ -195,7 +195,7 @@ async function mcpExecute(operation:string,args:unknown,env:LabEnv){
  const checked=sanitizeMcpArgs(args,tool.inputSchema);
  const result=await mcpRequest('tools/call',{name:operation,arguments:checked},session);
  if((result.value as any)?.isError)throw Error('MCP 工具报告失败：'+JSON.stringify(result.value).slice(0,350));
- return {tool:operation,toolSchema:tool.inputSchema,result:result.value};
+ return {tool:operation,toolSchema:tool.inputSchema,toolDescription:tool.description,result:result.value};
 }
 function cleanHTML(s:string){return s.replace(/<[^>]*>/g,' ').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim();}
 export function parseSteam(html:string){
@@ -270,6 +270,14 @@ async function reserve(env:LabEnv,provider:string){
  .bind(id,provider,t,'reserved',provider,t-31*86400000,b.month,provider,t-t%86400000,b.day,provider,t-3600000,b.hour,provider,t-60000,b.minute,provider,t-b.cooldown*1000).run();
  return result.meta.changes===1?id:null;
 }
+async function budgetRetry(env:LabEnv,provider:string,usage:any){
+ const t=now(),b=budgets[provider];let wait=Math.max(0,Date.parse(usage.lastCall||'')+b.cooldown*1000-t)||0;
+ if(usage.day>=b.day)wait=Math.max(wait,86400000-t%86400000);
+ for(const [field,window,limit] of [['month',31*86400000,b.month],['hour',3600000,b.hour],['minute',60000,b.minute]] as const){
+  if(usage[field]>=limit){const row=await env.DB.prepare('SELECT MIN(created_at) AS earliest FROM deal_lab_usage WHERE provider=? AND created_at>=?').bind(provider,t-window).first<any>();if(row?.earliest)wait=Math.max(wait,Number(row.earliest)+window-t);}
+ }
+ return Math.max(1,Math.ceil(wait/1000));
+}
 export async function dealLabRoute(request:Request,env:LabEnv,publicKey?:JsonWebKey):Promise<Response|null>{
  const path=new URL(request.url).pathname;
  if(!path.startsWith('/api/deal-lab/'))return null;
@@ -306,7 +314,7 @@ export async function dealLabRoute(request:Request,env:LabEnv,publicKey?:JsonWeb
   if(cooldownUntil>t)return fail('上游限流冷却中',429,{retryAfter:Math.ceil((cooldownUntil-t)/1000),lastGood:cached||null});
   await bootstrap(env); // fail closed if D1 is not available
   const reservation=await reserve(env,provider);
-  if(!reservation)return fail('Deal Lab 服务端额度或冷却已达到保护阈值',429,{usage:await metrics(env,provider),lastGood:cached||null});
+  if(!reservation){const usage=await metrics(env,provider);return fail('Deal Lab 服务端额度或冷却已达到保护阈值',429,{usage,retryAfter:await budgetRetry(env,provider,usage),lastGood:cached||null});}
   const start=now();
   try{
    const upstream=await fetchDealSource(provider,operation,args,env);

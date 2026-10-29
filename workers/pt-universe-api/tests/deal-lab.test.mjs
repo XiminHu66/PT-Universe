@@ -15,7 +15,7 @@ check((await call(env,{...query,args:{title:'x',url:'http://localhost'}})).statu
 let r=await call(env,query),packet=await r.json();check(r.status===200);check(packet.cache==='miss');check(calls===1);
 packet=await (await call(env,{...query,args:{limit:'20',title:'Hades'}})).json();check(packet.cache==='hit');check(calls===1);
 const usage=await (await call(env,null,'status')).json();check(usage.sources.cheapshark.usage.month===1);check(usage.sources.cheapshark.health.state==='success');
-r=await call(env,{...query,args:{title:'Portal'}});check(r.status===429);check(calls===1);
+r=await call(env,{...query,args:{title:'Portal'}});check(r.status===429);check(Number(r.headers.get('retry-after'))>0);check((await r.json()).retryAfter>0);check(calls===1);
 await call(env,query,'clear');env.sqlite.exec('DELETE FROM deal_lab_usage');
 globalThis.fetch=async()=>{calls++;return Response.json({error:'limited'},{status:429,headers:{'retry-after':'7200'}});};
 r=await call(env,query);packet=await r.json();check(r.status===429);check(packet.lastGood.data.length===1);check(packet.retryAfter===7200);check(Number(env.kv.get('deal-lab/backoff/cheapshark'))>Date.now()+7190_000);

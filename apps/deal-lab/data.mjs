@@ -14,6 +14,7 @@ export function mcpItems(result){
 }
 export function normalize(packet){
  const {provider:p,operation:op,data:d}=packet;
+ const productTitle=p==='shopsavvy'?(d?.result?.content||[]).filter(x=>x.type==='text').map(x=>x.text).join('\n').match(/Current Offers for ([^\n]+)/)?.[1]||packet.contextTitle:'';
  if(!d)return [];
  let rows=[];
  if(p==='shopsavvy')rows=op==='tools'?(d.tools||[]).map(t=>({title:t.name,text:t.description,tool:t})):mcpItems(d.result);
@@ -33,14 +34,14 @@ export function normalize(packet){
   else if(d.id||d.title)rows=[d];
  }else rows=Array.isArray(d)?d:[];
  return rows.filter(x=>x&&typeof x==='object').map(raw=>{
-  const title=String(raw.title||raw.name||raw.external||raw.gameInfo?.name||raw.appid||raw.id||'详情');
+  const title=String(raw.title||raw.name||raw.storeName||raw.external||raw.gameInfo?.name||raw.appid||raw.id||'详情');
   const currency=p==='cheapshark'?'USD':raw.price?.currency||raw.currency||'';
   const price=raw.salePrice??raw.price??raw.cheapest??raw.current_price??raw.extracted_price;
   let url=raw.link||raw.url||raw.open_giveaway_url||raw.gamerpower_url||'';
   const dealID=raw.dealID||raw.cheapestDealID;
   if(p==='cheapshark'&&dealID){let id=String(dealID);try{id=decodeURIComponent(id)}catch{}url='https://www.cheapshark.com/redirect?dealID='+encodeURIComponent(id);}
   if(!url&&raw.steamAppID)url='https://store.steampowered.com/app/'+encodeURIComponent(raw.steamAppID)+'/';
-  return {raw,title,price:money(price,currency),currency,url:safeURL(url),image:safeURL(raw.thumbnail||raw.image||raw.image_url||raw.thumb||raw.assets?.boxart||raw.assets?.banner145||''),identifier:raw.identifier||raw.path||raw.asin||raw.barcode||raw.id||'',gameID:raw.gameID||(p==='itad'?raw.id:null),appid:raw.appid||raw.steamAppID,historyLow:money(raw.cheapestPriceEver?.price??raw.cheapestPriceEver??raw.historyLow??raw.lowest,currency),discount:raw.savings!==undefined?Number(raw.savings).toFixed(1)+'%':raw.cut!==undefined?raw.cut+'%':raw.discount||'',source:raw.source||raw.merchant||raw.shop?.name||(raw.storeID?'商店 #'+raw.storeID:''),rank:raw.rank,change:raw.change,isNew:raw.isNew,text:raw.text||raw.description||'',release:raw.release,checkedAt:raw.checkedAt||raw.timestamp||raw.lastChange};
+  return {raw,title,productTitle,price:money(price,currency),currency,url:safeURL(url),image:safeURL(raw.thumbnail||raw.image||raw.image_url||raw.thumb||raw.assets?.boxart||raw.assets?.banner145||''),identifier:raw.identifier||raw.path||raw.asin||raw.barcode||raw.id||'',gameID:raw.gameID||(p==='itad'?raw.id:null),appid:raw.appid||raw.steamAppID,historyLow:money(raw.cheapestPriceEver?.price??raw.cheapestPriceEver??raw.historyLow??raw.lowest,currency),discount:raw.savings!==undefined?Number(raw.savings).toFixed(1)+'%':raw.cut!==undefined?raw.cut+'%':raw.discount||'',source:raw.source||raw.merchant||raw.shop?.name||(raw.storeID?'商店 #'+raw.storeID:''),rank:raw.rank,change:raw.change,isNew:raw.isNew,text:raw.text||raw.description||'',release:raw.release,checkedAt:raw.checkedAt||raw.timestamp||raw.lastChange};
  });
 }
 export function giveawayKind(item){const t=String(item.type||'').toLowerCase();if(t.includes('beta'))return 'Beta / 测试';if(t.includes('dlc'))return 'DLC';if(t.includes('loot'))return /\bdlc\b/i.test(item.title||'')?'DLC（Loot 分类）':'Loot / 道具（可能含 DLC）';return t==='game'?'完整游戏 · 权益以原文为准':t||'活动';}

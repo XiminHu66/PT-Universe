@@ -39,6 +39,7 @@ jobs:
         npm run check
         node tests/deal-lab.test.mjs
         node ../../scripts/deal-lab/ui.test.mjs
+        node ../../scripts/deal-lab/flow.test.mjs
         node ../../scripts/monitor-center/connection-test.mjs
         node tests/anythingllm.test.mjs
         node tests/anythingllm-auth.test.mjs

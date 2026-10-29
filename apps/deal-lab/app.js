@@ -6,7 +6,7 @@ const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className
 const add=(p,...nodes)=>{for(const n of nodes)if(n)p.append(n);return p;};
 const store={read(k,f){try{return JSON.parse(localStorage.getItem('ptu.deal-lab.'+k))??f}catch{return f}},write(k,v){try{localStorage.setItem('ptu.deal-lab.'+k,JSON.stringify(v))}catch{notify('浏览器存储不可用；本次结果仍可查看，收藏暂时无法保存。')}}};
 const TITLES={overview:'数据源总览',products:'商品探索',games:'游戏折扣',free:'免费领取',steam:'Steam 热门愿望单',playground:'API Playground',saved:'收藏与查询历史'};
-const state={page:'overview',status:null,packets:[],errors:[],busy:false,provider:store.read('provider','cheapshark'),operation:'games',playArgs:{},lastQuery:null};
+const state={page:'overview',status:null,packets:[],errors:[],busy:false,provider:store.read('provider','cheapshark'),operation:'games',playArgs:{},lastQuery:null,cooldowns:{},cacheKnown:new Set(),active:null};
 let saved=store.read('saved',[]),historyItems=store.read('history',[]),jsonValue=null;
 function notify(text,error=false){$('#notice').textContent=text;$('#notice').classList.toggle('error',error);}
 function button(text,fn,primary=false){const b=el('button',primary?'primary':'',text);b.type='button';b.onclick=fn;return b;}
@@ -15,9 +15,9 @@ function field(text,id,value='',type='text',placeholder=''){const l=el('label');
 function choice(text,id,options,value){const l=el('label');const s=el('select');s.id=id;for(const [id,title] of options){const o=el('option','',title);o.value=id;o.selected=id===value;s.append(o);}return add(l,el('span','',text),s);}
 function pill(text,kind=''){return el('span','status '+kind,text);}
 function when(value){if(!value||value==='N/A')return '未提供';const date=new Date(value);return isNaN(date)?String(value):date.toLocaleString('zh-CN',{timeZone:'America/Los_Angeles'});}
-async function request(path,body){const response=await fetch(BASE+path,{method:body?'POST':'GET',headers:{...(body?{'content-type':'application/json'}:{}),authorization:'Bearer '+(sessionStorage.getItem('pt.monitor.session.v1')||'')},body:body?JSON.stringify(body):undefined,credentials:'omit',cache:'no-store',signal:AbortSignal.timeout(70000)});const data=await response.json().catch(()=>({error:'服务未返回有效 JSON'}));if(!response.ok){const e=new Error(data.error||'HTTP '+response.status);e.packet=data;e.httpStatus=response.status;throw e;}return data;}
+async function request(path,body,signal){const response=await fetch(BASE+path,{method:body?'POST':'GET',headers:{...(body?{'content-type':'application/json'}:{}),authorization:'Bearer '+(sessionStorage.getItem('pt.monitor.session.v1')||'')},body:body?JSON.stringify(body):undefined,credentials:'omit',cache:'no-store',signal:signal?AbortSignal.any([signal,AbortSignal.timeout(70000)]):AbortSignal.timeout(70000)});const data=await response.json().catch(()=>({error:'服务未返回有效 JSON'}));if(!response.ok){const e=new Error(data.error||'HTTP '+response.status);e.packet=data;e.httpStatus=response.status;throw e;}return data;}
 function initConnect({automatic=false}={}){sessionStorage.setItem('pt.deal-lab.return.v1',JSON.stringify({path:location.pathname,expiresAt:Date.now()+600000}));connect({automatic});}
-function setPage(page){state.page=Object.hasOwn(TITLES,page)?page:'overview';state.packets=[];state.errors=[];window.history.replaceState(null,'','#'+state.page);document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===state.page));$('#heading').textContent=TITLES[state.page];render();}
+function setPage(page){state.active?.abort();notify('');state.page=Object.hasOwn(TITLES,page)?page:'overview';state.packets=[];state.errors=[];window.history.replaceState(null,'','#'+state.page);document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===state.page));$('#heading').textContent=TITLES[state.page];render();}
 function render(){const root=$('#view');root.replaceChildren();if(state.page==='overview')overview(root);else if(['products','games','free'].includes(state.page))searchForm(root,state.page);else if(state.page==='steam')steam(root);else if(state.page==='playground')playground(root);else savedView(root);renderPackets();setBusy(state.busy);}
 function setBusy(busy){state.busy=busy;$('#view').setAttribute('aria-busy',String(busy));document.querySelectorAll('#view button[data-query]').forEach(b=>b.disabled=busy);}
 function queryButton(label,fn,primary=false){const b=button(label,fn,primary);b.dataset.query='true';b.disabled=state.busy;return b;}
@@ -51,7 +51,8 @@ function searchForm(root,mode){
   root.append(toolbar,extra);$('#mode').onchange=update;update();
   toolbar.append(choice('Google 排序','sort_by',[['','相关度'],['1','价格从低到高'],['2','价格从高到低']],prefs.sort_by||''));
  }else if(mode==='games'){
-  toolbar.append(choice('输入类型','mode',[['title','游戏名称'],['appid','Steam AppID']],prefs.mode||'title'));
+  toolbar.append(choice('输入类型','mode',[['title','游戏名称'],['appid','Steam AppID'],['deals','当前折扣（CheapShark）']],prefs.mode||'title'));
+  toolbar.append(field('商店 ID（当前折扣可选）','storeID',prefs.storeID||'','number','例如 1；在实验台 stores 查看'));
  }else{
   toolbar.append(choice('平台','platform',[['','所有平台'],['pc','PC'],['steam','Steam'],['epic-games-store','Epic'],['gog','GOG'],['ps5','PS5'],['ps4','PS4'],['xbox-series-xs','Xbox Series X/S'],['xbox-one','Xbox One'],['switch','Switch']],prefs.platform||''));
   toolbar.append(choice('类型','type',[['game','完整游戏'],['dlc','DLC（从 Loot 中筛选）'],['loot','Loot / 道具'],['beta','Beta / 测试']],prefs.type||'game'));
@@ -69,8 +70,9 @@ async function search(mode){
  const prefs={};for(const i of $('#view').querySelectorAll('input,select'))prefs[i.id]=i.value;store.write('form-'+mode,prefs);
  const term=prefs.term?.trim();if(mode!=='free'&&!term)return notify('请输入查询内容');
  const sources=prefs.source==='compare'?(mode==='products'?['shopsavvy','serpapi']:['cheapshark','itad']):[prefs.source];
- state.packets=[];state.errors=[];setBusy(true);
+ state.packets=[];state.errors=[];setBusy(true);const contextPage=state.page;
  for(const provider of sources){
+  if(state.page!==contextPage)break;
   let operation,args;
   if(mode==='free'){operation='giveaways';args={type:prefs.type==='dlc'?'loot':prefs.type,'sort-by':prefs.sort==='end'?'date':prefs.sort};if(prefs.platform)args.platform=prefs.platform;}
   else if(mode==='products'){
@@ -81,7 +83,7 @@ async function search(mode){
     if(prefs.mode==='history'){args.start_date=prefs.start_date;args.end_date=prefs.end_date;}
    }else{if(prefs.mode!=='search'){state.errors.push({provider,message:'该方式使用 ShopSavvy。Google 商品详情请在搜索结果或实验台使用真实 page_token。'});continue;}operation='search';args={q:term};if(prefs.sort_by)args.sort_by=prefs.sort_by;}
   }else if(provider==='itad'){operation=prefs.mode==='appid'?'lookup':'search';args=prefs.mode==='appid'?{appid:term}:{title:term,results:20};}
-  else{operation='games';args=prefs.mode==='appid'?{steamAppID:term,limit:20}:{title:term,limit:20};}
+  else{operation=prefs.mode==='deals'?'deals':'games';args=prefs.mode==='deals'?{title:term,pageSize:20}:prefs.mode==='appid'?{steamAppID:term,limit:20}:{title:term,limit:20};if(prefs.mode==='deals'&&prefs.storeID)args.storeID=prefs.storeID;}
   await query(provider,operation,args,{append:true,keepBusy:true});
  }
  setBusy(false);renderPackets();
@@ -100,9 +102,9 @@ function playground(root){
   const provider=$('#provider').value;state.provider=provider;store.write('provider',provider);form.replaceChildren();
   const tools=store.read('mcp-schema',[]),operations=state.status?.operations?.[provider]||{};
   const entries=provider==='shopsavvy'?[['tools','发现 / 刷新 MCP 工具目录'],...tools.map(t=>[t.name,t.name])]:Object.entries(operations).map(([k,v])=>[k,k+' · '+v.description]);
-  form.append(choice('Endpoint / MCP Tool','endpoint',entries,state.operation));const desc=el('p','lead'),fields=el('div','form-fields');form.append(desc,fields);
+  form.append(choice('Endpoint / MCP Tool','endpoint',entries,state.playArgs[provider+'/'+state.operation]?state.operation:store.read('operation-'+provider,state.operation)));const desc=el('p','lead'),fields=el('div','form-fields');form.append(desc,fields);
   function refields(){
-   const op=$('#endpoint').value;state.operation=op;fields.replaceChildren();
+   const op=$('#endpoint').value;state.operation=op;store.write('operation-'+provider,op);fields.replaceChildren();
    const defaults=state.playArgs[provider+'/'+op]||store.read('args-'+provider+'-'+op,{});
    const def=provider==='shopsavvy'?tools.find(t=>t.name===op):operations[op];desc.textContent=def?.description||'发现真实 MCP 只读工具目录；不会执行调度或账户修改。';
    if(provider==='shopsavvy'&&op!=='tools'){
@@ -127,6 +129,9 @@ function playground(root){
     const k=i.id.slice(4),schema=tools.find(t=>t.name===op)?.inputSchema?.properties?.[k];
     args[k]=provider==='shopsavvy'&&['integer','number'].includes(schema?.type)?Number(i.value):schema?.type==='boolean'?i.value==='true':i.value.trim();
    }
+   if(!args||typeof args!=='object'||Array.isArray(args))return notify('参数必须为 JSON 对象',true);
+   if(Object.keys(args).some(k=>/^(api.?key|key|authorization|password|secret|access.?token|refresh.?token)$/i.test(k)))return notify('不能输入或保存密钥；密钥只能配置在服务器端。',true);
+   if(provider==='shopsavvy'&&op!=='tools'&&Object.keys(args).some(k=>!Object.hasOwn(tools.find(t=>t.name===op)?.inputSchema?.properties||{},k)))return notify('参数含有 Tool Schema 未声明的字段，不会保存或执行。',true);
    store.write('args-'+provider+'-'+op,args);await query(provider,op,args);
   },true));
   const doc=state.status?.sources?.[provider]?.doc;form.append(link(doc,'查看官方文档 ↗'));
@@ -137,19 +142,35 @@ async function query(provider,operation,args={},options={}){
  if(!connected()){notify('请点击「连接 PT 私有后台」。将复用现有授权并返回本页。',true);return null;}
  if(state.busy&&!options.keepBusy)return null;
  if(!options.append){state.packets=[];state.errors=[];}
- setBusy(true);notify('正在查询 '+NAMES[provider]+'…');const query={provider,operation,args};state.lastQuery=query;
+ setBusy(true);notify('正在查询 '+NAMES[provider]+'…');const query={provider,operation,args};state.lastQuery=query;const controller=new AbortController();state.active=controller;const contextPage=state.page,queryKey=JSON.stringify(query);
  try{
-  const packet=await request('query',{...query,...(options.force?{force:true}:{})});packet.args=args;
+  const cooldown=state.cooldowns[provider]||0;
+  if(cooldown>Date.now()&&(options.force||!state.cacheKnown.has(queryKey))){
+   const seconds=Math.ceil((cooldown-Date.now())/1000);
+   if(seconds>30){notify('此来源仍在冷却，请 '+seconds+' 秒后手动重试。',true);return null;}
+   while(cooldown>Date.now()){
+    notify(`${NAMES[provider]} 配额保护：${Math.ceil((cooldown-Date.now())/1000)} 秒后执行刚才的查询。切换页面可取消。`);
+    await new Promise((resolve,reject)=>{const onAbort=()=>{clearTimeout(timer);reject(new DOMException('Aborted','AbortError'));};const timer=setTimeout(()=>{controller.signal.removeEventListener('abort',onAbort);resolve();},Math.min(1000,cooldown-Date.now()));controller.signal.addEventListener('abort',onAbort,{once:true});if(controller.signal.aborted)onAbort();});
+   }
+  }
+  if(controller.signal.aborted)return null;
+  const startedAt=Date.now();notify('正在查询 '+NAMES[provider]+'…');
+  const packet=await request('query',{...query,...(options.force?{force:true}:{})},controller.signal);packet.args=args;
+  if(packet.cache==='miss')state.cooldowns[provider]=startedAt+(state.status?.sources?.[provider]?.budget?.cooldown||0)*1000;
+  state.cacheKnown.add(queryKey);
+  if(state.page!==contextPage)return packet;
   packet.contextTitle=options.label||'';state.packets.push(packet);
   if(provider==='shopsavvy'&&operation==='tools'){store.write('mcp-schema',packet.data?.tools||[]);if(state.page==='playground'){state.playArgs[provider+'/'+operation]=args;render();}}
   historyItems=[{...query,time:new Date().toISOString()},...historyItems.filter(h=>JSON.stringify([h.provider,h.operation,h.args])!==JSON.stringify([provider,operation,args]))].slice(0,40);store.write('history',historyItems);
   notify(`${NAMES[provider]} · ${packet.cache==='hit'?'命中缓存，不消耗新额度':'请求成功'} · ${when(packet.fetchedAt)}`);
   return packet;
  }catch(e){
+  if(controller.signal.aborted||state.page!==contextPage)return null;
+  if(e.packet?.retryAfter)state.cooldowns[provider]=Date.now()+e.packet.retryAfter*1000;
   const error={provider,message:e.message,httpStatus:e.httpStatus||0,details:e.packet||{},operation,args};state.errors.push(error);
   if(e.packet?.lastGood)state.packets.push({...e.packet.lastGood,args,cache:'last-good'});
   notify(NAMES[provider]+'：'+e.message+(e.packet?.lastGood?'；保留最后成功数据。':''),true);return null;
- }finally{if(!options.keepBusy)setBusy(false);renderPackets();void status({render:false});}
+ }finally{if(state.active===controller)state.active=null;if(!options.keepBusy||controller.signal.aborted)setBusy(false);renderPackets();void status({render:false});}
 }
 function details(item,packet){
  const d=item.raw;const dialog=$('#detailModal');$('#detailTitle').textContent=item.title;const body=$('#detailBody');body.replaceChildren();
@@ -172,7 +193,7 @@ function addActions(root,item,packet,before=()=>{}){
  if(packet.provider==='steam'&&item.appid){action('CheapShark 报价','cheapshark','games',{steamAppID:String(item.appid),limit:20});action('ITAD 匹配','itad','lookup',{appid:String(item.appid)});}
  const token=item.raw.immersive_product_page_token;if(packet.provider==='serpapi'&&token)root.append(button('Google 商品详情 / 商家',()=>{before();openEndpoint('serpapi','product',{page_token:token,more_stores:1});}));
 }
-function saveItem(item,packet){const id=packet.provider+':'+String(item.gameID||item.raw.id||item.appid||item.identifier||item.title);if(!saved.some(s=>s.id===id))saved.unshift({id,title:item.title,url:item.url,image:item.image,provider:packet.provider,kind:packet.operation,target:'',currency:item.currency,query:{provider:packet.provider,operation:packet.operation,args:packet.args},claimed:false});store.write('saved',saved);notify('已保存至本机观察列表');return saved.find(s=>s.id===id);}
+function saveItem(item,packet){const identifier=item.identifier||packet.args?.identifier;const offer=packet.provider==='shopsavvy'&&packet.operation.includes('offers');const id=packet.provider+':'+String(item.gameID||item.raw.id||item.appid||identifier||item.title)+(offer?':'+(item.url||item.source):'');const title=offer&&item.productTitle?item.productTitle+' · '+item.title:item.title;if(!saved.some(s=>s.id===id))saved.unshift({id,title,url:item.url,image:item.image,provider:packet.provider,kind:packet.operation,target:'',currency:item.currency,query:{provider:packet.provider,operation:packet.operation,args:packet.args},claimed:false});store.write('saved',saved);notify('已保存至本机观察列表');return saved.find(s=>s.id===id);}
 function card(item,packet){
  const d=item.raw,p=el('article','item');if(item.image){const img=el('img','image');img.src=item.image;img.alt='';img.loading='lazy';img.referrerPolicy='no-referrer';img.onerror=()=>{img.remove();};p.append(img);}
  if(item.rank)p.append(el('div','rank','#'+item.rank+' '+(item.isNew?'新进入':item.change===null?'暂无对照':item.change>0?'↑ '+item.change:item.change<0?'↓ '+Math.abs(item.change):'持平')));
@@ -191,9 +212,14 @@ function renderPackets(){
   const section=el('section','source-results'),items=normalize(packet),head=el('div','result-head');
   add(head,el('h3','',NAMES[packet.provider]+' · '+items.length+' 条'),pill(packet.cache==='hit'?'缓存':packet.cache==='last-good'?'旧缓存 · 上游失败':packet.cache==='expired'?'缓存已失效':'真实请求',packet.cache==='last-good'?'warn':'good'),el('span','muted',`HTTP ${packet.httpStatus} · ${packet.durationMs}ms · ${when(packet.fetchedAt)}`));
   head.append(button('完整 JSON',()=>jsonDialog(packet)),queryButton('检查缓存',()=>query(packet.provider,packet.operation,packet.args)),queryButton('重新向上游查询',()=>query(packet.provider,packet.operation,packet.args,{force:true})));
-  head.append(button('清除此查询缓存',async()=>{try{await request('clear',{provider:packet.provider,operation:packet.operation,args:packet.args});packet.cache='expired';renderPackets();notify('缓存已失效；保留最后成功数据。下次查询会消耗真实额度。');}catch(e){notify(e.message,true);}}));
+  head.append(button('清除此查询缓存',async()=>{try{await request('clear',{provider:packet.provider,operation:packet.operation,args:packet.args});state.cacheKnown.delete(JSON.stringify({provider:packet.provider,operation:packet.operation,args:packet.args}));packet.cache='expired';renderPackets();notify('缓存已失效；保留最后成功数据。下次查询会消耗真实额度。');}catch(e){notify(e.message,true);}}));
   section.append(head,el('p','muted',`来源：${packet.source} · 地区：${packet.region||'上游未统一声明'} · 数据获取于 ${when(packet.fetchedAt)} · 上游报价时间以各项为准`));
-  if(packet.provider==='shopsavvy'&&packet.operation!=='tools')section.append(el('p','note','ShopSavvy MCP 本次返回文本；卡片仅提取文本中明确提供的字段。币种或地区缺失时不进行跨来源最低价判定。'));
+  if(packet.provider==='shopsavvy'&&packet.operation!=='tools'){
+   section.append(el('p','note','ShopSavvy MCP 本次返回文本；卡片仅提取明确提供的字段。'+(packet.data.toolDescription?.includes('Prices are in US dollars')?'工具说明标明报价为 USD。':'币种或地区缺失时不进行跨来源最低价判定。')));
+   const text=(packet.data.result?.content||[]).filter(x=>x.type==='text').map(x=>x.text).join('\n');
+   const sources=[...new Set(text.match(/https:\/\/(?:www\.)?shopsavvy\.com\/[^\s)]+/g)||[])];
+   for(const url of sources.slice(0,8))section.append(link(url,'ShopSavvy 原始商品 / 指南来源 ↗'));
+  }
   if(packet.provider==='steam'&&packet.data.snapshotStored===false)section.append(el('p','warning','榜单已读取，但本次历史快照保存失败，不能作为下次变化对照。'));
   let shown=items;
   if(packet.provider==='steam'){const term=$('#rankSearch')?.value?.trim().toLowerCase()||'',filter=$('#rankFilter')?.value||'all';shown=items.filter(x=>(!term||x.title.toLowerCase().includes(term)||String(x.appid).includes(term))&&(filter==='all'||filter==='new'&&x.isNew||filter==='up'&&x.change>0||filter==='down'&&x.change<0));}
@@ -223,7 +249,7 @@ function historyTable(points){
 }
 function savedView(root){
  const grid=el('div','grid');for(const item of saved){const panel=el('article','panel');panel.append(el('h3','',item.title),el('p','muted',NAMES[item.provider]+' · '+item.kind),link(item.url,'打开保存的来源 ↗'),field('目标价格','target-'+saved.indexOf(item),item.target||'','number'),field('币种','currency-'+saved.indexOf(item),item.currency||'','text','例如 USD'));
-  panel.append(button('保存目标',()=>{const values=panel.querySelectorAll('input');item.target=values[0].value;item.currency=values[1].value.toUpperCase();store.write('saved',saved);notify('目标价已保存；未启用自动监控。');}),button(item.claimed?'✓ 已领取（取消）':'标记已领取',()=>{item.claimed=!item.claimed;store.write('saved',saved);render();}),button('移除',()=>{saved=saved.filter(x=>x.id!==item.id);store.write('saved',saved);render();}));
+  panel.append(button('保存目标',()=>{const values=panel.querySelectorAll('input');if(values[0].value&&(Number(values[0].value)<0||!Number.isFinite(Number(values[0].value))))return notify('目标价格必须为非负数',true);if(values[1].value&&!/^[A-Za-z]{3}$/.test(values[1].value))return notify('币种请使用三个字母，例如 USD',true);item.target=values[0].value;item.currency=values[1].value.toUpperCase();store.write('saved',saved);notify('目标价已保存；未启用自动监控。');}),button(item.claimed?'✓ 已领取（取消）':'标记已领取',()=>{item.claimed=!item.claimed;store.write('saved',saved);render();}),button('移除',()=>{saved=saved.filter(x=>x.id!==item.id);store.write('saved',saved);render();}));
   if(item.query)panel.append(queryButton('重新查询',()=>query(item.query.provider,item.query.operation,item.query.args)));grid.append(panel);
  }
  root.append(grid);if(!saved.length)root.append(el('p','empty','还没有观察对象。搜索后点击收藏，可保存目标价和领取状态。'));
@@ -232,7 +258,7 @@ function savedView(root){
 }
 function tree(value,key='root',depth=0){if(value&&typeof value==='object'&&depth<9){const d=el('details');d.open=depth===0;const entries=Object.entries(value);d.append(el('summary','',`${key} ${Array.isArray(value)?'[':'{'}${entries.length}${Array.isArray(value)?']':'}'}`));for(const [k,v] of entries.slice(0,500))d.append(tree(v,k,depth+1));return d;}return el('div','json-leaf',key+': '+JSON.stringify(value));}
 function jsonDialog(value){jsonValue=value;$('#jsonText').textContent=JSON.stringify(value,null,2);$('#jsonTree').replaceChildren(tree(value));$('#jsonModal').showModal();}
-async function status(options={render:true}){try{state.status=await request('status');$('#sessionStatus').textContent=state.status.authorized?'私有后台已连接':'尚未授权';$('#connect').textContent=state.status.authorized?'重新连接':'连接 PT 私有后台';if(options.render)render();}catch(e){$('#sessionStatus').textContent='后台状态不可用';notify(e.message,true);}}
+async function status(options={render:true}){try{state.status=await request('status');for(const [p,source] of Object.entries(state.status.sources||{})){const t=Date.parse(source.usage?.lastCall||'')+(source.budget?.cooldown||0)*1000;if(Number.isFinite(t))state.cooldowns[p]=Math.max(state.cooldowns[p]||0,t);}$('#sessionStatus').textContent=state.status.authorized?'私有后台已连接':'尚未授权';$('#connect').textContent=state.status.authorized?'重新连接':'连接 PT 私有后台';if(options.render)render();}catch(e){$('#sessionStatus').textContent='后台状态不可用';notify(e.message,true);}}
 $('#connect').onclick=()=>initConnect();$('#theme').onclick=()=>{document.body.classList.toggle('dark');store.write('dark',document.body.classList.contains('dark'));};document.body.classList.toggle('dark',store.read('dark',false));
 $('#closeJson').onclick=()=>$('#jsonModal').close();$('#closeDetail').onclick=()=>$('#detailModal').close();$('#copyJson').onclick=()=>navigator.clipboard.writeText(JSON.stringify(jsonValue,null,2)).then(()=>notify('JSON 已复制')).catch(()=>notify('浏览器不允许复制，请从格式化文本手动复制。'));
 $('#toggleJson').onclick=()=>{const showing=$('#jsonTree').hidden;$('#jsonTree').hidden=!showing;$('#jsonText').hidden=showing;};
