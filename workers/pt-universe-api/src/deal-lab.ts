@@ -192,7 +192,7 @@ async function upstream(provider:string,operation:string,args:Dict,env:LabEnv){
   u.searchParams.set('no_cache','false');
  }
  const headers:Record<string,string>={'accept':'application/json','user-agent':'PT-Universe-Deal-Lab/1.0'};
- if(provider==='itad')headers['x-api-key']=env.ITAD_API_KEY||'';
+ if(provider==='itad')headers['ITAD-API-Key']=env.ITAD_API_KEY||'';
  if(def.method==='POST')headers['content-type']='application/json';
  const {response,text}=await fetchLimited(u.toString(),{method:def.method||'GET',headers,body:def.method==='POST'?JSON.stringify(validated.body):undefined});
  if(response.status===429)throw Object.assign(Error(provider+' 上游限流 (429)'),{httpStatus:429,retryAfter:response.headers.get('retry-after')});
