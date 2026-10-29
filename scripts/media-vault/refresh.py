@@ -40,7 +40,7 @@ def main():
     keys=[c+'-'+g for c in COUNTRIES for g in GENRES]+['novels','anime']
     previous_health=old.get('health',{}) if scheduled and same_day else {}
     if scheduled:
-        if pt.hour<8 or pt.hour>11:return
+        if pt.hour<8:return
         if all(previous_health.get(k,{}).get('ok') for k in keys):return
     data={**old,'generatedAt':stamp(),'pacificDay':pt.date().isoformat(),'charts':old.get('charts',{}),'health':dict(previous_health),'successCount':0}
     pending=[(c,g) for c in COUNTRIES for g in GENRES if not previous_health.get(c+'-'+g,{}).get('ok')]

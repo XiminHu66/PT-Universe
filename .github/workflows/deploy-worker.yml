@@ -1,24 +1,21 @@
 name: Deploy PT Universe Worker
-
-on:
-  workflow_dispatch:
+'on':
+  workflow_dispatch: null
   push:
-    branches: [main]
+    branches:
+    - main
     paths:
-      - workers/pt-universe-api/**
-      - apps/anythingllm/providers.json
-      - scripts/research/gemini-probe.mjs
-      - scripts/decision/life-ai-probe.mjs
-      - apps/watch-inbox/report-schema.*
-      - .github/workflows/deploy-worker.yml
-
+    - workers/pt-universe-api/**
+    - apps/anythingllm/providers.json
+    - scripts/research/gemini-probe.mjs
+    - scripts/decision/life-ai-probe.mjs
+    - apps/watch-inbox/report-schema.*
+    - .github/workflows/deploy-worker.yml
 permissions:
   contents: read
-
 concurrency:
   group: pt-universe-worker-production
   cancel-in-progress: false
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -27,204 +24,195 @@ jobs:
       run:
         working-directory: workers/pt-universe-api
     steps:
-      - name: Check out PT Universe
-        uses: actions/checkout@v4
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-          cache: npm
-          cache-dependency-path: workers/pt-universe-api/package-lock.json
-
-      - name: Install Worker dependencies
-        run: npm ci
-
-      - name: Validate Worker
-        run: |
-          npm run check
-          node tests/anythingllm.test.mjs
-          node tests/anythingllm-auth.test.mjs
-          node tests/knowledge.test.mjs
-          node tests/vps.test.mjs
-          node tests/monitor.test.mjs
-          node tests/vps-ui.test.mjs
-          node tests/anythingllm-models.test.mjs
-          node tests/anythingllm-transport.test.mjs
-          node tests/site-updates.test.mjs
-          node tests/content-hub.test.mjs
-          node tests/check-ai.test.mjs
-          node tests/muse.test.mjs
-          node tests/gemini-probe.test.mjs
-          node tests/research-ai.test.mjs
-          node tests/life-ai.test.mjs
-          node tests/food-recipes.test.mjs
-          node tests/todo-sync.test.mjs
-          npm run test:media
-          npm run types -- --check
-          npx wrangler deploy --dry-run
-
-      - name: Deploy Worker
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx wrangler deploy
-
-      - name: Verify deployed content feeds
-        run: |
-          node --input-type=module <<'JS'
-          const api='https://pt-universe-api.summer07-nanjolno.workers.dev/api/hub/';
-          for(const route of ['calendar','anime1','topics','discover','assets']){
-            let value;
-            for(let attempt=0;attempt<6;attempt++){
-              const r=await fetch(api+route+'?deployment='+Date.now(),{headers:{'user-agent':'PT-Universe deployment verification',origin:'https://ximinhu66.github.io'},signal:AbortSignal.timeout(45000)});
-              value=await r.json();
-              if(r.ok&&value.checked_at)break;
-              if(attempt===5)throw Error(route+': '+(value.error||r.status));
-              await new Promise(resolve=>setTimeout(resolve,5000));
-            }
-            const count=value.items?.length||value.days?.flatMap(d=>d.items).length||0;
-            if(!count)throw Error(route+' returned no real entries');
-            console.log(route,count,'entries; last successful fetch',value.checked_at);
+    - name: Check out PT Universe
+      uses: actions/checkout@v4
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+        cache: npm
+        cache-dependency-path: workers/pt-universe-api/package-lock.json
+    - name: Install Worker dependencies
+      run: npm ci
+    - name: Validate Worker
+      run: |
+        npm run check
+        node tests/anythingllm.test.mjs
+        node tests/anythingllm-auth.test.mjs
+        node tests/knowledge.test.mjs
+        node tests/vps.test.mjs
+        node tests/monitor.test.mjs
+        node tests/vps-ui.test.mjs
+        node tests/anythingllm-models.test.mjs
+        node tests/anythingllm-transport.test.mjs
+        node tests/site-updates.test.mjs
+        node tests/content-hub.test.mjs
+        node tests/check-ai.test.mjs
+        node tests/muse.test.mjs
+        node tests/gemini-probe.test.mjs
+        node tests/research-ai.test.mjs
+        node tests/life-ai.test.mjs
+        node tests/food-recipes.test.mjs
+        node tests/todo-sync.test.mjs
+        npm run test:media
+        npm run types -- --check
+        npx wrangler deploy --dry-run
+    - name: Deploy Worker
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      run: npx wrangler deploy
+    - name: Verify deployed content feeds
+      run: |
+        node --input-type=module <<'JS'
+        const api='https://pt-universe-api.summer07-nanjolno.workers.dev/api/hub/';
+        for(const route of ['calendar','anime1','topics','discover','assets']){
+          let value;
+          for(let attempt=0;attempt<6;attempt++){
+            const r=await fetch(api+route+'?deployment='+Date.now(),{headers:{'user-agent':'PT-Universe deployment verification',origin:'https://ximinhu66.github.io'},signal:AbortSignal.timeout(45000)});
+            value=await r.json();
+            if(r.ok&&value.checked_at)break;
+            if(attempt===5)throw Error(route+': '+(value.error||r.status));
+            await new Promise(resolve=>setTimeout(resolve,5000));
           }
-          JS
-
-      - name: Verify freshly deployed reading scraper and actual chapter data
-        if: contains(github.event.head_commit.message, '[tsugi-verify]')
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          npx wrangler tail --format json > /tmp/pt-tsugi-worker.log 2>&1 &
-          tail_pid=$!
-          trap 'kill "$tail_pid" 2>/dev/null || true' EXIT
-          node ../../scripts/tsugi/live-verify.mjs
-
-      - name: Save reading scraper live verification
-        if: always() && contains(github.event.head_commit.message, '[tsugi-verify]')
-        uses: actions/upload-artifact@v4
-        with:
-          name: tsugi-live-verification
-          path: |
-            /tmp/pt-tsugi-live.json
-            /tmp/pt-tsugi-worker.log
-          if-no-files-found: warn
-
-      - name: Verify Check Desk search against reported queries
-        if: contains(github.event.head_commit.message, '[check-search-test]')
-        run: node ../../scripts/content-hub/live-search.mjs
-
-      - name: Save Check Desk search verification
-        if: always() && contains(github.event.head_commit.message, '[check-search-test]')
-        uses: actions/upload-artifact@v4
-        with:
-          name: check-search-live-verification
-          path: /tmp/check-search-live.json
-          if-no-files-found: warn
-
-      - name: Install browser for three authorized semantic cases
-        if: contains(github.event.head_commit.message, '[check-chain-test]')
-        run: |
-          npm install --prefix ../.. --no-save --package-lock=false playwright@1.58.2
-          ../../node_modules/.bin/playwright install --with-deps chromium
-
-      - name: Verify three Check Desk cases through search, reading, AI and display
-        if: contains(github.event.head_commit.message, '[check-chain-test]')
-        env:
-          CHECK_CHAIN_BROWSER: 'true'
-        run: node ../../scripts/content-hub/live-chain.mjs
-
-      - name: Save three-case semantic verification
-        if: always() && contains(github.event.head_commit.message, '[check-chain-test]')
-        uses: actions/upload-artifact@v4
-        with:
-          name: check-chain-live-verification
-          path: |
-            /tmp/check-chain-live.json
-            /tmp/check-chain-*.png
-          if-no-files-found: warn
-
-      - name: Verify on-demand Check Desk AI
-        if: contains(github.event.head_commit.message, '[check-ai-test]')
-        run: node ../../scripts/content-hub/live-check-ai.mjs
-
-      - name: Save Check Desk AI verification
-        if: always() && contains(github.event.head_commit.message, '[check-ai-test]')
-        uses: actions/upload-artifact@v4
-        with:
-          name: check-ai-live-verification
-          path: /tmp/check-ai-live.json
-          if-no-files-found: warn
-
-      - name: Initialize and verify on-demand research workflow
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          RESEARCH_RUN_SMOKE: ${{ contains(github.event.head_commit.message, '[research-ai-test]') }}
-        run: node ../../scripts/research/live-ai-smoke.mjs
-
-      - name: Verify AnythingLLM shared Gemini with a temporary account
-        if: contains(github.event.head_commit.message, '[anythingllm-live]')
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: node ../../scripts/anythingllm/live-smoke.mjs
-
-      - name: Save AnythingLLM live verification
-        if: always() && contains(github.event.head_commit.message, '[anythingllm-live]')
-        uses: actions/upload-artifact@v4
-        with:
-          name: anythingllm-live-verification
-          path: /tmp/anythingllm-live.json
-          if-no-files-found: warn
-
-      - name: Save research workflow verification
-        if: always() && contains(github.event.head_commit.message, '[research-ai-test]')
-        uses: actions/upload-artifact@v4
-        with:
-          name: research-ai-live-verification
-          path: /tmp/research-ai-live.json
-          if-no-files-found: warn
-
-      - name: Measure Gemini free-tier public-paper workflow
-        if: contains(github.event.head_commit.message, '[gemini-test]')
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: node ../../scripts/research/gemini-probe.mjs
-
-      - name: Save Gemini measurement
-        if: always() && contains(github.event.head_commit.message, '[gemini-test]')
-        uses: actions/upload-artifact@v4
-        with:
-          name: research-gemini-probe
-          path: /tmp/research-gemini-probe.json
-          if-no-files-found: warn
-
-      - name: Test Gemini meals and Maps Grounding
-        if: contains(github.event.head_commit.message, '[life-ai-test]')
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: node ../../scripts/decision/life-ai-probe.mjs
-
-      - name: Save meal and map trial results
-        if: always() && contains(github.event.head_commit.message, '[life-ai-test]')
-        uses: actions/upload-artifact@v4
-        with:
-          name: life-ai-probe
-          path: /tmp/life-ai-probe.json
-          if-no-files-found: warn
-
-      - name: Verify deployed collector authentication
-        if: always()
-        run: |
-          node --input-type=module <<'JS'
-          const api='https://pt-universe-api.summer07-nanjolno.workers.dev';
-          const headers={'user-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36',accept:'application/json',origin:'https://ximinhu66.github.io'};
-          const health=await fetch(api+'/api/health',{headers});
-          if(!health.ok)throw Error('Worker health failed');
-          const denied=await fetch(api+'/api/decision/11111111-1111-4111-8111-111111111111/sources',{headers});
-          if(denied.status!==401)throw Error('Collector endpoint did not enforce authentication: '+denied.status);
-          console.log('Deployed collector endpoint responds and enforces owner authentication');
-          JS
+          const count=value.items?.length||value.days?.flatMap(d=>d.items).length||0;
+          if(!count)throw Error(route+' returned no real entries');
+          console.log(route,count,'entries; last successful fetch',value.checked_at);
+        }
+        JS
+    - name: Verify freshly deployed reading scraper and actual chapter data
+      if: contains(github.event.head_commit.message, '[tsugi-verify]')
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      run: |
+        npx wrangler tail --format json > /tmp/pt-tsugi-worker.log 2>&1 &
+        tail_pid=$!
+        trap 'kill "$tail_pid" 2>/dev/null || true' EXIT
+        node ../../scripts/tsugi/live-verify.mjs
+    - name: Save reading scraper live verification
+      if: (always() && contains(github.event.head_commit.message, '[tsugi-verify]')) && (failure() || github.event_name
+        == 'workflow_dispatch')
+      uses: actions/upload-artifact@v4
+      with:
+        name: tsugi-live-verification
+        path: |
+          /tmp/pt-tsugi-live.json
+          /tmp/pt-tsugi-worker.log
+        if-no-files-found: warn
+        retention-days: 3
+    - name: Verify Check Desk search against reported queries
+      if: contains(github.event.head_commit.message, '[check-search-test]')
+      run: node ../../scripts/content-hub/live-search.mjs
+    - name: Save Check Desk search verification
+      if: (always() && contains(github.event.head_commit.message, '[check-search-test]')) && (failure() || github.event_name
+        == 'workflow_dispatch')
+      uses: actions/upload-artifact@v4
+      with:
+        name: check-search-live-verification
+        path: /tmp/check-search-live.json
+        if-no-files-found: warn
+        retention-days: 3
+    - name: Install browser for three authorized semantic cases
+      if: contains(github.event.head_commit.message, '[check-chain-test]')
+      run: |
+        npm install --prefix ../.. --no-save --package-lock=false playwright@1.58.2
+        ../../node_modules/.bin/playwright install --with-deps chromium
+    - name: Verify three Check Desk cases through search, reading, AI and display
+      if: contains(github.event.head_commit.message, '[check-chain-test]')
+      env:
+        CHECK_CHAIN_BROWSER: 'true'
+      run: node ../../scripts/content-hub/live-chain.mjs
+    - name: Save three-case semantic verification
+      if: (always() && contains(github.event.head_commit.message, '[check-chain-test]')) && (failure() || github.event_name
+        == 'workflow_dispatch')
+      uses: actions/upload-artifact@v4
+      with:
+        name: check-chain-live-verification
+        path: |
+          /tmp/check-chain-live.json
+          /tmp/check-chain-*.png
+        if-no-files-found: warn
+        retention-days: 3
+    - name: Verify on-demand Check Desk AI
+      if: contains(github.event.head_commit.message, '[check-ai-test]')
+      run: node ../../scripts/content-hub/live-check-ai.mjs
+    - name: Save Check Desk AI verification
+      if: (always() && contains(github.event.head_commit.message, '[check-ai-test]')) && (failure() || github.event_name
+        == 'workflow_dispatch')
+      uses: actions/upload-artifact@v4
+      with:
+        name: check-ai-live-verification
+        path: /tmp/check-ai-live.json
+        if-no-files-found: warn
+        retention-days: 3
+    - name: Initialize and verify on-demand research workflow
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        RESEARCH_RUN_SMOKE: ${{ contains(github.event.head_commit.message, '[research-ai-test]') }}
+      run: node ../../scripts/research/live-ai-smoke.mjs
+    - name: Verify AnythingLLM shared Gemini with a temporary account
+      if: contains(github.event.head_commit.message, '[anythingllm-live]')
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      run: node ../../scripts/anythingllm/live-smoke.mjs
+    - name: Save AnythingLLM live verification
+      if: (always() && contains(github.event.head_commit.message, '[anythingllm-live]')) && (failure() || github.event_name
+        == 'workflow_dispatch')
+      uses: actions/upload-artifact@v4
+      with:
+        name: anythingllm-live-verification
+        path: /tmp/anythingllm-live.json
+        if-no-files-found: warn
+        retention-days: 3
+    - name: Save research workflow verification
+      if: (always() && contains(github.event.head_commit.message, '[research-ai-test]')) && (failure() || github.event_name
+        == 'workflow_dispatch')
+      uses: actions/upload-artifact@v4
+      with:
+        name: research-ai-live-verification
+        path: /tmp/research-ai-live.json
+        if-no-files-found: warn
+        retention-days: 3
+    - name: Measure Gemini free-tier public-paper workflow
+      if: contains(github.event.head_commit.message, '[gemini-test]')
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      run: node ../../scripts/research/gemini-probe.mjs
+    - name: Save Gemini measurement
+      if: always() && contains(github.event.head_commit.message, '[gemini-test]')
+      uses: actions/upload-artifact@v4
+      with:
+        name: research-gemini-probe
+        path: /tmp/research-gemini-probe.json
+        if-no-files-found: warn
+        retention-days: 3
+    - name: Test Gemini meals and Maps Grounding
+      if: contains(github.event.head_commit.message, '[life-ai-test]')
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      run: node ../../scripts/decision/life-ai-probe.mjs
+    - name: Save meal and map trial results
+      if: always() && contains(github.event.head_commit.message, '[life-ai-test]')
+      uses: actions/upload-artifact@v4
+      with:
+        name: life-ai-probe
+        path: /tmp/life-ai-probe.json
+        if-no-files-found: warn
+        retention-days: 3
+    - name: Verify deployed collector authentication
+      if: always()
+      run: |
+        node --input-type=module <<'JS'
+        const api='https://pt-universe-api.summer07-nanjolno.workers.dev';
+        const headers={'user-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36',accept:'application/json',origin:'https://ximinhu66.github.io'};
+        const health=await fetch(api+'/api/health',{headers});
+        if(!health.ok)throw Error('Worker health failed');
+        const denied=await fetch(api+'/api/decision/11111111-1111-4111-8111-111111111111/sources',{headers});
+        if(denied.status!==401)throw Error('Collector endpoint did not enforce authentication: '+denied.status);
+        console.log('Deployed collector endpoint responds and enforces owner authentication');
+        JS

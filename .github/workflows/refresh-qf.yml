@@ -1,49 +1,39 @@
 name: Refresh QF data (paused)
-
-on:
-  # QF is intentionally paused. Keep only an explicit manual entry point so its
-  # code and historical data remain available without consuming scheduled runs.
-  workflow_dispatch:
-
+'on':
+  workflow_dispatch: null
 permissions:
   contents: write
-
 concurrency:
   group: pt-universe-qf-data
   cancel-in-progress: false
-
 jobs:
   refresh:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Check out PT Universe
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Refresh public dashboard data
-        working-directory: apps/qf-tool
-        run: python scripts/update_data.py
-
-      - name: Commit refreshed QF data to PT Universe
-        run: |
-          git config user.name "pt-universe-qf-bot"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- apps/qf-tool/data/dashboard.json
-          if git diff --cached --quiet; then
-            echo "No QF data changes"
-          else
-            git commit -m "data(qf): refresh dashboard"
-            git pull --rebase origin main
-            git push origin HEAD:main
-          fi
-
+    - name: Check out PT Universe
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - name: Refresh public dashboard data
+      working-directory: apps/qf-tool
+      run: python scripts/update_data.py
+    - name: Commit refreshed QF data to PT Universe
+      run: |
+        git config user.name "pt-universe-qf-bot"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add -- apps/qf-tool/data/dashboard.json
+        if git diff --cached --quiet; then
+          echo "No QF data changes"
+        else
+          git commit -m "data(qf): refresh dashboard"
+          git pull --rebase origin main
+          git push origin HEAD:main
+        fi
   deploy:
     needs: refresh
     runs-on: ubuntu-latest
@@ -58,15 +48,19 @@ jobs:
       pages: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-      - uses: actions/configure-pages@v5
-        with:
-          enablement: true
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: .
-      - name: Deploy the latest PT Universe
-        id: deployment
-        uses: actions/deploy-pages@v4
+    - uses: actions/checkout@v4
+      with:
+        ref: main
+    - uses: actions/configure-pages@v5
+      with:
+        enablement: true
+    - name: Prepare bounded frontend distribution
+      run: python scripts/build-pages.py
+    - uses: actions/upload-pages-artifact@v3
+      with:
+        path: _site
+        retention-days: 1
+    - name: Deploy the latest PT Universe
+      id: deployment
+      uses: actions/deploy-pages@v4
+    timeout-minutes: 15

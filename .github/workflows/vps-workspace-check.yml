@@ -1,16 +1,16 @@
 name: VPS workspace validation
-on:
+'on':
   push:
     paths:
-      - 'apps/daily-nexus/index.html'
-      - 'apps/daily-nexus/vps-tab.*'
-      - 'apps/daily-nexus/streamline.css'
-      - 'apps/daily-nexus/upcoming-policy.js'
-      - 'apps/daily-nexus/data/upcoming*.json'
-      - 'scripts/daily-nexus/vps-browser-test.cjs'
-      - 'workers/pt-universe-api/tests/vps*.mjs'
-      - '.github/workflows/vps-workspace-check.yml'
-  workflow_dispatch:
+    - apps/daily-nexus/index.html
+    - apps/daily-nexus/vps-tab.*
+    - apps/daily-nexus/streamline.css
+    - apps/daily-nexus/upcoming-policy.js
+    - apps/daily-nexus/data/upcoming*.json
+    - scripts/daily-nexus/vps-browser-test.cjs
+    - workers/pt-universe-api/tests/vps*.mjs
+    - .github/workflows/vps-workspace-check.yml
+  workflow_dispatch: null
 permissions:
   contents: read
 jobs:
@@ -18,21 +18,26 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - run: npm ci
-        working-directory: workers/pt-universe-api
-      - run: npm run check && node tests/vps.test.mjs && node tests/vps-ui.test.mjs && node tests/nexus-streamline.test.mjs && node tests/upcoming-policy.test.mjs
-        working-directory: workers/pt-universe-api
-      - run: TZ=America/Los_Angeles node scripts/daily-nexus/navigation-test.cjs
-      - run: python -m unittest discover -s scripts/labs -p 'test_upcoming.py'
-      - run: npm install --no-save --package-lock=false playwright@1.58.2
-      - run: npx playwright install --with-deps chromium
-      - run: node scripts/daily-nexus/vps-browser-test.cjs
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: vps-workspace-layout
-          path: /tmp/pt-nexus-vps-*
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+    - run: npm ci
+      working-directory: workers/pt-universe-api
+    - run: npm run check && node tests/vps.test.mjs && node tests/vps-ui.test.mjs && node tests/nexus-streamline.test.mjs
+        && node tests/upcoming-policy.test.mjs
+      working-directory: workers/pt-universe-api
+    - run: TZ=America/Los_Angeles node scripts/daily-nexus/navigation-test.cjs
+    - run: python -m unittest discover -s scripts/labs -p 'test_upcoming.py'
+    - run: npm install --no-save --package-lock=false playwright@1.58.2
+    - run: npx playwright install --with-deps chromium
+    - run: node scripts/daily-nexus/vps-browser-test.cjs
+    - uses: actions/upload-artifact@v4
+      if: (always()) && (failure() || github.event_name == 'workflow_dispatch')
+      with:
+        name: vps-workspace-layout
+        path: /tmp/pt-nexus-vps-*
+        retention-days: 3
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true

@@ -1,22 +1,22 @@
 name: Decision tools validation
-on:
+'on':
   pull_request:
     paths:
-      - 'app.js'
-      - 'apps/investment-desk/**'
-      - 'apps/stock-alert/**'
-      - 'apps/life-desk/**'
-      - 'apps/meal-orbit/**'
-      - 'workers/pt-universe-api/**'
-      - 'apps/_decision/**'
-      - 'apps/signal-audit/**'
-      - 'apps/watch-inbox/**'
-      - 'apps/ask-gpt/**'
-      - 'scripts/decision/**'
-      - 'scripts/investment/**'
-      - 'apps/daily-nexus/**'
-      - '.github/workflows/decision-tools-check.yml'
-  workflow_dispatch:
+    - app.js
+    - apps/investment-desk/**
+    - apps/stock-alert/**
+    - apps/life-desk/**
+    - apps/meal-orbit/**
+    - workers/pt-universe-api/**
+    - apps/_decision/**
+    - apps/signal-audit/**
+    - apps/watch-inbox/**
+    - apps/ask-gpt/**
+    - scripts/decision/**
+    - scripts/investment/**
+    - apps/daily-nexus/**
+    - .github/workflows/decision-tools-check.yml
+  workflow_dispatch: null
 permissions:
   contents: read
 jobs:
@@ -24,49 +24,52 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - run: node scripts/decision/test-models.mjs
-      - run: node scripts/decision/test-meals.mjs
-      - run: node scripts/investment/test.mjs
-      - run: npm install --no-save --package-lock=false playwright@1.51.1
-      - run: npx playwright install --with-deps chromium
-      - name: Verify browser flows
-        run: |
-          python -m http.server 8765 --bind 127.0.0.1 > /tmp/pt-server.log 2>&1 &
-          node scripts/decision/muse-submit-test.cjs
-          node scripts/decision/browser-test.cjs
-          node scripts/decision/workspace-test.cjs
-          node scripts/decision/automatic-test.cjs
-          node scripts/investment/browser-test.cjs
-          node scripts/investment/holdings-market-test.cjs
-          node scripts/investment/nexus-tabs-test.cjs
-          node scripts/decision/nexus-meal-test.cjs
-          node scripts/decision/meal-inputs-test.cjs
-          node scripts/decision/life-ai-browser-test.cjs
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: decision-tools-screenshots
-          path: /tmp/pt-*.png
-
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+    - run: node scripts/decision/test-models.mjs
+    - run: node scripts/decision/test-meals.mjs
+    - run: node scripts/investment/test.mjs
+    - run: npm install --no-save --package-lock=false playwright@1.51.1
+    - run: npx playwright install --with-deps chromium
+    - name: Verify browser flows
+      run: |
+        python -m http.server 8765 --bind 127.0.0.1 > /tmp/pt-server.log 2>&1 &
+        node scripts/decision/muse-submit-test.cjs
+        node scripts/decision/browser-test.cjs
+        node scripts/decision/workspace-test.cjs
+        node scripts/decision/automatic-test.cjs
+        node scripts/investment/browser-test.cjs
+        node scripts/investment/holdings-market-test.cjs
+        node scripts/investment/nexus-tabs-test.cjs
+        node scripts/decision/nexus-meal-test.cjs
+        node scripts/decision/meal-inputs-test.cjs
+        node scripts/decision/life-ai-browser-test.cjs
+    - uses: actions/upload-artifact@v4
+      if: (always()) && (failure() || github.event_name == 'workflow_dispatch')
+      with:
+        name: decision-tools-screenshots
+        path: /tmp/pt-*.png
+        retention-days: 3
   backend:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Validate collection backend
-        working-directory: workers/pt-universe-api
-        run: |
-          npm ci
-          npm run check
-          node ../../scripts/decision/build-workspace.mjs --check
-          node tests/decision.test.mjs
-          node tests/muse.test.mjs
-          node tests/life-ai.test.mjs
-          node tests/investment.test.mjs
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+    - name: Validate collection backend
+      working-directory: workers/pt-universe-api
+      run: |
+        npm ci
+        npm run check
+        node ../../scripts/decision/build-workspace.mjs --check
+        node tests/decision.test.mjs
+        node tests/muse.test.mjs
+        node tests/life-ai.test.mjs
+        node tests/investment.test.mjs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true

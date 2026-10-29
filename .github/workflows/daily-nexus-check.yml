@@ -1,16 +1,16 @@
 name: Daily Nexus interaction validation
-on:
+'on':
   pull_request:
     paths:
-      - 'apps/daily-nexus/**'
-      - 'apps/tsugi-checker/**'
-      - 'apps/self-learning/**'
-      - 'scripts/daily-nexus/**'
-      - 'scripts/tsugi/**'
-      - 'workers/pt-universe-api/src/site-updates.ts'
-      - 'workers/pt-universe-api/src/index.ts'
-      - '.github/workflows/daily-nexus-check.yml'
-  workflow_dispatch:
+    - apps/daily-nexus/**
+    - apps/tsugi-checker/**
+    - apps/self-learning/**
+    - scripts/daily-nexus/**
+    - scripts/tsugi/**
+    - workers/pt-universe-api/src/site-updates.ts
+    - workers/pt-universe-api/src/index.ts
+    - .github/workflows/daily-nexus-check.yml
+  workflow_dispatch: null
 permissions:
   contents: read
 jobs:
@@ -18,36 +18,39 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - run: npm install --no-save --package-lock=false playwright@1.58.2
-      - run: npx playwright install --with-deps chromium
-      - run: node --test scripts/daily-nexus/boox-test.cjs
-      - run: node scripts/daily-nexus/boox-browser-test.cjs
-      - run: node scripts/daily-nexus/navigation-test.cjs
-      - run: node scripts/daily-nexus/browser-test.cjs
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: daily-nexus-screenshots
-          path: /tmp/pt-nexus-*.png
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+    - run: npm install --no-save --package-lock=false playwright@1.58.2
+    - run: npx playwright install --with-deps chromium
+    - run: node --test scripts/daily-nexus/boox-test.cjs
+    - run: node scripts/daily-nexus/boox-browser-test.cjs
+    - run: node scripts/daily-nexus/navigation-test.cjs
+    - run: node scripts/daily-nexus/browser-test.cjs
+    - uses: actions/upload-artifact@v4
+      if: (always()) && (failure() || github.event_name == 'workflow_dispatch')
+      with:
+        name: daily-nexus-screenshots
+        path: /tmp/pt-nexus-*.png
+        retention-days: 3
   sources:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - run: npm ci
-        working-directory: workers/pt-universe-api
-      - run: npm run check && node tests/site-updates.test.mjs
-        working-directory: workers/pt-universe-api
-      - run: python -m pip install -r apps/tsugi-checker/requirements.txt
-      - run: python scripts/tsugi/test_sources.py && python scripts/tsugi/test_refresh_gate.py
-
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - run: npm ci
+      working-directory: workers/pt-universe-api
+    - run: npm run check && node tests/site-updates.test.mjs
+      working-directory: workers/pt-universe-api
+    - run: python -m pip install -r apps/tsugi-checker/requirements.txt
+    - run: python scripts/tsugi/test_sources.py && python scripts/tsugi/test_refresh_gate.py
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true

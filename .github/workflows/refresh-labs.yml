@@ -1,20 +1,22 @@
 name: Refresh Research Tools
-on:
+'on':
   schedule:
-    # Lightweight official event checks can run overnight; other datasets
-    # remain gated to Pacific morning. Successes are deduplicated in schedule.py.
-    - cron: '35 * * * *'
+  - cron: 35 0,4,8,12,16,20 * * *
+    timezone: America/Los_Angeles
+  - cron: 35 9 * * *
+    timezone: America/Los_Angeles
   push:
-    branches: [main]
+    branches:
+    - main
     paths:
-      - 'scripts/labs/**'
-      - 'apps/_lab/**'
-      - 'apps/thesis-lab/**'
-      - 'apps/earnings-dojo/**'
-      - 'apps/eastside-weekend/**'
-      - 'apps/daily-nexus/data/upcoming-sources.json'
-      - '.github/workflows/refresh-labs.yml'
-  workflow_dispatch:
+    - scripts/labs/**
+    - apps/_lab/**
+    - apps/thesis-lab/**
+    - apps/earnings-dojo/**
+    - apps/eastside-weekend/**
+    - apps/daily-nexus/data/upcoming-sources.json
+    - .github/workflows/refresh-labs.yml
+  workflow_dispatch: null
 permissions:
   contents: read
 concurrency:
@@ -30,13 +32,13 @@ jobs:
       matrix: ${{ steps.check.outputs.matrix }}
       force: ${{ steps.check.outputs.force }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-      - id: check
-        env:
-          EVENT: ${{ github.event_name }}
-        run: python scripts/labs/schedule.py
+    - uses: actions/checkout@v4
+      with:
+        ref: main
+    - id: check
+      env:
+        EVENT: ${{ github.event_name }}
+      run: python scripts/labs/schedule.py
   collect:
     needs: gate
     if: needs.gate.outputs.collect == 'yes'
@@ -46,81 +48,92 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.gate.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - run: pip install -r scripts/labs/requirements.txt
-      - run: python -m unittest discover -s scripts/labs -p 'test_*.py'
-      - name: Collect and retry failed sources
-        env:
-          TARGET: ${{ matrix.target }}
-          FORCE: ${{ needs.gate.outputs.force }}
-        run: |
-          if [ "$FORCE" = "yes" ]; then
-            python scripts/labs/refresh.py --target "$TARGET" --force
-          else
-            python scripts/labs/refresh.py --target "$TARGET"
-          fi
-      - name: Stage only this dataset
-        if: always()
-        env:
-          TARGET: ${{ matrix.target }}
-        run: |
-          python - <<'PY'
-          import os, shutil, sys
-          from pathlib import Path
-          sys.path.insert(0, 'scripts/labs')
-          from refresh import data_path, ROOT
-          source = data_path(os.environ['TARGET'])
-          if source.exists():
-              target = Path('collected') / source.relative_to(ROOT)
-              target.parent.mkdir(parents=True, exist_ok=True)
-              shutil.copy2(source, target)
-          PY
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: labs-${{ matrix.target }}
-          path: collected/
-          if-no-files-found: warn
-          retention-days: 3
+    - uses: actions/checkout@v4
+      with:
+        ref: main
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - run: pip install -r scripts/labs/requirements.txt
+    - run: python -m unittest discover -s scripts/labs -p 'test_*.py'
+    - name: Collect and retry failed sources
+      env:
+        TARGET: ${{ matrix.target }}
+        FORCE: ${{ needs.gate.outputs.force }}
+      run: |
+        if [ "$FORCE" = "yes" ]; then
+          python scripts/labs/refresh.py --target "$TARGET" --force
+        else
+          python scripts/labs/refresh.py --target "$TARGET"
+        fi
+    - name: Stage only this dataset
+      if: always()
+      env:
+        TARGET: ${{ matrix.target }}
+      run: |
+        python - <<'PY'
+        import os, shutil, sys
+        from pathlib import Path
+        sys.path.insert(0, 'scripts/labs')
+        from refresh import data_path, ROOT
+        source = data_path(os.environ['TARGET'])
+        if source.exists():
+            target = Path('collected') / source.relative_to(ROOT)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, target)
+        PY
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: labs-${{ matrix.target }}
+        path: collected/
+        if-no-files-found: warn
+        retention-days: 3
   publish:
-    needs: [gate, collect]
+    needs:
+    - gate
+    - collect
     if: always() && needs.gate.outputs.run == 'yes'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
-      - uses: actions/download-artifact@v4
-        if: needs.gate.outputs.collect == 'yes'
-        with:
-          pattern: labs-*
-          merge-multiple: true
-          path: .
-      - name: Save independent snapshots and source health
-        run: |
-          git config user.name "pt-universe-labs-bot"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/thesis-lab/data apps/eastside-weekend/data apps/daily-nexus/data/upcoming-events.json
-          if ! git diff --cached --quiet; then
-            git commit -m "data(labs): publish independent snapshots and source health"
-            for attempt in 1 2 3; do
-              git pull --rebase origin main
-              if git push origin HEAD:main; then exit 0; fi
-            done
-            exit 1
-          fi
+    - uses: actions/checkout@v4
+      with:
+        ref: main
+        fetch-depth: 0
+    - uses: actions/download-artifact@v4
+      if: needs.gate.outputs.collect == 'yes'
+      with:
+        pattern: labs-*
+        merge-multiple: true
+        path: .
+    - name: Skip publication when the snapshot did not change
+      id: snapshot_change
+      run: if git diff --quiet -- apps; then echo "changed=false" >> "$GITHUB_OUTPUT"; else echo "changed=true" >> "$GITHUB_OUTPUT";
+        fi
+    - name: Save independent snapshots and source health
+      run: |
+        git config user.name "pt-universe-labs-bot"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add apps/thesis-lab/data apps/eastside-weekend/data apps/daily-nexus/data/upcoming-events.json
+        if ! git diff --cached --quiet; then
+          git commit -m "data(labs): publish independent snapshots and source health"
+          for attempt in 1 2 3; do
+            git pull --rebase origin main
+            if git push origin HEAD:main; then exit 0; fi
+          done
+          exit 1
+        fi
+    outputs:
+      changed: ${{ steps.snapshot_change.outputs.changed }}
   deploy:
-    needs: [gate, publish]
-    if: always() && needs.gate.outputs.run == 'yes' && needs.publish.result == 'success'
+    needs:
+    - gate
+    - publish
+    if: (always() && needs.gate.outputs.run == 'yes' && needs.publish.result == 'success') && needs.publish.outputs.changed
+      == 'true'
     runs-on: ubuntu-latest
     concurrency:
       group: pages
@@ -133,67 +146,79 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: .
-      - uses: actions/deploy-pages@v4
-        id: deployment
+    - uses: actions/checkout@v4
+      with:
+        ref: main
+    - uses: actions/configure-pages@v5
+    - name: Prepare bounded frontend distribution
+      run: python scripts/build-pages.py
+    - uses: actions/upload-pages-artifact@v3
+      with:
+        path: _site
+        retention-days: 1
+    - uses: actions/deploy-pages@v4
+      id: deployment
+    timeout-minutes: 15
   verify:
-    needs: [gate, deploy]
+    needs:
+    - gate
+    - deploy
     if: always() && needs.gate.outputs.run == 'yes' && needs.deploy.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Check published pages and snapshot versions on every deployment
-        run: python scripts/labs/smoke.py
-      - if: github.event_name != 'schedule'
-        run: pip install playwright
-      - if: github.event_name != 'schedule'
-        run: python -m playwright install --with-deps chromium
-      - uses: actions/setup-node@v4
-        if: github.event_name != 'schedule'
-        with:
-          node-version: '24'
-      - name: Verify live PC quotes and repeated upstream financial refresh
-        if: github.event_name != 'schedule'
-        env:
-          LABS_API_URL: https://pt-universe-api.summer07-nanjolno.workers.dev
-        run: node --experimental-strip-types scripts/labs/test_research.mjs
-      - name: Verify published interactive flows
-        if: github.event_name != 'schedule'
-        env:
-          LABS_BASE_URL: https://ximinhu66.github.io/PT-Universe/
-        run: python scripts/labs/browser_test.py
-      - uses: actions/upload-artifact@v4
-        if: always() && github.event_name != 'schedule'
-        with:
-          name: published-research-tools
-          path: test-results/labs
-          retention-days: 7
+    - uses: actions/checkout@v4
+      with:
+        ref: main
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - name: Check published pages and snapshot versions on every deployment
+      run: python scripts/labs/smoke.py
+    - if: github.event_name != 'schedule'
+      run: pip install playwright
+    - if: github.event_name != 'schedule'
+      run: python -m playwright install --with-deps chromium
+    - uses: actions/setup-node@v4
+      if: github.event_name != 'schedule'
+      with:
+        node-version: '24'
+    - name: Verify live PC quotes and repeated upstream financial refresh
+      if: github.event_name != 'schedule'
+      env:
+        LABS_API_URL: https://pt-universe-api.summer07-nanjolno.workers.dev
+      run: node --experimental-strip-types scripts/labs/test_research.mjs
+    - name: Verify published interactive flows
+      if: github.event_name != 'schedule'
+      env:
+        LABS_BASE_URL: https://ximinhu66.github.io/PT-Universe/
+      run: python scripts/labs/browser_test.py
+    - uses: actions/upload-artifact@v4
+      if: (always() && github.event_name != 'schedule') && (failure() || github.event_name == 'workflow_dispatch')
+      with:
+        name: published-research-tools
+        path: test-results/labs
+        retention-days: 3
   report:
-    needs: [gate, collect, publish, deploy, verify]
+    needs:
+    - gate
+    - collect
+    - publish
+    - deploy
+    - verify
     if: always() && needs.gate.outputs.run == 'yes'
     runs-on: ubuntu-latest
     steps:
-      - name: Report failures after publishing available data
-        env:
-          COLLECT: ${{ needs.collect.result }}
-          PUBLISH: ${{ needs.publish.result }}
-          DEPLOY: ${{ needs.deploy.result }}
-          VERIFY: ${{ needs.verify.result }}
-        run: |
-          echo "Collection: $COLLECT; publication: $PUBLISH; deployment: $DEPLOY; verification: $VERIFY" >> "$GITHUB_STEP_SUMMARY"
-          if [ "$COLLECT" = "failure" ] || [ "$COLLECT" = "cancelled" ] || [ "$PUBLISH" != "success" ] || [ "$DEPLOY" != "success" ] || [ "$VERIFY" != "success" ]; then
-            echo "::error::Some updates remain incomplete. Available snapshots were published where possible; scheduled retries will recheck missing sources and deployment."
-            exit 1
-          fi
+    - name: Report failures after publishing available data
+      env:
+        COLLECT: ${{ needs.collect.result }}
+        PUBLISH: ${{ needs.publish.result }}
+        DEPLOY: ${{ needs.deploy.result }}
+        VERIFY: ${{ needs.verify.result }}
+      run: |
+        echo "Collection: $COLLECT; publication: $PUBLISH; deployment: $DEPLOY; verification: $VERIFY" >> "$GITHUB_STEP_SUMMARY"
+        if [ "$COLLECT" = "failure" ] || [ "$COLLECT" = "cancelled" ] || [ "$PUBLISH" != "success" ] || [ "$DEPLOY" != "success" ] || [ "$VERIFY" != "success" ]; then
+          echo "::error::Some updates remain incomplete. Available snapshots were published where possible; scheduled retries will recheck missing sources and deployment."
+          exit 1
+        fi
+    timeout-minutes: 15

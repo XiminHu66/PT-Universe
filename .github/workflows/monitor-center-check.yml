@@ -1,21 +1,31 @@
 name: Monitor Center validation
-on:
+'on':
   push:
-    paths: ['apps/monitor-center/**', 'services/monitoring/**', 'scripts/monitor-center/**', 'workers/pt-universe-api/src/monitor.ts', '.github/workflows/monitor-center-check.yml']
-  workflow_dispatch:
-permissions: {contents: read}
+    paths:
+    - apps/monitor-center/**
+    - services/monitoring/**
+    - scripts/monitor-center/**
+    - workers/pt-universe-api/src/monitor.ts
+    - .github/workflows/monitor-center-check.yml
+  workflow_dispatch: null
+permissions:
+  contents: read
 jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: {node-version: '24'}
-      - run: node --test services/monitoring/monitoring.test.mjs
-      - run: node scripts/monitor-center/connection-test.mjs
-      - run: node --check apps/monitor-center/app.mjs && node --check services/monitoring/browser.mjs && node --check services/monitoring/server.mjs
-      - run: npm ci
-        working-directory: workers/pt-universe-api
-      - run: npm run check && node tests/monitor.test.mjs
-        working-directory: workers/pt-universe-api
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+    - run: node --test services/monitoring/monitoring.test.mjs
+    - run: node scripts/monitor-center/connection-test.mjs
+    - run: node --check apps/monitor-center/app.mjs && node --check services/monitoring/browser.mjs && node --check services/monitoring/server.mjs
+    - run: npm ci
+      working-directory: workers/pt-universe-api
+    - run: npm run check && node tests/monitor.test.mjs
+      working-directory: workers/pt-universe-api
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true

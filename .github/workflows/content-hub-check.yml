@@ -1,24 +1,24 @@
 name: Content hub validation
-on:
+'on':
   pull_request:
     paths:
-      - 'apps/card-lab/**'
-      - 'apps/story-hub/**'
-      - 'apps/check-desk/**'
-      - 'apps/shared/**'
-      - 'apps/tsugi-checker/**'
-      - 'apps/daily-nexus/**'
-      - 'workers/pt-universe-api/src/content-hub.ts'
-      - 'workers/pt-universe-api/src/check-ai.ts'
-      - 'workers/pt-universe-api/src/check-relevance.ts'
-      - 'workers/pt-universe-api/src/check-conflicts.ts'
-      - 'workers/pt-universe-api/src/evidence-reader.ts'
-      - 'workers/pt-universe-api/tests/content-hub*'
-      - 'workers/pt-universe-api/tests/check-ai*'
-      - 'workers/pt-universe-api/tests/fixtures/hub-*'
-      - 'scripts/content-hub/**'
-      - '.github/workflows/content-hub-check.yml'
-  workflow_dispatch:
+    - apps/card-lab/**
+    - apps/story-hub/**
+    - apps/check-desk/**
+    - apps/shared/**
+    - apps/tsugi-checker/**
+    - apps/daily-nexus/**
+    - workers/pt-universe-api/src/content-hub.ts
+    - workers/pt-universe-api/src/check-ai.ts
+    - workers/pt-universe-api/src/check-relevance.ts
+    - workers/pt-universe-api/src/check-conflicts.ts
+    - workers/pt-universe-api/src/evidence-reader.ts
+    - workers/pt-universe-api/tests/content-hub*
+    - workers/pt-universe-api/tests/check-ai*
+    - workers/pt-universe-api/tests/fixtures/hub-*
+    - scripts/content-hub/**
+    - .github/workflows/content-hub-check.yml
+  workflow_dispatch: null
 permissions:
   contents: read
 jobs:
@@ -26,32 +26,36 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          cache: npm
-          cache-dependency-path: workers/pt-universe-api/package-lock.json
-      - run: npm ci --prefix workers/pt-universe-api
-      - run: npm run check --prefix workers/pt-universe-api
-      - run: node tests/content-hub.test.mjs
-        working-directory: workers/pt-universe-api
-      - run: node tests/check-ai.test.mjs
-        working-directory: workers/pt-universe-api
-      - run: node scripts/content-hub/engine-test.mjs
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+        cache: npm
+        cache-dependency-path: workers/pt-universe-api/package-lock.json
+    - run: npm ci --prefix workers/pt-universe-api
+    - run: npm run check --prefix workers/pt-universe-api
+    - run: node tests/content-hub.test.mjs
+      working-directory: workers/pt-universe-api
+    - run: node tests/check-ai.test.mjs
+      working-directory: workers/pt-universe-api
+    - run: node scripts/content-hub/engine-test.mjs
   browser:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - run: npm install --no-save --package-lock=false playwright@1.58.2
-      - run: npx playwright install --with-deps chromium
-      - run: node scripts/content-hub/browser-test.cjs
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: content-hub-screenshots
-          path: /tmp/pt-hub-*.png
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+    - run: npm install --no-save --package-lock=false playwright@1.58.2
+    - run: npx playwright install --with-deps chromium
+    - run: node scripts/content-hub/browser-test.cjs
+    - uses: actions/upload-artifact@v4
+      if: (always()) && (failure() || github.event_name == 'workflow_dispatch')
+      with:
+        name: content-hub-screenshots
+        path: /tmp/pt-hub-*.png
+        retention-days: 3
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true

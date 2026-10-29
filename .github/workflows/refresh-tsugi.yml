@@ -1,245 +1,231 @@
 name: Refresh Tsugi reading/music (08:30 conditional fallback)
-
-on:
-  workflow_dispatch:
+'on':
+  workflow_dispatch: null
   push:
-    branches: [main]
+    branches:
+    - main
     paths:
-      - apps/tsugi-checker/scraper/**
-      - apps/tsugi-checker/config/content.json
-      - scripts/tsugi/**
-      - .github/workflows/refresh-tsugi.yml
+    - apps/tsugi-checker/scraper/**
+    - apps/tsugi-checker/config/content.json
+    - scripts/tsugi/**
+    - .github/workflows/refresh-tsugi.yml
   schedule:
-    # Cloudflare owns 08:00; GitHub checks at 08:30 only.
-    - cron: "30 15,16 * * *" # 08:30 PDT / PST; local-time gate selects exactly one
-
+  - cron: 30 8 * * *
+    timezone: America/Los_Angeles
 permissions:
   contents: write
-
 concurrency:
   group: pt-universe-tsugi-data
   cancel-in-progress: false
-
 jobs:
   refresh:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - name: Check out PT Universe
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    - name: Check out PT Universe
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Decide whether to refresh sources
+      id: refresh
+      shell: bash
+      env:
+        REFRESH_EVENT: ${{ github.event_name }}
+      run: |
+        python - <<'PY' >> "$GITHUB_OUTPUT"
+        import json, os, urllib.request, sys
+        sys.path.insert(0,"scripts/tsugi")
+        from refresh_gate import fallback_needed
+        from datetime import datetime, timezone
+        from zoneinfo import ZoneInfo
+        pacific = ZoneInfo("America/Los_Angeles")
+        now = datetime.now(timezone.utc).astimezone(pacific)
+        if os.environ.get("REFRESH_EVENT") != "schedule":
+            print("scrape=true\nreason=explicit_manual_or_config_change")
+            raise SystemExit()
+        try:
+            request = urllib.request.Request("https://pt-universe-api.summer07-nanjolno.workers.dev/api/status",headers={"User-Agent":"PT-Universe-Fallback/1.0"})
+            with urllib.request.urlopen(request, timeout=20) as response:
+                status = json.load(response)
+            request = urllib.request.Request("https://pt-universe-api.summer07-nanjolno.workers.dev/api/data/site-updates.json",headers={"User-Agent":"PT-Universe-Fallback/1.0"})
+            with urllib.request.urlopen(request, timeout=20) as response:
+                site = json.load(response)
+            needed, reason = fallback_needed(status, site, now)
+            print("scrape="+str(needed).lower()+"\nreason="+reason)
+        except Exception as error:
+            # Fail open to the independent GitHub fallback.
+            print("scrape=true\nreason=cloudflare_status_unavailable")
+        PY
+    - name: Explain refresh mode
+      run: |
+        echo "scrape=${{ steps.refresh.outputs.scrape }}"
+        echo "reason=${{ steps.refresh.outputs.reason }}"
+        echo "event=${{ github.event_name }}"
+    - name: Set up Python
+      if: steps.refresh.outputs.scrape == 'true'
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: pip
+        cache-dependency-path: apps/tsugi-checker/requirements.txt
+    - name: Install scraper dependencies
+      if: steps.refresh.outputs.scrape == 'true'
+      run: |
+        python -m pip install -r apps/tsugi-checker/requirements.txt
+        python -m playwright install --with-deps chromium
+    - name: Refresh reading and music feeds
+      if: steps.refresh.outputs.scrape == 'true'
+      working-directory: apps/tsugi-checker
+      run: |
+        python scraper/main.py --skip-games
+        python scraper/site_dates.py
+        python - <<'PY'
+        import json
+        from pathlib import Path
+        for name in ("site-updates.json","music.json"):
+            path=Path("data")/name
+            snapshot=json.loads(path.read_text(encoding="utf-8"))
+            snapshot["refresh_source"]="github:08:30-fallback" if "${{ github.event_name }}"=="schedule" else "github:manual-or-push"
+            path.write_text(json.dumps(snapshot,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+        PY
+    - name: Record CopyManga update-index diagnostics
+      if: always() && steps.refresh.outputs.scrape == 'true'
+      working-directory: apps/tsugi-checker
+      run: |
+        python - <<'PY'
+        import json,sys
+        from bs4 import BeautifulSoup
+        sys.path.insert(0,'scraper')
+        from main import fetch
+        try:
+            html=fetch('https://www.mangacopy.com/','auto')
+            soup=BeautifulSoup(html,'lxml')
+            diagnostic={'title':soup.title.get_text() if soup.title else '', 'headings':[x.get_text(' ',strip=True)[:120] for x in soup.select('h1,h2,h3,h4,h5,h6')][:40], 'update_labels':[str(x)[:120] for x in soup.find_all(string=lambda x:x and '更新' in x)][:20], 'comic_links':len(soup.select('a[href*="/comic/"]')), 'html_length':len(html)}
+        except Exception as e:diagnostic={'error':str(e)}
+        print(json.dumps(diagnostic,ensure_ascii=False))
+        open('/tmp/pt-copy-diagnostics.json','w').write(json.dumps(diagnostic,ensure_ascii=False,indent=2))
+        PY
+    - name: Save update-index diagnostics and refreshed source health
+      if: always() && steps.refresh.outputs.scrape == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: tsugi-source-diagnostics
+        path: |
+          /tmp/pt-copy-diagnostics.json
+          apps/tsugi-checker/data/site-updates.json
+        retention-days: 3
+    - name: Install Cloudflare publisher
+      if: steps.refresh.outputs.scrape == 'true'
+      uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+    - name: Publish fallback snapshots directly to Cloudflare
+      if: steps.refresh.outputs.scrape == 'true'
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      run: |
+        npm ci --prefix workers/pt-universe-api
+        node scripts/tsugi/test-snapshot-merge.mjs
+        node scripts/tsugi/publish-snapshot.mjs
+    - name: Validate final merged snapshot
+      id: quality
+      continue-on-error: true
+      if: steps.refresh.outputs.scrape == 'true'
+      working-directory: apps/tsugi-checker
+      run: |
+        python - <<'PY'
+        import json
+        from datetime import datetime, timezone
+        from pathlib import Path
 
-      - name: Decide whether to refresh sources
-        id: refresh
-        shell: bash
-        env:
-          REFRESH_EVENT: ${{ github.event_name }}
-        run: |
-          python - <<'PY' >> "$GITHUB_OUTPUT"
-          import json, os, urllib.request, sys
-          sys.path.insert(0,"scripts/tsugi")
-          from refresh_gate import fallback_needed
-          from datetime import datetime, timezone
-          from zoneinfo import ZoneInfo
-          pacific = ZoneInfo("America/Los_Angeles")
-          now = datetime.now(timezone.utc).astimezone(pacific)
-          # Delayed GitHub cron must not cause the unwanted afternoon refresh.
-          if os.environ.get("REFRESH_EVENT") == "schedule" and not (((now.hour == 8 and now.minute >= 30) or now.hour == 9)):
-              print("scrape=false\nreason=outside_morning_fallback_window")
-              raise SystemExit()
-          if os.environ.get("REFRESH_EVENT") != "schedule":
-              print("scrape=true\nreason=explicit_manual_or_config_change")
-              raise SystemExit()
-          try:
-              request = urllib.request.Request("https://pt-universe-api.summer07-nanjolno.workers.dev/api/status",headers={"User-Agent":"PT-Universe-Fallback/1.0"})
-              with urllib.request.urlopen(request, timeout=20) as response:
-                  status = json.load(response)
-              request = urllib.request.Request("https://pt-universe-api.summer07-nanjolno.workers.dev/api/data/site-updates.json",headers={"User-Agent":"PT-Universe-Fallback/1.0"})
-              with urllib.request.urlopen(request, timeout=20) as response:
-                  site = json.load(response)
-              needed, reason = fallback_needed(status, site, now)
-              print("scrape="+str(needed).lower()+"\nreason="+reason)
-          except Exception as error:
-              # Fail open to the independent GitHub fallback.
-              print("scrape=true\nreason=cloudflare_status_unavailable")
-          PY
-
-      - name: Explain refresh mode
-        run: |
-          echo "scrape=${{ steps.refresh.outputs.scrape }}"
-          echo "reason=${{ steps.refresh.outputs.reason }}"
-          echo "event=${{ github.event_name }}"
-
-      - name: Set up Python
-        if: steps.refresh.outputs.scrape == 'true'
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: apps/tsugi-checker/requirements.txt
-
-      - name: Install scraper dependencies
-        if: steps.refresh.outputs.scrape == 'true'
-        run: |
-          python -m pip install -r apps/tsugi-checker/requirements.txt
-          python -m playwright install --with-deps chromium
-
-      - name: Refresh reading and music feeds
-        if: steps.refresh.outputs.scrape == 'true'
-        working-directory: apps/tsugi-checker
-        run: |
-          python scraper/main.py --skip-games
-          python scraper/site_dates.py
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          for name in ("site-updates.json","music.json"):
-              path=Path("data")/name
-              snapshot=json.loads(path.read_text(encoding="utf-8"))
-              snapshot["refresh_source"]="github:08:30-fallback" if "${{ github.event_name }}"=="schedule" else "github:manual-or-push"
-              path.write_text(json.dumps(snapshot,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
-          PY
-
-      - name: Record CopyManga update-index diagnostics
-        if: always() && steps.refresh.outputs.scrape == 'true'
-        working-directory: apps/tsugi-checker
-        run: |
-          python - <<'PY'
-          import json,sys
-          from bs4 import BeautifulSoup
-          sys.path.insert(0,'scraper')
-          from main import fetch
-          try:
-              html=fetch('https://www.mangacopy.com/','auto')
-              soup=BeautifulSoup(html,'lxml')
-              diagnostic={'title':soup.title.get_text() if soup.title else '', 'headings':[x.get_text(' ',strip=True)[:120] for x in soup.select('h1,h2,h3,h4,h5,h6')][:40], 'update_labels':[str(x)[:120] for x in soup.find_all(string=lambda x:x and '更新' in x)][:20], 'comic_links':len(soup.select('a[href*="/comic/"]')), 'html_length':len(html)}
-          except Exception as e:diagnostic={'error':str(e)}
-          print(json.dumps(diagnostic,ensure_ascii=False))
-          open('/tmp/pt-copy-diagnostics.json','w').write(json.dumps(diagnostic,ensure_ascii=False,indent=2))
-          PY
-      - name: Save update-index diagnostics and refreshed source health
-        if: always() && steps.refresh.outputs.scrape == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: tsugi-source-diagnostics
-          path: |
-            /tmp/pt-copy-diagnostics.json
-            apps/tsugi-checker/data/site-updates.json
-
-      - name: Install Cloudflare publisher
-        if: steps.refresh.outputs.scrape == 'true'
-        uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-      - name: Publish fallback snapshots directly to Cloudflare
-        if: steps.refresh.outputs.scrape == 'true'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          npm ci --prefix workers/pt-universe-api
-          node scripts/tsugi/test-snapshot-merge.mjs
-          node scripts/tsugi/publish-snapshot.mjs
-
-      - name: Validate final merged snapshot
-        id: quality
-        continue-on-error: true
-        if: steps.refresh.outputs.scrape == 'true'
-        working-directory: apps/tsugi-checker
-        run: |
-          python - <<'PY'
-          import json
-          from datetime import datetime, timezone
-          from pathlib import Path
-
-          site = json.loads(Path('data/site-updates.json').read_text(encoding='utf-8'))
-          music = json.loads(Path('data/music.json').read_text(encoding='utf-8'))
-          rows = site.get('items') or []
-          songs = (music.get('recent_chart') or []) + (music.get('weekly_chart') or [])
-          if len(rows) < 30:
-              raise SystemExit(f'site snapshot unexpectedly small: {len(rows)}')
-          if len(songs) < 20:
-              raise SystemExit(f'music snapshot unexpectedly small: {len(songs)}')
-          generated = site.get('generated_at')
-          if not generated:
-              raise SystemExit('site snapshot missing generated_at')
-          age = datetime.now(timezone.utc) - datetime.fromisoformat(generated.replace('Z', '+00:00'))
-          if age.total_seconds() > 3600:
-              raise SystemExit(f'site snapshot was not regenerated by this run: {generated}')
-          for source in ('manhuagui','linovelib','copymanga'):
-              entry=site.get('sources',{}).get(source,{})
-              print(f"source={source} ok={entry.get('ok')} verified_chapters={entry.get('verifiedChapterCount',0)} degraded={entry.get('degraded')} error={entry.get('error','')}")
-              if not entry.get('ok') or entry.get('fallback') or entry.get('degraded') or not entry.get('verifiedChapterCount') or entry.get('verifiedChapterCount')!=entry.get('freshCount'):
-                  raise SystemExit(f'{source}: no newly verified chapters; refusing stale-success deployment')
-          print(f'validated site_rows={len(rows)} songs={len(songs)} generated_at={generated}')
-          PY
-
-      - name: Commit refreshed Tsugi data to PT Universe
-        if: steps.refresh.outputs.scrape == 'true'
-        run: |
-          git config user.name "pt-universe-tsugi-bot"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- \
-            apps/tsugi-checker/data/feed.json \
-            apps/tsugi-checker/data/feed.xml \
-            apps/tsugi-checker/data/state.json \
-            apps/tsugi-checker/data/site-updates.json \
-            apps/tsugi-checker/data/music.json
-          if git diff --cached --quiet; then
-            echo "No Tsugi data changes"
-          else
-            git commit -m "data(tsugi): refresh feeds"
-            git pull --rebase -X theirs origin main
-            git push origin HEAD:main
-          fi
-
-      - name: Report incomplete fallback after publishing successful sources
-        if: steps.refresh.outputs.scrape == 'true' && steps.quality.outcome == 'failure'
-        run: |
-          echo "::error::Fallback published available sources, but source verification is incomplete. Inspect tsugi-source-diagnostics."
-          exit 1
-
-      - name: Verify served morning snapshots and record completeness
-        if: always() && github.event_name == 'schedule'
-        run: |
-          python - <<'PY'
-          import json,os,urllib.request
-          from datetime import datetime,timezone
-          from zoneinfo import ZoneInfo
-          pacific=ZoneInfo('America/Los_Angeles');today=datetime.now(timezone.utc).astimezone(pacific).date()
-          def read(name):
-              url='https://pt-universe-api.summer07-nanjolno.workers.dev/api/data/'+name+'?morning_verification='+datetime.now(timezone.utc).isoformat()
-              with urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'PT-Universe morning verification'}),timeout=30) as r:return json.load(r)
-          def fresh(stamp):
-              try:
-                  d=datetime.fromisoformat(stamp.replace('Z','+00:00')).astimezone(pacific)
-                  return d.date()==today and d.hour>=8
-              except (ValueError,TypeError,AttributeError):return False
-          sites,music,games=[read(name) for name in ['site-updates.json','music.json','game-releases.json']]
-          report={'reading':sites.get('sources',{}),'music':music.get('sources',{}),'games':games.get('sources',{}),'origins':{name:v.get('refresh_source') for name,v in [('reading',sites),('music',music),('games',games)]}}
-          failures=[]
-          for key in ['manhuagui','linovelib','copymanga']:
-              v=sites.get('sources',{}).get(key,{})
-              if not (v.get('ok') and not v.get('degraded') and not v.get('fallback') and fresh(v.get('checked_at')) and v.get('verifiedChapterCount',0)>0 and v.get('verifiedChapterCount')==v.get('freshCount')):failures.append(key+': chapters incomplete or stale')
-          for key,count in [('linovelib',60),('copymanga',48)]:
-              if sites.get('sources',{}).get(key,{}).get('freshCount')!=count:failures.append(key+': expected '+str(count)+' checked works')
-          for key in ['billboard_japan','youtube_japan_recent']:
-              v=music.get('sources',{}).get(key,{})
-              if not (v.get('ok') and not v.get('fallback') and fresh(v.get('checked_at') or music.get('generated_at'))):failures.append(key+': music source unavailable or stale')
-          if not fresh(games.get('generated_at')):failures.append('games: snapshot not refreshed after 08:00')
-          for key in ['appstore','googleplay','taptap_cn_new','taptap_cn_upcoming','steam_popular_new','steam_popular_upcoming','famitsu']:
-              v=games.get('sources',{}).get(key,{})
-              if not v.get('ok') or v.get('fallback'):failures.append(key+': game source failed')
-          report['failures']=failures
-          body=json.dumps(report,ensure_ascii=False,indent=2);print(body)
-          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:f.write('## Served morning source verification\n\n```json\n'+body+'\n```\n')
-          if failures:raise SystemExit('Morning verification incomplete: '+'; '.join(failures))
-          PY
-
+        site = json.loads(Path('data/site-updates.json').read_text(encoding='utf-8'))
+        music = json.loads(Path('data/music.json').read_text(encoding='utf-8'))
+        rows = site.get('items') or []
+        songs = (music.get('recent_chart') or []) + (music.get('weekly_chart') or [])
+        if len(rows) < 30:
+            raise SystemExit(f'site snapshot unexpectedly small: {len(rows)}')
+        if len(songs) < 20:
+            raise SystemExit(f'music snapshot unexpectedly small: {len(songs)}')
+        generated = site.get('generated_at')
+        if not generated:
+            raise SystemExit('site snapshot missing generated_at')
+        age = datetime.now(timezone.utc) - datetime.fromisoformat(generated.replace('Z', '+00:00'))
+        if age.total_seconds() > 3600:
+            raise SystemExit(f'site snapshot was not regenerated by this run: {generated}')
+        for source in ('manhuagui','linovelib','copymanga'):
+            entry=site.get('sources',{}).get(source,{})
+            print(f"source={source} ok={entry.get('ok')} verified_chapters={entry.get('verifiedChapterCount',0)} degraded={entry.get('degraded')} error={entry.get('error','')}")
+            if not entry.get('ok') or entry.get('fallback') or entry.get('degraded') or not entry.get('verifiedChapterCount') or entry.get('verifiedChapterCount')!=entry.get('freshCount'):
+                raise SystemExit(f'{source}: no newly verified chapters; refusing stale-success deployment')
+        print(f'validated site_rows={len(rows)} songs={len(songs)} generated_at={generated}')
+        PY
+    - name: Skip publication when the snapshot did not change
+      id: snapshot_change
+      run: if git diff --quiet -- apps; then echo "changed=false" >> "$GITHUB_OUTPUT"; else echo "changed=true" >> "$GITHUB_OUTPUT";
+        fi
+      if: steps.refresh.outputs.scrape == 'true'
+    - name: Commit refreshed Tsugi data to PT Universe
+      if: steps.refresh.outputs.scrape == 'true'
+      run: |
+        git config user.name "pt-universe-tsugi-bot"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add -- \
+          apps/tsugi-checker/data/feed.json \
+          apps/tsugi-checker/data/feed.xml \
+          apps/tsugi-checker/data/state.json \
+          apps/tsugi-checker/data/site-updates.json \
+          apps/tsugi-checker/data/music.json
+        if git diff --cached --quiet; then
+          echo "No Tsugi data changes"
+        else
+          git commit -m "data(tsugi): refresh feeds"
+          git pull --rebase -X theirs origin main
+          git push origin HEAD:main
+        fi
+    - name: Report incomplete fallback after publishing successful sources
+      if: steps.refresh.outputs.scrape == 'true' && steps.quality.outcome == 'failure'
+      run: |
+        echo "::error::Fallback published available sources, but source verification is incomplete. Inspect tsugi-source-diagnostics."
+        exit 1
+    - name: Verify served morning snapshots and record completeness
+      if: always() && github.event_name == 'schedule'
+      run: |
+        python - <<'PY'
+        import json,os,urllib.request
+        from datetime import datetime,timezone
+        from zoneinfo import ZoneInfo
+        pacific=ZoneInfo('America/Los_Angeles');today=datetime.now(timezone.utc).astimezone(pacific).date()
+        def read(name):
+            url='https://pt-universe-api.summer07-nanjolno.workers.dev/api/data/'+name+'?morning_verification='+datetime.now(timezone.utc).isoformat()
+            with urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'PT-Universe morning verification'}),timeout=30) as r:return json.load(r)
+        def fresh(stamp):
+            try:
+                d=datetime.fromisoformat(stamp.replace('Z','+00:00')).astimezone(pacific)
+                return d.date()==today and d.hour>=8
+            except (ValueError,TypeError,AttributeError):return False
+        sites,music=[read(name) for name in ['site-updates.json','music.json']]
+        report={'reading':sites.get('sources',{}),'music':music.get('sources',{}),'origins':{name:v.get('refresh_source') for name,v in [('reading',sites),('music',music)]}}
+        failures=[]
+        for key in ['manhuagui','linovelib','copymanga']:
+            v=sites.get('sources',{}).get(key,{})
+            if not (v.get('ok') and not v.get('degraded') and not v.get('fallback') and fresh(v.get('checked_at')) and v.get('verifiedChapterCount',0)>0 and v.get('verifiedChapterCount')==v.get('freshCount')):failures.append(key+': chapters incomplete or stale')
+        for key,count in [('linovelib',60),('copymanga',48)]:
+            if sites.get('sources',{}).get(key,{}).get('freshCount')!=count:failures.append(key+': expected '+str(count)+' checked works')
+        for key in ['billboard_japan','youtube_japan_recent']:
+            v=music.get('sources',{}).get(key,{})
+            if not (v.get('ok') and not v.get('fallback') and fresh(v.get('checked_at') or music.get('generated_at'))):failures.append(key+': music source unavailable or stale')
+        # Games have an independent collector and independent acceptance.
+        report['failures']=failures
+        body=json.dumps(report,ensure_ascii=False,indent=2);print(body)
+        with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:f.write('## Served morning source verification\n\n```json\n'+body+'\n```\n')
+        if failures:raise SystemExit('Morning verification incomplete: '+'; '.join(failures))
+        PY
+    outputs:
+      changed: ${{ steps.snapshot_change.outputs.changed }}
   deploy:
     needs: refresh
-    if: always() && needs.refresh.result != 'cancelled'
+    if: (always() && needs.refresh.result != 'cancelled') && needs.refresh.outputs.changed == 'true'
     runs-on: ubuntu-latest
     concurrency:
       group: pages
@@ -252,18 +238,22 @@ jobs:
       pages: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-      - uses: actions/configure-pages@v5
-        with:
-          enablement: true
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          name: tsugi-reading-pages-${{ github.run_attempt }}
-          path: .
-      - name: Deploy the latest PT Universe
-        id: deployment
-        uses: actions/deploy-pages@v4
-        with:
-          artifact_name: tsugi-reading-pages-${{ github.run_attempt }}
+    - uses: actions/checkout@v4
+      with:
+        ref: main
+    - uses: actions/configure-pages@v5
+      with:
+        enablement: true
+    - name: Prepare bounded frontend distribution
+      run: python scripts/build-pages.py
+    - uses: actions/upload-pages-artifact@v3
+      with:
+        name: tsugi-reading-pages-${{ github.run_attempt }}
+        path: _site
+        retention-days: 1
+    - name: Deploy the latest PT Universe
+      id: deployment
+      uses: actions/deploy-pages@v4
+      with:
+        artifact_name: tsugi-reading-pages-${{ github.run_attempt }}
+    timeout-minutes: 15

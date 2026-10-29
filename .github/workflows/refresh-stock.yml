@@ -1,6 +1,5 @@
 name: Refresh Stock data
-
-on:
+'on':
   workflow_dispatch:
     inputs:
       mode:
@@ -9,109 +8,101 @@ on:
         default: full
         type: choice
         options:
-          - full
-          - quotes
+        - full
+        - quotes
   push:
-    branches: [main]
+    branches:
+    - main
     paths:
-      - apps/stock-alert/scripts/**
-      - apps/stock-alert/requirements.txt
-      - .github/workflows/refresh-stock.yml
+    - apps/stock-alert/scripts/**
+    - apps/stock-alert/requirements.txt
+    - .github/workflows/refresh-stock.yml
   schedule:
-    # One full pre-market refresh for history, news, options and fundamentals.
-    - cron: "17 8 * * 1-5"
-      timezone: "America/New_York"
-    # Lightweight quotes every 30 minutes around regular US market hours.
-    # Multiple small runs are deliberate: a delayed/dropped GitHub cron no
-    # longer leaves the Daily Nexus investment snapshot stale for the day.
-    - cron: "11,41 9-16 * * 1-5"
-      timezone: "America/New_York"
-
+  - cron: 17 8 * * 1-5
+    timezone: America/New_York
+  - cron: 11,41 9-16 * * 1-5
+    timezone: America/New_York
 permissions:
   contents: write
-
 concurrency:
   group: pt-universe-stock-data
   cancel-in-progress: false
-
 jobs:
   refresh:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
-      - name: Check out PT Universe
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    - name: Check out PT Universe
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Decide refresh mode
+      id: mode
+      shell: bash
+      run: |
+        FULL=false
+        if [[ "${{ github.event_name }}" == "push" ]]; then
+          FULL=true
+        elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.mode }}" == "full" ]]; then
+          FULL=true
+        elif [[ "${{ github.event_name }}" == "schedule" && "${{ github.event.schedule }}" == "17 8 * * 1-5" ]]; then
+          FULL=true
+        fi
+        echo "full=$FULL" >> "$GITHUB_OUTPUT"
+        echo "event=${{ github.event_name }} schedule=${{ github.event.schedule }} full=$FULL"
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: ${{ steps.mode.outputs.full == 'true' && 'pip' || '' }}
+        cache-dependency-path: apps/stock-alert/requirements.txt
+    - name: Install full market dependencies
+      if: steps.mode.outputs.full == 'true'
+      run: python -m pip install -r apps/stock-alert/requirements.txt
+    - name: Fetch market history, news and options
+      if: steps.mode.outputs.full == 'true'
+      working-directory: apps/stock-alert
+      run: python scripts/fetch_market.py
+    - name: Fetch lightweight quotes
+      working-directory: apps/stock-alert
+      run: python scripts/fetch_quotes.py
+    - name: Validate quote snapshot
+      working-directory: apps/stock-alert
+      run: |
+        python - <<'PY'
+        import json
+        from datetime import datetime, timezone
+        from pathlib import Path
 
-      - name: Decide refresh mode
-        id: mode
-        shell: bash
-        run: |
-          FULL=false
-          if [[ "${{ github.event_name }}" == "push" ]]; then
-            FULL=true
-          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.mode }}" == "full" ]]; then
-            FULL=true
-          elif [[ "${{ github.event_name }}" == "schedule" && "${{ github.event.schedule }}" == "17 8 * * 1-5" ]]; then
-            FULL=true
-          fi
-          echo "full=$FULL" >> "$GITHUB_OUTPUT"
-          echo "event=${{ github.event_name }} schedule=${{ github.event.schedule }} full=$FULL"
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: ${{ steps.mode.outputs.full == 'true' && 'pip' || '' }}
-          cache-dependency-path: apps/stock-alert/requirements.txt
-
-      - name: Install full market dependencies
-        if: steps.mode.outputs.full == 'true'
-        run: python -m pip install -r apps/stock-alert/requirements.txt
-
-      - name: Fetch market history, news and options
-        if: steps.mode.outputs.full == 'true'
-        working-directory: apps/stock-alert
-        run: python scripts/fetch_market.py
-
-      - name: Fetch lightweight quotes
-        working-directory: apps/stock-alert
-        run: python scripts/fetch_quotes.py
-
-      - name: Validate quote snapshot
-        working-directory: apps/stock-alert
-        run: |
-          python - <<'PY'
-          import json
-          from datetime import datetime, timezone
-          from pathlib import Path
-
-          data = json.loads(Path('data/quotes.json').read_text(encoding='utf-8'))
-          generated = data.get('generatedAt')
-          symbols = data.get('symbols') or {}
-          successes = int(data.get('successCount') or 0)
-          if not generated or not symbols or successes < 1:
-              raise SystemExit('quote snapshot is missing fresh data')
-          age = datetime.now(timezone.utc) - datetime.fromisoformat(generated.replace('Z', '+00:00'))
-          if age.total_seconds() > 900:
-              raise SystemExit(f'quote snapshot is unexpectedly stale: {generated}')
-          print(f'validated quotes={successes}/{len(symbols)} generatedAt={generated}')
-          PY
-
-      - name: Commit refreshed Stock data to PT Universe
-        run: |
-          git config user.name "pt-universe-stock-bot"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- apps/stock-alert/data/market.json apps/stock-alert/data/quotes.json
-          if git diff --cached --quiet; then
-            echo "No Stock data changes"
-          else
-            git commit -m "data(stock): refresh market snapshot"
-            git pull --rebase -X theirs origin main
-            git push origin HEAD:main
-          fi
-
+        data = json.loads(Path('data/quotes.json').read_text(encoding='utf-8'))
+        generated = data.get('generatedAt')
+        symbols = data.get('symbols') or {}
+        successes = int(data.get('successCount') or 0)
+        if not generated or not symbols or successes < 1:
+            raise SystemExit('quote snapshot is missing fresh data')
+        age = datetime.now(timezone.utc) - datetime.fromisoformat(generated.replace('Z', '+00:00'))
+        if age.total_seconds() > 900:
+            raise SystemExit(f'quote snapshot is unexpectedly stale: {generated}')
+        print(f'validated quotes={successes}/{len(symbols)} generatedAt={generated}')
+        PY
+    - name: Skip publication when the snapshot did not change
+      id: snapshot_change
+      run: if git diff --quiet -- apps; then echo "changed=false" >> "$GITHUB_OUTPUT"; else echo "changed=true" >> "$GITHUB_OUTPUT";
+        fi
+    - name: Commit refreshed Stock data to PT Universe
+      run: |
+        git config user.name "pt-universe-stock-bot"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add -- apps/stock-alert/data/market.json apps/stock-alert/data/quotes.json
+        if git diff --cached --quiet; then
+          echo "No Stock data changes"
+        else
+          git commit -m "data(stock): refresh market snapshot"
+          git pull --rebase -X theirs origin main
+          git push origin HEAD:main
+        fi
+    outputs:
+      changed: ${{ steps.snapshot_change.outputs.changed }}
   deploy:
     needs: refresh
     runs-on: ubuntu-latest
@@ -126,15 +117,20 @@ jobs:
       pages: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-      - uses: actions/configure-pages@v5
-        with:
-          enablement: true
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: .
-      - name: Deploy the latest PT Universe
-        id: deployment
-        uses: actions/deploy-pages@v4
+    - uses: actions/checkout@v4
+      with:
+        ref: main
+    - uses: actions/configure-pages@v5
+      with:
+        enablement: true
+    - name: Prepare bounded frontend distribution
+      run: python scripts/build-pages.py
+    - uses: actions/upload-pages-artifact@v3
+      with:
+        path: _site
+        retention-days: 1
+    - name: Deploy the latest PT Universe
+      id: deployment
+      uses: actions/deploy-pages@v4
+    timeout-minutes: 15
+    if: (success()) && needs.refresh.outputs.changed == 'true'

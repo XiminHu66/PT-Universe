@@ -1,12 +1,60 @@
-name: "Hybrid metadata lifecycle acceptance (streaming OFF)"
-on:
+name: Hybrid metadata lifecycle acceptance (streaming OFF)
+'on':
   workflow_dispatch:
     inputs:
       operation:
         description: Metadata operation
         type: choice
         default: verify
-        options: [deploy, verify, samples, prepare, stream-on, stream-off, transfer, browser-approve, recovery, flow, large-sample, large-on, large-transfer, retention, ownership, account-approve, account-revoke, account-login-on, account-login-off, account-submit-on, account-submit-off, account-rc-off, account-off-check, account-files-check, account-device-files-check, account-device-files-verify, account-device-files-on, account-device-recovery-check, account-device-recovery-on, account-files-on, account-files-off, account-novel-on, account-novel-off, account-observation-on, account-observation-off, account-observation-check, account-novel-check, account-personal-on, account-personal-update, account-personal-check, remote-download-proof, manga-proof, candidate-check, integrated-downloads-on, integrated-download-proof, login-diagnostics, download-diagnostics, video-source-proof]
+        options:
+        - deploy
+        - verify
+        - samples
+        - prepare
+        - stream-on
+        - stream-off
+        - transfer
+        - browser-approve
+        - recovery
+        - flow
+        - large-sample
+        - large-on
+        - large-transfer
+        - retention
+        - ownership
+        - account-approve
+        - account-revoke
+        - account-login-on
+        - account-login-off
+        - account-submit-on
+        - account-submit-off
+        - account-rc-off
+        - account-off-check
+        - account-files-check
+        - account-device-files-check
+        - account-device-files-verify
+        - account-device-files-on
+        - account-device-recovery-check
+        - account-device-recovery-on
+        - account-files-on
+        - account-files-off
+        - account-novel-on
+        - account-novel-off
+        - account-observation-on
+        - account-observation-off
+        - account-observation-check
+        - account-novel-check
+        - account-personal-on
+        - account-personal-update
+        - account-personal-check
+        - remote-download-proof
+        - manga-proof
+        - candidate-check
+        - integrated-downloads-on
+        - integrated-download-proof
+        - login-diagnostics
+        - download-diagnostics
+        - video-source-proof
       device_authorization:
         description: Explicit new user-device round approval (3 tickets / 10 MiB / 20 minutes)
         type: boolean
@@ -33,361 +81,363 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 14
     steps:
-      - name: Checkout isolated hybrid staging branch
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          ref: feat/media-vault-vps-engine-ready
-          persist-credentials: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version: '24'
-      - name: Check candidate without deployment or live service requests
-        if: inputs.operation == 'candidate-check'
-        run: |
-          set -euo pipefail
-          npm test --prefix workers/media-vault-hybrid
-          node workers/media-vault-hybrid/candidate-check.mjs
-      - name: Inspect login stage flags without credential or grant access
-        if: inputs.operation == 'login-diagnostics'
-        env:
-          D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: node workers/media-vault-hybrid/login-diagnostics.mjs
-      - name: Read-only download queue metadata
-        if: inputs.operation == 'download-diagnostics'
-        env:
-          D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: node workers/media-vault-hybrid/download-diagnostics.mjs
-      - name: Test and deploy only dedicated hybrid metadata Worker
-        if: inputs.operation == 'deploy' || inputs.operation == 'prepare' || inputs.operation == 'stream-on' || inputs.operation == 'large-on' || inputs.operation == 'stream-off'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
-          OPERATION: ${{ inputs.operation }}
-          TEST_JOB_IDS: ${{ inputs.previous_jobs }}
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-          AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
-        run: |
-          set -euo pipefail
-          grep -q '"ENABLE_DIRECT_STREAM": "false"' workers/media-vault-hybrid/wrangler.jsonc
-          npm ci --prefix workers/pt-universe-api
-          npm test --prefix workers/media-vault-hybrid
-          node workers/media-vault-hybrid/test-window-config.mjs
-          if [[ "$OPERATION" == prepare ]]; then
-            node workers/media-vault-hybrid/live-stream-off.mjs
-            node workers/media-vault-hybrid/migration-check.mjs before
-          fi
-          # Schema must exist before the new ticket reader can see traffic.
-          if [[ "$OPERATION" == prepare || "$OPERATION" == stream-on ]]; then
-            CLOUDFLARE_API_TOKEN="$D1_TOKEN" npx --prefix workers/pt-universe-api wrangler d1 execute pt-universe-db --remote --file workers/media-vault-hybrid/schema.sql --config workers/media-vault-hybrid/test-window.json --yes
-          fi
-          if [[ "$OPERATION" == prepare ]]; then
-            node workers/media-vault-hybrid/migration-check.mjs after
-            CLOUDFLARE_API_TOKEN="$D1_TOKEN" npx --prefix workers/pt-universe-api wrangler d1 execute pt-universe-db --remote --file workers/media-vault-hybrid/schema.sql --config workers/media-vault-hybrid/test-window.json --yes
-            node workers/media-vault-hybrid/migration-check.mjs idempotent
-          fi
-          npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/test-window.json
-      - name: Verify account and streaming closure without deployment
-        if: inputs.operation == 'account-off-check'
-        env:
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-          AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
-        run: |
-          set -euo pipefail
+    - name: Checkout isolated hybrid staging branch
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      with:
+        ref: feat/media-vault-vps-engine-ready
+        persist-credentials: false
+    - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      with:
+        node-version: '24'
+    - name: Check candidate without deployment or live service requests
+      if: inputs.operation == 'candidate-check'
+      run: |
+        set -euo pipefail
+        npm test --prefix workers/media-vault-hybrid
+        node workers/media-vault-hybrid/candidate-check.mjs
+    - name: Inspect login stage flags without credential or grant access
+      if: inputs.operation == 'login-diagnostics'
+      env:
+        D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      run: node workers/media-vault-hybrid/login-diagnostics.mjs
+    - name: Read-only download queue metadata
+      if: inputs.operation == 'download-diagnostics'
+      env:
+        D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      run: node workers/media-vault-hybrid/download-diagnostics.mjs
+    - name: Test and deploy only dedicated hybrid metadata Worker
+      if: inputs.operation == 'deploy' || inputs.operation == 'prepare' || inputs.operation == 'stream-on' || inputs.operation
+        == 'large-on' || inputs.operation == 'stream-off'
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+        OPERATION: ${{ inputs.operation }}
+        TEST_JOB_IDS: ${{ inputs.previous_jobs }}
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
+      run: |
+        set -euo pipefail
+        grep -q '"ENABLE_DIRECT_STREAM": "false"' workers/media-vault-hybrid/wrangler.jsonc
+        npm ci --prefix workers/pt-universe-api
+        npm test --prefix workers/media-vault-hybrid
+        node workers/media-vault-hybrid/test-window-config.mjs
+        if [[ "$OPERATION" == prepare ]]; then
+          node workers/media-vault-hybrid/live-stream-off.mjs
+          node workers/media-vault-hybrid/migration-check.mjs before
+        fi
+        # Schema must exist before the new ticket reader can see traffic.
+        if [[ "$OPERATION" == prepare || "$OPERATION" == stream-on ]]; then
+          CLOUDFLARE_API_TOKEN="$D1_TOKEN" npx --prefix workers/pt-universe-api wrangler d1 execute pt-universe-db --remote --file workers/media-vault-hybrid/schema.sql --config workers/media-vault-hybrid/test-window.json --yes
+        fi
+        if [[ "$OPERATION" == prepare ]]; then
+          node workers/media-vault-hybrid/migration-check.mjs after
+          CLOUDFLARE_API_TOKEN="$D1_TOKEN" npx --prefix workers/pt-universe-api wrangler d1 execute pt-universe-db --remote --file workers/media-vault-hybrid/schema.sql --config workers/media-vault-hybrid/test-window.json --yes
+          node workers/media-vault-hybrid/migration-check.mjs idempotent
+        fi
+        npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/test-window.json
+    - name: Verify account and streaming closure without deployment
+      if: inputs.operation == 'account-off-check'
+      env:
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
+      run: |
+        set -euo pipefail
+        node workers/media-vault-hybrid/live-stream-off.mjs
+        node workers/media-vault-hybrid/live-account-off.mjs
+    - name: Verify active device metadata without extending its deadline
+      if: inputs.operation == 'account-device-files-verify'
+      env:
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
+      run: node workers/media-vault-hybrid/live-device-download-ready.mjs
+    - name: Inspect fixed novel parameters and task counts without mutations
+      if: inputs.operation == 'account-novel-check'
+      env:
+        D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        REQUEST_ID: ${{ inputs.pair_code }}
+      run: node workers/media-vault-hybrid/account-novel-check.mjs
+    - name: Inspect observation metadata without granting or extending access
+      if: inputs.operation == 'account-observation-check'
+      env:
+        D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        REQUEST_ID: ${{ inputs.pair_code }}
+      run: node workers/media-vault-hybrid/account-observation-check.mjs
+    - name: Inspect retained account files with all gates OFF
+      if: inputs.operation == 'account-files-check' || inputs.operation == 'account-device-files-check' || inputs.operation
+        == 'account-device-recovery-check'
+      env:
+        D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
+        OPERATION: ${{ inputs.operation }}
+      run: |
+        set -euo pipefail
+        node workers/media-vault-hybrid/live-stream-off.mjs
+        node workers/media-vault-hybrid/live-account-off.mjs
+        if [[ "$OPERATION" == account-device-recovery-check ]]; then
+          node workers/media-vault-hybrid/account-device-recovery-preflight.mjs
+        elif [[ "$OPERATION" == account-device-files-check ]]; then
+          node workers/media-vault-hybrid/account-device-preflight.mjs
+        else
+          node workers/media-vault-hybrid/account-file-preflight.mjs
+        fi
+    - name: Deploy bounded account window or closed release candidate
+      if: inputs.operation == 'account-login-on' || inputs.operation == 'account-login-off' || inputs.operation == 'account-submit-on'
+        || inputs.operation == 'account-submit-off' || inputs.operation == 'account-rc-off' || inputs.operation == 'account-files-on'
+        || inputs.operation == 'account-device-files-on' || inputs.operation == 'account-device-recovery-on' || inputs.operation
+        == 'account-files-off' || inputs.operation == 'account-novel-on' || inputs.operation == 'account-novel-off' ||
+        inputs.operation == 'account-observation-on' || inputs.operation == 'account-observation-off' || inputs.operation
+        == 'account-personal-on'
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
+        OPERATION: ${{ inputs.operation }}
+        DEVICE_AUTHORIZED: ${{ inputs.device_authorization }}
+        ACCEPTANCE_AUTHORIZED: ${{ inputs.acceptance_authorization }}
+        REQUEST_ID: ${{ inputs.pair_code }}
+        ACCOUNT_ACTION: account-revoke
+      run: |
+        set -euo pipefail
+        npm ci --prefix workers/pt-universe-api
+        npm test --prefix workers/media-vault-hybrid
+        if [[ "$OPERATION" == account-novel-on || "$OPERATION" == account-observation-on || "$OPERATION" == account-personal-on ]]; then
+          [[ "$ACCEPTANCE_AUTHORIZED" == true ]] || { echo "Explicit current acceptance authorization required"; exit 1; }
+        fi
+        if [[ "$OPERATION" == account-login-on || "$OPERATION" == account-submit-on || "$OPERATION" == account-novel-on || "$OPERATION" == account-observation-on || "$OPERATION" == account-personal-on ]]; then
           node workers/media-vault-hybrid/live-stream-off.mjs
           node workers/media-vault-hybrid/live-account-off.mjs
-      - name: Verify active device metadata without extending its deadline
-        if: inputs.operation == 'account-device-files-verify'
-        env:
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-          AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
-        run: node workers/media-vault-hybrid/live-device-download-ready.mjs
-      - name: Inspect fixed novel parameters and task counts without mutations
-        if: inputs.operation == 'account-novel-check'
-        env:
-          D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-          REQUEST_ID: ${{ inputs.pair_code }}
-        run: node workers/media-vault-hybrid/account-novel-check.mjs
-      - name: Inspect observation metadata without granting or extending access
-        if: inputs.operation == 'account-observation-check'
-        env:
-          D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-          REQUEST_ID: ${{ inputs.pair_code }}
-        run: node workers/media-vault-hybrid/account-observation-check.mjs
-      - name: Inspect retained account files with all gates OFF
-        if: inputs.operation == 'account-files-check' || inputs.operation == 'account-device-files-check' || inputs.operation == 'account-device-recovery-check'
-        env:
-          D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-          AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
-          OPERATION: ${{ inputs.operation }}
-        run: |
-          set -euo pipefail
+        fi
+        if [[ "$OPERATION" == account-files-on ]]; then
           node workers/media-vault-hybrid/live-stream-off.mjs
           node workers/media-vault-hybrid/live-account-off.mjs
-          if [[ "$OPERATION" == account-device-recovery-check ]]; then
+          node workers/media-vault-hybrid/account-file-preflight.mjs
+        fi
+        if [[ "$OPERATION" == account-device-files-on || "$OPERATION" == account-device-recovery-on ]]; then
+          [[ "$DEVICE_AUTHORIZED" == true ]] || { echo 'Explicit new user-device authorization required'; exit 1; }
+          node workers/media-vault-hybrid/live-stream-off.mjs
+          node workers/media-vault-hybrid/live-account-off.mjs
+          if [[ "$OPERATION" == account-device-recovery-on ]]; then
             node workers/media-vault-hybrid/account-device-recovery-preflight.mjs
-          elif [[ "$OPERATION" == account-device-files-check ]]; then
+          else
             node workers/media-vault-hybrid/account-device-preflight.mjs
+          fi
+          OPERATION=account-files-on node workers/media-vault-hybrid/account-window-config.mjs
+        else
+          node workers/media-vault-hybrid/account-window-config.mjs
+        fi
+        if [[ "$OPERATION" == account-login-on || "$OPERATION" == account-submit-on || "$OPERATION" == account-novel-on || "$OPERATION" == account-observation-on || "$OPERATION" == account-personal-on ]]; then
+          if [[ "$OPERATION" == account-personal-on ]]; then
+            node workers/media-vault-hybrid/migration-check.mjs ready-personal
+          elif [[ "$OPERATION" == account-observation-on ]]; then
+            node workers/media-vault-hybrid/migration-check.mjs ready-observation
+          elif [[ "$OPERATION" == account-novel-on ]]; then
+            node workers/media-vault-hybrid/migration-check.mjs ready-novel
+          elif [[ "$OPERATION" == account-submit-on ]]; then
+            node workers/media-vault-hybrid/migration-check.mjs ready-submission
           else
-            node workers/media-vault-hybrid/account-file-preflight.mjs
+            node workers/media-vault-hybrid/migration-check.mjs ready
           fi
-      - name: Deploy bounded account window or closed release candidate
-        if: inputs.operation == 'account-login-on' || inputs.operation == 'account-login-off' || inputs.operation == 'account-submit-on' || inputs.operation == 'account-submit-off' || inputs.operation == 'account-rc-off' || inputs.operation == 'account-files-on' || inputs.operation == 'account-device-files-on' || inputs.operation == 'account-device-recovery-on' || inputs.operation == 'account-files-off' || inputs.operation == 'account-novel-on' || inputs.operation == 'account-novel-off' || inputs.operation == 'account-observation-on' || inputs.operation == 'account-observation-off' || inputs.operation == 'account-personal-on'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-          AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
-          OPERATION: ${{ inputs.operation }}
-          DEVICE_AUTHORIZED: ${{ inputs.device_authorization }}
-          ACCEPTANCE_AUTHORIZED: ${{ inputs.acceptance_authorization }}
-          REQUEST_ID: ${{ inputs.pair_code }}
-          ACCOUNT_ACTION: account-revoke
-        run: |
-          set -euo pipefail
-          npm ci --prefix workers/pt-universe-api
-          npm test --prefix workers/media-vault-hybrid
-          if [[ "$OPERATION" == account-novel-on || "$OPERATION" == account-observation-on || "$OPERATION" == account-personal-on ]]; then
-            [[ "$ACCEPTANCE_AUTHORIZED" == true ]] || { echo "Explicit current acceptance authorization required"; exit 1; }
+        elif [[ "$OPERATION" == account-rc-off ]]; then
+          node workers/media-vault-hybrid/migration-check.mjs release
+        fi
+        npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/account-window.json
+        if [[ "$OPERATION" == account-device-files-on || "$OPERATION" == account-device-recovery-on ]]; then
+          node workers/media-vault-hybrid/live-device-download-ready.mjs
+        elif [[ "$OPERATION" == account-personal-on ]]; then
+          node workers/media-vault-hybrid/live-personal-ready.mjs
+        elif [[ "$OPERATION" == account-novel-on || "$OPERATION" == account-observation-on ]]; then
+          node workers/media-vault-hybrid/live-acceptance-ready.mjs
+        elif [[ "$OPERATION" == account-files-on ]]; then
+          node workers/media-vault-hybrid/live-account-window.mjs
+        elif [[ "$OPERATION" == account-login-on || "$OPERATION" == account-submit-on ]]; then
+          node workers/media-vault-hybrid/live-stream-off.mjs
+          node workers/media-vault-hybrid/live-account-window.mjs
+        else
+          if [[ -n "$REQUEST_ID" ]]; then
+            node workers/media-vault-hybrid/account-session-admin.mjs
           fi
-          if [[ "$OPERATION" == account-login-on || "$OPERATION" == account-submit-on || "$OPERATION" == account-novel-on || "$OPERATION" == account-observation-on || "$OPERATION" == account-personal-on ]]; then
-            node workers/media-vault-hybrid/live-stream-off.mjs
-            node workers/media-vault-hybrid/live-account-off.mjs
-          fi
-          if [[ "$OPERATION" == account-files-on ]]; then
-            node workers/media-vault-hybrid/live-stream-off.mjs
-            node workers/media-vault-hybrid/live-account-off.mjs
-            node workers/media-vault-hybrid/account-file-preflight.mjs
-          fi
-          if [[ "$OPERATION" == account-device-files-on || "$OPERATION" == account-device-recovery-on ]]; then
-            [[ "$DEVICE_AUTHORIZED" == true ]] || { echo 'Explicit new user-device authorization required'; exit 1; }
-            node workers/media-vault-hybrid/live-stream-off.mjs
-            node workers/media-vault-hybrid/live-account-off.mjs
-            if [[ "$OPERATION" == account-device-recovery-on ]]; then
-              node workers/media-vault-hybrid/account-device-recovery-preflight.mjs
-            else
-              node workers/media-vault-hybrid/account-device-preflight.mjs
-            fi
-            OPERATION=account-files-on node workers/media-vault-hybrid/account-window-config.mjs
-          else
-            node workers/media-vault-hybrid/account-window-config.mjs
-          fi
-          if [[ "$OPERATION" == account-login-on || "$OPERATION" == account-submit-on || "$OPERATION" == account-novel-on || "$OPERATION" == account-observation-on || "$OPERATION" == account-personal-on ]]; then
-            if [[ "$OPERATION" == account-personal-on ]]; then
-              node workers/media-vault-hybrid/migration-check.mjs ready-personal
-            elif [[ "$OPERATION" == account-observation-on ]]; then
-              node workers/media-vault-hybrid/migration-check.mjs ready-observation
-            elif [[ "$OPERATION" == account-novel-on ]]; then
-              node workers/media-vault-hybrid/migration-check.mjs ready-novel
-            elif [[ "$OPERATION" == account-submit-on ]]; then
-              node workers/media-vault-hybrid/migration-check.mjs ready-submission
-            else
-              node workers/media-vault-hybrid/migration-check.mjs ready
-            fi
-          elif [[ "$OPERATION" == account-rc-off ]]; then
-            node workers/media-vault-hybrid/migration-check.mjs release
-          fi
-          npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/account-window.json
-          if [[ "$OPERATION" == account-device-files-on || "$OPERATION" == account-device-recovery-on ]]; then
-            node workers/media-vault-hybrid/live-device-download-ready.mjs
-          elif [[ "$OPERATION" == account-personal-on ]]; then
-            node workers/media-vault-hybrid/live-personal-ready.mjs
-          elif [[ "$OPERATION" == account-novel-on || "$OPERATION" == account-observation-on ]]; then
-            node workers/media-vault-hybrid/live-acceptance-ready.mjs
-          elif [[ "$OPERATION" == account-files-on ]]; then
-            node workers/media-vault-hybrid/live-account-window.mjs
-          elif [[ "$OPERATION" == account-login-on || "$OPERATION" == account-submit-on ]]; then
-            node workers/media-vault-hybrid/live-stream-off.mjs
-            node workers/media-vault-hybrid/live-account-window.mjs
-          else
-            if [[ -n "$REQUEST_ID" ]]; then
-              node workers/media-vault-hybrid/account-session-admin.mjs
-            fi
-            node workers/media-vault-hybrid/live-stream-off.mjs
-            node workers/media-vault-hybrid/live-account-off.mjs
-          fi
-      - name: Revoke temporary browser sessions
-        if: inputs.operation == 'stream-off'
-        env:
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-        run: node workers/media-vault-hybrid/browser-revoke.mjs
-      - name: Approve only matching browser request and fixed test files
-        if: inputs.operation == 'browser-approve'
-        env:
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-          TEST_JOB_IDS: ${{ inputs.previous_jobs }}
-          PAIR_CODE: ${{ inputs.pair_code }}
-        run: node workers/media-vault-hybrid/browser-approve.mjs
-      - name: Explicit Owner account-session approval or narrow revocation
-        if: inputs.operation == 'account-approve' || inputs.operation == 'account-revoke'
-        env:
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-          D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          ACCOUNT_ACTION: ${{ inputs.operation }}
-          REQUEST_ID: ${{ inputs.pair_code }}
-          ACCEPTANCE_AUTHORIZED: ${{ inputs.acceptance_authorization }}
-          DEVICE_AUTHORIZED: ${{ inputs.device_authorization }}
-        run: node workers/media-vault-hybrid/account-session-admin.mjs
-      - name: Verify live streaming remains OFF and ledger unchanged
-        if: inputs.operation == 'deploy' || inputs.operation == 'prepare' || inputs.operation == 'stream-off'
-        env:
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-          AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
-        run: |
           node workers/media-vault-hybrid/live-stream-off.mjs
           node workers/media-vault-hybrid/live-account-off.mjs
-      - name: Verify temporary stream gate and role isolation
-        if: inputs.operation == 'stream-on' || inputs.operation == 'large-on'
-        env:
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-          AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
-        run: node workers/media-vault-hybrid/live-stream-on.mjs
-      - name: Prepare bounded samples while streaming OFF
-        if: inputs.operation == 'samples'
-        env:
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-        run: node workers/media-vault-hybrid/live-samples.mjs
-      - name: Real bounded file streaming and ledger acceptance
-        if: inputs.operation == 'transfer'
-        env:
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-          SAMPLE_JOB_IDS: ${{ inputs.previous_jobs }}
-        run: node workers/media-vault-hybrid/live-transfer.mjs
-      - name: Real bounded interruption and process-loss recovery
-        if: inputs.operation == 'recovery'
-        env:
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-          SAMPLE_JOB_IDS: ${{ inputs.previous_jobs }}
-        run: node workers/media-vault-hybrid/live-recovery.mjs
-      - name: Real bounded backpressure concurrency and rate acceptance
-        if: inputs.operation == 'flow'
-        env:
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-          AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
-          SAMPLE_JOB_IDS: ${{ inputs.previous_jobs }}
-        run: node workers/media-vault-hybrid/live-flow.mjs
-      - name: Prepare one bounded larger video while streaming OFF
-        if: inputs.operation == 'large-sample'
-        env:
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-          LARGE_JOB_ID: ${{ inputs.previous_jobs }}
-        run: node workers/media-vault-hybrid/live-large-sample.mjs
-      - name: Real selected larger file and long paced consumer
-        if: inputs.operation == 'large-transfer'
-        env:
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-          LARGE_JOB_ID: ${{ inputs.previous_jobs }}
-          EXPECTED_SHA256: ${{ inputs.pair_code }}
-        run: node workers/media-vault-hybrid/live-large.mjs
-      - name: Retention age floor and role isolation with all sources preserved
-        if: inputs.operation == 'retention'
-        env:
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-          AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
-          RETENTION_JOB_IDS: ${{ inputs.previous_jobs }}
-        run: node workers/media-vault-hybrid/live-retention.mjs
-      - name: Controlled BitTorrent WebSeed source with streaming OFF
-        if: inputs.operation == 'ownership'
-        env:
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-          FIXTURE_REF: ${{ github.sha }}
-        run: node workers/media-vault-hybrid/live-ownership.mjs
-      - name: Real metadata lifecycle and restart acceptance
-        if: inputs.operation == 'verify'
-        env:
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-          AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
-          PREVIOUS_JOB_IDS: ${{ inputs.previous_jobs }}
-        run: |
-          set -euo pipefail
-          test -n "$OWNER" && test -n "$AGENT"
-          node workers/media-vault-hybrid/live-metadata.mjs
-
-
-      - name: Verify personal portal metadata without deployment
-        if: inputs.operation == 'account-personal-check'
-        env:
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-        run: |
-          OPERATION=account-personal-on node workers/media-vault-hybrid/account-window-config.mjs
-          node workers/media-vault-hybrid/live-personal-ready.mjs
-      - name: Verify VPS BT and video download with streaming OFF
-        if: inputs.operation == 'remote-download-proof'
-        env:
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-          FIXTURE_REF: ${{ github.sha }}
-        run: node workers/media-vault-hybrid/live-remote-downloads.mjs
-      - name: One fixed Chinese MangaDex chapter with streaming OFF
-        if: inputs.operation == 'manga-proof'
-        env:
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-          AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
-        run: |
-          node workers/media-vault-hybrid/live-stream-off.mjs
-          node workers/media-vault-hybrid/live-account-off.mjs
-          node workers/media-vault-hybrid/live-manga.mjs
-          node workers/media-vault-hybrid/live-stream-off.mjs
-          node workers/media-vault-hybrid/live-account-off.mjs
-
-      - name: Update existing personal portal without resetting account sessions
-        if: inputs.operation == 'account-personal-update'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-          AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
-          ACCEPTANCE_AUTHORIZED: ${{ inputs.acceptance_authorization }}
-        run: |
-          set -euo pipefail
-          [[ "$ACCEPTANCE_AUTHORIZED" == true ]] || { echo 'Explicit personal feature update authorization required'; exit 1; }
-          npm ci --prefix workers/pt-universe-api
-          npm test --prefix workers/media-vault-hybrid
-          OPERATION=account-personal-on node workers/media-vault-hybrid/account-window-config.mjs
-          node workers/media-vault-hybrid/live-stream-off.mjs
-          node workers/media-vault-hybrid/live-personal-ready.mjs
-          node workers/media-vault-hybrid/migration-check.mjs ready-personal
-          npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/account-window.json
-          node workers/media-vault-hybrid/live-personal-ready.mjs
-
-      - name: Enable integrated personal downloads with existing account authorization
-        if: inputs.operation == 'integrated-downloads-on'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-          ACCEPTANCE_AUTHORIZED: ${{ inputs.acceptance_authorization }}
-        run: |
-          set -euo pipefail
-          [[ "$ACCEPTANCE_AUTHORIZED" == true ]] || { echo 'Explicit personal file delivery authorization required'; exit 1; }
-          npm ci --prefix workers/pt-universe-api
-          npm test --prefix workers/media-vault-hybrid
-          OPERATION=account-personal-on node workers/media-vault-hybrid/account-window-config.mjs
-          node workers/media-vault-hybrid/migration-check.mjs ready-personal
-          OPERATION=account-personal-downloads-on node workers/media-vault-hybrid/account-window-config.mjs
-          CLOUDFLARE_API_TOKEN="$D1_TOKEN" npx --prefix workers/pt-universe-api wrangler d1 execute pt-universe-db --remote --file workers/media-vault-hybrid/oauth-schema.sql --config workers/media-vault-hybrid/account-window.json --yes
-          npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/account-window.json
-          node workers/media-vault-hybrid/live-integrated-ready.mjs
-      - name: Controlled normal delivery and exact ledger proof
-        if: inputs.operation == 'integrated-download-proof'
-        env:
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-          FIXTURE_REF: ${{ github.sha }}
-        run: node workers/media-vault-hybrid/live-download-release.mjs
-
-      - name: Licensed video page and trackerless BT to completed file delivery
-        if: inputs.operation == 'video-source-proof'
-        env:
-          OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
-        run: node workers/media-vault-hybrid/live-video-source-proof.mjs
+        fi
+    - name: Revoke temporary browser sessions
+      if: inputs.operation == 'stream-off'
+      env:
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+      run: node workers/media-vault-hybrid/browser-revoke.mjs
+    - name: Approve only matching browser request and fixed test files
+      if: inputs.operation == 'browser-approve'
+      env:
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        TEST_JOB_IDS: ${{ inputs.previous_jobs }}
+        PAIR_CODE: ${{ inputs.pair_code }}
+      run: node workers/media-vault-hybrid/browser-approve.mjs
+    - name: Explicit Owner account-session approval or narrow revocation
+      if: inputs.operation == 'account-approve' || inputs.operation == 'account-revoke'
+      env:
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        ACCOUNT_ACTION: ${{ inputs.operation }}
+        REQUEST_ID: ${{ inputs.pair_code }}
+        ACCEPTANCE_AUTHORIZED: ${{ inputs.acceptance_authorization }}
+        DEVICE_AUTHORIZED: ${{ inputs.device_authorization }}
+      run: node workers/media-vault-hybrid/account-session-admin.mjs
+    - name: Verify live streaming remains OFF and ledger unchanged
+      if: inputs.operation == 'deploy' || inputs.operation == 'prepare' || inputs.operation == 'stream-off'
+      env:
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
+      run: |
+        node workers/media-vault-hybrid/live-stream-off.mjs
+        node workers/media-vault-hybrid/live-account-off.mjs
+    - name: Verify temporary stream gate and role isolation
+      if: inputs.operation == 'stream-on' || inputs.operation == 'large-on'
+      env:
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
+      run: node workers/media-vault-hybrid/live-stream-on.mjs
+    - name: Prepare bounded samples while streaming OFF
+      if: inputs.operation == 'samples'
+      env:
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+      run: node workers/media-vault-hybrid/live-samples.mjs
+    - name: Real bounded file streaming and ledger acceptance
+      if: inputs.operation == 'transfer'
+      env:
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        SAMPLE_JOB_IDS: ${{ inputs.previous_jobs }}
+      run: node workers/media-vault-hybrid/live-transfer.mjs
+    - name: Real bounded interruption and process-loss recovery
+      if: inputs.operation == 'recovery'
+      env:
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        SAMPLE_JOB_IDS: ${{ inputs.previous_jobs }}
+      run: node workers/media-vault-hybrid/live-recovery.mjs
+    - name: Real bounded backpressure concurrency and rate acceptance
+      if: inputs.operation == 'flow'
+      env:
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
+        SAMPLE_JOB_IDS: ${{ inputs.previous_jobs }}
+      run: node workers/media-vault-hybrid/live-flow.mjs
+    - name: Prepare one bounded larger video while streaming OFF
+      if: inputs.operation == 'large-sample'
+      env:
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        LARGE_JOB_ID: ${{ inputs.previous_jobs }}
+      run: node workers/media-vault-hybrid/live-large-sample.mjs
+    - name: Real selected larger file and long paced consumer
+      if: inputs.operation == 'large-transfer'
+      env:
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        LARGE_JOB_ID: ${{ inputs.previous_jobs }}
+        EXPECTED_SHA256: ${{ inputs.pair_code }}
+      run: node workers/media-vault-hybrid/live-large.mjs
+    - name: Retention age floor and role isolation with all sources preserved
+      if: inputs.operation == 'retention'
+      env:
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
+        RETENTION_JOB_IDS: ${{ inputs.previous_jobs }}
+      run: node workers/media-vault-hybrid/live-retention.mjs
+    - name: Controlled BitTorrent WebSeed source with streaming OFF
+      if: inputs.operation == 'ownership'
+      env:
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        FIXTURE_REF: ${{ github.sha }}
+      run: node workers/media-vault-hybrid/live-ownership.mjs
+    - name: Real metadata lifecycle and restart acceptance
+      if: inputs.operation == 'verify'
+      env:
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
+        PREVIOUS_JOB_IDS: ${{ inputs.previous_jobs }}
+      run: |
+        set -euo pipefail
+        test -n "$OWNER" && test -n "$AGENT"
+        node workers/media-vault-hybrid/live-metadata.mjs
+    - name: Verify personal portal metadata without deployment
+      if: inputs.operation == 'account-personal-check'
+      env:
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+      run: |
+        OPERATION=account-personal-on node workers/media-vault-hybrid/account-window-config.mjs
+        node workers/media-vault-hybrid/live-personal-ready.mjs
+    - name: Verify VPS BT and video download with streaming OFF
+      if: inputs.operation == 'remote-download-proof'
+      env:
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        FIXTURE_REF: ${{ github.sha }}
+      run: node workers/media-vault-hybrid/live-remote-downloads.mjs
+    - name: One fixed Chinese MangaDex chapter with streaming OFF
+      if: inputs.operation == 'manga-proof'
+      env:
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
+      run: |
+        node workers/media-vault-hybrid/live-stream-off.mjs
+        node workers/media-vault-hybrid/live-account-off.mjs
+        node workers/media-vault-hybrid/live-manga.mjs
+        node workers/media-vault-hybrid/live-stream-off.mjs
+        node workers/media-vault-hybrid/live-account-off.mjs
+    - name: Update existing personal portal without resetting account sessions
+      if: inputs.operation == 'account-personal-update'
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        AGENT: ${{ secrets.MEDIA_HYBRID_AGENT_TOKEN }}
+        ACCEPTANCE_AUTHORIZED: ${{ inputs.acceptance_authorization }}
+      run: |
+        set -euo pipefail
+        [[ "$ACCEPTANCE_AUTHORIZED" == true ]] || { echo 'Explicit personal feature update authorization required'; exit 1; }
+        npm ci --prefix workers/pt-universe-api
+        npm test --prefix workers/media-vault-hybrid
+        OPERATION=account-personal-on node workers/media-vault-hybrid/account-window-config.mjs
+        node workers/media-vault-hybrid/live-stream-off.mjs
+        node workers/media-vault-hybrid/live-personal-ready.mjs
+        node workers/media-vault-hybrid/migration-check.mjs ready-personal
+        npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/account-window.json
+        node workers/media-vault-hybrid/live-personal-ready.mjs
+    - name: Enable integrated personal downloads with existing account authorization
+      if: inputs.operation == 'integrated-downloads-on'
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        ACCEPTANCE_AUTHORIZED: ${{ inputs.acceptance_authorization }}
+      run: |
+        set -euo pipefail
+        [[ "$ACCEPTANCE_AUTHORIZED" == true ]] || { echo 'Explicit personal file delivery authorization required'; exit 1; }
+        npm ci --prefix workers/pt-universe-api
+        npm test --prefix workers/media-vault-hybrid
+        OPERATION=account-personal-on node workers/media-vault-hybrid/account-window-config.mjs
+        node workers/media-vault-hybrid/migration-check.mjs ready-personal
+        OPERATION=account-personal-downloads-on node workers/media-vault-hybrid/account-window-config.mjs
+        CLOUDFLARE_API_TOKEN="$D1_TOKEN" npx --prefix workers/pt-universe-api wrangler d1 execute pt-universe-db --remote --file workers/media-vault-hybrid/oauth-schema.sql --config workers/media-vault-hybrid/account-window.json --yes
+        npx --prefix workers/pt-universe-api wrangler deploy --config workers/media-vault-hybrid/account-window.json
+        node workers/media-vault-hybrid/live-integrated-ready.mjs
+    - name: Controlled normal delivery and exact ledger proof
+      if: inputs.operation == 'integrated-download-proof'
+      env:
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+        FIXTURE_REF: ${{ github.sha }}
+      run: node workers/media-vault-hybrid/live-download-release.mjs
+    - name: Licensed video page and trackerless BT to completed file delivery
+      if: inputs.operation == 'video-source-proof'
+      env:
+        OWNER: ${{ secrets.MEDIA_HYBRID_OWNER_TOKEN }}
+      run: node workers/media-vault-hybrid/live-video-source-proof.mjs

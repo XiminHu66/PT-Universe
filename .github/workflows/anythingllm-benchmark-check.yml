@@ -1,11 +1,12 @@
 name: AnythingLLM Benchmark Lab checks
-on:
+'on':
   push:
-    branches: ['feat/anythingllm-model-benchmark-20261027']
+    branches:
+    - feat/anythingllm-model-benchmark-20261027
   pull_request:
     paths:
-      - 'apps/anythingllm/**'
-      - 'scripts/anythingllm/**'
+    - apps/anythingllm/**
+    - scripts/anythingllm/**
 permissions:
   contents: read
 jobs:
@@ -13,16 +14,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - name: Module parse checks
-        run: |
-          node --check apps/anythingllm/benchmark-core.mjs
-          node --check apps/anythingllm/benchmark-app.mjs
-          node --check apps/anythingllm/app.mjs
-      - name: Benchmark and chat core tests
-        run: |
-          node scripts/anythingllm/benchmark-test.mjs
-          node scripts/anythingllm/core-test.mjs
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+    - name: Module parse checks
+      run: |
+        node --check apps/anythingllm/benchmark-core.mjs
+        node --check apps/anythingllm/benchmark-app.mjs
+        node --check apps/anythingllm/app.mjs
+    - name: Benchmark and chat core tests
+      run: |
+        node scripts/anythingllm/benchmark-test.mjs
+        node scripts/anythingllm/core-test.mjs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true

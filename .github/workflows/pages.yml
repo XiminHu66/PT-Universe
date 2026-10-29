@@ -1,19 +1,16 @@
 name: Deploy PT Universe
-
-on:
+'on':
   push:
-    branches: [main]
-  workflow_dispatch:
-
+    branches:
+    - main
+  workflow_dispatch: null
 permissions:
   contents: read
   pages: write
   id-token: write
-
 concurrency:
   group: pages
   cancel-in-progress: true
-
 jobs:
   deploy:
     environment:
@@ -21,39 +18,41 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          # Scraper commits made with GITHUB_TOKEN do not emit another push
-          # workflow event. Always deploy the newest monorepo state instead.
-          ref: main
-      - name: Read the full shared recipe source
-        id: recipes
-        continue-on-error: true
-        uses: actions/checkout@v4
-        with:
-          repository: Anduin2017/HowToCook
-          ref: master
-          path: .recipe-source
-          sparse-checkout-cone-mode: false
-          sparse-checkout: |
-            /dishes/**/*.md
-            /LICENSE
-      - name: Refresh shared recipe snapshot
-        if: steps.recipes.outcome == 'success'
-        continue-on-error: true
-        run: python scripts/decision/sync-recipes.py .recipe-source
-      - name: Remove temporary recipe checkout
-        if: always()
-        run: rm -rf .recipe-source
-      - uses: actions/configure-pages@v5
-        with:
-          enablement: true
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          name: pt-universe-pages-${{ github.run_attempt }}
-          path: .
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-        with:
-          artifact_name: pt-universe-pages-${{ github.run_attempt }}
+    - uses: actions/checkout@v4
+      with:
+        ref: main
+    - name: Read the full shared recipe source
+      id: recipes
+      continue-on-error: true
+      uses: actions/checkout@v4
+      with:
+        repository: Anduin2017/HowToCook
+        ref: master
+        path: .recipe-source
+        sparse-checkout-cone-mode: false
+        sparse-checkout: |
+          /dishes/**/*.md
+          /LICENSE
+    - name: Refresh shared recipe snapshot
+      if: steps.recipes.outcome == 'success'
+      continue-on-error: true
+      run: python scripts/decision/sync-recipes.py .recipe-source
+    - name: Remove temporary recipe checkout
+      if: always()
+      run: rm -rf .recipe-source
+    - uses: actions/configure-pages@v5
+      with:
+        enablement: true
+    - name: Prepare bounded frontend distribution
+      run: python scripts/build-pages.py
+    - uses: actions/upload-pages-artifact@v3
+      with:
+        name: pt-universe-pages-${{ github.run_attempt }}
+        path: _site
+        retention-days: 1
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
+      with:
+        artifact_name: pt-universe-pages-${{ github.run_attempt }}
+    timeout-minutes: 15
