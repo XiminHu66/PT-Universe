@@ -15,3 +15,6 @@ export async function api(path,{method='GET',body}={}){
  const r=await fetch(API+path,{method,headers:{authorization:'Bearer '+token,...(body?{'content-type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,credentials:'omit',cache:'no-store',signal:AbortSignal.timeout(40000)});
  let value;try{value=await r.json()}catch{throw Error('后台返回异常，请稍后重试')};if(r.status===401){token='';drop(KEY);invalid=true;document.dispatchEvent(new CustomEvent('monitor-disconnected'));}if(!r.ok)throw Error(value.error||'请求失败');return value;
 }
+
+// Resume only the fixed Deal Lab page after the existing nonce-bound connection flow.
+if(connected()&&location.pathname.startsWith('/PT-Universe/apps/monitor-center')){let resume;try{resume=JSON.parse(get('pt.deal-lab.return.v1')||'null')}catch{}drop('pt.deal-lab.return.v1');if(resume?.path==='/PT-Universe/apps/deal-lab/'&&resume.expiresAt>Date.now())location.replace(resume.path);}
