@@ -1,69 +1,64 @@
-# Deal Lab / API Explorer
+# Deal Lab — shopping/game PoC v3
 
-Production frontend: https://ximinhu66.github.io/PT-Universe/apps/deal-lab/
+https://ximinhu66.github.io/PT-Universe/apps/deal-lab/
 
-Backend: existing `pt-universe-api` Worker, `/api/deal-lab/status`, `/query`, `/clear`.
-No VPS service, new scheduler, paid endpoint, shopping mutation or Steam sign-in.
+The current product has **four workspaces only**. Google/SerpApi is retired server-side (`410 provider_retired`); the source overview, general API playground, JSON debugger and saved-items/history UI are removed. Existing browser records from those features are preserved, not deleted. PT Universe entry and the existing owner connection/nonce-bound return flow remain intact.
 
-## Use
+## 1. Product comparison
 
-1. Open Deal Lab from PT Universe's shopping collection. The existing PT owner connection is reused; when required, its existing nonce-bound connection returns through Monitor Center and resumes Deal Lab. No new credential or account is created.
-2. Product Explorer: keyword search, identifier lookup (ASIN/barcode/model/ShopSavvy path), offers, date-range history or buying guide. The compare option sends independent queries; a missing Google key does not discard ShopSavvy results.
-3. Game Deals: title or Steam AppID search. Select a game to explicitly request offers, details or historical lows. CheapShark IDs and ITAD UUIDs remain separate.
-4. Free Games: complete games default, platform/type filters, DLC subfilter within Loot, and expiry sorting. Detail shows upstream instructions and original giveaway link. Claimed state does not claim permanent ownership.
-5. Steam: manually fetch up to 50 publicly listed apps. Search, filter changes and link to deal providers. Only successful manual reads create snapshots. There is no periodic snapshot task. A new entrant means new to the collected top 50, not new to Steam.
-6. Playground: select a read-only endpoint/tool; MCP fields are generated from actual `tools/list` schema. JSON input and the exact schema are available. Raw responses are viewable as a collapsible tree or formatted text and can be copied.
-7. Save items, target price/currency, claim state and recent query parameters in the isolated `ptu.deal-lab.*` browser namespace. No existing Tsugi/3C Scout records change. Multi-device sync and notifications are not enabled.
+One keyword search calls ShopSavvy MCP `product_search`, then reads `product_lookup` and `product_offers` for the first matching product. Every result with a distinct source identifier gets its own variation tab. Literal title cues separate single items, Plus/bundles and accessories; these are browsing groups, not inferred authoritative parent/child SKU relationships. The original title, model, MPN, color, barcode and ASIN remain visible when the actual source provides them.
 
-The top-of-results cache check reuses data; an explicit upstream refresh consumes quota subject to server limits. Clearing a query invalidates freshness while retaining its last successful value for outage recovery.
+Selecting another variation reads that variation's details/quotes, with separate caches and partial errors. No automatic sweep of all search results. The explicit refresh button refreshes the selected quote. Prices show seller, condition, source-reported stock and the actual last-check time. Old/undated offers are visibly marked; only new, in-stock offers checked within seven days are eligible for a recent-offer minimum. All ShopSavvy attribution URLs are preserved. No synthetic product images or invented specifications.
 
-## Server configuration
+MCP initialization, initialized notification, real tool discovery, exact input schema validation and the fixed read-only allowlist remain server-side. Only product_search, product_lookup and product_offers are allowed for this PoC.
 
-Optional Cloudflare Secrets (never frontend/localStorage):
+## 2. Game prices, including China
 
-- `SERPAPI_KEY`: account must remain on its free plan. Google Shopping search and Google Immersive Product (`page_token` from search). Missing key yields `503 key_missing` without an outbound request.
-- `ITAD_API_KEY`: personal developer application key, preferably verified-email account. Missing key behaves independently the same way.
+Search uses Steam's public store search, prefers an exact title match and accepts an explicit AppID. It automatically compares:
 
-Use the existing Worker secret-management process; no account upgrade or billing configuration is performed by this feature. Deal Lab cannot see use of the same account in other apps and cannot guarantee third-party plans remain unchanged.
+- Steam's actual country-specific appdetails price for selected countries; defaults CN + US, up to six of CN/US/HK/JP/GB/DE/BR/CA/AU/KR/TR/IN.
+- CheapShark store offers tied to the same Steam AppID. Store names come from its actual stores endpoint; deal links retain CheapShark redirect routing.
+- Optional ITAD lookup and prices for each selected country, if `ITAD_API_KEY` is configured. No fabricated data when missing; other sources work independently.
 
-## Limits and provenance, verified 2026-10-29
+The displayed minimum is **among connected sources and selected regions**, not a guarantee of every store on the internet. Native currency and amount are retained. ECB daily reference rates provide an explicitly labelled CNY comparison; if unavailable, native prices remain visible and incomparable amounts do not enter cross-currency ordering. The rate's actual date is displayed. These are not settlement FX, and do not establish purchase eligibility, activation region, tax/fees or edition equivalence beyond the matched source ID. No buying, account modification or region circumvention is performed.
 
-| Source | Official free access / conditions | Internal attempt caps: minute / hour / day / rolling31days | Cache / cooldown |
+## 3. Free games
+
+Only complete-game activities associated with Steam and/or Epic Games Store are retained, enforced server-side and filtered again in the UI. No Xbox/PlayStation/mobile, Loot or Beta browsing. Platform and expiry sorting remain. Original instructions disclose points, accounts and tasks where present; no blanket claim of permanent ownership. Attribution to GamerPower and its original activity links is retained.
+
+## 4. All wishlisted games and trends
+
+The official public Steam search returns total count and pages of 100. All pages are reachable, including direct page jumps; absolute source positions are preserved. The explicit full-snapshot action reads pages sequentially, gives progress, can be cancelled and fails visibly on page/snapshot errors. It is capped at 150 pages and is not a scheduled/background scraper. Cached pages are date-checked so yesterday's result cannot become a new observation today. Cross-date scans stop rather than stitching two days into one snapshot.
+
+Daily D1 observations retain 35 days. `deal_lab_rank_pages` records which pages were actually received. A date is a complete baseline only if all reported pages are present. A new entrant is confirmed only after such a full baseline. Partial scans are retained with explicit coverage; one day's rereads never gain extra statistical weight.
+
+Views:
+- Current full ranking, all pages; local search across pages already read.
+- Last-30-day **observed average rank**, best rank and last observed rank.
+- Last-30-day rank risers (requires at least two actual observed dates).
+- Last-30-day new entries after an actual full baseline.
+
+**No official historical month ranking or real monthly wishlist-add count is claimed.** Any game's true wishlist counts/additions are private developer reporting. Followers, activity-order or rank movement cannot substitute for them. The UI displays actual observed and complete days, and explicitly warns when less than 30 days of history exist. Historical observations are not backfilled from guesses. SteamDB is not scraped or bypassed.
+
+## Resource/safety policy
+
+No new VPS service, cron, GitHub Actions collector, paid plan, account system or analytics service. Only owner-triggered queries, with cached repeats and independently atomic D1 reservations. The existing PT owner grant, origin gate, fixed upstream domains, bounded inputs/response sizes, key redaction and 429 backoff remain in force. Plain DOM text rendering and safe links prevent upstream HTML execution.
+
+| Source | Internal limits: minute / hour / UTC day / rolling 31 days | Cooldown | Cache |
 | --- | --- | --- | --- |
-| ShopSavvy | Anonymous 10 tool calls/minute and 100/hour **per IP**. Cloudflare egress can be shared. 15 published tools; 11 read-only research tools allowed; account/scheduling tools excluded. | 4 / 30 / 120 / 2000 | 6h / 12s |
-| SerpApi | Free plan 250 searches/month, 50/hour. No automatic purchase of more credits. | 1 / 30 / 12 / 175 | 6h / 60s |
-| ITAD | Verified-email default 1000 requests/5 minutes, developer dashboard authoritative. Personal use allowed; attribution and unmodified links/prices; no competing service. | 5 / 60 / 90 / 1800 | 3h / 10s |
-| CheapShark | No key. No fixed numeric rate published. Obey 429 and Retry-After; user-triggered queries; purchases through CheapShark redirect links. | 5 / 40 / 120 / 2500 | 3h / 10s |
-| GamerPower | No key; up to 10 requests/second; active attribution hyperlink required. Loot includes DLC; no permanent-ownership inference. | 4 / 30 / 80 / 1600 | 2h / 15s |
-| Steam | Official public store search order; **not a supported stable ranking API**. No SteamDB scraping, bypass or private partner API. No numeric wishlist counts or growth estimates. | 1 / 3 / 8 / 100 | 24h / 300s |
+| ShopSavvy | 6 / 60 / 120 / 2000 | 4s | 6h |
+| Steam ranking pages | 40 / 120 / 160 / 2600 | 1s server, at least 2s UI | 24h, same observation date |
+| Steam store | 12 / 60 / 160 / 2500 | 1s | 1h |
+| CheapShark | 8 / 40 / 120 / 2500 | 2s | 3h |
+| GamerPower | 4 / 30 / 80 / 1600 | 15s | 2h |
+| ITAD, optional | 5 / 60 / 90 / 1800 | 10s | 3h |
+| ECB FX | 1 / 1 / 2 / 40 | 60s | 24h |
 
-All internal caps count reserved attempts including failed calls and MCP discovery, conservatively. Rolling31days prevents calendar-boundary bursts from accidentally exceeding SerpApi's monthly allocation. Daily boundaries use UTC; UI timestamps display America/Los_Angeles. No official remaining-balance API is queried or implied.
-
-D1 uses a single atomic conditional insert for reservation, so concurrent requests cannot bypass provider caps or cooldowns. Failure of accounting stops outbound work. KV caches are canonicalized by parameters; last-success values retained for 14 days. Upstream 429 backoff supports seconds or HTTP-date and never shortens Retry-After. No automatic retry loop.
-
-Steam snapshots retain 90 days, generated solely after an owner-triggered successful read. They are public ranking metadata, not a wishlist-count database. Missing snapshot history shows no comparison, not a zero change.
-
-Provider terms don't all publish a cache-retention ceiling. These short, personal result caches reduce requests, do not mirror bulk catalogs, and do not grant redistribution rights. Stop/remove a source if its terms change. ShopSavvy source timestamps can be old even on a newly fetched MCP response; both fetch time and any actual quote-check time are visible.
-
-Official references:
-- https://shopsavvy.com/data/documentation/mcp-server
-- https://shopsavvy.com/data/documentation/mcp-tools
-- https://serpapi.com/pricing
-- https://serpapi.com/google-shopping-api
-- https://serpapi.com/google-immersive-product-api
-- https://docs.isthereanydeal.com/
-- https://apidocs.cheapshark.com/
-- https://www.gamerpower.com/api-read
-- https://store.steampowered.com/search/?ignore_preferences=1&filter=popularwishlist
-- https://store.steampowered.com/robots.txt
-
-## Security boundaries
-
-All upstream queries and cache mutations require the existing pinned-signature PT owner grant. Only fixed domains and operation definitions are reachable. Redirects, oversized responses, unknown fields and non-read-only MCP tools are blocked. Provider secrets are removed from responses/errors. Raw results use DOM text rendering, safe HTTP(S) links and no upstream HTML insertion. No request parameters are logged by the feature.
+At the 2026-10-29 observed 5,884 wishlist entries, one manually requested complete scan takes 59 page requests, typically around two minutes. One scan/day is about 1,770 page requests per 30 days, below the 2,600 rolling allowance. Repeating current-day cached pages makes no new upstream request. Monthly trend reads are local D1 reads and do not spend upstream request allowance. Limits count attempted calls including failures; they are this tool's limits, not official account balances. ShopSavvy anonymous limits remain shared per exit IP (official 10 tool calls/minute, 100/hour). Upstream 429 is respected even below internal limits.
 
 ## Validation
 
-From repository root:
+Repository root:
 
 ```sh
 node --check apps/deal-lab/app.js
@@ -74,29 +69,25 @@ python .github/scripts/actions_policy.py .
 python scripts/build-pages.py
 ```
 
-From `workers/pt-universe-api`:
+From workers/pt-universe-api:
 
 ```sh
-npm ci
 npm run check
 node tests/deal-lab.test.mjs
+node tests/deal-rank.test.mjs
 npm run types -- --check
 npx wrangler deploy --dry-run
 ```
 
-`node tests/deal-lab.live.mjs` is an **explicit manual** public-upstream integration check. It uses isolated local SQLite/KV and real external HTTP; it is not a claim of production deployment or production owner-login verification. Routine CI does not call upstream providers. Deployed UI and Worker must be checked independently after release.
+`node tests/deal-lab.live.mjs` explicitly calls actual public upstream services through an isolated local route/SQLite/KV adapter. It is not run in routine CI and is not evidence of deployment. The final production URL, source revision, deployment run and browser flows must be independently verified after release.
 
-2026-10-29 pre-release verification:
-- 56 fixture assertions passed: actual SQLite atomic/rolling quotas, auth and origins, missing-key behavior, cache normalization, stale fallback after invalidation, MCP initialization/session/SSE/Schema, timeout, size, 429 and secret redaction.
-- Live local route: CheapShark Hades (2 games), GamerPower Steam games (2 events), Steam (50 ranked apps), MCP discovery (11 allowed tools), product search (3 products), product offers (66 offers). Every repeated query returned cache hit. These counts describe that test time, not permanent availability.
-- ITAD/SerpApi missing-key handling passed; no keyed-provider success is claimed.
-- Full existing Worker deployment regression suite passed locally, plus Worker type checking, binding-type verification, dry-run packaging and Pages build.
-- PR's pre-existing unrelated browser checks used stale Daily Nexus nav/Idea Pad label assertions (Decision, Daily Nexus, Todo jobs). No unrelated application code or tests were changed to conceal those failures. Production release results must be recorded separately.
+2026-10-29 real local-route upstream results: ShopSavvy search/lookup/model/16 offers; Hades CN CNY 92.00 / US USD 24.99; Steam title search; ECB dated 2026-10-29; matching CheapShark offers; five Steam/Epic full-game activities; wishlist pages 1 and 2 with 100 items each and source total 5,884; D1 daily history reflects one actual date, not 30 simulated days. Repeats hit cache, Google returns retired 410 and missing ITAD key returns 503. No keyed ITAD live success is claimed.
 
-Known limitations: keyed provider live responses require secrets; source licenses/plans can change; Steam ranking is an experimental public-page adapter and stops on schema/access failures; chart for ITAD history requires that provider's real data; ShopSavvy text-only fields are conservatively extracted, with original text/JSON preserved. No cross-provider identity equivalence or region equivalence is inferred from matching titles.
-
-Production verification, 2026-10-29 (initial release `3dc392e` / PR #151):
-- Pages source revision matched the release commit. Worker version `47d7f905-590c-4265-b429-8f19fd287498`; both deployment Actions, resource policy and Monitor Center validation succeeded.
-- Official browser UI: CheapShark Hades search (16 matches), repeat cache hit, game detail (USD 24.99 at test time; historical low USD 6.24); GamerPower Steam (2 events); Steam official top 50 with `snapshotStored: true` and no fabricated initial comparison.
-- ShopSavvy search returned 20 products through the deployed Worker. SerpApi's missing secret produced an independent 503 while the successful MCP results remained visible.
-- A real early detail click triggered the intended internal 429 protection. Follow-up polish adds a visible cancellable countdown for manually initiated queries, server Retry-After for budget denials, source-specific store-deal search, and clears old-page notices. There is still no automatic data fetching or automatic retry after an upstream failure.
+Primary references:
+- https://shopsavvy.com/data/documentation/mcp-tools
+- https://store.steampowered.com/search/?filter=popularwishlist&ignore_preferences=1
+- https://partner.steamgames.com/doc/webapi/IPartnerFinancialsService
+- https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html
+- https://docs.isthereanydeal.com/
+- https://apidocs.cheapshark.com/
+- https://www.gamerpower.com/api-read

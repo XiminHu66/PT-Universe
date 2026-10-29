@@ -1,31 +1,38 @@
-// Browser-independent controller test. DOM/fetch fixtures; not a live API or browser claim.
+// Controller/DOM fixtures, not public-upstream or production verification.
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
-const require=createRequire(new URL('../../workers/pt-universe-api/package.json',import.meta.url));
-const {build}=require('esbuild'),{parseHTML}=require('linkedom');
+const require=createRequire(new URL('../../workers/pt-universe-api/package.json',import.meta.url)),{build}=require('esbuild'),{parseHTML}=require('linkedom');
 const source=await readFile(new URL('../../apps/deal-lab/app.js',import.meta.url),'utf8');
-const result=await build({stdin:{contents:source+'\nglobalThis.testLab={query,state,setPage};',resolveDir:new URL('../../apps/deal-lab/',import.meta.url).pathname},bundle:true,format:'iife',platform:'browser',write:false});
+const output=await build({stdin:{contents:source+'\nglobalThis.testLab={query,state,setPage,work,searchProducts,selectVariant,loadGame};',resolveDir:new URL('../../apps/deal-lab/',import.meta.url).pathname},bundle:true,format:'iife',platform:'browser',write:false});
 const {window}=parseHTML(await readFile(new URL('../../apps/deal-lab/index.html',import.meta.url),'utf8'));
-const storage=new Map(),session=new Map(),encode=x=>Buffer.from(JSON.stringify(x)).toString('base64url'),issued=Math.floor(Date.now()/1000);
+const local=new Map(),session=new Map(),issued=Math.floor(Date.now()/1000),encode=x=>Buffer.from(JSON.stringify(x)).toString('base64url');
 session.set('pt.monitor.session.v1','header.'+encode({iss:'https://pt-vps-tools.h1nano.chatgpt.site',aud:'pt-universe-monitor',sub:'pt-backend-owner',scope:'monitor:manage',iat:issued,exp:issued+3600,nonce:'a'.repeat(48)})+'.fixture');
-const makeStore=m=>({getItem:k=>m.get(k)||null,setItem:(k,v)=>m.set(k,String(v)),removeItem:k=>m.delete(k)});
-let clock=Date.now(),mode='success',requests=0,ticks=0,cancelWait=false;
-class TestDate extends Date{static now(){return clock;}}
-const context=vm.createContext({window,document:window.document,location:{origin:'https://ximinhu66.github.io',pathname:'/PT-Universe/apps/deal-lab/',search:'',hash:'',assign(){}},history:{replaceState(){}},localStorage:makeStore(storage),sessionStorage:makeStore(session),navigator:{},URL,URLSearchParams,AbortController,AbortSignal,DOMException,Date:TestDate,Intl,atob,console,setTimeout:(fn,ms)=>{ticks++;if(cancelWait)queueMicrotask(()=>context.testLab.setPage('saved'));queueMicrotask(()=>{clock+=ms;fn();});return ticks;},clearTimeout(){},fetch:async(url,init)=>{
- if(url.endsWith('/status'))return Response.json({authorized:true,sources:{cheapshark:{configured:true,budget:{cooldown:10}}}});
- requests++;if(mode==='failure')return Response.json({error:'fixture rate limit',retryAfter:120},{status:429});
- return Response.json({provider:'cheapshark',operation:'stores',data:[],httpStatus:200,cache:mode==='cached'?'hit':'miss',fetchedAt:new Date(clock).toISOString()});
+const storage=m=>({getItem:k=>m.get(k)||null,setItem:(k,v)=>m.set(k,String(v)),removeItem:k=>m.delete(k)});
+let clock=Date.now(),requests=[],cancelWait=false;class Clock extends Date{static now(){return clock;}}
+const mcp=text=>({result:{content:[{type:'text',text}]},toolDescription:'Prices are in US dollars.'});
+const context=vm.createContext({window,document:window.document,location:{origin:'https://ximinhu66.github.io',pathname:'/PT-Universe/apps/deal-lab/',search:'',hash:'',assign(){}},history:{replaceState(){}},localStorage:storage(local),sessionStorage:storage(session),URL,URLSearchParams,AbortController,AbortSignal,DOMException,Date:Clock,Intl,atob,console,setTimeout:(fn,ms)=>{if(cancelWait)queueMicrotask(()=>context.testLab.setPage('games'));queueMicrotask(()=>{clock+=ms;fn();});return 1;},clearTimeout(){},fetch:async(url,init)=>{
+ if(url.endsWith('/status'))return Response.json({authorized:true,sources:{shopsavvy:{budget:{cooldown:4}},cheapshark:{budget:{cooldown:2}},steamstore:{budget:{cooldown:1}},fx:{budget:{cooldown:1}},itad:{configured:false}}});
+ const q=JSON.parse(init.body);requests.push(q);let data;
+ if(q.provider==='shopsavvy'){
+  if(q.operation==='product_search')data=mcp('## Search\n### 1. Headphones\n- Path: products/a\n\n### 2. Headphones Plus\n- Path: products/b\n');
+  else if(q.operation==='product_lookup')data=mcp('## Product\n\n**Headphones '+q.args.identifier+'**\n- Model: 123\n');
+  else data=mcp('## Offers\n1. **Retailer** - $10.00\n   - Condition: new\n   - Availability: in\n   - [View Offer](https://example.com/offer)\n');
+ }else if(q.provider==='fx')data={date:'2026-10-29',rates:{EUR:1,USD:1,CNY:7}};
+ else if(q.provider==='steamstore')data={available:true,country:q.args.country,appid:1,game:{name:'Game',price_overview:{currency:q.args.country==='CN'?'CNY':'USD',final:q.args.country==='CN'?5000:1000}}};
+ else if(q.operation==='stores')data=[{storeID:'1',storeName:'Steam'}];
+ else data=[{title:'Game',salePrice:'7.00',storeID:'1',dealID:'abc',steamAppID:'1'}];
+ return Response.json({...q,data,httpStatus:200,cache:'miss',fetchedAt:new Date().toISOString()});
 }});
-window.history=context.history;
-vm.runInContext(result.outputFiles[0].text,context);await new Promise(setImmediate);
-const {query,state,setPage}=context.testLab;
-assert.equal(requests,0,'loading must never query an upstream');
-await query('cheapshark','stores',{});assert.equal(requests,1);assert.ok(state.cooldowns.cheapshark>clock);
-mode='cached';const before=clock;await query('cheapshark','stores',{});assert.equal(clock,before,'known cached queries should not wait');assert.equal(requests,2);
-mode='success';await query('cheapshark','games',{title:'Hades'});assert.equal(requests,3);assert.ok(ticks>0,'a manually chosen uncached operation waits for the prior cooldown');
-state.cooldowns.cheapshark=clock+2000;cancelWait=true;await query('cheapshark','games',{title:'Portal'});assert.equal(requests,3,'switching page cancels a queued query before outbound work');assert.equal(state.page,'saved');assert.equal(state.busy,false);
-cancelWait=false;state.cooldowns.cheapshark=0;mode='failure';await query('cheapshark','stores',{});assert.equal(requests,4);assert.ok(state.cooldowns.cheapshark>=clock+120000);assert.equal(requests,4,'upstream failure must not auto-retry');
-setPage('overview');assert.equal(window.document.querySelector('#notice').textContent,'','old-page success/error notices must clear');
-console.log('PASS: controller fixtures verify no background API query, cached repeat, manual cooldown countdown, navigation cancellation, no upstream auto-retry and cleared page feedback.');
+window.history=context.history;vm.runInContext(output.outputFiles[0].text,context);await new Promise(setImmediate);
+const lab=context.testLab;assert.equal(requests.length,0,'opening a page never triggers upstream work');
+window.document.querySelector('#productTerm').value='Headphones';window.document.querySelector('[data-work]').click();
+for(let i=0;i<40&&lab.state.busy;i++)await new Promise(setImmediate);
+assert.deepEqual(requests.map(q=>q.operation),['product_search','product_lookup','product_offers'],'one search must automatically load matching details and quotes');
+assert.equal(lab.state.selected.identifier,'products/a');assert.equal(lab.state.variantData.get('products/a').offers.length,1);
+await lab.selectVariant(lab.state.variants[1]);assert.equal(lab.state.selected.identifier,'products/b');assert.equal(requests.filter(q=>q.operation==='product_search').length,1,'switching pack tabs does not rerun keyword search');
+lab.state.cooldowns.shopsavvy=clock+2000;cancelWait=true;const before=requests.length;await lab.work(signal=>lab.query('shopsavvy','product_lookup',{identifier:'products/c'},signal));assert.equal(requests.length,before,'navigation cancels queued API work');assert.equal(lab.state.page,'games');cancelWait=false;
+lab.state.countries=['CN','US'];await lab.work(signal=>lab.loadGame({id:1,name:'Game'},signal));assert.deepEqual(Array.from(lab.state.offers,x=>x.currency),['CNY','USD','USD']);assert.equal(requests.some(q=>q.provider==='serpapi'),false);assert.equal(requests.some(q=>q.provider==='itad'),false,'missing optional key is skipped independently');
+assert.ok(!window.document.querySelector('[data-page=playground]'));
+console.log('PASS: one-click product details + offers, independent variation tabs, cancellable quota waits, native CN/US game quotes and retired Google/no extra navigation.');

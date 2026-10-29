@@ -8,7 +8,8 @@ globalThis.fetch=async()=>{calls++;return Response.json([{gameID:'1',external:'H
 check((await call(env,query,'query','')).status===401,'owner required');check(calls===0);
 check((await call(env,query,'query',token,'https://evil.example')).status===403);
 const publicStatus=await (await call(env,null,'status','')).json();check(publicStatus.authorized===false);check(calls===0);
-for(const provider of ['serpapi','itad']){const r=await call(env,{provider,operation:provider==='itad'?'search':'search',args:{q:'test',title:'test'}});check(r.status===503);check((await r.json()).code==='key_missing');}check(calls===0);
+check((await call(env,{provider:'serpapi',operation:'search',args:{q:'x'}})).status===410);
+{const r=await call(env,{provider:'itad',operation:'search',args:{title:'x'}});check(r.status===503);check((await r.json()).code==='key_missing');}check(calls===0);
 check((await call(env,{provider:'shopsavvy',operation:'product_schedule',args:{}})).status===403);
 check((await call(env,{provider:'cheapshark',operation:'https://evil.example',args:{}})).status===400);
 check((await call(env,{...query,args:{title:'x',url:'http://localhost'}})).status===400);check(calls===0);
@@ -36,10 +37,13 @@ r=await call(env,{provider:'shopsavvy',operation:'product_search',args:{query:'m
 env.sqlite.exec('DELETE FROM deal_lab_usage');globalThis.fetch=async()=>{throw Error('network timeout');};
 r=await call(env,{provider:'cheapshark',operation:'games',args:{title:'x'}});check(r.status===502);check((await r.json()).error==='network timeout');
 // Paid provider errors inside HTTP 200 are failures, secrets never echo.
-env=makeEnv();env.SERPAPI_KEY='test-only-sensitive-key';globalThis.fetch=async()=>Response.json({error:'Failed with '+env.SERPAPI_KEY});
-r=await call(env,{provider:'serpapi',operation:'search',args:{q:'mouse'}});const text=await r.text();check(r.status===502);check(!text.includes(env.SERPAPI_KEY));
+env=makeEnv();env.ITAD_API_KEY='test-only-sensitive-key';globalThis.fetch=async()=>Response.json({error:'Failed with '+env.ITAD_API_KEY});
+r=await call(env,{provider:'itad',operation:'search',args:{title:'Hades'}});const text=await r.text();check(r.status===502);check(!text.includes(env.ITAD_API_KEY));
 env=makeEnv();globalThis.fetch=async()=>new Response('x'.repeat(850001));r=await call(env,query);check(r.status===502);
 // Fail closed before any outbound requests if accounting is unavailable.
 env=makeEnv();env.DB.prepare=()=>{throw Error('D1 unavailable');};let sent=false;globalThis.fetch=async()=>{sent=true;return Response.json([]);};check((await call(env,query)).status===503);check(!sent);
 check(parseSteam('<html>blocked</html>').length===0);
+check((await call(makeEnv(),{provider:'gamerpower',operation:'giveaways',args:{platform:'ps5',type:'game'}})).status===400);
+check((await call(makeEnv(),{provider:'steamstore',operation:'price',args:{appid:'1',country:'XX'}})).status===400);
+check((await call(makeEnv(),{provider:'steam',operation:'leaderboard',args:{page:999}})).status===400);
 console.log(`PASS: ${checks} Deal Lab checks. Fixture tests: auth, no-key, allowlists, cache normalization, stale fallback, atomic and rolling quotas, MCP handshake/SSE/Schema, 429, timeout, size and key redaction.`);
