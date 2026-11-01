@@ -1,0 +1,136 @@
+name: Build Local Video Downloader v2 (independent Chrome MV3)
+
+on:
+  push:
+    branches:
+      - feat/local-video-downloader-ffmpeg-v2
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Fetch pinned upstream
+        run: |
+          git clone --depth 1 --branch v5.6.0 https://github.com/puemos/hls-downloader.git upstream
+          test "$(git -C upstream describe --tags --exact-match)" = "v5.6.0"
+      - name: Customize title, ETA and source attribution
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          source = Path("upstream/src/popup/src/modules/Job/JobView.tsx")
+          s = source.read_text(encoding="utf-8")
+          old = 'import React, { useLayoutEffect, useRef } from "react";'
+          new = 'import React, { useEffect, useLayoutEffect, useRef, useState } from "react";'
+          assert s.count(old) == 1, "JobView React imports changed upstream"
+          s = s.replace(old,new)
+          anchor = '  const detailsRef = useRef<HTMLDivElement | null>(null);'
+          eta = """  // Per-download ETA derived only from observed completed fragment count.
+            const [etaSeconds, setEtaSeconds] = useState<number | null>(null);
+            const etaRef = useRef({ id: "", started: 0, lastDone: 0 });
+            useEffect(() => {
+              if (!isDownloading || !progress.total) {
+                setEtaSeconds(null);
+                etaRef.current.started = 0;
+                return;
+              }
+              const now = Date.now();
+              if (etaRef.current.id !== job.id ||
+                  !etaRef.current.started ||
+                  progress.done < etaRef.current.lastDone) {
+                etaRef.current = { id: job.id, started: now, lastDone: progress.done };
+              } else if (progress.done > 0 && now - etaRef.current.started >= 1000) {
+                const completedPerSecond = progress.done / ((now - etaRef.current.started) / 1000);
+                setEtaSeconds(completedPerSecond > 0 ? Math.max(0, (progress.total-progress.done)/completedPerSecond) : null);
+              }
+              etaRef.current.lastDone = progress.done;
+            }, [job.id, isDownloading, progress.done, progress.total]);
+          """
+          assert s.count(anchor) == 1, "JobView location changed upstream"
+          s=s.replace(anchor,anchor+"\n"+eta)
+          slot='''          <span className="truncate text-[10px] font-medium text-muted-foreground">
+            {derived.size.expectedBytes
+              ? `~${formatBytes(derived.size.expectedBytes)}`
+              : "Estimating size"}
+          </span>'''
+          insert='''          {isDownloading && etaSeconds !== null && (
+            <span className="text-[10px] tabular-nums text-muted-foreground whitespace-nowrap" title="Estimated remaining download time, excluding final MP4 conversion">
+              ETA {etaSeconds < 90 ? `${Math.ceil(etaSeconds)}s` : `${Math.ceil(etaSeconds / 60)}m`}
+            </span>
+          )}'''
+          assert s.count(slot)==1, "JobView summary ETA slot changed"
+          s=s.replace(slot,slot+"\n"+insert)
+          source.write_text(s,encoding="utf-8")
+          fn=Path("upstream/src/core/src/use-cases/generate-file-name.ts")
+          name=fn.read_text(encoding="utf-8")
+          assert "playlist.pageTitle" in name, "Page-title naming missing from upstream"
+          print("Patched JobView.tsx; upstream already uses pageTitle for filenames")
+          PY
+      - name: Install pinned dependencies
+        run: |
+          npm install -g pnpm@12.16.1
+          cd upstream
+          pnpm install --frozen-lockfile
+      - name: Compile and check
+        run: |
+          cd upstream
+          pnpm run typecheck
+          pnpm run build:mv3
+      - name: Package standalone local Chrome extension
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p product
+          unzip -q upstream/extension-mv3-chrome.zip -d product
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          manifest=Path("product/manifest.json")
+          assert manifest.exists(),"Missing manifest from official build"
+          m=json.loads(manifest.read_text())
+          assert m["manifest_version"]==3
+          assert "offscreen" in m["permissions"]
+          m["name"]="Local Video Downloader · FFmpeg"
+          m["short_name"]="Local Video"
+          m["version"]="2.0.0"
+          m["description"]="本地 HLS 检测、画质/音轨选择和 FFmpeg.wasm MP4/MKV 无损封装。基于 HLS Downloader v5.6.0 (MIT)。"
+          manifest.write_text(json.dumps(m,indent=2,ensure_ascii=False)+"\n")
+          assert list(Path("product").rglob("*.wasm")), "FFmpeg wasm runtime missing!"
+          assert Path("product/popup.html").exists()
+          assert Path("product/offscreen.html").exists()
+          print("WASM files:",[(str(f),f.stat().st_size) for f in Path("product").rglob("*.wasm")])
+          PY
+          cp upstream/LICENSE product/UPSTREAM_LICENSE.txt
+          cat > product/INSTALL-中文.txt <<'EOF'
+          Local Video Downloader 2.0.0 / Chrome MV3
+          1. 解压 ZIP 至固定目录
+          2. Chrome 打开 chrome://extensions/ 并开启开发者模式
+          3. 加载未打包的扩展，选择含 manifest.json 的目录
+          4. 打开网页并播放视频，点击扩展图标，Capture -> 选择 HLS -> 选择画质与音轨 -> Download
+          5. Downloads 可查看下载、合并、完成进度。ETA 是基于分片完成速度的估计，不包含最终封装。
+          安全注意：基于上游的捕获机制，需要访问网页请求的权限。
+          无需额外 EXE、云端服务或 API Key；FFmpeg wasm 已内置。
+          不使用时在 chrome://extensions/ 禁用扩展。
+          本项目保留原上游 MIT 许可；版本来源 puemos/hls-downloader v5.6.0。
+          注意：未对具体 VOE 流进行真人浏览器端到端验证；不支持 DRM。
+          EOF
+          (cd product && zip -q -r ../LocalVideoDownloader_v2.0.0_FFmpeg_MV3.zip .)
+          sha256sum LocalVideoDownloader_v2.0.0_FFmpeg_MV3.zip > SHA256SUMS.txt
+          unzip -t LocalVideoDownloader_v2.0.0_FFmpeg_MV3.zip | tail -1
+      - name: Publish independent installable archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: LocalVideoDownloader-v2-FFmpeg
+          path: |
+            LocalVideoDownloader_v2.0.0_FFmpeg_MV3.zip
+            SHA256SUMS.txt
+          retention-days: 30
