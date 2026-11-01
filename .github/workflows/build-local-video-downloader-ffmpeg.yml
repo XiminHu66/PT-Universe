@@ -67,8 +67,9 @@ jobs:
               ETA {etaSeconds < 90 ? `${Math.ceil(etaSeconds)}s` : `${Math.ceil(etaSeconds / 60)}m`}
             </span>
           )}'''
-          assert s.count(slot)==1, "JobView summary ETA slot changed"
-          s=s.replace(slot,slot+"\n"+insert)
+          idx=s.index('"Estimating size"}')
+          end=s.index("</span>",idx)+len("</span>")
+          s=s[:end]+"\n"+insert+s[end:]
           source.write_text(s,encoding="utf-8")
           fn=Path("upstream/src/core/src/use-cases/generate-file-name.ts")
           name=fn.read_text(encoding="utf-8")
