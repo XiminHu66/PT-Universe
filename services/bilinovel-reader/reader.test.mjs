@@ -42,3 +42,7 @@ test('only the observed source initializer scripts are admitted, while advertisi
 
 
 test('compatible text rendering excludes video, insecure schemes and private-network destinations',()=>{for(const u of ['http://cdn.example.com/a.js','https://127.0.0.1/x','https://192.168.1.1/x','https://localhost/x','https://foo.internal/x','file:///tmp/x'])assert.equal(renderResource(u,'Script'),false,u);assert.equal(renderResource('https://cdn.example.com/text.js','Script'),true);assert.equal(renderResource('https://cdn.example.com/font.woff2','Font'),true);assert.equal(renderResource('https://cdn.example.com/film.mp4','Media'),false)});
+
+
+test('source loading failures get one reload in the same target before exporting the recovered page',async()=>readerCase(async(r,{commands})=>{let navigations=0;r.navigate=async()=>{navigations++;return {...page(),reason:'load-error',paragraphs:[]}};r.wait=async()=>page();const result=await r.page(page().url);assert.equal(result.kind,'chapter');assert.equal(navigations,1);assert.equal(commands.filter(([m])=>m==='Page.reload').length,1);assert.equal(r.verifying,false)}));
+test('a persistently failed source reload remains unavailable and never loops or asks for login',async()=>readerCase(async(r,{commands})=>{r.navigate=r.wait=async()=>({...page(),reason:'load-error',paragraphs:[]});const result=await r.page(page().url);assert.equal(result.kind,'unavailable');assert.equal(commands.filter(([m])=>m==='Page.reload').length,1);assert.equal(r.verifying,false)}));
