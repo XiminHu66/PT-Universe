@@ -22,7 +22,7 @@ import {checkAiRoute} from './check-ai';
 import { contentHubRoute, hubTick } from './content-hub';
 
 type RefreshScope='all'|'sites'|'music'|'games';
-type RefreshOrigin='manual'|'scheduled:08:00'|'scheduled:08:05'|'scheduled:08:30';
+type RefreshOrigin='manual'|'scheduled:08:31';
 type RefreshMessage={requestId:string;scope:RefreshScope;source:RefreshOrigin;limitKeys?:string[]};
 type RefreshRunSummary={request_id:string;scope:RefreshScope;status:string;started_at:string|null;completed_at:string|null;error:string|null};
 type RefreshBudget={day:string;officialDailyMs:number;safeDailyMs:number;usedMs:number;reservedMs:number;remainingMs:number;estimatedFullRefreshMs:number;remainingRefreshes:number;platformUsedMs:number;reservePercent:number;resetsAt:string;scheduledRunFinished:boolean;inFlightRefreshes:number};
@@ -444,7 +444,7 @@ async function refreshSites(env:Env,sharedBrowser?:Browser,source:RefreshOrigin=
     for(const s of sources){
       console.log('refresh_source_started',{source:s.id});
       const prior=history.filter((x:any)=>x.source===s.id);
-      if(source!=='manual'&&source!=='scheduled:08:00'&&sourceIsFresh(cached,s.id,new Date().toISOString().slice(0,10))){
+      if(source!=='manual'&&source!=='scheduled:08:31'&&sourceIsFresh(cached,s.id,new Date().toISOString().slice(0,10))){
         items.push(...mergeSiteRows([],prior,s.limit));states[s.id]=cached.sources[s.id];continue;
       }
       try{
@@ -540,7 +540,7 @@ async function refreshGames(env:Env){
   }catch(e){remoteError=String(e);console.warn('game_snapshot_import_failed',{error:remoteError})}
   const items=current.items||{},counts={mobile:(items.mobile||[]).length,pc:(items.pc||[]).length,console:(items.console||[]).length};
   if(!counts.mobile&&!counts.pc&&!counts.console)throw new Error(remoteError||'游戏快照不可用');
-  return {...counts,generatedAt:current.generated_at||null,imported,pipeline:current.refresh_source?.startsWith('vps:')?'VPS 08:00 Pacific · GitHub 08:30 fallback':'GitHub conditional fallback · 08:30 Pacific',qf:'paused',sources:current.sources||{},remoteError:remoteError||undefined};
+  return {...counts,generatedAt:current.generated_at||null,imported,pipeline:current.refresh_source?.startsWith('vps:')?'VPS game snapshot · 08:31 Pacific':'GitHub daily games · 08:31 Pacific',qf:'paused',sources:current.sources||{},remoteError:remoteError||undefined};
 }
 
 async function runRefresh(env:Env,scope:RefreshScope,source:RefreshOrigin='manual'){
@@ -559,6 +559,12 @@ async function runRefresh(env:Env,scope:RefreshScope,source:RefreshOrigin='manua
 }
 
 function samePacificDay(stamp:string){const day=(date:Date)=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(date);return Number.isFinite(Date.parse(stamp))&&day(new Date(stamp))===day(new Date())}
+// A delayed scheduled queue delivery must never become an afternoon scrape.
+function insideScheduledWindow(instant:Date){
+  const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(instant);
+  const time=(part:string)=>Number(parts.find(x=>x.type===part)?.value??NaN);
+  return time('hour')===8&&time('minute')>=31;
+}
 function refreshQuality(result:Json){
   const issues:string[]=[];
   for(const group of ['sites','music']){
@@ -633,8 +639,8 @@ export default {
       const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(due);
       const pick=(type:string)=>parts.find(x=>x.type===type)?.value||'';
       const hour=Number(pick('hour')),minute=Number(pick('minute'));
-      if(hour!==8||![0,5,30].includes(minute))return;
-      const source:RefreshOrigin=minute===0?'scheduled:08:00':minute===5?'scheduled:08:05':'scheduled:08:30';
+      if(hour!==8||minute!==31)return;
+      const source:RefreshOrigin='scheduled:08:31';
       const day=`${pick('year')}-${pick('month')}-${pick('day')}`;
       const requestId=crypto.randomUUID(),stamp=now();
       const record=async(status:string,reason:string)=>{
@@ -642,7 +648,7 @@ export default {
           .bind(requestId,'all',source,status,stamp,now(),JSON.stringify({reason,pacificDay:day,scheduledAt:due.toISOString()})).run();
       };
       // A very late callback must not turn into another afternoon refresh.
-      if(Date.now()-due.getTime()>60*60_000){await record('skipped','delayed_past_morning_window');return;}
+      if(Date.now()-due.getTime()>30*60_000){await record('skipped','delayed_past_morning_window');return;}
       const fresh=async(name:string,check:(snapshot:any)=>boolean)=>{
         try{
           const snapshot=safeJson<any>(await env.PT_UNIVERSE_DATA.get('data/'+name),{});
@@ -677,6 +683,12 @@ export default {
     })());
   },
   async queue(batch:MessageBatch<RefreshMessage>,env:Env){
-    for(const message of batch.messages){const {requestId,scope,limitKeys=[]}=message.body,start=Date.now(),deadline=scope==='all'?225_000:scope==='games'?150_000:scope==='sites'?210_000:scope==='music'?75_000:60_000;try{await env.DB.prepare('UPDATE refresh_runs SET status=?,started_at=? WHERE request_id=?').bind('running',now(),requestId).run();const result=await withDeadline(runRefresh(env,scope,message.body.source),deadline,`${scope} 刷新`);await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,duration_ms=?,result_json=? WHERE request_id=?').bind(refreshQuality(result).ok?'success':'partial',now(),Date.now()-start,JSON.stringify({...result,quality:refreshQuality(result)}),requestId).run();console.log('refresh_completed',{requestId,scope,quality:refreshQuality(result)});message.ack()}catch(e){console.error('refresh_failed',{requestId,scope,error:String(e)});await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,duration_ms=?,error=? WHERE request_id=?').bind('failed',now(),Date.now()-start,String(e),requestId).run();for(const key of limitKeys)await env.DB.prepare('DELETE FROM refresh_limits WHERE limit_key=?').bind(key).run();message.ack()}}
+    for(const message of batch.messages){const {requestId,scope,limitKeys=[]}=message.body,start=Date.now(),deadline=scope==='all'?225_000:scope==='games'?150_000:scope==='sites'?210_000:scope==='music'?75_000:60_000;try{
+      if(message.body.source==='scheduled:08:31'&&!insideScheduledWindow(new Date(start))){
+        await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,result_json=? WHERE request_id=?')
+          .bind('skipped',now(),JSON.stringify({reason:'queue_outside_08_31_window'}),requestId).run();
+        message.ack();continue;
+      }
+      await env.DB.prepare('UPDATE refresh_runs SET status=?,started_at=? WHERE request_id=?').bind('running',now(),requestId).run();const result=await withDeadline(runRefresh(env,scope,message.body.source),deadline,`${scope} 刷新`);await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,duration_ms=?,result_json=? WHERE request_id=?').bind(refreshQuality(result).ok?'success':'partial',now(),Date.now()-start,JSON.stringify({...result,quality:refreshQuality(result)}),requestId).run();console.log('refresh_completed',{requestId,scope,quality:refreshQuality(result)});message.ack()}catch(e){console.error('refresh_failed',{requestId,scope,error:String(e)});await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,duration_ms=?,error=? WHERE request_id=?').bind('failed',now(),Date.now()-start,String(e),requestId).run();for(const key of limitKeys)await env.DB.prepare('DELETE FROM refresh_limits WHERE limit_key=?').bind(key).run();message.ack()}}
   }
 } satisfies ExportedHandler<Env,RefreshMessage>;
