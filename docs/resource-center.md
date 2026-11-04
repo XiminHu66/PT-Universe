@@ -1,128 +1,76 @@
 # Resource Center
 
-Primary entry: https://pt-vps-tools.h1nano.chatgpt.site/resources/
+Canonical page: https://ximinhu66.github.io/PT-Universe/apps/resource-center/
+Authorization guide: https://ximinhu66.github.io/PT-Universe/apps/resource-center/setup.html
 
-The frontend source lives in `apps/resource-center/`. The PT Universe home
-directory links to the existing owner-private Tools Hub, which serves a mirrored
-copy. The public Pages copy contains only public inventory and reference limits.
-Private repository metadata and account billing values stay in the private Site
-source. Existing access policy is unchanged.
+Scope is GitHub, Cloudflare and Oracle VPS only. Frontend assets live in
+`apps/resource-center/` and deploy with PT Universe GitHub Pages. The existing
+`pt-universe-api` Worker serves authenticated `/api/resources/*` reads; it creates
+no new Worker, cron, Actions workflow, container or database. Opening the page
+or pressing Refresh performs bounded reads. Closing it stops further requests.
 
-## Scope and freshness
+## Authorization and private data
 
-The 2026-11-04 audit covers 23 owned repositories, 124 workflow entries, four
-configured Cloudflare Workers, PT Universe child pages, 14 VPS tool entries and
-eight Sites registrations. A configured or registered service is not evidence
-that it is currently running. Historical Sites and disabled workflows remain
-visible and are labelled. Source-only private workflow records do not assert an
-enabled/disabled state. Five historical private repositories were checked in the
-GitHub Actions UI and have no workflows. Public generated Pages workflows can
-lack YAML source and are labelled accordingly.
+The existing owner-private Tools Hub is an identity broker only. A nonce-bound
+redirect exchanges the existing owner login for a one-day dedicated
+`resources:read` grant, stored in sessionStorage. The browser returns to the fixed
+PT Universe page and removes the fragment immediately. The signed, digest-bound
+one-minute configuration grant migrates the private inventory into the existing
+Worker KV; it cannot read resources. Ordinary read grants cannot configure it.
+Legacy `/resources/*` Hub URLs redirect to PT Universe and serve no inventory.
 
-* GitHub Billing: manually verified private snapshot; expires after 24 hours.
-  This account currently reports compute in USD credits, not raw minutes.
-  An inventory refresh must never advance a measurement timestamp.
-* Artifacts: audited instantaneous bytes in the project inventory. Individual
-  public repositories can be refreshed with one read-only GitHub API request.
-  More than 100 results is explicitly partial. Cache storage, public/private
-  billing discounts and accumulated GB-hours are not inferred from artifact size.
-* VPS: existing `/hub/api/metrics` and `/hub/status`, read on opening or an explicit
-  refresh. Five-minute browser cache; sampling older than three minutes is stale.
-* Cloudflare: manifests identify dependencies, not a live account inventory.
-  Account analytics are not connected. Limits are documented Free-plan references,
-  not confirmation of this account's current plan. Includes separate D1 account
-  and single-database capacities, KV operations, Queues and Browser duration.
-* Oracle egress and third-party API balances: not connected. No guessed usage.
+Set `RESOURCE_GITHUB_TOKEN`, `RESOURCE_CF_TOKEN` and `RESOURCE_CF_ACCOUNT_ID` as
+Secret variables in the existing Cloudflare Worker, not in Pages or Actions.
+The linked guide contains exact permission and setup steps. Supplier credentials
+are never accepted by the frontend or returned by the API. Public Pages JSON
+contains public repositories and reference limits only. The private audited
+inventory remains outside this repository and in authenticated Worker KV.
 
-Manual verified values can be entered with the actual sampling time and exported
-or imported as JSON. They stay in the current browser. No secrets are accepted or
-stored. The dashboard does not automatically refresh GitHub billing, Cloudflare
-analytics, private workflow status, cache storage or the project inventory.
+GitHub uses fine-grained Metadata / Actions read for all intended repositories
+and account Plan read for billing. Cloudflare uses Account Analytics read scoped
+to the intended account. Oracle VPS reuses the existing signed metrics transport;
+no new SSH key, OCI API user, open port or monitoring agent is required.
 
-## Cost and behavior
+## Coverage, freshness and limits
 
-No new cron, Actions workflow, Worker, container, database, telemetry or model
-calls. The existing private Site serves small static assets plus one private JSON
-snapshot. A fresh private visit makes two additional reads to the existing VPS
-gateway; within five minutes the browser reuses that result. There is no polling,
-automatic retry, or request after the tab closes. One-time publication uses the
-existing Pages deployment and the existing Site publishing flow.
+The initial audit covers 23 repositories and 124 workflow entries. Automatic
+GitHub discovery refreshes owned repositories and workflow status, artifact bytes
+and accessible Actions cache totals. YAML triggers/runner details retain their
+audited date. Account billing reports display gross, discounts and net separately;
+these are not relabelled as free-pool consumption. Historical free-allowance cards
+retain their actual timestamp and become unknown/stale when no comparable live
+measurement exists. Artifact occupancy is not inferred from billed GB-hours.
 
-Default warning is 70%; danger is 85%, retaining 15% headroom. Unknown, stale,
-wrong-period and future-dated measurements cannot be green. Forecasts are only
-linear estimates for cumulative monthly spend, never occupancy or server CPU.
-The zero-dollar paid budget is displayed separately from free-allowance usage.
-The page cannot stop services, delete artifacts, trigger builds or change budgets.
+Cloudflare reads Workers requests, KV operations and D1 row counts. Manifests
+identify configured dependencies, not proof of a live deployment. Storage, Queues,
+Browser and inaccessible metrics stay unknown. Free-plan limits are documented
+references, not confirmation of this account's actual subscription.
 
-## Updating and validation
+VPS reads CPU, RAM, root disk and service health through the existing gateway.
+Oracle account monthly egress remains unconnected: VPS interface traffic counters
+are not relabelled as Oracle billable egress. Other providers are excluded.
 
-`python scripts/resource-center/build-inventory.py --audit AUDIT_DIRECTORY --output apps/resource-center/public.json`
-rebuilds public inventory from local audit records and workflow source. Audit
-records contain each public repository's metadata, workflows, and artifacts API
-responses; workflow YAML is under `source/REPOSITORY/.github/workflows/`.
-Private inventory input requires an output outside the public repository.
-Existing quota records retain their original sampling times.
+Browser cache: fifteen minutes. Server inventory: six hours; storage/provider
+reads: one hour, with in-flight coalescing and failure backoff. Independent sources
+preserve last-good data and true sampling times. Per refresh maximums: inventory
+36 GitHub requests, storage 41, Cloudflare three GraphQL queries; normally caches
+reduce these substantially. There is no background polling or model call.
 
-In the existing private Site checkout, run
-`node scripts/sync-resources.mjs ABSOLUTE_PATH_TO_apps/resource-center` to mirror
-the audited UI and the private `worker/resource-snapshot.json`. Publish through
-the normal private Site workflow. Do not copy private snapshots into this repo.
+Default warning is 70%, danger 85%, retaining 15% headroom. Unknown, stale,
+wrong-period or future values cannot be green. Monthly cumulative spend may have
+a linear forecast; occupancy and CPU do not. The dashboard cannot stop services,
+change budgets, delete artifacts or trigger builds.
 
-Local checks: `node scripts/resource-center/test.mjs`, `node --check apps/resource-center/app.mjs`,
-`python .github/scripts/actions_policy.py .`, and `python scripts/build-pages.py`.
-The private Site also runs its resource auth test and existing connection tests.
+## Validation
 
-Official reference limits were checked on 2026-11-04:
+Run `node scripts/resource-center/test.mjs`,
+`node scripts/resource-center/collector.test.mjs`,
+`node scripts/resource-center/auth.test.mjs`,
+`python .github/scripts/actions_policy.py .` and `python scripts/build-pages.py`.
+In the existing Worker: `npm run check`, `node tests/resources.test.mjs`,
+`node tests/vps.test.mjs` and `npx wrangler deploy --dry-run`.
+The identity broker has separate nonce, redirect, signature and snapshot tests.
 
-* https://docs.github.com/en/billing/concepts/product-billing/github-actions
-* https://developers.cloudflare.com/workers/platform/pricing/
-* https://developers.cloudflare.com/workers/platform/limits/
-* https://developers.cloudflare.com/kv/platform/pricing/
-* https://developers.cloudflare.com/d1/platform/pricing/
-* https://developers.cloudflare.com/d1/platform/limits/
-* https://developers.cloudflare.com/queues/platform/pricing/
-* https://developers.cloudflare.com/changelog/post/2025-07-28-br-pricing/
-
-## Automatic readers (2026-11-04 update)
-
-This section supersedes the earlier manual-refresh description. The private
-look-up page now checks automatically when opened and when revisited after 15
-minutes. It does not create a scheduler, Actions workflow, container or database.
-
-`services/resource-monitor/collector.mjs` runs behind the existing private Site.
-Public repository discovery, workflow names/status, artifact sizes and readable
-cache totals update automatically. Inventory is cached for six hours; storage and
-provider reads for one hour; browser results for fifteen minutes. Independent
-sources keep their last successful measurements and true sampling times on
-failure. Requests coalesce and failed sources back off. Each request is bounded:
-inventory <=36 GitHub reads; storage <=41 reads; Cloudflare <=3 GraphQL queries;
-OpenRouter one credit read. There are no model completions or build dispatches.
-
-The following one-time, server-side secrets enable additional automatic reads:
-
-* `RESOURCE_GITHUB_TOKEN`: fine-grained account Plan read for billing and repository
-  Metadata / Actions read for the owned repositories to monitor.
-* `RESOURCE_CF_TOKEN` and `RESOURCE_CF_ACCOUNT_ID`: Analytics Read on the intended
-  account. Currently reads Workers requests, KV operations and D1 row counts;
-  other metrics remain unknown until an appropriate reader is connected.
-* `RESOURCE_OPENROUTER_KEY`: authorized account key supporting the credits read.
-
-SerpApi reuses the existing owner signing authority and fixed Deal Lab account
-metadata operation. It performs no product searches and reveals no keys. If Deal
-Lab has not configured its key, the reader reports that explicitly.
-
-GitHub official API billing is shown separately once connected. Its gross amount
-includes public-repository discounts and storage may use GB-hours or GB-months;
-it must not be relabelled as free-pool consumption or instantaneous file storage.
-The original free-pool cards therefore retain the dated verified snapshot until a
-comparable official measurement is available. Enabled/disabled workflow status
-updates automatically; trigger rules and runner details retain the YAML audit.
-
-Oracle account egress and official Gemini account quota require separate supported
-account-read integrations. Deployment secrets in GitHub cannot be read back or
-silently reused as new runtime permissions. No credentials are accepted in chat or
-saved in frontend code, snapshots or browser storage.
-
-Additional check: `node scripts/resource-center/collector.test.mjs` verifies cache
-reuse, concurrent-read coalescing, bounds, missing-auth behavior, preservation of
-last-good data, billing semantics and no secret leakage.
+The existing Worker deployment workflow includes the shared collector path and
+resource authorization test. No monitoring scheduler or additional workflow was
+introduced. Publication uses the existing Pages and Worker deployment workflows.

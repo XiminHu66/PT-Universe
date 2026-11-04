@@ -7,11 +7,9 @@ export function automaticConnections(env={}){return [
  {id:'github',name:'GitHub 仓库 / 工作流 / 产物',mode:env.RESOURCE_GITHUB_TOKEN?'已配置私有读取':'公开数据自动读取；私有数据待授权',needs:env.RESOURCE_GITHUB_TOKEN?null:'一次性授权仓库 Metadata / Actions 读取权限；账单另需账户 Plan 读取权限'},
  {id:'billing',name:'GitHub 官方账单',mode:env.RESOURCE_GITHUB_TOKEN?'准备通过官方 API 核验权限':'缺少一次性只读授权',needs:env.RESOURCE_GITHUB_TOKEN?null:'GitHub 账户 Plan: read'},
  {id:'cloudflare',name:'Cloudflare Workers / KV / D1',mode:env.RESOURCE_CF_TOKEN&&env.RESOURCE_CF_ACCOUNT_ID?'已配置，等待核验':'缺少一次性只读授权',needs:env.RESOURCE_CF_TOKEN&&env.RESOURCE_CF_ACCOUNT_ID?null:'一次性配置 Cloudflare 账户与 Analytics 只读授权'},
- {id:'openrouter',name:'OpenRouter 余额',mode:env.RESOURCE_OPENROUTER_KEY?'已配置，等待核验':'未配置余额读取',needs:env.RESOURCE_OPENROUTER_KEY?null:'一次性配置余额读取凭据；仅在后台保存，不调用模型'},
  {id:'vps',name:'Oracle VPS 采样',mode:'已复用现有自动采样',needs:null},
- {id:'serpapi',name:'SerpApi 官方余额',mode:'复用 Deal Lab 后台自动检查',needs:'若 Deal Lab 已配置 API Key，无需重复配置'},
  {id:'oci-egress',name:'Oracle 月度流量',mode:'未接通账户 Usage API',needs:'需要单独的 OCI 用量只读身份；网卡瞬时速度不能代替月度流量'},
- {id:'gemini',name:'Gemini / 其他 API',mode:'未接通官方账户用量',needs:'API Key 通常不含完整计费用量权限；需对应账户的监控只读授权'}
+
 ];}
 export class ResourceCollector{
  constructor({fetcher=fetch,clock=Date.now,cache=memory,inflight=running}={}){this.fetcher=(url,options)=>fetcher.call(globalThis,url,options);this.clock=clock;this.cache=cache;this.inflight=inflight;}
@@ -33,20 +31,6 @@ export class ResourceCollector{
   const raw=await response.text();if(raw.length>2000000)throw Object.assign(Error('oversize'),{code:'response_too_large'});return JSON.parse(raw);
  }
  ghHeaders(env){return {accept:'application/vnd.github+json','X-GitHub-Api-Version':'2026-03-10','user-agent':'PT-Universe-resource-monitor',...(env.RESOURCE_GITHUB_TOKEN?{authorization:'Bearer '+env.RESOURCE_GITHUB_TOKEN}:{})};}
- async serpapi(snapshot,env){
-  if(!env.CHAT_CONNECT_PRIVATE_JWK)return {status:{provider:'serpapi',state:'needs_authorization',checkedAt:new Date(this.clock()).toISOString()}};
-  return this.cached('serpapi',HOUR,'existing-deal-lab',async()=>{
-   const base='https://pt-universe-api.summer07-nanjolno.workers.dev/api/deal-lab/',available=await this.json(base+'status');
-   if(!available.sources?.serpapi?.configured)return {status:{provider:'serpapi',state:'not_configured',checkedAt:new Date(this.clock()).toISOString(),coverage:'Deal Lab 尚未配置 SerpApi API Key；无需手填额度，配置后将自动读取'}};
-   // Existing owner authority, short-lived and entirely server-side. The
-   // only permitted operation here reads account metadata, never searches.
-   const b64=b=>btoa(String.fromCharCode(...b)).replaceAll('+','-').replaceAll('/','_').replaceAll('=',''),encode=v=>b64(new TextEncoder().encode(JSON.stringify(v))),t=Math.floor(this.clock()/1000),nonce=Array.from(crypto.getRandomValues(new Uint8Array(24)),x=>x.toString(16).padStart(2,'0')).join('');
-   const message=encode({alg:'ES256',typ:'JWT'})+'.'+encode({iss:'https://pt-vps-tools.h1nano.chatgpt.site',aud:'pt-universe-monitor',sub:'pt-backend-owner',scope:'monitor:manage',iat:t,exp:t+60,nonce}),key=await crypto.subtle.importKey('jwk',JSON.parse(env.CHAT_CONNECT_PRIVATE_JWK),{name:'ECDSA',namedCurve:'P-256'},false,['sign']),token=message+'.'+b64(new Uint8Array(await crypto.subtle.sign({name:'ECDSA',hash:'SHA-256'},key,new TextEncoder().encode(message))));
-   const r=await this.json(base+'query',{authorization:'Bearer '+token,'content-type':'application/json'},{method:'POST',body:JSON.stringify({provider:'serpapi',operation:'account',args:{}})}),d=r.data;
-   if(!nonnegative(d?.monthlyLimit)||!nonnegative(d?.searchesLeft)||d.searchesLeft>d.monthlyLimit||!Number.isFinite(Date.parse(d?.checkedAt)))throw Error('invalid-account');
-   return {quotas:[{id:'serpapi',period:'point',used:d.monthlyLimit-d.searchesLeft,limit:d.monthlyLimit||null,observedAt:d.checkedAt,source:'SerpApi 官方账户余额 · 复用 Deal Lab',note:'余额检查不执行商品搜索。官方续期日：'+(d.renewalDate||'未提供'),maxAgeHours:2}],status:{provider:'serpapi',state:'ok',observedAt:d.checkedAt,checkedAt:new Date(this.clock()).toISOString()}};
-  });
- }
  async githubInventory(snapshot,env){
   return this.cached('github-inventory',6*HOUR,env.RESOURCE_GITHUB_TOKEN||'public',async()=>{
    const h=this.ghHeaders(env),path=env.RESOURCE_GITHUB_TOKEN?'/user/repos?affiliation=owner&per_page=100&sort=pushed':'/users/'+OWNER+'/repos?per_page=100&sort=pushed';
@@ -102,13 +86,5 @@ export class ResourceCollector{
    return {quotas:updates,status:{provider:'cloudflare',state:failures===groups.length?'unavailable':failures?'partial':'ok',coverage:'Workers 请求、KV 操作与 D1 行数；其余指标保留未连接',checkedAt:at,observedAt:updates.length?at:null}};
   });
  }
- async openrouter(snapshot,env){
-  if(!env.RESOURCE_OPENROUTER_KEY)return {status:{provider:'openrouter',state:'needs_authorization',checkedAt:new Date(this.clock()).toISOString()}};
-  return this.cached('openrouter',HOUR,env.RESOURCE_OPENROUTER_KEY,async()=>{
-   const r=await this.json('https://openrouter.ai/api/v1/credits',{authorization:'Bearer '+env.RESOURCE_OPENROUTER_KEY}),d=r.data,at=new Date(this.clock()).toISOString();
-   if(!nonnegative(d?.total_credits)||!nonnegative(d?.total_usage))throw Error('invalid-credit-report');
-   return {quotas:[{id:'openrouter',name:'OpenRouter 账户已用 / 充值额度',period:'point',used:d.total_usage,limit:d.total_credits||null,observedAt:at,source:'OpenRouter 官方余额 API · 自动读取',note:'账户累计使用 / 累计购入积分；不是单个模型的免费每日请求额度。',maxAgeHours:2}],status:{provider:'openrouter',state:'ok',checkedAt:at,observedAt:at}};
-  });
- }
- async collect(provider,snapshot,env={}){const methods={'github-inventory':'githubInventory','github-storage':'githubStorage','github-billing':'githubBilling',cloudflare:'cloudflare',openrouter:'openrouter',serpapi:'serpapi'};if(!methods[provider])return null;return this[methods[provider]](snapshot,env);}
+ async collect(provider,snapshot,env={}){const methods={'github-inventory':'githubInventory','github-storage':'githubStorage','github-billing':'githubBilling',cloudflare:'cloudflare'};if(!methods[provider])return null;return this[methods[provider]](snapshot,env);}
 }

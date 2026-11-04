@@ -6,6 +6,7 @@ name: Deploy PT Universe Worker
     - main
     paths:
     - workers/pt-universe-api/**
+    - services/resource-monitor/**
     - apps/anythingllm/providers.json
     - scripts/research/gemini-probe.mjs
     - scripts/decision/life-ai-probe.mjs
@@ -46,6 +47,7 @@ jobs:
         node tests/anythingllm-auth.test.mjs
         node tests/knowledge.test.mjs
         node tests/vps.test.mjs
+        node tests/resources.test.mjs
         node tests/monitor.test.mjs
         node tests/vps-ui.test.mjs
         node tests/anythingllm-models.test.mjs

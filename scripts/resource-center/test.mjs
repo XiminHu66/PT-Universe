@@ -15,6 +15,6 @@ const data=JSON.parse(readFileSync(new URL('../../apps/resource-center/public.js
 assert.ok(data.repositories.length>=15);assert.ok(data.repositories.every(r=>r.visibility==='public'));
 assert.ok(data.quotas.every(q=>q.used===null),'Public source contains no account billing or VPS usage');
 const source=readFileSync(new URL('../../apps/resource-center/app.mjs',import.meta.url),'utf8');
-assert.doesNotMatch(source,/setInterval|setTimeout\(|\/dispatches|\/rerun|\/api\/analytics|api_key|Bearer/);
-assert.match(source,/Promise.allSettled/);assert.match(source,/cache\.fetchedAt<TTL/);
+assert.doesNotMatch(source,/setInterval|setTimeout\(|\/dispatches|\/rerun|\/api\/analytics|api_key/);
+assert.match(source,/Promise.allSettled/);assert.match(source,/cache\.fetchedAt<TTL/);assert.match(source,/RESOURCE_API/);assert.ok(data.quotas.every(q=>['GitHub Actions','Oracle VPS','Cloudflare'].includes(q.provider)));assert.ok(!source.includes("'openrouter'")&&!source.includes("'serpapi'"));
 console.log('PASS: 85% boundary, unknown/zero distinction, stale billing cycles, forecast, input validation, public data isolation and no polling/Actions dispatch.');

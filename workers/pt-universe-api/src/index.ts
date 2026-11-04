@@ -2,6 +2,7 @@ import {readVpsGameSnapshot} from './knowledge';
 import {onDemandRoute} from './on-demand-data';
 import {knowledgeRoute} from './knowledge';
 import {vpsRoute} from './vps';
+import {resourcesRoute} from './resources';
 import {monitorRoute} from './monitor';
 import {dealLabRoute} from './deal-lab';
 import {sourceIsFresh,SITE_REFRESH_REVISION} from './site-updates';
@@ -632,6 +633,7 @@ export default {
       }
       const dealLab=await dealLabRoute(request,env);if(dealLab){const headers=new Headers(dealLab.headers);for(const [key,value] of Object.entries(cors(request)))headers.set(key,value);return new Response(dealLab.body,{status:dealLab.status,headers})}
       const monitor=await monitorRoute(request,env);if(monitor){const headers=new Headers(monitor.headers);for(const [key,value] of Object.entries(cors(request)))headers.set(key,value);return new Response(monitor.body,{status:monitor.status,headers})}
+      const resources=await resourcesRoute(request,env);if(resources){const headers=new Headers(resources.headers);for(const [key,value] of Object.entries(cors(request)))headers.set(key,value);return new Response(resources.body,{status:resources.status,headers})}
       const vps=await vpsRoute(request,env);if(vps){const headers=new Headers(vps.headers);for(const [key,value] of Object.entries(cors(request)))headers.set(key,value);return new Response(vps.body,{status:vps.status,headers})}
       const knowledge=await knowledgeRoute(request,env);if(knowledge){const headers=new Headers(knowledge.headers);for(const [key,value] of Object.entries(cors(request)))headers.set(key,value);return new Response(knowledge.body,{status:knowledge.status,headers})}
       const chat=await anythingLLMRoute(request,env,authenticate);if(chat){const headers=new Headers(chat.headers);for(const [key,value] of Object.entries(cors(request)))headers.set(key,value);return new Response(chat.body,{status:chat.status,headers})}

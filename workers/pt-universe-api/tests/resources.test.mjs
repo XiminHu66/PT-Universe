@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import {build} from 'esbuild';
+const output=await build({entryPoints:['src/resources.ts'],bundle:true,platform:'node',format:'esm',write:false});
+const {resourcesRoute,verifyResourceToken}=await import('data:text/javascript;base64,'+Buffer.from(output.outputFiles[0].text).toString('base64'));
+const pair=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']),publicKey=await crypto.subtle.exportKey('jwk',pair.publicKey),now=Math.floor(Date.now()/1000);
+const enc=v=>Buffer.from(JSON.stringify(v)).toString('base64url');
+async function grant(scope='resources:read',extra={}){const m=enc({alg:'ES256',typ:'JWT'})+'.'+enc({iss:'https://pt-vps-tools.h1nano.chatgpt.site',aud:'pt-universe-resources',scope,sub:'pt-backend-owner',iat:now,exp:now+(scope==='resources:configure'?60:86400),nonce:'a'.repeat(48),...extra});return m+'.'+Buffer.from(await crypto.subtle.sign({name:'ECDSA',hash:'SHA-256'},pair.privateKey,Buffer.from(m))).toString('base64url');}
+const stored=new Map(),env={RESOURCE_GITHUB_TOKEN:'SUPPLIER_SECRET_NEVER_RETURN',PT_UNIVERSE_DATA:{get:async k=>stored.get(k)||null,put:async(k,v)=>stored.set(k,v)}};
+const req=(path,token='',method='GET',body,origin='https://ximinhu66.github.io')=>new Request('https://api.example/api/resources/'+path,{method,headers:{authorization:'Bearer '+token,origin},...(body?{body}:{} )});
+const read=await grant();assert.ok(await verifyResourceToken(read,'resources:read',Date.now(),publicKey));
+for(const extra of [{scope:'vps:read'},{aud:'pt-universe-vps'},{sub:'someone-else'},{exp:now-1},{exp:now+86401},{nonce:'bad'}])assert.equal(await verifyResourceToken(await grant('resources:read',extra),'resources:read',Date.now(),publicKey),null);
+assert.equal((await resourcesRoute(req('data'),env,publicKey)).status,401);assert.equal((await resourcesRoute(req('data',read,'GET',undefined,'https://evil.example'),env,publicKey)).status,403);
+assert.equal((await resourcesRoute(req('data',read,'POST'),env,publicKey)).status,405);assert.equal((await resourcesRoute(req('data',read),env,publicKey)).status,503);
+const body=JSON.stringify({generatedAt:new Date().toISOString(),repositories:[{name:'private-fixture',visibility:'private',workflows:[]}],projects:[{platform:'VPS',name:'server'},{platform:'Sites',name:'remove'}],quotas:[{id:'a',provider:'GitHub Actions'},{id:'b',provider:'第三方 API'}],providerNotes:{'GitHub Actions':'x','第三方 API':'remove'}}),digest=Buffer.from(await crypto.subtle.digest('SHA-256',Buffer.from(body))).toString('hex'),configure=await grant('resources:configure',{digest});
+assert.equal((await resourcesRoute(req('bootstrap',read,'POST',body),env,publicKey)).status,401);assert.equal((await resourcesRoute(req('bootstrap',configure,'POST',body+' '),env,publicKey)).status,400);assert.equal(stored.size,0);
+assert.equal((await resourcesRoute(req('bootstrap',configure,'POST',body),env,publicKey)).status,200);
+const response=await resourcesRoute(req('data',read),env,publicKey),text=await response.text(),data=JSON.parse(text);assert.equal(response.headers.get('cache-control'),'private,no-store');assert.equal(data.quotas.length,1);assert.equal(data.projects.length,1);assert.equal(data.repositories[0].visibility,'private');assert.ok(!text.includes('SUPPLIER_SECRET_NEVER_RETURN'));assert.ok(data.connections.every(c=>!['openrouter','serpapi','gemini'].includes(c.id)));
+assert.equal((await resourcesRoute(req('auto?provider=openrouter',read),env,publicKey)).status,400);assert.equal((await resourcesRoute(req('auto?provider=cloudflare&url=https://evil.example',read),env,publicKey)).status,400);
+const pending=await resourcesRoute(req('auto?provider=cloudflare',read),env,publicKey);assert.equal((await pending.json()).status.state,'needs_authorization');
+console.log('PASS: dedicated resource audience/scope, nonce and expiry, origin protection, digest-bound private migration, read-only APIs, supplier-secret isolation and three-provider scope.');
