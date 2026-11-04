@@ -30,7 +30,8 @@ export function snapshot(){
  const permissionGate=[...document.querySelectorAll('dialog[open],[role=dialog],.layui-layer,.swal2-popup,.van-popup,.ant-modal,.el-dialog,.modal,.popup,.dialog,[class*=overlay],[class*=mask]')].some(e=>visible(e)&&permissionWords(text(e)))||[...document.querySelectorAll('body *')].slice(0,4000).some(e=>{const t=text(e);if(t.length>1500||!permissionWords(t)||!visible(e))return false;const s=getComputedStyle(e);return s.position==='fixed'||Number(s.zIndex)>=1000});
  const challenge=/^(Just a moment|Attention Required)/i.test(document.title)||!!document.querySelector('#challenge-running,#cf-challenge-running');
  const loading=unstyled||/(?:内容|內容).{0,3}(?:加载|加載|載入).{0,3}(?:失败|失敗|中)/.test(pageText.join(''));
- const reason=permissionGate||challenge?'source-verification':document.querySelector('input[type=password]')?'login':loading?'loading':!pageText.length&&/^\/novel\/\d+\/\d+(?:_\d+)?\.html$/.test(location.pathname)&&/积分广告|積分廣告|观看广告|觀看廣告|阅读授权|閱讀授權|請先登[錄入]|请先登录/.test(body)?'source-verification':null;
+ const loginNeeded=[...document.querySelectorAll('input[type=password]')].some(visible)||(!root&&body.length<2000&&/(?:请先|請先|尚未|未).{0,6}登[录錄入]|登[录錄入]失[败敗]/.test(body));
+ const reason=permissionGate||challenge?'source-verification':loginNeeded?'login':loading?'loading':!pageText.length&&/^\/novel\/\d+\/\d+(?:_\d+)?\.html$/.test(location.pathname)&&/积分广告|積分廣告|观看广告|觀看廣告|阅读授权|閱讀授權|請先登[錄入]|请先登录/.test(body)?'source-verification':null;
 
  const id=String(params.articleid||location.pathname.match(/\/novel\/(\d+)/)?.[1]||'');
  const validLink=a=>{try{const u=new URL(a.href,location.href);return u.protocol==='https:'&&['www.bilinovel.net','bilinovel.net','www.bilinovel.com','bilinovel.com','www.linovelib.com','tw.linovelib.com','w.linovelib.com'].includes(u.hostname)?u:null}catch{return null}};
@@ -47,7 +48,7 @@ export function snapshot(){
 }
 
 const BLOCKED=['*doubleclick.net*','*googlesyndication.com*','*googletagservices.com*','*google-analytics.com*','*adservice.google.*','*popads.net*','*popcash.net*','*juicyads.com*','*exoclick.com*','*.mp4*','*.webm*','*.m3u8*','*.jpg*','*.jpeg*','*.png*','*.gif*','*.webp*'];
-export const VERSION='3.0.1';
+export const VERSION='3.0.2';
 export function destinationMatches(actual,expected){try{const a=new URL(sourceURL(actual)),b=new URL(sourceURL(expected));return a.pathname.replace(/\/$/,'')===b.pathname.replace(/\/$/,'')}catch{return false}}
 export function assertMemoryBudget(info){const total=Number(String(info).match(/MemTotal:\s+(\d+)/)?.[1]),available=Number(String(info).match(/MemAvailable:\s+(\d+)/)?.[1]);if(!Number.isFinite(total)||total<=0||!Number.isFinite(available)||available<0)throw Error('暂时无法确认服务器可用内存，请稍后再试');if(available<total*.15)throw Error('VPS 可用内存已到15%保留边界，请稍后再读')}
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
@@ -80,7 +81,7 @@ export class Reader {
   if(latest?.reason)return {...latest,reason:latest.reason==='loading'?'source-verification':latest.reason};throw Error(url?.endsWith('/catalog')?'目录尚未加载完成，请重试；不会使用上一页内容':'原站加载超时，已保留当前阅读内容，请重试');
  }
  async collect(s){
-  if(s.reason||s.kind==='verification'){this.pending??={start:this.returnAfterLogin||s.url||this.lastURL,paragraphs:[],pages:0,title:s.title,bookTitle:s.bookTitle,bookId:s.bookId,previous:s.previous,catalog:s.catalog};this.verifying=true;return {kind:'verification',url:s.url||this.lastURL,message:'原站要求登录或验证，请在验证窗口完成后继续读取。'};}
+  if(s.reason||s.kind==='verification'){this.pending??={start:this.returnAfterLogin||s.url||this.lastURL,paragraphs:[],pages:0,title:s.title,bookTitle:s.bookTitle,bookId:s.bookId,previous:s.previous,catalog:s.catalog};this.verifying=true;return {kind:'verification',reason:s.reason||'source-verification',url:s.url||this.lastURL,message:s.reason==='login'?'请先登录原站，再继续读取账号内容。':'原站要求验证或正文尚未完整加载，请在原站窗口确认后继续。'};}
   if(!s.paragraphs?.length){if(s.category==='catalog'||/\/catalog$/.test(s.url||'')){if(!s.chapters?.length)throw Error('原站目录为空或尚未加载完成，请重试');return {kind:'catalog',url:s.url,title:s.title,bookTitle:s.bookTitle,bookId:s.bookId,chapters:s.chapters};}if(s.illustration)return {kind:'illustration',...s};if(s.books?.length)return {kind:'books',url:s.url,title:s.title,books:s.books};this.verifying=true;return {kind:'verification',url:s.url,message:'原站暂未提供可读文字，请检查原站页面。'};}
   const p=this.pending||{start:s.url,paragraphs:[],pages:0,seen:[],title:s.title,bookTitle:s.bookTitle,bookId:s.bookId,previous:s.previous,catalog:s.catalog};this.pending=p;p.seen??=[];
   let current=s;
