@@ -2,11 +2,17 @@ import {actionsQuotas} from './actions-usage.mjs?v=4';
 import {overviewHTML,automaticHTML,coverageHTML,fmt,date} from './view.mjs?v=4';
 import {assess,validateMeasurement,esc,safeURL,finite} from './model.mjs?v=3';
 import {readPublicGithub} from './public-reader.mjs';
-import {RESOURCE_API,resourceSession,connectResources,clearResourceSession} from './auth.mjs';
+import {RESOURCE_API,resourceSession,connectResources,clearResourceSession,returningToNexus} from './auth.mjs';
+const EMBEDDED=new URL(location.href).searchParams.get('embedded')==='nexus'&&window.parent!==window;
+const VIEWS=['overview','workflows','projects','settings'],requested=new URL(location.href).searchParams.get('view');
+if(EMBEDDED){document.documentElement.dataset.embedded='nexus';try{window.ptNexusActive=window.parent.document.body.dataset.nexusView==='monitor'&&!window.parent.document.hidden;}catch{window.ptNexusActive=false;}}
+const active=()=>!returningToNexus&&!document.hidden&&(!EMBEDDED||window.ptNexusActive!==false);
+const requests=new Set();
+let activityEpoch=0,paused=false,resumePending=false;
 const $=s=>document.querySelector(s),KEY='pt.resources.v4',TTL=5*60000;
 let PRIVATE=!!resourceSession();
 const read=()=>{try{const current=localStorage.getItem(KEY);if(current)return JSON.parse(current);const prior=JSON.parse(localStorage.getItem('pt.resources.v3')||'{}');if(prior.auto)delete prior.auto['github-billing'];return prior;}catch{return {}}};
-let saved=read(),data=null,view=['overview','workflows','projects','settings'].includes(saved.view)?saved.view:'overview',editing='',busy=false,autoBusy=false,lastAuto=0;
+let saved=read(),data=null,view=VIEWS.includes(requested)?requested:EMBEDDED?'overview':VIEWS.includes(saved.view)?saved.view:'overview',editing='',busy=false,autoBusy=false,lastAuto=0;
 const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(saved));return true}catch{$('#notice').textContent='浏览器存储不可用；此次数据仅保留到关闭页面。';return false}};
 const link=(url,text)=>`<a href="${esc(safeURL(url))}" target="_blank" rel="noopener noreferrer">${esc(text)} ↗</a>`;
 const labels={safe:'余量充足',warning:'需要留意',danger:'危险区',stale:'采样已过期',unknown:'用量待核实'};
@@ -33,7 +39,7 @@ function render(){if(!data)return;
  if(view==='workflows'){filterWorkflows();$('#wf-search').oninput=filterWorkflows;$('#wf-filter').onchange=filterWorkflows;}
  if(view==='projects'){filterProjects();$('#project-search').oninput=filterProjects;$('#project-filter').onchange=filterProjects;$('#project-sort').onchange=filterProjects;}
  if(view==='settings')bindSettings();}
-function setView(next){if(!['overview','workflows','projects','settings'].includes(next))return;view=next;saved.view=view;persist();render();}
+function setView(next){if(!['overview','workflows','projects','settings'].includes(next))return;view=next;if(!EMBEDDED){saved.view=view;persist();}else window.parent.postMessage({type:'pt-resource-view',view},location.origin);render();}
 function bindSettings(){
  $('#reconnect').onclick=()=>$('#connect').click();
  $('#red-setting').onchange=e=>{const n=Number(e.target.value);if(n>=71&&n<=99){saved.red=n;persist();$('#red-label').textContent=n;}};
@@ -49,12 +55,13 @@ function applyAutomatic(packet){
  if(packet.actionUsage)data.actionUsage=packet.actionUsage;
 }
 async function refreshAutomatic(force=false){
- if(!PRIVATE||!data||autoBusy)return;autoBusy=true;
+ if(!active()||!PRIVATE||!data||autoBusy)return;autoBusy=true;const epoch=activityEpoch;
  const providers=['github-inventory','github-storage','github-billing','cloudflare','browser'];
  try{const results=await Promise.allSettled(providers.map(async provider=>{
   const cached=saved.auto?.[provider];if(!force&&cached&&Date.now()-cached.fetchedAt<15*60000)return cached.packet;
   const packet=await getJSON(RESOURCE_API+(provider==='browser'?'/browser':'/auto?provider='+provider),45000);saved.auto={...saved.auto,[provider]:{fetchedAt:Date.now(),packet}};return packet;
  }));
+ if(!active()||epoch!==activityEpoch)return;
  if(results.slice(0,2).some(r=>r.status!=='fulfilled'||r.value.status?.state==='unavailable')&&data.connections?.find(c=>c.id==='github')?.mode.includes('公开')){
   try{let fallback=saved.publicAuto;if(!fallback||Date.now()-fallback.fetchedAt>3600000){fallback={packet:await readPublicGithub(data.repositories),fetchedAt:Date.now()};saved.publicAuto=fallback;}
    results[0]={status:'fulfilled',value:fallback.packet.inventory};results[1]={status:'fulfilled',value:fallback.packet.storage};
@@ -65,27 +72,38 @@ async function refreshAutomatic(force=false){
  const connected=results.filter(r=>r.status==='fulfilled'&&['ok','partial'].includes(r.value.status?.state)).length,needs=results.filter(r=>r.status==='fulfilled'&&r.value.status?.state==='needs_authorization').length;
  lastAuto=Date.now();persist();render();$('#notice').textContent=`自动检查完成：${connected} 项已自动更新${needs?' · '+needs+' 项需要一次性授权':''} · 已保留各项采样时间`;
  }catch{$('#notice').textContent='自动检查暂不可用，已保留上次数据和采样时间。';}
- finally{autoBusy=false;}
+ finally{autoBusy=false;if(resumePending&&active()){resumePending=false;queueMicrotask(()=>refresh());}}
 }
 function openEdit(id){const q=quotaRows().find(q=>q.id===id);editing=id;$('#edit-title').textContent=q.name+' · '+q.unit;$('#used').value=q.used??'';$('#limit').value=q.limit??'';const d=q.observedAt?new Date(q.observedAt):new Date();$('#observed').value=new Date(d-d.getTimezoneOffset()*60000).toISOString().slice(0,16);$('#note').value=q.note||'';$('#edit-error').textContent='';$('#edit-dialog').showModal();}
 $('#close-edit').onclick=()=>$('#edit-dialog').close();$('#clear-edit').onclick=()=>{delete saved.measurements?.[editing];persist();$('#edit-dialog').close();render();};
 $('#edit-form').onsubmit=e=>{e.preventDefault();try{const m=validateMeasurement({used:Number($('#used').value),limit:Number($('#limit').value),observedAt:new Date($('#observed').value).toISOString(),note:$('#note').value});saved.measurements={...saved.measurements,[editing]:m};persist();$('#edit-dialog').close();render();}catch(e){$('#edit-error').textContent=e.message;}};
-async function getJSON(url,timeout=14000){const secured=url.startsWith(RESOURCE_API),r=await fetch(url,{credentials:'omit',headers:secured?{authorization:'Bearer '+resourceSession()}:{},signal:AbortSignal.timeout(timeout)});if(r.status===401&&secured){clearResourceSession();PRIVATE=false;throw Error('后台连接已过期，请点击连接资源后台。');}if(!r.ok)throw Error('读取失败（'+r.status+'）');return r.json();}
+async function getJSON(url,timeout=14000){
+ if(!active())throw new DOMException('页面已暂停','AbortError');const controller=new AbortController();requests.add(controller);
+ try{const secured=url.startsWith(RESOURCE_API),r=await fetch(url,{credentials:'omit',headers:secured?{authorization:'Bearer '+resourceSession()}:{},signal:AbortSignal.any([controller.signal,AbortSignal.timeout(timeout)])});if(r.status===401&&secured){clearResourceSession();PRIVATE=false;$('#connect').hidden=false;throw Error('后台连接已过期，请点击连接资源后台。');}if(!r.ok)throw Error('读取失败（'+r.status+'）');return await r.json();}finally{requests.delete(controller);}
+}
 async function refreshRepo(button){if(busy)return;const name=button.dataset.repo;button.disabled=true;busy=true;try{const d=await getJSON('https://api.github.com/repos/XiminHu66/'+encodeURIComponent(name)+'/actions/artifacts?per_page=100'),rows=(d.artifacts||[]).filter(x=>!x.expired);const r=data.repositories.find(r=>r.name===name);r.artifacts={bytes:rows.reduce((n,x)=>n+x.size_in_bytes,0),count:rows.length,partial:d.total_count>100,observedAt:new Date().toISOString()};saved.repos={...saved.repos,[name]:r.artifacts};persist();filterProjects();$('#notice').textContent=name+' 的产物占用已读取；月度账单未改变。';}catch(e){$('#notice').textContent=e.message+'；已保留上次数据。';button.disabled=false;}finally{busy=false;}}
 function applyVps(raw,status){const m=raw;data.vpsServices=status?.items||[];data.vpsStatus={state:Date.now()-Date.parse(m?.sampleAt)>180000?'last_good':'ok',observedAt:m?.sampleAt};if(!m?.sampleAt||!finite(m.memory?.totalBytes)||!finite(m.disk?.totalBytes))throw Error('服务器返回的采样不完整。');const at=m.sampleAt,defs=[['vps-memory',m.memory.usedBytes/1024**3,m.memory.totalBytes/1024**3],['vps-disk',m.disk.usedBytes/1024**3,m.disk.totalBytes/1024**3],['vps-cpu',m.cpu?.percent,100]];for(const [id,used,limit]of defs){if(!finite(used)||!finite(limit)||!limit)continue;const q=data.quotas.find(q=>q.id===id);if(q)Object.assign(q,{used,limit,observedAt:at,source:'VPS 现有采样接口'});}
  for(const p of data.projects||[]){if(p.service){const s=status?.items?.find(s=>s.name===p.service);if(s)p.detail='本次状态：'+(s.ok?'在线':'不可用')+' · '+date(at);}}
 }
-async function refresh(force=false){if(busy||autoBusy)return;busy=true;$('#refresh').disabled=true;$('#refresh').textContent='正在检查…';try{
+async function refresh(force=false){if(!active()||busy||autoBusy)return;busy=true;const epoch=activityEpoch;$('#refresh').disabled=true;$('#refresh').textContent='正在检查…';try{
  PRIVATE=!!resourceSession();
  if(!data){data=await getJSON(PRIVATE?RESOURCE_API+'/data':'./public.json');for(const r of data.repositories){if(saved.repos?.[r.name])r.artifacts=saved.repos[r.name];}render();}
- if(!PRIVATE){$('#public-banner').hidden=false;$('#notice').textContent='正在自动连接资源后台；页面将返回 PT Universe。';connectResources();return;}
+ if(!PRIVATE){$('#public-banner').hidden=false;if(EMBEDDED){$('#notice').textContent='连接资源后台后查看完整用量；已有连接会自动复用。';}else{$('#notice').textContent='正在自动连接资源后台；页面将返回 PT Universe。';connectResources();}return;}
  if(force){const fresh=await getJSON(RESOURCE_API+'/data');data.connections=fresh.connections;}
  $('#public-banner').hidden=true;
  const cache=saved.vps;
  if(!force&&cache&&Date.now()-cache.fetchedAt<TTL){applyVps(cache.metrics,cache.status);$('#notice').textContent='已复用最近一次 VPS 采样。';}
  else{try{const m=await getJSON(RESOURCE_API+'/vps');const status={items:m.services};applyVps(m,status);saved.vps={metrics:m,status,fetchedAt:Date.now()};persist();$('#notice').textContent='VPS 已读取；正在自动检查 GitHub 与 Cloudflare。';}catch{if(cache)applyVps(cache.metrics,cache.status);data.vpsStatus={...data.vpsStatus,state:'unavailable'};$('#notice').textContent='VPS 暂不可用，保留上次采样；其余资源继续更新。';}}
  render();
- }catch(e){$('#notice').textContent=e.message;}finally{busy=false;if(data&&PRIVATE)await refreshAutomatic(force);$('#refresh').disabled=false;$('#refresh').textContent='↻ 检查更新';}}
-$('#connect').onclick=()=>{try{connectResources(true)}catch(e){$('#notice').textContent=e.message;}};$('#refresh').onclick=()=>refresh(true);document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-lastAuto>15*60000)void refresh();});
-refresh();
+ }catch(e){$('#notice').textContent=e.message;}finally{busy=false;if(data&&PRIVATE&&epoch===activityEpoch)await refreshAutomatic(force);$('#refresh').disabled=false;$('#refresh').textContent='↻ 检查更新';if(resumePending&&active()){resumePending=false;queueMicrotask(()=>refresh());}}}
+$('#connect').onclick=()=>{try{connectResources(true,EMBEDDED?view:null)}catch(e){$('#notice').textContent=e.message;}};$('#refresh').onclick=()=>refresh(true);document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+function activation(){if(!active()){if(!paused){paused=true;activityEpoch++;}for(const controller of requests)controller.abort();}else{if(paused&&(busy||autoBusy))resumePending=true;paused=false;if(!data||Date.now()-lastAuto>15*60000)void refresh();}}
+window.addEventListener('nexus-activate',activation);document.addEventListener('visibilitychange',activation);
+if(EMBEDDED)window.addEventListener('message',event=>{
+ if(event.origin!==location.origin||event.source!==window.parent||event.data?.type!=='pt-resource-host')return;
+ window.ptNexusActive=event.data.active===true;
+ document.documentElement.dataset.theme=event.data.theme==='dark'?'dark':'light';
+ if(VIEWS.includes(event.data.view)&&event.data.view!==view)setView(event.data.view);
+ activation();
+});
+if(!returningToNexus)refresh();
