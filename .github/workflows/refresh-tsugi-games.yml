@@ -1,18 +1,8 @@
 name: Refresh Tsugi games
 'on':
   workflow_dispatch: null
-  push:
-    branches:
-    - main
-    paths:
-    - apps/tsugi-checker/config/content.json
-    - apps/tsugi-checker/scraper/games.py
-    - apps/tsugi-checker/scraper/run_games.py
-    - apps/tsugi-checker/scraper/steam_pc.py
   schedule:
-  - cron: 0 8 * * *
-    timezone: America/Los_Angeles
-  - cron: 30 8 * * *
+  - cron: 31 8 * * *
     timezone: America/Los_Angeles
 permissions:
   contents: write
@@ -78,7 +68,7 @@ jobs:
         from pathlib import Path
         p=Path('apps/tsugi-checker/data/game-releases.json')
         d=json.loads(p.read_text(encoding='utf-8'))
-        d['refresh_source']='github:08:00-games' if '${{ github.event_name }}'=='schedule' else 'github:manual-or-push'
+        d['refresh_source']='github:08:31-games' if '${{ github.event_name }}'=='schedule' else 'github:manual-or-push'
         p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
         PY
     - name: Skip publication when the snapshot did not change
