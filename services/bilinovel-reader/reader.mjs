@@ -30,8 +30,9 @@ export function snapshot(){
  const permissionGate=[...document.querySelectorAll('dialog[open],[role=dialog],.layui-layer,.swal2-popup,.van-popup,.ant-modal,.el-dialog,.modal,.popup,.dialog,[class*=overlay],[class*=mask]')].some(e=>visible(e)&&permissionWords(text(e)))||[...document.querySelectorAll('body *')].slice(0,4000).some(e=>{const t=text(e);if(t.length>1500||!permissionWords(t)||!visible(e))return false;const s=getComputedStyle(e);return s.position==='fixed'||Number(s.zIndex)>=1000});
  const challenge=/^(Just a moment|Attention Required)/i.test(document.title)||!!document.querySelector('#challenge-running,#cf-challenge-running');
  const loading=unstyled||/(?:内容|內容).{0,3}(?:加载|加載|載入).{0,3}(?:失败|失敗|中)/.test(pageText.join(''));
- const loginNeeded=[...document.querySelectorAll('input[type=password]')].some(visible)||(!root&&body.length<2000&&/(?:请先|請先|尚未|未).{0,6}登[录錄入]|登[录錄入]失[败敗]/.test(body));
- const reason=permissionGate||challenge?'source-verification':loginNeeded?'login':loading?'loading':!pageText.length&&/^\/novel\/\d+\/\d+(?:_\d+)?\.html$/.test(location.pathname)&&/积分广告|積分廣告|观看广告|觀看廣告|阅读授权|閱讀授權|請先登[錄入]|请先登录/.test(body)?'source-verification':null;
+ const loginNeeded=!root&&([...document.querySelectorAll('input[type=password]')].some(visible)||body.length<2000&&/(?:请先|請先|尚未|未).{0,6}登[录錄入]|登[录錄入]失[败敗]/.test(body));
+ const loadFailed=/(?:内容|內容).{0,3}(?:加载|加載|載入).{0,3}(?:失败|失敗)/.test(pageText.join(''));
+ const reason=permissionGate||challenge?'source-verification':loginNeeded?'login':loadFailed?'load-error':loading?'loading':!pageText.length&&/^\/novel\/\d+\/\d+(?:_\d+)?\.html$/.test(location.pathname)&&/积分广告|積分廣告|观看广告|觀看廣告|阅读授权|閱讀授權|請先登[錄入]|请先登录/.test(body)?'source-verification':null;
 
  const id=String(params.articleid||location.pathname.match(/\/novel\/(\d+)/)?.[1]||'');
  const validLink=a=>{try{const u=new URL(a.href,location.href);return u.protocol==='https:'&&['www.bilinovel.net','bilinovel.net','www.bilinovel.com','bilinovel.com','www.linovelib.com','tw.linovelib.com','w.linovelib.com'].includes(u.hostname)?u:null}catch{return null}};
@@ -48,13 +49,13 @@ export function snapshot(){
 }
 
 const BLOCKED=['*doubleclick.net*','*googlesyndication.com*','*googletagservices.com*','*google-analytics.com*','*adservice.google.*','*popads.net*','*popcash.net*','*juicyads.com*','*exoclick.com*','*.mp4*','*.webm*','*.m3u8*','*.jpg*','*.jpeg*','*.png*','*.gif*','*.webp*'];
-export const VERSION='3.0.4';
+export const VERSION='3.1.0';
 export function destinationMatches(actual,expected){try{const a=new URL(sourceURL(actual)),b=new URL(sourceURL(expected));return a.pathname.replace(/\/$/,'')===b.pathname.replace(/\/$/,'')}catch{return false}}
 export function assertMemoryBudget(info){const total=Number(String(info).match(/MemTotal:\s+(\d+)/)?.[1]),available=Number(String(info).match(/MemAvailable:\s+(\d+)/)?.[1]);if(!Number.isFinite(total)||total<=0||!Number.isFinite(available)||available<0)throw Error('暂时无法确认服务器可用内存，请稍后再试');if(available<total*.15)throw Error('VPS 可用内存已到15%保留边界，请稍后再读')}
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 export class Reader {
  constructor({data,endpoint,control,admit=async()=>{},clock=Date.now}={}){
-  if(!control)throw Error('Dedicated browser control required');this.control=control;this.endpoint=endpoint||control.endpoint;this.targetFile=join(data,'reader-target.json');this.admit=admit;this.clock=clock;this.last=0;this.manual=false;this.verifying=false;this.paused=false;this.busy=false;this.pending=null;
+  if(!control)throw Error('Dedicated browser control required');this.control=control;this.endpoint=endpoint||control.endpoint;this.targetFile=join(data,'reader-target.json');this.admit=admit;this.clock=clock;this.last=0;this.manual=false;this.verifying=false;this.paused=false;this.busy=false;this.pending=null;this.pageMode=false;this.cache=new Map();
   this.startup=Promise.resolve().then(()=>control.connect()).then(()=>control.closePages()).catch(()=>{}).finally(()=>control.disconnect?.());
   this.timer=setInterval(()=>{if(!this.busy&&this.last&&this.clock()-this.last>180000)void this.suspend({keepPending:true}).catch(()=>{})},10000);this.timer.unref();
  }
@@ -76,11 +77,12 @@ export class Reader {
  async wait(url,loaderId){const until=Math.min(this.deadline||Infinity,this.clock()+22000);let latest,signature='',stable=0;
   while(this.clock()<until){if(this.cancelled)throw Error('已取消读取');if(this.control.dialog)return {kind:'verification',reason:'dialog',url:url||this.lastURL};try{
    if(loaderId){const tree=await this.control.command('Page.getFrameTree');if(tree.frameTree?.frame?.loaderId!==loaderId){await delay(300);continue;}}
-   const s=await this.read();if((!url||destinationMatches(s.url,url)||s.reason==='login'&&!!loaderId)&&s.ready){latest=s;if(s.reason==='login'&&url&&!destinationMatches(s.url,url))this.returnAfterLogin=url;if(s.reason==='loading'){await delay(450);continue;}const sig=JSON.stringify([s.url,s.reason,s.paragraphs,s.chapters?.length,s.books?.length]);stable=sig===signature?stable+1:0;signature=sig;if(s.reason||stable>=1&&(s.paragraphs?.length||s.chapters?.length||s.books?.length||s.illustration||s.emptyShelf))return s;}
+   const s=await this.read();if((!url||destinationMatches(s.url,url)||s.reason==='login'&&!!loaderId)&&s.ready){latest=s;if(s.reason==='login'&&url&&!destinationMatches(s.url,url))this.returnAfterLogin=url;if(s.reason==='loading'){await delay(450);continue;}const sig=JSON.stringify([s.url,s.reason,s.paragraphs,s.chapters?.length,s.books?.length]);stable=sig===signature?stable+1:0;signature=sig;if(s.reason==='load-error'&&stable<2){await delay(300);continue;}if(s.reason||stable>=1&&(s.paragraphs?.length||s.chapters?.length||s.books?.length||s.illustration||s.emptyShelf))return s;}
   }catch{}await delay(450);}
-  if(latest?.reason)return {...latest,reason:latest.reason==='loading'?'source-verification':latest.reason};throw Error(url?.endsWith('/catalog')?'目录尚未加载完成，请重试；不会使用上一页内容':'原站加载超时，已保留当前阅读内容，请重试');
+  if(latest?.reason)return {...latest,reason:latest.reason==='loading'?'load-error':latest.reason};throw Error(url?.endsWith('/catalog')?'目录尚未加载完成，请重试；不会使用上一页内容':'原站加载超时，已保留当前阅读内容，请重试');
  }
  async collect(s){
+  if(s.reason==='load-error')return {kind:'unavailable',reason:'load-error',url:s.url,title:s.title,message:'原站正文加载失败。这不是登录提示，可以重试或手动检查原站；无需先登录。'};
   if(s.reason||s.kind==='verification'){this.pending??={start:this.returnAfterLogin||s.url||this.lastURL,paragraphs:[],pages:0,title:s.title,bookTitle:s.bookTitle,bookId:s.bookId,previous:s.previous,catalog:s.catalog};this.verifying=true;return {kind:'verification',reason:s.reason||'source-verification',url:s.url||this.lastURL,message:s.reason==='login'?'请先登录原站，再继续读取账号内容。':'原站要求验证或正文尚未完整加载，请在原站窗口确认后继续。'};}
   if(!s.paragraphs?.length){if(s.category==='catalog'||/\/catalog$/.test(s.url||'')){if(!s.chapters?.length)throw Error('原站目录为空或尚未加载完成，请重试');return {kind:'catalog',url:s.url,title:s.title,bookTitle:s.bookTitle,bookId:s.bookId,chapters:s.chapters};}if(s.illustration)return {kind:'illustration',...s};if(s.books?.length||s.emptyShelf)return {kind:'books',url:s.url,title:s.title,books:s.books||[]};this.verifying=true;return {kind:'verification',url:s.url,message:'原站暂未提供可读文字，请检查原站页面。'};}
   const p=this.pending||{start:s.url,paragraphs:[],pages:0,seen:[],title:s.title,bookTitle:s.bookTitle,bookId:s.bookId,previous:s.previous,catalog:s.catalog};this.pending=p;p.seen??=[];
@@ -91,9 +93,29 @@ export class Reader {
    if(current.reason||!current.paragraphs?.length){this.verifying=true;return {kind:'verification',url:current.url,message:'本章后续分页需要验证；已读取文字暂存，验证后继续。'};}
   }
  }
+ async onePage(s){
+  if(s.reason||!s.paragraphs?.length)return this.collect(s);
+  const more=!!s.nextPage&&!!s.next&&canJoin(s.url,s.next);
+  return {kind:'chapter',formatVersion:4,url:new URL(chapterKey(s.url),s.url).href,sourcePage:s.url,title:s.title,bookTitle:s.bookTitle,bookId:s.bookId,previous:s.previous,next:more?null:s.next,catalog:s.catalog,paragraphs:s.paragraphs,pages:1,loadedPages:[s.url],continuation:more?s.next:null,complete:!more,readAt:new Date().toISOString()};
+ }
+ remember(url,result){if(!['chapter','catalog','illustration'].includes(result.kind))return;this.cache.delete(url);this.cache.set(url,{at:this.clock(),value:result});let bytes=[...this.cache.values()].reduce((n,v)=>n+Buffer.byteLength(JSON.stringify(v)),0);while(this.cache.size>16||bytes>3000000){const k=this.cache.keys().next().value;bytes-=Buffer.byteLength(JSON.stringify(this.cache.get(k)));this.cache.delete(k)}}
+ async page(url){url=sourceURL(url);return this.serial(async()=>{this.pageMode=true;this.pending=null;this.returnAfterLogin=null;this.manual=false;this.verifying=false;this.cancelled=false;this.lastURL=url;const cached=this.cache.get(url);if(cached&&this.clock()-cached.at<900000)return this.finish(cached.value);try{await this.admit();const result=await this.onePage(await this.navigate(url));this.remember(url,result);return await this.finish(result)}catch(e){await this.suspend({keepPending:false});throw e}})}
+ async login({username,password}={}){if(typeof username!=='string'||!username.trim()||username.length>256||typeof password!=='string'||!password||password.length>512)throw Error('请填写用户名和密码');return this.serial(async()=>{
+  this.cache.clear();this.cancelled=false;this.manual=true;this.verifying=true;this.returnAfterLogin=this.pending?.start||this.lastURL&&!this.lastURL.includes('/login.php')&&this.lastURL||null;this.pending=null;
+  await this.navigate('https://www.bilinovel.net/login.php');
+  const before=(await this.control.command('Page.getFrameTree')).frameTree?.frame?.loaderId;
+  const expression=`(()=>{if(location.origin!=='https://www.bilinovel.net'||location.pathname!=='/login.php')return 'unexpected';const u=document.querySelector('form input[name="username"]'),p=document.querySelector('form input[name="password"]');if(!u||!p||u.form!==p.form)return 'form-missing';if(document.querySelector('input[name*="captcha"],input[name*="checkcode"],iframe[src*="captcha"],#challenge-running'))return 'verification';const form=u.form;if(new URL(form.action,location.href).origin!==location.origin)return 'unexpected';const set=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;set.call(u,${JSON.stringify(username.trim())});set.call(p,${JSON.stringify(password)});for(const e of [u,p]){e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}))}form.requestSubmit(form.querySelector('button[type="submit"],input[type="submit"]')||undefined);return 'submitted'})()`;
+  username=password=null;const result=await this.control.command('Runtime.evaluate',{expression,returnByValue:true});
+  if(result.result?.value!=='submitted')return {kind:'verification',reason:'login-verification',message:'请在原站窗口完成登录验证。'};
+  let loader;const until=this.clock()+10000;while(this.clock()<until){const id=(await this.control.command('Page.getFrameTree')).frameTree?.frame?.loaderId;if(id&&id!==before){loader=id;break}await delay(200)}if(!loader)return {kind:'verification',reason:'login-verification',message:'请查看原站登录结果或验证提示。'};
+  let state;try{state=await this.wait(undefined,loader)}catch{return {kind:'verification',reason:'login-verification',message:'请查看原站登录结果。'}}
+  if(state.reason==='login'){await this.suspend({keepPending:true});return {kind:'login-error',message:'原站未确认登录成功，请检查账号、密码，或使用原站验证。'}}
+  if(state.reason||state.url.includes('/login.php'))return {kind:'verification',reason:'login-verification',message:'请在原站窗口确认登录结果。'};
+  this.pending=null;await this.suspend({keepPending:true});return {kind:'login-success',message:'已登录原站',returnURL:this.returnAfterLogin};
+ })}
  async finish(result){if(result.kind!=='verification'){this.verifying=false;await this.suspend({keepPending:true});}return result;}
  async open(url){url=sourceURL(url);const normalized=new URL(url);normalized.pathname=normalized.pathname.replace(/(\/\d+)_\d+(?=\.html$)/,'$1');url=normalized.href;return this.serial(async()=>{await this.admit();this.pending=null;this.returnAfterLogin=null;this.manual=false;this.verifying=false;this.cancelled=false;try{return await this.finish(await this.collect(await this.navigate(url)))}catch(e){await this.suspend({keepPending:false});throw e}})}
- async resume(){return this.serial(async()=>{this.cancelled=false;try{const fresh=await this.ensure();this.control.selected=null;await this.control.connect(await this.control.mainId());this.manual=false;await this.filters();let s=fresh?await this.navigate(this.returnAfterLogin||this.lastURL||'https://www.bilinovel.net/'):await this.wait();if(this.returnAfterLogin&&!s.reason){const dest=this.returnAfterLogin;this.returnAfterLogin=null;s=await this.navigate(dest)}return await this.finish(await this.collect(s));}catch(e){await this.suspend({keepPending:true});throw e}})}
+ async resume(){return this.serial(async()=>{this.cancelled=false;try{const fresh=await this.ensure();this.control.selected=null;await this.control.connect(await this.control.mainId());this.manual=false;await this.filters();let s=fresh?await this.navigate(this.returnAfterLogin||this.lastURL||'https://www.bilinovel.net/'):await this.wait();if(this.returnAfterLogin&&!s.reason){const dest=this.returnAfterLogin;this.returnAfterLogin=null;s=await this.navigate(dest)}return await this.finish(await (this.pageMode?this.onePage(s):this.collect(s)));}catch(e){await this.suspend({keepPending:true});throw e}})}
  async manualStart({login=false,allowVerification=false}={}){return this.serial(async()=>{this.cancelled=false;this.verifying=true;this.manual=allowVerification===true||login===true;const fresh=await this.ensure();await this.filters();if(login){this.returnAfterLogin=this.pending?.start||this.lastURL&&!this.lastURL.includes('/login.php')&&this.lastURL||null;this.pending=null;await this.navigate('https://www.bilinovel.net/login.php')}else if(fresh)await this.navigate(this.lastURL||'https://www.bilinovel.net/');else if(this.manual)await this.control.action({type:'reload'});return {ok:true,manual:this.manual}})}
  async leaveManual(){return this.serial(async()=>{this.manual=false;this.verifying=false;if(this.control.ws)await this.filters().catch(()=>{});await this.suspend({keepPending:true});return {ok:true}})}
  async pause(){return this.serial(async()=>{if(this.verifying&&this.control.ws){this.paused=true;await this.filters().catch(()=>{});await this.control.command('Page.stopLoading').catch(()=>{});await this.control.command('Page.setWebLifecycleState',{state:'frozen'}).catch(()=>{});}return {ok:true}},{touch:false})}
@@ -116,6 +138,8 @@ export function createReader({data,origin,token,control,admit,reader=new Reader(
    let input={};if(req.method==='POST'){let raw='';for await(const b of req){raw+=b;if(raw.length>16000)throw Error('请求过大')}input=JSON.parse(raw||'{}')}
    let value;
    if(req.method==='POST'&&route==='/api/open')value=await reader.open(sourceURL(input.url));
+   else if(req.method==='POST'&&route==='/api/page')value=await reader.page(sourceURL(input.url));
+   else if(req.method==='POST'&&route==='/api/login')value=await reader.login(input);
    else if(req.method==='POST'&&route==='/api/cancel'){reader.cancelled=true;value={ok:true}}
    else if(req.method==='POST'&&route==='/api/resume')value=await reader.resume();
    else if(req.method==='POST'&&route==='/api/manual')value=await reader.manualStart(input);
