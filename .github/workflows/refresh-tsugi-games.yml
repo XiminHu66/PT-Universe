@@ -1,6 +1,10 @@
 name: Refresh Tsugi games
 'on':
   workflow_dispatch: null
+  # One-time acceptance test: this file change triggers exactly one game collection.
+  push:
+    branches: [main]
+    paths: [.github/workflows/refresh-tsugi-games.yml]
   schedule:
   - cron: 31 8 * * *
     timezone: America/Los_Angeles
