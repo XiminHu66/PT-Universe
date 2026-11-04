@@ -1,4 +1,5 @@
 import {assess,validateMeasurement,esc,safeURL,finite} from './model.mjs';
+import {readPublicGithub} from './public-reader.mjs';
 const $=s=>document.querySelector(s),HOST='https://pt-vps-tools.h1nano.chatgpt.site',PRIVATE=location.origin===HOST,KEY='pt.resources.v1',TTL=5*60000;
 const read=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return {}}};
 let saved=read(),data=null,view='overview',editing='',busy=false,autoBusy=false,lastAuto=0;
@@ -46,6 +47,11 @@ async function refreshAutomatic(force=false){
   const cached=saved.auto?.[provider];if(!force&&cached&&Date.now()-cached.fetchedAt<15*60000)return cached.packet;
   const packet=await getJSON('/resources/auto.json?provider='+provider,45000);saved.auto={...saved.auto,[provider]:{fetchedAt:Date.now(),packet}};return packet;
  }));
+ if(results.slice(0,2).some(r=>r.status!=='fulfilled'||r.value.status?.state==='unavailable')&&data.connections?.find(c=>c.id==='github')?.mode.includes('公开')){
+  try{let fallback=saved.publicAuto;if(!fallback||Date.now()-fallback.fetchedAt>3600000){fallback={packet:await readPublicGithub(data.repositories),fetchedAt:Date.now()};saved.publicAuto=fallback;}
+   results[0]={status:'fulfilled',value:fallback.packet.inventory};results[1]={status:'fulfilled',value:fallback.packet.storage};
+  }catch{ /* Keep the dated source snapshot if public REST is also unavailable. */ }
+ }
  // Inventory and storage can finish in either order; always apply metadata first.
  for(const r of results)if(r.status==='fulfilled')applyAutomatic(r.value);
  const connected=results.filter(r=>r.status==='fulfilled'&&['ok','partial'].includes(r.value.status?.state)).length,needs=results.filter(r=>r.status==='fulfilled'&&r.value.status?.state==='needs_authorization').length;

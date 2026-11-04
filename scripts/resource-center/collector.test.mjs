@@ -38,3 +38,7 @@ console.log('PASS: SerpApi reuses signed owner authority only for account metada
 const receiverSafe=new ResourceCollector({cache:new Map(),inflight:new Map(),fetcher:async function(){assert.equal(this,globalThis,'Native fetch must receive the Worker global receiver');return Response.json({data:{total_credits:1,total_usage:0}});}});
 assert.equal((await receiverSafe.openrouter(snapshot,{RESOURCE_OPENROUTER_KEY:'receiver-fixture'})).status.state,'ok');
 console.log('PASS: Worker-native fetch receiver binding.');
+const {readPublicGithub}=await import('../../apps/resource-center/public-reader.mjs');let browserRequests=[];
+const browserPacket=await readPublicGithub(snapshot.repositories,{clock:()=>now,fetcher:async function(u,o){browserRequests.push(u);assert.equal(o.credentials,'omit');assert.ok(!o.headers.authorization);if(u.includes('/users/'))return Response.json([{name:'public',private:false,owner:{login:'XiminHu66'}},{name:'private',private:true,owner:{login:'XiminHu66'}}]);if(u.includes('/workflows'))return Response.json({workflows:[{name:'Current',path:'.github/workflows/test.yml',state:'active'}],total_count:1});return Response.json({artifacts:[{size_in_bytes:5,expired:false}],total_count:1});}});
+assert.equal(browserPacket.inventory.repositories.length,1);assert.equal(browserPacket.storage.repositories[0].artifacts.bytes,5);assert.ok(browserRequests.every(u=>!u.includes('/private/')));assert.equal(browserRequests.length,3);
+console.log('PASS: browser public fallback sends no credentials and never requests private repositories.');
