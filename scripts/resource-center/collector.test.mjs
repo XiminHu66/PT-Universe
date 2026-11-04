@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {ResourceCollector,automaticConnections} from '../../services/resource-monitor/collector.mjs';
 let now=Date.parse('2026-11-04T19:00:00Z'),calls=[],failed=false,release;
 const snapshot={repositories:[{name:'public',visibility:'public',workflows:[{path:'.github/workflows/test.yml',events:['schedule'],crons:['31 8 * * * · America/Los_Angeles']}],artifacts:{bytes:777,observedAt:'2026-11-03'}},{name:'private',visibility:'private',workflows:[{name:'Old'}]}]};
-const fetcher=async(url,options)=>{calls.push({url,options});if(failed)return Response.json({error:'TOKEN-DO-NOT-LEAK'},{status:429,headers:{'retry-after':'600'}});
+const fetcher=async(url,options)=>{assert.equal(options.redirect,'manual','Use the redirect mode supported by Cloudflare Workers');calls.push({url,options});if(failed)return Response.json({error:'TOKEN-DO-NOT-LEAK'},{status:429,headers:{'retry-after':'600'}});
  if(url.includes('/users/XiminHu66/repos'))return Response.json([{name:'public',owner:{login:'XiminHu66'},private:false,pushed_at:'2026-11-04'}]);
  if(url.endsWith('/actions/workflows?per_page=100'))return Response.json({total_count:1,workflows:[{name:'Live',path:'.github/workflows/test.yml',state:'disabled_manually',html_url:'https://github.com/XiminHu66/public/actions'}]});
  if(url.endsWith('/actions/artifacts?per_page=100'))return Response.json({total_count:101,artifacts:[{size_in_bytes:12,expired:false},{size_in_bytes:80,expired:true}]});

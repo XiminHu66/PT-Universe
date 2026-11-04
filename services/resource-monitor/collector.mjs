@@ -26,7 +26,7 @@ export class ResourceCollector{
   }finally{this.inflight.delete(key);}})();this.inflight.set(key,pending);return pending;
  }
  async json(url,headers={},options={}){
-  const response=await this.fetcher(url,{...options,headers,redirect:'error',signal:AbortSignal.timeout(12000)});
+  const response=await this.fetcher(url,{...options,headers,redirect:'manual',signal:AbortSignal.timeout(12000)});
   if(!response.ok){await response.body?.cancel();const e=Error('upstream');e.code=[401,403].includes(response.status)?'authorization_required':response.status===429?'rate_limited':'upstream_unavailable';e.retryAfter=response.status===429?Math.min(21600,Math.max(300,Number(response.headers.get('retry-after'))||3600)):300;throw e;}
   const length=Number(response.headers.get('content-length')||0);if(length>2000000)throw Object.assign(Error('oversize'),{code:'response_too_large'});
   const raw=await response.text();if(raw.length>2000000)throw Object.assign(Error('oversize'),{code:'response_too_large'});return JSON.parse(raw);
