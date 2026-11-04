@@ -48,6 +48,7 @@ jobs:
         node tests/knowledge.test.mjs
         node tests/vps.test.mjs
         node tests/resources.test.mjs
+        node tests/resources-cache.test.mjs
         node ../../scripts/resource-center/metrics.test.mjs
         node tests/monitor.test.mjs
         node tests/vps-ui.test.mjs

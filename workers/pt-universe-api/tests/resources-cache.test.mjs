@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {build} from 'esbuild';
+const output=await build({entryPoints:['src/resources-cache.ts'],bundle:true,platform:'node',format:'esm',write:false});
+const url='data:text/javascript;base64,'+Buffer.from(output.outputFiles[0].text).toString('base64'),{cachedResources}=await import(url);
+let now=Date.parse('2026-11-04T20:00Z'),calls=0,writes=0;const values=new Map(),env={RESOURCE_CF_TOKEN:'DO_NOT_STORE_SUPPLIER_SECRET',RESOURCE_CF_ACCOUNT_ID:'a'.repeat(32),PT_UNIVERSE_DATA:{get:async k=>values.get(k)||null,put:async(k,v,o)=>{assert.ok(o.expirationTtl>=86400);values.set(k,v);writes++;}}};
+const load=async()=>{calls++;return {quotas:[{id:'a',used:5,observedAt:new Date(now).toISOString()}],status:{provider:'cloudflare',state:'ok',observedAt:new Date(now).toISOString()}}};
+await Promise.all([cachedResources('cloudflare',env,load,()=>now),cachedResources('cloudflare',env,load,()=>now)]);assert.equal(calls,1);assert.equal(writes,1);
+const isolated=await import(url+'#independent-isolate');const reused=await isolated.cachedResources('cloudflare',env,load,()=>now);assert.equal(calls,1);assert.equal(reused.cacheHit,true,'A new Worker isolate reuses durable data');
+assert.ok(!JSON.stringify([...values]).includes('DO_NOT_STORE_SUPPLIER_SECRET'));
+const oldTime=reused.quotas[0].observedAt;now+=3600001;
+const failed=await cachedResources('cloudflare',env,async()=>{calls++;throw Error('SUPPLIER_SECRET_FROM_UPSTREAM')},()=>now);assert.equal(failed.status.state,'last_good');assert.equal(failed.quotas[0].observedAt,oldTime);assert.ok(!JSON.stringify(failed).includes('SUPPLIER_SECRET'));await cachedResources('cloudflare',env,load,()=>now);assert.equal(calls,2,'Failure cooldown prevents request loops');
+now+=300001;await cachedResources('cloudflare',env,load,()=>now);assert.equal(calls,3);
+await cachedResources('cloudflare',{...env,RESOURCE_CF_TOKEN:'ROTATED'},load,()=>now);assert.equal(calls,4,'Credential rotation invalidates the cache');
+now+=86400000;await cachedResources('cloudflare',env,load,()=>now);assert.equal(calls,5,'UTC day boundary starts a fresh usage period');
+const broken={...env,PT_UNIVERSE_DATA:{get:async()=>{throw Error('offline')},put:async()=>{throw Error('offline')}}};assert.equal((await cachedResources('browser',broken,load,()=>now)).status.state,'ok','Cache outages cannot erase a successful read');
+console.log('PASS: persistent private cross-isolate cache, coalesced misses, credential/day isolation, failure backoff and retained timestamps without supplier-secret storage.');

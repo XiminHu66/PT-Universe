@@ -56,7 +56,10 @@ Oracle account monthly egress remains unconnected: VPS interface traffic counter
 are not relabelled as Oracle billable egress. Other providers are excluded.
 
 Browser cache: fifteen minutes. Server inventory: six hours; storage/provider
-reads: one hour, with in-flight coalescing and failure backoff. Independent sources
+reads: one hour, with in-flight coalescing and failure backoff. On-demand private KV caches
+share results across Worker instances, scoped by hashed credentials and billing
+period; no supplier secrets are persisted in cache keys or values. Failures back
+off five minutes and retain last-good measurements with their original times. Independent sources
 preserve last-good data and true sampling times. Per refresh maximums: inventory
 36 GitHub requests, storage 41, Cloudflare six bounded GraphQL queries; normally caches
 reduce these substantially. There is no background polling or model call.

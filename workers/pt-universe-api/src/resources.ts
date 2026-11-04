@@ -1,3 +1,4 @@
+import {cachedResources} from './resources-cache';
 import {OWNER_CONNECT_PUBLIC_KEY,readVpsSnapshot,hash} from './knowledge';
 import {sanitizeVpsSnapshot} from './vps';
 // @ts-ignore Shared dependency-free collector is also exercised directly by Node tests.
@@ -36,12 +37,12 @@ export async function resourcesRoute(request:Request,env:ResourceEnv,publicKey:J
  if(!await verifyResourceToken(token,'resources:read',Date.now(),publicKey))return json({error:'请连接 PT 资源后台',code:'connect_required'},401);
  try{
   if(u.pathname===prefix+'/vps'&&!u.search){const cached=vpsCache.get(env.PT_UNIVERSE_DATA);if(cached&&Date.now()-cached.at<20000)return json(cached.value);const value=sanitizeVpsSnapshot(await readVpsSnapshot(env));vpsCache.set(env.PT_UNIVERSE_DATA,{at:Date.now(),value});return json(value);}
-  if(u.pathname===prefix+'/browser'&&!u.search){if(!browserReader)return json({status:{provider:'browser',state:'unavailable',checkedAt:new Date().toISOString()}});return json(await browserReader());}
+  if(u.pathname===prefix+'/browser'&&!u.search){if(!browserReader)return json({status:{provider:'browser',state:'unavailable',checkedAt:new Date().toISOString()}});return json(await cachedResources('browser',env,browserReader));}
   const snapshot=await inventory(env);if(!snapshot)return json({error:'请重新连接，完成私有清单迁移',code:'inventory_missing'},503);
   if(u.pathname===prefix+'/data'&&!u.search)return json({...snapshot,connections:automaticConnections(env)});
   if(u.pathname===prefix+'/auto'&&u.searchParams.getAll('provider').length===1&&[...u.searchParams.keys()].every(k=>k==='provider')){
    const provider=u.searchParams.get('provider');if(!['github-inventory','github-storage','github-billing','cloudflare'].includes(provider||''))return json({error:'Unsupported provider'},400);
-   return json(await collector.collect(provider,snapshot,env));
+   return json(await cachedResources(provider!,env,()=>collector.collect(provider,snapshot,env)));
   }
   return json({error:'Unsupported resource request'},400);
  }catch{return json({error:'资源后台暂不可用，保留最近一次数据',code:'upstream_unavailable'},503);}
