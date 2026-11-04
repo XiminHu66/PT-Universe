@@ -1,5 +1,5 @@
 import {actionsQuotas} from './actions-usage.mjs?v=4';
-import {overviewHTML,automaticHTML,coverageHTML,fmt,date} from './view.mjs?v=4';
+import {overviewHTML,automaticHTML,coverageHTML,fmt,date} from './view.mjs?v=5';
 import {assess,validateMeasurement,esc,safeURL,finite} from './model.mjs?v=3';
 import {readPublicGithub} from './public-reader.mjs';
 import {RESOURCE_API,resourceSession,connectResources,clearResourceSession,returningToNexus} from './auth.mjs';
@@ -79,12 +79,22 @@ $('#close-edit').onclick=()=>$('#edit-dialog').close();$('#clear-edit').onclick=
 $('#edit-form').onsubmit=e=>{e.preventDefault();try{const m=validateMeasurement({used:Number($('#used').value),limit:Number($('#limit').value),observedAt:new Date($('#observed').value).toISOString(),note:$('#note').value});saved.measurements={...saved.measurements,[editing]:m};persist();$('#edit-dialog').close();render();}catch(e){$('#edit-error').textContent=e.message;}};
 async function getJSON(url,timeout=14000){
  if(!active())throw new DOMException('页面已暂停','AbortError');const controller=new AbortController();requests.add(controller);
- try{const secured=url.startsWith(RESOURCE_API),r=await fetch(url,{credentials:'omit',headers:secured?{authorization:'Bearer '+resourceSession()}:{},signal:AbortSignal.any([controller.signal,AbortSignal.timeout(timeout)])});if(r.status===401&&secured){clearResourceSession();PRIVATE=false;$('#connect').hidden=false;throw Error('后台连接已过期，正在恢复连接。');}if(!r.ok)throw Error('读取失败（'+r.status+'）');return await r.json();}finally{requests.delete(controller);}
+ try{const secured=url.startsWith(RESOURCE_API),r=await fetch(url,{credentials:'omit',headers:secured?{authorization:'Bearer '+resourceSession()}:{},signal:AbortSignal.any([controller.signal,AbortSignal.timeout(timeout)])});if(r.status===401&&secured){clearResourceSession();PRIVATE=false;$('#connect').hidden=false;throw Error('后台连接已过期，正在恢复连接。');}if(!r.ok)throw Object.assign(Error('读取失败（'+r.status+'）'),{status:r.status});return await r.json();}finally{requests.delete(controller);}
 }
 async function refreshRepo(button){if(busy)return;const name=button.dataset.repo;button.disabled=true;busy=true;try{const d=await getJSON('https://api.github.com/repos/XiminHu66/'+encodeURIComponent(name)+'/actions/artifacts?per_page=100'),rows=(d.artifacts||[]).filter(x=>!x.expired);const r=data.repositories.find(r=>r.name===name);r.artifacts={bytes:rows.reduce((n,x)=>n+x.size_in_bytes,0),count:rows.length,partial:d.total_count>100,observedAt:new Date().toISOString()};saved.repos={...saved.repos,[name]:r.artifacts};persist();filterProjects();$('#notice').textContent=name+' 的产物占用已读取；月度账单未改变。';}catch(e){$('#notice').textContent=e.message+'；已保留上次数据。';button.disabled=false;}finally{busy=false;}}
-function applyVps(raw,status){const m=raw;data.vpsServices=status?.items||[];data.vpsStatus={state:Date.now()-Date.parse(m?.sampleAt)>180000?'last_good':'ok',observedAt:m?.sampleAt};if(!m?.sampleAt||!finite(m.memory?.totalBytes)||!finite(m.disk?.totalBytes))throw Error('服务器返回的采样不完整。');const at=m.sampleAt,defs=[['vps-memory',m.memory.usedBytes/1024**3,m.memory.totalBytes/1024**3],['vps-disk',m.disk.usedBytes/1024**3,m.disk.totalBytes/1024**3],['vps-cpu',m.cpu?.percent,100]];for(const [id,used,limit]of defs){if(!finite(used)||!finite(limit)||!limit)continue;const q=data.quotas.find(q=>q.id===id);if(q)Object.assign(q,{used,limit,observedAt:at,source:'VPS 现有采样接口'});}
+function applyVps(raw,status){const m=raw;if(!Number.isFinite(Date.parse(m?.sampleAt))||!finite(m.memory?.totalBytes)||m.memory.totalBytes<=0||!finite(m.disk?.totalBytes)||m.disk.totalBytes<=0||!finite(m.memory?.usedBytes)||!finite(m.disk?.usedBytes))throw Object.assign(Error('服务器返回的采样不完整。'),{code:'invalid_sample'});data.vpsServices=status?.items||[];data.vpsStatus={state:m.stale===true||Date.now()-Date.parse(m.sampleAt)>180000?'last_good':'ok',observedAt:m.sampleAt};const at=m.sampleAt,defs=[['vps-memory',m.memory.usedBytes/1024**3,m.memory.totalBytes/1024**3],['vps-disk',m.disk.usedBytes/1024**3,m.disk.totalBytes/1024**3],['vps-cpu',m.cpu?.percent,100]];for(const [id,used,limit]of defs){if(!finite(used)||!finite(limit)||!limit)continue;const q=data.quotas.find(q=>q.id===id);if(q)Object.assign(q,{used,limit,observedAt:at,source:'VPS 现有采样接口'});}
  for(const p of data.projects||[]){if(p.service){const s=status?.items?.find(s=>s.name===p.service);if(s)p.detail='本次状态：'+(s.ok?'在线':'不可用')+' · '+date(at);}}
 }
+// Ignore work canceled by visibility changes; retry only transient reads, once.
+async function readVps(epoch){
+ for(let attempt=0;attempt<2;attempt++){
+  try{return await getJSON(RESOURCE_API+'/vps',22000);}catch(e){
+   if(!active()||epoch!==activityEpoch||e.name==='AbortError'||e.status===401)throw e;
+   if(attempt||!(e.name==='TimeoutError'||e.name==='TypeError'||[408,502,503,504].includes(e.status)))throw e;
+  }
+ }
+}
+function vpsFailure(e){return e.name==='TimeoutError'?'连接超时，重试后仍未成功':e.name==='TypeError'?'网络暂不可达，重试后仍未成功':e.code==='invalid_sample'?'采样缺少必要字段，已保留上次数据':e.status?'采样接口暂不可用（'+e.status+'），已保留上次数据':'采样暂不可用，已保留上次数据';}
 function connectBackend(manual=false){
  if(connecting||!active())return;
  $('#notice').textContent='正在自动连接资源后台…';
@@ -99,10 +109,10 @@ async function refresh(force=false){if(!active()||busy||autoBusy||connecting)ret
  if(force){const fresh=await getJSON(RESOURCE_API+'/data');data.connections=fresh.connections;}
  $('#public-banner').hidden=true;
  const cache=saved.vps;
- if(!force&&cache&&Date.now()-cache.fetchedAt<TTL){applyVps(cache.metrics,cache.status);$('#notice').textContent='已复用最近一次 VPS 采样。';}
- else{try{const m=await getJSON(RESOURCE_API+'/vps');const status={items:m.services};applyVps(m,status);saved.vps={metrics:m,status,fetchedAt:Date.now()};persist();$('#notice').textContent='VPS 已读取；正在自动检查 GitHub 与 Cloudflare。';}catch{if(cache)applyVps(cache.metrics,cache.status);data.vpsStatus={...data.vpsStatus,state:'unavailable'};$('#notice').textContent='VPS 暂不可用，保留上次采样；其余资源继续更新。';}}
+ if(!force&&cache&&Date.now()-cache.fetchedAt<TTL&&!cache.metrics?.stale&&Date.now()-Date.parse(cache.metrics?.sampleAt)<180000){applyVps(cache.metrics,cache.status);$('#notice').textContent='已复用最近一次 VPS 采样。';}
+ else{try{const m=await readVps(epoch);if(!active()||epoch!==activityEpoch)return;const status={items:m.services};applyVps(m,status);saved.vps={metrics:m,status,fetchedAt:Date.now()};persist();$('#notice').textContent='VPS 已读取；正在自动检查 GitHub 与 Cloudflare。';}catch(e){if(!active()||epoch!==activityEpoch||e.name==='AbortError')return;if(cache){try{applyVps(cache.metrics,cache.status);}catch{}}if(PRIVATE)data.vpsStatus={...data.vpsStatus,state:'unavailable',checkedAt:new Date().toISOString(),coverage:vpsFailure(e)};$('#notice').textContent=vpsFailure(e)+'；其余资源继续更新。';}}
  render();
- }catch(e){$('#notice').textContent=e.message;}finally{busy=false;if(data&&PRIVATE&&epoch===activityEpoch)await refreshAutomatic(force);$('#refresh').disabled=false;$('#refresh').textContent='↻ 检查更新';if(startedPrivate&&!PRIVATE&&active())connectBackend();notifyHost();if(resumePending&&active()){resumePending=false;queueMicrotask(()=>refresh());}}}
+ }catch(e){if(active()&&epoch===activityEpoch)$('#notice').textContent=e.message;}finally{busy=false;if(data&&PRIVATE&&epoch===activityEpoch)await refreshAutomatic(force);$('#refresh').disabled=false;$('#refresh').textContent='↻ 检查更新';if(startedPrivate&&!PRIVATE&&active())connectBackend();notifyHost();if(resumePending&&active()){resumePending=false;queueMicrotask(()=>refresh());}}}
 $('#connect').onclick=()=>{connectBackend(true);notifyHost();};$('#refresh').onclick=()=>refresh(true);document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 function activation(){if(!active()){if(!paused){paused=true;activityEpoch++;}for(const controller of requests)controller.abort();}else{if(paused&&(busy||autoBusy))resumePending=true;paused=false;if(!data||Date.now()-lastAuto>15*60000)void refresh();}}
 window.addEventListener('nexus-activate',activation);document.addEventListener('visibilitychange',activation);

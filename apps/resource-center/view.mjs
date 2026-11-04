@@ -15,7 +15,7 @@ export const reasons={
 const names={'gh-compute-usage':'本月计算额度','gh-artifacts':'私有产物存储','gh-cache':'单仓库最大缓存','gh-compute':'计算免费池','gh-storage':'存储免费池','cf-requests':'Workers 请求','cf-kv-read':'KV 读取','cf-kv-write':'KV 写入','cf-kv-delete':'KV 删除','cf-kv-list':'KV 列举','cf-d1-read':'D1 读取','cf-d1-write':'D1 写入','cf-d1-db-storage':'最大 D1 库','cf-browser':'Browser 时长','vps-memory':'内存','vps-disk':'磁盘','vps-cpu':'CPU'};
 const labels={safe:'正常',warning:'留意',danger:'危险',stale:'已过期',unknown:'待核实'};
 const autoNames={'github-inventory':'仓库与工作流','github-storage':'产物与缓存','github-billing':'Actions 月度用量',cloudflare:'Cloudflare 用量',browser:'Browser 历史'};
-export function sourceRows(data){return [...Object.entries(autoNames).map(([id,name])=>({id,name,...(data.automatic?.[id]||{state:'pending'})})),{id:'vps',name:'VPS 采样',state:data.vpsStatus?.state||'pending',observedAt:data.vpsStatus?.observedAt}];}
+export function sourceRows(data){return [...Object.entries(autoNames).map(([id,name])=>({id,name,...(data.automatic?.[id]||{state:'pending'})})),{id:'vps',name:'VPS 采样',state:'pending',...data.vpsStatus}];}
 export function metric(q,red=85){
  const s=assess(q,Date.now(),red),status=q.lowerBound&&s.state==='unknown'?'仅下限':q.coveragePartial&&s.state==='unknown'?'估计值':labels[s.state];
  const freshValue=finite(q.used),ratio=s.ratio,precision=q.lowerBound?'≥ ':q.coveragePartial?'约 ':'';
