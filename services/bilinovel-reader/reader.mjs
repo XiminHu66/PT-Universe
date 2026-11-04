@@ -48,7 +48,7 @@ export function snapshot(){
 }
 
 const BLOCKED=['*doubleclick.net*','*googlesyndication.com*','*googletagservices.com*','*google-analytics.com*','*adservice.google.*','*popads.net*','*popcash.net*','*juicyads.com*','*exoclick.com*','*.mp4*','*.webm*','*.m3u8*','*.jpg*','*.jpeg*','*.png*','*.gif*','*.webp*'];
-export const VERSION='3.0.3';
+export const VERSION='3.0.4';
 export function destinationMatches(actual,expected){try{const a=new URL(sourceURL(actual)),b=new URL(sourceURL(expected));return a.pathname.replace(/\/$/,'')===b.pathname.replace(/\/$/,'')}catch{return false}}
 export function assertMemoryBudget(info){const total=Number(String(info).match(/MemTotal:\s+(\d+)/)?.[1]),available=Number(String(info).match(/MemAvailable:\s+(\d+)/)?.[1]);if(!Number.isFinite(total)||total<=0||!Number.isFinite(available)||available<0)throw Error('暂时无法确认服务器可用内存，请稍后再试');if(available<total*.15)throw Error('VPS 可用内存已到15%保留边界，请稍后再读')}
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
