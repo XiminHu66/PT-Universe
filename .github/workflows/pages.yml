@@ -12,6 +12,17 @@ name: Deploy PT Universe
     - scripts/build-pages.py
     - .github/workflows/pages.yml
   workflow_dispatch: null
+  # GITHUB_TOKEN data commits cannot trigger on.push; only active data producers need this hand-off.
+  workflow_run:
+    workflows:
+    - Refresh Tsugi games
+    - Refresh Tsugi reading/music (manual only)
+    - Refresh Research Tools
+    - Refresh Media Vault
+    - Refresh 3C Scout data
+    - Refresh public investment disclosures
+    - Refresh Stock data
+    types: [completed]
 permissions:
   contents: read
   pages: write
@@ -55,7 +66,7 @@ jobs:
         sparse-checkout: |
           /dishes/**/*.md
           /LICENSE
-      if: steps.publication.outputs.deploy == 'true' && (success())
+      if: steps.publication.outputs.deploy == 'true' && (success()) && github.event_name != 'workflow_run'
     - name: Refresh shared recipe snapshot
       if: steps.publication.outputs.deploy == 'true' && (steps.recipes.outcome == 'success')
       continue-on-error: true
@@ -100,3 +111,4 @@ jobs:
             time.sleep(3)
         PY
     timeout-minutes: 15
+    if: github.event_name != 'workflow_run' || (github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.event != 'pull_request')
