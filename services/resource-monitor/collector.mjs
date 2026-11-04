@@ -1,3 +1,4 @@
+import {cloudflareDatasets} from './cloudflare.mjs';
 // Read-only, request-driven collection. No cron, telemetry or model calls.
 const OWNER='XiminHu66',HOUR=3600000;
 const memory=new Map(),running=new Map();
@@ -7,6 +8,7 @@ export function automaticConnections(env={}){return [
  {id:'github',name:'GitHub 仓库 / 工作流 / 产物',mode:env.RESOURCE_GITHUB_TOKEN?'已配置私有读取':'公开数据自动读取；私有数据待授权',needs:env.RESOURCE_GITHUB_TOKEN?null:'一次性授权仓库 Metadata / Actions 读取权限；账单另需账户 Plan 读取权限'},
  {id:'billing',name:'GitHub 官方账单',mode:env.RESOURCE_GITHUB_TOKEN?'准备通过官方 API 核验权限':'缺少一次性只读授权',needs:env.RESOURCE_GITHUB_TOKEN?null:'GitHub 账户 Plan: read'},
  {id:'cloudflare',name:'Cloudflare Workers / KV / D1',mode:env.RESOURCE_CF_TOKEN&&env.RESOURCE_CF_ACCOUNT_ID?'已配置，等待核验':'缺少一次性只读授权',needs:env.RESOURCE_CF_TOKEN&&env.RESOURCE_CF_ACCOUNT_ID?null:'一次性配置 Cloudflare 账户与 Analytics 只读授权'},
+ {id:'browser',name:'Cloudflare Browser 时长',mode:'复用现有 binding 读取会话历史下限',needs:null},
  {id:'vps',name:'Oracle VPS 采样',mode:'已复用现有自动采样',needs:null},
  {id:'oci-egress',name:'Oracle 月度流量',mode:'未接通账户 Usage API',needs:'需要单独的 OCI 用量只读身份；网卡瞬时速度不能代替月度流量'},
 
@@ -77,13 +79,17 @@ export class ResourceCollector{
  async cloudflare(snapshot,env){
   if(!env.RESOURCE_CF_TOKEN||!/^[a-f0-9]{32}$/i.test(env.RESOURCE_CF_ACCOUNT_ID||''))return {status:{provider:'cloudflare',state:'needs_authorization',checkedAt:new Date(this.clock()).toISOString()}};
   return this.cached('cloudflare',HOUR,env.RESOURCE_CF_TOKEN+env.RESOURCE_CF_ACCOUNT_ID+new Date(this.clock()).toISOString().slice(0,10),async()=>{
-   const at=new Date(this.clock()).toISOString(),today=at.slice(0,10),account=env.RESOURCE_CF_ACCOUNT_ID,h={authorization:'Bearer '+env.RESOURCE_CF_TOKEN,'content-type':'application/json'},updates=[],groups=[
-    {key:'workers',body:`workersInvocationsAdaptive(limit: 10, filter: {datetime_geq: "${today}T00:00:00Z", datetime_leq: "${at}"}) { sum { requests } }`,take:a=>{const r=a.workersInvocationsAdaptive;if(!Array.isArray(r)||r.length>=10)throw Error('partial');return [['cf-requests',r.reduce((n,x)=>n+x.sum.requests,0)]];}},
-    {key:'kv',body:`kvOperationsAdaptiveGroups(limit: 20, filter: {date_geq: "${today}", date_leq: "${today}"}) { sum { requests } dimensions { actionType } }`,take:a=>{const r=a.kvOperationsAdaptiveGroups;if(!Array.isArray(r)||r.length>=20)throw Error('partial');return ['read','write','delete','list'].map(action=>['cf-kv-'+action,r.filter(x=>x.dimensions?.actionType===action).reduce((n,x)=>n+x.sum.requests,0)]);}},
-    {key:'d1',body:`d1AnalyticsAdaptiveGroups(limit: 10, filter: {date_geq: "${today}", date_leq: "${today}"}) { sum { rowsRead rowsWritten } }`,take:a=>{const r=a.d1AnalyticsAdaptiveGroups;if(!Array.isArray(r)||r.length>=10)throw Error('partial');return [['cf-d1-read',r.reduce((n,x)=>n+x.sum.rowsRead,0)],['cf-d1-write',r.reduce((n,x)=>n+x.sum.rowsWritten,0)]];}}
-   ];let failures=0;
-   for(const g of groups)try{const r=await this.json('https://api.cloudflare.com/client/v4/graphql',h,{method:'POST',body:JSON.stringify({query:`query { viewer { accounts(filter: {accountTag: "${account}"}) { ${g.body} } } }`})});if(r.errors?.length)throw Error('query-denied');const a=r.data?.viewer?.accounts;if(!Array.isArray(a)||a.length!==1)throw Error('account-not-visible');for(const [id,used]of g.take(a[0])){if(!nonnegative(used))throw Error('invalid-usage');updates.push({id,used,observedAt:at,source:'Cloudflare 官方 Analytics API · 自动读取',note:'UTC 当日账户聚合，Analytics 可能有延迟或采样；上限仍需核实账户套餐。',maxAgeHours:2});}}catch{failures++;}
-   return {quotas:updates,status:{provider:'cloudflare',state:failures===groups.length?'unavailable':failures?'partial':'ok',coverage:'Workers 请求、KV 操作与 D1 行数；其余指标保留未连接',checkedAt:at,observedAt:updates.length?at:null}};
+   const at=new Date(this.clock()).toISOString(),account=env.RESOURCE_CF_ACCOUNT_ID,h={authorization:'Bearer '+env.RESOURCE_CF_TOKEN,'content-type':'application/json'},updates=[],checks=[],groups=cloudflareDatasets(at);
+   for(let i=0;i<groups.length;i+=3)await Promise.all(groups.slice(i,i+3).map(async g=>{try{
+    const r=await this.json('https://api.cloudflare.com/client/v4/graphql',h,{method:'POST',body:JSON.stringify({query:`query { viewer { accounts(filter: {accountTag: "${account}"}) { ${g.body} } } }`})});
+    if(r.errors?.length)throw Object.assign(Error('query-denied'),{code:r.errors.some(e=>/permission|authoriz/i.test(String(e.message)))?'authorization_required':'dataset_unavailable'});
+    const a=r.data?.viewer?.accounts;if(!Array.isArray(a)||a.length!==1)throw Error('account-not-visible');
+    const values=g.take(a[0]);if(values.some(([,used])=>!nonnegative(used)))throw Error('invalid-usage');
+    for(const [id,used]of values)updates.push({id,used,observedAt:at,source:'Cloudflare 官方 Analytics API · 自动读取',note:g.note||'UTC 当日账户聚合；上限为 Free 套餐参考，Analytics 可能有延迟。',coveragePartial:!!g.partial,maxAgeHours:g.partial?24:2});
+    checks.push({id:g.key,name:g.name,ids:g.ids,state:g.partial?'partial':'ok'});
+   }catch(e){checks.push({id:g.key,name:g.name,ids:g.ids,state:'unavailable',error:e.code||'dataset_unavailable'});}}));
+   const failures=checks.filter(c=>c.state==='unavailable').length;
+   return {quotas:updates,status:{provider:'cloudflare',state:failures===groups.length?'unavailable':failures?'partial':'ok',coverage:'Workers / KV / D1 / Queues；存储为有样本资源的峰值估计',checks,checkedAt:at,observedAt:updates.length?at:null,requestsBound:6}};
   });
  }
  async collect(provider,snapshot,env={}){const methods={'github-inventory':'githubInventory','github-storage':'githubStorage','github-billing':'githubBilling',cloudflare:'cloudflare'};if(!methods[provider])return null;return this[methods[provider]](snapshot,env);}

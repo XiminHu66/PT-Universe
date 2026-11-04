@@ -22,7 +22,7 @@ export function resourceScope(raw:any){
 }
 const inventoryCache=new WeakMap<object,{at:number;value:any}>(),vpsCache=new WeakMap<object,{at:number;value:any}>();
 async function inventory(env:ResourceEnv){const cached=inventoryCache.get(env.PT_UNIVERSE_DATA);if(cached&&Date.now()-cached.at<300000)return cached.value;const stored=await env.PT_UNIVERSE_DATA.get(SNAPSHOT);if(!stored)return null;const value=resourceScope(JSON.parse(stored));inventoryCache.set(env.PT_UNIVERSE_DATA,{at:Date.now(),value});return value;}
-export async function resourcesRoute(request:Request,env:ResourceEnv,publicKey:JsonWebKey=OWNER_CONNECT_PUBLIC_KEY):Promise<Response|null>{
+export async function resourcesRoute(request:Request,env:ResourceEnv,publicKey:JsonWebKey=OWNER_CONNECT_PUBLIC_KEY,browserReader?:()=>Promise<unknown>):Promise<Response|null>{
  const u=new URL(request.url),prefix='/api/resources';if(!u.pathname.startsWith(prefix+'/'))return null;
  const origin=request.headers.get('origin');if(origin&&origin!==ORIGIN)return json({error:'Origin denied'},403);
  const token=(request.headers.get('authorization')||'').replace(/^Bearer /,'');
@@ -36,6 +36,7 @@ export async function resourcesRoute(request:Request,env:ResourceEnv,publicKey:J
  if(!await verifyResourceToken(token,'resources:read',Date.now(),publicKey))return json({error:'请连接 PT 资源后台',code:'connect_required'},401);
  try{
   if(u.pathname===prefix+'/vps'&&!u.search){const cached=vpsCache.get(env.PT_UNIVERSE_DATA);if(cached&&Date.now()-cached.at<20000)return json(cached.value);const value=sanitizeVpsSnapshot(await readVpsSnapshot(env));vpsCache.set(env.PT_UNIVERSE_DATA,{at:Date.now(),value});return json(value);}
+  if(u.pathname===prefix+'/browser'&&!u.search){if(!browserReader)return json({status:{provider:'browser',state:'unavailable',checkedAt:new Date().toISOString()}});return json(await browserReader());}
   const snapshot=await inventory(env);if(!snapshot)return json({error:'请重新连接，完成私有清单迁移',code:'inventory_missing'},503);
   if(u.pathname===prefix+'/data'&&!u.search)return json({...snapshot,connections:automaticConnections(env)});
   if(u.pathname===prefix+'/auto'&&u.searchParams.getAll('provider').length===1&&[...u.searchParams.keys()].every(k=>k==='provider')){

@@ -41,9 +41,14 @@ these are not relabelled as free-pool consumption. Historical free-allowance car
 retain their actual timestamp and become unknown/stale when no comparable live
 measurement exists. Artifact occupancy is not inferred from billed GB-hours.
 
-Cloudflare reads Workers requests, KV operations and D1 row counts. Manifests
-identify configured dependencies, not proof of a live deployment. Storage, Queues,
-Browser and inaccessible metrics stay unknown. Free-plan limits are documented
+Cloudflare reads Workers requests, KV operations, D1 row counts, Queue billable
+operations and available KV/D1 storage peak samples. Storage samples do not
+guarantee coverage of inactive resources and cannot be green merely because
+the observed subset is small. Existing Browser binding history provides only a
+lower bound for today’s recently closed sessions; no browser is launched. Manifests
+identify configured dependencies, not proof of a live deployment. Inaccessible datasets stay unknown with individual diagnostics. Cron counts
+remain a configuration audit; no management permission or periodic enumeration
+is added. Free-plan limits are documented
 references, not confirmation of this account's actual subscription.
 
 VPS reads CPU, RAM, root disk and service health through the existing gateway.
@@ -53,7 +58,7 @@ are not relabelled as Oracle billable egress. Other providers are excluded.
 Browser cache: fifteen minutes. Server inventory: six hours; storage/provider
 reads: one hour, with in-flight coalescing and failure backoff. Independent sources
 preserve last-good data and true sampling times. Per refresh maximums: inventory
-36 GitHub requests, storage 41, Cloudflare three GraphQL queries; normally caches
+36 GitHub requests, storage 41, Cloudflare six bounded GraphQL queries; normally caches
 reduce these substantially. There is no background polling or model call.
 
 Default warning is 70%, danger 85%, retaining 15% headroom. Unknown, stale,
@@ -66,6 +71,7 @@ change budgets, delete artifacts or trigger builds.
 Run `node scripts/resource-center/test.mjs`,
 `node scripts/resource-center/collector.test.mjs`,
 `node scripts/resource-center/auth.test.mjs`,
+`node scripts/resource-center/metrics.test.mjs`,
 `python .github/scripts/actions_policy.py .` and `python scripts/build-pages.py`.
 In the existing Worker: `npm run check`, `node tests/resources.test.mjs`,
 `node tests/vps.test.mjs` and `npx wrangler deploy --dry-run`.
@@ -74,3 +80,16 @@ The identity broker has separate nonce, redirect, signature and snapshot tests.
 The existing Worker deployment workflow includes the shared collector path and
 resource authorization test. No monitoring scheduler or additional workflow was
 introduced. Publication uses the existing Pages and Worker deployment workflows.
+
+## Compact overview (2026-11-04)
+
+The default view shows three provider panels. API billing is primary; manually
+verified GitHub free-pool snapshots remain dated and collapsed. Browser history
+is marked as a lower bound; incomplete storage estimates cannot be safe.
+Low-frequency KV operations and storage details are collapsed, but any warning
+or danger metric is promoted automatically. Unknown Oracle egress and static
+Cron counts are explained in Read Checks without crowding the main dashboard.
+Projects default to billable resources, sorted by artifact/cache occupancy;
+static child pages are available through a separate filter. Filters, selected
+view and expanded details survive data rerenders. A manual refresh rereads
+connection configuration and cannot leave a supplier failure looking successful.

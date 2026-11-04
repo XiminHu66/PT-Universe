@@ -18,3 +18,9 @@ const response=await resourcesRoute(req('data',read),env,publicKey),text=await r
 assert.equal((await resourcesRoute(req('auto?provider=openrouter',read),env,publicKey)).status,400);assert.equal((await resourcesRoute(req('auto?provider=cloudflare&url=https://evil.example',read),env,publicKey)).status,400);
 const pending=await resourcesRoute(req('auto?provider=cloudflare',read),env,publicKey);assert.equal((await pending.json()).status.state,'needs_authorization');
 console.log('PASS: dedicated resource audience/scope, nonce and expiry, origin protection, digest-bound private migration, read-only APIs, supplier-secret isolation and three-provider scope.');
+
+let browserCalls=0;const browserReader=async()=>{browserCalls++;return {status:{provider:'browser',state:'partial'},quotas:[]};};
+assert.equal((await resourcesRoute(req('browser'),env,publicKey,browserReader)).status,401);assert.equal(browserCalls,0);
+assert.equal((await resourcesRoute(req('browser',read),env,publicKey,browserReader)).status,200);assert.equal(browserCalls,1);
+assert.equal((await resourcesRoute(req('browser?url=https://evil.example',read),env,publicKey,browserReader)).status,400);assert.equal(browserCalls,1);
+console.log('PASS: Browser metadata requires the dedicated read grant and rejects arbitrary parameters before touching the binding.');

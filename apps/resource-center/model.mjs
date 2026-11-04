@@ -3,7 +3,7 @@ export function periodKey(at,period){const d=new Date(at);return Number.isFinite
 export function assess(q,now=Date.now(),red=85){
  const valid=finite(q.used)&&finite(q.limit)&&q.limit>0,at=Date.parse(q.observedAt),fresh=Number.isFinite(at)&&at<=now+60000&&now-at<=(q.maxAgeHours||24)*3600000;
  const same=q.period==='point'||periodKey(now,q.period)===periodKey(q.observedAt,q.period),ratio=valid?q.used/q.limit*100:null;
- let state=!valid?'unknown':!fresh||!same?'stale':ratio>=red?'danger':ratio>=70?'warning':'safe';
+ let state=!valid?'unknown':!fresh||!same?'stale':ratio>=red?'danger':ratio>=70?'warning':q.lowerBound||q.coveragePartial?'unknown':'safe';
  let projected=null;
  if(valid&&fresh&&same&&q.cumulative&&q.period==='month'){
   const d=new Date(now),start=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),1),end=Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,1),sample=Date.parse(q.observedAt),elapsed=sample-start;
