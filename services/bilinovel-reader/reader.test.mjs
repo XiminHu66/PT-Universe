@@ -30,3 +30,7 @@ test('reader actions serialize, release busy state after errors, and expire on d
 test('only mounted routes are handled and foreign-origin writes are rejected',async()=>{
  const d=await mkdtemp(join(tmpdir(),'reader-test-')),r={close(){}};try{const handler=createReader({data:d,origin:'https://private.example',token:'fixture',reader:r});const res={writeHead(s,h){this.status=s;this.headers=h},end(v){this.value=v}};assert.equal(await handler({method:'GET',headers:{}},res,new URL('https://local/other')),false);await handler({method:'POST',headers:{origin:'https://evil.test'}},res,new URL('https://local/reader/api/open'));assert.equal(res.status,403);await handler({method:'GET',headers:{}},res,new URL('https://local/reader/api/state'));assert.equal(JSON.parse(res.value).token,'fixture')}finally{await rm(d,{recursive:true,force:true})}
 });
+
+test('closing the manual panel restores filtering without consuming pending chapter pages',async()=>{
+ const r=new Reader({data:'/tmp',control:{}});try{const pending={start:page().url,paragraphs:['已读取'],pages:1};r.pending=pending;r.manual=true;r.ensure=async()=>{};let filtered=false;r.filters=async()=>{filtered=!r.manual};await r.leaveManual();assert.equal(r.pending,pending);assert.ok(filtered)}finally{clearInterval(r.timer)}
+});

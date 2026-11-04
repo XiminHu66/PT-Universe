@@ -86,8 +86,9 @@ export class Reader {
   }
  }
  async open(url){return this.serial(async()=>{this.pending=null;this.manual=false;return this.collect(await this.navigate(url))})}
- async resume(){return this.serial(async()=>{await this.ensure();this.control.selected=null;await this.control.connect(await this.control.mainId());this.manual=false;await this.filters();const s=await this.wait(this.lastURL);return this.collect(s)})}
- async manualStart({login=false,allowVerification=false}={}){return this.serial(async()=>{await this.ensure();this.manual=allowVerification===true||login===true;await this.filters();if(login){this.pending=null;await this.navigate('https://www.bilinovel.net/login.php')}else if(this.manual)await this.control.action({type:'reload'});return {ok:true,manual:this.manual}})}
+ async resume(){return this.serial(async()=>{await this.ensure();this.control.selected=null;await this.control.connect(await this.control.mainId());this.manual=false;await this.filters();let s=await this.wait(this.lastURL);if(this.returnAfterLogin&&!s.reason){const destination=this.returnAfterLogin;this.returnAfterLogin=null;s=await this.navigate(destination)}return this.collect(s)})}
+ async manualStart({login=false,allowVerification=false}={}){return this.serial(async()=>{await this.ensure();this.manual=allowVerification===true||login===true;await this.filters();if(login){this.returnAfterLogin=this.lastURL&&!this.lastURL.includes('/login.php')?this.lastURL:null;this.pending=null;await this.navigate('https://www.bilinovel.net/login.php')}else if(this.manual)await this.control.action({type:'reload'});return {ok:true,manual:this.manual}})}
+ async leaveManual(){return this.serial(async()=>{this.manual=false;await this.ensure();await this.filters();return {ok:true}})}
  async screen(){return this.serial(async()=>{await this.ensure();return {...await this.control.screen(),manual:this.manual,width:390,height:760}})}
  async action(a){return this.serial(async()=>{await this.ensure();await this.control.action(a);return {ok:true}})}
  async suspend(){const used=!!this.last||!!this.control.ws;this.last=0;this.pending=null;this.lastResult=null;if(used)await this.control.closePages().catch(()=>{});this.control.disconnect();}
@@ -108,6 +109,7 @@ export function createReader({data,origin,token,control,reader=new Reader({data,
    if(req.method==='POST'&&path==='/api/open')value=await reader.open(sourceURL(input.url));
    else if(req.method==='POST'&&path==='/api/resume')value=await reader.resume();
    else if(req.method==='POST'&&path==='/api/manual')value=await reader.manualStart(input);
+   else if(req.method==='POST'&&path==='/api/leave-manual')value=await reader.leaveManual();
    else if(req.method==='POST'&&path==='/api/action')value=await reader.action(input);
    else if(req.method==='POST'&&path==='/api/suspend'){await reader.suspend();value={ok:true}}
    else if(req.method==='POST'&&path==='/api/screen')value=await reader.screen();
