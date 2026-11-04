@@ -27,8 +27,14 @@ test('does not return protected/failed contents or join a different chapter',asy
 test('reader actions serialize, release busy state after errors, and expire on demand',async()=>{
  const r=new Reader({data:'/tmp',control:{closePages:async()=>{},disconnect(){}}});try{r.busy=true;await assert.rejects(r.serial(()=>{}),/上一项/);r.busy=false;await assert.rejects(r.serial(()=>{throw Error('failed')}));assert.equal(r.busy,false);await r.suspend();assert.equal(r.last,0)}finally{clearInterval(r.timer)}
 });
-test('only mounted routes are handled and foreign-origin writes are rejected',async()=>{
- const d=await mkdtemp(join(tmpdir(),'reader-test-')),r={close(){}};try{const handler=createReader({data:d,origin:'https://private.example',token:'fixture',reader:r});const res={writeHead(s,h){this.status=s;this.headers=h},end(v){this.value=v}};assert.equal(await handler({method:'GET',headers:{}},res,new URL('https://local/other')),false);await handler({method:'POST',headers:{origin:'https://evil.test'}},res,new URL('https://local/reader/api/open'));assert.equal(res.status,403);await handler({method:'GET',headers:{}},res,new URL('https://local/reader/api/state'));assert.equal(JSON.parse(res.value).token,'fixture')}finally{await rm(d,{recursive:true,force:true})}
+test('legacy route redirects, disables all remote operations and closes only its own target',async()=>{
+ let connected=0,closed=0,disconnected=0;
+ const control={async connect(){connected++},async closePages(){closed++},disconnect(){disconnected++}};
+ const handler=createReader({control});const res={writeHead(s,h){this.status=s;this.headers=h},end(v){this.value=v}};
+ assert.equal(await handler({method:'GET'},res,new URL('https://local/other')),false);
+ await handler({method:'GET'},res,new URL('https://local/reader/'));assert.equal(res.status,302);assert.equal(res.headers.location,'https://ximinhu66.github.io/PT-Universe/apps/bilinovel-reader/');
+ for(const path of ['state','open','manual','screen','action']){await handler({method:'POST'},res,new URL('https://local/reader/api/'+path));assert.equal(res.status,410);assert.equal(JSON.parse(res.value).mode,'local');assert.ok(!('token'in JSON.parse(res.value)));}
+ await handler.close();assert.deepEqual([connected,closed,disconnected],[1,1,1]);
 });
 
 test('closing the manual panel restores filtering without consuming pending chapter pages',async()=>{

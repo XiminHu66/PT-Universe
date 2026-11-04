@@ -100,30 +100,18 @@ export class Reader {
  async suspend(){const used=!!this.last||!!this.control.ws;this.last=0;this.pending=null;this.lastResult=null;if(used)await this.control.closePages().catch(()=>{});this.control.disconnect();}
  async close(){clearInterval(this.timer);await this.suspend()}
 }
-export function createReader({data,origin,token,control,reader=new Reader({data,control})}){
- const assets=join(dirname(fileURLToPath(import.meta.url)),'reader-public');
- const json=(res,status,value)=>{res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'private,no-store'});res.end(JSON.stringify(value))};
+// Legacy endpoint retained only to send old bookmarks to the local reader.
+// No Reader instance, browser creation, screenshot polling or idle timer.
+export function createReader({control}={}){
+ const destination='https://ximinhu66.github.io/PT-Universe/apps/bilinovel-reader/';
+ const cleanup=control ? Promise.resolve().then(()=>control.connect()).then(()=>control.closePages()).catch(()=>{}).finally(()=>control.disconnect()) : Promise.resolve();
  const handler=async(req,res,url)=>{
   if(url.pathname!=='/reader'&&!url.pathname.startsWith('/reader/'))return false;
-  if(url.pathname==='/reader'){res.writeHead(308,{location:'/bilipack/reader/'});res.end();return true}
-  try{
-   if(req.method==='POST'&&req.headers.origin!==origin){json(res,403,{error:'请从私有阅读页操作'});return true}
-   const path=url.pathname.slice('/reader'.length);
-   if(req.method==='GET'&&path==='/api/state'){json(res,200,{token,version:'1.0.0',session:'专用浏览器登录状态',idleMinutes:10});return true}
-   let input={};if(req.method==='POST'){let raw='';for await(const b of req){raw+=b;if(raw.length>16000)throw Error('请求过大')}input=JSON.parse(raw||'{}')}
-   let value;
-   if(req.method==='POST'&&path==='/api/open')value=await reader.open(sourceURL(input.url));
-   else if(req.method==='POST'&&path==='/api/resume')value=await reader.resume();
-   else if(req.method==='POST'&&path==='/api/manual')value=await reader.manualStart(input);
-   else if(req.method==='POST'&&path==='/api/leave-manual')value=await reader.leaveManual();
-   else if(req.method==='POST'&&path==='/api/action')value=await reader.action(input);
-   else if(req.method==='POST'&&path==='/api/suspend'){await reader.suspend();value={ok:true}}
-   else if(req.method==='POST'&&path==='/api/screen')value=await reader.screen();
-   else if(['GET','HEAD'].includes(req.method)&&['/','/app.js','/style.css','/manifest.webmanifest','/icon.svg'].includes(path)){
-    const name=path==='/'?'index.html':path.slice(1),bytes=await readFile(join(assets,name));res.writeHead(200,{'content-type':name.endsWith('.js')?'text/javascript; charset=utf-8':name.endsWith('.css')?'text/css; charset=utf-8':name.endsWith('.svg')?'image/svg+xml':name.endsWith('.webmanifest')?'application/manifest+json':'text/html; charset=utf-8'});res.end(req.method==='HEAD'?undefined:bytes);return true;
-   }else{json(res,404,{error:'页面不存在'});return true}
-   json(res,200,value);
-  }catch(e){json(res,400,{error:String(e.message).slice(0,180)})}return true;
+  if(['GET','HEAD'].includes(req.method)&&['/reader','/reader/'].includes(url.pathname)){
+   res.writeHead(302,{location:destination,'cache-control':'no-store'});res.end();return true;
+  }
+  res.writeHead(410,{'content-type':'application/json; charset=utf-8','cache-control':'no-store'});
+  res.end(JSON.stringify({mode:'local',version:'2.0.0',url:destination,message:'远程阅读已停用，请使用原站净读。'}));return true;
  };
- handler.close=()=>reader.close();return handler;
+ handler.close=()=>cleanup;return handler;
 }
