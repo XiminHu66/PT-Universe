@@ -1,0 +1,37 @@
+import assert from 'node:assert/strict';
+import {ResourceCollector,automaticConnections} from '../../services/resource-monitor/collector.mjs';
+let now=Date.parse('2026-11-04T19:00:00Z'),calls=[],failed=false,release;
+const snapshot={repositories:[{name:'public',visibility:'public',workflows:[{path:'.github/workflows/test.yml',events:['schedule'],crons:['31 8 * * * · America/Los_Angeles']}],artifacts:{bytes:777,observedAt:'2026-11-03'}},{name:'private',visibility:'private',workflows:[{name:'Old'}]}]};
+const fetcher=async(url,options)=>{calls.push({url,options});if(failed)return Response.json({error:'TOKEN-DO-NOT-LEAK'},{status:429,headers:{'retry-after':'600'}});
+ if(url.includes('/users/XiminHu66/repos'))return Response.json([{name:'public',owner:{login:'XiminHu66'},private:false,pushed_at:'2026-11-04'}]);
+ if(url.endsWith('/actions/workflows?per_page=100'))return Response.json({total_count:1,workflows:[{name:'Live',path:'.github/workflows/test.yml',state:'disabled_manually',html_url:'https://github.com/XiminHu66/public/actions'}]});
+ if(url.endsWith('/actions/artifacts?per_page=100'))return Response.json({total_count:101,artifacts:[{size_in_bytes:12,expired:false},{size_in_bytes:80,expired:true}]});
+ if(url.endsWith('/actions/cache/usage'))return Response.json({active_caches_size_in_bytes:24,active_caches_count:2});
+ if(url.includes('/usage/summary'))return Response.json({usageItems:[{product:'Actions',sku:'actions_linux',grossQuantity:100,unitType:'minutes',grossAmount:1,discountAmount:1,netAmount:0}]});
+ if(url.endsWith('/credits'))return Response.json({data:{total_credits:10,total_usage:3}});
+ if(url.endsWith('/graphql')){const query=JSON.parse(options.body).query;if(query.includes('workersInvocationsAdaptive'))return Response.json({data:{viewer:{accounts:[{workersInvocationsAdaptive:[{sum:{requests:27}}]}]}}});return Response.json({errors:[{message:'Not authorized'}]});}
+ throw Error('Unexpected fixture path');};
+const c=new ResourceCollector({fetcher,clock:()=>now,cache:new Map(),inflight:new Map()});
+const inventory=await c.githubInventory(snapshot,{});assert.equal(inventory.repositories.length,2);assert.equal(inventory.repositories[0].workflows[0].state,'disabled_manually');assert.deepEqual(inventory.repositories[0].workflows[0].events,['schedule']);assert.equal(inventory.repositories[0].artifacts,undefined,'Inventory must not overwrite newer storage measurements');assert.equal(inventory.repositories[1].visibility,'private');
+const count=calls.length;await c.githubInventory(snapshot,{});assert.equal(calls.length,count,'Fresh server cache prevents repeat API calls');
+const storage=await c.githubStorage(snapshot,{});assert.equal(storage.repositories[0].artifacts.bytes,12);assert.equal(storage.repositories[0].artifacts.partial,true);assert.equal(storage.repositories[0].cache.bytes,24);assert.equal(storage.repositories.length,1,'Unauthenticated collection never requests private repositories');
+const beforeAuth=calls.length;assert.equal((await c.githubBilling(snapshot,{})).status.state,'needs_authorization');assert.equal((await c.cloudflare(snapshot,{})).status.state,'needs_authorization');assert.equal((await c.openrouter(snapshot,{})).status.state,'needs_authorization');assert.equal(calls.length,beforeAuth,'Missing credentials cause no outbound request');
+const billing=await c.githubBilling(snapshot,{RESOURCE_GITHUB_TOKEN:'fixture'});assert.equal(billing.billing.grossUSD,1);assert.equal(billing.billing.netUSD,0);assert.equal(billing.quotas,undefined,'Gross discounts do not become false free-pool usage');
+const cf=await c.cloudflare(snapshot,{RESOURCE_CF_TOKEN:'fixture',RESOURCE_CF_ACCOUNT_ID:'a'.repeat(32)});assert.equal(cf.status.state,'partial');assert.deepEqual(cf.quotas.map(q=>[q.id,q.used]),[['cf-requests',27]],'Failed GraphQL datasets must not overwrite last-good quotas with zero');
+const credits=await c.openrouter(snapshot,{RESOURCE_OPENROUTER_KEY:'fixture'});assert.equal(credits.quotas[0].used,3);assert.equal(credits.quotas[0].limit,10);assert.equal(credits.quotas[0].period,'point');
+failed=true;now+=7*3600000;const oldTime=inventory.status.observedAt,fail=await c.githubInventory(snapshot,{});assert.equal(fail.status.state,'last_good');assert.equal(fail.repositories[0].inventoryObservedAt,oldTime);assert.ok(!JSON.stringify(fail).includes('TOKEN-DO-NOT-LEAK'));const backoff=calls.length;await c.githubInventory(snapshot,{});assert.equal(calls.length,backoff,'API failures back off instead of retrying on every page visit');
+assert.ok(calls.every(c=>['api.github.com','api.cloudflare.com','openrouter.ai'].includes(new URL(c.url).hostname)));assert.ok(calls.every(c=>!c.options.method||c.options.method==='POST'&&c.url.endsWith('/graphql')));
+let n=0;const inflight=new ResourceCollector({fetcher:async()=>{n++;await new Promise(r=>release=r);return Response.json({data:{total_credits:10,total_usage:0}})},clock:()=>now,cache:new Map(),inflight:new Map()});
+const p1=inflight.openrouter(snapshot,{RESOURCE_OPENROUTER_KEY:'same'}),p2=inflight.openrouter(snapshot,{RESOURCE_OPENROUTER_KEY:'same'});await Promise.resolve();assert.equal(n,1);release();await Promise.all([p1,p2]);
+assert.equal(automaticConnections({}).find(x=>x.id==='billing').needs,'GitHub 账户 Plan: read');
+console.log('PASS: automatic inventory/storage, cache reuse and in-flight coalescing, partial failure preservation, credential isolation, bounded fixed-host reads, 429 backoff and billing semantics.');
+const pair=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);
+const testJwk=JSON.stringify(await crypto.subtle.exportKey('jwk',pair.privateKey)),serpCalls=[];
+const serpReader=new ResourceCollector({clock:()=>now,cache:new Map(),inflight:new Map(),fetcher:async(u,o)=>{
+ serpCalls.push({u,method:o.method});if(u.endsWith('/status'))return Response.json({sources:{serpapi:{configured:true}}});
+ assert.equal(u,'https://pt-universe-api.summer07-nanjolno.workers.dev/api/deal-lab/query');assert.deepEqual(JSON.parse(o.body),{provider:'serpapi',operation:'account',args:{}});
+ const token=o.headers.authorization.slice(7),[a,b,c]=token.split('.'),p=JSON.parse(Buffer.from(b,'base64url'));assert.equal(p.scope,'monitor:manage');assert.equal(p.exp-p.iat,60);assert.ok(await crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},pair.publicKey,Buffer.from(c,'base64url'),new TextEncoder().encode(a+'.'+b)));
+ return Response.json({data:{monthlyLimit:250,searchesLeft:200,checkedAt:new Date(now).toISOString(),renewalDate:'2026-12-01'}});
+}});
+const serp=await serpReader.serpapi(snapshot,{CHAT_CONNECT_PRIVATE_JWK:testJwk});assert.equal(serp.quotas[0].used,50);assert.equal(serp.quotas[0].limit,250);assert.equal(serpCalls.length,2);assert.ok(!JSON.stringify(serp).includes('Bearer'));
+console.log('PASS: SerpApi reuses signed owner authority only for account metadata, with no searches or browser tokens.');

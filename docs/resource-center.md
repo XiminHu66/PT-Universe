@@ -82,3 +82,47 @@ Official reference limits were checked on 2026-11-04:
 * https://developers.cloudflare.com/d1/platform/limits/
 * https://developers.cloudflare.com/queues/platform/pricing/
 * https://developers.cloudflare.com/changelog/post/2025-07-28-br-pricing/
+
+## Automatic readers (2026-11-04 update)
+
+This section supersedes the earlier manual-refresh description. The private
+look-up page now checks automatically when opened and when revisited after 15
+minutes. It does not create a scheduler, Actions workflow, container or database.
+
+`services/resource-monitor/collector.mjs` runs behind the existing private Site.
+Public repository discovery, workflow names/status, artifact sizes and readable
+cache totals update automatically. Inventory is cached for six hours; storage and
+provider reads for one hour; browser results for fifteen minutes. Independent
+sources keep their last successful measurements and true sampling times on
+failure. Requests coalesce and failed sources back off. Each request is bounded:
+inventory <=36 GitHub reads; storage <=41 reads; Cloudflare <=3 GraphQL queries;
+OpenRouter one credit read. There are no model completions or build dispatches.
+
+The following one-time, server-side secrets enable additional automatic reads:
+
+* `RESOURCE_GITHUB_TOKEN`: fine-grained account Plan read for billing and repository
+  Metadata / Actions read for the owned repositories to monitor.
+* `RESOURCE_CF_TOKEN` and `RESOURCE_CF_ACCOUNT_ID`: Analytics Read on the intended
+  account. Currently reads Workers requests, KV operations and D1 row counts;
+  other metrics remain unknown until an appropriate reader is connected.
+* `RESOURCE_OPENROUTER_KEY`: authorized account key supporting the credits read.
+
+SerpApi reuses the existing owner signing authority and fixed Deal Lab account
+metadata operation. It performs no product searches and reveals no keys. If Deal
+Lab has not configured its key, the reader reports that explicitly.
+
+GitHub official API billing is shown separately once connected. Its gross amount
+includes public-repository discounts and storage may use GB-hours or GB-months;
+it must not be relabelled as free-pool consumption or instantaneous file storage.
+The original free-pool cards therefore retain the dated verified snapshot until a
+comparable official measurement is available. Enabled/disabled workflow status
+updates automatically; trigger rules and runner details retain the YAML audit.
+
+Oracle account egress and official Gemini account quota require separate supported
+account-read integrations. Deployment secrets in GitHub cannot be read back or
+silently reused as new runtime permissions. No credentials are accepted in chat or
+saved in frontend code, snapshots or browser storage.
+
+Additional check: `node scripts/resource-center/collector.test.mjs` verifies cache
+reuse, concurrent-read coalescing, bounds, missing-auth behavior, preservation of
+last-good data, billing semantics and no secret leakage.
