@@ -1,7 +1,7 @@
 name: Refresh Tsugi games
 'on':
   workflow_dispatch: null
-  # One-time acceptance test: this file change triggers exactly one game collection.
+  # One-time acceptance test: invoke the existing game pipeline once, then remove this temporary push trigger.
   push:
     branches: [main]
     paths: [.github/workflows/refresh-tsugi-games.yml]
