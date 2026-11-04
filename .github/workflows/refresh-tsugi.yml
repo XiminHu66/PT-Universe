@@ -1,16 +1,6 @@
-name: Refresh Tsugi reading/music (08:30 conditional fallback)
+name: Refresh Tsugi reading/music (manual only)
 'on':
   workflow_dispatch: null
-  push:
-    branches:
-    - main
-    paths:
-    - apps/tsugi-checker/scraper/**
-    - apps/tsugi-checker/config/content.json
-    - scripts/tsugi/**
-  schedule:
-  - cron: 30 8 * * *
-    timezone: America/Los_Angeles
 permissions:
   contents: write
 concurrency:
