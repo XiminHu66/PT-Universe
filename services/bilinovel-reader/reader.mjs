@@ -23,7 +23,7 @@ export function snapshot(){
  }
  const heading=text(document.querySelector('#atitle,h1,.book-title'))||document.title.split('_')[0];
  const gate=/^(Just a moment|Attention Required)/i.test(document.title)||!!document.querySelector('#challenge-running,#cf-challenge-running')||/内容加载失败|內容載入失敗|内容加载中|內容載入中/.test(pageText.join(''));
- const reason=gate?'source-verification':!pageText.length&&/积分广告|積分廣告|观看广告|觀看廣告|阅读授权|閱讀授權|請先登[錄入]|请先登录/.test(body)?'source-verification':document.querySelector('input[type=password]')?'login':null;
+ const reason=gate?'source-verification':!pageText.length&&/^\/novel\/\d+\/\d+(?:_\d+)?\.html$/.test(location.pathname)&&/积分广告|積分廣告|观看广告|觀看廣告|阅读授权|閱讀授權|請先登[錄入]|请先登录/.test(body)?'source-verification':document.querySelector('input[type=password]')?'login':null;
  const links=[...document.querySelectorAll('a[href]')].map(a=>({title:text(a).replace(/\s+/g,' '),url:a.href}));
  const chapters=links.filter(a=>/^\/novel\/\d+\/\d+(?:_\d+)?\.html$/.test(new URL(a.url).pathname)&&a.title);
  const books=links.filter(a=>/^\/novel\/\d+\.html$/.test(new URL(a.url).pathname)&&a.title&&!/^(返回|首页|首頁)$/.test(a.title));

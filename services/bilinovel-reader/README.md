@@ -14,4 +14,4 @@ The device keeps a local shelf, per-chapter progress, typography and up to 12 re
 
 `node --check services/bilinovel-reader/public/app.js`
 
-Deployment is performed by the private ops repository with a pinned tested public source revision. The deployment checks the existing process is idle, enforces a projected 15% disk/memory reserve, layers the files on the exact running image, patches only the current server's reader hook, and retains the old image/compose for rollback. Existing downloader tests are run before activation.
+The assembly helper embeds the reader and its static assets in the existing private BiliPack application update. The established manual repair release reuses the exact running image, checks the downloader is idle and the existing 15% reserve, and keeps the original login profiles, files and rollback path. No SSH or deployment workflow is added. Existing downloader tests are run before activation.
