@@ -1,0 +1,121 @@
+// Owner-private, on-demand reader. All source scripts execute only in the
+// existing dedicated browser; the delivered document contains plain text only.
+import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {dirname,join} from 'node:path';
+import {fileURLToPath} from 'node:url';
+export const HOSTS=new Set(['www.bilinovel.net','www.bilinovel.com','bilinovel.com','bilinovel.net','www.linovelib.com','tw.linovelib.com','w.linovelib.com']);
+export function sourceURL(raw){
+ const u=new URL(raw);if(u.protocol!=='https:'||!HOSTS.has(u.hostname)||u.port||u.username||u.password||u.href.length>2048)throw Error('请输入 Bilinovel / Linovelib 的 HTTPS 链接');
+ if(!/^\/(?:$|novel\/\d+(?:\.html|\/catalog|\/(?:vol_)?\d+(?:_\d+)?\.html)|(?:login|userdetail|bookcase)\.php|wenku\/(?:[\w.-]*)?)$/.test(u.pathname))throw Error('仅支持书库、作品、目录、章节和登录页面');
+ return u.href;
+}
+export const chapterKey=url=>new URL(url).pathname.replace(/_\d+(?=\.html$)/,'');
+export function canJoin(start,next){try{return HOSTS.has(new URL(next).hostname)&&chapterKey(start)===chapterKey(next)&&/^\/novel\/\d+\/\d+(?:_\d+)?\.html$/.test(new URL(next).pathname)}catch{return false}}
+// This function is serialized into the source tab. Never return source HTML.
+export function snapshot(){
+ const text=e=>(e?.innerText||'').trim(),visible=e=>{const s=getComputedStyle(e);return s.display!=='none'&&s.visibility!=='hidden'&&s.opacity!=='0'};
+ const body=text(document.body),params=typeof ReadParams==='object'?ReadParams:{},root=document.querySelector('#acontent,.bcontent');
+ const pageText=[];
+ if(root)for(const p of root.querySelectorAll(':scope > p')){
+  if(!visible(p))continue;
+  const walk=n=>{if(n.nodeType===3)return n.textContent;if(n.nodeType!==1||!visible(n)||/^(SCRIPT|STYLE|IFRAME|INS|IMG|DIV|VIDEO|AUDIO)$/.test(n.tagName)||/^[a-z]\d{4}$/i.test(n.tagName)||n.matches('.tp,.bd,[class*="advert"],[id*="google_ads"]'))return '';return n.tagName==='BR'?'\n':[...n.childNodes].map(walk).join('')};
+  const v=walk(p).replace(/\u00a0/g,' ').trim();if(v)pageText.push(v);
+ }
+ const heading=text(document.querySelector('#atitle,h1,.book-title'))||document.title.split('_')[0];
+ const gate=/^(Just a moment|Attention Required)/i.test(document.title)||!!document.querySelector('#challenge-running,#cf-challenge-running')||/内容加载失败|內容載入失敗|内容加载中|內容載入中/.test(pageText.join(''));
+ const reason=gate?'source-verification':!pageText.length&&/积分广告|積分廣告|观看广告|觀看廣告|阅读授权|閱讀授權|請先登[錄入]|请先登录/.test(body)?'source-verification':document.querySelector('input[type=password]')?'login':null;
+ const links=[...document.querySelectorAll('a[href]')].map(a=>({title:text(a).replace(/\s+/g,' '),url:a.href}));
+ const chapters=links.filter(a=>/^\/novel\/\d+\/\d+(?:_\d+)?\.html$/.test(new URL(a.url).pathname)&&a.title);
+ const books=links.filter(a=>/^\/novel\/\d+\.html$/.test(new URL(a.url).pathname)&&a.title&&!/^(返回|首页|首頁)$/.test(a.title));
+ const chaptersUnique=[...new Map(chapters.map(x=>[x.url,x])).values()].slice(0,4000),booksUnique=[...new Map(books.map(x=>[x.url,x])).values()].slice(0,80);
+ const nextLabel=text(document.querySelector('#footlink .nextlink,.footlink .nextlink'));
+ const volume=chaptersUnique.length?text(document.querySelector('.volume-title,h2')):'';
+ return {url:location.href,title:heading,bookTitle:params.articlename||text(document.querySelector('.book-title'))||heading,bookId:String(params.articleid||location.pathname.match(/\/novel\/(\d+)/)?.[1]||''),paragraphs:reason?[]:pageText,reason,next:params.url_next?new URL(params.url_next,location.href).href:null,previous:params.url_previous?new URL(params.url_previous,location.href).href:null,catalog:params.url_index?new URL(params.url_index,location.href).href:null,nextPage:/下一[页頁]/.test(nextLabel),chapters:chaptersUnique,books:booksUnique,volume,ready:document.readyState==='complete'};
+}
+const BLOCKED=['*doubleclick.net*','*googlesyndication.com*','*googletagservices.com*','*google-analytics.com*','*adservice.google.*','*popads.net*','*popcash.net*','*juicyads.com*','*exoclick.com*','*.mp4*','*.webm*','*.m3u8*','*.jpg*','*.jpeg*','*.png*','*.gif*','*.webp*'];
+export class Reader {
+ constructor({data,endpoint,control}={}){this.endpoint=endpoint||control?.endpoint;this.targetFile=join(data,'reader-target.json');if(!control)throw Error('Dedicated browser control required');this.control=control;this.manual=false;this.busy=false;this.last=0;this.pending=null;this.lastURL=null;this.lastResult=null;this.timer=setInterval(()=>{if(!this.busy&&this.last&&Date.now()-this.last>10*60*1000)void this.suspend()},60000);this.timer.unref();}
+ async serial(fn){if(this.busy)throw Error('上一项操作仍在进行，请稍候');this.busy=true;this.last=Date.now();try{return await fn()}finally{this.busy=false;this.last=Date.now()}}
+ async ensure(){
+  try{await this.control.connect()}catch{
+   const r=await fetch(this.endpoint+'/json/new?about:blank',{method:'PUT',signal:AbortSignal.timeout(6000)});if(!r.ok)throw Error('阅读浏览器未就绪');const t=await r.json();if(!/^[A-Fa-f0-9]+$/.test(t.id))throw Error('浏览器窗口无效');await mkdir(dirname(this.targetFile),{recursive:true});await writeFile(this.targetFile,JSON.stringify({id:t.id}),{mode:0o600});this.control.owned.add(t.id);await this.control.connect(t.id);
+  }
+  await this.control.command('Emulation.setDeviceMetricsOverride',{width:390,height:760,deviceScaleFactor:1,mobile:true});
+  await this.control.command('Network.enable');
+  if(this.guardedSocket!==this.control.ws&&this.control.ws){
+   this.guardedSocket=this.control.ws;
+   this.control.ws.addEventListener('message',event=>{let m;try{m=JSON.parse(event.data)}catch{return}if(m.method!=='Fetch.requestPaused')return;const p=m.params;let allow=this.manual;
+    if(!allow)try{const u=new URL(p.request.url);allow=u.protocol==='https:'&&HOSTS.has(u.hostname)&&!['Image','Media','Font'].includes(p.resourceType)}catch{}
+    void this.control.command(allow?'Fetch.continueRequest':'Fetch.failRequest',allow?{requestId:p.requestId}:{requestId:p.requestId,errorReason:'BlockedByClient'}).catch(()=>{});
+   });
+  }
+  await this.control.command('Fetch.enable',{patterns:[{urlPattern:'*',requestStage:'Request'}]});await this.filters();
+ }
+ async filters(){await this.control.command('Network.setBlockedURLs',{urls:this.manual?[]:BLOCKED});}
+ async navigate(raw){const url=sourceURL(raw);await this.ensure();this.control.selected=null;await this.control.connect(await this.control.mainId());await this.filters();await this.control.command('Page.navigate',{url});this.lastURL=url;return this.wait(url)}
+ async read(){const r=await this.control.command('Runtime.evaluate',{expression:`(${snapshot.toString()})()`,returnByValue:true});const s=r.result?.value;if(!s)throw Error('页面尚未就绪，请稍后重试');if(!HOSTS.has(new URL(s.url).hostname))throw Error('当前是外部弹窗，请切回原章节');return s;}
+ async wait(url){
+  const deadline=Date.now()+22000;let latest;
+  while(Date.now()<deadline){
+   if(this.control.dialog)return {kind:'verification',reason:'dialog',url};
+   try{latest=await this.read();if(latest.url!=='about:blank'&&HOSTS.has(new URL(latest.url).hostname)&&latest.ready){if(latest.reason||latest.paragraphs.length||latest.chapters.length||latest.books.length){await new Promise(r=>setTimeout(r,450));return await this.read()}}}catch{}
+   await new Promise(r=>setTimeout(r,450));
+  }
+  if(latest?.reason)return latest;
+  return latest||{url,reason:'source-verification',paragraphs:[]};
+ }
+ async collect(s){
+  if(s.reason||s.kind==='verification'){this.pending??={start:s.url,paragraphs:[],pages:0,title:s.title,bookTitle:s.bookTitle,bookId:s.bookId,previous:s.previous,catalog:s.catalog};return {kind:'verification',reason:s.reason||'source-verification',url:s.url,message:'请在验证窗口完成原站要求，再继续读取。'};}
+  if(!s.paragraphs?.length){
+   if(s.chapters?.length)return {kind:'catalog',...s,paragraphs:undefined};
+   if(s.books?.length)return {kind:'books',title:s.title,url:s.url,books:s.books};
+   return {kind:'verification',url:s.url,message:'未识别到可读正文，请检查原站页面。'};
+  }
+  const p=this.pending||{start:s.url,paragraphs:[],pages:0,title:s.title,bookTitle:s.bookTitle,bookId:s.bookId,previous:s.previous,catalog:s.catalog};this.pending=p;
+  let current=s;
+  for(;;){
+   if(!canJoin(p.start,current.url))throw Error('章节已切换，请重新打开目标章节');
+   p.paragraphs.push(...current.paragraphs);p.pages++;
+   if(p.paragraphs.join('').length>400000)throw Error('章节过长，请分段读取');
+   if(!current.nextPage||!current.next||!canJoin(p.start,current.next)){
+    const value={kind:'chapter',url:p.start,title:p.title,bookTitle:p.bookTitle,bookId:p.bookId,previous:p.previous,next:current.next,catalog:p.catalog,paragraphs:p.paragraphs,pages:p.pages,readAt:new Date().toISOString()};this.pending=null;this.lastResult=value;return value;
+   }
+   if(p.pages>=16)throw Error('章节超过 16 页，请在原站继续阅读');
+   current=await this.navigate(current.next);
+   if(current.reason||current.kind==='verification'||!current.paragraphs?.length)return {kind:'verification',url:current.url,message:'本章后续分页需要验证；已读取部分会保留，验证后继续。'};
+  }
+ }
+ async open(url){return this.serial(async()=>{this.pending=null;this.manual=false;return this.collect(await this.navigate(url))})}
+ async resume(){return this.serial(async()=>{await this.ensure();this.control.selected=null;await this.control.connect(await this.control.mainId());this.manual=false;await this.filters();const s=await this.wait(this.lastURL);return this.collect(s)})}
+ async manualStart({login=false,allowVerification=false}={}){return this.serial(async()=>{await this.ensure();this.manual=allowVerification===true||login===true;await this.filters();if(login){this.pending=null;await this.navigate('https://www.bilinovel.net/login.php')}else if(this.manual)await this.control.action({type:'reload'});return {ok:true,manual:this.manual}})}
+ async screen(){return this.serial(async()=>{await this.ensure();return {...await this.control.screen(),manual:this.manual,width:390,height:760}})}
+ async action(a){return this.serial(async()=>{await this.ensure();await this.control.action(a);return {ok:true}})}
+ async suspend(){this.last=0;this.pending=null;this.lastResult=null;await this.control.closePages().catch(()=>{});this.control.disconnect();}
+ async close(){clearInterval(this.timer);await this.suspend()}
+}
+export function createReader({data,origin,token,control,reader=new Reader({data,control})}){
+ const assets=join(dirname(fileURLToPath(import.meta.url)),'reader-public');
+ const json=(res,status,value)=>{res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'private,no-store'});res.end(JSON.stringify(value))};
+ const handler=async(req,res,url)=>{
+  if(url.pathname!=='/reader'&&!url.pathname.startsWith('/reader/'))return false;
+  if(url.pathname==='/reader'){res.writeHead(308,{location:'/bilipack/reader/'});res.end();return true}
+  try{
+   if(req.method==='POST'&&req.headers.origin!==origin){json(res,403,{error:'请从私有阅读页操作'});return true}
+   const path=url.pathname.slice('/reader'.length);
+   if(req.method==='GET'&&path==='/api/state'){json(res,200,{token,version:'1.0.0',session:'专用浏览器登录状态',idleMinutes:10});return true}
+   let input={};if(req.method==='POST'){let raw='';for await(const b of req){raw+=b;if(raw.length>16000)throw Error('请求过大')}input=JSON.parse(raw||'{}')}
+   let value;
+   if(req.method==='POST'&&path==='/api/open')value=await reader.open(sourceURL(input.url));
+   else if(req.method==='POST'&&path==='/api/resume')value=await reader.resume();
+   else if(req.method==='POST'&&path==='/api/manual')value=await reader.manualStart(input);
+   else if(req.method==='POST'&&path==='/api/action')value=await reader.action(input);
+   else if(req.method==='POST'&&path==='/api/suspend'){await reader.suspend();value={ok:true}}
+   else if(req.method==='POST'&&path==='/api/screen')value=await reader.screen();
+   else if(['GET','HEAD'].includes(req.method)&&['/','/app.js','/style.css','/manifest.webmanifest','/icon.svg'].includes(path)){
+    const name=path==='/'?'index.html':path.slice(1),bytes=await readFile(join(assets,name));res.writeHead(200,{'content-type':name.endsWith('.js')?'text/javascript; charset=utf-8':name.endsWith('.css')?'text/css; charset=utf-8':name.endsWith('.svg')?'image/svg+xml':name.endsWith('.webmanifest')?'application/manifest+json':'text/html; charset=utf-8'});res.end(req.method==='HEAD'?undefined:bytes);return true;
+   }else{json(res,404,{error:'页面不存在'});return true}
+   json(res,200,value);
+  }catch(e){json(res,400,{error:String(e.message).slice(0,180)})}return true;
+ };
+ handler.close=()=>reader.close();return handler;
+}
