@@ -1,0 +1,1706 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-04T18:37:05.366865+00:00",
+  "repositories": [
+    {
+      "name": "20190923-TrainingDataset",
+      "visibility": "public",
+      "url": "https://github.com/XiminHu66/20190923-TrainingDataset",
+      "workflows": [],
+      "artifacts": {
+        "bytes": 0,
+        "count": 0,
+        "partial": false
+      },
+      "note": "公开仓库 · 0 个工作流"
+    },
+    {
+      "name": "3C-scout",
+      "visibility": "public",
+      "url": "https://github.com/XiminHu66/3C-scout",
+      "workflows": [
+        {
+          "name": "Bounded artifact maintenance",
+          "path": ".github/workflows/actions-maintenance.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "8 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/3C-scout/blob/main/.github/workflows/actions-maintenance.yml"
+        },
+        {
+          "name": "Actions resource policy",
+          "path": ".github/workflows/actions-policy.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "pull_request",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "3 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/3C-scout/blob/main/.github/workflows/actions-policy.yml"
+        },
+        {
+          "name": "Deploy legacy page (canonical PT data)",
+          "path": ".github/workflows/daily-refresh.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "5 分钟",
+          "retention": "1 天",
+          "url": "https://github.com/XiminHu66/3C-scout/blob/main/.github/workflows/daily-refresh.yml"
+        }
+      ],
+      "artifacts": {
+        "bytes": 0,
+        "count": 0,
+        "partial": false
+      },
+      "note": "公开仓库 · 3 个工作流"
+    },
+    {
+      "name": "Daily-Nexus",
+      "visibility": "public",
+      "url": "https://github.com/XiminHu66/Daily-Nexus",
+      "workflows": [
+        {
+          "name": "pages-build-deployment",
+          "path": "dynamic/pages/pages-build-deployment",
+          "state": "active",
+          "events": [],
+          "crons": [],
+          "runners": [],
+          "note": "未取得 YAML，触发方式待核实",
+          "url": "https://github.com/XiminHu66/Daily-Nexus/actions/workflows/pages/pages-build-deployment"
+        }
+      ],
+      "artifacts": {
+        "bytes": 0,
+        "count": 0,
+        "partial": false
+      },
+      "note": "公开仓库 · 1 个工作流"
+    },
+    {
+      "name": "PT-Universe",
+      "visibility": "public",
+      "url": "https://github.com/XiminHu66/PT-Universe",
+      "workflows": [
+        {
+          "name": "17 - Read-only Cloudflare Tunnel integration preflight",
+          "path": ".github/workflows/17-tunnel-preflight.yml",
+          "state": "active",
+          "events": [
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-24.04"
+          ],
+          "timeout": "4 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/17-tunnel-preflight.yml"
+        },
+        {
+          "name": "18 - Read-only Workers VPC availability check",
+          "path": ".github/workflows/18-workers-vpc-preflight.yml",
+          "state": "active",
+          "events": [
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-24.04"
+          ],
+          "timeout": "4 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/18-workers-vpc-preflight.yml"
+        },
+        {
+          "name": "Hybrid metadata lifecycle acceptance (streaming OFF)",
+          "path": ".github/workflows/21-stage-hybrid-worker.yml",
+          "state": "active",
+          "events": [
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-24.04"
+          ],
+          "timeout": "14 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/21-stage-hybrid-worker.yml"
+        },
+        {
+          "name": "Bounded artifact maintenance",
+          "path": ".github/workflows/actions-maintenance.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "8 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/actions-maintenance.yml"
+        },
+        {
+          "name": "Actions resource policy",
+          "path": ".github/workflows/actions-policy.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "pull_request",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "3 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/actions-policy.yml"
+        },
+        {
+          "name": "AnythingLLM Benchmark Lab checks",
+          "path": ".github/workflows/anythingllm-benchmark-check.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "pull_request"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "8 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/anythingllm-benchmark-check.yml"
+        },
+        {
+          "name": "Build Local Video Downloader v2 (independent Chrome MV3)",
+          "path": ".github/workflows/build-local-video-downloader-ffmpeg.yml",
+          "state": "active",
+          "events": [],
+          "crons": [],
+          "runners": [],
+          "note": "未取得 YAML，触发方式待核实",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/build-local-video-downloader-ffmpeg.yml"
+        },
+        {
+          "name": "Content hub validation",
+          "path": ".github/workflows/content-hub-check.yml",
+          "state": "active",
+          "events": [
+            "pull_request",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "6 分钟 / 8 分钟",
+          "retention": "3 天",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/content-hub-check.yml"
+        },
+        {
+          "name": "Daily Nexus interaction validation",
+          "path": ".github/workflows/daily-nexus-check.yml",
+          "state": "active",
+          "events": [
+            "pull_request",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "8 分钟",
+          "retention": "3 天",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/daily-nexus-check.yml"
+        },
+        {
+          "name": "Decision tools validation",
+          "path": ".github/workflows/decision-tools-check.yml",
+          "state": "active",
+          "events": [
+            "pull_request",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "12 分钟 / 8 分钟",
+          "retention": "3 天",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/decision-tools-check.yml"
+        },
+        {
+          "name": "Deploy Pocket Nexus Worker",
+          "path": ".github/workflows/deploy-pocket-nexus-worker.yml",
+          "state": "active",
+          "events": [
+            "workflow_dispatch",
+            "push"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "10 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/deploy-pocket-nexus-worker.yml"
+        },
+        {
+          "name": "Deploy PT Universe Worker",
+          "path": ".github/workflows/deploy-worker.yml",
+          "state": "active",
+          "events": [
+            "workflow_dispatch",
+            "push"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "15 分钟",
+          "retention": "3 天",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/deploy-worker.yml"
+        },
+        {
+          "name": "Knowledge Garden validation",
+          "path": ".github/workflows/knowledge-garden-check.yml",
+          "state": "active",
+          "events": [
+            "pull_request",
+            "push"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "15 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/knowledge-garden-check.yml"
+        },
+        {
+          "name": "Research tools validation",
+          "path": ".github/workflows/labs-check.yml",
+          "state": "active",
+          "events": [
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "20 分钟",
+          "retention": "3 天",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/labs-check.yml"
+        },
+        {
+          "name": "Media Vault validation",
+          "path": ".github/workflows/media-vault-check.yml",
+          "state": "active",
+          "events": [
+            "pull_request"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "12 分钟 / 20 分钟",
+          "retention": "3 天",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/media-vault-check.yml"
+        },
+        {
+          "name": "Monitor Center validation",
+          "path": ".github/workflows/monitor-center-check.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "8 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/monitor-center-check.yml"
+        },
+        {
+          "name": "Deploy PT Universe",
+          "path": ".github/workflows/pages.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "workflow_dispatch",
+            "workflow_run"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "15 分钟",
+          "retention": "1 天",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/pages.yml"
+        },
+        {
+          "name": "Refresh 3C Scout data",
+          "path": ".github/workflows/refresh-3c.yml",
+          "state": "active",
+          "events": [
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "20 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/refresh-3c.yml"
+        },
+        {
+          "name": "Refresh public investment disclosures",
+          "path": ".github/workflows/refresh-investment.yml",
+          "state": "active",
+          "events": [
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "10 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/refresh-investment.yml"
+        },
+        {
+          "name": "Refresh Research Tools",
+          "path": ".github/workflows/refresh-labs.yml",
+          "state": "active",
+          "events": [
+            "schedule",
+            "push",
+            "workflow_dispatch"
+          ],
+          "crons": [
+            "35 0,4,8,12,16,20 * * * · America/Los_Angeles",
+            "35 9 * * * · America/Los_Angeles"
+          ],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "12 分钟 / 15 分钟 / 5 分钟",
+          "retention": "3 天",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/refresh-labs.yml"
+        },
+        {
+          "name": "Refresh Media Vault",
+          "path": ".github/workflows/refresh-media-vault.yml",
+          "state": "active",
+          "events": [
+            "schedule",
+            "workflow_dispatch",
+            "push"
+          ],
+          "crons": [
+            "23 8,9 * * * · America/Los_Angeles"
+          ],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "15 分钟 / 20 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/refresh-media-vault.yml"
+        },
+        {
+          "name": "Refresh QF data (paused)",
+          "path": ".github/workflows/refresh-qf.yml",
+          "state": "active",
+          "events": [
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "15 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/refresh-qf.yml"
+        },
+        {
+          "name": "Refresh Stock data",
+          "path": ".github/workflows/refresh-stock.yml",
+          "state": "active",
+          "events": [
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "35 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/refresh-stock.yml"
+        },
+        {
+          "name": "Refresh Tsugi games",
+          "path": ".github/workflows/refresh-tsugi-games.yml",
+          "state": "active",
+          "events": [
+            "workflow_dispatch",
+            "schedule"
+          ],
+          "crons": [
+            "31 8 * * * · America/Los_Angeles"
+          ],
+          "runners": [
+            "ubuntu-24.04"
+          ],
+          "timeout": "25 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/refresh-tsugi-games.yml"
+        },
+        {
+          "name": "Refresh Tsugi reading/music (manual only)",
+          "path": ".github/workflows/refresh-tsugi.yml",
+          "state": "active",
+          "events": [
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "25 分钟",
+          "retention": "3 天",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/refresh-tsugi.yml"
+        },
+        {
+          "name": "Research Workbench validation",
+          "path": ".github/workflows/research-check.yml",
+          "state": "active",
+          "events": [
+            "pull_request",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "10 分钟",
+          "retention": "3 天",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/research-check.yml"
+        },
+        {
+          "name": "Deploy RSS Orbit hotspot addon",
+          "path": ".github/workflows/rss-hot-topics.yml",
+          "state": "active",
+          "events": [
+            "workflow_dispatch",
+            "push"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-24.04"
+          ],
+          "timeout": "12 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/rss-hot-topics.yml"
+        },
+        {
+          "name": "Production security audit",
+          "path": ".github/workflows/security-audit.yml",
+          "state": "active",
+          "events": [
+            "workflow_dispatch",
+            "pull_request"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "8 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/security-audit.yml"
+        },
+        {
+          "name": "Self Learning checks",
+          "path": ".github/workflows/self-learning-check.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "15 分钟",
+          "retention": "3 天",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/self-learning-check.yml"
+        },
+        {
+          "name": "Todo Dashboard validation",
+          "path": ".github/workflows/todo-check.yml",
+          "state": "active",
+          "events": [
+            "pull_request",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "10 分钟",
+          "retention": "3 天",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/todo-check.yml"
+        },
+        {
+          "name": "VPS workspace validation",
+          "path": ".github/workflows/vps-workspace-check.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "8 分钟",
+          "retention": "3 天",
+          "url": "https://github.com/XiminHu66/PT-Universe/blob/main/.github/workflows/vps-workspace-check.yml"
+        }
+      ],
+      "artifacts": {
+        "bytes": 282884276,
+        "count": 79,
+        "partial": false
+      },
+      "note": "公开仓库 · 31 个工作流"
+    },
+    {
+      "name": "Pocket_Nexus",
+      "visibility": "public",
+      "url": "https://github.com/XiminHu66/Pocket_Nexus",
+      "workflows": [
+        {
+          "name": "Bounded artifact maintenance",
+          "path": ".github/workflows/actions-maintenance.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "8 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/Pocket_Nexus/blob/main/.github/workflows/actions-maintenance.yml"
+        },
+        {
+          "name": "Actions resource policy",
+          "path": ".github/workflows/actions-policy.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "pull_request",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "3 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/Pocket_Nexus/blob/main/.github/workflows/actions-policy.yml"
+        },
+        {
+          "name": "Build + Web Flasher",
+          "path": ".github/workflows/build.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "pull_request",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "15 分钟",
+          "retention": "1 天 / 3 天",
+          "url": "https://github.com/XiminHu66/Pocket_Nexus/blob/main/.github/workflows/build.yml"
+        }
+      ],
+      "artifacts": {
+        "bytes": 2491806,
+        "count": 2,
+        "partial": false
+      },
+      "note": "公开仓库 · 3 个工作流"
+    },
+    {
+      "name": "QF-tool",
+      "visibility": "public",
+      "url": "https://github.com/XiminHu66/QF-tool",
+      "workflows": [
+        {
+          "name": "Bounded artifact maintenance",
+          "path": ".github/workflows/actions-maintenance.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "8 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/QF-tool/blob/main/.github/workflows/actions-maintenance.yml"
+        },
+        {
+          "name": "Actions resource policy",
+          "path": ".github/workflows/actions-policy.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "pull_request",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "3 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/QF-tool/blob/main/.github/workflows/actions-policy.yml"
+        },
+        {
+          "name": "Deploy legacy page (canonical PT data)",
+          "path": ".github/workflows/daily-refresh.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "5 分钟",
+          "retention": "1 天",
+          "url": "https://github.com/XiminHu66/QF-tool/blob/main/.github/workflows/daily-refresh.yml"
+        }
+      ],
+      "artifacts": {
+        "bytes": 0,
+        "count": 0,
+        "partial": false
+      },
+      "note": "公开仓库 · 3 个工作流"
+    },
+    {
+      "name": "UW-Data-analysis",
+      "visibility": "public",
+      "url": "https://github.com/XiminHu66/UW-Data-analysis",
+      "workflows": [],
+      "artifacts": {
+        "bytes": 0,
+        "count": 0,
+        "partial": false
+      },
+      "note": "公开仓库 · 0 个工作流"
+    },
+    {
+      "name": "XiminHu66.github.io",
+      "visibility": "public",
+      "url": "https://github.com/XiminHu66/XiminHu66.github.io",
+      "workflows": [],
+      "artifacts": {
+        "bytes": 0,
+        "count": 0,
+        "partial": false
+      },
+      "note": "公开仓库 · 0 个工作流"
+    },
+    {
+      "name": "bili_novel_packer_folk",
+      "visibility": "public",
+      "url": "https://github.com/XiminHu66/bili_novel_packer_folk",
+      "workflows": [
+        {
+          "name": "Bounded artifact maintenance",
+          "path": ".github/workflows/actions-maintenance.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "8 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/bili_novel_packer_folk/blob/master/.github/workflows/actions-maintenance.yml"
+        },
+        {
+          "name": "Actions resource policy",
+          "path": ".github/workflows/actions-policy.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "pull_request",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "3 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/bili_novel_packer_folk/blob/master/.github/workflows/actions-policy.yml"
+        },
+        {
+          "name": "Local Windows download package",
+          "path": ".github/workflows/local-build.yml",
+          "state": "active",
+          "events": [],
+          "crons": [],
+          "runners": [],
+          "note": "未取得 YAML，触发方式待核实",
+          "url": "https://github.com/XiminHu66/bili_novel_packer_folk/blob/master/.github/workflows/local-build.yml"
+        },
+        {
+          "name": "Build & Release",
+          "path": ".github/workflows/release.yaml",
+          "state": "active",
+          "events": [
+            "push",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "${{ matrix.os }}",
+            "ubuntu-latest"
+          ],
+          "timeout": "15 分钟",
+          "retention": "3 天",
+          "url": "https://github.com/XiminHu66/bili_novel_packer_folk/blob/master/.github/workflows/release.yaml"
+        }
+      ],
+      "artifacts": {
+        "bytes": 37267370,
+        "count": 8,
+        "partial": false
+      },
+      "note": "公开仓库 · 4 个工作流"
+    },
+    {
+      "name": "deskboard",
+      "visibility": "public",
+      "url": "https://github.com/XiminHu66/deskboard",
+      "workflows": [
+        {
+          "name": "pages-build-deployment",
+          "path": "dynamic/pages/pages-build-deployment",
+          "state": "active",
+          "events": [],
+          "crons": [],
+          "runners": [],
+          "note": "未取得 YAML，触发方式待核实",
+          "url": "https://github.com/XiminHu66/deskboard/actions/workflows/pages/pages-build-deployment"
+        }
+      ],
+      "artifacts": {
+        "bytes": 0,
+        "count": 0,
+        "partial": false
+      },
+      "note": "公开仓库 · 1 个工作流"
+    },
+    {
+      "name": "meal-orbit",
+      "visibility": "public",
+      "url": "https://github.com/XiminHu66/meal-orbit",
+      "workflows": [
+        {
+          "name": "pages-build-deployment",
+          "path": "dynamic/pages/pages-build-deployment",
+          "state": "active",
+          "events": [],
+          "crons": [],
+          "runners": [],
+          "note": "未取得 YAML，触发方式待核实",
+          "url": "https://github.com/XiminHu66/meal-orbit/actions/workflows/pages/pages-build-deployment"
+        }
+      ],
+      "artifacts": {
+        "bytes": 0,
+        "count": 0,
+        "partial": false
+      },
+      "note": "公开仓库 · 1 个工作流"
+    },
+    {
+      "name": "molecules",
+      "visibility": "public",
+      "url": "https://github.com/XiminHu66/molecules",
+      "workflows": [],
+      "artifacts": {
+        "bytes": 0,
+        "count": 0,
+        "partial": false
+      },
+      "note": "公开仓库 · 0 个工作流"
+    },
+    {
+      "name": "stock-alert",
+      "visibility": "public",
+      "url": "https://github.com/XiminHu66/stock-alert",
+      "workflows": [
+        {
+          "name": "Bounded artifact maintenance",
+          "path": ".github/workflows/actions-maintenance.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "8 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/stock-alert/blob/main/.github/workflows/actions-maintenance.yml"
+        },
+        {
+          "name": "Actions resource policy",
+          "path": ".github/workflows/actions-policy.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "pull_request",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "3 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/stock-alert/blob/main/.github/workflows/actions-policy.yml"
+        },
+        {
+          "name": "Deploy legacy page (canonical PT data)",
+          "path": ".github/workflows/market-data.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "5 分钟",
+          "retention": "1 天",
+          "url": "https://github.com/XiminHu66/stock-alert/blob/main/.github/workflows/market-data.yml"
+        },
+        {
+          "name": "Deploy Stock Alert to Pages",
+          "path": ".github/workflows/pages.yml",
+          "state": "active",
+          "events": [
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "15 分钟",
+          "retention": "1 天",
+          "url": "https://github.com/XiminHu66/stock-alert/blob/main/.github/workflows/pages.yml"
+        },
+        {
+          "name": "Refresh Quotes",
+          "path": ".github/workflows/quotes.yml",
+          "state": "active",
+          "events": [
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "3 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/stock-alert/blob/main/.github/workflows/quotes.yml"
+        }
+      ],
+      "artifacts": {
+        "bytes": 0,
+        "count": 0,
+        "partial": false
+      },
+      "note": "公开仓库 · 5 个工作流"
+    },
+    {
+      "name": "toy-dg",
+      "visibility": "public",
+      "url": "https://github.com/XiminHu66/toy-dg",
+      "workflows": [
+        {
+          "name": "Bounded artifact maintenance",
+          "path": ".github/workflows/actions-maintenance.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "8 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/toy-dg/blob/main/.github/workflows/actions-maintenance.yml"
+        },
+        {
+          "name": "Actions resource policy",
+          "path": ".github/workflows/actions-policy.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "pull_request",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "3 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/toy-dg/blob/main/.github/workflows/actions-policy.yml"
+        },
+        {
+          "name": "Godot prototype checks and builds",
+          "path": ".github/workflows/build.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-24.04",
+            "windows-2022"
+          ],
+          "timeout": "10 分钟 / 20 分钟",
+          "retention": "3 天",
+          "url": "https://github.com/XiminHu66/toy-dg/blob/main/.github/workflows/build.yml"
+        }
+      ],
+      "artifacts": {
+        "bytes": 0,
+        "count": 0,
+        "partial": false
+      },
+      "note": "公开仓库 · 3 个工作流"
+    },
+    {
+      "name": "tsugi-checker",
+      "visibility": "public",
+      "url": "https://github.com/XiminHu66/tsugi-checker",
+      "workflows": [
+        {
+          "name": "Bounded artifact maintenance",
+          "path": ".github/workflows/actions-maintenance.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "8 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/tsugi-checker/blob/main/.github/workflows/actions-maintenance.yml"
+        },
+        {
+          "name": "Actions resource policy",
+          "path": ".github/workflows/actions-policy.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "pull_request",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "3 分钟",
+          "retention": "无上传",
+          "url": "https://github.com/XiminHu66/tsugi-checker/blob/main/.github/workflows/actions-policy.yml"
+        },
+        {
+          "name": "Deploy legacy page (canonical PT data)",
+          "path": ".github/workflows/update-feed.yml",
+          "state": "active",
+          "events": [
+            "push",
+            "workflow_dispatch"
+          ],
+          "crons": [],
+          "runners": [
+            "ubuntu-latest"
+          ],
+          "timeout": "5 分钟",
+          "retention": "1 天",
+          "url": "https://github.com/XiminHu66/tsugi-checker/blob/main/.github/workflows/update-feed.yml"
+        }
+      ],
+      "artifacts": {
+        "bytes": 0,
+        "count": 0,
+        "partial": false
+      },
+      "note": "公开仓库 · 3 个工作流"
+    }
+  ],
+  "projects": [
+    {
+      "name": "pocket-nexus-api",
+      "platform": "Cloudflare",
+      "note": "仓库配置 · services",
+      "detail": "Cron: 无；线上账户列表与实际用量未连接。",
+      "url": "https://github.com/XiminHu66/PT-Universe/blob/main/workers/pocket-nexus-api/wrangler.jsonc"
+    },
+    {
+      "name": "pt-universe-api",
+      "platform": "Cloudflare",
+      "note": "仓库配置 · d1_databases, kv_namespaces, browser, queues",
+      "detail": "Cron: 31 15,16 * * * / */15 * * * *；线上账户列表与实际用量未连接。",
+      "url": "https://github.com/XiminHu66/PT-Universe/blob/main/workers/pt-universe-api/wrangler.jsonc"
+    },
+    {
+      "name": "pt-media-hybrid",
+      "platform": "Cloudflare",
+      "note": "仓库配置 · d1_databases, durable_objects",
+      "detail": "Cron: 无；线上账户列表与实际用量未连接。",
+      "url": "https://github.com/XiminHu66/PT-Universe/blob/main/workers/media-vault-hybrid/wrangler.jsonc"
+    },
+    {
+      "name": "rss-orbit-proxy",
+      "platform": "Cloudflare",
+      "note": "仓库配置 · kv_namespaces",
+      "detail": "Cron: 0 * * * *；线上账户列表与实际用量未连接。",
+      "url": "https://github.com/XiminHu66/PT-Universe/blob/main/workers/rss-orbit-proxy/wrangler.jsonc"
+    },
+    {
+      "name": "3C Scout · 新品与好价雷达",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · 3c-scout",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/3c-scout/"
+    },
+    {
+      "name": "AnythingLLM · PT Universe",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · anythingllm",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/anythingllm/"
+    },
+    {
+      "name": "Ask GPT · PT Universe",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · ask-gpt",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/ask-gpt/"
+    },
+    {
+      "name": "Game Systems Studio · 卡牌沙盘",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · card-lab",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/card-lab/"
+    },
+    {
+      "name": "Check Desk · 核查台",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · check-desk",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/check-desk/"
+    },
+    {
+      "name": "Daily Nexus",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · daily-nexus",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/daily-nexus/"
+    },
+    {
+      "name": "Deal Lab · PT Universe",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · deal-lab",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/deal-lab/"
+    },
+    {
+      "name": "DeskBoard v9.5 · iPad Dashboard",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · deskboard",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/deskboard/"
+    },
+    {
+      "name": "财报阅读训练 · PT Universe",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · earnings-dojo",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/earnings-dojo/"
+    },
+    {
+      "name": "大西雅图活动地图 · PT Universe",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · eastside-weekend",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/eastside-weekend/"
+    },
+    {
+      "name": "最终幻想 共鸣 · 中文攻略",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · ff-guide",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/ff-guide/"
+    },
+    {
+      "name": "红黑榜 · PT Universe",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · food-ledger",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/food-ledger/"
+    },
+    {
+      "name": "Game Systems Studio · PT Universe",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · game-systems-studio",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/game-systems-studio/"
+    },
+    {
+      "name": "Idea Pad · 随手记",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · idea-pad",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/idea-pad/"
+    },
+    {
+      "name": "投资工作台 · PT Universe",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · investment-desk",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/investment-desk/"
+    },
+    {
+      "name": "知识库 · PT Tool",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · knowledge-garden",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/knowledge-garden/"
+    },
+    {
+      "name": "周末与吃饭 · PT Universe",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · life-desk",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/life-desk/"
+    },
+    {
+      "name": "今天吃什么 · Food Orbit",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · meal-orbit",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/meal-orbit/"
+    },
+    {
+      "name": "Media Vault · 小说阅读与下载",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · media-vault",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/media-vault/"
+    },
+    {
+      "name": "监控中心 · PT Universe",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · monitor-center",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/monitor-center/"
+    },
+    {
+      "name": "PT Intelligence · 实验已暂停",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · pt-intelligence",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/pt-intelligence/"
+    },
+    {
+      "name": "Idea Pad · 项目管理",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · pt-todo-dashboard",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/pt-todo-dashboard/"
+    },
+    {
+      "name": "QF Tool",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · qf-tool",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/qf-tool/"
+    },
+    {
+      "name": "Research & Knowledge Workbench · PT Universe",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · research-workbench",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/research-workbench/"
+    },
+    {
+      "name": "资源与额度 · PT Universe",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · resource-center",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/resource-center/"
+    },
+    {
+      "name": "房间跟练 · Room Workout",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · room-workout",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/room-workout/"
+    },
+    {
+      "name": "RSS Orbit · 你的信息收件箱",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · rss-dashboard",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/rss-dashboard/"
+    },
+    {
+      "name": "Self Learning · PT Universe",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · self-learning",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/self-learning/"
+    },
+    {
+      "name": "Signal Audit · PT Universe",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · signal-audit",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/signal-audit/"
+    },
+    {
+      "name": "Stock Alert · 交易观察台",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · stock-alert",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/stock-alert/"
+    },
+    {
+      "name": "作品与话题 · Daily Nexus",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · story-hub",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/story-hub/"
+    },
+    {
+      "name": "财报与投资论点 · PT Universe",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · thesis-lab",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/thesis-lab/"
+    },
+    {
+      "name": "Tsugi · ACG 追踪中心",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · tsugi-checker",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/tsugi-checker/"
+    },
+    {
+      "name": "Watch Inbox · PT Universe",
+      "platform": "Pages",
+      "note": "PT Universe 子页面 · watch-inbox",
+      "detail": "随现有 Pages 分发，不单独新增后端。部分入口为整合后的兼容跳转。",
+      "url": "https://ximinhu66.github.io/PT-Universe/apps/watch-inbox/"
+    }
+  ],
+  "quotas": [
+    {
+      "id": "gh-storage",
+      "provider": "GitHub Actions",
+      "name": "Actions 账单存储",
+      "unit": "GB",
+      "limit": 0.5,
+      "period": "month",
+      "url": "https://github.com/settings/billing",
+      "impact": "暂缓大产物上传与重复打包，核对账单后清理可删除的构建副本。",
+      "note": "控制台为四舍五入显示；不是所有仓库当前文件大小之和。",
+      "used": null,
+      "source": "未连接",
+      "observedAt": null
+    },
+    {
+      "id": "gh-compute",
+      "provider": "GitHub Actions",
+      "name": "Actions 计算额度",
+      "unit": "USD",
+      "limit": 12,
+      "period": "month",
+      "url": "https://github.com/settings/billing",
+      "impact": "暂缓 Windows 发布和重复 CI，保留轻量必要检查。",
+      "note": "计算额度采用本账户当前账单口径。",
+      "used": null,
+      "source": "未连接",
+      "observedAt": null,
+      "cumulative": true
+    },
+    {
+      "id": "cf-requests",
+      "provider": "Cloudflare",
+      "name": "Workers 请求",
+      "unit": "次",
+      "limit": 100000,
+      "period": "day",
+      "url": "https://dash.cloudflare.com/",
+      "impact": "优先暂停低频自动采集，减少重复 API 和日志请求。",
+      "note": "",
+      "used": null,
+      "source": "未连接",
+      "observedAt": null
+    },
+    {
+      "id": "cf-kv-read",
+      "provider": "Cloudflare",
+      "name": "KV 读取",
+      "unit": "次",
+      "limit": 100000,
+      "period": "day",
+      "url": "https://dash.cloudflare.com/",
+      "impact": "到达免费日限额后该类操作可能失败，优先减少写入与重复读取。",
+      "note": "",
+      "used": null,
+      "source": "未连接",
+      "observedAt": null
+    },
+    {
+      "id": "cf-kv-write",
+      "provider": "Cloudflare",
+      "name": "KV 写入",
+      "unit": "次",
+      "limit": 1000,
+      "period": "day",
+      "url": "https://dash.cloudflare.com/",
+      "impact": "到达免费日限额后该类操作可能失败，优先减少写入与重复读取。",
+      "note": "",
+      "used": null,
+      "source": "未连接",
+      "observedAt": null
+    },
+    {
+      "id": "cf-kv-delete",
+      "provider": "Cloudflare",
+      "name": "KV 删除",
+      "unit": "次",
+      "limit": 1000,
+      "period": "day",
+      "url": "https://dash.cloudflare.com/",
+      "impact": "到达免费日限额后该类操作可能失败，优先减少写入与重复读取。",
+      "note": "",
+      "used": null,
+      "source": "未连接",
+      "observedAt": null
+    },
+    {
+      "id": "cf-kv-list",
+      "provider": "Cloudflare",
+      "name": "KV 列举",
+      "unit": "次",
+      "limit": 1000,
+      "period": "day",
+      "url": "https://dash.cloudflare.com/",
+      "impact": "到达免费日限额后该类操作可能失败，优先减少写入与重复读取。",
+      "note": "",
+      "used": null,
+      "source": "未连接",
+      "observedAt": null
+    },
+    {
+      "id": "cf-kv-storage",
+      "provider": "Cloudflare",
+      "name": "KV 存储",
+      "unit": "GB",
+      "limit": 1,
+      "period": "point",
+      "url": "https://dash.cloudflare.com/",
+      "impact": "清理过期缓存或停止增加数据。",
+      "note": "",
+      "used": null,
+      "source": "未连接",
+      "observedAt": null
+    },
+    {
+      "id": "cf-d1-read",
+      "provider": "Cloudflare",
+      "name": "D1 行读取",
+      "unit": "行",
+      "limit": 5000000,
+      "period": "day",
+      "url": "https://dash.cloudflare.com/",
+      "impact": "减少全表扫描和重复读取；达到日限额可能无法查询。",
+      "note": "",
+      "used": null,
+      "source": "未连接",
+      "observedAt": null
+    },
+    {
+      "id": "cf-d1-write",
+      "provider": "Cloudflare",
+      "name": "D1 行写入",
+      "unit": "行",
+      "limit": 100000,
+      "period": "day",
+      "url": "https://dash.cloudflare.com/",
+      "impact": "减少重复写入和高频日志；达到日限额可能无法写入。",
+      "note": "",
+      "used": null,
+      "source": "未连接",
+      "observedAt": null
+    },
+    {
+      "id": "cf-d1-storage",
+      "provider": "Cloudflare",
+      "name": "D1 账户存储",
+      "unit": "GB",
+      "limit": 5,
+      "period": "point",
+      "url": "https://dash.cloudflare.com/",
+      "impact": "核对各数据库大小；账户总量与单库限制分开判断。",
+      "note": "",
+      "used": null,
+      "source": "未连接",
+      "observedAt": null
+    },
+    {
+      "id": "cf-d1-db-storage",
+      "provider": "Cloudflare",
+      "name": "D1 单库大小",
+      "unit": "MB",
+      "limit": 500,
+      "period": "point",
+      "url": "https://dash.cloudflare.com/",
+      "impact": "优先检查 pt-universe-db；Free 单库限制为 500 MB。",
+      "note": "",
+      "used": null,
+      "source": "未连接",
+      "observedAt": null
+    },
+    {
+      "id": "cf-queues",
+      "provider": "Cloudflare",
+      "name": "Queues 操作",
+      "unit": "次",
+      "limit": 10000,
+      "period": "day",
+      "url": "https://dash.cloudflare.com/",
+      "impact": "控制重复队列和重试；一条小消息通常涉及写、读、删三个操作。",
+      "note": "",
+      "used": null,
+      "source": "未连接",
+      "observedAt": null
+    },
+    {
+      "id": "cf-browser",
+      "provider": "Cloudflare",
+      "name": "浏览器运行时长",
+      "unit": "分钟",
+      "limit": 10,
+      "period": "day",
+      "url": "https://dash.cloudflare.com/",
+      "impact": "优先暂停浏览器抓取，保留轻量 HTTP 来源。",
+      "note": "",
+      "used": null,
+      "source": "未连接",
+      "observedAt": null
+    },
+    {
+      "id": "cf-crons",
+      "provider": "Cloudflare",
+      "name": "账户 Cron 数量",
+      "unit": "个",
+      "limit": 5,
+      "period": "point",
+      "url": "https://dash.cloudflare.com/",
+      "impact": "新增定时器前核对账户总数。",
+      "note": "当前仓库配置已发现 3 个；未连接账户，不能当成完整用量。",
+      "used": null,
+      "source": "未连接",
+      "observedAt": null
+    },
+    {
+      "id": "vps-memory",
+      "provider": "Oracle VPS",
+      "name": "内存",
+      "unit": "GiB",
+      "limit": null,
+      "period": "point",
+      "url": "https://pt-vps-tools.h1nano.chatgpt.site/hub/metrics/",
+      "impact": "达到红线时暂缓新增容器或下载，先恢复 15% 可用余量。",
+      "note": "",
+      "used": null,
+      "source": "未连接",
+      "observedAt": null,
+      "maxAgeHours": 0.05
+    },
+    {
+      "id": "vps-disk",
+      "provider": "Oracle VPS",
+      "name": "根盘",
+      "unit": "GiB",
+      "limit": null,
+      "period": "point",
+      "url": "https://pt-vps-tools.h1nano.chatgpt.site/hub/metrics/",
+      "impact": "达到红线时暂缓新增容器或下载，先恢复 15% 可用余量。",
+      "note": "",
+      "used": null,
+      "source": "未连接",
+      "observedAt": null,
+      "maxAgeHours": 0.05
+    },
+    {
+      "id": "vps-cpu",
+      "provider": "Oracle VPS",
+      "name": "CPU 使用率",
+      "unit": "%",
+      "limit": 100,
+      "period": "point",
+      "url": "https://pt-vps-tools.h1nano.chatgpt.site/hub/metrics/",
+      "impact": "CPU 短时峰值不等于额度耗尽；结合原有趋势判断是否持续过载。",
+      "note": "",
+      "used": null,
+      "source": "未连接",
+      "observedAt": null,
+      "maxAgeHours": 0.05
+    },
+    {
+      "id": "oci-egress",
+      "provider": "Oracle VPS",
+      "name": "月度出站流量",
+      "unit": "GiB",
+      "limit": null,
+      "period": "month",
+      "url": "https://cloud.oracle.com/",
+      "impact": "需 Oracle 控制台的真实流量与套餐额度；当前网卡速度不能代替月度账单。",
+      "note": "",
+      "used": null,
+      "source": "未连接",
+      "observedAt": null
+    },
+    {
+      "id": "gemini",
+      "provider": "第三方 API",
+      "name": "Gemini API",
+      "unit": "请求",
+      "limit": null,
+      "period": "month",
+      "url": "https://aistudio.google.com/usage",
+      "impact": "未取得真实用量和上限，请先核对供应商控制台。",
+      "note": "各模型 RPM、RPD、TPM 独立，不能把单模型用量当成账户总额度。",
+      "used": null,
+      "source": "未连接",
+      "observedAt": null
+    },
+    {
+      "id": "openrouter",
+      "provider": "第三方 API",
+      "name": "OpenRouter",
+      "unit": "USD",
+      "limit": null,
+      "period": "month",
+      "url": "https://openrouter.ai/settings/credits",
+      "impact": "未取得真实用量和上限，请先核对供应商控制台。",
+      "note": "模型评测与聊天共用账号；余额和免费模型请求上限需分别核对。",
+      "used": null,
+      "source": "未连接",
+      "observedAt": null
+    },
+    {
+      "id": "serpapi",
+      "provider": "第三方 API",
+      "name": "SerpApi",
+      "unit": "次",
+      "limit": null,
+      "period": "month",
+      "url": "https://serpapi.com/dashboard",
+      "impact": "未取得真实用量和上限，请先核对供应商控制台。",
+      "note": "商品比价依赖；以实际账户套餐为准，不预设已注册或已开通。",
+      "used": null,
+      "source": "未连接",
+      "observedAt": null
+    },
+    {
+      "id": "itad",
+      "provider": "第三方 API",
+      "name": "IsThereAnyDeal",
+      "unit": "次",
+      "limit": null,
+      "period": "month",
+      "url": "https://isthereanydeal.com/apps/my/",
+      "impact": "未取得真实用量和上限，请先核对供应商控制台。",
+      "note": "游戏比价 API；内部工具调用计数不等同供应商总用量。",
+      "used": null,
+      "source": "未连接",
+      "observedAt": null
+    }
+  ],
+  "providerNotes": {
+    "GitHub Actions": "GitHub Free · 账户共享额度。账单存储按小时累计，产物瞬时占用与月度账单分别显示。",
+    "Cloudflare": "参考 Workers Free 官方上限；尚未取得账户套餐与实际用量，不能据此判断剩余额度。",
+    "Oracle VPS": "复用现有监控采样 · 内存与磁盘默认保留 15% 余量。",
+    "第三方 API": "只记录已接入的资源依赖；套餐和真实余额未取得时保留未知。"
+  }
+}
