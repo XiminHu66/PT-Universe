@@ -35,3 +35,6 @@ const serpReader=new ResourceCollector({clock:()=>now,cache:new Map(),inflight:n
 }});
 const serp=await serpReader.serpapi(snapshot,{CHAT_CONNECT_PRIVATE_JWK:testJwk});assert.equal(serp.quotas[0].used,50);assert.equal(serp.quotas[0].limit,250);assert.equal(serpCalls.length,2);assert.ok(!JSON.stringify(serp).includes('Bearer'));
 console.log('PASS: SerpApi reuses signed owner authority only for account metadata, with no searches or browser tokens.');
+const receiverSafe=new ResourceCollector({cache:new Map(),inflight:new Map(),fetcher:async function(){assert.equal(this,globalThis,'Native fetch must receive the Worker global receiver');return Response.json({data:{total_credits:1,total_usage:0}});}});
+assert.equal((await receiverSafe.openrouter(snapshot,{RESOURCE_OPENROUTER_KEY:'receiver-fixture'})).status.state,'ok');
+console.log('PASS: Worker-native fetch receiver binding.');

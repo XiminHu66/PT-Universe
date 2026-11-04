@@ -14,12 +14,13 @@ export function automaticConnections(env={}){return [
  {id:'gemini',name:'Gemini / 其他 API',mode:'未接通官方账户用量',needs:'API Key 通常不含完整计费用量权限；需对应账户的监控只读授权'}
 ];}
 export class ResourceCollector{
- constructor({fetcher=fetch,clock=Date.now,cache=memory,inflight=running}={}){this.fetcher=fetcher;this.clock=clock;this.cache=cache;this.inflight=inflight;}
+ constructor({fetcher=fetch,clock=Date.now,cache=memory,inflight=running}={}){this.fetcher=(url,options)=>fetcher.call(globalThis,url,options);this.clock=clock;this.cache=cache;this.inflight=inflight;}
  async cached(id,ttl,scope,collect){
   const key=id+':'+scope,now=this.clock(),previous=this.cache.get(key);
   if(previous&&now-previous.at<ttl)return {...clone(previous.value),cacheHit:true};
   if(this.inflight.has(key))return this.inflight.get(key);
   const pending=(async()=>{try{const value=await collect();this.cache.set(key,{at:now,value:clone(value)});return value;}catch(e){
+   console.error(JSON.stringify({event:'resource_read_failed',provider:id,errorType:e.name||'Error',code:e.code||'upstream_unavailable'}));
    const retryAt=now+(e.retryAfter||300)*1000,status={provider:id,state:previous&&['repositories','quotas','billing'].some(k=>previous.value[k])?'last_good':'unavailable',checkedAt:new Date(now).toISOString(),error:e.code||'upstream_unavailable',retryAt:new Date(retryAt).toISOString()};
    // Back off even after failures; repeated page visits must not hammer APIs.
    const result={...(previous?clone(previous.value):{}),status};this.cache.set(key,{at:now-ttl+Math.min(ttl,retryAt-now),value:clone(result)});return result;
