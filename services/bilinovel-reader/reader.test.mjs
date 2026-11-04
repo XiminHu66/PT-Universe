@@ -34,3 +34,20 @@ test('only mounted routes are handled and foreign-origin writes are rejected',as
 test('closing the manual panel restores filtering without consuming pending chapter pages',async()=>{
  const r=new Reader({data:'/tmp',control:{}});try{const pending={start:page().url,paragraphs:['已读取'],pages:1};r.pending=pending;r.manual=true;r.ensure=async()=>{};let filtered=false;r.filters=async()=>{filtered=!r.manual};await r.leaveManual();assert.equal(r.pending,pending);assert.ok(filtered)}finally{clearInterval(r.timer)}
 });
+
+test('rendered extraction excludes source scale-zero bait while keeping legitimate repeated text',async()=>{
+ const {snapshot}=await import('./reader.mjs');
+ const prior={};for(const k of ['document','location','getComputedStyle','DOMMatrixReadOnly'])prior[k]=globalThis[k];
+ const style={display:'block',visibility:'visible',opacity:'1',transform:'none'};
+ const body={nodeType:1,parentElement:null,innerText:'source'};
+ const root={nodeType:1,parentElement:body};
+ const p=(v,transform='none')=>({nodeType:1,parentElement:root,attributes:[],tagName:'P',style:{...style,transform},childNodes:[{nodeType:3,textContent:v}],matches:()=>false});
+ const paragraphs=[p('诱饵','matrix(0, 0, 0, 0, 0, 0)'),p('正文第一段'),p('同一句'),p('同一句')];
+ root.querySelectorAll=()=>paragraphs;
+ const heading={innerText:'章节'};
+ globalThis.document={body,title:'章节',readyState:'complete',querySelector:s=>s==='#acontent,.bcontent'?root:s==='#atitle,h1,.book-title'?heading:null,querySelectorAll:()=>[]};
+ globalThis.location={href:'https://www.bilinovel.net/novel/1/2.html',pathname:'/novel/1/2.html'};
+ globalThis.getComputedStyle=e=>e.style||style;
+ globalThis.DOMMatrixReadOnly=class{constructor(v){const zero=v.includes('matrix(0,');this.m11=zero?0:1;this.m12=0;this.m21=0;this.m22=zero?0:1}};
+ try{assert.deepEqual(snapshot().paragraphs,['正文第一段','同一句','同一句'])}finally{for(const [k,v]of Object.entries(prior)){if(v===undefined)delete globalThis[k];else globalThis[k]=v}}
+});

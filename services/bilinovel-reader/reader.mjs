@@ -13,7 +13,10 @@ export const chapterKey=url=>new URL(url).pathname.replace(/_\d+(?=\.html$)/,'')
 export function canJoin(start,next){try{return HOSTS.has(new URL(next).hostname)&&chapterKey(start)===chapterKey(next)&&/^\/novel\/\d+\/\d+(?:_\d+)?\.html$/.test(new URL(next).pathname)}catch{return false}}
 // This function is serialized into the source tab. Never return source HTML.
 export function snapshot(){
- const text=e=>(e?.innerText||'').trim(),visible=e=>{const s=getComputedStyle(e);return s.display!=='none'&&s.visibility!=='hidden'&&s.opacity!=='0'};
+ const text=e=>(e?.innerText||'').trim();
+ // Match the source's live visibility, including scale(0) bait paragraphs.
+ // Off-screen paragraphs remain readable; text is never deduplicated by value.
+ const visible=e=>{for(let n=e;n&&n.nodeType===1;n=n.parentElement){const s=getComputedStyle(n);if(s.display==='none'||['hidden','collapse'].includes(s.visibility)||Number(s.opacity)===0)return false;if(s.transform&&s.transform!=='none'){const m=new DOMMatrixReadOnly(s.transform);if(m.m11===0&&m.m12===0&&m.m21===0&&m.m22===0)return false}}return true};
  const body=text(document.body),params=typeof ReadParams==='object'?ReadParams:{},root=document.querySelector('#acontent,.bcontent');
  const pageText=[];
  if(root)for(const p of root.querySelectorAll(':scope > p')){
@@ -22,7 +25,10 @@ export function snapshot(){
   const v=walk(p).replace(/\u00a0/g,' ').trim();if(v)pageText.push(v);
  }
  const heading=text(document.querySelector('#atitle,h1,.book-title'))||document.title.split('_')[0];
- const gate=/^(Just a moment|Attention Required)/i.test(document.title)||!!document.querySelector('#challenge-running,#cf-challenge-running')||/内容加载失败|內容載入失敗|内容加载中|內容載入中/.test(pageText.join(''));
+ const unstyled=!!root&&[...root.querySelectorAll('p')].some(p=>[...p.attributes].some(a=>/^data-k\d+$/.test(a.name)))&&[...document.querySelectorAll('link[rel~=stylesheet]')].some(l=>!l.disabled&&!l.sheet);
+ const permissionWords=v=>{const t=v.replace(/\s+/g,'');return /(观看|觀看|播放|看).{0,12}(广告|廣告)/i.test(t)&&/权限|權限|解锁|解鎖|继续|繼續|获得|獲得/.test(t)};
+ const permissionGate=[...document.querySelectorAll('dialog[open],[role=dialog],.layui-layer,.swal2-popup,.van-popup,.ant-modal,.el-dialog,.modal,.popup,.dialog,[class*=overlay],[class*=mask]')].some(e=>visible(e)&&permissionWords(text(e)))||[...document.querySelectorAll('body *')].slice(0,4000).some(e=>{const t=text(e);if(t.length>1500||!permissionWords(t)||!visible(e))return false;const s=getComputedStyle(e);return s.position==='fixed'||Number(s.zIndex)>=1000});
+ const gate=unstyled||permissionGate||/^(Just a moment|Attention Required)/i.test(document.title)||!!document.querySelector('#challenge-running,#cf-challenge-running')||/(?:内容|內容).{0,3}(?:加载|加載|載入).{0,3}(?:失败|失敗|中)/.test(pageText.join(''));
  const reason=gate?'source-verification':!pageText.length&&/^\/novel\/\d+\/\d+(?:_\d+)?\.html$/.test(location.pathname)&&/积分广告|積分廣告|观看广告|觀看廣告|阅读授权|閱讀授權|請先登[錄入]|请先登录/.test(body)?'source-verification':document.querySelector('input[type=password]')?'login':null;
  const links=[...document.querySelectorAll('a[href]')].map(a=>({title:text(a).replace(/\s+/g,' '),url:a.href}));
  const chapters=links.filter(a=>/^\/novel\/\d+\/\d+(?:_\d+)?\.html$/.test(new URL(a.url).pathname)&&a.title);
@@ -78,7 +84,7 @@ export class Reader {
    p.paragraphs.push(...current.paragraphs);p.pages++;
    if(p.paragraphs.join('').length>400000)throw Error('章节过长，请分段读取');
    if(!current.nextPage||!current.next||!canJoin(p.start,current.next)){
-    const value={kind:'chapter',url:p.start,title:p.title,bookTitle:p.bookTitle,bookId:p.bookId,previous:p.previous,next:current.next,catalog:p.catalog,paragraphs:p.paragraphs,pages:p.pages,readAt:new Date().toISOString()};this.pending=null;this.lastResult=value;return value;
+    const value={kind:'chapter',formatVersion:2,url:p.start,title:p.title,bookTitle:p.bookTitle,bookId:p.bookId,previous:p.previous,next:current.next,catalog:p.catalog,paragraphs:p.paragraphs,pages:p.pages,readAt:new Date().toISOString()};this.pending=null;this.lastResult=value;return value;
    }
    if(p.pages>=16)throw Error('章节超过 16 页，请在原站继续阅读');
    current=await this.navigate(current.next);
