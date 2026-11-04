@@ -2,7 +2,7 @@ import {actionsQuotas} from './actions-usage.mjs?v=4';
 import {overviewHTML,automaticHTML,coverageHTML,fmt,date} from './view.mjs?v=5';
 import {assess,validateMeasurement,esc,safeURL,finite} from './model.mjs?v=3';
 import {readPublicGithub} from './public-reader.mjs';
-import {RESOURCE_API,resourceSession,connectResources,clearResourceSession,returningToNexus} from './auth.mjs';
+import {RESOURCE_API,resourceSession,connectResources,clearResourceSession,returningToNexus} from './auth.mjs?v=2';
 const EMBEDDED=new URL(location.href).searchParams.get('embedded')==='nexus'&&window.parent!==window;
 const VIEWS=['overview','workflows','projects','settings'],requested=new URL(location.href).searchParams.get('view');
 if(EMBEDDED){document.documentElement.dataset.embedded='nexus';try{window.ptNexusActive=window.parent.document.body.dataset.nexusView==='monitor'&&!window.parent.document.hidden;}catch{window.ptNexusActive=false;}}
@@ -97,8 +97,11 @@ async function readVps(epoch){
 function vpsFailure(e){return e.name==='TimeoutError'?'连接超时，重试后仍未成功':e.name==='TypeError'?'网络暂不可达，重试后仍未成功':e.code==='invalid_sample'?'采样缺少必要字段，已保留上次数据':e.status?'采样接口暂不可用（'+e.status+'），已保留上次数据':'采样暂不可用，已保留上次数据';}
 function connectBackend(manual=false){
  if(connecting||!active())return;
- $('#notice').textContent='正在自动连接资源后台…';
- try{connectResources(manual,EMBEDDED?view:null);connecting=true;}catch(e){$('#notice').textContent=e.message;}
+ $('#notice').textContent='正在自动连接资源后台…';connecting=true;
+ try{
+  const result=connectResources(manual,EMBEDDED?view:null);
+  if(result?.then)result.then(()=>{connecting=false;const wasPrivate=PRIVATE;PRIVATE=!!resourceSession();if(!PRIVATE)throw Error('连接尚未完成，请重试连接。');if(!wasPrivate)data=null;delete document.documentElement.dataset.connectionRequired;notifyHost();if(active())void refresh();}).catch(e=>{connecting=false;document.documentElement.dataset.connectionRequired='true';$('#notice').textContent=e.message;notifyHost();});
+ }catch(e){connecting=false;document.documentElement.dataset.connectionRequired='true';$('#notice').textContent=e.message;}
 }
 function notifyHost(){if(EMBEDDED)window.parent.postMessage({type:'pt-resource-status',connected:PRIVATE,busy:busy||autoBusy,connecting,message:$('#notice').textContent},location.origin);}
 async function refresh(force=false){if(!active()||busy||autoBusy||connecting)return;busy=true;const startedPrivate=PRIVATE,epoch=activityEpoch;$('#refresh').disabled=true;$('#refresh').textContent='正在检查…';try{

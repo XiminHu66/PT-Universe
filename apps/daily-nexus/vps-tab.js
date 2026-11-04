@@ -1,3 +1,4 @@
+import {RESOURCE_API,resourceSession,connectResources,clearResourceSession} from '../resource-center/auth.mjs?v=2';
 /* Daily Nexus renders read-only data; native tools remain in their private hub. */
 (()=>{
  const q=s=>document.querySelector(s),panel=q('#view-vps');if(!panel)return;
@@ -5,7 +6,7 @@
  const TOKEN_KEY='pt-nexus-vps-session-v1',PENDING_KEY='pt-nexus-vps-connect-v1',ATTEMPT_KEY='pt-nexus-vps-auto-attempt-v1',PAUSED_KEY='pt-nexus-vps-paused-v1';
  const TOOLS=[{"id": "downloads", "name": "下载文件", "brand": "文件管理", "path": "/downloads/", "group": "files", "icon": "▣", "desc": "统一查看下载，保存到电脑或管理回收站。", "aliases": "文件 目录 删除 恢复 取回 download files"}, {"id": "pikpak", "name": "PikPak", "brand": "", "path": "/pikpak/", "group": "files", "icon": "↓", "desc": "网盘转存、并行下载和视频预览。", "aliases": "网盘 视频 磁力 链接 转存"}, {"id": "bilipack", "name": "小说下载", "brand": "BiliPack", "path": "/bilipack/", "group": "files", "icon": "B", "desc": "下载轻小说、选择章节并打包 EPUB。", "aliases": "bilinovel 哔哩轻小说 epub 电子书 打包"}, {"id": "video", "name": "视频下载", "brand": "MeTube", "path": "/video/", "group": "files", "icon": "▶", "desc": "提交视频链接，查看任务和下载结果。", "aliases": "youtube yt-dlp metube 音频"}, {"id": "bt", "name": "BT 与直链", "brand": "AriaNg", "path": "/bt/", "group": "files", "icon": "⇣", "desc": "管理磁力、BT 和直链下载任务。", "aliases": "ariang aria2 torrent 磁力 种子"}, {"id": "karakeep", "name": "知识库", "brand": "", "path": "/knowledge/", "group": "knowledge", "icon": "❧", "desc": "收藏资料、整理笔记，检索与带出处问答。", "aliases": "karakeep 书签 收藏 笔记 pdf rag 图谱"}, {"id": "search", "name": "聚合搜索", "brand": "SearXNG", "path": "/searxng/", "group": "process", "icon": "⌕", "desc": "搜索网页、图片和其他公开资料。", "aliases": "搜索 引擎 searxng search"}, {"id": "pdf", "name": "PDF 工具", "brand": "Stirling", "path": "/", "group": "process", "icon": "P", "desc": "合并、拆分、转换和整理 PDF。", "aliases": "stirling 文档 合并 拆分 转换"}, {"id": "omnitools", "name": "万能工具", "brand": "OmniTools", "path": "/omnitools/", "group": "process", "icon": "✦", "desc": "图片、音视频、文本与数据格式处理。", "aliases": "omnitools 图片 音视频 文本 json 压缩 转换"}, {"id": "trip", "name": "旅行规划", "brand": "TRIP", "path": "/trip/", "group": "life", "icon": "⌖", "desc": "收藏地点、安排多日行程与出行清单。", "aliases": "trip 旅游 地图 行程 预订 清单"}, {"id": "wanderer", "name": "户外路线", "brand": "Wanderer", "path": "/wanderer/", "group": "life", "icon": "△", "desc": "导入 GPX，规划和保存徒步、骑行路线。", "aliases": "wanderer 徒步 骑行 运动 gpx 地图 户外"}, {"id": "moodist", "name": "专注声音", "brand": "Moodist", "path": "/moodist/", "group": "life", "icon": "♫", "desc": "组合雨声、环境音和白噪音。", "aliases": "moodist 雨声 番茄钟 白噪音 专注 放松"}, {"id": "trendradar", "name": "热点雷达", "brand": "TrendRadar", "path": "/trendradar/", "group": "system", "icon": "◉", "desc": "中文热榜、RSS 与科技新闻，按小时更新。", "aliases": "trendradar 热榜 新闻 rss 游戏 ai 资讯"}, {"id": "metrics", "name": "服务器状态", "brand": "", "path": "/hub/metrics/", "group": "system", "icon": "▥", "desc": "简明 CPU、内存、磁盘和网络趋势。", "aliases": "beszel vps 监控 状态 仪表盘 dashboard", "health": "beszel"}];
  const OTHER_TOOLS=[{"id": "ffGuideEntry", "name": "FF 共鸣攻略", "icon": "✧", "url": "../ff-guide/", "desc": "流程攻略、图鉴与收集清单"}, {"id": "anythingLLMEntry", "name": "AI 对话", "icon": "✳", "url": "../anythingllm/", "desc": "AnythingLLM · 工作区与多模型"}, {"id": "storyHubEntry", "name": "作品与话题", "icon": "◈", "url": "../story-hub/", "desc": "作品地图、番剧与兴趣话题"}, {"id": "cardLabEntry", "name": "游戏设计", "icon": "♠", "url": "../game-systems-studio/", "desc": "卡牌、增量与 RPG 系统模拟"}, {"id": "mediaVaultEntry", "name": "媒体阅读", "icon": "▣", "url": "../media-vault/", "desc": "小说阅读与媒体资料整理"}, {"id": "booxEntry", "name": "BOOX 传书", "icon": "⇄", "desc": "连接局域网原生互传页面"}, {"id": "smallToolsEntry", "name": "随手工具", "icon": "⌘", "desc": "随机任务、决策器与本地生成器"}];
- let token='',snapshot=null,busy=false,timer=null,connectionError='',connecting=false,invalidReturn=false;
+ let token='',resourceToken='',snapshot=null,busy=false,timer=null,connectionError='',connecting=false,invalidReturn=false;
  const getStored=key=>{try{return sessionStorage.getItem(key);}catch{return null;}};
  const putStored=(key,value)=>{try{sessionStorage.setItem(key,value);return true;}catch{return false;}};
  const dropStored=key=>{try{sessionStorage.removeItem(key);}catch{}};
@@ -25,15 +26,13 @@
  const bytes=n=>n>=1024**3?(n/1024**3).toFixed(2)+' GiB':n>=1024**2?(n/1024**2).toFixed(1)+' MiB':n>=1024?(n/1024).toFixed(1)+' KiB':Math.round(n)+' B';
  const date=value=>new Date(value).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});
  function state(name,message){q('#vpsState').dataset.state=name;q('#vpsState').textContent=({online:'监控在线',stale:'显示上次采样',error:'连接暂不可用',pending:'正在读取',connecting:'正在自动连接',offline:'监控已暂停'})[name];q('#vpsMessage').textContent=message;}
- function connectionButtons(){q('#vpsConnect').textContent=token?'重新授权':connecting?'自动连接中…':'重试连接';q('#vpsConnect').disabled=connecting;q('#vpsDisconnect').hidden=!token;q('#vpsRefresh').disabled=!token||busy||connecting;}
- function connect(manual=false){
+ function connectionButtons(){const connected=!!(token||resourceToken);q('#vpsConnect').textContent=connected?'重新授权':connecting?'自动连接中…':'重试连接';q('#vpsConnect').disabled=connecting;q('#vpsDisconnect').hidden=!connected;q('#vpsRefresh').disabled=!connected||busy||connecting;}
+ async function connect(manual=false){
   if(connecting||!active()||(!manual&&(invalidReturn||getStored(PAUSED_KEY)==='1')))return;
-  const previous=Number(getStored(ATTEMPT_KEY)||0);
-  if(!manual&&previous&&Date.now()-previous<120000){state('error','自动连接尚未完成。可重试连接；只有登录过期时才需要在工具中心确认账号。');return;}
-  const nonce=Array.from(crypto.getRandomValues(new Uint8Array(24)),v=>v.toString(16).padStart(2,'0')).join('');
-  if(!putStored(PENDING_KEY,JSON.stringify({nonce,expiresAt:Date.now()+10*60000}))||!putStored(ATTEMPT_KEY,String(Date.now()))){state('error','浏览器无法保存临时连接，请允许站点存储后重试。');return;}
-  dropStored(PAUSED_KEY);invalidReturn=false;connecting=true;connectionButtons();state('connecting','正在复用工具中心的私有登录，仅连接只读监控。');
-  location.assign(HUB+'/__pt_vps_connect?nonce='+nonce);
+  dropStored(PAUSED_KEY);invalidReturn=false;connecting=true;connectionButtons();state('connecting','正在后台恢复只读连接；当前页面保持不变。');
+  try{await connectResources(manual,'vps');resourceToken=resourceSession();if(!resourceToken)throw Error('连接尚未完成，请重试连接。');connectionError='';}
+  catch(e){state('error',e.message||'请点击连接完成登录；当前页面保持不变。');}
+  finally{connecting=false;connectionButtons();if(resourceToken&&active())void refresh();}
  }
  function chart(id,key){const svg=q('#'+id);svg.replaceChildren();if(!snapshot?.history||snapshot.history.length<2)return;const p=document.createElementNS('http://www.w3.org/2000/svg','polyline');p.setAttribute('points',snapshot.history.map((r,i)=>(i/(snapshot.history.length-1)*300).toFixed(1)+','+(48-r[key]*.45).toFixed(1)).join(' '));p.setAttribute('fill','none');p.setAttribute('stroke','currentColor');p.setAttribute('stroke-width','2');svg.append(p);}
  function renderMetrics(){
@@ -76,23 +75,25 @@
   }));
  }
  async function refresh(){
-  if(!active()||busy)return;
-  if(!usable(token)){token='';dropStored(TOKEN_KEY);connectionButtons();if(invalidReturn)state('error',connectionError);else if(getStored(PAUSED_KEY)==='1')state('offline','已暂停自动连接。点击重试可恢复，工具入口仍可使用。');else connect();return;}
-  const requestedToken=token;busy=true;connectionButtons();if(!snapshot)state('pending','正在读取真实采样…');
+  if(!active()||busy||connecting)return;
+  if(getStored(PAUSED_KEY)==='1'){state('offline','已暂停自动连接。点击重试可恢复，工具入口仍可使用。');return;}
+  resourceToken=resourceSession();
+  if(!resourceToken&&!usable(token)){token='';dropStored(TOKEN_KEY);connectionButtons();if(invalidReturn)state('error',connectionError);else if(getStored(PAUSED_KEY)==='1')state('offline','已暂停自动连接。点击重试可恢复，工具入口仍可使用。');else connect();return;}
+  const requestedToken=resourceToken||token,usingResource=!!resourceToken;busy=true;connectionButtons();if(!snapshot)state('pending','正在读取真实采样…');
   try{
-   const r=await fetch(API,{headers:{authorization:'Bearer '+token},credentials:'omit',cache:'no-store',signal:AbortSignal.timeout(18000)}),d=await r.json();
-   if(connecting||token!==requestedToken)return;
-   if(r.status===401){token='';dropStored(TOKEN_KEY);throw Error('监控连接已过期，请重新连接。');}
+   const r=await fetch(usingResource?RESOURCE_API+'/vps':API,{headers:{authorization:'Bearer '+requestedToken},credentials:'omit',cache:'no-store',signal:AbortSignal.timeout(18000)}),d=await r.json();
+   if(connecting||(resourceToken||token)!==requestedToken)return;
+   if(r.status===401){if(usingResource){resourceToken='';clearResourceSession();}else{token='';dropStored(TOKEN_KEY);}throw Error('监控连接已过期，请重新连接。');}
    if(!r.ok)throw Error(d.error||'暂时无法读取 VPS 状态。');
    snapshot=d;connectionError='';renderMetrics();renderTools();
    state(d.stale?'stale':'online',d.stale?'采样超过三分钟未更新，可打开工具中心检查。':'只读连接已建立。原生账号和服务器密钥保留在后台。');
-  }catch(e){if(!connecting&&token===requestedToken)state(snapshot?'stale':'error',(e.message||'连接失败')+(snapshot?' 当前保留上次成功读取的数据。':''));}
-  finally{busy=false;connectionButtons();if(!token&&!invalidReturn)connect();}
+  }catch(e){if(!connecting&&(resourceToken||token)===requestedToken)state(snapshot?'stale':'error',(e.message||'连接失败')+(snapshot?' 当前保留上次成功读取的数据。':''));}
+  finally{busy=false;connectionButtons();if(!token&&!resourceToken&&!invalidReturn)connect();}
  }
  function schedule(){clearInterval(timer);const sec=Number(q('#vpsInterval').value);if(sec)timer=setInterval(refresh,sec*1000);}
  q('#vpsConnect').onclick=()=>connect(true);
  q('#vpsRefresh').onclick=refresh;
- q('#vpsDisconnect').onclick=()=>{token='';snapshot=null;connectionError='';dropStored(TOKEN_KEY);putStored(PAUSED_KEY,'1');renderMetrics();renderTools();connectionButtons();state('offline','已暂停自动连接。点击重试可恢复，工具入口仍可使用。');};
+ q('#vpsDisconnect').onclick=()=>{token='';resourceToken='';snapshot=null;connectionError='';dropStored(TOKEN_KEY);putStored(PAUSED_KEY,'1');renderMetrics();renderTools();connectionButtons();state('offline','已暂停自动连接。点击重试可恢复，工具入口仍可使用。');};
  q('#vpsInterval').onchange=schedule;
  addEventListener('nexus-view-change',()=>{if(active())refresh();});document.addEventListener('visibilitychange',()=>{if(active())refresh();});
  renderTools();renderOtherTools();renderMetrics();connectionButtons();schedule();if(connectionError)state('error',connectionError);if(active())refresh();

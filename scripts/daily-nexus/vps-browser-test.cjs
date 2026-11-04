@@ -2,7 +2,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const {chromium}=require('playwright');
 const root=path.resolve(__dirname,'../..'),hub='https://pt-vps-tools.h1nano.chatgpt.site';
 const types={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml'};
-const token=nonce=>{const iat=Math.floor(Date.now()/1000);return 'fixture.'+Buffer.from(JSON.stringify({iss:hub,sub:'pt-backend-owner',aud:'pt-universe-vps',scope:'vps:read',iat,exp:iat+3600,nonce})).toString('base64url')+'.fixture';};
+const token=nonce=>{const iat=Math.floor(Date.now()/1000);return 'fixture.'+Buffer.from(JSON.stringify({iss:hub,sub:'pt-backend-owner',aud:'pt-universe-resources',scope:'resources:read',iat,exp:iat+3600,nonce})).toString('base64url')+'.fixture';};
 const sample={sampleAt:new Date().toISOString(),fetchedAt:new Date().toISOString(),stale:false,cpu:{percent:15.2,load:[.22,.41,.45]},memory:{percent:40,usedBytes:5e9,totalBytes:12.5e9},disk:{percent:53.8,freeBytes:21e9,totalBytes:46e9},network:{receivedBytesPerSecond:1843,sentBytesPerSecond:7782},uptimeSeconds:1280000,history:[],services:[{name:'moodist',ok:true}]};
 const server=http.createServer((req,res)=>{let f=path.join(root,decodeURIComponent(new URL(req.url,'http://localhost').pathname));try{if(fs.statSync(f).isDirectory())f=path.join(f,'index.html');res.setHeader('Content-Type',types[path.extname(f)]||'application/octet-stream');res.end(fs.readFileSync(f));}catch{res.statusCode=404;res.end('missing');}});
 let browser;
@@ -11,14 +11,14 @@ let browser;
  browser=await chromium.launch({headless:true});const context=await browser.newContext({timezoneId:'UTC',viewport:{width:1750,height:749}});let grants=0,metrics=0;
  await context.route(/^https:\/\//,async route=>{
   const url=new URL(route.request().url());
-  if(url.origin===hub&&url.pathname==='/__pt_vps_connect'){
+  if(url.origin===hub&&url.pathname==='/__pt_resources_connect'){
    assert.deepEqual([...url.searchParams.keys()],['nonce']);const nonce=url.searchParams.get('nonce');assert.match(nonce,/^[a-f0-9]{48}$/);grants++;
-   return route.fulfill({status:302,headers:{location:base+'#vps-session='+token(nonce)+'&nonce='+nonce}});
+   return route.fulfill({status:302,headers:{location:new URL('../resource-center/',base).href+'#resource-session='+token(nonce)+'&nonce='+nonce}});
   }
-  if(url.pathname==='/api/vps/overview'){assert.match(route.request().headers().authorization,/^Bearer fixture\./);metrics++;return route.fulfill({json:sample});}
+  if(url.pathname==='/api/resources/vps'){assert.match(route.request().headers().authorization,/^Bearer fixture\./);metrics++;return route.fulfill({json:sample});}
   return route.fulfill({json:{}});
  });
- const page=await context.newPage();await page.goto(base);await page.locator('#vpsState[data-state=online]').waitFor();assert.equal(grants,1,'fresh session automatically connects');assert.equal(new URL(page.url()).hash,'','grant removed from URL');assert.ok(metrics>0);
+ const page=await context.newPage();let shellLoads=0;page.on('framenavigated',frame=>{if(frame===page.mainFrame())shellLoads++;});await page.goto(base);await page.locator('#vpsState[data-state=online]').waitFor();assert.equal(grants,1,'fresh session silently connects');assert.equal(new URL(page.url()).hash,'','grant removed from URL');assert.ok(metrics>0);assert.equal(shellLoads,1,'silent connection must not navigate the Nexus shell');
  assert.equal(await page.locator('.sidebar .navbtn[data-view]').count(),9);assert.equal(await page.locator('#monitorFrame').getAttribute('src'),null,'resource monitoring must not load while using VPS tools');
  await page.reload();await page.locator('#vpsState[data-state=online]').waitFor();assert.equal(grants,1,'reload reuses session');
  const sizes=[[1750,749],[1440,900],[1366,768],[1280,720],[390,844]],report=[];
@@ -34,7 +34,8 @@ let browser;
  }
  await page.setViewportSize({width:1750,height:749});
  assert.equal(await page.locator('#vpsTools .vps-tool').count(),14);assert.equal(await page.locator('#otherTools .vps-tool').count(),7);assert.equal(await page.locator('[data-tool=karakeep]').count(),1);
+ const loadsBeforeRefresh=shellLoads;await page.locator('#vpsRefresh').click();await page.locator('#vpsState[data-state=online]').waitFor();assert.equal(shellLoads,loadsBeforeRefresh,'manual metric refresh stays inside its tab');
  await page.locator('#vpsDisconnect').click();await page.reload();await page.locator('#vpsConnect').waitFor();assert.equal(grants,1,'explicit disconnect remains paused');await page.locator('#vpsConnect').click();await page.locator('#vpsState[data-state=online]').waitFor();assert.equal(grants,2);
- await page.evaluate(()=>{const key='pt-nexus-vps-session-v1',parts=sessionStorage.getItem(key).split('.'),data=JSON.parse(atob(parts[1].replace(/-/g,'+').replace(/_/g,'/')));data.exp=Math.floor(Date.now()/1000)-1;parts[1]=btoa(JSON.stringify(data));sessionStorage.setItem(key,parts.join('.'));});await page.reload();await page.locator('#vpsState[data-state=online]').waitFor();assert.equal(grants,3,'expired sessions renew automatically');
+ await page.evaluate(()=>{const key='pt.resources.session.v1',parts=sessionStorage.getItem(key).split('.'),data=JSON.parse(atob(parts[1].replace(/-/g,'+').replace(/_/g,'/')));data.exp=Math.floor(Date.now()/1000)-1;parts[1]=btoa(JSON.stringify(data));sessionStorage.setItem(key,parts.join('.'));});await page.reload();await page.locator('#vpsState[data-state=online]').waitFor();assert.equal(grants,3,'expired sessions renew automatically');
  fs.writeFileSync('/tmp/pt-nexus-vps-report.json',JSON.stringify({grants,metrics,sizes:report},null,2));console.log('PASS VPS: automatic connect, cache reuse, nonce return, URL cleanup, pause/retry, expiry renewal, 21 tools in two visible groups, desktop fit at four sizes and mobile overflow.');
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{await browser?.close();server.close();});
