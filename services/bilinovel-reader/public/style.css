@@ -11,3 +11,5 @@ dialog{width:min(560px,calc(100% - 24px));max-height:90vh;max-height:90dvh;borde
 @media(prefers-reduced-motion:reduce){.spinner{animation:none}}@media(prefers-reduced-motion:no-preference){button{transition:background .12s,border-color .12s}}
 
 #login-form label{display:block;margin:15px 0 6px;font-size:14px}#login-form input{width:100%;font-size:16px}#login-state{font-size:13px;color:var(--accent);min-height:22px}#source-issue-message{font-size:14px;line-height:1.8}#continuation-panel{max-width:var(--reader-width);margin:12px auto;padding:20px 24px;color:var(--muted);font-size:13px}#continuation-panel button{font-size:14px}.paged #continuation-panel{padding:4px 24px;margin:0 auto}.paged #continuation-panel p{margin:0}.paged #continuation-panel button{margin-top:3px;min-height:38px}
+
+#source-details{font-size:12px;color:var(--muted)}#source-detail-text{white-space:pre-wrap;overflow-wrap:anywhere}
