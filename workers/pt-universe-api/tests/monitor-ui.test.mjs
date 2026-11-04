@@ -2,45 +2,52 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {parseHTML} from 'linkedom';
-const html=readFileSync('../../apps/daily-nexus/index.html','utf8');
-const source=readFileSync('../../apps/daily-nexus/monitor-tab.js','utf8');
-const {document}=parseHTML(html),events=new Map(),messages=[],childEvents=[];
+const html=readFileSync('../../apps/daily-nexus/index.html','utf8'),source=readFileSync('../../apps/daily-nexus/monitor-tab.js','utf8');
+const {document}=parseHTML(html),events=new Map(),messages=[],childEvents=[],timers=new Map();let clock=Date.now(),timerId=0;
+class Clock extends Date{static now(){return clock}}
 const panel=document.querySelector('#view-monitor'),frame=document.querySelector('#monitorFrame');
 const child={postMessage:(message,origin)=>messages.push({message,origin}),dispatchEvent:e=>childEvents.push(e.type)};
 Object.defineProperty(frame,'contentWindow',{value:child});Object.defineProperty(document,'hidden',{value:false,writable:true});
 let load;frame.addEventListener=(name,fn)=>{if(name==='load')load=fn;};
 const location={href:'https://ximinhu66.github.io/PT-Universe/apps/daily-nexus/?view=home',origin:'https://ximinhu66.github.io'};
 const window={addEventListener:(name,fn)=>events.set(name,fn)};
-vm.runInNewContext(source,{document,window,location,history:{state:null,replaceState:(_,__,url)=>{location.href=String(url);}},URL,Event,MutationObserver:class{observe(){}}});
-assert.equal(frame.getAttribute('src'),null,'no resource app loads on another tab');
+vm.runInNewContext(source,{document,window,location,history:{state:null,replaceState:(_,__,url)=>{location.href=String(url);}},URL,Event,Date:Clock,setTimeout:(fn,ms)=>{timers.set(++timerId,{fn,ms});return timerId},clearTimeout:id=>timers.delete(id),MutationObserver:class{observe(){}}});
+assert.equal(frame.getAttribute('src'),null);assert.equal(timers.size,0);assert.equal(document.querySelector('#monitorStandalone'),null);
 panel.classList.add('active');events.get('nexus-view-change')();assert.match(frame.src,/embedded=nexus&view=overview$/);load();
-assert.equal(messages.at(-1).message.active,true);assert.equal(messages.at(-1).message.view,'overview');assert.equal(messages.at(-1).origin,location.origin);
+assert.equal(messages.at(-1).message.active,true);assert.equal(messages.at(-1).message.view,'overview');assert.equal(timers.size,1);assert.equal([...timers.values()][0].ms,300000);
 document.querySelector('[data-monitor-view=projects]').click();assert.equal(messages.at(-1).message.view,'projects');assert.equal(new URL(location.href).searchParams.get('monitor'),'projects');
-const emit=(origin,source,view)=>events.get('message')({origin,source,data:{type:'pt-resource-view',view}});
-emit('https://evil.example',child,'settings');emit(location.origin,{},'settings');assert.equal(document.querySelector('[data-monitor-view=projects]').getAttribute('aria-current'),'page');
-emit(location.origin,child,'settings');assert.equal(document.querySelector('[data-monitor-view=settings]').getAttribute('aria-current'),'page');
-const retained=frame.src;panel.classList.remove('active');events.get('nexus-view-change')();assert.equal(child.ptNexusActive,false);assert.equal(messages.at(-1).message.active,false);assert.equal(frame.src,retained,'switching tabs retains the single iframe and its cache');
-assert.ok(childEvents.includes('nexus-activate'));
-console.log('PASS: lazy overview mount, single retained iframe, subview URL sync, strict sender checks and offscreen suspension.');
-// Exercise the embedded resource app with a public snapshot, never real credentials.
-const resourceHTML=readFileSync('../../apps/resource-center/index.html','utf8');
-const resourceSource=readFileSync('../../apps/resource-center/app.mjs','utf8').replace(/^import .*;\n/gm,'');
-const page=parseHTML(resourceHTML).document,resourceEvents=new Map(),reads=[];
-Object.defineProperty(page,'hidden',{value:false,writable:true});
-const parent={document:{body:{dataset:{nexusView:'monitor'}},hidden:false},postMessage(){}};
-const resourceWindow={parent,addEventListener:(name,fn)=>resourceEvents.set(name,fn)};
-const store=new Map();let connections=0;
-const sandbox={document:page,window:resourceWindow,location:{href:'https://ximinhu66.github.io/PT-Universe/apps/resource-center/?embedded=nexus&view=overview',origin:location.origin},URL,URLSearchParams,Date,Map,Set,JSON,Number,String,Math,AbortSignal,AbortController,DOMException,
+const emit=(origin,source,data)=>events.get('message')({origin,source,data});
+emit('https://evil.example',child,{type:'pt-resource-view',view:'settings'});emit(location.origin,{}, {type:'pt-resource-view',view:'settings'});assert.equal(document.querySelector('[data-monitor-view=projects]').getAttribute('aria-current'),'page');
+emit(location.origin,child,{type:'pt-resource-view',view:'settings'});assert.equal(document.querySelector('[data-monitor-view=settings]').getAttribute('aria-current'),'page');
+emit(location.origin,child,{type:'pt-resource-status',connected:true,busy:false,message:'fixture updated'});assert.equal(document.querySelector('#monitorStatus').textContent,'已连接 · 自动更新');
+document.querySelector('#monitorRefresh').click();assert.equal(messages.at(-1).message.action,'refresh');assert.equal(messages.at(-1).message.force,true);
+const [id,tick]=[...timers.entries()][0];timers.delete(id);clock+=300000;tick.fn();assert.equal(messages.at(-1).message.action,'refresh');assert.equal(messages.at(-1).message.force,false);assert.equal(timers.size,1);
+const retained=frame.src;panel.classList.remove('active');events.get('nexus-view-change')();assert.equal(child.ptNexusActive,false);assert.equal(timers.size,0);assert.equal(frame.src,retained);
+clock+=300000;panel.classList.add('active');events.get('nexus-view-change')();assert.equal(messages.at(-1).message.action,'refresh');assert.equal(timers.size,1);
+document.hidden=true;events.get('nexus-view-change')();assert.equal(timers.size,0);assert.equal(messages.at(-1).message.active,false);
+console.log('PASS: one lazy iframe, compact unified controls, no standalone link, sender validation, five-minute cached updates, manual force refresh, pause and resume.');
+const resourceHTML=readFileSync('../../apps/resource-center/index.html','utf8'),resourceSource=readFileSync('../../apps/resource-center/app.mjs','utf8').replace(/^import .*;\n/gm,'');
+async function run({authenticated=true,unauthorized=false}={}){
+ const page=parseHTML(resourceHTML).document,resourceEvents=new Map(),reads=[],connections=[],statuses=[],store=new Map();let token=authenticated?'fixture-read-grant':'';
+ Object.defineProperty(page,'hidden',{value:false,writable:true});
+ const parent={document:{body:{dataset:{nexusView:'monitor'}},hidden:false},postMessage:m=>statuses.push(m)};
+ const resourceWindow={parent,addEventListener:(name,fn)=>resourceEvents.set(name,fn)};
+ const sandbox={document:page,window:resourceWindow,location:{href:'https://ximinhu66.github.io/PT-Universe/apps/resource-center/?embedded=nexus&view=overview',origin:location.origin},URL,URLSearchParams,Date:Clock,Map,Set,JSON,Number,String,Math,AbortSignal,AbortController,DOMException,queueMicrotask,MutationObserver:class{observe(){}},
  localStorage:{getItem:key=>store.get(key)||null,setItem:(key,value)=>store.set(key,value)},
- RESOURCE_API:'https://api.example/resources',returningToNexus:false,resourceSession:()=>'',connectResources:()=>connections++,clearResourceSession(){},
+ RESOURCE_API:'https://api.example/resources',returningToNexus:false,resourceSession:()=>token,connectResources:(manual,view)=>connections.push({manual,view}),clearResourceSession:()=>{token=''},
  actionsQuotas:()=>[],overviewHTML:()=>'<p>overview fixture</p>',automaticHTML:()=>'',coverageHTML:()=>'',fmt:String,date:String,finite:Number.isFinite,
- fetch:async(url,init)=>{reads.push({url,signal:init.signal});return Response.json({repositories:[],quotas:[],projects:[]});}
-};
-vm.runInNewContext(resourceSource,sandbox);await new Promise(r=>setImmediate(r));
-assert.equal(reads.length,1);assert.equal(connections,0,'opening Monitor does not automatically navigate to login');
-resourceEvents.get('message')({origin:location.origin,source:parent,data:{type:'pt-resource-host',view:'overview',active:false,theme:'dark'}});
-page.querySelector('#refresh').onclick();await new Promise(r=>setImmediate(r));assert.equal(reads.length,1,'offscreen refresh must not issue requests');
-assert.equal(page.documentElement.dataset.theme,'dark');
-resourceEvents.get('message')({origin:'https://evil.example',source:parent,data:{type:'pt-resource-host',view:'overview',active:true}});assert.equal(resourceWindow.ptNexusActive,false);
-resourceEvents.get('message')({origin:location.origin,source:parent,data:{type:'pt-resource-host',view:'overview',active:true}});await new Promise(r=>setImmediate(r));assert.equal(reads.length,1,'returning reuses the loaded snapshot');
-console.log('PASS: embedded data is read on demand, hidden refresh is suppressed, sessions are reused and untrusted host messages are ignored.');
+ fetch:async(url,init)=>{reads.push({url,signal:init.signal});if(unauthorized)return Response.json({error:'expired'},{status:401});
+  return Response.json(url.endsWith('/data')?{repositories:[],quotas:[],projects:[],connections:[]}:url.endsWith('/vps')?{sampleAt:new Date(clock).toISOString(),memory:{usedBytes:1e9,totalBytes:12e9},disk:{usedBytes:20e9,totalBytes:40e9},cpu:{percent:10},services:[]}:{status:{provider:new URL(url).searchParams.get('provider')||'browser',state:'ok'}});}
+ };
+ vm.runInNewContext(resourceSource,sandbox);await new Promise(r=>setImmediate(r));
+ const send=(data,origin=location.origin)=>resourceEvents.get('message')({origin,source:parent,data:{type:'pt-resource-host',view:'overview',active:true,...data}});
+ return {page,reads,connections,statuses,send,resourceWindow};
+}
+const fresh=await run({authenticated:false});assert.equal(fresh.connections.length,1);assert.deepEqual(fresh.connections[0],{manual:false,view:'overview'});assert.equal(fresh.reads.length,0,'connect before fetching private data');fresh.send({});assert.equal(fresh.connections.length,1,'no duplicate connection during navigation');
+const connected=await run();assert.equal(connected.connections.length,0);assert.equal(connected.reads.length,7);const firstReads=connected.reads.length;
+connected.send({action:'refresh',force:false});await new Promise(r=>setImmediate(r));assert.equal(connected.reads.length,firstReads,'fresh provider and VPS caches are reused');
+connected.send({action:'refresh',force:true},'https://evil.example');await new Promise(r=>setImmediate(r));assert.equal(connected.reads.length,firstReads);
+connected.send({active:false,theme:'dark'});assert.equal(connected.page.documentElement.dataset.theme,'dark');connected.send({active:false,action:'refresh',force:true});await new Promise(r=>setImmediate(r));assert.equal(connected.reads.length,firstReads);assert.equal(connected.page.documentElement.dataset.theme,'light');
+connected.send({action:'refresh',force:true});await new Promise(r=>setImmediate(r));assert.equal(connected.reads.length,firstReads+7,'manual refresh bypasses browser caches');
+const expired=await run({unauthorized:true});assert.equal(expired.connections.length,1,'401 automatically renews the existing connection');assert.equal(expired.connections[0].manual,false);
+console.log('PASS: automatic connection before reads, session/cache reuse, renewal on 401, explicit refresh, hidden request suppression and untrusted action rejection.');

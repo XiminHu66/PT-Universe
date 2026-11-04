@@ -16,7 +16,7 @@ export function resourceSession(){
  const value=get(KEY);if(valid(value))return value;drop(KEY);return '';
 }
 export function connectResources(manual=false,nexusView=null){
- const prior=Number(get(ATTEMPT)||0);if(!manual&&(invalid||prior&&Date.now()-prior<120000))throw Error('连接尚未完成，请点击“连接资源后台”重试。');
+ const prior=Number(get(ATTEMPT)||0);if(!manual&&(invalid||prior&&Date.now()-prior<120000))throw Error('连接尚未完成，可点击刷新重试连接。');
  const nonce=Array.from(crypto.getRandomValues(new Uint8Array(24)),b=>b.toString(16).padStart(2,'0')).join('');
  if(!put(PENDING,JSON.stringify({nonce,expiresAt:Date.now()+600000,...(['overview','workflows','projects','settings'].includes(nexusView)?{returnTo:'nexus',view:nexusView}:{})}))||!put(ATTEMPT,String(Date.now())))throw Error('请允许站点临时存储后连接后台。');
  const destination=HUB+'/__pt_resources_connect?nonce='+nonce;

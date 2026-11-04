@@ -460,7 +460,7 @@
   </style>
   <link rel="stylesheet" href="home-tools.css?v=20261007-10">
   <link rel="stylesheet" href="../../pt-bridge.css?v=20260827-1">
-<link rel="stylesheet" href="boox-connector.css?v=20261021-1"><link rel="stylesheet" href="vps-tab.css?v=20261028-readable2"><script src="vps-tab.js?v=20261104-tools" defer></script><link rel="stylesheet" href="streamline.css?v=20261028-compact-rail"><link rel="stylesheet" href="monitor-tab.css?v=20261104"><script type="module" src="monitor-tab.js?v=20261104"></script></head>
+<link rel="stylesheet" href="boox-connector.css?v=20261021-1"><link rel="stylesheet" href="vps-tab.css?v=20261028-readable2"><script src="vps-tab.js?v=20261104-tools" defer></script><link rel="stylesheet" href="streamline.css?v=20261028-compact-rail"><link rel="stylesheet" href="monitor-tab.css?v=20261104-2"><script type="module" src="monitor-tab.js?v=20261104-2"></script></head>
 <body data-nexus-view="home">
 <div id="themeBg"></div><div class="bgShade"></div>
 <div class="app">
@@ -651,7 +651,8 @@
       <button type="button" data-monitor-view="workflows">工作流</button>
       <button type="button" data-monitor-view="projects">项目与占用</button>
       <button type="button" data-monitor-view="settings">读取检查</button>
-      <a id="monitorStandalone" href="../resource-center/" target="_blank" rel="noopener">独立打开 ↗</a>
+      <span id="monitorStatus" class="monitor-status" role="status" aria-live="polite">自动连接中…</span>
+      <button id="monitorRefresh" type="button" class="monitor-refresh" title="手动检查最新数据" disabled>↻ 刷新</button>
     </nav>
     <div class="monitor-frame-wrap">
       <p id="monitorLoading" role="status">正在读取资源监控…</p>
