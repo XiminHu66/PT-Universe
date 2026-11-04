@@ -12,18 +12,6 @@ name: Deploy PT Universe
     - scripts/build-pages.py
     - .github/workflows/pages.yml
   workflow_dispatch: null
-  workflow_run:
-    workflows:
-    - Refresh QF data (paused)
-    - Refresh 3C Scout data
-    - Refresh public investment disclosures
-    - Refresh Tsugi reading/music (manual only)
-    - Refresh Research Tools
-    - Refresh Stock data
-    - Refresh Media Vault
-    - Refresh Tsugi games
-    types:
-    - completed
 permissions:
   contents: read
   pages: write
@@ -67,7 +55,7 @@ jobs:
         sparse-checkout: |
           /dishes/**/*.md
           /LICENSE
-      if: steps.publication.outputs.deploy == 'true' && (success()) && github.event_name != 'workflow_run'
+      if: steps.publication.outputs.deploy == 'true' && (success())
     - name: Refresh shared recipe snapshot
       if: steps.publication.outputs.deploy == 'true' && (steps.recipes.outcome == 'success')
       continue-on-error: true
@@ -112,5 +100,3 @@ jobs:
             time.sleep(3)
         PY
     timeout-minutes: 15
-    if: github.event_name != 'workflow_run' || (github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name
-      == github.repository && github.event.workflow_run.event != 'pull_request')

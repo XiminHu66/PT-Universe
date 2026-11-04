@@ -115,3 +115,24 @@ assert.equal(scheduleContext.insideScheduledWindow(new Date('2026-07-03T16:31:00
 assert.match(workerSrc,/hour!==8\|\|minute!==31/);
 assert.match(workerSrc,/queue_outside_08_31_window/);
 console.log('08:31 Pacific schedule is DST-aware and afternoon queue deliveries are rejected');
+
+const musicPolicySrc=workerSrc.slice(workerSrc.indexOf('function freshPacificMorning('),workerSrc.indexOf('function refreshQuality('));
+const musicPolicyJS=await transform(musicPolicySrc,{loader:'ts'});
+const musicPolicyContext={Date,Intl};vm.createContext(musicPolicyContext);vm.runInContext(musicPolicyJS.code,musicPolicyContext);
+const musicDay='2026-11-03',musicStamp='2026-11-03T16:32:00Z';
+const musicOk={generated_at:musicStamp,weekly_chart:[{title:'Chart'}],recent_chart:[{title:'Recent'}],sources:{billboard_japan:{ok:true,fresh_count:1,checked_at:musicStamp,last_success_at:musicStamp},youtube_japan_recent:{ok:true,fresh_count:1,checked_at:musicStamp,last_success_at:musicStamp}}};
+assert.equal(musicPolicyContext.musicSnapshotFresh(musicOk,musicDay),true);
+assert.equal(musicPolicyContext.musicSnapshotFresh({...musicOk,generated_at:'2026-11-02T16:32:00Z'},musicDay),false);
+assert.equal(musicPolicyContext.musicSnapshotFresh({...musicOk,sources:{...musicOk.sources,billboard_japan:{...musicOk.sources.billboard_japan,fallback:true}}},musicDay),false);
+assert.equal(musicPolicyContext.musicSnapshotFresh({...musicOk,sources:{...musicOk.sources,youtube_japan_recent:{...musicOk.sources.youtube_japan_recent,last_success_at:'2026-11-02T16:32:00Z'}}},musicDay),false);
+assert.equal(musicPolicyContext.musicSnapshotFresh({...musicOk,sources:{...musicOk.sources,youtube_japan_recent:{...musicOk.sources.youtube_japan_recent,fresh_count:0}}},musicDay),false);
+assert.equal(musicPolicyContext.musicSnapshotFresh({...musicOk,recent_chart:[]},musicDay),false);
+assert.equal(musicPolicyContext.freshPacificMorning('2026-07-03T15:32:00Z','2026-07-03'),true);
+assert.equal(musicPolicyContext.freshPacificMorning('2026-07-03T14:32:00Z','2026-07-03'),false);
+assert.ok(workerSrc.includes("source!=='scheduled:08:31')try{result.games"));
+assert.ok(workerSrc.includes('gameCommit?'));
+const pagesWorkflow=fs.readFileSync('../../.github/workflows/pages.yml','utf8');
+assert.ok(!pagesWorkflow.includes('workflow_run:'),'data commits must not double-trigger Pages');
+const gamesWorkflow=fs.readFileSync('../../.github/workflows/refresh-tsugi-games.yml','utf8');
+assert.ok(gamesWorkflow.includes('verify_games.py --commit'),'game import must pin the published commit');
+console.log('Morning music freshness, failed-source metadata, DST and single-trigger Pages contract passed');

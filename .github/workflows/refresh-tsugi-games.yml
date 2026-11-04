@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   refresh:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
     - name: Check out PT Universe
@@ -94,7 +94,7 @@ jobs:
     - name: Ask Cloudflare to import the new snapshot
       if: steps.gate.outputs.refresh == 'true'
       shell: bash
-      run: python scripts/tsugi/verify_games.py
+      run: python scripts/tsugi/verify_games.py --commit "$(git rev-parse HEAD)"
     - name: Require complete game source health after publishing successful data
       if: steps.gate.outputs.refresh == 'true'
       run: |

@@ -23,7 +23,7 @@ import { contentHubRoute, hubTick } from './content-hub';
 
 type RefreshScope='all'|'sites'|'music'|'games';
 type RefreshOrigin='manual'|'scheduled:08:31';
-type RefreshMessage={requestId:string;scope:RefreshScope;source:RefreshOrigin;limitKeys?:string[]};
+type RefreshMessage={requestId:string;scope:RefreshScope;source:RefreshOrigin;limitKeys?:string[];gameCommit?:string};
 type RefreshRunSummary={request_id:string;scope:RefreshScope;status:string;started_at:string|null;completed_at:string|null;error:string|null};
 type RefreshBudget={day:string;officialDailyMs:number;safeDailyMs:number;usedMs:number;reservedMs:number;remainingMs:number;estimatedFullRefreshMs:number;remainingRefreshes:number;platformUsedMs:number;reservePercent:number;resetsAt:string;scheduledRunFinished:boolean;inFlightRefreshes:number};
 type Json=Record<string,unknown>;
@@ -169,7 +169,7 @@ async function syncRoute(request:Request,env:Env,url:URL){
   return error(request,'Method not allowed',405);
 }
 
-async function enqueue(request:Request,env:Env,scope:RefreshScope,source:'manual'){
+async function enqueue(request:Request,env:Env,scope:RefreshScope,source:'manual',gameCommit?:string){
   const requestId=crypto.randomUUID(),stamp=now(),limitKeys:string[]=[];
   if(source==='manual'){
     const key=`${scope}:${request.headers.get('cf-connecting-ip')||'unknown'}`;
@@ -203,7 +203,7 @@ async function enqueue(request:Request,env:Env,scope:RefreshScope,source:'manual
     await env.DB.prepare('INSERT INTO refresh_limits(limit_key,last_requested_at) VALUES(?,?) ON CONFLICT(limit_key) DO UPDATE SET last_requested_at=excluded.last_requested_at').bind(key,stamp).run();limitKeys.push(key);
   }
   await env.DB.prepare('INSERT INTO refresh_runs(request_id,scope,source,status,started_at) VALUES(?,?,?,?,?)').bind(requestId,scope,source,'queued',stamp).run();
-  await env.REFRESH_QUEUE.send({requestId,scope,source,limitKeys} satisfies RefreshMessage);
+  await env.REFRESH_QUEUE.send({requestId,scope,source,limitKeys,gameCommit} satisfies RefreshMessage);
   return reply(request,{requestId,scope,status:'queued',budget:scope==='all'||scope==='sites'||scope==='music'?await refreshBudget(env):null},202);
 }
 
@@ -505,12 +505,13 @@ async function refreshMusic(env:Env,sharedBrowser?:Browser,source:RefreshOrigin=
   const old=mergeMusicHistory(cached,repository);
   const scrape=async(browser:Browser)=>{
     const page=tunePage(await browser.newPage()),sources:Record<string,Json>={};let weekly:any[]=[],recent:any[]=[];
-    try{await page.goto('https://www.billboard-japan.com/charts/detail?a=hot100',{waitUntil:'domcontentloaded',timeout:20_000});weekly=await page.locator('td.name_td').evaluateAll(els=>els.slice(0,30).map((el:any,index:number)=>{const tr=el.closest('tr'),img=tr?.querySelector('img'),title=(el.querySelector('p.musuc_title')?.textContent||'').trim(),artist=(el.querySelector('p.artist_name')?.textContent||'').trim(),link=el.querySelector('a[href]')?.href||location.href;return {rank:index+1,title,artist,artwork:img?.getAttribute('data-src')||img?.getAttribute('data-original')||img?.src||'',url:link,youtube_music_url:`https://music.youtube.com/search?q=${encodeURIComponent(`${title} ${artist}`)}`}}).filter((x:any)=>x.title));weekly=mergeSongs(weekly,[old.weekly_chart||[]]);sources.billboard_japan={label:'Billboard JAPAN Hot 100',ok:true,count:weekly.length,coverCount:weekly.filter((x:any)=>x.artwork).length}}catch(e){weekly=old.weekly_chart||[];sources.billboard_japan={label:'Billboard JAPAN Hot 100',ok:false,count:weekly.length,error:String(e),fallback:true}}
-    try{await page.goto('https://kworb.net/youtube/insights/jp.html',{waitUntil:'domcontentloaded',timeout:20_000});recent=await page.locator('#weeklytable tbody tr').evaluateAll(els=>els.map((el:any,index:number)=>{const c=[...el.querySelectorAll('td')].map((x:any)=>x.textContent.trim()),track=c[2]||'',cut=track.indexOf(' - '),artist=cut>0?track.slice(0,cut).trim():'YouTube Japan',title=cut>0?track.slice(cut+3).trim():track.trim(),weeks=Number(c[3])||0,movement=c[1]||'';return {rank:Number(c[0])||index+1,rank_change:movement,is_new:movement.toUpperCase()==='NEW'||weeks===1,title,artist,weeks,peak:Number(c[4])||null,streams:c[6]||'',streams_change:c[7]||'',url:`https://www.youtube.com/results?search_query=${encodeURIComponent(track)}`,youtube_music_url:`https://music.youtube.com/search?q=${encodeURIComponent(`${title} ${artist}`)}`,source:'youtube_japan_recent',source_label:'YouTube Japan Weekly · 8 周内'}}).filter((x:any)=>x.title&&x.weeks>0&&x.weeks<=8).slice(0,30));if(!recent.length)throw new Error('近期榜无 8 周内歌曲');sources.youtube_japan_recent={label:'YouTube Japan Weekly via Kworb',ok:true,count:recent.length}}catch(e){recent=(old.recent_chart||old.recent_songs||[]).filter((x:any)=>Number(x.weeks||99)<=8).slice(0,30);sources.youtube_japan_recent={label:'YouTube Japan Weekly via Kworb',ok:false,count:recent.length,error:String(e),fallback:true}}finally{await closeFast(page)}
+    try{await page.goto('https://www.billboard-japan.com/charts/detail?a=hot100',{waitUntil:'domcontentloaded',timeout:20_000});weekly=await page.locator('td.name_td').evaluateAll(els=>els.slice(0,30).map((el:any,index:number)=>{const tr=el.closest('tr'),img=tr?.querySelector('img'),title=(el.querySelector('p.musuc_title')?.textContent||'').trim(),artist=(el.querySelector('p.artist_name')?.textContent||'').trim(),link=el.querySelector('a[href]')?.href||location.href;return {rank:index+1,title,artist,artwork:img?.getAttribute('data-src')||img?.getAttribute('data-original')||img?.src||'',url:link,youtube_music_url:`https://music.youtube.com/search?q=${encodeURIComponent(`${title} ${artist}`)}`}}).filter((x:any)=>x.title));if(!weekly.length)throw new Error('Billboard 本轮未解析出歌曲');weekly=mergeSongs(weekly,[old.weekly_chart||[]]);const stamp=now();sources.billboard_japan={label:'Billboard JAPAN Hot 100',ok:true,count:weekly.length,fresh_count:weekly.length,checked_at:stamp,last_success_at:stamp,coverCount:weekly.filter((x:any)=>x.artwork).length}}catch(e){weekly=old.weekly_chart||[];sources.billboard_japan={label:'Billboard JAPAN Hot 100',ok:false,count:weekly.length,fresh_count:0,checked_at:now(),last_success_at:old.sources?.billboard_japan?.last_success_at||null,error:String(e),fallback:true}}
+    try{await page.goto('https://kworb.net/youtube/insights/jp.html',{waitUntil:'domcontentloaded',timeout:20_000});recent=await page.locator('#weeklytable tbody tr').evaluateAll(els=>els.map((el:any,index:number)=>{const c=[...el.querySelectorAll('td')].map((x:any)=>x.textContent.trim()),track=c[2]||'',cut=track.indexOf(' - '),artist=cut>0?track.slice(0,cut).trim():'YouTube Japan',title=cut>0?track.slice(cut+3).trim():track.trim(),weeks=Number(c[3])||0,movement=c[1]||'';return {rank:Number(c[0])||index+1,rank_change:movement,is_new:movement.toUpperCase()==='NEW'||weeks===1,title,artist,weeks,peak:Number(c[4])||null,streams:c[6]||'',streams_change:c[7]||'',url:`https://www.youtube.com/results?search_query=${encodeURIComponent(track)}`,youtube_music_url:`https://music.youtube.com/search?q=${encodeURIComponent(`${title} ${artist}`)}`,source:'youtube_japan_recent',source_label:'YouTube Japan Weekly · 8 周内'}}).filter((x:any)=>x.title&&x.weeks>0&&x.weeks<=8).slice(0,30));if(!recent.length)throw new Error('近期榜无 8 周内歌曲');sources.youtube_japan_recent={label:'YouTube Japan Weekly via Kworb',ok:true,count:recent.length,fresh_count:recent.length,checked_at:now(),last_success_at:now()}}catch(e){recent=(old.recent_chart||old.recent_songs||[]).filter((x:any)=>Number(x.weeks||99)<=8).slice(0,30);sources.youtube_japan_recent={label:'YouTube Japan Weekly via Kworb',ok:false,count:recent.length,fresh_count:0,checked_at:now(),last_success_at:old.sources?.youtube_japan_recent?.last_success_at||null,error:String(e),fallback:true}}finally{await closeFast(page)}
     recent=mergeSongs(recent,[old.recent_chart||[],old.weekly_chart||[]]);
     const unresolved=[...recent,...weekly].filter(song=>!song.artwork).slice(0,12);
     for(const song of unresolved)if(!song.artwork)song.artwork=await lookupCover(song.title,song.artist);
     const releases=old.new_releases?.length?old.new_releases:(old.recent_songs||[]);
+    sources.apple_music_weekly_new={label:'Apple Music Japan · 本周新曲',ok:false,count:releases.length,fresh_count:0,checked_at:now(),last_success_at:old.sources?.apple_music_weekly_new?.last_success_at||null,fallback:releases.length>0,stale:true,error:'Cloudflare 本轮未重新抓取 Apple Music；保留旧歌曲但不标记为今日新数据'};
     sources.youtube_japan_recent={...(sources.youtube_japan_recent||{}),coverCount:recent.filter((x:any)=>x.artwork).length};
     return {...old,generated_at:now(),chart_date:new Date().toISOString().slice(0,10),recent_chart:recent,recent_songs:releases,new_releases:releases,weekly_chart:weekly,sources};
   };
@@ -518,24 +519,31 @@ async function refreshMusic(env:Env,sharedBrowser?:Browser,source:RefreshOrigin=
   if(!result.recent_chart?.length&&!result.weekly_chart?.length)throw new Error('音乐榜单抓取失败');await putData(env,'music.json',{...result,refresh_source:source});return {recent:result.recent_chart.length,weekly:result.weekly_chart.length,sources:result.sources};
 }
 
-async function refreshGames(env:Env){
+async function refreshGames(env:Env,gameCommit?:string){
   const cachedRaw=await env.PT_UNIVERSE_DATA.get('data/game-releases.json');
   const cached=safeJson<any>(cachedRaw,{items:{mobile:[],pc:[],console:[]},sources:{}});
   let current=cached,imported=false,remoteError='';
-  try{
+  if(!gameCommit)try{
     const vps=await readVpsGameSnapshot(env);
     const stamp=Date.parse(vps.generated_at),old=Date.parse(current.generated_at||'');
     const count=['mobile','pc','console'].reduce((n,k)=>n+(vps.items[k]?.length||0),0);
     if(count&&Number.isFinite(stamp)&&stamp<=Date.now()+300000&&(!Number.isFinite(old)||stamp>old)){current=vps;await putData(env,'game-releases.json',vps);imported=true;}
   }catch(e){console.warn('vps_game_feed_unavailable',String(e));}
   try{
-    const response=await timedFetch(`${RAW}game-releases.json?refresh=${Date.now()}`,{headers:{'user-agent':'PT-Universe/1.0','accept':'application/json','cache-control':'no-cache'}},15_000);
-    if(!response.ok)throw new Error(`GitHub raw ${response.status}`);
-    const remote=await response.json<any>(),items=remote.items||{},total=['mobile','pc','console'].reduce((sum,key)=>sum+(Array.isArray(items[key])?items[key].length:0),0);
+    const gameUrl=gameCommit?`https://raw.githubusercontent.com/XiminHu66/PT-Universe/${gameCommit}/apps/tsugi-checker/data/game-releases.json`:`${RAW}game-releases.json?refresh=${Date.now()}`;
+    let remote:any=null;
+    for(let attempt=0;attempt<3;attempt++){
+      try{
+        const response=await timedFetch(gameUrl,{headers:{'user-agent':'PT-Universe/1.0','accept':'application/json','cache-control':'no-cache'}},15_000);
+        if(!response.ok)throw new Error(`GitHub raw ${response.status}`);
+        remote=await response.json<any>();break;
+      }catch(e){if(attempt===2)throw e;await new Promise(resolve=>setTimeout(resolve,2_000))}
+    }
+    const items=remote.items||{},total=['mobile','pc','console'].reduce((sum,key)=>sum+(Array.isArray(items[key])?items[key].length:0),0);
     if(!remote.generated_at||!total)throw new Error('GitHub 游戏快照无效或为空');
     const remoteGenerated=Date.parse(remote.generated_at),cachedGenerated=Date.parse(current.generated_at||'');
-    if(Number.isFinite(remoteGenerated)&&(!Number.isFinite(cachedGenerated)||remoteGenerated>cachedGenerated)){
-      current=remote;await putData(env,'game-releases.json',remote);imported=true;
+    if(Number.isFinite(remoteGenerated)&&(!Number.isFinite(cachedGenerated)||remoteGenerated>cachedGenerated||(remoteGenerated===cachedGenerated&&!!gameCommit&&current.import_commit_sha!==gameCommit))){
+      current=gameCommit?{...remote,import_commit_sha:gameCommit}:remote;await putData(env,'game-releases.json',current);imported=true;
     }
   }catch(e){remoteError=String(e);console.warn('game_snapshot_import_failed',{error:remoteError})}
   const items=current.items||{},counts={mobile:(items.mobile||[]).length,pc:(items.pc||[]).length,console:(items.console||[]).length};
@@ -543,18 +551,18 @@ async function refreshGames(env:Env){
   return {...counts,generatedAt:current.generated_at||null,imported,pipeline:current.refresh_source?.startsWith('vps:')?'VPS game snapshot · 08:31 Pacific':'GitHub daily games · 08:31 Pacific',qf:'paused',sources:current.sources||{},remoteError:remoteError||undefined};
 }
 
-async function runRefresh(env:Env,scope:RefreshScope,source:RefreshOrigin='manual'){
+async function runRefresh(env:Env,scope:RefreshScope,source:RefreshOrigin='manual',gameCommit?:string){
   const result:Json={};
   if(scope==='all'){
     // Games are independent and must not inherit browser/detail quota failures.
-    try{result.games=await refreshGames(env)}catch(e){result.games={error:String(e)}}
+    if(source!=='scheduled:08:31')try{result.games=await refreshGames(env)}catch(e){result.games={error:String(e)}}
     await withBrowser(env,async browser=>{
       try{result.sites=await refreshSites(env,browser,source)}catch(e){result.sites={error:String(e)}}
       try{result.music=await refreshMusic(env,browser,source)}catch(e){result.music={error:String(e)}}
     });
   }else if(scope==='sites')result.sites=await refreshSites(env,undefined,source);
   else if(scope==='music')result.music=await refreshMusic(env,undefined,source);
-  else if(scope==='games')result.games=await refreshGames(env);
+  else if(scope==='games')result.games=await refreshGames(env,gameCommit);
   const state={generated_at:now(),scope,refresh_source:source,result};await putData(env,'state.json',state);return result;
 }
 
@@ -564,6 +572,24 @@ function insideScheduledWindow(instant:Date){
   const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(instant);
   const time=(part:string)=>Number(parts.find(x=>x.type===part)?.value??NaN);
   return time('hour')===8&&time('minute')>=31;
+}
+// A snapshot is fresh only when both core music sources were actually scraped today.
+function freshPacificMorning(stamp:string,day:string){
+  const ms=Date.parse(stamp||'');
+  if(!Number.isFinite(ms)||ms>Date.now()+300_000)return false;
+  const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(new Date(ms));
+  const get=(key:string)=>parts.find(x=>x.type===key)?.value||'';
+  return day===get('year')+'-'+get('month')+'-'+get('day')&&Number(get('hour'))>=8;
+}
+function musicSnapshotFresh(snapshot:any,day:string){
+  if(!freshPacificMorning(snapshot?.generated_at,day))return false;
+  return ([['billboard_japan','weekly_chart'],['youtube_japan_recent','recent_chart']] as const).every(([id,key])=>{
+    const source=snapshot?.sources?.[id],rows=snapshot?.[key];
+    return Array.isArray(rows)&&rows.length>0&&source?.ok===true&&!source.fallback&&!source.degraded
+      &&Number(source.fresh_count)>0
+      &&freshPacificMorning(source.checked_at,day)
+      &&freshPacificMorning(source.last_success_at,day);
+  });
 }
 function refreshQuality(result:Json){
   const issues:string[]=[];
@@ -625,7 +651,11 @@ export default {
       const data=url.pathname.match(/^\/api\/data\/([^/]+\.json)$/);
       if(data&&DATA_FILES.includes(data[1]))return new Response(await getData(env,data[1]),{headers:{'content-type':'application/json; charset=utf-8','cache-control':'public,max-age=300,stale-while-revalidate=86400',...cors(request)}});
       const refresh=url.pathname.match(/^\/api\/refresh\/(all|sites|music|games)$/);
-      if(refresh&&request.method==='POST')return enqueue(request,env,refresh[1] as RefreshScope,'manual');
+      if(refresh&&request.method==='POST'){
+        const gameCommit=url.searchParams.get('commit');
+        if(url.searchParams.has('commit')&&(refresh[1]!=='games'||!gameCommit||!/^[a-f0-9]{40}$/.test(gameCommit)))return error(request,'Invalid game commit',400);
+        return enqueue(request,env,refresh[1] as RefreshScope,'manual',gameCommit||undefined);
+      }
       const run=url.pathname.match(/^\/api\/refresh\/status\/([\w-]+)$/);
       if(run){const row=await env.DB.prepare('SELECT * FROM refresh_runs WHERE request_id=?').bind(run[1]).first();return row?reply(request,row):error(request,'刷新任务不存在',404)}
       return error(request,'Not found',404);
@@ -661,12 +691,11 @@ export default {
       };
       const [siteFresh,musicFresh]=await Promise.all([
         fresh('site-updates.json',v=>Array.isArray(v.items)&&v.items.length>0&&['manhuagui','linovelib','copymanga'].every(id=>sourceIsFresh(v,id,new Date().toISOString().slice(0,10)))),
-        fresh('music.json',v=>(v.weekly_chart?.length||0)+(v.recent_chart?.length||0)>0)
+        fresh('music.json',v=>musicSnapshotFresh(v,day))
       ]);
-      const gameSnapshot=safeJson<any>(await env.PT_UNIVERSE_DATA.get('data/game-releases.json'),{});
-      const gameFresh=samePacificDay(gameSnapshot.generated_at||'');
-      if(siteFresh&&musicFresh&&gameFresh){await record('skipped','already_fresh_today');return;}
-      const scope:RefreshScope=siteFresh&&musicFresh?'games':'all';
+      // GitHub imports its completed, commit-pinned game snapshot separately.
+      if(siteFresh&&musicFresh){await record('skipped','reading_and_music_fresh_today');return;}
+      const scope:RefreshScope=siteFresh?'music':musicFresh?'sites':'all';
       await env.DB.prepare("UPDATE refresh_runs SET status='failed',completed_at=?,error='Stale queue session reclaimed before scheduled recovery' WHERE status IN ('queued','running') AND (started_at IS NULL OR datetime(started_at)<datetime('now','-6 minutes'))").bind(now()).run();
       const active=await env.DB.prepare("SELECT request_id FROM refresh_runs WHERE scope IN ('all','sites','music') AND status IN ('queued','running') AND datetime(started_at) >= datetime('now','-6 minutes') ORDER BY rowid DESC LIMIT 1").first();
       if(active){await record('skipped','refresh_already_running');return;}
@@ -683,12 +712,12 @@ export default {
     })());
   },
   async queue(batch:MessageBatch<RefreshMessage>,env:Env){
-    for(const message of batch.messages){const {requestId,scope,limitKeys=[]}=message.body,start=Date.now(),deadline=scope==='all'?225_000:scope==='games'?150_000:scope==='sites'?210_000:scope==='music'?75_000:60_000;try{
+    for(const message of batch.messages){const {requestId,scope,limitKeys=[],gameCommit}=message.body,start=Date.now(),deadline=scope==='all'?225_000:scope==='games'?150_000:scope==='sites'?210_000:scope==='music'?75_000:60_000;try{
       if(message.body.source==='scheduled:08:31'&&!insideScheduledWindow(new Date(start))){
         await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,result_json=? WHERE request_id=?')
           .bind('skipped',now(),JSON.stringify({reason:'queue_outside_08_31_window'}),requestId).run();
         message.ack();continue;
       }
-      await env.DB.prepare('UPDATE refresh_runs SET status=?,started_at=? WHERE request_id=?').bind('running',now(),requestId).run();const result=await withDeadline(runRefresh(env,scope,message.body.source),deadline,`${scope} 刷新`);await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,duration_ms=?,result_json=? WHERE request_id=?').bind(refreshQuality(result).ok?'success':'partial',now(),Date.now()-start,JSON.stringify({...result,quality:refreshQuality(result)}),requestId).run();console.log('refresh_completed',{requestId,scope,quality:refreshQuality(result)});message.ack()}catch(e){console.error('refresh_failed',{requestId,scope,error:String(e)});await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,duration_ms=?,error=? WHERE request_id=?').bind('failed',now(),Date.now()-start,String(e),requestId).run();for(const key of limitKeys)await env.DB.prepare('DELETE FROM refresh_limits WHERE limit_key=?').bind(key).run();message.ack()}}
+      await env.DB.prepare('UPDATE refresh_runs SET status=?,started_at=? WHERE request_id=?').bind('running',now(),requestId).run();const result=await withDeadline(runRefresh(env,scope,message.body.source,gameCommit),deadline,`${scope} 刷新`);await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,duration_ms=?,result_json=? WHERE request_id=?').bind(refreshQuality(result).ok?'success':'partial',now(),Date.now()-start,JSON.stringify({...result,quality:refreshQuality(result)}),requestId).run();console.log('refresh_completed',{requestId,scope,quality:refreshQuality(result)});message.ack()}catch(e){console.error('refresh_failed',{requestId,scope,error:String(e)});await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,duration_ms=?,error=? WHERE request_id=?').bind('failed',now(),Date.now()-start,String(e),requestId).run();for(const key of limitKeys)await env.DB.prepare('DELETE FROM refresh_limits WHERE limit_key=?').bind(key).run();message.ack()}}
   }
 } satisfies ExportedHandler<Env,RefreshMessage>;
