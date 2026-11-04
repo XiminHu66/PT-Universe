@@ -2,7 +2,7 @@
 import {hash} from './knowledge';
 type CacheEnv={PT_UNIVERSE_DATA:KVNamespace;RESOURCE_GITHUB_TOKEN?:string;RESOURCE_CF_TOKEN?:string;RESOURCE_CF_ACCOUNT_ID?:string};
 const inflight=new Map<string,Promise<any>>();
-const ttls:Record<string,number>={'github-inventory':21600000,'github-storage':3600000,'github-billing':21600000,cloudflare:3600000,browser:900000};
+const ttls:Record<string,number>={'github-inventory':21600000,'github-storage':3600000,'github-billing':3600000,cloudflare:3600000,browser:900000};
 function merge(previous:any,next:any){
  if(!previous)return next;const result={...previous,...next};
  for(const [field,key]of [['repositories','name'],['quotas','id']])if(Array.isArray(previous[field])&&Array.isArray(next[field])){
@@ -15,7 +15,7 @@ export async function cachedResources(provider:string,env:CacheEnv,load:()=>Prom
  const now=clock(),ttl=ttls[provider];if(!ttl)throw Error('unsupported-resource-cache');
  const date=new Date(now).toISOString(),period=provider==='cloudflare'||provider==='browser'?date.slice(0,10):provider==='github-billing'?date.slice(0,7):'inventory';
  const credentials=provider.startsWith('github')?env.RESOURCE_GITHUB_TOKEN||'public':provider==='cloudflare'?[env.RESOURCE_CF_TOKEN,env.RESOURCE_CF_ACCOUNT_ID].join(':'):'binding';
- const key='private/resources/cache-v3/'+provider+'/'+period+'/'+(await hash(credentials)).slice(0,32);
+ const key='private/resources/'+(provider==='github-billing'?'actions-usage-v4':'cache-v3')+'/'+provider+'/'+period+'/'+(await hash(credentials)).slice(0,32);
  if(inflight.has(key))return inflight.get(key);
  const pending=(async()=>{
   let old:any=null;try{const text=await env.PT_UNIVERSE_DATA.get(key);if(text){const value=JSON.parse(text);if(value&&value.expiresAt>now&&value.packet?.status)return {...value.packet,cacheHit:true};if(value?.packet?.status)old=value.packet;}}catch{}

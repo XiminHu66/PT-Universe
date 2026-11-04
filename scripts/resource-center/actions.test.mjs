@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';
+import {actionsUsage} from '../../services/resource-monitor/actions.mjs';
+import {actionsQuotas} from '../../apps/resource-center/actions-usage.mjs';
+import {overviewHTML} from '../../apps/resource-center/view.mjs';
+import {assess} from '../../apps/resource-center/model.mjs';
+const at='2026-11-04T21:00:00Z',repos=[{name:'private',owner:{login:'XiminHu66'},private:true},{name:'public',owner:{login:'XiminHu66'},private:false}],snapshot={quotas:[{id:'gh-compute',limit:12,unit:'USD'},{id:'gh-storage',limit:.5,unit:'GB'}]};
+const row=(repositoryName,sku,quantity,grossAmount,extra={})=>({date:'2026-11-04',product:'Actions',sku,quantity,unitType:'minutes',grossAmount,netAmount:0,discountAmount:grossAmount,repositoryName,...extra});
+const report={usageItems:[row('XiminHu66/private','Actions Linux',100,.6),row('XiminHu66/private','actions_windows',60,.6),row('XiminHu66/public','actions_linux',10000,60),row('XiminHu66/private','actions_storage',9999,20,{unitType:'gigabyte-hours'})]};
+const usage=actionsUsage(report,repos,snapshot,at);assert.equal(usage.computeUsedPercent,10,'Private gross usage consumes 10% even when net charges are zero');assert.equal(usage.privateMinutes,160);assert.equal(usage.publicMinutes,10000);assert.equal(usage.coveragePartial,false);assert.deepEqual(usage.minutes,{linux:100,windows:60,macos:0});
+const data={...snapshot,actionUsage:usage,repositories:[{name:'private',visibility:'private',workflows:[{}],artifacts:{bytes:50e6,observedAt:at},cache:{bytes:1e9,observedAt:at}},{name:'public',visibility:'public',workflows:[{}],artifacts:{bytes:999e6,observedAt:at},cache:{bytes:9e9,observedAt:at}}]};
+const quotas=actionsQuotas(data);assert.equal(quotas[0].used,10);assert.equal(quotas[0].limit,100);assert.equal(quotas[1].used,50,'Public artifacts do not consume the private artifact allowance');assert.equal(quotas[1].limit,500);assert.equal(quotas[2].used,9,'Cache compares the largest repository with its own 10 GB allowance, never an account total');assert.equal(quotas[2].limit,10);assert.equal(assess(quotas[2],Date.parse(at)).state,'danger');
+const unknown=actionsUsage({usageItems:[...report.usageItems,row('other/unknown','actions_linux',100,6)]},repos,snapshot,at);assert.equal(unknown.coveragePartial,true);assert.equal(assess({...quotas[0],coveragePartial:unknown.coveragePartial},Date.parse(at)).state,'unknown');
+assert.equal(actionsUsage({usageItems:[row('private','actions_gpu_special',3,1)]},repos,snapshot,at).coveragePartial,true);
+assert.equal(actionsUsage({usageItems:[row('private','actions_linux',3,.1,{date:'2026-10-01'})]},repos,snapshot,at).coveragePartial,true);
+const combined=actionsUsage({usageItems:[...report.usageItems,{product:'Cloud Sandbox',grossAmount:1.2}]},repos,snapshot,at);assert.equal(combined.computeUsedPercent,20,'Other known consumers of the shared allowance cannot disappear');
+const missing=actionsQuotas({...data,actionUsage:null,repositories:[{name:'private',visibility:'private',workflows:[{}]}]});assert.equal(missing[0].used,null);assert.equal(missing[1].used,null);assert.equal(missing[2].used,null);
+const partial=actionsQuotas({...data,repositories:[{...data.repositories[0],artifacts:{...data.repositories[0].artifacts,partial:true}}]});assert.equal(assess(partial[1],Date.parse(at)).state,'unknown');
+const html=overviewHTML({...data,automatic:{},billing:{netUSD:0,grossUSD:61.2,rows:[],observedAt:at}},quotas);assert.ok(html.includes('本月计算额度'));assert.ok(html.includes('私有产物存储'));assert.ok(html.includes('单仓库最大缓存'));assert.ok(!html.includes('本月实际计费'));assert.ok(!html.includes('billing-hero'));assert.ok(html.includes('<summary>计费详情</summary>'));
+console.log('PASS: net-zero charges still consume allowance; public/private separation, OS runtimes, storage/cache scopes, unknown coverage, live usage progress and collapsed billing.');
+
+const {ResourceCollector}=await import('../../services/resource-monitor/collector.mjs');let requests=0;
+const collector=new ResourceCollector({clock:()=>Date.parse(at),cache:new Map(),inflight:new Map(),fetcher:async(url)=>{requests++;if(url.includes('/summary'))return Response.json({error:'DO_NOT_ECHO'},{status:500});if(url.includes('/user/repos'))return Response.json(repos);return Response.json(report);}});
+const independent=await collector.githubBilling(snapshot,{RESOURCE_GITHUB_TOKEN:'fixture'});assert.equal(independent.actionUsage.computeUsedPercent,10);assert.equal(independent.status.state,'ok');assert.equal(independent.billing,undefined);assert.equal(requests,3);assert.ok(!JSON.stringify(independent).includes('DO_NOT_ECHO'));
+console.log('PASS: optional billing-summary failure cannot block actual usage collection.');

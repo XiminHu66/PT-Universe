@@ -21,5 +21,5 @@ const env={RESOURCE_CF_TOKEN:'fixture',RESOURCE_CF_ACCOUNT_ID:'a'.repeat(32)},cf
 const data={repositories:[],billing:{netUSD:0,grossUSD:1,rows:[],observedAt:at},automatic:{},vpsServices:[]};
 const crons={id:'cf-crons',provider:'Cloudflare',name:'Cron',used:null},egress={id:'oci-egress',provider:'Oracle VPS',name:'Egress',used:null},secretName='<img src=x onerror=alert(1)>';
 const html=overviewHTML(data,[crons,egress,{id:'cf-kv-delete',provider:'Cloudflare',name:secretName,used:90,limit:100,period:'day',observedAt:at}],85);
-assert.ok(html.includes('免费池余量需在 Billing 核对'));assert.ok(!html.includes('onerror=alert(1)>'));assert.ok(!html.includes('data-quota="cf-crons"'));assert.ok(!html.includes('data-quota="oci-egress"'));assert.ok(coverageHTML(data,[crons,egress],85).includes('月度账单'));
+assert.ok(!html.includes('本月实际计费'));assert.ok(html.includes('运行用量与折算说明'));assert.ok(!html.includes('onerror=alert(1)>'));assert.ok(!html.includes('data-quota="cf-crons"'));assert.ok(!html.includes('data-quota="oci-egress"'));assert.ok(coverageHTML(data,[crons,egress],85).includes('月度账单'));
 console.log('PASS: storage aggregation, empty/invalid/truncated data, true Queue operations, UTC and duplicate-safe Browser lower bounds, secret-safe dataset diagnostics, cache reuse and coverage disclosure.');

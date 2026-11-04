@@ -1,3 +1,4 @@
+import {actionsUsage} from './actions.mjs';
 import {cloudflareDatasets} from './cloudflare.mjs';
 // Read-only, request-driven collection. No cron, telemetry or model calls.
 const OWNER='XiminHu66',HOUR=3600000;
@@ -6,7 +7,7 @@ const nonnegative=v=>typeof v==='number'&&Number.isFinite(v)&&v>=0;
 const clone=v=>structuredClone(v);
 export function automaticConnections(env={}){return [
  {id:'github',name:'GitHub 仓库 / 工作流 / 产物',mode:env.RESOURCE_GITHUB_TOKEN?'已配置私有读取':'公开数据自动读取；私有数据待授权',needs:env.RESOURCE_GITHUB_TOKEN?null:'一次性授权仓库 Metadata / Actions 读取权限；账单另需账户 Plan 读取权限'},
- {id:'billing',name:'GitHub 官方账单',mode:env.RESOURCE_GITHUB_TOKEN?'准备通过官方 API 核验权限':'缺少一次性只读授权',needs:env.RESOURCE_GITHUB_TOKEN?null:'GitHub 账户 Plan: read'},
+ {id:'billing',name:'GitHub Actions 用量',mode:env.RESOURCE_GITHUB_TOKEN?'准备通过官方 API 核验权限':'缺少一次性只读授权',needs:env.RESOURCE_GITHUB_TOKEN?null:'GitHub 账户 Plan: read'},
  {id:'cloudflare',name:'Cloudflare Workers / KV / D1',mode:env.RESOURCE_CF_TOKEN&&env.RESOURCE_CF_ACCOUNT_ID?'已配置，等待核验':'缺少一次性只读授权',needs:env.RESOURCE_CF_TOKEN&&env.RESOURCE_CF_ACCOUNT_ID?null:'一次性配置 Cloudflare 账户与 Analytics 只读授权'},
  {id:'browser',name:'Cloudflare Browser 时长',mode:'复用现有 binding 读取会话历史下限',needs:null},
  {id:'vps',name:'Oracle VPS 采样',mode:'已复用现有自动采样',needs:null},
@@ -67,13 +68,17 @@ export class ResourceCollector{
  }
  async githubBilling(snapshot,env){
   if(!env.RESOURCE_GITHUB_TOKEN)return {status:{provider:'github-billing',state:'needs_authorization',checkedAt:new Date(this.clock()).toISOString()}};
-  return this.cached('github-billing',6*HOUR,env.RESOURCE_GITHUB_TOKEN+new Date(this.clock()).toISOString().slice(0,7),async()=>{
-   const d=new Date(this.clock()),u=`https://api.github.com/users/${OWNER}/settings/billing/usage/summary?year=${d.getUTCFullYear()}&month=${d.getUTCMonth()+1}&product=actions`,result=await this.json(u,this.ghHeaders(env));
-   if(!Array.isArray(result.usageItems))throw Error('invalid-billing');
-   // Gross includes public-repository discounts. Do not mislabel it as free-pool
-   // consumption, or convert ambiguous storage units into current GB occupancy.
-   const rows=result.usageItems.filter(x=>String(x.product).toLowerCase()==='actions').map(x=>({sku:String(x.sku||'').slice(0,100),unit:String(x.unitType||''),quantity:nonnegative(x.grossQuantity)?x.grossQuantity:null,grossUSD:nonnegative(x.grossAmount)?x.grossAmount:null,discountUSD:nonnegative(x.discountAmount)?x.discountAmount:null,netUSD:nonnegative(x.netAmount)?x.netAmount:null}));
-   return {billing:{rows,grossUSD:rows.reduce((n,r)=>n+(r.grossUSD||0),0),netUSD:rows.reduce((n,r)=>n+(r.netUSD||0),0),observedAt:new Date(this.clock()).toISOString(),note:'官方账单明细；总原价包含公共仓库折扣，不能直接充当免费计算额度消耗。GB-hours/GB-month 也不等同当前文件占用。'},status:{provider:'github-billing',state:'ok',checkedAt:new Date(this.clock()).toISOString(),observedAt:new Date(this.clock()).toISOString()}};
+  return this.cached('github-billing',HOUR,env.RESOURCE_GITHUB_TOKEN+new Date(this.clock()).toISOString().slice(0,7),async()=>{
+   const d=new Date(this.clock()),query=`year=${d.getUTCFullYear()}&month=${d.getUTCMonth()+1}`,base=`https://api.github.com/users/${OWNER}/settings/billing/usage`,h=this.ghHeaders(env),at=d.toISOString();
+   const results=await Promise.allSettled([this.json(base+'/summary?'+query+'&product=actions',h),this.json(base+'?'+query,h),this.json('https://api.github.com/user/repos?affiliation=owner&per_page=100&sort=pushed',h)]);
+   let usage=null,billing;
+   if(results[1].status==='fulfilled'&&results[2].status==='fulfilled')try{usage=actionsUsage(results[1].value,results[2].value,snapshot,at);}catch{}
+   if(results[0].status==='fulfilled'&&Array.isArray(results[0].value.usageItems)){
+    const rows=results[0].value.usageItems.filter(x=>String(x.product).toLowerCase()==='actions').map(x=>({sku:String(x.sku||'').slice(0,100),unit:String(x.unitType||''),quantity:nonnegative(x.grossQuantity)?x.grossQuantity:null,grossUSD:nonnegative(x.grossAmount)?x.grossAmount:null,discountUSD:nonnegative(x.discountAmount)?x.discountAmount:null,netUSD:nonnegative(x.netAmount)?x.netAmount:null}));
+    billing={rows,grossUSD:rows.reduce((n,r)=>n+(r.grossUSD||0),0),netUSD:rows.reduce((n,r)=>n+(r.netUSD||0),0),observedAt:at,note:'计费详情；应付金额与免费额度消耗分开。GB-hours 不代表当前文件占用。'};
+   }
+   if(!usage&&!billing)throw Object.assign(Error('usage-unavailable'),{code:results.some(r=>r.status==='rejected'&&r.reason?.code==='authorization_required')?'authorization_required':'upstream_unavailable'});
+   return {actionUsage:usage,...(billing?{billing}:{}),status:{provider:'github-billing',state:!usage||usage.coveragePartial?'partial':'ok',coverage:usage?'私有运行用量与附带额度占比；公共标准运行单列，不占免费池':'用量报告暂不可读；账单不代替额度消耗',requestsBound:3,checkedAt:at,observedAt:at}};
   });
  }
  async cloudflare(snapshot,env){

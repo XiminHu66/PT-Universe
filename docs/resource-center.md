@@ -36,10 +36,17 @@ no new SSH key, OCI API user, open port or monitoring agent is required.
 The initial audit covers 23 repositories and 124 workflow entries. Automatic
 GitHub discovery refreshes owned repositories and workflow status, artifact bytes
 and accessible Actions cache totals. YAML triggers/runner details retain their
-audited date. Account billing reports display gross, discounts and net separately;
-these are not relabelled as free-pool consumption. Historical free-allowance cards
-retain their actual timestamp and become unknown/stale when no comparable live
-measurement exists. Artifact occupancy is not inferred from billed GB-hours.
+audited date. Actions usage reports are classified by current owned-repository visibility.
+Standard public-runner usage is excluded from allowance consumption. Supported
+private standard-runner gross usage and reported cloud-sandbox usage are compared
+with the previously verified included allowance, displayed as percent used /
+remaining. Net charges are never used as a consumption proxy. Unknown SKUs or
+unclassified repositories make coverage partial. OS minutes are shown separately.
+Private unexpired artifact bytes are compared with the verified storage allowance;
+the largest observed per-repository cache is compared with the 10 GB default
+allowance. Account-total cache bytes are never compared with a per-repo limit.
+Instant artifact occupancy is not inferred from billed GB-hours. Billing amounts
+remain in a collapsed detail section.
 
 Cloudflare reads Workers requests, KV operations, D1 row counts, Queue billable
 operations and available KV/D1 storage peak samples. Storage samples do not
@@ -55,7 +62,7 @@ VPS reads CPU, RAM, root disk and service health through the existing gateway.
 Oracle account monthly egress remains unconnected: VPS interface traffic counters
 are not relabelled as Oracle billable egress. Other providers are excluded.
 
-Browser cache: fifteen minutes. Server inventory: six hours; storage/provider
+Browser cache: fifteen minutes. Server inventory: six hours; Actions usage, storage/provider
 reads: one hour, with in-flight coalescing and failure backoff. On-demand private KV caches
 share results across Worker instances, scoped by hashed credentials and billing
 period; no supplier secrets are persisted in cache keys or values. Failures back
@@ -86,8 +93,8 @@ introduced. Publication uses the existing Pages and Worker deployment workflows.
 
 ## Compact overview (2026-11-04)
 
-The default view shows three provider panels. API billing is primary; manually
-verified GitHub free-pool snapshots remain dated and collapsed. Browser history
+The default view shows three provider panels. Actions use / allowance progress is primary, with private runtime minutes and
+separate artifact/cache capacity. Billing is collapsed; no net-charge hero. Browser history
 is marked as a lower bound; incomplete storage estimates cannot be safe.
 Low-frequency KV operations and storage details are collapsed, but any warning
 or danger metric is promoted automatically. Unknown Oracle egress and static
@@ -96,3 +103,15 @@ Projects default to billable resources, sorted by artifact/cache occupancy;
 static child pages are available through a separate filter. Filters, selected
 view and expanded details survive data rerenders. A manual refresh rereads
 connection configuration and cannot leave a supplier failure looking successful.
+
+## Actions usage update
+
+`services/resource-monitor/actions.mjs` reads the official per-repository usage
+report plus current owned-repository metadata; at most three GitHub requests per
+cache fill including the existing account summary. The existing Plan read token
+is sufficient. Both persistent and browser cache revisions invalidate the older
+billing-only packet without clearing other provider caches. No new schedule.
+
+Validation: `node scripts/resource-center/actions.test.mjs` covers public/private
+separation, nonzero allowance consumption despite zero net charges, OS minutes,
+unknown coverage, independent storage/cache scopes and a usage-first view.
