@@ -1,59 +1,21 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,rm} from 'node:fs/promises';
-import {tmpdir} from 'node:os';
-import {join} from 'node:path';
-import {sourceURL,canJoin,Reader,createReader} from './reader.mjs';
-test('restrict source routes, credentials, ports, and pagination boundaries',()=>{
- for(const u of ['https://evil.test/novel/1.html','http://www.bilinovel.net/','https://u:p@www.bilinovel.net/','https://www.bilinovel.net:444/','https://www.bilinovel.net/admin.php'])assert.throws(()=>sourceURL(u));
- for(const u of ['https://www.bilinovel.net/','https://www.bilinovel.net/login.php','https://www.bilinovel.net/novel/2059/catalog','https://www.bilinovel.net/novel/2059/73799_2.html'])assert.equal(sourceURL(u),u);
- assert.ok(canJoin('https://www.bilinovel.net/novel/2059/73799.html','https://www.bilinovel.net/novel/2059/73799_2.html'));
- assert.ok(!canJoin('https://www.bilinovel.net/novel/2059/73799.html','https://www.bilinovel.net/novel/2059/73800.html'));
-});
-const page=(suffix='',paragraphs=['第一段'])=>({url:'https://www.bilinovel.net/novel/2059/73799'+suffix+'.html',title:'本章',bookTitle:'本书',bookId:'2059',paragraphs,next:'https://www.bilinovel.net/novel/2059/73800.html',previous:null,catalog:'https://www.bilinovel.net/novel/2059/catalog',nextPage:false});
-test('chapter pagination pauses for manual verification and resumes without losing or duplicating text',async()=>{
- const r=new Reader({data:'/tmp',control:{}});try{
-  const one={...page(),nextPage:true,next:page('_2').url};r.navigate=async url=>({...page('_2'),paragraphs:[],reason:'source-verification'});
-  const blocked=await r.collect(one);assert.equal(blocked.kind,'verification');assert.deepEqual(r.pending.paragraphs,['第一段']);
-  const read=await r.collect(page('_2',['第二页第一段','第二页第二段']));assert.equal(read.kind,'chapter');assert.deepEqual(read.paragraphs,['第一段','第二页第一段','第二页第二段']);assert.equal(read.pages,2);assert.equal(read.next,page().next);assert.equal(r.pending,null);
- }finally{clearInterval(r.timer)}
-});
-test('does not return protected/failed contents or join a different chapter',async()=>{
- const r=new Reader({data:'/tmp',control:{}});try{
-  const blocked=await r.collect({...page(),paragraphs:[],reason:'login'});assert.equal(blocked.kind,'verification');assert.ok(!('paragraphs'in blocked));
-  await assert.rejects(r.collect({...page(),url:page().next}),/章节已切换/);
- }finally{clearInterval(r.timer)}
-});
-test('reader actions serialize, release busy state after errors, and expire on demand',async()=>{
- const r=new Reader({data:'/tmp',control:{closePages:async()=>{},disconnect(){}}});try{r.busy=true;await assert.rejects(r.serial(()=>{}),/上一项/);r.busy=false;await assert.rejects(r.serial(()=>{throw Error('failed')}));assert.equal(r.busy,false);await r.suspend();assert.equal(r.last,0)}finally{clearInterval(r.timer)}
-});
-test('legacy route redirects, disables all remote operations and closes only its own target',async()=>{
- let connected=0,closed=0,disconnected=0;
- const control={async connect(){connected++},async closePages(){closed++},disconnect(){disconnected++}};
- const handler=createReader({control});const res={writeHead(s,h){this.status=s;this.headers=h},end(v){this.value=v}};
- assert.equal(await handler({method:'GET'},res,new URL('https://local/other')),false);
- await handler({method:'GET'},res,new URL('https://local/reader/'));assert.equal(res.status,302);assert.equal(res.headers.location,'https://ximinhu66.github.io/PT-Universe/apps/bilinovel-reader/');
- for(const path of ['state','open','manual','screen','action']){await handler({method:'POST'},res,new URL('https://local/reader/api/'+path));assert.equal(res.status,410);assert.equal(JSON.parse(res.value).mode,'local');assert.ok(!('token'in JSON.parse(res.value)));}
- await handler.close();assert.deepEqual([connected,closed,disconnected],[1,1,1]);
-});
+import {createServer} from 'node:http';
+import {sourceURL,canJoin,destinationMatches,Reader,createReader,VERSION,snapshot,assertMemoryBudget} from './reader.mjs';
+const page=(suffix='',paragraphs=['第一段'])=>({url:'https://www.bilinovel.net/novel/2059/73799'+suffix+'.html',title:'测试章节',bookTitle:'测试书籍',bookId:'2059',paragraphs,next:'https://www.bilinovel.net/novel/2059/73800.html',previous:null,catalog:'https://www.bilinovel.net/novel/2059/catalog',nextPage:false,ready:true});
+function fixture(extra={}){const commands=[],control={endpoint:'http://127.0.0.1:1',owned:new Set(),closed:0,async connect(){return {id:'A'}},async mainId(){return'A'},async closePages(){this.closed++},disconnect(){this.ws=null},async command(method,args){commands.push([method,args]);return{}},async targets(){return[]},async screen(){return{image:'fixture',tabs:[]}},...extra};return{control,commands}}
+async function readerCase(fn,opts={}){const f=fixture(),r=new Reader({data:'/tmp',control:f.control,...opts});await r.startup;f.control.closed=0;try{await fn(r,f)}finally{await r.close()}}
+test('source paths reject foreign protocols, credentials, ports and unrelated routes',()=>{for(const s of ['https://evil.test/novel/1.html','http://www.bilinovel.net/','https://u:p@www.bilinovel.net/','https://www.bilinovel.net:444/','https://www.bilinovel.net/admin.php'])assert.throws(()=>sourceURL(s));assert.equal(sourceURL(page().url),page().url);assert.ok(canJoin(page().url,page('_2').url));assert.ok(!canJoin(page().url,page().next));assert.ok(!destinationMatches(page().url,page('_2').url));assert.ok(destinationMatches(page().url,page().url.replace('www.bilinovel.net','tw.linovelib.com')))});
+test('wait rejects previous DOM and loader; returns only the requested chapter',async()=>readerCase(async(r,{control})=>{let n=0;control.command=async()=>({frameTree:{frame:{loaderId:n?'new':'old'}}});r.read=async()=>{n++;return n===1?page():page('_2')};r.deadline=Date.now()+6000;control.command=async()=>{n++;return{frameTree:{frame:{loaderId:n===1?'old':'new'}}}};let reads=0;r.read=async()=>++reads===1?page():page('_2');const s=await r.wait(page('_2').url,'new');assert.equal(s.url,page('_2').url);assert.ok(reads>=3)}));
+test('pagination pauses for permission and resumes without duplicating the previous page',async()=>readerCase(async r=>{r.navigate=async()=>({...page('_2'),paragraphs:[],reason:'source-verification'});const blocked=await r.collect({...page(),nextPage:true,next:page('_2').url});assert.equal(blocked.kind,'verification');assert.deepEqual(r.pending.paragraphs,['第一段']);const result=await r.collect(page('_2',['第二页']));assert.deepEqual(result.paragraphs,['第一段','第二页']);assert.equal(result.formatVersion,3);assert.equal(r.pending,null)}));
+test('normal chapter/catalog/illustration results release their source target immediately',async()=>readerCase(async(r,{control})=>{for(const value of [{kind:'chapter'}, {kind:'catalog'}, {kind:'illustration'}]){r.hasTab=true;assert.equal(await r.finish(value),value);assert.equal(r.hasTab,false)}assert.equal(control.closed,3);r.hasTab=true;await r.finish({kind:'verification'});assert.equal(r.hasTab,true);assert.equal(control.closed,3)}));
+test('verification screenshots do not refresh user activity, and idle expiry cannot recreate a page',async()=>{let now=1000;await readerCase(async(r,{control})=>{r.verifying=true;r.hasTab=true;r.last=1000;now=5000;assert.equal((await r.screen()).image,'fixture');assert.equal(r.last,1000);now=182000;await assert.rejects(r.screen(),/释放/);assert.equal(r.hasTab,false);assert.equal(control.closed,1);await assert.rejects(r.screen(),/释放/);assert.equal(control.closed,1)},{clock:()=>now})});
+test('pause freezes verification network and JS; wake restores only an existing verification session',async()=>readerCase(async(r,{commands})=>{r.verifying=true;r.hasTab=true;r.last=Date.now();r.control.ws=new EventTarget();await r.pause();assert.equal(r.paused,true);assert.ok(commands.some(([m,p])=>m==='Network.setBlockedURLs'&&p.urls[0]==='*'));assert.ok(commands.some(([m,p])=>m==='Page.setWebLifecycleState'&&p.state==='frozen'));await r.wake();assert.equal(r.paused,false);assert.ok(commands.some(([m,p])=>m==='Page.setWebLifecycleState'&&p.state==='active'));await r.leaveManual();await assert.rejects(r.wake(),/释放/)}));
+test('download/resource admission refusal creates no reading target; serial lock is restored',async()=>{await readerCase(async(r,{control})=>{await assert.rejects(r.open(page().url),/下载忙/);assert.equal(r.busy,false);assert.equal(r.hasTab,undefined);assert.equal(control.closed,0)},{admit:async()=>{throw Error('下载忙')}})});
+test('resource guard rejects below 15 percent and fails closed when telemetry is unavailable',async()=>readerCase(async r=>{r.memoryGuard=async()=>{throw Error('VPS 可用内存已到15%保留边界')};r.control.connect=async()=>{throw Error('missing')};await assert.rejects(r.ensure(),/15%/);assert.equal(r.hasTab,undefined)}));
+test('repeated source pagination is bounded, cancelled operations stop, errors keep serial usable',async()=>readerCase(async r=>{const one={...page(),nextPage:true,next:page().url};await assert.rejects(r.collect(one),/循环/);r.pending=null;r.cancelled=true;await assert.rejects(r.collect(page()),/取消/);r.busy=true;await assert.rejects(r.serial(()=>{}),/上一项/);r.busy=false;await assert.rejects(r.serial(()=>{throw Error('fixture')}),/fixture/);assert.equal(r.busy,false)}));
+test('rendered extraction excludes scale-zero bait and keeps legitimate repeated text',()=>{const names=['document','location','getComputedStyle','DOMMatrixReadOnly'],old=Object.fromEntries(names.map(k=>[k,globalThis[k]])),style={display:'block',visibility:'visible',opacity:'1',transform:'none'},body={nodeType:1,parentElement:null,innerText:'source'},root={nodeType:1,parentElement:body},p=(t,z=false)=>({nodeType:1,parentElement:root,attributes:[],tagName:'P',style:{...style,transform:z?'matrix(0,0,0,0,0,0)':'none'},childNodes:[{nodeType:3,textContent:t}],matches:()=>false});root.querySelectorAll=()=>[p('诱饵',true),p('可见正文'),p('重复'),p('重复')];globalThis.document={body,title:'章节',readyState:'complete',querySelector:s=>s==='#acontent,.bcontent'?root:null,querySelectorAll:()=>[]};globalThis.location={href:page().url,pathname:new URL(page().url).pathname};globalThis.getComputedStyle=e=>e.style||style;globalThis.DOMMatrixReadOnly=class{constructor(v){this.m11=this.m22=v.startsWith('matrix(0')?0:1;this.m12=this.m21=0}};try{assert.deepEqual(snapshot().paragraphs,['可见正文','重复','重复']);assert.deepEqual(snapshot().chapters,[])}finally{for(const[k,v]of Object.entries(old)){if(v===undefined)delete globalThis[k];else globalThis[k]=v}}});
+test('live HTTP boundary: versioned assets, CSRF, cancellation and invalid URLs do not trigger source work',async()=>{let opens=0;const r={close(){},hasTab:false,async open(){opens++;return page()},async pause(){return{ok:true}}};const handler=createReader({token:'fixture',origin:'https://private.example',reader:r}),server=createServer(async(req,res)=>{const u=new URL(req.url,'http://local');if(!await handler(req,res,u)){res.writeHead(404);res.end()}});await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const root='http://127.0.0.1:'+server.address().port;try{let response=await fetch(root+'/reader/api/state');const state=await response.json();assert.equal(state.version,VERSION);assert.equal(state.idleMinutes,3);for(const name of ['','app.js','style.css','manifest.webmanifest','icon.svg']){response=await fetch(root+'/reader/'+name);assert.equal(response.status,200,name);assert.ok((await response.text()).length>30)}response=await fetch(root+'/reader/api/open',{method:'POST',headers:{origin:'https://foreign.example'},body:'{}'});assert.equal(response.status,403);response=await fetch(root+'/reader/api/open',{method:'POST',headers:{origin:'https://private.example','content-type':'application/json'},body:JSON.stringify({url:'https://evil.test/'})});assert.equal(response.status,400);assert.equal(opens,0);response=await fetch(root+'/reader/api/cancel',{method:'POST',headers:{origin:'https://private.example'},body:'{}'});assert.equal(response.status,200);assert.equal(r.cancelled,true)}finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve))}});
 
-test('closing the manual panel restores filtering without consuming pending chapter pages',async()=>{
- const r=new Reader({data:'/tmp',control:{}});try{const pending={start:page().url,paragraphs:['已读取'],pages:1};r.pending=pending;r.manual=true;r.ensure=async()=>{};let filtered=false;r.filters=async()=>{filtered=!r.manual};await r.leaveManual();assert.equal(r.pending,pending);assert.ok(filtered)}finally{clearInterval(r.timer)}
-});
-
-test('rendered extraction excludes source scale-zero bait while keeping legitimate repeated text',async()=>{
- const {snapshot}=await import('./reader.mjs');
- const prior={};for(const k of ['document','location','getComputedStyle','DOMMatrixReadOnly'])prior[k]=globalThis[k];
- const style={display:'block',visibility:'visible',opacity:'1',transform:'none'};
- const body={nodeType:1,parentElement:null,innerText:'source'};
- const root={nodeType:1,parentElement:body};
- const p=(v,transform='none')=>({nodeType:1,parentElement:root,attributes:[],tagName:'P',style:{...style,transform},childNodes:[{nodeType:3,textContent:v}],matches:()=>false});
- const paragraphs=[p('诱饵','matrix(0, 0, 0, 0, 0, 0)'),p('正文第一段'),p('同一句'),p('同一句')];
- root.querySelectorAll=()=>paragraphs;
- const heading={innerText:'章节'};
- globalThis.document={body,title:'章节',readyState:'complete',querySelector:s=>s==='#acontent,.bcontent'?root:s==='#atitle,h1,.book-title'?heading:null,querySelectorAll:()=>[]};
- globalThis.location={href:'https://www.bilinovel.net/novel/1/2.html',pathname:'/novel/1/2.html'};
- globalThis.getComputedStyle=e=>e.style||style;
- globalThis.DOMMatrixReadOnly=class{constructor(v){const zero=v.includes('matrix(0,');this.m11=zero?0:1;this.m12=0;this.m21=0;this.m22=zero?0:1}};
- try{assert.deepEqual(snapshot().paragraphs,['正文第一段','同一句','同一句'])}finally{for(const [k,v]of Object.entries(prior)){if(v===undefined)delete globalThis[k];else globalThis[k]=v}}
-});
+test('memory budget handles the exact 15 percent boundary and refuses missing samples',()=>{assert.doesNotThrow(()=>assertMemoryBudget('MemTotal: 100000 kB\nMemAvailable: 15000 kB'));assert.throws(()=>assertMemoryBudget('MemTotal: 100000 kB\nMemAvailable: 14999 kB'),/15%/);assert.throws(()=>assertMemoryBudget('MemTotal: 100000 kB'),/无法确认/);});
+test('opening a later pagination URL starts at page one so previous chapter is complete',async()=>readerCase(async r=>{let navigated;r.navigate=async url=>{navigated=url;return page()};await r.open(page('_3').url);assert.equal(navigated,page().url)}));
