@@ -90,7 +90,7 @@ export class Reader {
  async manualStart({login=false,allowVerification=false}={}){return this.serial(async()=>{await this.ensure();this.manual=allowVerification===true||login===true;await this.filters();if(login){this.pending=null;await this.navigate('https://www.bilinovel.net/login.php')}else if(this.manual)await this.control.action({type:'reload'});return {ok:true,manual:this.manual}})}
  async screen(){return this.serial(async()=>{await this.ensure();return {...await this.control.screen(),manual:this.manual,width:390,height:760}})}
  async action(a){return this.serial(async()=>{await this.ensure();await this.control.action(a);return {ok:true}})}
- async suspend(){this.last=0;this.pending=null;this.lastResult=null;await this.control.closePages().catch(()=>{});this.control.disconnect();}
+ async suspend(){const used=!!this.last||!!this.control.ws;this.last=0;this.pending=null;this.lastResult=null;if(used)await this.control.closePages().catch(()=>{});this.control.disconnect();}
  async close(){clearInterval(this.timer);await this.suspend()}
 }
 export function createReader({data,origin,token,control,reader=new Reader({data,control})}){
