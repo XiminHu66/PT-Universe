@@ -132,7 +132,9 @@ assert.equal(musicPolicyContext.freshPacificMorning('2026-07-03T14:32:00Z','2026
 assert.ok(workerSrc.includes("source!=='scheduled:08:31')try{result.games"));
 assert.ok(workerSrc.includes('gameCommit?'));
 const pagesWorkflow=fs.readFileSync('../../.github/workflows/pages.yml','utf8');
-assert.ok(!pagesWorkflow.includes('workflow_run:'),'data commits must not double-trigger Pages');
+assert.ok(pagesWorkflow.includes("str(sha!=deployed).lower()"),'Pages must skip already published source revisions');
+assert.ok(pagesWorkflow.includes("steps.publication.outputs.deploy == 'true'"),'publication steps must use the source-revision gate');
+assert.ok(pagesWorkflow.includes("github.event.workflow_run.head_repository.full_name == github.repository"),'workflow handoff must be repository-bound');
 const gamesWorkflow=fs.readFileSync('../../.github/workflows/refresh-tsugi-games.yml','utf8');
 assert.ok(gamesWorkflow.includes('verify_games.py --commit'),'game import must pin the published commit');
 console.log('Morning music freshness, failed-source metadata, DST and single-trigger Pages contract passed');
