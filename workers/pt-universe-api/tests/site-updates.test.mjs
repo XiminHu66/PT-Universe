@@ -102,3 +102,16 @@ const budgetContext={Date,DEFAULT_FULL_REFRESH_MS:50000,SAFE_BROWSER_DAILY_MS:30
 const budget=await budgetContext.refreshBudget({BROWSER:{},DB:{prepare:()=>({first:async()=>({total:0,scheduled:0}),all:async()=>({results:[]})})}});
 assert.equal(budget.platformUsedMs,548895);assert.equal(budget.usedMs,548895);assert.equal(budget.remainingRefreshes,0);
 console.log('Aborted browser sessions are counted even when the D1 run has no recorded duration');
+
+// Scheduled callbacks and queue deliveries must stay inside the owner-selected 08:31 Pacific window.
+const workerSrc=fs.readFileSync('src/index.ts','utf8');
+const guardSource=workerSrc.slice(workerSrc.indexOf('function insideScheduledWindow('),workerSrc.indexOf('function refreshQuality('));
+const guardJS=await transform(guardSource,{loader:'ts'});
+const scheduleContext={Date,Intl};vm.createContext(scheduleContext);vm.runInContext(guardJS.code,scheduleContext);
+assert.equal(scheduleContext.insideScheduledWindow(new Date('2026-11-03T16:31:00Z')),true);
+assert.equal(scheduleContext.insideScheduledWindow(new Date('2026-11-03T21:30:00Z')),false);
+assert.equal(scheduleContext.insideScheduledWindow(new Date('2026-07-03T15:31:00Z')),true);
+assert.equal(scheduleContext.insideScheduledWindow(new Date('2026-07-03T16:31:00Z')),false);
+assert.match(workerSrc,/hour!==8\|\|minute!==31/);
+assert.match(workerSrc,/queue_outside_08_31_window/);
+console.log('08:31 Pacific schedule is DST-aware and afternoon queue deliveries are rejected');

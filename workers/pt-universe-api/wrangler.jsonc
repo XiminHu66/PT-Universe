@@ -17,5 +17,5 @@
     "consumers": [{ "queue": "pt-universe-refresh", "max_batch_size": 1, "max_batch_timeout": 5, "max_retries": 2 }]
   },
   "browser": { "binding": "BROWSER" },
-  "triggers": { "crons": ["0,5,30 15,16 * * *", "*/15 * * * *"] }
+  "triggers": { "crons": ["31 15,16 * * *", "*/15 * * * *"] }
 }

@@ -17,7 +17,7 @@ name: Deploy PT Universe
     - Refresh QF data (paused)
     - Refresh 3C Scout data
     - Refresh public investment disclosures
-    - Refresh Tsugi reading/music (08:30 conditional fallback)
+    - Refresh Tsugi reading/music (manual only)
     - Refresh Research Tools
     - Refresh Stock data
     - Refresh Media Vault
