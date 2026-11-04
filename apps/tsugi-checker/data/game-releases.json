@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-04T18:01:45Z",
+  "generated_at": "2026-11-04T18:02:59Z",
   "date_jst": "2026-11-05",
   "window": {
     "past_days": 7,
@@ -2478,7 +2478,6 @@
         "featured": true,
         "popularity_label": "Steam 热门",
         "steam_appid": "4463730",
-        "metadata_error": "appdetails: HTTPError: 403 Client Error: Forbidden for url: https://store.steampowered.com/api/appdetails?appids=4463730&cc=cn&l=schinese",
         "heat_label": "热门待发",
         "heat_labels": [
           "热门待发"
@@ -5379,28 +5378,28 @@
       "label": "App Store 日本 · 新着精选",
       "ok": true,
       "count": 8,
-      "checked_at": "2026-11-04T18:01:45Z",
+      "checked_at": "2026-11-04T18:02:59Z",
       "fallback": false
     },
     "googleplay": {
       "label": "Google Play 日本 · 新規リリース精选",
       "ok": true,
       "count": 6,
-      "checked_at": "2026-11-04T18:01:45Z",
+      "checked_at": "2026-11-04T18:02:59Z",
       "fallback": false
     },
     "taptap_cn_new": {
       "label": "TapTap 中国 · 新品榜",
       "ok": true,
       "count": 8,
-      "checked_at": "2026-11-04T18:01:45Z",
+      "checked_at": "2026-11-04T18:02:59Z",
       "fallback": false
     },
     "taptap_cn_upcoming": {
       "label": "TapTap 中国 · 即将首发",
       "ok": true,
       "count": 4,
-      "checked_at": "2026-11-04T18:01:45Z",
+      "checked_at": "2026-11-04T18:02:59Z",
       "fallback": false
     },
     "steam_popular_new": {
@@ -5409,7 +5408,7 @@
       "count": 39,
       "raw_count": 50,
       "dom_count": 50,
-      "checked_at": "2026-11-04T18:01:45Z",
+      "checked_at": "2026-11-04T18:02:59Z",
       "fallback": false
     },
     "steam_popular_upcoming": {
@@ -5418,17 +5417,17 @@
       "count": 48,
       "raw_count": 48,
       "dom_count": 50,
-      "checked_at": "2026-11-04T18:01:45Z",
+      "checked_at": "2026-11-04T18:02:59Z",
       "fallback": false
     },
     "famitsu": {
       "label": "Famitsu 日本游戏发行日",
       "ok": true,
       "count": 125,
-      "checked_at": "2026-11-04T18:01:45Z",
+      "checked_at": "2026-11-04T18:02:59Z",
       "fallback": false
     }
   },
-  "metadata_enriched_at": "2026-11-04T18:02:05Z",
+  "metadata_enriched_at": "2026-11-04T18:03:25Z",
   "refresh_source": "github:manual-or-push"
 }
