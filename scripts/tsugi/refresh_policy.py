@@ -12,7 +12,8 @@ def fresh(value,now):
     except (TypeError,ValueError,AttributeError):return False
 def game_decision(snapshot,now,event='schedule'):
     if event!='schedule':return True,'explicit_refresh'
-    if now.astimezone(PACIFIC).hour<8:return False,'before_daily_window'
+    local=now.astimezone(PACIFIC)
+    if local.hour!=8 or local.minute<31:return False,'outside_daily_0831_window'
     sources=snapshot.get('sources',{})
     healthy=fresh(snapshot.get('generated_at'),now) and all(
         (s:=sources.get(key,{})).get('ok') is True and not s.get('fallback')
