@@ -10,7 +10,7 @@ const normalize=html.slice(html.indexOf('function normalizedNavConfig(){'),html.
 let layoutVersion=2;
 const navigation={state:{navConfig:[]},store:{get:()=>layoutVersion}};
 vm.createContext(navigation);vm.runInContext(defaults+normalize+';globalThis.defaults=DEFAULT_NAV_CONFIG;',navigation);
-const oldConfig=navigation.defaults.filter(x=>x.view!=='vps').map(x=>({...x}));
+const oldConfig=navigation.defaults.filter(x=>!['vps','deal-radar'].includes(x.view)).map(x=>({...x}));
 oldConfig.splice(2,0,{view:'vps',icon:'V',label:'服务器'},{view:'check',icon:'⌕',label:'核查台'});
 oldConfig.find(x=>x.view==='tsugi').label='我的追更';
 navigation.state.navConfig=oldConfig;
@@ -19,6 +19,7 @@ assert.equal(migrated.findIndex(x=>x.view==='vps'),migrated.findIndex(x=>x.view=
 assert.ok(!migrated.some(x=>x.view==='check'));
 assert.equal(migrated.find(x=>x.view==='tsugi').label,'我的追更');
 assert.equal(migrated.find(x=>x.view==='vps').label,'服务器');
+assert.equal(migrated.findIndex(x=>x.view==='deal-radar'),migrated.findIndex(x=>x.view==='monitor')+1);
 assert.deepEqual(migrated.filter(x=>x.view!=='vps').map(x=>x.view),names.filter(x=>x!=='vps'));
 layoutVersion=3;
 navigation.state.navConfig=[migrated.find(x=>x.view==='vps'),...migrated.filter(x=>x.view!=='vps')];
@@ -42,7 +43,9 @@ for(const view of [...names,'bad-view','check','countdown','tools','music',...na
  // Same URL used after F5 must resolve to the same view.
  sandbox.switchNexusView(url.searchParams.get('view')||'home');assert.equal(views.find(x=>x.classList.active).dataset.view,expected);
 }
-assert.ok(calls.some(x=>x[0]==='embedded'&&x[1]==='tsugi'));assert.ok(!calls.some(x=>x[0]==='embedded'&&x[1]==='check'));
+assert.ok(calls.some(x=>x[0]==='embedded'&&x[1]==='tsugi'));assert.ok(calls.some(x=>x[0]==='embedded'&&x[1]==='dealRadar'));assert.ok(!calls.some(x=>x[0]==='embedded'&&x[1]==='check'));
+assert.match(html,/<iframe[^>]+id="dealRadarFrame"[^>]+data-src="\.\.\/deal-radar\/\?embedded=nexus"/);
+assert.doesNotMatch(html,/<iframe[^>]+id="dealRadarFrame"[^>]+\ssrc=/);
 const tabs=fs.readFileSync('apps/daily-nexus/decision-tabs.js','utf8');assert.ok(tabs.includes("params.get('view')||params.get('tab')"));assert.ok(!tabs.includes('history.replaceState'),'Embedded activation must not rewrite navigation URLs');
 assert.ok(calls.some(x=>x[0]==='reminders'));
 console.log('All '+names.length+' Nexus tabs, active panels, refresh URLs, legacy tab removal and embedded activation passed');

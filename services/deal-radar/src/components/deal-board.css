@@ -36,6 +36,8 @@
 .radar-alerts { margin-bottom: 12px; display: grid; gap: 5px; padding: 9px 12px; background: #fff5e4; color: #70440a; border: 1px solid #ecd0a5; border-radius: 10px; overflow-wrap: anywhere; }
 .radar-controls { padding: 12px 14px 8px; border: 1px solid var(--line); border-radius: 15px; background: var(--paper); }
 .radar-control-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; margin-bottom: 7px; }
+[data-embedded="nexus"] .radar-main { padding: 12px clamp(12px, 2vw, 24px) 24px; }
+[data-embedded="nexus"] .radar-control-head { grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; }
 .radar-search { position: relative; min-width: 0; }
 .radar-search > svg { position: absolute; inset: 0 auto 0 12px; margin-block: auto; width: 17px; height: 17px; color: var(--green); pointer-events: none; }
 .radar-search input, .radar-sort { height: 42px; border: 1px solid var(--line); border-radius: 9px; color: var(--ink); background: var(--canvas); }
@@ -142,6 +144,11 @@
   .radar-card h2 { min-height: 0; }
   .radar-bookmark { height: 40px; }
   .radar-card-actions :is(a, button) { min-height: 40px; }
+}
+@media (max-width: 480px) {
+  [data-embedded="nexus"] .radar-control-head { grid-template-columns: minmax(0, 1fr) auto; }
+  [data-embedded="nexus"] .radar-search { grid-column: 1 / -1; }
+  [data-embedded="nexus"] .radar-sort { justify-self: start; }
 }
 @media (prefers-reduced-motion: reduce) {
   .perk-board *, .perk-board *::before, .perk-board *::after { animation-duration: 0s !important; transition-duration: 0s !important; }

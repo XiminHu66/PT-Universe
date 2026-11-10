@@ -18,8 +18,13 @@ const initial: BoardState = {
   deals: [],
 };
 
+const params = new URLSearchParams(location.search);
+const nexusUrl = new URL("../daily-nexus/", location.href).href;
+const embedded = params.get("embedded") === "nexus" && window.parent !== window && document.referrer.startsWith(nexusUrl);
+
 createRoot(document.getElementById("deal-radar")!).render(<DealBoard initial={initial} publicFeed={{
   url: "https://pt-universe-api.summer07-nanjolno.workers.dev/api/deal-radar/latest",
   homeUrl: "../../",
   managementUrl: "https://pt-vps-tools.h1nano.chatgpt.site/deal-radar/",
+  embedded,
 }} />);

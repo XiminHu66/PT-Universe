@@ -19,7 +19,7 @@ let browser;
   return route.fulfill({json:{}});
  });
  const page=await context.newPage();let shellLoads=0;page.on('framenavigated',frame=>{if(frame===page.mainFrame())shellLoads++;});await page.goto(base);await page.locator('#vpsState[data-state=online]').waitFor();assert.equal(grants,1,'fresh session silently connects');assert.equal(new URL(page.url()).hash,'','grant removed from URL');assert.ok(metrics>0);assert.equal(shellLoads,1,'silent connection must not navigate the Nexus shell');
- assert.equal(await page.locator('.sidebar .navbtn[data-view]').count(),9);assert.equal(await page.locator('#monitorFrame').getAttribute('src'),null,'resource monitoring must not load while using VPS tools');
+ assert.equal(await page.locator('.sidebar .navbtn[data-view]').count(),10);assert.equal(await page.locator('#monitorFrame').getAttribute('src'),null,'resource monitoring must not load while using VPS tools');
  await page.reload();await page.locator('#vpsState[data-state=online]').waitFor();assert.equal(grants,1,'reload reuses session');
  const sizes=[[1750,749],[1440,900],[1366,768],[1280,720],[390,844]],report=[];
  for(const [width,height] of sizes){
