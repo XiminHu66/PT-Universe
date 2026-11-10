@@ -7,8 +7,8 @@
   <meta name="description" content="把游戏、动画、漫画和小说的进度放在一张清单里，按最新记录自动排序。">
   <title>作品记录 · PT Universe</title>
   <link rel="icon" href="../../icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css">
-  <script type="module" src="./app.mjs"></script>
+  <link rel="stylesheet" href="./style.css?v=wide1">
+  <script type="module" src="./app.mjs?v=wide1"></script>
 </head>
 <body>
   <header class="top">
@@ -29,33 +29,48 @@
   </header>
   <main class="wrap">
     <header class="intro">
-      <div>
-        <p class="eyebrow"><span aria-hidden="true"></span> MEDIA LOG</p>
-        <h1>作品记录</h1>
-        <p class="intro-copy">把想补和正在补的作品记在一起。最近记录的自然排在前面。</p>
+      <div class="intro-title">
+        <span class="app-symbol" aria-hidden="true">▤</span>
+        <div><p class="eyebrow">MEDIA LOG</p><h1>作品记录</h1></div>
       </div>
       <button type="button" id="add" class="primary">＋ 新增作品</button>
     </header>
     <div class="sample" id="sample" hidden>示例模式 · 这里的操作只影响当前示例。</div>
-    <section class="controls" aria-label="筛选作品">
-      <div id="types" class="types" role="group" aria-label="作品类型"></div>
-      <div class="refine">
-        <label class="search-label"><span class="sr-only">搜索作品</span><input id="search" type="search" placeholder="搜索作品、进度或标签"></label>
-        <label class="tag-label"><span class="sr-only">按标签筛选</span><select id="tags"><option value="">全部标签</option></select></label>
-      </div>
-    </section>
-    <section aria-labelledby="feed-heading">
-      <header class="feed-head">
-        <div><h2 id="feed-heading">最近记录</h2><span id="count"></span></div>
-        <span class="order">↓ 按最后记录时间</span>
-      </header>
-      <div id="feed" class="feed"></div>
-      <div id="empty" class="empty" hidden>
-        <h3 id="empty-title"></h3>
-        <p id="empty-copy"></p>
-        <button type="button" id="empty-action"></button>
-      </div>
-    </section>
+    <div class="workspace">
+      <aside class="controls" aria-label="筛选作品">
+        <p class="filter-heading" aria-hidden="true">作品类型</p>
+        <div id="types" class="types" role="group" aria-label="作品类型"></div>
+        <label class="tag-label">
+          <span class="filter-heading">按标签筛选</span>
+          <select id="tags"><option value="">全部标签</option></select>
+        </label>
+      </aside>
+      <section class="results" aria-labelledby="feed-heading">
+        <header class="feed-head">
+          <div class="feed-title"><h2 id="feed-heading">最近记录</h2><span id="count"></span></div>
+          <div class="feed-tools">
+            <label class="search-label">
+              <span class="sr-only">搜索作品</span>
+              <input id="search" type="search" placeholder="搜索作品、进度或标签">
+            </label>
+            <div id="layout" class="layout" role="group" aria-label="显示方式">
+              <button type="button" data-layout="grid" aria-pressed="true">卡片</button>
+              <button type="button" data-layout="list" aria-pressed="false">列表</button>
+            </div>
+          </div>
+        </header>
+        <div class="feed-context">
+          <span class="order">↓ 按最后记录时间</span>
+          <div id="active-filters" class="active-filters" aria-label="已应用筛选" hidden></div>
+        </div>
+        <div id="feed" class="feed" data-layout="grid"></div>
+        <div id="empty" class="empty" hidden>
+          <h3 id="empty-title"></h3>
+          <p id="empty-copy"></p>
+          <button type="button" id="empty-action"></button>
+        </div>
+      </section>
+    </div>
     <footer id="storage">记录保存在此浏览器。可随时导出备份。</footer>
   </main>
   <p id="notice" class="notice" role="status" hidden></p>

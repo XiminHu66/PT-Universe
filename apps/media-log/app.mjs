@@ -4,6 +4,7 @@ const $ = selector => document.querySelector(selector);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c =>
   ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'})[c]);
 const KEY = 'media-log.v1';
+const LAYOUT_KEY = 'media-log.layout.v1';
 const DEMO = new URLSearchParams(location.search).get('demo') === '1';
 const stamp = new Intl.DateTimeFormat('zh-CN', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hourCycle:'h23'});
 const filter = {type:'', tag:'', query:''};
@@ -54,10 +55,12 @@ function card(item, rank) {
   const record = latest(item);
   return `<article class="work" data-id="${esc(item.id)}" data-kind="${esc(item.type)}">
     <div class="mark" aria-hidden="true">${icon}</div>
-    <div>
+    <div class="work-main">
       <header class="work-head"><h3>${esc(item.title)}</h3><span class="rank">#${rank}</span></header>
       <p class="work-meta">${type} · 最后记录 ${timeHTML(recordedAt(item))}</p>
-      <p class="progress${record ? '' : ' is-empty'}">${esc(record?.progress || '尚未填写进度')}</p>
+    </div>
+    <p class="progress${record ? '' : ' is-empty'}">${esc(record?.progress || '尚未填写进度')}</p>
+    <div class="work-foot">
       ${item.tags.length ? `<div class="chips">${item.tags.map(label => `<button type="button" data-tag="${esc(tagKey(label))}">${esc(label)}</button>`).join('')}</div>` : ''}
       <div class="card-actions">
         <button class="record" type="button" data-action="record">记录进度</button>
@@ -69,10 +72,31 @@ function card(item, rank) {
   </article>`;
 }
 
-const types = [['', '全部'], ...Object.entries(TYPES).map(([key,[label]]) => [key,label])];
-$('#types').innerHTML = types.map(([key,label]) =>
-  `<button type="button" data-type="${key}" aria-pressed="false">${label}</button>`).join('');
+const types = [['', '全部', '▦'], ...Object.entries(TYPES).map(([key,[label, icon]]) => [key,label,icon])];
+$('#types').innerHTML = types.map(([key,label,icon]) =>
+  `<button type="button" data-type="${key}" aria-pressed="false"><span class="type-icon" aria-hidden="true">${icon}</span><span>${label}</span><span class="type-count"></span></button>`).join('');
 const typeButtons = [...$('#types').querySelectorAll('[data-type]')];
+const layoutButtons = [...$('#layout').querySelectorAll('[data-layout]')];
+
+function setLayout(value, save = false) {
+  const layout = value === 'list' ? 'list' : 'grid';
+  $('#feed').dataset.layout = layout;
+  for (const button of layoutButtons) button.setAttribute('aria-pressed', String(button.dataset.layout === layout));
+  if (save && !DEMO) {
+    try { localStorage.setItem(LAYOUT_KEY, layout); } catch { /* keep the current session's preference */ }
+  }
+}
+
+function renderActiveFilters(tags) {
+  const active = [];
+  if (filter.type) active.push(['type', TYPES[filter.type][0]]);
+  if (filter.tag) active.push(['tag', tags.get(filter.tag)]);
+  if (filter.query.trim()) active.push(['query', filter.query.trim()]);
+  const node = $('#active-filters');
+  node.hidden = !active.length;
+  node.innerHTML = active.map(([key,label]) =>
+    `<button type="button" data-clear-filter="${key}" aria-label="移除筛选 ${esc(label)}"><span>${esc(label)}</span><span aria-hidden="true">×</span></button>`).join('');
+}
 
 function render() {
   const tags = new Map();
@@ -95,10 +119,11 @@ function render() {
   }
   picker.value = filter.tag;
   typeButtons.forEach((button, i) => {
-    const [key,label] = types[i];
-    button.textContent = key ? label + ' ' + (counts.get(key) || 0) : '全部 ' + items.length;
+    const [key] = types[i];
+    button.querySelector('.type-count').textContent = key ? counts.get(key) || 0 : items.length;
     button.setAttribute('aria-pressed', String(filter.type === key));
   });
+  renderActiveFilters(tags);
   const ordered = visibleItems(items);
   const ranks = new Map(ordered.map((item,i) => [item.id,i+1]));
   const shown = visibleItems(ordered, filter);
@@ -158,6 +183,17 @@ $('#empty-action').onclick = () => {
   render();
 };
 for (const button of typeButtons) button.onclick = () => { filter.type = button.dataset.type; render(); };
+for (const button of layoutButtons) button.onclick = () => setLayout(button.dataset.layout, true);
+$('#active-filters').onclick = event => {
+  const control = event.target.closest('[data-clear-filter]');
+  if (!control) return;
+  const key = control.dataset.clearFilter;
+  filter[key] = '';
+  if (key === 'query') $('#search').value = '';
+  render();
+  const next = $('#active-filters').querySelector('button');
+  (next || (key === 'type' ? typeButtons[0] : key === 'tag' ? $('#tags') : $('#search'))).focus();
+};
 $('#tags').onchange = event => { filter.tag = event.target.value; render(); };
 $('#search').oninput = event => { filter.query = event.target.value; render(); };
 $('#feed').onclick = event => {
@@ -238,6 +274,7 @@ $('#import-file').onchange = async event => {
 };
 
 try {
+  if (!DEMO) setLayout(localStorage.getItem(LAYOUT_KEY));
   const theme = JSON.parse(localStorage.getItem('ptu.theme') || 'null');
   document.documentElement.dataset.theme = theme === 'dark' ||
     theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
