@@ -10,3 +10,14 @@ html[data-embedded=nexus] main{padding:10px 14px}html[data-embedded=nexus] main>
 @media(max-width:720px){html[data-embedded=nexus] main{padding:8px}html[data-embedded=nexus] .provider{padding:14px}html[data-embedded=nexus] .status-strip{gap:3px;font-size:12px}html[data-embedded=nexus] .status-strip>div{width:auto;flex:1}html[data-embedded=nexus] .status-strip small{display:none}}
 
 html[data-embedded=nexus][data-connection-required=true] main>header{display:flex!important;justify-content:flex-end;margin:0 0 8px}html[data-embedded=nexus][data-connection-required=true] main>header #refresh,html[data-embedded=nexus][data-connection-required=true] #setup-link{display:none}html[data-embedded=nexus][data-connection-required=true] #connect{display:inline-block!important;min-height:32px;padding:6px 12px}
+
+.release-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.release-card{min-width:0}.release-card header{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 12px;padding:0}
+.release-card h2{margin:0;font-size:1rem}.release-chip{white-space:nowrap;font-size:.75rem;border-radius:6px;border:1px solid var(--line);padding:3px 6px;color:var(--muted)}
+.release-chip[data-state=passed]{color:var(--green)}.release-chip[data-state=issue]{color:var(--red)}
+.release-card dl{margin:0}.release-card dl>div{display:grid;grid-template-columns:minmax(95px,1fr) minmax(0,1.35fr);padding:8px 0;gap:7px;border-bottom:1px solid var(--line)}
+.release-card dt,.release-mark{font-size:.79rem;color:var(--muted)}.release-card dd{margin:0;font-size:.84rem;overflow-wrap:anywhere}.release-card dd small{display:block;margin-top:2px;color:var(--muted)}
+.release-card .release-select{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:6px;font-size:.84rem}
+.release-card .release-select select{min-height:34px}.release-card .release-mark{margin:6px 0 0}
+@media(max-width:850px){.release-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.release-grid{grid-template-columns:1fr}}

@@ -3,6 +3,8 @@ import {OWNER_CONNECT_PUBLIC_KEY,readVpsSnapshot,hash} from './knowledge';
 import {sanitizeVpsSnapshot} from './vps';
 // @ts-ignore Shared dependency-free collector is also exercised directly by Node tests.
 import {ResourceCollector,automaticConnections} from '../../../services/resource-monitor/collector.mjs';
+// @ts-ignore Shared dependency-free GitHub reader.
+import {collectReleases} from '../../../services/resource-monitor/releases.mjs';
 type ResourceEnv={PT_UNIVERSE_DATA:KVNamespace;RESOURCE_GITHUB_TOKEN?:string;RESOURCE_CF_TOKEN?:string;RESOURCE_CF_ACCOUNT_ID?:string};
 const SNAPSHOT='private/resources/inventory-v1',ORIGIN='https://ximinhu66.github.io',ISSUER='https://pt-vps-tools.h1nano.chatgpt.site';
 const collector=new ResourceCollector();
@@ -38,6 +40,10 @@ export async function resourcesRoute(request:Request,env:ResourceEnv,publicKey:J
  try{
   if(u.pathname===prefix+'/vps'&&!u.search){const cached=vpsCache.get(env.PT_UNIVERSE_DATA);if(cached&&Date.now()-cached.at<20000)return json(cached.value);const value=sanitizeVpsSnapshot(await readVpsSnapshot(env));vpsCache.set(env.PT_UNIVERSE_DATA,{at:Date.now(),value});return json(value);}
   if(u.pathname===prefix+'/browser'&&!u.search){if(!browserReader)return json({status:{provider:'browser',state:'unavailable',checkedAt:new Date().toISOString()}});return json(await cachedResources('browser',env,browserReader));}
+  if(u.pathname===prefix+'/releases'){
+   if(u.search)return json({error:'Unsupported release request'},400);
+   return json(await cachedResources('github-releases',env,()=>collectReleases(collector,env)));
+  }
   const snapshot=await inventory(env);if(!snapshot)return json({error:'请重新连接，完成私有清单迁移',code:'inventory_missing'},503);
   if(u.pathname===prefix+'/data'&&!u.search)return json({...snapshot,connections:automaticConnections(env)});
   if(u.pathname===prefix+'/auto'&&u.searchParams.getAll('provider').length===1&&[...u.searchParams.keys()].every(k=>k==='provider')){

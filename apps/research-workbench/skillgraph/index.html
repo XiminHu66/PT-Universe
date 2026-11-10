@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>SkillGraph 回归评测台 · PT Universe</title>
+  <link rel="icon" href="../icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<main>
+  <header class="hero">
+    <a class="back" href="../">← 研究工作台</a>
+    <p class="eyebrow">PT UNIVERSE / RESEARCH TOOLS</p>
+    <h1>SkillGraph 回归评测台</h1>
+    <p>在同一组岗位技能题上对比向量检索与关系约束检索，逐题追踪召回、关系和引用错误。</p>
+    <ul class="tags" aria-label="题集信息"><li>20 道公开合成题</li><li>4 个岗位</li><li>浏览器本地计算</li></ul>
+  </header>
+  <section class="panel controls" aria-label="运行与导入">
+    <form id="run-form">
+      <label for="top-k">Top K</label>
+      <select id="top-k"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select>
+      <button class="primary">运行评测</button>
+    </form>
+    <div class="actions">
+      <button id="import" type="button">导入对照结果</button>
+      <input id="file" type="file" accept=".json,application/json" hidden>
+      <button id="export" type="button">导出结果</button>
+    </div>
+    <p id="status" role="status" aria-live="polite"></p>
+  </section>
+  <section id="summary" class="summary" aria-label="评测指标"></section>
+  <section class="panel cases" aria-labelledby="case-title">
+    <div class="section-head">
+      <div><h2 id="case-title">逐题检查</h2><p>通过要求答案完整、关系路径匹配、引用可回溯到本次检索。</p></div>
+      <label>筛选 <select id="filter"><option value="all">全部题目</option><option value="failed">任一方法失败</option><option value="different">结果不同</option><option value="recall">召回失败</option><option value="relation">关系失败</option><option value="citation">引用失败</option><option value="negative">应拒答</option></select></label>
+    </div>
+    <div id="cases"></div>
+  </section>
+  <details class="panel protocol">
+    <summary>题集与评测协议</summary>
+    <p>此题集的岗位关系、证据与练习场景均为本项目编写的合成样例。职业术语参考 <a href="https://www.onetonline.org/link/details/15-2051.00" target="_blank" rel="noopener">O*NET Data Scientists</a>。</p>
+    <p>本地基线使用 TF-IDF 余弦相似度。关系约束基线使用同一排序器，先按给定的岗位实体和关系约束缩小候选范围。两组使用同一结构化证据读取器。关系约束基线测的是给定约束时的检索效果，真实 GraphRAG 的实体识别、生成效果和成本由外部对照结果提供。</p>
+    <p>召回率为有答案题目的微平均 Recall@K。每题保留首个失败阶段。P50 是本次运行逐题延迟的中位数，导入时可为未知。成本为各题所填 API 费用之和。导入结果仍在本机计算分数。</p>
+    <p><a href="https://github.com/XiminHu66/PT-Universe/tree/main/apps/research-workbench/skillgraph" target="_blank" rel="noopener">查看格式与本地运行说明 ↗</a></p>
+  </details>
+</main>
+<script type="module" src="./app.mjs"></script>
+</body>
+</html>

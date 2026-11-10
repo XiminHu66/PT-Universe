@@ -34,7 +34,7 @@ export function resourceSession(){
    }else{
     put(KEY,candidate);drop(ATTEMPT);drop(PENDING);
     // Compatibility for an owner connection started by an earlier version.
-    if(p.returnTo==='nexus'){returningToNexus=true;const target=new URL('../daily-nexus/',location.href);target.searchParams.set('view',p.view==='vps'?'vps':'monitor');if(p.view!=='vps')target.searchParams.set('monitor',['overview','workflows','projects','settings'].includes(p.view)?p.view:'overview');location.replace(target.href);}
+    if(p.returnTo==='nexus'){returningToNexus=true;const target=new URL('../daily-nexus/',location.href);target.searchParams.set('view',p.view==='vps'?'vps':'monitor');if(p.view!=='vps')target.searchParams.set('monitor',['overview','workflows','projects','settings','releases'].includes(p.view)?p.view:'overview');location.replace(target.href);}
    }
   }else{if(p?.nonce===nonce){drop(KEY);drop(PENDING);}invalid=true;if(window.parent!==window||window.opener)returningToNexus=true;}
  }
@@ -44,7 +44,7 @@ export function connectResources(manual=false,nexusView=null){
  if(channel)return channel.promise;
  const prior=Number(get(ATTEMPT)||0);if(!manual&&(invalid||prior&&Date.now()-prior<120000))throw Error('连接尚未完成，可点击连接重试。');
  const nonce=Array.from(crypto.getRandomValues(new Uint8Array(24)),b=>b.toString(16).padStart(2,'0')).join('');
- const isolated=['overview','workflows','projects','settings','vps'].includes(nexusView),transport=manual?'popup':'frame';
+ const isolated=['overview','workflows','projects','settings','releases','vps'].includes(nexusView),transport=manual?'popup':'frame';
  if(!put(PENDING,JSON.stringify({nonce,expiresAt:Date.now()+600000,...(isolated?{returnTo:'nexus',view:nexusView,transport}:{})}))||!put(ATTEMPT,String(Date.now())))throw Error('请允许站点临时存储后连接后台。');
  const destination=HUB+'/__pt_resources_connect?nonce='+nonce;
  if(!isolated){location.assign(destination);return;}

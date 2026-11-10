@@ -24,3 +24,11 @@ assert.equal((await resourcesRoute(req('browser'),env,publicKey,browserReader)).
 assert.equal((await resourcesRoute(req('browser',read),env,publicKey,browserReader)).status,200);assert.equal(browserCalls,1);
 assert.equal((await resourcesRoute(req('browser?url=https://evil.example',read),env,publicKey,browserReader)).status,400);assert.equal(browserCalls,1);
 console.log('PASS: Browser metadata requires the dedicated read grant and rejects arbitrary parameters before touching the binding.');
+
+for (const [path, token, method, origin, expected] of [
+ ['releases', '', 'GET', 'https://ximinhu66.github.io', 401],
+ ['releases', read, 'POST', 'https://ximinhu66.github.io', 405],
+ ['releases', read, 'GET', 'https://evil.example', 403],
+ ['releases?repo=other', read, 'GET', 'https://ximinhu66.github.io', 400]
+]) assert.equal((await resourcesRoute(req(path,token,method,undefined,origin),env,publicKey)).status,expected);
+console.log('PASS: release records are owner-authenticated, read-only, and reject arbitrary inputs.');

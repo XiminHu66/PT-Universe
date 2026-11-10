@@ -2,9 +2,9 @@
 import {hash} from './knowledge';
 type CacheEnv={PT_UNIVERSE_DATA:KVNamespace;RESOURCE_GITHUB_TOKEN?:string;RESOURCE_CF_TOKEN?:string;RESOURCE_CF_ACCOUNT_ID?:string};
 const inflight=new Map<string,Promise<any>>();
-const ttls:Record<string,number>={'github-inventory':21600000,'github-storage':3600000,'github-billing':3600000,cloudflare:3600000,browser:900000};
+const ttls:Record<string,number>={'github-inventory':21600000,'github-storage':3600000,'github-billing':3600000,'github-releases':600000,cloudflare:3600000,browser:900000};
 function merge(previous:any,next:any){
- if(!previous)return next;const result={...previous,...next};
+ if(!previous||next.status?.provider==='github-releases')return next;const result={...previous,...next};
  for(const [field,key]of [['repositories','name'],['quotas','id']])if(Array.isArray(previous[field])&&Array.isArray(next[field])){
   const rows=new Map<string,any>(previous[field].map((r:any)=>[r[key],r]));for(const row of next[field])rows.set(row[key],{...rows.get(row[key]),...row});result[field]=[...rows.values()];
  }
