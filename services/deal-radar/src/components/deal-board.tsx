@@ -16,7 +16,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { filterDeals, isRecentDeal, matchDeals, type DealSort } from "@/lib/filter-deals";
-import { normalizeBoardState } from "@/lib/board-view";
+import { normalizeBoardState, normalizeCachedPublicBoard, normalizePublicBoard } from "@/lib/board-view";
+import { PUBLIC_READ_INTERVAL_MS, STALE_AFTER_MS } from "@/lib/config";
 import { formatPacific } from "@/lib/time";
 import { CATEGORIES, OFFER_LABELS, type BoardState, type Category, type DealDTO, type SourceStatus } from "@/lib/types";
 import "./deal-board.css";
@@ -32,6 +33,30 @@ type PublicFeed = { url: string; homeUrl: string; managementUrl: string; embedde
 const emptyPersonal: Personal = { claimed: [], favorites: [] };
 // 「查看全部线索」单独存，避免改动收藏键或 { claimed, favorites } 形状。
 const SHOW_ALL_KEY = "daily-deals-show-all-v1";
+const PUBLIC_BOARD_KEY = "daily-deals-public-board-v1";
+const MAX_CACHED_BOARD_CHARS = 512_000;
+
+function rememberPublicBoard(board: BoardState) {
+  if (board.roundStatus === "failed") return;
+  try {
+    const raw = JSON.stringify(board);
+    if (raw.length <= MAX_CACHED_BOARD_CHARS) sessionStorage.setItem(PUBLIC_BOARD_KEY, raw);
+  } catch {
+    // Restricted or full browser storage does not block the live board.
+  }
+}
+
+function lastPublicBoard(current: BoardState, initial: BoardState): BoardState {
+  const retained = normalizeCachedPublicBoard(current);
+  if (retained) return retained;
+  try {
+    const raw = sessionStorage.getItem(PUBLIC_BOARD_KEY);
+    if (raw && raw.length <= MAX_CACHED_BOARD_CHARS) return normalizeCachedPublicBoard(JSON.parse(raw)) ?? initial;
+  } catch {
+    // An unavailable or invalid snapshot is treated as an empty cache.
+  }
+  return initial;
+}
 
 function loadPersonal(): Personal {
   try {
@@ -163,27 +188,30 @@ export function DealBoard({ initial, publicFeed }: { initial: BoardState; public
     if (!publicFeed) return;
     const controller = new AbortController();
     const nexus = publicFeed.embedded ? window.parent : null;
-    const interval = 5 * 60 * 1000;
     let lastRequested = -Infinity;
     let pending = false;
     const tick = async () => {
-      if (document.hidden || pending || (nexus && (nexus.document.body.dataset.nexusView !== "deal-radar" || Date.now() - lastRequested < interval))) return;
+      if (document.hidden || pending || Date.now() - lastRequested < PUBLIC_READ_INTERVAL_MS || (nexus && nexus.document.body.dataset.nexusView !== "deal-radar")) return;
       lastRequested = Date.now();
       pending = true;
       try {
         const data = await readPublicBoard(publicFeed.url, controller.signal);
         if (!controller.signal.aborted) {
+          rememberPublicBoard(data);
           setBoard(data);
           setPollError(false);
         }
       } catch {
-        if (!controller.signal.aborted) setPollError(true);
+        if (!controller.signal.aborted) {
+          setBoard((current) => lastPublicBoard(current, initial));
+          setPollError(true);
+        }
       } finally {
         pending = false;
       }
     };
     void tick();
-    const timer = setInterval(tick, interval);
+    const timer = setInterval(tick, PUBLIC_READ_INTERVAL_MS);
     document.addEventListener("visibilitychange", tick);
     nexus?.addEventListener("nexus-view-change", tick);
     return () => {
@@ -192,7 +220,7 @@ export function DealBoard({ initial, publicFeed }: { initial: BoardState; public
       document.removeEventListener("visibilitychange", tick);
       nexus?.removeEventListener("nexus-view-change", tick);
     };
-  }, [publicFeed]);
+  }, [initial, publicFeed]);
 
   function savePersonal(next: Personal) {
     try {
@@ -227,7 +255,9 @@ export function DealBoard({ initial, publicFeed }: { initial: BoardState; public
     setMessage(null);
     try {
       if (publicFeed) {
-        setBoard(await readPublicBoard(publicFeed.url));
+        const data = await readPublicBoard(publicFeed.url);
+        rememberPublicBoard(data);
+        setBoard(data);
         setPollError(false);
         return;
       }
@@ -245,7 +275,10 @@ export function DealBoard({ initial, publicFeed }: { initial: BoardState; public
       setBoard({ ...safe, refreshInProgress: false });
       setPollError(false);
     } catch {
-      setMessage("网络异常，刷新没有完成");
+      if (publicFeed) {
+        setBoard((current) => lastPublicBoard(current, initial));
+        setPollError(true);
+      } else setMessage("网络异常，刷新没有完成");
     } finally {
       setRefreshing(false);
     }
@@ -284,6 +317,7 @@ export function DealBoard({ initial, publicFeed }: { initial: BoardState; public
 
   const alerts: Alert[] = [];
   if (pollError) alerts.push({ text: board.lastUpdatedAt ? "数据暂时不可用，显示的是上次成功读取的内容；恢复后会自动更新。" : "暂时无法读取优惠，稍后会自动重试。", role: "status", testId: "poll-error" });
+  if (publicFeed && board.lastUpdatedAt && now - board.lastUpdatedAt > STALE_AFTER_MS) alerts.push({ text: "最近一轮抓取已超过 2.5 小时，优惠可能已变动，请以原文为准。", role: "status", testId: "stale-board" });
   if (storageError) alerts.push({ text: storageError, role: "alert", testId: "storage-error" });
   if (message) alerts.push({ text: message, role: "alert", testId: "refresh-message" });
   if (board.anomalies?.length) alerts.push({ text: `数据提示：${board.anomalies.join("；")}`, role: "status", testId: "anomalies" });
@@ -451,12 +485,20 @@ export function DealBoard({ initial, publicFeed }: { initial: BoardState; public
 }
 
 async function readPublicBoard(url: string, signal?: AbortSignal): Promise<BoardState> {
-  const deadline = AbortSignal.timeout(15000);
-  const response = await fetch(url, { credentials: "omit", signal: signal ? AbortSignal.any([signal, deadline]) : deadline });
-  const board = response.ok ? normalizeBoardState(await response.json()) : null;
-  if (!board?.lastUpdatedAt) throw Error("公开优惠暂时不可用");
-  // A cached board can outlast an offer near its expiry time.
-  return normalizeBoardState({ ...board, deals: board.deals.filter((deal) => deal.expiresAt === null || deal.expiresAt > Date.now()) })!;
+  const controller = new AbortController();
+  const cancel = () => controller.abort();
+  const timer = setTimeout(cancel, 15000);
+  if (signal?.aborted) cancel();
+  else signal?.addEventListener("abort", cancel, { once: true });
+  try {
+    const response = await fetch(url, { credentials: "omit", signal: controller.signal });
+    const board = response.ok ? normalizePublicBoard(await response.json()) : null;
+    if (!board) throw Error("公开优惠暂时不可用");
+    return board;
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener("abort", cancel);
+  }
 }
 
 function StatusItem({ label, value, testId }: { label: string; value: string; testId: string }) {

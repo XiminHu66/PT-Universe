@@ -4,6 +4,9 @@ export const RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
 /** Real server interval. Not a browser timer. */
 export const REFRESH_INTERVAL_MS = 2 * 60 * 60 * 1000;
 
+export const PUBLIC_READ_INTERVAL_MS = 15 * 60 * 1000;
+export const PUBLIC_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
 /** Delay before the first scheduled round after the process starts. */
 export const SCHEDULER_BOOT_DELAY_MS = 4_000;
 

@@ -1,4 +1,5 @@
-import { MAX_FEED_ITEMS, MAX_URL_CHARS, SUMMARY_MAX, TITLE_MAX } from "./config";
+import { MAX_FEED_ITEMS, MAX_URL_CHARS, PUBLIC_CACHE_MAX_AGE_MS, SUMMARY_MAX, TITLE_MAX } from "./config";
+import { isExpiringSoon, isStale } from "./retention";
 import { CATEGORIES, OFFER_LABELS, type BoardState, type Category, type DealDTO, type FailureDTO, type FreshnessDTO, type OfferKind, type SourceStatus } from "./types";
 
 /** 客户端边界校验：接口、SSR 快照和刷新结果都按不可信输入处理，坏字段不能让页面崩溃。 */
@@ -198,4 +199,20 @@ export function normalizeBoardState(input: unknown): BoardState | null {
     freshness: normalizeFreshness(input.freshness),
     anomalies: stringList(input.anomalies, 20, 200),
   };
+}
+
+export function normalizePublicBoard(input: unknown, now = Date.now()): BoardState | null {
+  const board = normalizeBoardState(input);
+  if (!board?.lastUpdatedAt) return null;
+  // Recheck time boundaries on the client because either cache may outlast a deal.
+  const deals = board.deals
+    .filter((deal) => !isStale({ ...deal, firstSeenAt: deal.firstSeenAt ?? now }, now))
+    .map((deal) => ({ ...deal, expiresSoon: isExpiringSoon(deal.expiresAt, now) }));
+  return normalizeBoardState({ ...board, deals });
+}
+
+export function normalizeCachedPublicBoard(input: unknown, now = Date.now()): BoardState | null {
+  const board = normalizePublicBoard(input, now);
+  if (!board?.lastUpdatedAt || board.lastUpdatedAt > now || now - board.lastUpdatedAt > PUBLIC_CACHE_MAX_AGE_MS || board.roundStatus === "failed") return null;
+  return board;
 }

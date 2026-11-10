@@ -5,9 +5,9 @@
  */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { MAX_URL_CHARS, SUMMARY_MAX, TITLE_MAX } from "../src/lib/config";
+import { MAX_URL_CHARS, PUBLIC_CACHE_MAX_AGE_MS, RETENTION_MS, SUMMARY_MAX, TITLE_MAX } from "../src/lib/config";
 import { filterDeals } from "../src/lib/filter-deals";
-import { clampText, normalizeBoardState, safeDisplayText, safeHttpUrl } from "../src/lib/board-view";
+import { clampText, normalizeBoardState, normalizeCachedPublicBoard, safeDisplayText, safeHttpUrl } from "../src/lib/board-view";
 import type { DealDTO } from "../src/lib/types";
 
 function deal(overrides: Record<string, unknown> = {}): Record<string, unknown> {
@@ -66,6 +66,20 @@ function board(overrides: Record<string, unknown> = {}): Record<string, unknown>
 }
 
 describe("board view adversarial input", () => {
+  it("retains only useful cached offers and rejects a failed or old snapshot", () => {
+    const now = Date.UTC(2026, 10, 10, 20);
+    const snapshot = board({ lastUpdatedAt: now - 500, deals: [
+      deal({ publishedAt: now - 60, expiresAt: now + 100 }),
+      deal({ id: 2, canonicalUrl: "https://example.com/expired", publishedAt: now - 60, expiresAt: now }),
+      deal({ id: 3, canonicalUrl: "https://example.com/old", publishedAt: now - RETENTION_MS - 1 }),
+    ] });
+    const cached = normalizeCachedPublicBoard(snapshot, now);
+    assert.equal(cached?.activeCount, 1);
+    assert.equal(cached?.sources[0]?.activeCount, 1);
+    assert.equal(cached?.deals[0]?.expiresSoon, true);
+    assert.equal(normalizeCachedPublicBoard({ ...snapshot, roundStatus: "failed" }, now), null);
+    assert.equal(normalizeCachedPublicBoard({ ...snapshot, lastUpdatedAt: now - PUBLIC_CACHE_MAX_AGE_MS - 1 }, now), null);
+  });
   it("rejects a whole board when its object shape or key arrays are unusable", () => {
     assert.equal(normalizeBoardState(null), null);
     assert.equal(normalizeBoardState([]), null);
