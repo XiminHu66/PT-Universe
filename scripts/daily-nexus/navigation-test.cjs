@@ -27,7 +27,7 @@ navigation.state.navConfig=oldConfig.filter(x=>x.view!=='vps');
 migrated=Array.from(navigation.normalizedNavConfig());
 assert.equal(migrated.findIndex(x=>x.view==='vps'),migrated.findIndex(x=>x.view==='tsugi')+1);
 console.log('Retired Check Desk, default order, saved-layout migration, custom labels and later manual ordering passed');
-const element=name=>({id:'view-'+name,dataset:{view:name},classList:{active:false,toggle(_,v){this.active=v},remove(){this.active=false},add(){this.active=true}}});
+const element=name=>({id:'view-'+name,dataset:{view:name},attributes:{},setAttribute(key,value){this.attributes[key]=value},removeAttribute(key){delete this.attributes[key]},classList:{active:false,toggle(_,v){this.active=v},remove(){this.active=false},add(){this.active=true}}});
 const buttons=names.map(element),views=names.map(element),calls=[];
 const sandbox={document:{body:{dataset:{}}},state:{navConfig:names.map(view=>({view,label:view}))},openReminderManager:()=>calls.push(['reminders']),URL,location:{href:'https://ximinhu66.github.io/PT-Universe/apps/daily-nexus/?view=check&tab=meal&other=keep#anchor'},history:{state:{retained:true},replaceState(state,title,href){sandbox.location.href=href;assert.equal(state.retained,true)}},DEFAULT_NAV_CONFIG:names.map(view=>({view})),
  $:selector=>views.find(x=>'#'+x.id===selector),$$:selector=>selector==='.view'?views:buttons,
@@ -36,6 +36,7 @@ vm.createContext(sandbox);vm.runInContext(source,sandbox);
 for(const view of [...names,'bad-view','check','countdown','tools','music',...names.slice().reverse()]){
  sandbox.switchNexusView(view);const expected=view==='tools'?'vps':names.includes(view)?view:'home',url=new URL(sandbox.location.href);
  assert.deepEqual(buttons.filter(x=>x.classList.active).map(x=>x.dataset.view),[expected]);
+ assert.deepEqual(buttons.filter(x=>x.attributes['aria-current']==='page').map(x=>x.dataset.view),[expected]);
  assert.deepEqual(views.filter(x=>x.classList.active).map(x=>x.dataset.view),[expected]);
  assert.equal(url.searchParams.get('view'),expected==='home'?null:expected);assert.equal(url.searchParams.get('tab'),null);assert.equal(url.searchParams.get('other'),'keep');assert.equal(url.hash,'#anchor');
  // Same URL used after F5 must resolve to the same view.

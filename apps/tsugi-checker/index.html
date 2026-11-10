@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="games.css" />
   <link rel="stylesheet" href="pc-prices.css?v=2" />
   <link rel="stylesheet" href="ui-settings.css" />
-  <link rel="stylesheet" href="stream-visuals.css?v=20261028-corner-shelf">
+  <link rel="stylesheet" href="stream-visuals.css?v=20261110-ui">
   <link rel="alternate" type="application/atom+xml" title="Tsugi Updates" href="data/feed.xml" />
   <link rel="stylesheet" href="../../pt-bridge.css?v=20260827-1">
 <script>const storyTab=new URLSearchParams(location.search).get('tab');if(['works','topics','anime','discovery'].includes(storyTab)){const next=new URL('../story-hub/',location.href);next.searchParams.set('tab',storyTab);location.replace(next);}</script></head>
@@ -147,12 +147,13 @@
 
         <div class="site-stream-toolbar" role="group" aria-label="更新流筛选">
           <h2 class="stream-sr-only">更新流</h2>
-          <div class="chips" id="siteFilterChips" aria-label="作品类型">
-            <button class="chip active" data-site-filter="all">全部</button>
-            <button class="chip" data-site-filter="novel">小说</button>
-            <button class="chip" data-site-filter="manga">漫画</button>
+          <div class="chips" id="siteFilterChips" role="group" aria-label="作品类型">
+            <button class="chip active" data-site-filter="all" aria-pressed="true">全部</button>
+            <button class="chip" data-site-filter="novel" aria-pressed="false">小说</button>
+            <button class="chip" data-site-filter="manga" aria-pressed="false">漫画</button>
           </div>
-          <div id="siteSourceBar" class="source-filter-bar" aria-label="更新来源"></div>
+          <div id="siteSourceBar" class="source-filter-bar" role="group" aria-label="更新来源"></div>
+          <span id="siteVisibleCount" class="site-visible-count" role="status"></span>
         </div>
         <div id="siteUpdatesGrid" class="site-updates-grid"></div>
       </section>
@@ -337,7 +338,7 @@
     </main>
   </div>
   <div id="tsugiToast" class="tsugi-toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20261028-corner-shelf"></script>
+  <script src="app.js?v=20261110-ui"></script>
   <script src="stream-visuals.js?v=20261028-compact-feed"></script>
   <script src="games.js?v=20261012-dayfix"></script>
   <script src="pc-prices.js?v=2"></script>

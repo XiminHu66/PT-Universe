@@ -460,13 +460,13 @@
   </style>
   <link rel="stylesheet" href="home-tools.css?v=20261007-10">
   <link rel="stylesheet" href="../../pt-bridge.css?v=20260827-1">
-<link rel="stylesheet" href="boox-connector.css?v=20261021-1"><link rel="stylesheet" href="vps-tab.css?v=20261028-readable2"><script type="module" src="vps-tab.js?v=20261104-isolated"></script><link rel="stylesheet" href="streamline.css?v=20261028-compact-rail"><link rel="stylesheet" href="monitor-tab.css?v=20261104-2"><script type="module" src="monitor-tab.js?v=20261104-2"></script></head>
+<link rel="stylesheet" href="boox-connector.css?v=20261021-1"><link rel="stylesheet" href="vps-tab.css?v=20261028-readable2"><script type="module" src="vps-tab.js?v=20261104-isolated"></script><link rel="stylesheet" href="streamline.css?v=20261110-ui"><link rel="stylesheet" href="monitor-tab.css?v=20261104-2"><script type="module" src="monitor-tab.js?v=20261104-2"></script></head>
 <body data-nexus-view="home">
 <div id="themeBg"></div><div class="bgShade"></div>
 <div class="app">
-  <aside class="sidebar glass">
+  <nav class="sidebar glass" aria-label="Daily Nexus 主导航">
     <div class="logo" id="appLogo">DN</div>
-    <button class="navbtn active" data-view="home"><div><div class="navicon">⌂</div><span>今日</span></div></button>
+    <button class="navbtn active" data-view="home" aria-current="page"><div><div class="navicon">⌂</div><span>今日</span></div></button>
     <button class="navbtn" data-view="todo"><div><div class="navicon">✎</div><span>记录</span></div></button>
     <button class="navbtn" data-view="board"><div><div class="navicon">▦</div><span>看板</span></div></button>
     <button class="navbtn" data-view="tsugi"><div><div class="navicon">📚</div><span>追更</span></div></button>
@@ -476,7 +476,7 @@
     <button class="navbtn" data-view="focus"><div><div class="navicon">◎</div><span>专注</span></div></button>
     <button class="navbtn" data-view="settings"><div><div class="navicon">⚙</div><span>设置</span></div></button>
     <div class="spacer"></div><button class="navbtn themeSide" id="themeBtn"><div><div class="navicon">◐</div><span>主题</span></div></button>
-  </aside>
+  </nav>
   <main class="shell">
     <header class="topbar glass"><div id="compactViewTitle" class="compact-view-title">Daily Nexus</div>
       <div class="header-clock">
@@ -511,7 +511,7 @@
 
       <div class="home-top-left" aria-label="日历与接下来">
       <article class="card glass homecalendar">
-        <div class="cardhead"><h2>日历</h2><span class="sub">点击日期打开清单</span></div>
+        <div class="cardhead"><h2><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v14H4z M8 4v4 M16 4v4 M4 10h16"/></svg>日历</h2><span class="sub">点击日期打开清单</span></div>
         <div class="home-cal-body">
           <div class="home-cal-month">
             <div class="home-calendar-head"><button id="miniCalPrev" aria-label="上个月">‹</button><b id="miniCalTitle">----</b><button id="miniCalNext" aria-label="下个月">›</button></div>
@@ -528,7 +528,7 @@
       </article>
       <article class="card glass upcomingcard">
         <div class="cardhead">
-          <h2>接下来</h2>
+          <h2><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15 M13 6l6 6-6 6"/></svg>接下来</h2>
           <span class="sub"><button class="pillbtn" id="openUpcoming">全部日程</button></span>
         </div>
         <div class="upcoming-toolbar">
@@ -548,16 +548,16 @@
       </article>
       </div>
       <article class="card glass memo">
-        <div class="cardhead"><h2>备忘本</h2><span class="sub" id="memoStatus">自动保存</span></div><textarea id="memo" placeholder="随手记下想法、计划和待办。&#10;内容自动保存，之后可以接着写。"></textarea>
+        <div class="cardhead"><h2><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5z M8 8h8 M8 12h8 M8 16h5"/></svg>备忘本</h2><span class="sub" id="memoStatus">自动保存</span></div><textarea id="memo" placeholder="随手记下想法、计划和待办。&#10;内容自动保存，之后可以接着写。"></textarea>
         <div class="memo-task-heading"><b>小任务</b><span id="taskSummary" aria-live="polite"></span></div><div class="memo-foot"><input id="taskInput" aria-label="新任务内容" placeholder="添加一个小任务…"/><button class="miniadd" id="addTask">＋ 添加</button></div><div class="tasks" id="tasks"></div><div class="memo-empty" id="memoEmpty">添加后可随时编辑，也可在「专注」页选为目标。</div>
       </article>
       <aside class="home-side-stack" aria-label="到期提醒与常用链接">
         <article class="card glass home-countdown-card">
-          <div class="cardhead"><h2>到期提醒</h2><span class="sub"><button id="memoCountdownMore" type="button">查看全部</button></span></div>
+          <div class="cardhead"><h2><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 17h12l-2-3V9a4 4 0 0 0-8 0v5z M10 20h4"/></svg>到期提醒</h2><span class="sub"><button id="memoCountdownMore" type="button">查看全部</button></span></div>
           <div class="memo-countdown-list" id="memoCountdownList"></div>
         </article>
         <article class="card glass home-links-card">
-          <div class="cardhead"><h2>常用链接</h2><span class="sub"><button class="pillbtn" id="manageHomeLinks">编辑</button></span></div>
+          <div class="cardhead"><h2><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14l4-4 M8 16l-1 1a3 3 0 0 1-4-4l4-4a3 3 0 0 1 4 0 M16 8l1-1a3 3 0 0 1 4 4l-4 4a3 3 0 0 1-4 0"/></svg>常用链接</h2><span class="sub"><button class="pillbtn" id="manageHomeLinks">编辑</button></span></div>
           <div class="home-links-scroll">
             <div class="home-link-grid" id="homeCommonLinks"></div>
             <button class="home-link-more-toggle" id="toggleMoreLinks"><span>更多链接</span><span id="homeMoreCount">0</span><span class="chev">⌄</span></button>
@@ -606,7 +606,7 @@
           id="tsugiFrame"
           title="Tsugi Checker"
           loading="lazy"
-          data-src="../tsugi-checker/?v=20261028-corner-shelf"
+          data-src="../tsugi-checker/?v=20261110-ui"
           referrerpolicy="strict-origin-when-cross-origin"></iframe>
       </div>
     </section>
@@ -2411,7 +2411,12 @@ function switchNexusView(view){
   url.searchParams.delete('tab');
   if(view==='home')url.searchParams.delete('view');else url.searchParams.set('view',view);
   if(url.href!==location.href)history.replaceState(history.state,'',url.href);
-  $$('.navbtn[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===view));
+  $$('.navbtn[data-view]').forEach(button=>{
+    const active=button.dataset.view===view;
+    button.classList.toggle('active',active);
+    if(active)button.setAttribute('aria-current','page');
+    else button.removeAttribute('aria-current');
+  });
   $$('.view').forEach(v=>v.classList.remove('active'));
   const target=$("#view-"+view);if(target)target.classList.add('active');
   document.body.dataset.nexusView=view;

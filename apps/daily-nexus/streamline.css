@@ -35,3 +35,118 @@ dialog.boox-panel{margin:auto;padding:22px}dialog.boox-panel:not([open]){display
 @media(min-width:1101px){#view-home .home-top-left{grid-template-columns:minmax(0,1fr) minmax(0,1.03fr)}}
 #view-home .upcoming-row{grid-template-columns:44px minmax(0,1fr) 22px;gap:7px;padding:8px;min-height:62px}#view-home .upcoming-row .up-badge{display:none}#view-home .upcoming-row .up-title{font-size:14px;white-space:normal;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}#view-home .upcoming-row .up-pin{padding:0;width:22px;min-width:22px}#view-home .upcoming-row .up-date{padding:5px 2px}#view-home .upcoming-row .up-meta{font-size:11px;gap:4px}
 @media(min-width:1101px){#view-home .home-cal-body{grid-template-columns:minmax(0,1fr) minmax(105px,.68fr);gap:10px}#view-home .home-calendar-grid,#view-home .home-calendar-weekdays{grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}#view-home .home-calendar-grid button{min-width:0;padding:0;font-size:12px}#view-home .home-calendar-head b{font-size:14px}#view-home .home-calendar-head button{width:24px;flex-shrink:0}body[data-nexus-view="home"] .topbar{grid-template-columns:minmax(270px,.75fr) minmax(0,1.35fr) 36px;gap:10px}body[data-nexus-view="home"] .header-weather{grid-template-columns:minmax(200px,1fr) auto}body[data-nexus-view="home"] .hw-metric{min-width:58px;padding:3px 8px}body[data-nexus-view="home"] .hw-current{gap:7px}body[data-nexus-view="home"] .hw-condition{max-width:130px}}
+
+/* Shared surfaces and interaction states for the Nexus shell. */
+.app {
+  --nexus-surface: color-mix(in srgb,var(--panel2) 72%,var(--bg2));
+  --nexus-shadow: 0 3px 14px color-mix(in srgb,var(--text) 4%,transparent);
+  --nexus-ease: cubic-bezier(.2,.7,.3,1);
+}
+.sidebar.glass,.topbar.glass,#view-home .card.glass {
+  background: var(--nexus-surface);
+  box-shadow: var(--nexus-shadow);
+}
+.sidebar {
+  scrollbar-width: thin;
+  overscroll-behavior: contain;
+}
+.sidebar .navbtn {
+  color: color-mix(in srgb,var(--text) 24%,var(--muted));
+  transition: background-color 150ms var(--nexus-ease), color 150ms var(--nexus-ease);
+}
+.sidebar .navbtn.active {
+  background: color-mix(in srgb,var(--accent) 14%,var(--nexus-surface));
+  color: var(--text);
+}
+.sidebar .navbtn:focus-visible,.header-actions .iconbtn:focus-visible,
+#view-home .upcoming-filter:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.sidebar .navbtn[data-view]::before {
+  content: '';
+  position: absolute;
+  inset: 15px auto 15px 2px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--accent);
+  transform: scaleY(.35);
+  opacity: 0;
+  transition: transform 160ms var(--nexus-ease), opacity 160ms var(--nexus-ease);
+}
+.sidebar .navbtn[data-view].active::before {
+  opacity: 1;
+  transform: scaleY(1);
+}
+#view-home .cardhead h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 750;
+}
+#view-home .cardhead h2 svg {
+  width: 19px;
+  height: 19px;
+  flex: none;
+  fill: none;
+  stroke: color-mix(in srgb,var(--accent) 68%,var(--text));
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+#view-home .cardhead .sub { font-size: 12px }
+#view-home .cardhead .sub button {
+  min-height: 26px;
+  font-size: 12px;
+}
+#view-home .upcoming-filter {
+  border-radius: 7px;
+  transition: background-color 150ms var(--nexus-ease), color 150ms var(--nexus-ease);
+}
+#view-home .upcoming-filter.active {
+  background: color-mix(in srgb,var(--accent) 15%,var(--nexus-surface));
+  color: var(--text);
+}
+@media (min-width:741px) {
+  .sidebar { overflow: auto }
+  .sidebar .themeSide { flex-shrink: 0 }
+  body:not([data-nexus-view="home"]) .topbar { border-radius: 14px }
+}
+@media (min-width:1101px) {
+  body[data-nexus-view="home"] .topbar {
+    min-height: 116px;
+    padding-block: 8px;
+  }
+  body[data-nexus-view="home"] .header-clock .time {
+    font-size: 43px;
+    letter-spacing: -.045em;
+  }
+  body[data-nexus-view="home"] .header-clock .date { margin-top: 6px }
+  body[data-nexus-view="home"] .header-weather {
+    grid-template-rows: 43px minmax(0,1fr);
+    gap: 5px 8px;
+  }
+  body[data-nexus-view="home"] .hw-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: 33px;
+  }
+  body[data-nexus-view="home"] .hw-temp { font-size: 35px }
+  body[data-nexus-view="home"] .header-day { padding: 5px 8px }
+}
+@media (max-width:740px) {
+  .sidebar { scroll-padding-inline: 6px }
+  .sidebar .navbtn[data-view]::before {
+    inset: auto 22px 2px;
+    width: auto;
+    height: 2px;
+    transform: scaleX(.35);
+  }
+  .sidebar .navbtn[data-view].active::before { transform: scaleX(1) }
+}
+@media (prefers-reduced-motion:reduce) {
+  .sidebar .navbtn,.sidebar .navbtn[data-view]::before,
+  #view-home .upcoming-filter { transition: none }
+}

@@ -192,17 +192,27 @@ function renderSiteUpdates(){
   const configured=(state.content?.site_updates||[]).filter(x=>x.enabled!==false);
   const sources=configured.length?configured.map(x=>[x.id,x.label]):[...new Map(all.map(x=>[x.source,x.source_label||x.source])).entries()];
   const statuses=state.site?.sources||{};
-  $('#siteSourceBar').innerHTML=`<button class="source-filter ${state.siteSource==='all'?'active':''}" data-site-source="all">全部来源</button>`+
-    sources.map(([id,label])=>`<button class="source-filter ${state.siteSource===id?'active':''}" data-site-source="${esc(id)}">${esc(label)}${statuses[id]?.ok===false?' · 失败':statuses[id]?.degraded?' · 部分章节待核实':''}</button>`).join('');
-  $$('.source-filter').forEach(b=>b.onclick=()=>{state.siteSource=b.dataset.siteSource;renderSiteUpdates();resetTabScroll()});
+  const sourceBar=$('#siteSourceBar');
+  const focusedSource=sourceBar.contains(document.activeElement)?document.activeElement.dataset.siteSource:null;
+  const sourceScroll=sourceBar.scrollLeft;
+  sourceBar.innerHTML=[['all','全部来源'],...sources].map(([id,label])=>{
+    const active=state.siteSource===id;
+    return `<button class="source-filter${active?' active':''}" data-site-source="${esc(id)}" aria-pressed="${active}">${esc(label)}${statuses[id]?.ok===false?' · 失败':statuses[id]?.degraded?' · 部分章节待核实':''}</button>`;
+  }).join('');
+  sourceBar.scrollLeft=sourceScroll;
+  for(const button of sourceBar.querySelectorAll('button')){
+    if(button.dataset.siteSource===focusedSource)button.focus({preventScroll:true});
+    button.onclick=()=>{state.siteSource=button.dataset.siteSource;renderSiteUpdates();resetTabScroll()};
+  }
   const visible=all.filter(x=>(state.siteFilter==='all'||x.type===state.siteFilter)&&(state.siteSource==='all'||x.source===state.siteSource)&&(!q||`${x.title} ${x.latest} ${x.source_label}`.toLowerCase().includes(q)));
+  $('#siteVisibleCount').textContent=`${visible.length} 部作品`;
   $('#siteUpdatesGrid').innerHTML=visible.length?visible.map(x=>{const added=isShelfItem(x);const latest=meaningfulLatest(x.latest)?`最新章节 · ${x.latest}`:(x.chapter_count?`已解析 · ${x.chapter_count} 章 / 话`:'最新章节 · 待解析');const updated=meaningfulUpdated(x.updated_text)?`更新时间 · ${compactUpdateDate(x.updated_text)}`:(x.fetched_at?`检查时间 · ${compactUpdateDate(x.fetched_at)}`:'更新时间 · 待确认');return `<article class="site-update-card">
     <a class="site-card-main" href="${esc(x.latest_url||x.url)}" target="_blank" rel="noopener">
       ${imageHTML({cover:x.cover,type:x.type,className:'site-update-cover',placeholderClass:'site-update-placeholder'})}
       <div class="site-update-copy">
         <div class="site-meta"><span class="type-pill ${x.type==='manga'?'manga':'novel'}">${x.type==='manga'?'漫画':'小说'}</span><span class="site-source" title="${esc(x.source_label||x.source)}">${esc(x.source_label||x.source)}</span></div>
         <h3 title="${esc(x.title)}">${esc(x.title)}</h3><p class="site-latest" title="${esc(latest)}">${esc(latest)}</p>
-        <div class="site-meta"><span>${esc(updated)}</span><span>${meaningfulLatest(x.latest)&&x.latest_url?'直达最新章节 ↗':'打开作品页 ↗'}</span></div>
+        <div class="site-meta site-card-time"><span title="${esc(updated)}">${esc(updated)}</span><span>${meaningfulLatest(x.latest)&&x.latest_url?'直达最新章节 ↗':'打开作品页 ↗'}</span></div>
       </div>
     </a>
     <button class="shelf-btn shelf-corner ${added?'added':''}" type="button" data-add-shelf="${esc(x.id)}" title="${added?'已在书架：':'加入书架：'}${esc(x.title)}" aria-label="${added?'已在书架：':'加入书架：'}${esc(x.title)}" ${added?'disabled':''}><span aria-hidden="true">${added?'✓':'＋'}</span></button>
@@ -342,7 +352,16 @@ function applyTheme(theme){document.documentElement.dataset.theme=theme;localSto
 function resetTabScroll(){window.scrollTo({top:0,behavior:'instant'})}
 $$('.nav-item').forEach(b=>b.onclick=()=>{$$('.nav-item').forEach(x=>x.classList.remove('active'));b.classList.add('active');$$('.tab').forEach(x=>x.classList.remove('active'));$('#'+b.dataset.tab).classList.add('active');resetTabScroll()});
 $$('.chip[data-filter]').forEach(b=>b.onclick=()=>{$$('.chip[data-filter]').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.filter=b.dataset.filter;renderLibraryUpdates();resetTabScroll()});
-$$('.chip[data-site-filter]').forEach(b=>b.onclick=()=>{$$('.chip[data-site-filter]').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.siteFilter=b.dataset.siteFilter;renderSiteUpdates();resetTabScroll()});
+const siteFilterButtons=$$('[data-site-filter]');
+siteFilterButtons.forEach(button=>button.onclick=()=>{
+  state.siteFilter=button.dataset.siteFilter;
+  for(const item of siteFilterButtons){
+    const active=item===button;
+    item.classList.toggle('active',active);
+    item.setAttribute('aria-pressed',String(active));
+  }
+  renderSiteUpdates();resetTabScroll();
+});
 $$('[data-game-view]').forEach(b=>b.onclick=()=>{state.gameView=b.dataset.gameView;$$('[data-game-view]').forEach(x=>x.classList.toggle('active',x===b));$$('.game-pane').forEach(x=>x.classList.remove('active'));$(state.gameView==='prices'?'#pc-prices':`#game${state.gameView==='mobile'?'Mobile':state.gameView==='pc'?'Pc':'Console'}Pane`).classList.add('active');resetTabScroll()});
 $$('[data-music-view]').forEach(b=>b.onclick=()=>{state.musicView=b.dataset.musicView;$$('[data-music-view]').forEach(x=>x.classList.toggle('active',x===b));$$('.music-pane').forEach(x=>x.classList.remove('active'));const pane={chart:'Chart',recent:'Recent',new:'New',artists:'Artists'}[state.musicView]||'Chart';$(`#music${pane}Pane`).classList.add('active');if(state.musicView==='artists')renderFollowedArtists();resetTabScroll()});
 $('#search')?.addEventListener('input',e=>{state.query=e.target.value.trim();renderSiteUpdates();renderLibrary();renderLibraryUpdates();renderMusic();renderGames()});
