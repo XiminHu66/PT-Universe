@@ -19,13 +19,14 @@ let browser;
   return route.fulfill({json:{}});
  });
  const page=await context.newPage();let shellLoads=0;page.on('framenavigated',frame=>{if(frame===page.mainFrame())shellLoads++;});await page.goto(base);await page.locator('#vpsState[data-state=online]').waitFor();assert.equal(grants,1,'fresh session silently connects');assert.equal(new URL(page.url()).hash,'','grant removed from URL');assert.ok(metrics>0);assert.equal(shellLoads,1,'silent connection must not navigate the Nexus shell');
- assert.equal(await page.locator('.sidebar .navbtn[data-view]').count(),10);assert.equal(await page.locator('#monitorFrame').getAttribute('src'),null,'resource monitoring must not load while using VPS tools');
+ assert.equal(await page.locator('.sidebar .navbtn[data-view]').count(),9);assert.equal(await page.locator('#monitorFrame').getAttribute('src'),null,'resource monitoring must not load while using VPS tools');
+ const radar=page.locator('#vpsTools [data-tool=deal-radar]');assert.equal(await radar.getAttribute('href'),'../deal-radar/');assert.equal(await radar.getAttribute('target'),'_blank');
  await page.reload();await page.locator('#vpsState[data-state=online]').waitFor();assert.equal(grants,1,'reload reuses session');
  const sizes=[[1750,749],[1440,900],[1366,768],[1280,720],[390,844]],report=[];
  for(const [width,height] of sizes){
   await page.setViewportSize({width,height});
   const geometry=await page.locator('#view-vps').evaluate(el=>{const rect=e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height};};const grid=el.querySelector('.workspace-tool-groups');return {monitor:rect(el.querySelector('.vps-monitor-panel')),tools:rect(el.querySelector('.vps-tools-section')),cards:[...grid.querySelectorAll('.vps-tool')].map(rect),grid:{client:grid.clientHeight,scroll:grid.scrollHeight},view:{client:el.clientHeight,scroll:el.scrollHeight},viewport:innerHeight,rail:rect(document.querySelector('.sidebar')),fonts:{name:parseFloat(getComputedStyle(el.querySelector('.vps-tool-title b')).fontSize),description:parseFloat(getComputedStyle(el.querySelector('.vps-tool p')).fontSize),navigation:parseFloat(getComputedStyle(document.querySelector('.sidebar .navbtn span')).fontSize)},overflow:document.documentElement.scrollWidth-innerWidth};});
-  assert.equal(geometry.cards.length,21);assert.ok(geometry.overflow<=2,JSON.stringify({width,geometry}));
+  assert.equal(geometry.cards.length,22);assert.ok(geometry.overflow<=2,JSON.stringify({width,geometry}));
   if(width>=1000){assert.ok(geometry.fonts.name>=16&&geometry.fonts.description>=13&&geometry.fonts.navigation>=13,'Keep readable tool text and compact rail labels');assert.equal(geometry.rail.width,84,'Restore the original sidebar width');assert.ok(geometry.monitor.right<geometry.tools.x);assert.ok(geometry.cards.every(c=>c.y>=0&&c.bottom<=height-5),'all tools fit without scrolling '+JSON.stringify({width,height,geometry}));assert.ok(geometry.grid.scroll<=geometry.grid.client+2,JSON.stringify({width,geometry}));assert.ok(geometry.view.scroll<=geometry.view.client+2);}
   else{assert.ok(geometry.monitor.bottom<geometry.tools.y);assert.ok(geometry.cards[0].x<geometry.cards[1].x&&Math.abs(geometry.cards[0].y-geometry.cards[1].y)<2);}
   report.push({width,height,...geometry});
@@ -33,9 +34,9 @@ let browser;
   await page.screenshot({path:`/tmp/pt-nexus-vps-${width}x${height}.png`});
  }
  await page.setViewportSize({width:1750,height:749});
- assert.equal(await page.locator('#vpsTools .vps-tool').count(),14);assert.equal(await page.locator('#otherTools .vps-tool').count(),7);assert.equal(await page.locator('[data-tool=karakeep]').count(),1);
+ assert.equal(await page.locator('#vpsTools .vps-tool').count(),15);assert.equal(await page.locator('#otherTools .vps-tool').count(),7);assert.equal(await page.locator('[data-tool=karakeep]').count(),1);
  const loadsBeforeRefresh=shellLoads;await page.locator('#vpsRefresh').click();await page.locator('#vpsState[data-state=online]').waitFor();assert.equal(shellLoads,loadsBeforeRefresh,'manual metric refresh stays inside its tab');
  await page.locator('#vpsDisconnect').click();await page.reload();await page.locator('#vpsConnect').waitFor();assert.equal(grants,1,'explicit disconnect remains paused');await page.locator('#vpsConnect').click();await page.locator('#vpsState[data-state=online]').waitFor();assert.equal(grants,2);
  await page.evaluate(()=>{const key='pt.resources.session.v1',parts=sessionStorage.getItem(key).split('.'),data=JSON.parse(atob(parts[1].replace(/-/g,'+').replace(/_/g,'/')));data.exp=Math.floor(Date.now()/1000)-1;parts[1]=btoa(JSON.stringify(data));sessionStorage.setItem(key,parts.join('.'));});await page.reload();await page.locator('#vpsState[data-state=online]').waitFor();assert.equal(grants,3,'expired sessions renew automatically');
- fs.writeFileSync('/tmp/pt-nexus-vps-report.json',JSON.stringify({grants,metrics,sizes:report},null,2));console.log('PASS VPS: automatic connect, cache reuse, nonce return, URL cleanup, pause/retry, expiry renewal, 21 tools in two visible groups, desktop fit at four sizes and mobile overflow.');
+ fs.writeFileSync('/tmp/pt-nexus-vps-report.json',JSON.stringify({grants,metrics,sizes:report},null,2));console.log('PASS VPS: automatic connect, cache reuse, nonce return, URL cleanup, pause/retry, expiry renewal, 22 tools in two visible groups, desktop fit at four sizes and mobile overflow.');
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{await browser?.close();server.close();});

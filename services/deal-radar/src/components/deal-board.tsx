@@ -28,7 +28,7 @@ const STORAGE_KEY = "daily-deals-personal-v1";
 
 type Personal = { claimed: string[]; favorites: string[] };
 type Alert = { text: string; role: "status" | "alert"; testId: string };
-type PublicFeed = { url: string; homeUrl: string; managementUrl: string; embedded: boolean };
+type PublicFeed = { url: string; homeUrl: string; managementUrl: string };
 
 const emptyPersonal: Personal = { claimed: [], favorites: [] };
 // 「查看全部线索」单独存，避免改动收藏键或 { claimed, favorites } 形状。
@@ -187,11 +187,10 @@ export function DealBoard({ initial, publicFeed }: { initial: BoardState; public
   useEffect(() => {
     if (!publicFeed) return;
     const controller = new AbortController();
-    const nexus = publicFeed.embedded ? window.parent : null;
     let lastRequested = -Infinity;
     let pending = false;
     const tick = async () => {
-      if (document.hidden || pending || Date.now() - lastRequested < PUBLIC_READ_INTERVAL_MS || (nexus && nexus.document.body.dataset.nexusView !== "deal-radar")) return;
+      if (document.hidden || pending || Date.now() - lastRequested < PUBLIC_READ_INTERVAL_MS) return;
       lastRequested = Date.now();
       pending = true;
       try {
@@ -213,12 +212,10 @@ export function DealBoard({ initial, publicFeed }: { initial: BoardState; public
     void tick();
     const timer = setInterval(tick, PUBLIC_READ_INTERVAL_MS);
     document.addEventListener("visibilitychange", tick);
-    nexus?.addEventListener("nexus-view-change", tick);
     return () => {
       controller.abort();
       clearInterval(timer);
       document.removeEventListener("visibilitychange", tick);
-      nexus?.removeEventListener("nexus-view-change", tick);
     };
   }, [initial, publicFeed]);
 
@@ -366,22 +363,19 @@ export function DealBoard({ initial, publicFeed }: { initial: BoardState; public
     sort !== "recommended" ? { id: "sort", label: sort === "expiring" ? "即将到期" : "最新发布", clear: () => setSort("recommended") } : null,
   ].filter((chip) => chip !== null);
 
-  const embedded = publicFeed?.embedded;
-  const refreshButton = <Button className="radar-refresh" data-testid="refresh" onClick={refresh} disabled={busy} aria-busy={busy}>
-    <RefreshCw aria-hidden="true" />{busy ? "刷新中" : publicFeed ? "读取最新" : "立即刷新"}
-  </Button>;
-
   return (
-    <div className="perk-board" data-testid="board-root" data-embedded={embedded ? "nexus" : undefined}>
-      {!embedded && <header className="radar-header" data-testid="header">
+    <div className="perk-board" data-testid="board-root">
+      <header className="radar-header" data-testid="header">
         <div className="radar-shell radar-header-inner">
           <a className="radar-brand" href={publicFeed?.homeUrl ?? `${API_BASE}/`} data-testid="brand">
             <span className="radar-mark"><Radar aria-hidden="true" /></span>
             <span><small>PT UNIVERSE / DEAL RADAR</small><strong>全球优惠雷达</strong></span>
           </a>
-          {refreshButton}
+          <Button className="radar-refresh" data-testid="refresh" onClick={refresh} disabled={busy} aria-busy={busy}>
+            <RefreshCw aria-hidden="true" />{busy ? "刷新中" : publicFeed ? "读取最新" : "立即刷新"}
+          </Button>
         </div>
-      </header>}
+      </header>
 
       <main className="radar-shell radar-main" data-testid="content">
         {alerts.length > 0 && <div className="radar-alerts" data-testid="alerts" aria-live="polite">
@@ -400,7 +394,6 @@ export function DealBoard({ initial, publicFeed }: { initial: BoardState; public
               <option value="newest">最新发布</option>
               <option value="expiring">即将到期</option>
             </select>
-            {embedded && refreshButton}
           </div>
           <div className="radar-filter" role="group" aria-label="来源筛选">
             <span className="radar-filter-label" aria-hidden="true">来源</span>
