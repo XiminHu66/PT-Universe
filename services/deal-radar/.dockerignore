@@ -1,0 +1,35 @@
+.git
+.gitignore
+node_modules
+.next
+out
+data
+reports
+coverage
+.env
+.env.*
+.secrets/
+*.pem
+*.tsbuildinfo
+npm-debug.log*
+Dockerfile.md
+tests
+terminals
+**/.DS_Store
+
+# Maintenance docs, backups and archives are not needed at build time.
+# The expanded next.config.ts under deployment-backups used to be copied in
+# and was picked up by tsconfig's include: **/*.ts.
+deployment-backups/
+*.tar.gz
+docs/
+AGENTS.md
+# A separate workspace session writes design mockups here; they are not part of
+# PerkRadar and must not create a /demo route in the production image.
+src/app/demo/
+.mrdayone/
+*.md
+*.md.bak
+scripts/
+snapshots/
+.workbuddy/
