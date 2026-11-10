@@ -39,6 +39,7 @@ export function publicDealBoard(raw: unknown): BoardState {
       publishedAt: deal.publishedAt, publishedLabel: deal.publishedLabel,
       expiresAt: deal.expiresAt, expiresLabel: deal.expiresLabel,
       expiresSoon: deal.expiresSoon, isNew: deal.isNew,
+      firstSeenAt: deal.firstSeenAt, offerKind: deal.offerKind,
     }];
   });
   const sources = SOURCE_DEFS.map(({ id, name }) => {
@@ -67,7 +68,7 @@ export async function dealRadarRoute(request: Request, url: URL, env: Env): Prom
   // One cache key per edge location regardless of browser headers. The VPS only serves the existing stored board.
   const key = new Request(url.href);
   try {
-    const cache = await caches.open('pt-deal-radar-v1').catch(() => null);
+    const cache = await caches.open('pt-deal-radar-v2').catch(() => null);
     const cached = await cache?.match(key).catch(() => undefined);
     if (cached) return cached;
     const data = publicDealBoard(await readVpsDealBoard(env));

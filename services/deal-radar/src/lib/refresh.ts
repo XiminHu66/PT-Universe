@@ -163,6 +163,7 @@ function applySource(loaded: LoadedSource, roundId: number, now: number): number
         firstSeenAt: now,
         firstSeenRoundId: roundId,
         updatedAt: now,
+        offerKind: item.offerKind,
       });
       inserted += 1;
     } else {
@@ -174,6 +175,7 @@ function applySource(loaded: LoadedSource, roundId: number, now: number): number
         publishedAt: publishedAt ?? existing.publishedAt,
         expiresAt,
         updatedAt: now,
+        offerKind: item.offerKind,
       });
     }
     if (loaded.sourceId === "epic") epicKeep.add(canonical);

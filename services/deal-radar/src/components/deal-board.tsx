@@ -15,9 +15,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { filterDeals, type DealSort } from "@/lib/filter-deals";
+import { filterDeals, isRecentDeal, matchDeals, type DealSort } from "@/lib/filter-deals";
 import { normalizeBoardState } from "@/lib/board-view";
-import { CATEGORIES, type BoardState, type Category, type DealDTO, type SourceStatus } from "@/lib/types";
+import { formatPacific } from "@/lib/time";
+import { CATEGORIES, OFFER_LABELS, type BoardState, type Category, type DealDTO, type SourceStatus } from "@/lib/types";
 import "./deal-board.css";
 
 // 运行标识保持不变：本机收藏和已领依赖这个键与 { claimed, favorites } 形状。
@@ -90,7 +91,7 @@ export function DealBoard({ initial, publicFeed }: { initial: BoardState; public
   const [onlyNew, setOnlyNew] = useState(false);
   // 默认隐藏「其他」；展示偏好单独存，不写入本机收藏状态。
   const [showAllLeads, setShowAllLeads] = useState(false);
-  const [sort, setSort] = useState<DealSort>("newest");
+  const [sort, setSort] = useState<DealSort>("recommended");
   const [personal, setPersonal] = useState<Personal>(emptyPersonal);
   const [personalReady, setPersonalReady] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -246,32 +247,29 @@ export function DealBoard({ initial, publicFeed }: { initial: BoardState; public
     setQuery("");
     setOnlyNew(false);
     saveShowAll(false);
-    setSort("newest");
+    setSort("recommended");
   }
 
   const claimedSet = new Set(personal.claimed);
   const favoriteSet = new Set(personal.favorites);
   // 「其他」只在默认的「全部」视图隐藏；显式选分类或收藏时仍按用户选择展示。
   const hideOther = !showAllLeads && category === "all";
-  const filters = { query, sourceId, category, onlyNew, sort, includeOther: !hideOther };
-  const matching =
-    category === "favorites" && !personalReady
-      ? []
-      : filterDeals(board.deals, { ...filters, includeOther: true }, personal);
-  const visible =
-    category === "favorites" && !personalReady
-      ? []
-      : filterDeals(board.deals, filters, personal);
-  const hiddenOtherCount = hideOther ? matching.filter((item) => item.category === "其他").length : 0;
+  const now = Date.now();
+  const filters = { query, sourceId, category, onlyNew, sort, now };
+  const matching = category === "favorites" && !personalReady ? [] : filterDeals(board.deals, filters, personal);
+  const visible = hideOther ? matching.filter((item) => item.category !== "其他") : matching;
+  const hiddenOtherCount = matching.length - visible.length;
   const waitingForFirst = !board.lastUpdatedAt && (board.refreshInProgress || refreshing || Boolean(publicFeed && !pollError));
   const busy = refreshing || board.refreshInProgress;
 
+  const updatedLabel = formatPacific(board.lastUpdatedAt);
+  const nextLabel = formatPacific(board.nextRefreshAt);
   const statusItems = [
-    { label: "更新", value: board.lastUpdatedLabel ? `${board.lastUpdatedLabel} 北京时间` : "尚未更新", testId: "status-update" },
+    { label: "更新", value: updatedLabel ? `${updatedLabel} 美西时间` : "尚未更新", testId: "status-update" },
     { label: "来源", value: `${board.sourceHealth.ok}/${board.sourceHealth.total}`, testId: "status-sources" },
     { label: "已收录", value: String(board.activeCount), testId: "status-active" },
     { label: "本轮新增", value: String(board.newCount), testId: "status-new" },
-    { label: "下次更新", value: board.nextRefreshLabel ? `${board.nextRefreshLabel} 北京时间` : "尚未排期", testId: "status-next" },
+    { label: "下次更新", value: nextLabel ? `${nextLabel} 美西时间` : "尚未排期", testId: "status-next" },
   ];
 
   const alerts: Alert[] = [];
@@ -281,9 +279,22 @@ export function DealBoard({ initial, publicFeed }: { initial: BoardState; public
   if (board.anomalies?.length) alerts.push({ text: `数据提示：${board.anomalies.join("；")}`, role: "status", testId: "anomalies" });
   if (board.failures.length) alerts.push({ text: `未能抓取，下一轮重试：${board.failures.map(formatFailure).join("、")}`, role: "status", testId: "failures" });
 
+  const candidates = matchDeals(board.deals, { ...filters, sourceId: "all", category: "all" }, personal);
   const categoryCounts = new Map<string, number>();
-  for (const deal of board.deals) {
-    categoryCounts.set(deal.category, (categoryCounts.get(deal.category) ?? 0) + 1);
+  const sourceCounts = new Map<string, number>();
+  let allCategoryCount = 0;
+  let allSourceCount = 0;
+  for (const deal of candidates) {
+    const isFavorite = personalReady && favoriteSet.has(deal.canonicalUrl);
+    if (sourceId === "all" || sourceId === deal.sourceId) {
+      categoryCounts.set(deal.category, (categoryCounts.get(deal.category) ?? 0) + 1);
+      if (isFavorite) categoryCounts.set("favorites", (categoryCounts.get("favorites") ?? 0) + 1);
+      if (showAllLeads || deal.category !== "其他") allCategoryCount += 1;
+    }
+    if (category === deal.category || (category === "favorites" && isFavorite) || (category === "all" && (!hideOther || deal.category !== "其他"))) {
+      sourceCounts.set(deal.sourceId, (sourceCounts.get(deal.sourceId) ?? 0) + 1);
+      allSourceCount += 1;
+    }
   }
 
   const emptyMessage =
@@ -306,9 +317,9 @@ export function DealBoard({ initial, publicFeed }: { initial: BoardState; public
     query.trim() ? { id: "query", label: query.trim(), clear: () => setQuery("") } : null,
     selectedSource ? { id: "source", label: selectedSource.name, clear: () => setSourceId("all") } : null,
     category !== "all" ? { id: "category", label: category === "favorites" ? "我的收藏" : category, clear: () => setCategory("all") } : null,
-    onlyNew ? { id: "new", label: "只看新增", clear: () => setOnlyNew(false) } : null,
+    onlyNew ? { id: "new", label: "过去 24 小时新增", clear: () => setOnlyNew(false) } : null,
     showAllLeads ? { id: "all", label: "含其他线索", clear: () => saveShowAll(false) } : null,
-    sort === "expiring" ? { id: "sort", label: "即将到期", clear: () => setSort("newest") } : null,
+    sort !== "recommended" ? { id: "sort", label: sort === "expiring" ? "即将到期" : "最新发布", clear: () => setSort("recommended") } : null,
   ].filter((chip) => chip !== null);
 
   return (
@@ -334,10 +345,11 @@ export function DealBoard({ initial, publicFeed }: { initial: BoardState; public
           <div className="radar-control-head">
             <form className="radar-search" role="search" onSubmit={(event) => event.preventDefault()}>
               <Search aria-hidden="true" />
-              <label className="sr-only" htmlFor="deal-search">搜索标题</label>
+              <label className="sr-only" htmlFor="deal-search">搜索优惠</label>
               <Input id="deal-search" type="search" data-testid="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索优惠、软件或游戏…" />
             </form>
             <select className="radar-sort" data-testid="sort" aria-label="排序方式" value={sort} onChange={(event) => setSort(event.target.value as DealSort)}>
+              <option value="recommended">推荐优先</option>
               <option value="newest">最新发布</option>
               <option value="expiring">即将到期</option>
             </select>
@@ -345,20 +357,20 @@ export function DealBoard({ initial, publicFeed }: { initial: BoardState; public
           <div className="radar-filter" role="group" aria-label="来源筛选">
             <span className="radar-filter-label" aria-hidden="true">来源</span>
             <div className="radar-rail radar-sources">
-              <Pill pressed={sourceId === "all"} testId="source-chip" onClick={() => setSourceId("all")}>全部来源<span>{board.activeCount}</span></Pill>
+              <Pill pressed={sourceId === "all"} testId="source-chip" onClick={() => setSourceId("all")}>全部来源<span>{allSourceCount}</span></Pill>
               {board.sources.map((source) => (
-                <Pill key={source.id} pressed={sourceId === source.id} testId="source-chip" onClick={() => setSourceId(source.id)}>{source.name}<span>{source.activeCount}</span></Pill>
+                <Pill key={source.id} pressed={sourceId === source.id} testId="source-chip" onClick={() => setSourceId(source.id)}>{source.name}<span>{sourceCounts.get(source.id) ?? 0}</span></Pill>
               ))}
             </div>
           </div>
           <div className="radar-filter" role="group" aria-label="分类筛选">
             <span className="radar-filter-label" aria-hidden="true">分类</span>
             <div className="radar-rail radar-categories">
-              <Pill pressed={category === "all"} testId="category-chip" onClick={() => setCategory("all")}>全部优惠</Pill>
+              <Pill pressed={category === "all"} testId="category-chip" onClick={() => setCategory("all")}>全部优惠<span>{allCategoryCount}</span></Pill>
               {CATEGORIES.map((item) => (
                 <Pill key={item} pressed={category === item} testId="category-chip" onClick={() => setCategory(item)}>{item}<span>{categoryCounts.get(item) ?? 0}</span></Pill>
               ))}
-              <Pill pressed={category === "favorites"} testId="category-chip" onClick={() => setCategory(category === "favorites" ? "all" : "favorites")}><Bookmark aria-hidden="true" />我的收藏<span>{personalReady ? favoriteSet.size : 0}</span></Pill>
+              <Pill pressed={category === "favorites"} testId="category-chip" onClick={() => setCategory(category === "favorites" ? "all" : "favorites")}><Bookmark aria-hidden="true" />我的收藏<span>{categoryCounts.get("favorites") ?? 0}</span></Pill>
             </div>
           </div>
         </section>
@@ -369,7 +381,7 @@ export function DealBoard({ initial, publicFeed }: { initial: BoardState; public
             <span className="radar-count" role="status" data-testid="visible-count">{visible.length} 条</span>
           </div>
           <div className="radar-options">
-            <label className="radar-option"><input type="checkbox" data-testid="only-new" checked={onlyNew} onChange={(event) => setOnlyNew(event.target.checked)} />只看新增</label>
+            <label className="radar-option"><input type="checkbox" data-testid="only-new" checked={onlyNew} onChange={(event) => setOnlyNew(event.target.checked)} />过去 24 小时新增</label>
             <label className="radar-option"><input type="checkbox" data-testid="show-all" checked={showAllLeads} onChange={(event) => saveShowAll(event.target.checked)} />含其他线索{hiddenOtherCount > 0 && <span data-testid="hidden-note"> +{hiddenOtherCount}</span>}</label>
           </div>
         </div>
@@ -384,7 +396,7 @@ export function DealBoard({ initial, publicFeed }: { initial: BoardState; public
           <summary>
             <span className="radar-status-dot" data-status={board.roundStatus ?? "pending"} aria-hidden="true" />
             <span>来源 {board.sourceHealth.ok}/{board.sourceHealth.total}</span>
-            <span className="radar-status-time">{board.lastUpdatedLabel ? `${board.lastUpdatedLabel.slice(5)} 北京更新` : "等待更新"}</span>
+            <span className="radar-status-time">{updatedLabel ? `${updatedLabel} 美西更新` : "等待更新"}</span>
             <ChevronDown aria-hidden="true" />
           </summary>
           <dl className="radar-status-grid" data-testid="stats">
@@ -399,6 +411,7 @@ export function DealBoard({ initial, publicFeed }: { initial: BoardState; public
           {visible.map((deal) => <DealCard
             key={deal.canonicalUrl}
             deal={deal}
+            recent={isRecentDeal(deal, now)}
             claimed={personalReady && claimedSet.has(deal.canonicalUrl)}
             favorite={personalReady && favoriteSet.has(deal.canonicalUrl)}
             onClaim={() => toggle("claimed", deal.canonicalUrl)}
@@ -440,13 +453,15 @@ function Pill({ pressed, onClick, children, testId }: { pressed: boolean; onClic
   return <button type="button" className="radar-pill" aria-pressed={pressed} data-testid={testId} onClick={onClick}>{children}</button>;
 }
 
-function DealCard({ deal, claimed, favorite, onClaim, onFavorite }: { deal: DealDTO; claimed: boolean; favorite: boolean; onClaim: () => void; onFavorite: () => void }) {
-  const hasDetails = deal.summary || deal.publishedLabel;
+function DealCard({ deal, recent, claimed, favorite, onClaim, onFavorite }: { deal: DealDTO; recent: boolean; claimed: boolean; favorite: boolean; onClaim: () => void; onFavorite: () => void }) {
+  const published = formatPacific(deal.publishedAt);
+  const expiry = formatPacific(deal.expiresAt);
+  const hasDetails = deal.summary || published;
   return (
-    <article className="radar-card" data-claimed={claimed} data-new={deal.isNew} data-testid="deal-card" aria-label={deal.title}>
+    <article className="radar-card" data-claimed={claimed} data-new={recent} data-testid="deal-card" aria-label={deal.title}>
       <div className="radar-card-top">
         <span className="radar-card-source" data-testid="deal-source" data-official={deal.sourceId === "epic"}>{deal.sourceName}</span>
-        {deal.isNew && <span className="radar-new" data-testid="deal-new">新增</span>}
+        {recent && <span className="radar-new" data-testid="deal-new">新增</span>}
         <button type="button" className="radar-bookmark" data-testid="favorite" aria-label={`收藏：${deal.title}`} title={favorite ? "取消收藏" : "收藏"} aria-pressed={favorite} onClick={onFavorite}><Bookmark aria-hidden="true" /></button>
       </div>
 
@@ -454,15 +469,16 @@ function DealCard({ deal, claimed, favorite, onClaim, onFavorite }: { deal: Deal
 
       <div className="radar-card-meta">
         <span data-testid="deal-category">{deal.category}</span>
-        {deal.expiresLabel && <span className="radar-expiry" data-soon={deal.expiresSoon} data-testid="deal-expiry"><Clock3 aria-hidden="true" />{deal.expiresSoon ? "临期" : "到期"} {deal.expiresLabel.slice(5)}<span className="sr-only"> 北京时间</span></span>}
+        {deal.offerKind && <span className="radar-condition" data-testid="deal-condition">{OFFER_LABELS[deal.offerKind]}</span>}
+        {expiry ? <span className="radar-expiry" data-soon={deal.expiresSoon} data-testid="deal-expiry"><Clock3 aria-hidden="true" />{deal.expiresSoon ? "临期" : "到期"} {expiry} 美西</span> : <span>截止未确认</span>}
         {claimed && <span className="radar-claimed" data-testid="deal-claimed">已领</span>}
       </div>
 
       {hasDetails && <details className="radar-card-details" data-testid="deal-original">
         <summary>{deal.summary ? "原文摘要" : "发布时间"}<ChevronDown aria-hidden="true" /></summary>
         <div className="radar-detail-body" data-testid="deal-meta">
-          {deal.publishedLabel && <p className="radar-published">发布于 {deal.publishedLabel} 北京时间</p>}
-          {deal.sourceId === "slickdeals" && <p className="radar-published">原文摘要可能保留旧报价，实时价格见原帖。</p>}
+          {published && <p className="radar-published">来源发布时间 {published} 美西时间</p>}
+          {deal.sourceId === "slickdeals" && <p className="radar-published">卡片价格来自订阅源，资格与实际到手价以结算页为准。</p>}
           {deal.summary && <p data-testid="deal-summary">{deal.summary}</p>}
         </div>
       </details>}

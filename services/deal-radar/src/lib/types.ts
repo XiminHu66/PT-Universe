@@ -9,12 +9,22 @@ export const CATEGORIES = [
 
 export type Category = (typeof CATEGORIES)[number];
 
+export const OFFER_LABELS = {
+  "free-game": "免费领本体",
+  "login-pack": "登录游戏领礼包",
+  "game-promotion": "免费游戏活动 · 领取方式见官方",
+  coupon: "需优惠码",
+  "clip-coupon": "需勾选优惠券",
+} as const;
+export type OfferKind = keyof typeof OFFER_LABELS;
+
 export type ParsedItem = {
   url: string;
   title: string;
   summary: string;
   publishedAt: number | null;
   expiresAt: number | null;
+  offerKind?: OfferKind;
 };
 
 export type SourceQuality = {
@@ -51,6 +61,8 @@ export type DealDTO = {
   expiresLabel: string | null;
   expiresSoon: boolean;
   isNew: boolean;
+  firstSeenAt?: number;
+  offerKind?: OfferKind;
 };
 
 export type FailureDTO = {

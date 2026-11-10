@@ -100,6 +100,7 @@
 .radar-expiry { display: inline-flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; }
 .radar-expiry svg { width: 13px; height: 13px; }
 .radar-expiry[data-soon="true"] { color: #884c13; font-weight: 720; }
+.radar-condition { color: var(--green); font-weight: 720; }
 .radar-card-details { margin-top: 1px; color: var(--muted-ink); font-size: 12px; }
 .radar-card-details > summary { display: inline-flex; align-items: center; gap: 4px; min-height: 30px; border-radius: 5px; list-style: none; }
 .radar-card-details > summary:hover { color: var(--green); }

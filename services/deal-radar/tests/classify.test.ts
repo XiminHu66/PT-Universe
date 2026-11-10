@@ -1,8 +1,15 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { classify, isExcludedLead } from "../src/lib/classify";
+import { classify, couponCondition, isExcludedLead } from "../src/lib/classify";
 
 describe("classify", () => {
+  it("keeps AI service promotions out of the default feed and distinguishes explicit coupon conditions", () => {
+    assert.equal(classify("【TeamoRouter】双11福利｜回帖送$1体验金", "linuxdo"), "其他");
+    assert.equal(classify("【快跑AI】Qwen Audio 72 折 注册送10$", "linuxdo"), "其他");
+    assert.equal(couponCondition("$47.45 w/ code", "", "slickdeals"), "coupon");
+    assert.equal(couponCondition("$92.30", "when you clip the $15 off coupon", "slickdeals"), "clip-coupon");
+    assert.equal(couponCondition("$20 + Free S&H", "", "slickdeals"), undefined);
+  });
   it("requires a clear offer signal instead of a game or membership mention", () => {
     assert.equal(classify("会员订阅年卡", "epic"), "游戏");
     assert.equal(classify("Steam Pro 会员", "linuxdo"), "其他");

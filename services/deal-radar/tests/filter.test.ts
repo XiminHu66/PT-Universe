@@ -96,6 +96,20 @@ describe("visible deals", () => {
     assert.equal(ordered[0], "https://example.com/d");
   });
 
+  it("recommends verified games first, mixes sources, and searches words across fields", () => {
+    const source = "slickdeals";
+    const rows = [
+      deal({ canonicalUrl: "https://example.com/s1", title: "Legion 7a with Ryzen", category: "低价优惠", sourceId: source, publishedAt: 100, offerKind: "coupon", firstSeenAt: 99_000_000 }),
+      deal({ canonicalUrl: "https://example.com/s2", title: "A second discount", category: "低价优惠", sourceId: source, publishedAt: 90, firstSeenAt: 1 }),
+      ...deals,
+    ];
+    const filters: DealFilters = { query: "", sourceId: "all", category: "all", onlyNew: false, sort: "recommended", now: 100_000_000 };
+    const personal = { claimed: [], favorites: [] };
+    assert.deepEqual(filterDeals(rows, filters, personal).map((item) => item.sourceId), ["epic", source, "linuxdo", "iplaysoft", source]);
+    assert.deepEqual(filterDeals(rows, { ...filters, query: "ryzen LEGION 优惠码", onlyNew: true }, personal).map((item) => item.canonicalUrl), ["https://example.com/s1"]);
+    assert.deepEqual(filterDeals(rows, { ...filters, sourceId: source, onlyNew: true }, personal).map((item) => item.canonicalUrl), ["https://example.com/s1"]);
+  });
+
   it("sinks claimed SYNTHETIC rows under unclaimed ones", () => {
     const ordered = filterDeals(
       deals,

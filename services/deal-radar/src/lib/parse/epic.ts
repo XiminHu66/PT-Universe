@@ -1,5 +1,5 @@
 import { cleanTitle, excerpt } from "../text";
-import type { ParsedItem } from "../types";
+import type { OfferKind, ParsedItem } from "../types";
 
 type EpicOffer = {
   startDate?: string;
@@ -13,7 +13,8 @@ type EpicElement = {
   productSlug?: string | null;
   offerMappings?: { pageSlug?: string; pageType?: string }[];
   catalogNs?: { mappings?: { pageSlug?: string; pageType?: string }[] };
-  price?: { totalPrice?: { discountPrice?: number } };
+  offerType?: string;
+  price?: { totalPrice?: { discountPrice?: number; originalPrice?: number } };
   promotions?: {
     promotionalOffers?: { promotionalOffers?: EpicOffer[] }[];
     upcomingPromotionalOffers?: { promotionalOffers?: EpicOffer[] }[];
@@ -81,12 +82,25 @@ export function parseEpicFreeGames(payload: unknown, now: number): ParsedItem[] 
     seen.add(url);
     const ends = active.map((offer) => Date.parse(offer.endDate ?? ""));
     const starts = active.map((offer) => Date.parse(offer.startDate ?? ""));
+    const publishedAt = Math.min(...starts);
+    const expiresAt = Math.max(...ends);
+    const originalPrice = element.price?.totalPrice?.originalPrice;
+    let offerKind: OfferKind = "game-promotion";
+    if (element.offerType === "BASE_GAME" && typeof originalPrice === "number" && originalPrice > 0) {
+      offerKind = "free-game";
+    }
+    // Epic lists the base game for this specific login reward in its catalog.
+    // https://store.epicgames.com/news/marvel-tokon-division-2-genshin-impact-updates
+    if (slug === "idle-champions-of-the-forgotten-realms" && publishedAt === Date.UTC(2026, 10, 5, 16) && expiresAt === Date.UTC(2026, 10, 12, 16)) {
+      offerKind = "login-pack";
+    }
     items.push({
       url,
       title,
       summary: excerpt(element.description ?? ""),
-      publishedAt: Math.min(...starts),
-      expiresAt: Math.max(...ends),
+      publishedAt,
+      expiresAt,
+      offerKind,
     });
   }
   return items;

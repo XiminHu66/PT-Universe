@@ -1,5 +1,5 @@
 import { MAX_FEED_ITEMS, MAX_URL_CHARS, SUMMARY_MAX, TITLE_MAX } from "./config";
-import { CATEGORIES, type BoardState, type Category, type DealDTO, type FailureDTO, type FreshnessDTO, type SourceStatus } from "./types";
+import { CATEGORIES, OFFER_LABELS, type BoardState, type Category, type DealDTO, type FailureDTO, type FreshnessDTO, type OfferKind, type SourceStatus } from "./types";
 
 /** 客户端边界校验：接口、SSR 快照和刷新结果都按不可信输入处理，坏字段不能让页面崩溃。 */
 // 与服务端入库边界保持一致：URL 2048 字、单轮最多 2000 条，异常响应也按同一上限截断。
@@ -113,6 +113,8 @@ function normalizeDeal(value: unknown): DealDTO | null {
     expiresLabel: nullableText(value.expiresLabel, SHORT_MAX),
     expiresSoon: boolean(value.expiresSoon),
     isNew: boolean(value.isNew),
+    firstSeenAt: nullableNumber(value.firstSeenAt) ?? undefined,
+    offerKind: typeof value.offerKind === "string" && Object.hasOwn(OFFER_LABELS, value.offerKind) ? value.offerKind as OfferKind : undefined,
   };
 }
 

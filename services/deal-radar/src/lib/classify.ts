@@ -1,4 +1,4 @@
-import type { Category } from "./types";
+import type { Category, OfferKind } from "./types";
 
 function isLowRelevance(title: string): boolean {
   return (
@@ -21,6 +21,7 @@ export function isExcludedLead(title: string, sourceId: string): boolean {
 export function classify(title: string, sourceId: string): Category {
   if (sourceId === "epic") return "游戏";
   if (sourceId === "slickdeals") return /\$\s*\d|\bfree\b(?!\s*(?:s\s*\/\s*[hH]|s\s*&\s*[hH]|shipping))/i.test(title) ? "低价优惠" : "其他";
+  if (sourceId === "linuxdo" && /(?:Router\b|企业池|模型\s*API|API\s*(?:网关|服务)|【快跑AI】)/i.test(title)) return "其他";
   if (isLowRelevance(title)) return "其他";
   if (/限免|免费领取|免费试用|免费\s*(?:[一二三四五六七八九十两0-9]+\s*(?:天|个月|月|年))/.test(title)) return "限免";
   if (/永久免费|永免|免费(?:送|领|下载)|白嫖/.test(title)) return "免费白嫖";
@@ -28,4 +29,12 @@ export function classify(title: string, sourceId: string): Category {
   if (offer) return /会员|订阅|年卡/.test(title) ? "会员订阅" : "低价优惠";
   if (/喜加一/.test(title)) return "游戏";
   return "其他";
+}
+
+export function couponCondition(title: string, summary: string, sourceId: string): OfferKind | undefined {
+  if (sourceId !== "slickdeals") return undefined;
+  const text = `${title} ${summary}`;
+  if (/\b(?:with|after|apply|using|use)\s+(?:(?:the|a|an|an? additional)\s+)?(?:promo(?:tional)?\s+code|coupon(?:\s+code)?|(?:checkout\s+)?code)\b|\bw\/\s*(?:(?:promo|coupon)\s+)?code\b/i.test(text)) return "coupon";
+  if (/\bclip(?:ping)?\s+[^.!?]{0,45}\bcoupon\b/i.test(text)) return "clip-coupon";
+  return undefined;
 }

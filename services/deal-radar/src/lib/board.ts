@@ -1,4 +1,4 @@
-import { classify, isExcludedLead } from "./classify";
+import { classify, couponCondition, isExcludedLead } from "./classify";
 import { EXPIRING_SOON_MS, SEVERE_AFTER_MS, STALE_AFTER_MS } from "./config";
 import {
   getMeta,
@@ -54,6 +54,8 @@ export function getBoardState(now = Date.now()): BoardState {
     expiresLabel: deal.expiresAt == null ? null : formatBeijing(deal.expiresAt),
     expiresSoon: isExpiringSoon(deal.expiresAt, now),
     isNew: round != null && deal.firstSeenRoundId === round.id,
+    firstSeenAt: deal.firstSeenAt,
+    offerKind: deal.offerKind ?? couponCondition(deal.title, deal.summary, deal.sourceId),
   }));
 
   const qualityBySource = new Map(

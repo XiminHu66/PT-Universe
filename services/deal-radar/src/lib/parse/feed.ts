@@ -1,6 +1,7 @@
 import { XMLParser } from "fast-xml-parser";
 import { FUTURE_PUBLISH_TOLERANCE_MS, MAX_FEED_ITEMS, MIN_PUBLISH_MS } from "../config";
-import { cleanTitle, excerpt } from "../text";
+import { couponCondition } from "../classify";
+import { cleanTitle, excerpt, toPlain } from "../text";
 import type { ParsedItem } from "../types";
 
 const parser = new XMLParser({
@@ -56,7 +57,7 @@ function parseTime(value: unknown, now: number): number | null {
   return ms;
 }
 
-function itemFromRecord(record: Record<string, unknown>, now: number): ParsedItem | null {
+function itemFromRecord(record: Record<string, unknown>, now: number, sourceId: string): ParsedItem | null {
   const title = cleanTitle(nodeText(record.title));
   const url = linkHref(record.link);
   if (!title || !url) return null;
@@ -70,11 +71,12 @@ function itemFromRecord(record: Record<string, unknown>, now: number): ParsedIte
     summary: excerpt(summarySource),
     publishedAt,
     expiresAt: null,
+    ...(sourceId === "slickdeals" && { offerKind: couponCondition(title, toPlain(summarySource.slice(0, 4000)), sourceId) }),
   };
 }
 
 /** Parse RSS 2.0 or Atom. HTML challenge pages fail instead of becoming deals. */
-export function parseFeed(xml: string, now = Date.now()): ParsedItem[] {
+export function parseFeed(xml: string, now = Date.now(), sourceId = ""): ParsedItem[] {
   const head = xml.slice(0, 400).toLowerCase();
   if (head.includes("<!doctype html") || /<html[\s>]/.test(head)) {
     throw new Error("返回的是网页而不是订阅源，可能被阻断");
@@ -97,7 +99,7 @@ export function parseFeed(xml: string, now = Date.now()): ParsedItem[] {
   // A hostile feed can contain unbounded entries; cap work per source.
   for (const record of records.slice(0, MAX_FEED_ITEMS)) {
     if (!record || typeof record !== "object") continue;
-    const item = itemFromRecord(record as Record<string, unknown>, now);
+    const item = itemFromRecord(record as Record<string, unknown>, now, sourceId);
     if (item) items.push(item);
   }
   return items;

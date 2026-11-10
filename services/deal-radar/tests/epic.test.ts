@@ -18,6 +18,8 @@ describe("Epic current free games", () => {
     const flotsam = items.find((item) => item.title === "浮游世界");
     assert.equal(flotsam?.url, "https://store.epicgames.com/zh-CN/p/flotsam-266287");
     assert.equal(flotsam?.expiresAt, Date.parse("2026-11-12T16:00:00.000Z"));
+    assert.equal(flotsam?.offerKind, "free-game");
+    assert.equal(items.find((item) => item.title.includes("Idle Champions"))?.offerKind, "login-pack");
     assert.equal(formatBeijing(flotsam!.expiresAt!), "2026-11-13 00:00");
     assert.ok(flotsam!.summary.length > 0);
   });

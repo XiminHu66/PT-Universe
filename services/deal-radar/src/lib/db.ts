@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { DANGLING_ROUND_MS } from "./config";
+import { OFFER_LABELS, type OfferKind } from "./types";
 
 export type DealRow = {
   id: number;
@@ -16,6 +17,7 @@ export type DealRow = {
   firstSeenAt: number;
   firstSeenRoundId: number;
   updatedAt: number;
+  offerKind?: OfferKind;
 };
 
 export type RoundRow = {
@@ -66,7 +68,8 @@ export function openDatabase(filename: string): DatabaseSync {
       expires_at INTEGER,
       first_seen_at INTEGER NOT NULL,
       first_seen_round_id INTEGER NOT NULL,
-      updated_at INTEGER NOT NULL
+      updated_at INTEGER NOT NULL,
+      offer_kind TEXT
     );
     CREATE TABLE IF NOT EXISTS rounds (
       id INTEGER PRIMARY KEY,
@@ -94,6 +97,17 @@ export function openDatabase(filename: string): DatabaseSync {
     CREATE INDEX IF NOT EXISTS idx_deals_source ON deals(source_id);
     CREATE INDEX IF NOT EXISTS idx_source_runs_round ON source_runs(round_id);
   `);
+  db.exec("BEGIN IMMEDIATE");
+  try {
+    if (!db.prepare("PRAGMA table_info(deals)").all().some((column) => column.name === "offer_kind")) {
+      db.exec("ALTER TABLE deals ADD COLUMN offer_kind TEXT");
+    }
+    db.exec("COMMIT");
+  } catch (error) {
+    db.exec("ROLLBACK");
+    db.close();
+    throw error;
+  }
   return db;
 }
 
@@ -135,6 +149,7 @@ function mapDeal(row: Record<string, unknown>): DealRow {
     firstSeenAt: asNumber(row.first_seen_at) ?? 0,
     firstSeenRoundId: asNumber(row.first_seen_round_id) ?? 0,
     updatedAt: asNumber(row.updated_at) ?? 0,
+    offerKind: typeof row.offer_kind === "string" && Object.hasOwn(OFFER_LABELS, row.offer_kind) ? row.offer_kind as OfferKind : undefined,
   };
 }
 
@@ -170,8 +185,8 @@ export function insertDeal(input: Omit<DealRow, "id">): number {
     .prepare(
       `INSERT INTO deals (
         canonical_url, url, title, summary, category, source_id,
-        published_at, expires_at, first_seen_at, first_seen_round_id, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        published_at, expires_at, first_seen_at, first_seen_round_id, updated_at, offer_kind
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .run(
       input.canonicalUrl,
@@ -185,6 +200,7 @@ export function insertDeal(input: Omit<DealRow, "id">): number {
       input.firstSeenAt,
       input.firstSeenRoundId,
       input.updatedAt,
+      input.offerKind ?? null,
     );
   return Number(result.lastInsertRowid);
 }
@@ -199,12 +215,13 @@ export function updateDeal(
     publishedAt: number | null;
     expiresAt: number | null;
     updatedAt: number;
+    offerKind?: OfferKind;
   },
 ): void {
   getDb()
     .prepare(
       `UPDATE deals
-       SET url = ?, title = ?, summary = ?, category = ?, published_at = ?, expires_at = ?, updated_at = ?
+       SET url = ?, title = ?, summary = ?, category = ?, published_at = ?, expires_at = ?, updated_at = ?, offer_kind = ?
        WHERE id = ?`,
     )
     .run(
@@ -215,6 +232,7 @@ export function updateDeal(
       input.publishedAt,
       input.expiresAt,
       input.updatedAt,
+      input.offerKind ?? null,
       id,
     );
 }

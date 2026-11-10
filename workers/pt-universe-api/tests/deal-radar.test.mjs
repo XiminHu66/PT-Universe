@@ -29,7 +29,7 @@ globalThis.fetch = async (target, init) => {
   assert.equal(init.headers.get('authorization'), null);
   const message = ['pt-gateway-v1', 'hub', 'GET', '/deal-radar/api/deals/', init.headers.get('x-pt-time'), init.headers.get('x-pt-nonce'), siteOrigin, ''].join('\n');
   assert.ok(await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, keys.publicKey, Buffer.from(init.headers.get('x-pt-signature'), 'base64url'), Buffer.from(message)));
-  const row = { sourceId: 'epic', category: '游戏', title: 'Epic 测试活动', summary: secret, isNew: true };
+  const row = { sourceId: 'epic', category: '游戏', title: 'Epic 测试活动', summary: secret, isNew: true, firstSeenAt: now, offerKind: 'free-game' };
   return Response.json({
     generatedAt: now, lastUpdatedAt: now, roundStatus: 'partial',
     sources: [{ id: 'epic', lastOk: true }, { id: 'linuxdo', lastOk: false, lastError: secret, lastFinalUrl: `https://linux.do/?key=${secret}` }],
@@ -55,6 +55,8 @@ assert.ok(!text.includes(secret) && !text.includes('nodeseek') && !text.includes
 const board = JSON.parse(text);
 assert.equal(board.deals.length, 1);
 assert.equal(board.deals[0].url, 'https://store.epicgames.com/zh-CN/p/test');
+assert.equal(board.deals[0].offerKind, 'free-game');
+assert.equal(board.deals[0].firstSeenAt, now);
 assert.equal(board.sources.length, 5);
 assert.equal(board.failures[0].error, '抓取失败');
 assert.equal((await route()).status, 200);

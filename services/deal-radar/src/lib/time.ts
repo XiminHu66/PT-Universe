@@ -1,4 +1,16 @@
 const BEIJING = "Asia/Shanghai";
+const PACIFIC = new Intl.DateTimeFormat("zh-CN", {
+  timeZone: "America/Los_Angeles",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
+export function formatPacific(ms: number | null): string | null {
+  return ms !== null && Number.isFinite(ms) && Math.abs(ms) <= 8.64e15 ? PACIFIC.format(ms) : null;
+}
 
 /** Format an instant as Beijing time `YYYY-MM-DD HH:mm` (24-hour). */
 export function formatBeijing(ms: number): string {

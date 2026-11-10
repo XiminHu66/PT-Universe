@@ -59,7 +59,7 @@ export async function loadSource(
     }
     items = parseEpicFreeGames(payload, ctx.now);
   } else {
-    items = parseFeed(fetched.body, ctx.now);
+    items = parseFeed(fetched.body, ctx.now, source.id);
   }
   if (source.id === "slickdeals") {
     const cutoff = ctx.now - RETENTION_MS;
