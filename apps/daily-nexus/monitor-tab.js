@@ -4,11 +4,6 @@ const status=document.querySelector('#monitorStatus'),refreshButton=document.que
 const views={overview:'速览',workflows:'工作流',projects:'项目与占用',settings:'读取检查',releases:'发布验收'},AUTO_INTERVAL=5*60000;
 let selected=Object.hasOwn(views,new URL(location.href).searchParams.get('monitor'))?new URL(location.href).searchParams.get('monitor'):'overview',mounted=false,ready=false,timer=null,lastCheck=0;
 const active=()=>panel.classList.contains('active')&&!document.hidden;
-const releaseButton=document.createElement('button');
-releaseButton.type='button';
-releaseButton.dataset.monitorView='releases';
-releaseButton.textContent=views.releases;
-status.before(releaseButton);
 function reflect(){
  document.querySelectorAll('[data-monitor-view]').forEach(b=>{b.classList.toggle('active',b.dataset.monitorView===selected);b.setAttribute('aria-current',b.dataset.monitorView===selected?'page':'false');});
  frame.title='资源监控 · '+views[selected];
