@@ -1,15 +1,17 @@
-import {TYPES, addRecord, createItem, fields, latest, mergeItems, parseBackup, recordedAt, tagKey, visibleItems} from './model.mjs';
+import {TYPES, addRecord, createItem, fields, latest, mergeItems, parseBackup, recordedAt, reorderItems, setCompleted, tagKey, visibleItems} from './model.mjs?v=priority1';
 
 const $ = selector => document.querySelector(selector);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c =>
   ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'})[c]);
 const KEY = 'media-log.v1';
 const LAYOUT_KEY = 'media-log.layout.v1';
+const SORT_KEY = 'media-log.sort.v1';
 const params = new URLSearchParams(location.search);
 const DEMO = params.get('demo') === '1';
 const EMBEDDED = params.get('embedded') === 'nexus' && window.parent !== window;
 const stamp = new Intl.DateTimeFormat('zh-CN', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hourCycle:'h23'});
 const filter = {type:'', tag:'', query:''};
+let archived = false, sort = 'recent', dragId = '';
 const itemDialog = $('#item-dialog'), itemForm = $('#item-form');
 const progressDialog = $('#progress-dialog'), progressForm = $('#progress-form');
 let editId = '', progressId = '', noticeTimer;
@@ -52,21 +54,26 @@ function timeHTML(at) {
   return `<time datetime="${time.toISOString()}">${esc(stamp.format(time))}</time>`;
 }
 
-function card(item, rank) {
+function card(item, rank, index, total) {
   const [type, icon] = TYPES[item.type];
   const record = latest(item);
-  return `<article class="work" data-id="${esc(item.id)}" data-kind="${esc(item.type)}">
+  return `<article class="work" data-id="${esc(item.id)}" data-kind="${esc(item.type)}" draggable="${!archived}">
     <div class="mark" aria-hidden="true">${icon}</div>
     <div class="work-main">
-      <header class="work-head"><h3>${esc(item.title)}</h3><span class="rank">#${rank}</span></header>
+      <header class="work-head"><h3>${esc(item.title)}</h3><div class="priority-controls">
+        ${archived ? '' : `<span class="drag-handle" aria-hidden="true" title="拖拽调整优先级">⠿</span>`}
+        <span class="rank">#${rank}</span>
+        ${archived ? '' : `<button type="button" data-action="up" aria-label="提高${esc(item.title)}的优先级" title="上移" ${index === 0 ? 'disabled' : ''}>↑</button><button type="button" data-action="down" aria-label="降低${esc(item.title)}的优先级" title="下移" ${index === total - 1 ? 'disabled' : ''}>↓</button>`}
+      </div></header>
       <p class="work-meta">${type} · 最后记录 ${timeHTML(recordedAt(item))}</p>
+      ${archived ? `<p class="completed-meta">已完成 ${timeHTML(item.completedAt)}</p>` : ''}
     </div>
     <p class="progress${record ? '' : ' is-empty'}">${esc(record?.progress || '尚未填写进度')}</p>
     <div class="work-foot">
       ${item.tags.length ? `<div class="chips">${item.tags.map(label => `<button type="button" data-tag="${esc(tagKey(label))}">${esc(label)}</button>`).join('')}</div>` : ''}
       <div class="card-actions">
-        <button class="record" type="button" data-action="record">记录进度</button>
-        <button class="quiet" type="button" data-action="history">历史${item.records.length ? ' ' + item.records.length : ''}</button>
+        ${archived ? '<button class="record" type="button" data-action="restore">恢复到清单</button>' : '<button class="record" type="button" data-action="record">记录进度</button><button class="complete" type="button" data-action="complete">✓ 已完成</button>'}
+        <button class="quiet" type="button" data-action="history">进度历史${item.records.length ? ' ' + item.records.length : ''}</button>
         <button class="quiet" type="button" data-action="edit">编辑</button>
         ${item.url ? `<a href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">打开外链 ↗</a>` : ''}
       </div>
@@ -79,6 +86,24 @@ $('#types').innerHTML = types.map(([key,label,icon]) =>
   `<button type="button" data-type="${key}" aria-pressed="false"><span class="type-icon" aria-hidden="true">${icon}</span><span>${label}</span><span class="type-count"></span></button>`).join('');
 const typeButtons = [...$('#types').querySelectorAll('[data-type]')];
 const layoutButtons = [...$('#layout').querySelectorAll('[data-layout]')];
+const viewButtons = [...$('#views').querySelectorAll('[data-view]')];
+
+function setSort(value, save = false) {
+  sort = value === 'priority' ? 'priority' : 'recent';
+  $('#sort').value = sort;
+  if (save && !DEMO) {
+    try { localStorage.setItem(SORT_KEY, sort); } catch { /* session preference is still usable */ }
+  }
+}
+
+function shownItems(current = items) {
+  return visibleItems(current, {...filter, completed:archived, sort});
+}
+
+function setView(value) {
+  archived = value === 'archive';
+  render();
+}
 
 function setLayout(value, save = false) {
   const layout = value === 'list' ? 'list' : 'grid';
@@ -101,9 +126,21 @@ function renderActiveFilters(tags) {
 }
 
 function render() {
+  const scope = items.filter(item => (item.completedAt != null) === archived);
+  const completeCount = items.length - items.filter(item => item.completedAt == null).length;
+  $('#active-count').textContent = items.length - completeCount;
+  $('#archive-count').textContent = completeCount;
+  for (const button of viewButtons) {
+    const selected = (button.dataset.view === 'archive') === archived;
+    button.setAttribute('aria-selected', String(selected));
+    button.tabIndex = selected ? 0 : -1;
+  }
+  $('#feed').setAttribute('aria-labelledby', archived ? 'archive-tab' : 'active-tab');
+  $('#sort-label').hidden = archived;
+  $('#order-hint').textContent = archived ? '↓ 按完成时间 · 可恢复到清单' : '拖拽卡片或用 ↑ ↓ 排优先级';
   const tags = new Map();
   const counts = new Map();
-  for (const item of items) {
+  for (const item of scope) {
     counts.set(item.type, (counts.get(item.type) || 0) + 1);
     for (const label of item.tags) {
       const key = tagKey(label);
@@ -122,19 +159,19 @@ function render() {
   picker.value = filter.tag;
   typeButtons.forEach((button, i) => {
     const [key] = types[i];
-    button.querySelector('.type-count').textContent = key ? counts.get(key) || 0 : items.length;
+    button.querySelector('.type-count').textContent = key ? counts.get(key) || 0 : scope.length;
     button.setAttribute('aria-pressed', String(filter.type === key));
   });
   renderActiveFilters(tags);
-  const ordered = visibleItems(items);
+  const ordered = visibleItems(items, {completed:archived, sort});
   const ranks = new Map(ordered.map((item,i) => [item.id,i+1]));
-  const shown = visibleItems(ordered, filter);
-  $('#feed').innerHTML = shown.map(item => card(item, ranks.get(item.id))).join('');
-  $('#count').textContent = shown.length === items.length ? items.length + ' 部作品' : shown.length + ' / ' + items.length + ' 部';
+  const shown = shownItems();
+  $('#feed').innerHTML = shown.map((item,index) => card(item, ranks.get(item.id), index, shown.length)).join('');
+  $('#count').textContent = shown.length === scope.length ? scope.length + ' 部作品' : shown.length + ' / ' + scope.length + ' 部';
   $('#empty').hidden = shown.length > 0;
-  $('#empty-title').textContent = items.length ? '没有匹配的作品' : '第一条作品记录';
-  $('#empty-copy').textContent = items.length ? '换个关键词，或清除筛选。' : '选一个想补或正在补的作品，先记下名称和当前进度。';
-  $('#empty-action').textContent = items.length ? '清除筛选' : '新增作品';
+  $('#empty-title').textContent = scope.length ? '没有匹配的作品' : archived ? '还没有已完成的作品' : '添加下一部想补的作品';
+  $('#empty-copy').textContent = scope.length ? '换个关键词，或清除筛选。' : archived ? '点击清单中的“已完成”，作品和进度会保留在这里。' : '选一个想补或正在补的作品，先记下名称和当前进度。';
+  $('#empty-action').textContent = scope.length ? '清除筛选' : archived ? '返回待补清单' : '新增作品';
 }
 
 function showItem(item) {
@@ -179,13 +216,25 @@ function refreshView() {
 
 $('#add').onclick = () => showItem();
 $('#empty-action').onclick = () => {
-  if (!items.length) { showItem(); return; }
+  if (!items.some(item => (item.completedAt != null) === archived)) {
+    if (archived) setView('active'); else showItem();
+    return;
+  }
   Object.assign(filter, {type:'', tag:'', query:''});
   $('#search').value = '';
   render();
 };
 for (const button of typeButtons) button.onclick = () => { filter.type = button.dataset.type; render(); };
 for (const button of layoutButtons) button.onclick = () => setLayout(button.dataset.layout, true);
+for (const button of viewButtons) button.onclick = () => setView(button.dataset.view);
+$('#views').onkeydown = event => {
+  if (!['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) return;
+  event.preventDefault();
+  const next = event.key === 'Home' ? 0 : event.key === 'End' ? 1 : archived ? 0 : 1;
+  setView(viewButtons[next].dataset.view);
+  viewButtons[next].focus();
+};
+$('#sort').onchange = event => { setSort(event.target.value, true); render(); };
 $('#active-filters').onclick = event => {
   const control = event.target.closest('[data-clear-filter]');
   if (!control) return;
@@ -207,7 +256,65 @@ $('#feed').onclick = event => {
   if (button.dataset.action === 'record') showProgress(item);
   if (button.dataset.action === 'history') showHistory(item);
   if (button.dataset.action === 'edit') showItem(item);
+  if (['complete','restore'].includes(button.dataset.action)) {
+    const completed = button.dataset.action === 'complete';
+    try {
+      commit(current => update(current, item.id, row => setCompleted(row, completed)));
+      render();
+      tell(completed ? '已完成，已移入历史记录' : '已恢复到待补清单');
+    } catch (error) { tell(error.message, true); }
+  }
+  if (['up','down'].includes(button.dataset.action)) {
+    const shown = shownItems();
+    const index = shown.findIndex(row => row.id === item.id);
+    const target = shown[index + (button.dataset.action === 'up' ? -1 : 1)];
+    if (target) moveWork(item.id, target.id, button.dataset.action);
+  }
 };
+
+function moveWork(id, targetId, focusAction) {
+  try {
+    commit(current => reorderItems(current, id, targetId, {...filter, sort}));
+    setSort('priority', true);
+    render();
+    if (focusAction) {
+      const work = [...$('#feed').children].find(node => node.dataset.id === id);
+      const control = work?.querySelector(`[data-action="${focusAction}"]:not(:disabled)`) || work?.querySelector('[data-action="' + (focusAction === 'up' ? 'down' : 'up') + '"]:not(:disabled)');
+      control?.focus();
+    }
+    tell('优先级已保存');
+  } catch (error) { tell(error.message, true); }
+}
+
+function clearDrag() {
+  dragId = '';
+  for (const node of $('#feed').children) node.classList.remove('dragging','drop-before','drop-after');
+}
+$('#feed').ondragstart = event => {
+  const work = event.target.closest('.work');
+  if (archived || !work || event.target.closest('button,a,input,select,textarea')) { event.preventDefault(); return; }
+  dragId = work.dataset.id;
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', dragId);
+  work.classList.add('dragging');
+};
+$('#feed').ondragover = event => {
+  const target = event.target.closest('.work');
+  if (!dragId || !target || target.dataset.id === dragId) return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
+  const nodes = [...$('#feed').children];
+  for (const node of nodes) node.classList.remove('drop-before','drop-after');
+  target.classList.add(nodes.findIndex(node => node.dataset.id === dragId) < nodes.indexOf(target) ? 'drop-after' : 'drop-before');
+};
+$('#feed').ondrop = event => {
+  event.preventDefault();
+  const targetId = event.target.closest('.work')?.dataset.id;
+  const from = dragId;
+  clearDrag();
+  if (!archived && from && targetId && from !== targetId) moveWork(from, targetId);
+};
+$('#feed').ondragend = clearDrag;
 document.querySelectorAll('[data-close]').forEach(button => {
   button.onclick = () => button.closest('dialog').close();
 });
@@ -221,6 +328,7 @@ itemForm.onsubmit = event => {
       ? update(current, editId, item => ({...item, ...fields(value), editedAt: Math.max(Date.now(), item.editedAt + 1)}))
       : [createItem(value), ...current]);
     itemDialog.close();
+    if (!editing) archived = false;
     render();
     tell(editing ? '作品资料已更新' : '作品已加入记录');
   } catch (error) { $('#item-error').textContent = error.message; }
@@ -232,7 +340,7 @@ progressForm.onsubmit = event => {
     commit(current => update(current, progressId, item => addRecord(item, progressForm.elements.progress.value)));
     progressDialog.close();
     render();
-    tell('进度已保存并重新排序');
+    tell(sort === 'priority' ? '进度已保存，保留手动优先级' : '进度已保存并重新排序');
   } catch (error) { $('#progress-error').textContent = error.message; }
 };
 
@@ -276,7 +384,10 @@ $('#import-file').onchange = async event => {
 };
 
 try {
-  if (!DEMO) setLayout(localStorage.getItem(LAYOUT_KEY));
+  if (!DEMO) {
+    setLayout(localStorage.getItem(LAYOUT_KEY));
+    setSort(localStorage.getItem(SORT_KEY));
+  }
   const theme = JSON.parse(localStorage.getItem('ptu.theme') || 'null');
   document.documentElement.dataset.theme = theme === 'dark' ||
     theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -298,7 +409,8 @@ if (DEMO) {
 } else {
   refreshView();
   addEventListener('storage', event => {
-    if (event.key === KEY || event.key === null) refreshView();
+    if (event.key === SORT_KEY || event.key === null) setSort(localStorage.getItem(SORT_KEY));
+    if (event.key === KEY || event.key === SORT_KEY || event.key === null) refreshView();
   });
 }
 render();

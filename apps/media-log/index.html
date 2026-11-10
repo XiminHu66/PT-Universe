@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
-  <meta name="description" content="把游戏、动画、漫画和小说的进度放在一张清单里，按最新记录自动排序。">
+  <meta name="description" content="记录游戏、动画、漫画和小说，拖拽安排优先级，完成后留档。">
   <title>作品记录 · PT Universe</title>
   <link rel="icon" href="../../icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css?v=nexus1">
-  <script type="module" src="./app.mjs?v=nexus1"></script>
+  <link rel="stylesheet" href="./style.css?v=priority1">
+  <script type="module" src="./app.mjs?v=priority1"></script>
 </head>
 <body>
   <header class="top">
@@ -47,7 +47,14 @@
       </aside>
       <section class="results" aria-labelledby="feed-heading">
         <header class="feed-head">
-          <div class="feed-title"><h2 id="feed-heading">最近记录</h2><span id="count"></span></div>
+          <div class="feed-title">
+            <h2 id="feed-heading" class="sr-only">作品清单</h2>
+            <div id="views" class="layout" role="tablist" aria-label="记录状态">
+              <button id="active-tab" type="button" role="tab" data-view="active" aria-selected="true" aria-controls="feed">待补清单 <span id="active-count">0</span></button>
+              <button id="archive-tab" type="button" role="tab" data-view="archive" aria-selected="false" aria-controls="feed" tabindex="-1">历史记录 <span id="archive-count">0</span></button>
+            </div>
+            <span id="count"></span>
+          </div>
           <div class="feed-tools" id="feed-tools">
             <label class="search-label">
               <span class="sr-only">搜索作品</span>
@@ -60,10 +67,13 @@
           </div>
         </header>
         <div class="feed-context">
-          <span class="order">↓ 按最后记录时间</span>
+          <label class="sort-label" id="sort-label"><span class="sr-only">排序方式</span><select id="sort">
+            <option value="recent">最后记录时间</option><option value="priority">手动优先级</option>
+          </select></label>
+          <span class="order" id="order-hint">拖拽卡片或用 ↑ ↓ 排优先级</span>
           <div id="active-filters" class="active-filters" aria-label="已应用筛选" hidden></div>
         </div>
-        <div id="feed" class="feed" data-layout="grid"></div>
+        <div id="feed" class="feed" data-layout="grid" role="tabpanel" aria-labelledby="active-tab"></div>
         <div id="empty" class="empty" hidden>
           <h3 id="empty-title"></h3>
           <p id="empty-copy"></p>

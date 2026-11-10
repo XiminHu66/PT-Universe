@@ -290,6 +290,7 @@ time {
   margin: 0;
   font-size: 1rem;
 }
+.feed-title { flex-wrap: wrap; }
 #count,
 .order {
   color: var(--muted);
@@ -320,7 +321,8 @@ time {
   font-size: 0.82rem;
   white-space: nowrap;
 }
-.layout button[aria-pressed="true"] {
+.layout button[aria-pressed="true"],
+.layout button[aria-selected="true"] {
   background: var(--paper);
   color: var(--accent);
   font-weight: 700;
@@ -330,6 +332,44 @@ time {
   flex-wrap: wrap;
   min-height: 35px;
   padding-block: 4px;
+}
+.sort-label select {
+  min-height: 30px;
+  padding: 3px 7px;
+  color: var(--accent);
+  font-size: 0.8rem;
+}
+.priority-controls {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex: none;
+}
+.priority-controls button {
+  min-height: 26px;
+  padding: 0 5px;
+  font-size: 0.83rem;
+  background: var(--soft);
+}
+.drag-handle {
+  cursor: grab;
+  color: var(--muted);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.work[draggable="true"] { cursor: grab; }
+.work[draggable="true"] :is(button,a) { cursor: pointer; }
+.work.dragging { opacity: 0.45; }
+.work.drop-before { box-shadow: inset 4px 0 var(--accent); border-color: var(--accent); }
+.work.drop-after { box-shadow: inset -4px 0 var(--accent); border-color: var(--accent); }
+.completed-meta {
+  margin: 2px 0 0;
+  color: var(--accent);
+  font-size: 0.78rem;
+}
+.card-actions .complete {
+  color: var(--accent);
+  border-color: var(--line);
 }
 .active-filters {
   flex-wrap: wrap;
@@ -705,6 +745,8 @@ textarea {
   }
 }
 @media (max-width: 620px) {
+  .work.drop-before { box-shadow: inset 0 4px var(--accent); }
+  .work.drop-after { box-shadow: inset 0 -4px var(--accent); }
   .intro {
     padding-block: 10px;
   }
@@ -730,6 +772,8 @@ textarea {
   .chips button,
   .layout button,
   .active-filters button,
+  .priority-controls button,
+  .sort-label select,
   .tag-label select,
   .search-label input {
     min-height: 40px;

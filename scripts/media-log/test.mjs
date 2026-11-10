@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {addRecord, cleanUrl, createItem, fields, latest, mergeItems, parseBackup, visibleItems} from '../../apps/media-log/model.mjs';
+import {addRecord, cleanUrl, createItem, fields, latest, mergeItems, parseBackup, recordedAt, reorderItems, setCompleted, visibleItems} from '../../apps/media-log/model.mjs';
 
 const original = createItem({title:'同名', type:'anime', tags:'A，a、想补', progress:'看完第 1 集'}, 100, 'anime');
 const manga = createItem({title:'同名', type:'manga', tags:'想补'}, 200, 'manga');
@@ -25,3 +25,44 @@ assert.throws(() => parseBackup({version:1,items:[{...original, url:'javascript:
 assert.throws(() => cleanUrl('https://name:secret@example.org/'));
 assert.throws(() => addRecord(original, '    '));
 console.log('PASS: mixed ranking, progress history, filters, safe links, metadata edits and idempotent backup merge');
+
+const ids = (items, filter = {}) => visibleItems(items, filter).map(item => item.id);
+const queue = reorderItems([original,manga,game], 'anime', 'game', {}, 700);
+assert.deepEqual(ids(queue, {sort:'priority'}), ['anime','game','manga']);
+assert.deepEqual(ids(queue), ['game','manga','anime'], 'recent order remains selectable');
+const newProgress = queue.map(item => item.id === 'manga' ? addRecord(item, '第 3 话', 800, 'm3') : item);
+assert.deepEqual(ids(newProgress, {sort:'priority'}), ['anime','game','manga'], 'progress never moves the manual queue');
+assert.deepEqual(ids(newProgress), ['manga','game','anime']);
+const filteredQueue = reorderItems(queue, 'manga', 'anime', {tag:'想补'}, 900);
+assert.deepEqual(ids(filteredQueue, {sort:'priority'}), ['manga','game','anime'], 'filtered movement preserves hidden slots');
+assert.throws(() => reorderItems(queue, 'anime', 'game', {type:'anime'}));
+const completedGame = setCompleted(queue.find(x => x.id === 'game'), true, 1000);
+const archive = queue.map(item => item.id === 'game' ? completedGame : item);
+assert.deepEqual(ids(archive, {sort:'priority'}), ['anime','manga']);
+assert.deepEqual(ids(archive, {completed:true}), ['game']);
+assert.equal(recordedAt(completedGame), recordedAt(game));
+assert.deepEqual(completedGame.records, game.records, 'completing preserves progress history');
+const withSecondCompleted = archive.map(item => item.id === 'anime' ? setCompleted(item,true,1200) : item);
+assert.deepEqual(ids(withSecondCompleted, {completed:true}), ['anime','game'], 'archive sorts by completion');
+const movedWhileCompleted = reorderItems(archive, 'manga', 'anime', {}, 1300);
+const unarchived = movedWhileCompleted.map(item => item.id === 'game' ? setCompleted(item,false,1400) : item);
+assert.deepEqual(ids(unarchived, {sort:'priority'}), ['manga','game','anime'], 'restoring keeps the saved queue position');
+const backup = parseBackup(JSON.parse(JSON.stringify({version:1,items:withSecondCompleted})));
+assert.deepEqual(backup, withSecondCompleted, 'backup roundtrip preserves completion and priority');
+const legacy = JSON.parse(JSON.stringify(original));
+for (const key of ['priority','priorityAt','completedAt','statusAt']) delete legacy[key];
+const migrated = parseBackup({version:1,items:[legacy]})[0];
+assert.equal(migrated.completedAt,null);
+assert.equal(migrated.priority,null);
+assert.deepEqual(ids([migrated]),['anime']);
+const metadataEdit = {...game,title:'新名称',editedAt:2000};
+const combined = mergeItems([completedGame],[metadataEdit])[0];
+assert.equal(combined.title,'新名称');
+assert.equal(combined.completedAt,1000,'metadata edits cannot undo completion during merge');
+assert.equal(combined.priority,completedGame.priority,'metadata edits cannot undo manual priority');
+assert.equal(mergeItems([setCompleted(combined,false,2200)],[combined])[0].completedAt,null,'old backups cannot re-complete restored work');
+assert.equal(mergeItems([completedGame],[migrated])[0].completedAt,1000);
+for (const bad of [{priority:-1},{priority:0.5},{priorityAt:'bad'},{completedAt:'bad'},{statusAt:-1}]) {
+  assert.throws(() => parseBackup({version:1,items:[{...original,...bad}]}));
+}
+console.log('PASS: manual and filtered sorting, completion/restore, legacy migration, backup roundtrip and independent merge clocks');
