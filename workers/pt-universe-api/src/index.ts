@@ -4,6 +4,7 @@ import {onDemandRoute} from './on-demand-data';
 import {knowledgeRoute} from './knowledge';
 import {vpsRoute} from './vps';
 import {resourcesRoute} from './resources';
+import {dealRadarRoute} from './deal-radar';
 import {monitorRoute} from './monitor';
 import {dealLabRoute} from './deal-lab';
 import {sourceIsFresh,SITE_REFRESH_REVISION} from './site-updates';
@@ -617,6 +618,7 @@ async function status(env:Env){
 export default {
   async fetch(request:Request,env:Env):Promise<Response>{
     const url=new URL(request.url);
+    if(url.pathname.startsWith('/api/deal-radar/'))return dealRadarRoute(request,url,env);
     if(request.method==='OPTIONS')return new Response(null,{status:204,headers:cors(request)});
     try{
       if(url.pathname==='/api/health')return reply(request,{ok:true,time:now(),storage:'KV + D1',rssOrbit:'external',refresh_revision:SITE_REFRESH_REVISION});

@@ -56,6 +56,16 @@ export async function readVpsGameSnapshot(env:KnowledgeEnv){
  if(!snapshot.generated_at||!snapshot.items||!snapshot.sources)throw Error('invalid-vps-game-feed');
  return snapshot;
 }
+// This capability is fixed to the board read API. Browser input never reaches the VPS.
+export async function readVpsDealBoard(env:KnowledgeEnv){
+ const raw=await env.PT_UNIVERSE_DATA.get(CONFIG_KEY);if(!raw)throw Error('transport-not-configured');
+ const config=JSON.parse(raw);if(!validConfig(config))throw Error('transport-invalid');
+ const response=await signedFetch(config,'/deal-radar/api/deals/','GET',null,'','','',10000);
+ if(!response.ok||!response.headers.get('content-type')?.includes('application/json')){
+  await response.body?.cancel();throw Error('vps-deal-feed-unavailable');
+ }
+ return response.json<unknown>();
+}
 // Fixed public-data capability; never accepts a user URL, cookies or credentials.
 export async function onDemandTransport(env:KnowledgeEnv,path:string,method:string){
  if(!/^\/hub\/api\/on-demand\/(3c|disclosures|stock)(\?[A-Za-z0-9_.%=&^-]{1,100})?$/.test(path)||!['GET','POST'].includes(method))throw Error('invalid-data-capability');

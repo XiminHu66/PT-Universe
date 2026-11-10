@@ -47,6 +47,7 @@ jobs:
         node tests/anythingllm-auth.test.mjs
         node tests/knowledge.test.mjs
         node tests/vps.test.mjs
+        node tests/deal-radar.test.mjs
         node tests/resources.test.mjs
         node tests/resources-cache.test.mjs
         node ../../scripts/resource-center/metrics.test.mjs
