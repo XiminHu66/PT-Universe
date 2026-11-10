@@ -5,12 +5,13 @@ const names=[...html.matchAll(/class="navbtn(?: active)?" data-view="([^"]+)"/g)
 assert.ok(!names.some(x=>['check','countdown','tools','music','deal-radar'].includes(x)));
 assert.ok(!/id="(?:view-check|checkFrame|checkLoading|view-deal-radar|dealRadarFrame)"/.test(html));
 assert.equal(names.indexOf('vps'),names.indexOf('tsugi')+1);
+assert.equal(names.indexOf('media-log'),names.indexOf('vps')+1);
 const defaults=html.slice(html.indexOf('const DEFAULT_NAV_CONFIG='),html.indexOf('const state='));
 const normalize=html.slice(html.indexOf('function normalizedNavConfig(){'),html.indexOf('function applyNavConfig(){'));
 let layoutVersion=2;
 const navigation={state:{navConfig:[]},store:{get:()=>layoutVersion}};
 vm.createContext(navigation);vm.runInContext(defaults+normalize+';globalThis.defaults=DEFAULT_NAV_CONFIG;',navigation);
-const oldConfig=navigation.defaults.filter(x=>x.view!=='vps').map(x=>({...x}));
+const oldConfig=navigation.defaults.filter(x=>!['vps','media-log'].includes(x.view)).map(x=>({...x}));
 oldConfig.splice(2,0,{view:'vps',icon:'V',label:'服务器'},{view:'check',icon:'⌕',label:'核查台'},{view:'deal-radar',icon:'◇',label:'优惠雷达'});
 oldConfig.find(x=>x.view==='tsugi').label='我的追更';
 navigation.state.navConfig=oldConfig;
@@ -21,8 +22,13 @@ assert.equal(migrated.find(x=>x.view==='tsugi').label,'我的追更');
 assert.equal(migrated.find(x=>x.view==='vps').label,'服务器');
 assert.deepEqual(migrated.filter(x=>x.view!=='vps').map(x=>x.view),names.filter(x=>x!=='vps'));
 layoutVersion=3;
-navigation.state.navConfig=[migrated.find(x=>x.view==='vps'),...migrated.filter(x=>x.view!=='vps')];
-assert.equal(navigation.normalizedNavConfig()[0].view,'vps','Later manual navigation ordering must remain available');
+navigation.state.navConfig=oldConfig;
+const upgraded=Array.from(navigation.normalizedNavConfig(),x=>x.view);
+assert.equal(upgraded.indexOf('media-log'),upgraded.indexOf('vps')+1,'Insert the new tab after the saved VPS position');
+assert.deepEqual(upgraded.filter(x=>x!=='media-log'),Array.from(oldConfig,x=>x.view).filter(view=>!['check','deal-radar'].includes(view)));
+layoutVersion=4;
+navigation.state.navConfig=[migrated.find(x=>x.view==='media-log'),...migrated.filter(x=>x.view!=='media-log')];
+assert.equal(navigation.normalizedNavConfig()[0].view,'media-log','Later manual navigation ordering must remain available');
 navigation.state.navConfig=oldConfig.filter(x=>x.view!=='vps');
 migrated=Array.from(navigation.normalizedNavConfig());
 assert.equal(migrated.findIndex(x=>x.view==='vps'),migrated.findIndex(x=>x.view==='tsugi')+1);
@@ -42,7 +48,8 @@ for(const view of [...names,'bad-view','check','countdown','tools','deal-radar',
  // Same URL used after F5 must resolve to the same view.
  sandbox.switchNexusView(url.searchParams.get('view')||'home');assert.equal(views.find(x=>x.classList.active).dataset.view,expected);
 }
-assert.ok(calls.some(x=>x[0]==='embedded'&&x[1]==='tsugi'));assert.ok(!calls.some(x=>x[0]==='embedded'&&['check','dealRadar'].includes(x[1])));
+assert.ok(calls.some(x=>x[0]==='embedded'&&x[1]==='tsugi'));assert.ok(calls.some(x=>x[0]==='embedded'&&x[1]==='mediaLog'));
+assert.match(html,/<iframe[^>]+id="mediaLogFrame"[^>]+data-src="\.\.\/media-log\/\?embedded=nexus"/);assert.ok(!calls.some(x=>x[0]==='embedded'&&['check','dealRadar'].includes(x[1])));
 const vps=fs.readFileSync('apps/daily-nexus/vps-tab.js','utf8');
 const tools=JSON.parse(vps.match(/const TOOLS=(\[[^\n]+\]);/)[1]);
 assert.equal(tools.find(x=>x.id==='deal-radar')?.url,'../deal-radar/','VPS tools use the sign-in-free board');

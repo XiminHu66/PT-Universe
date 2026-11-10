@@ -735,3 +735,19 @@ textarea {
     min-height: 40px;
   }
 }
+
+:root[data-embedded="nexus"] .wrap {
+  padding: 10px clamp(8px, 1vw, 14px) 0;
+}
+:root[data-embedded="nexus"] .feed-tools {
+  flex-wrap: wrap;
+}
+:root[data-embedded="nexus"] .top-actions {
+  flex: none;
+  gap: 8px;
+}
+:root[data-embedded="nexus"] #add {
+  min-height: 34px;
+  padding: 5px 8px;
+  font-size: 0.86rem;
+}

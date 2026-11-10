@@ -5,7 +5,9 @@ const esc = value => String(value ?? '').replace(/[&<>"']/g, c =>
   ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'})[c]);
 const KEY = 'media-log.v1';
 const LAYOUT_KEY = 'media-log.layout.v1';
-const DEMO = new URLSearchParams(location.search).get('demo') === '1';
+const params = new URLSearchParams(location.search);
+const DEMO = params.get('demo') === '1';
+const EMBEDDED = params.get('embedded') === 'nexus' && window.parent !== window;
 const stamp = new Intl.DateTimeFormat('zh-CN', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hourCycle:'h23'});
 const filter = {type:'', tag:'', query:''};
 const itemDialog = $('#item-dialog'), itemForm = $('#item-form');
@@ -279,10 +281,17 @@ try {
   document.documentElement.dataset.theme = theme === 'dark' ||
     theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 } catch { /* default light theme */ }
+if (EMBEDDED) {
+  document.documentElement.dataset.embedded = 'nexus';
+  $('#feed-tools').append($('.top-actions'), $('#add'));
+  $('.top').hidden = true;
+  $('.intro').classList.add('sr-only');
+  $('#mode').href = '?embedded=nexus&demo=1';
+}
 if (DEMO) {
   items = sampleItems();
   $('#sample').hidden = false;
-  $('#mode').href = './';
+  $('#mode').href = EMBEDDED ? '?embedded=nexus' : './';
   $('#mode').textContent = '返回我的记录';
   $('#backup-menu').hidden = true;
   $('#storage').textContent = '示例记录不会写入你的清单。';

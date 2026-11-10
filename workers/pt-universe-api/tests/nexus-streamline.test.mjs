@@ -20,7 +20,9 @@ const sandbox={window:null,document,localStorage,location,URL,URLSearchParams,In
  fetch:async(url)=>{requests.push(String(url));return Response.json({items:[],events:[],sources:{},results:[],data:[],daily:{time:[]}})},CSS:{escape:x=>x},getComputedStyle:()=>({getPropertyValue:()=>''})};
 sandbox.window=sandbox;sandbox.parent=sandbox;sandbox.top=sandbox;sandbox.globalThis=sandbox;
 vm.createContext(sandbox);vm.runInContext(fs.readFileSync('../../apps/daily-nexus/upcoming-policy.js','utf8'),sandbox);vm.runInContext(fs.readFileSync('../../apps/daily-nexus/home-tools.js','utf8'),sandbox);vm.runInContext('const $='+main,sandbox);await new Promise(r=>setImmediate(r));
-assert.equal(document.querySelectorAll('.sidebar .navbtn[data-view]').length,9);
+assert.equal(document.querySelectorAll('.sidebar .navbtn[data-view]').length,10);
+assert.equal(document.querySelector('.sidebar [data-view=vps]').nextElementSibling.dataset.view,'media-log');
+assert.equal(document.querySelector('#mediaLogFrame').getAttribute('src'),null);
 assert.equal(document.querySelector('[data-view=todo] span').textContent,'记录');
 assert.equal(document.querySelectorAll('#view-check,#view-tools,#view-countdown,#view-music,#ytName,#liveFrame').length,0);
 assert.equal(document.querySelector('#memo').value,'Existing note');
@@ -34,6 +36,10 @@ document.querySelector('[data-close-dialog=remindersDialog]').click();assert.equ
 sandbox.switchNexusView('tools');assert.equal(document.body.dataset.nexusView,'vps');assert.equal(new URL(location.href).searchParams.get('view'),'vps');
 sandbox.switchNexusView('countdown');assert.equal(document.body.dataset.nexusView,'home');assert.equal(document.querySelector('#remindersDialog').open,true);
 sandbox.switchNexusView('monitor');assert.equal(document.body.dataset.nexusView,'monitor');assert.equal(document.querySelector('#compactViewTitle').textContent,'监控');assert.equal(document.querySelector('#monitorFrame').getAttribute('src'),null,'Monitoring must stay lazy until its module activates');
+sandbox.switchNexusView('media-log');
+assert.equal(document.body.dataset.nexusView,'media-log');
+assert.equal(document.querySelector('#mediaLogFrame').getAttribute('src'),'../media-log/?embedded=nexus');
+assert.equal(new URL(location.href).searchParams.get('view'),'media-log');
 sandbox.switchNexusView('focus');assert.equal(document.body.dataset.nexusView,'focus');assert.equal(document.querySelector('#compactViewTitle').textContent,'专注');
 assert.equal(document.querySelectorAll('#view-focus details[open]').length,0);
 assert.deepEqual(Array.from(document.querySelectorAll('.settings-group>summary b'),x=>x.textContent),['外观','内容','数据备份']);
@@ -41,4 +47,4 @@ for(const key of ['dn_memo','dn_tasks','dn_subscriptions','dn_maintenance'])asse
 sandbox.switchNexusView('home');saved.set('dn_upcomingCacheV5',JSON.stringify({time:0,local:[],dynamic:[]}));
 const poll=intervals.find(x=>x.ms===600000);assert.ok(poll,'Upcoming must have a background refresh timer');const before=requests.length;poll.fn();await new Promise(r=>setImmediate(r));assert.ok(requests.length>before,'Active Home must automatically refresh stale snapshots');
 Object.defineProperty(document,'hidden',{value:true,writable:true,configurable:true});const hiddenRequests=requests.length;poll.fn();await new Promise(r=>setImmediate(r));assert.equal(requests.length,hiddenRequests,'Hidden pages must pause polling');
-console.log('PASS: actual Nexus initialization, existing note/task/reminder data, nine tabs, retired-route aliases, reminder dialog open/close, compact header state, folded focus controls and three settings groups.');
+console.log('PASS: actual Nexus initialization, existing note/task/reminder data, ten tabs, lazy Media Log, retired-route aliases, reminder dialog open/close, compact header state, folded focus controls and three settings groups.');

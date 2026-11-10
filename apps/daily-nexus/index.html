@@ -471,6 +471,7 @@
     <button class="navbtn" data-view="board"><div><div class="navicon">▦</div><span>看板</span></div></button>
     <button class="navbtn" data-view="tsugi"><div><div class="navicon">📚</div><span>追更</span></div></button>
     <button class="navbtn" data-view="vps"><div><div class="navicon">▥</div><span>VPS</span></div></button>
+    <button class="navbtn" data-view="media-log"><div><div class="navicon">▤</div><span>作品记录</span></div></button>
     <button class="navbtn" data-view="monitor"><div><div class="navicon">◴</div><span>监控</span></div></button>
     <button class="navbtn" data-view="meal"><div><div class="navicon">🍜</div><span>吃什么</span></div></button>
     <button class="navbtn" data-view="focus"><div><div class="navicon">◎</div><span>专注</span></div></button>
@@ -608,6 +609,14 @@
           loading="lazy"
           data-src="../tsugi-checker/?v=20261110-ui"
           referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      </div>
+    </section>
+
+    <section class="view" id="view-media-log" aria-label="作品记录">
+      <div class="embed-frame-wrap">
+        <div class="embed-loading" id="mediaLogLoading" role="status"><div><b>作品记录</b><span>正在读取作品和进度…</span></div></div>
+        <iframe class="embed-frame" id="mediaLogFrame" title="作品记录" loading="lazy"
+          data-src="../media-log/?embedded=nexus" referrerpolicy="no-referrer"></iframe>
       </div>
     </section>
 
@@ -2127,6 +2136,7 @@ const DEFAULT_NAV_CONFIG=[
   {view:"board",icon:"▦",label:"看板"},
   {view:"tsugi",icon:"📚",label:"追更"},
   {view:"vps",icon:"▥",label:"VPS"},
+  {view:"media-log",icon:"▤",label:"作品记录"},
   {view:"monitor",icon:"◴",label:"监控"},
   {view:"meal",icon:"🍜",label:"吃什么"},
   {view:"focus",icon:"◎",label:"专注"},
@@ -2341,19 +2351,24 @@ function normalizedNavConfig(){
     const d=defaults.get(x?.view);if(!d||seen.has(x.view))return;
     seen.add(x.view);out.push({view:x.view,icon:String(x.icon||d.icon).slice(0,6),label:String(x.view==='todo'&&['Todo','To-do','PT Todo Dashboard','Idea Pad'].includes(x.label)?'记录':(x.view==='tools'&&x.label==='工具'?'工具箱':x.label)||d.label).slice(0,12)});
   });
-  const after={vps:"tsugi",monitor:"vps"};
+  const after={vps:"tsugi","media-log":"vps",monitor:"media-log"};
   DEFAULT_NAV_CONFIG.forEach(d=>{if(!seen.has(d.view)){const i=out.findIndex(x=>x.view===after[d.view]);out.splice(i<0?out.length:i+1,0,{...d});}});
-  // Move saved layouts once; subsequent manual reordering remains available.
-  if(store.get("navLayoutVersion",0)<3){
+  const layoutVersion=store.get("navLayoutVersion",0);
+  // Migrate the default positions once while preserving later manual ordering.
+  if(layoutVersion<3){
     const index=out.findIndex(x=>x.view==="vps"),[vps]=out.splice(index,1);
     out.splice(out.findIndex(x=>x.view==="tsugi")+1,0,vps);
   }
+  if(layoutVersion<4||!seen.has("media-log")){
+    const [mediaLog]=out.splice(out.findIndex(x=>x.view==="media-log"),1);
+    out.splice(out.findIndex(x=>x.view==="vps")+1,0,mediaLog);
+  }
   return out;
 }
-function nexusNavIcon(view){const paths={"home": "M3 10 12 3l9 7 M5 9v12h14V9 M9 21v-7h6v7", "todo": "M9 5h12v16H3V5h3 M8 3h8v4H8z M7 12l2 2 3-3 M14 12h4 M7 18h11", "board": "M4 20V4 M4 20h17 M8 16v-5 M13 16V7 M18 16v-8", "tsugi": "M3 4h7v17H3z M10 4h7v17h-7z M18 4l3 16 M5 8h3 M12 8h3", "monitor": "M3 3h18v18H3z M6 15h3l3-7 3 10 3-5", "vps": "M3 3h18v7H3z M3 14h18v7H3z M6 6h.1 M6 17h.1 M10 6h8 M10 17h8", "meal": "M5 3v6c0 2 6 2 6 0V3 M8 3v18 M19 3c-4 3-4 9 0 9 M19 3v18", "focus": "M12 3a9 9 0 1 0 9 9 M12 7a5 5 0 1 0 5 5 M12 12l8-8 M16 3h5v5", "settings": "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8 M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1z"};return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${paths[view]||paths.home}"/></svg>`}
+function nexusNavIcon(view){const paths={"home": "M3 10 12 3l9 7 M5 9v12h14V9 M9 21v-7h6v7", "todo": "M9 5h12v16H3V5h3 M8 3h8v4H8z M7 12l2 2 3-3 M14 12h4 M7 18h11", "board": "M4 20V4 M4 20h17 M8 16v-5 M13 16V7 M18 16v-8", "tsugi": "M3 4h7v17H3z M10 4h7v17h-7z M18 4l3 16 M5 8h3 M12 8h3", "media-log": "M4 4h16v16H4z M8 8h8 M8 12h8 M8 16h5", "monitor": "M3 3h18v18H3z M6 15h3l3-7 3 10 3-5", "vps": "M3 3h18v7H3z M3 14h18v7H3z M6 6h.1 M6 17h.1 M10 6h8 M10 17h8", "meal": "M5 3v6c0 2 6 2 6 0V3 M8 3v18 M19 3c-4 3-4 9 0 9 M19 3v18", "focus": "M12 3a9 9 0 1 0 9 9 M12 7a5 5 0 1 0 5 5 M12 12l8-8 M16 3h5v5", "settings": "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8 M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1z"};return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${paths[view]||paths.home}"/></svg>`}
 function applyNavConfig(){
   state.navConfig=normalizedNavConfig();
-  if(store.get("navLayoutVersion",0)<3&&store.set("navConfig",state.navConfig))store.set("navLayoutVersion",3);
+  if(store.get("navLayoutVersion",0)<4&&store.set("navConfig",state.navConfig))store.set("navLayoutVersion",4);
   const sidebar=document.querySelector('.sidebar'),spacer=sidebar?.querySelector('.spacer');
   if(!sidebar||!spacer)return;
   const nodes=new Map($$('.navbtn[data-view]').map(b=>[b.dataset.view,b]));
@@ -2426,6 +2441,7 @@ function switchNexusView(view){
   setDeskBoardActive(view==='board');
   if(view==='tsugi')ensureEmbeddedSite('tsugi');
   if(view==='meal')ensureEmbeddedSite('meal');
+  if(view==='media-log')ensureEmbeddedSite('mediaLog');
   if(view==='todo')switchIdeaTab(store.get('ideaTab','projects'));
   dispatchEvent(new CustomEvent('nexus-view-change',{detail:{view}}));
   if(view==='focus')renderFocusTasks();
@@ -2683,7 +2699,7 @@ function syncEmbeddedTheme(name,theme=resolvedNexusTheme()){
 }
 function syncEmbeddedThemes(theme=resolvedNexusTheme()){
   syncEmbeddedTheme('tsugi',theme);syncEmbeddedTheme('meal',theme);
-  syncEmbeddedTheme('todo',theme);syncEmbeddedTheme('notes',theme);
+  syncEmbeddedTheme('todo',theme);syncEmbeddedTheme('notes',theme);syncEmbeddedTheme('mediaLog',theme);
   dispatchEvent(new CustomEvent('nexus-theme-change',{detail:{theme}}));
 }
 function ensureEmbeddedSite(name){
