@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="description" content="把游戏、动画、漫画和小说的进度放在一张清单里，按最新记录自动排序。">
+  <title>作品记录 · PT Universe</title>
+  <link rel="icon" href="../../icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-inner">
+      <a class="back" href="../../">← PT Universe</a>
+      <div class="top-actions">
+        <details class="backup" id="backup-menu">
+          <summary>备份</summary>
+          <div class="menu">
+            <button type="button" id="export">导出 JSON</button>
+            <button type="button" id="import">导入 JSON</button>
+            <input type="file" id="import-file" accept=".json,application/json" hidden>
+          </div>
+        </details>
+        <a class="mode" id="mode" href="?demo=1">示例</a>
+      </div>
+    </div>
+  </header>
+  <main class="wrap">
+    <header class="intro">
+      <div>
+        <p class="eyebrow"><span aria-hidden="true"></span> MEDIA LOG</p>
+        <h1>作品记录</h1>
+        <p class="intro-copy">把想补和正在补的作品记在一起。最近记录的自然排在前面。</p>
+      </div>
+      <button type="button" id="add" class="primary">＋ 新增作品</button>
+    </header>
+    <div class="sample" id="sample" hidden>示例模式 · 这里的操作只影响当前示例。</div>
+    <section class="controls" aria-label="筛选作品">
+      <div id="types" class="types" role="group" aria-label="作品类型"></div>
+      <div class="refine">
+        <label class="search-label"><span class="sr-only">搜索作品</span><input id="search" type="search" placeholder="搜索作品、进度或标签"></label>
+        <label class="tag-label"><span class="sr-only">按标签筛选</span><select id="tags"><option value="">全部标签</option></select></label>
+      </div>
+    </section>
+    <section aria-labelledby="feed-heading">
+      <header class="feed-head">
+        <div><h2 id="feed-heading">最近记录</h2><span id="count"></span></div>
+        <span class="order">↓ 按最后记录时间</span>
+      </header>
+      <div id="feed" class="feed"></div>
+      <div id="empty" class="empty" hidden>
+        <h3 id="empty-title"></h3>
+        <p id="empty-copy"></p>
+        <button type="button" id="empty-action"></button>
+      </div>
+    </section>
+    <footer id="storage">记录保存在此浏览器。可随时导出备份。</footer>
+  </main>
+  <p id="notice" class="notice" role="status" hidden></p>
+  <dialog id="item-dialog" aria-labelledby="item-heading">
+    <form id="item-form">
+      <header class="dialog-head"><h2 id="item-heading">新增作品</h2><button type="button" data-close aria-label="关闭">×</button></header>
+      <label>作品名称<input name="title" required maxlength="120" placeholder="输入名称" autofocus></label>
+      <div class="form-pair">
+        <label>类型<select name="type" required>
+          <option value="game">游戏</option><option value="anime">动画</option><option value="manga">漫画</option><option value="novel">小说</option><option value="other">其他</option>
+        </select></label>
+        <label>标签 <span>可选</span><input name="tags" maxlength="240" placeholder="例如 Steam Deck，想补"></label>
+      </div>
+      <label>外链 <span>可选</span><input name="url" type="url" maxlength="2048" placeholder="https://…" inputmode="url"></label>
+      <label id="initial-progress">当前进度 <span>可选</span><input name="progress" maxlength="240" placeholder="例如 看完第 7 集、打到第二章"></label>
+      <p class="form-error" id="item-error" role="alert"></p>
+      <footer class="form-actions">
+        <button type="button" id="delete" class="danger" hidden>删除作品</button>
+        <button type="button" data-close>取消</button>
+        <button type="submit" class="primary">保存作品</button>
+      </footer>
+    </form>
+  </dialog>
+  <dialog id="progress-dialog" aria-labelledby="progress-heading">
+    <form id="progress-form">
+      <header class="dialog-head"><h2 id="progress-heading">记录进度</h2><button type="button" data-close aria-label="关闭">×</button></header>
+      <p id="progress-title" class="dialog-context"></p>
+      <label>最新进度<textarea name="progress" required maxlength="240" rows="3" placeholder="例如 看完第 8 集，下次从第 9 集开始" autofocus></textarea></label>
+      <p class="form-error" id="progress-error" role="alert"></p>
+      <footer class="form-actions">
+        <button type="button" data-close>取消</button>
+        <button type="submit" class="primary">保存记录</button>
+      </footer>
+    </form>
+  </dialog>
+  <dialog id="history-dialog" aria-labelledby="history-heading">
+    <header class="dialog-head"><h2 id="history-heading">进度历史</h2><button type="button" data-close aria-label="关闭">×</button></header>
+    <p id="history-title" class="dialog-context"></p>
+    <ol id="history-list" class="history"></ol>
+  </dialog>
+</body>
+</html>

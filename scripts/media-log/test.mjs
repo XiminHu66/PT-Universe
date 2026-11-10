@@ -1,0 +1,27 @@
+import assert from 'node:assert/strict';
+import {addRecord, cleanUrl, createItem, fields, latest, mergeItems, parseBackup, visibleItems} from '../../apps/media-log/model.mjs';
+
+const original = createItem({title:'同名', type:'anime', tags:'A，a、想补', progress:'看完第 1 集'}, 100, 'anime');
+const manga = createItem({title:'同名', type:'manga', tags:'想补'}, 200, 'manga');
+const game = createItem({title:'测试游戏', type:'game', url:'https://example.org/game'}, 300, 'game');
+assert.deepEqual(original.tags, ['A','想补']);
+assert.deepEqual(visibleItems([original, manga, game]).map(x => x.id), ['game','manga','anime']);
+const renamed = {...original, ...fields({...original,title:'改名'}), editedAt:500};
+assert.equal(visibleItems([renamed, manga])[0].id, 'manga', 'metadata edits keep the last-record order');
+const progressed = addRecord(renamed, '看完第 2 集', 600, 'progress-2');
+assert.equal(visibleItems([manga, progressed, game])[0].id, 'anime');
+assert.equal(latest(progressed).progress, '看完第 2 集');
+assert.equal(progressed.records.length, 2);
+assert.equal(visibleItems([manga, progressed, game], {type:'anime',tag:'a',query:'第 2 集'}).length, 1);
+assert.equal(visibleItems([manga, progressed, game], {type:'manga',tag:'a'}).length, 0);
+const restored = parseBackup(JSON.parse(JSON.stringify({version:1, items:[original, manga, game]})));
+const merged = mergeItems([progressed], restored);
+assert.equal(merged.length, 3);
+assert.equal(merged.find(item => item.id === 'anime').title, '改名');
+assert.equal(merged.find(item => item.id === 'anime').records.length, 2);
+assert.equal(mergeItems(merged, restored).find(item => item.id === 'anime').records.length, 2);
+assert.throws(() => parseBackup({version:1,items:[original, original]}));
+assert.throws(() => parseBackup({version:1,items:[{...original, url:'javascript:alert(1)'}]}));
+assert.throws(() => cleanUrl('https://name:secret@example.org/'));
+assert.throws(() => addRecord(original, '    '));
+console.log('PASS: mixed ranking, progress history, filters, safe links, metadata edits and idempotent backup merge');
