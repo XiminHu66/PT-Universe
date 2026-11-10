@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import Link from "next/link";
 import {
   ArrowUpRight,
   Bookmark,
@@ -27,6 +26,7 @@ const STORAGE_KEY = "daily-deals-personal-v1";
 
 type Personal = { claimed: string[]; favorites: string[] };
 type Alert = { text: string; role: "status" | "alert"; testId: string };
+type PublicFeed = { url: string; homeUrl: string; managementUrl: string };
 
 const emptyPersonal: Personal = { claimed: [], favorites: [] };
 // 「查看全部线索」单独存，避免改动收藏键或 { claimed, favorites } 形状。
@@ -82,7 +82,7 @@ function formatFailure(failure: { sourceName: string; error: string }): string {
 }
 
 /** 正式首页：服务端给初始快照，客户端挂载后展开，保留真实数据和本机状态。 */
-export function DealBoard({ initial }: { initial: BoardState }) {
+export function DealBoard({ initial, publicFeed }: { initial: BoardState; publicFeed?: PublicFeed }) {
   const [board, setBoard] = useState<BoardState>(() => normalizeBoardState(initial) ?? initial);
   const [query, setQuery] = useState("");
   const [sourceId, setSourceId] = useState<string | "all">("all");
@@ -123,6 +123,7 @@ export function DealBoard({ initial }: { initial: BoardState }) {
   }, []);
 
   useEffect(() => {
+    if (publicFeed) return;
     if (initial.lastUpdatedAt && !initial.refreshInProgress) return;
     let cancelled = false;
     let attempts = 0;
@@ -155,7 +156,32 @@ export function DealBoard({ initial }: { initial: BoardState }) {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [initial]);
+  }, [initial, publicFeed]);
+
+  useEffect(() => {
+    if (!publicFeed) return;
+    const controller = new AbortController();
+    const tick = async () => {
+      if (document.hidden) return;
+      try {
+        const data = await readPublicBoard(publicFeed.url, controller.signal);
+        if (!controller.signal.aborted) {
+          setBoard(data);
+          setPollError(false);
+        }
+      } catch {
+        if (!controller.signal.aborted) setPollError(true);
+      }
+    };
+    void tick();
+    const timer = setInterval(tick, 5 * 60 * 1000);
+    document.addEventListener("visibilitychange", tick);
+    return () => {
+      controller.abort();
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", tick);
+    };
+  }, [publicFeed]);
 
   function savePersonal(next: Personal) {
     try {
@@ -189,6 +215,11 @@ export function DealBoard({ initial }: { initial: BoardState }) {
     setRefreshing(true);
     setMessage(null);
     try {
+      if (publicFeed) {
+        setBoard(await readPublicBoard(publicFeed.url));
+        setPollError(false);
+        return;
+      }
       const response = await fetch(`${API_BASE}/api/refresh/`, { method: "POST", cache: "no-store" });
       const data: unknown = await response.json().catch(() => null);
       if (!response.ok) {
@@ -232,7 +263,7 @@ export function DealBoard({ initial }: { initial: BoardState }) {
       ? []
       : filterDeals(board.deals, filters, personal);
   const hiddenOtherCount = hideOther ? matching.filter((item) => item.category === "其他").length : 0;
-  const waitingForFirst = !board.lastUpdatedAt && (board.refreshInProgress || refreshing);
+  const waitingForFirst = !board.lastUpdatedAt && (board.refreshInProgress || refreshing || Boolean(publicFeed && !pollError));
   const busy = refreshing || board.refreshInProgress;
 
   const statusItems = [
@@ -244,7 +275,7 @@ export function DealBoard({ initial }: { initial: BoardState }) {
   ];
 
   const alerts: Alert[] = [];
-  if (pollError) alerts.push({ text: "数据暂时不可用，显示的是上次成功读取的内容；恢复后会自动更新。", role: "status", testId: "poll-error" });
+  if (pollError) alerts.push({ text: board.lastUpdatedAt ? "数据暂时不可用，显示的是上次成功读取的内容；恢复后会自动更新。" : "暂时无法读取优惠，稍后会自动重试。", role: "status", testId: "poll-error" });
   if (storageError) alerts.push({ text: storageError, role: "alert", testId: "storage-error" });
   if (message) alerts.push({ text: message, role: "alert", testId: "refresh-message" });
   if (board.anomalies?.length) alerts.push({ text: `数据提示：${board.anomalies.join("；")}`, role: "status", testId: "anomalies" });
@@ -284,12 +315,12 @@ export function DealBoard({ initial }: { initial: BoardState }) {
     <div className="perk-board" data-testid="board-root">
       <header className="radar-header" data-testid="header">
         <div className="radar-shell radar-header-inner">
-          <Link className="radar-brand" href="/" data-testid="brand">
+          <a className="radar-brand" href={publicFeed?.homeUrl ?? `${API_BASE}/`} data-testid="brand">
             <span className="radar-mark"><Radar aria-hidden="true" /></span>
             <span><small>PT UNIVERSE / DEAL RADAR</small><strong>全球优惠雷达</strong></span>
-          </Link>
+          </a>
           <Button className="radar-refresh" data-testid="refresh" onClick={refresh} disabled={busy} aria-busy={busy}>
-            <RefreshCw aria-hidden="true" />{busy ? "刷新中" : "立即刷新"}
+            <RefreshCw aria-hidden="true" />{busy ? "刷新中" : publicFeed ? "读取最新" : "立即刷新"}
           </Button>
         </div>
       </header>
@@ -362,7 +393,7 @@ export function DealBoard({ initial }: { initial: BoardState }) {
           <ul>{board.sources.map((source) => <li key={source.id}>{source.name}：{formatSourceOutcome(source)}</li>)}</ul>
         </details>
 
-        {waitingForFirst && <p className="radar-loading" role="status">正在进行首次抓取…</p>}
+        {waitingForFirst && <p className="radar-loading" role="status">{publicFeed ? "正在读取优惠…" : "正在进行首次抓取…"}</p>}
 
         <section className="radar-grid" aria-label="优惠列表" data-testid="cards">
           {visible.map((deal) => <DealCard
@@ -375,7 +406,7 @@ export function DealBoard({ initial }: { initial: BoardState }) {
           />)}
         </section>
 
-        {visible.length === 0 && <div className="radar-empty" data-testid="empty-state">
+        {visible.length === 0 && !(publicFeed && waitingForFirst) && <div className="radar-empty" data-testid="empty-state">
           <Search aria-hidden="true" />
           <h2>没有可显示的条目</h2>
           <p>{emptyMessage}</p>
@@ -385,10 +416,20 @@ export function DealBoard({ initial }: { initial: BoardState }) {
         <footer className="radar-footer" data-testid="footer">
           <ShieldCheck aria-hidden="true" />
           <p>每两小时更新，线索最多保留 7 天。Epic 活动来自官方商店，其他线索的实时价格、地区与资格以原文为准。</p>
+          {publicFeed && <a className="radar-admin" href={publicFeed.managementUrl} target="_blank" rel="noopener noreferrer">私有抓取管理 <ArrowUpRight aria-hidden="true" /></a>}
         </footer>
       </main>
     </div>
   );
+}
+
+async function readPublicBoard(url: string, signal?: AbortSignal): Promise<BoardState> {
+  const deadline = AbortSignal.timeout(15000);
+  const response = await fetch(url, { credentials: "omit", signal: signal ? AbortSignal.any([signal, deadline]) : deadline });
+  const board = response.ok ? normalizeBoardState(await response.json()) : null;
+  if (!board?.lastUpdatedAt) throw Error("公开优惠暂时不可用");
+  // A cached board can outlast an offer near its expiry time.
+  return normalizeBoardState({ ...board, deals: board.deals.filter((deal) => deal.expiresAt === null || deal.expiresAt > Date.now()) })!;
 }
 
 function StatusItem({ label, value, testId }: { label: string; value: string; testId: string }) {

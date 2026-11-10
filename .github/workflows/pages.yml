@@ -10,6 +10,9 @@ name: Deploy PT Universe
     - "*.js"
     - "*.css"
     - scripts/build-pages.py
+    - services/deal-radar/src/**
+    - services/deal-radar/scripts/build-pages.mjs
+    - services/deal-radar/package*.json
     - .github/workflows/pages.yml
   workflow_dispatch: null
   # GITHUB_TOKEN data commits cannot trigger on.push; only active data producers need this hand-off.
@@ -81,6 +84,18 @@ jobs:
     - name: Prepare bounded frontend distribution
       run: python scripts/build-pages.py
       if: steps.publication.outputs.deploy == 'true' && (success())
+    - uses: actions/setup-node@v4
+      if: steps.publication.outputs.deploy == 'true' && (success())
+      with:
+        node-version: '24'
+        cache: npm
+        cache-dependency-path: services/deal-radar/package-lock.json
+    - name: Build Deal Radar frontend
+      if: steps.publication.outputs.deploy == 'true' && (success())
+      working-directory: services/deal-radar
+      run: |
+        npm ci --no-audit --no-fund
+        node scripts/build-pages.mjs
     - uses: actions/upload-pages-artifact@v3
       with:
         name: pt-universe-pages-${{ github.run_attempt }}

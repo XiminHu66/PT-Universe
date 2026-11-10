@@ -119,6 +119,7 @@
 .radar-empty p, .board-error-card p { color: var(--muted-ink); margin-block: 6px; }
 .radar-footer { display: flex; gap: 7px; color: var(--muted-ink); font-size: 12px; margin-top: 16px; }
 .radar-footer svg { width: 15px; height: 15px; flex: none; }
+.radar-admin { display: inline-flex; align-items: center; gap: 3px; margin-left: auto; color: var(--green); white-space: nowrap; text-decoration: underline; text-underline-offset: 2px; }
 .radar-loading, .board-loading { color: var(--muted-ink); padding: 18px; text-align: center; }
 .board-error { display: grid; place-items: center; min-height: 100dvh; padding: 15px; }
 .board-error .board-refresh { padding: 7px 14px; color: white; background: var(--green); border-radius: 7px; }

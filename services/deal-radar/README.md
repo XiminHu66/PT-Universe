@@ -19,3 +19,5 @@ PT Universe 下的独立优惠看板，基于 [PerkRadar](https://github.com/luo
 VPS 上单容器部署，SQLite 持久化到容器 `/data`。定时器两小时一次，首次启动主动抓取。生产前缀为 `/deal-radar/`，通过现有 PT 工具中心授权入口代理，无需新增公网端口、抓取用 GitHub Actions、付费搜索或模型调用。免费来源的响应与优惠可领取性以原文和最新状态为准。
 
 本地校验使用 Node 24，运行 `npm ci`、`npm test`、`npm run lint` 和 `DEAL_RADAR_BASE_PATH=/deal-radar npm run build`。临时真实抓取可用 `DATA_DIR="$(mktemp -d)" npm run report`。
+
+PT Universe 的 `/apps/deal-radar/` 由同一个看板组件生成。Pages 工作流在静态分发目录中运行 `node services/deal-radar/scripts/build-pages.mjs`，浏览器只读 PT Universe Worker 的 `/api/deal-radar/latest`。该接口使用现有的签名 VPS 通道读取结果，公开标题、来源、原文链接和时间。原文摘要、详细诊断和手动抓取在私有工具入口使用。
