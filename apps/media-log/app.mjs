@@ -10,6 +10,7 @@ const params = new URLSearchParams(location.search);
 const DEMO = params.get('demo') === '1';
 const EMBEDDED = params.get('embedded') === 'nexus' && window.parent !== window;
 const stamp = new Intl.DateTimeFormat('zh-CN', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hourCycle:'h23'});
+const shortStamp = new Intl.DateTimeFormat('zh-CN', {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit', hourCycle:'h23'});
 const filter = {type:'', tag:'', query:''};
 let archived = false, sort = 'recent', dragId = '';
 const itemDialog = $('#item-dialog'), itemForm = $('#item-form');
@@ -49,35 +50,45 @@ function tell(text, error = false) {
   if (!error) noticeTimer = setTimeout(() => { el.hidden = true; }, 3500);
 }
 
-function timeHTML(at) {
+function timeHTML(at, compact = false) {
   const time = new Date(at);
-  return `<time datetime="${time.toISOString()}">${esc(stamp.format(time))}</time>`;
+  const full = esc(stamp.format(time));
+  return `<time datetime="${time.toISOString()}" title="${full}">${compact ? esc(shortStamp.format(time)) : full}</time>`;
 }
 
 function card(item, rank, index, total) {
-  const [type, icon] = TYPES[item.type];
+  const [type] = TYPES[item.type];
   const record = latest(item);
+  const title = esc(item.title);
   return `<article class="work" data-id="${esc(item.id)}" data-kind="${esc(item.type)}" draggable="${!archived}">
-    <div class="mark" aria-hidden="true">${icon}</div>
-    <div class="work-main">
-      <header class="work-head"><h3>${esc(item.title)}</h3><div class="priority-controls">
-        ${archived ? '' : `<span class="drag-handle" aria-hidden="true" title="拖拽调整优先级">⠿</span>`}
-        <span class="rank">#${rank}</span>
-        ${archived ? '' : `<button type="button" data-action="up" aria-label="提高${esc(item.title)}的优先级" title="上移" ${index === 0 ? 'disabled' : ''}>↑</button><button type="button" data-action="down" aria-label="降低${esc(item.title)}的优先级" title="下移" ${index === total - 1 ? 'disabled' : ''}>↓</button>`}
-      </div></header>
-      <p class="work-meta">${type} · 最后记录 ${timeHTML(recordedAt(item))}</p>
-      ${archived ? `<p class="completed-meta">已完成 ${timeHTML(item.completedAt)}</p>` : ''}
-    </div>
-    <p class="progress${record ? '' : ' is-empty'}">${esc(record?.progress || '尚未填写进度')}</p>
-    <div class="work-foot">
-      ${item.tags.length ? `<div class="chips">${item.tags.map(label => `<button type="button" data-tag="${esc(tagKey(label))}">${esc(label)}</button>`).join('')}</div>` : ''}
-      <div class="card-actions">
-        ${archived ? '<button class="record" type="button" data-action="restore">恢复到清单</button>' : '<button class="record" type="button" data-action="record">记录进度</button><button class="complete" type="button" data-action="complete">✓ 已完成</button>'}
-        <button class="quiet" type="button" data-action="history">进度历史${item.records.length ? ' ' + item.records.length : ''}</button>
-        <button class="quiet" type="button" data-action="edit">编辑</button>
-        ${item.url ? `<a href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">打开外链 ↗</a>` : ''}
+    <header class="work-heading">
+      <div class="work-meta">
+        <span class="type-badge">${type}</span>
+        <span class="work-date">${archived ? '完成' : '更新'} ${timeHTML(archived ? item.completedAt : recordedAt(item), true)}</span>
+        ${archived ? '' : `<span class="drag-handle" title="拖拽调整优先级"><span aria-hidden="true">⠿</span>${sort === 'priority' ? `<span aria-label="优先级 ${rank}">#${rank}</span>` : ''}</span>`}
       </div>
+      <h3 title="${title}">${title}</h3>
+    </header>
+    <div class="work-details">
+      <p class="progress${record ? '' : ' is-empty'}" title="${esc(record?.progress)}">${esc(record?.progress || '尚未记录进度')}</p>
+      ${item.tags.length ? `<div class="chips">${item.tags.map(label => `<button type="button" data-tag="${esc(tagKey(label))}">${esc(label)}</button>`).join('')}</div>` : ''}
     </div>
+    <footer class="card-actions">
+      ${archived ? '<button class="record" type="button" data-action="restore">恢复到清单</button>' : '<button class="record" type="button" data-action="record">记录进度</button><button class="complete" type="button" data-action="complete" title="标记为已完成"><span aria-hidden="true">✓</span> 完成</button>'}
+      <div class="action-tools">
+        ${item.url ? `<a class="icon-button" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer" aria-label="打开《${title}》外链" title="打开外链">↗</a>` : ''}
+        <details class="dropdown work-menu" name="media-log-actions">
+          <summary class="icon-button" aria-label="《${title}》的更多操作" title="更多操作">⋯</summary>
+          <div class="menu">
+            <button type="button" data-action="history">进度历史${item.records.length ? `<span class="menu-count">${item.records.length}</span>` : ''}</button>
+            <button type="button" data-action="edit">编辑作品</button>
+            ${archived ? '' : `<div class="menu-divider"></div>
+            <button type="button" data-action="up" ${index === 0 ? 'disabled' : ''}>↑ 上移一位</button>
+            <button type="button" data-action="down" ${index === total - 1 ? 'disabled' : ''}>↓ 下移一位</button>`}
+          </div>
+        </details>
+      </div>
+    </footer>
   </article>`;
 }
 
@@ -137,7 +148,6 @@ function render() {
   }
   $('#feed').setAttribute('aria-labelledby', archived ? 'archive-tab' : 'active-tab');
   $('#sort-label').hidden = archived;
-  $('#order-hint').textContent = archived ? '↓ 按完成时间 · 可恢复到清单' : '拖拽卡片或用 ↑ ↓ 排优先级';
   const tags = new Map();
   const counts = new Map();
   for (const item of scope) {
@@ -167,10 +177,13 @@ function render() {
   const ranks = new Map(ordered.map((item,i) => [item.id,i+1]));
   const shown = shownItems();
   $('#feed').innerHTML = shown.map((item,index) => card(item, ranks.get(item.id), index, shown.length)).join('');
-  $('#count').textContent = shown.length === scope.length ? scope.length + ' 部作品' : shown.length + ' / ' + scope.length + ' 部';
+  $('#order-hint').textContent = archived ? '按完成时间排列' : '⠿ 拖拽排序';
+  $('#order-hint').hidden = archived ? !scope.length : shown.length < 2;
+  $('#count').hidden = shown.length === scope.length;
+  $('#count').textContent = `${shown.length} / ${scope.length} 部`;
   $('#empty').hidden = shown.length > 0;
   $('#empty-title').textContent = scope.length ? '没有匹配的作品' : archived ? '还没有已完成的作品' : '添加下一部想补的作品';
-  $('#empty-copy').textContent = scope.length ? '换个关键词，或清除筛选。' : archived ? '点击清单中的“已完成”，作品和进度会保留在这里。' : '选一个想补或正在补的作品，先记下名称和当前进度。';
+  $('#empty-copy').textContent = scope.length ? '换个关键词，或清除筛选。' : archived ? '在待补清单点击“完成”，作品和进度会保留在这里。' : '先记下作品名称和当前进度。';
   $('#empty-action').textContent = scope.length ? '清除筛选' : archived ? '返回待补清单' : '新增作品';
 }
 
@@ -253,6 +266,11 @@ $('#feed').onclick = event => {
   if (button.hasAttribute('data-tag')) { filter.tag = button.dataset.tag; render(); return; }
   const item = items.find(row => row.id === button.closest('[data-id]')?.dataset.id);
   if (!item) return;
+  const menu = button.closest('.work-menu');
+  if (menu) {
+    menu.open = false;
+    menu.querySelector('summary').focus();
+  }
   if (button.dataset.action === 'record') showProgress(item);
   if (button.dataset.action === 'history') showHistory(item);
   if (button.dataset.action === 'edit') showItem(item);
@@ -268,19 +286,18 @@ $('#feed').onclick = event => {
     const shown = shownItems();
     const index = shown.findIndex(row => row.id === item.id);
     const target = shown[index + (button.dataset.action === 'up' ? -1 : 1)];
-    if (target) moveWork(item.id, target.id, button.dataset.action);
+    if (target) moveWork(item.id, target.id, true);
   }
 };
 
-function moveWork(id, targetId, focusAction) {
+function moveWork(id, targetId, restoreFocus = false) {
   try {
     commit(current => reorderItems(current, id, targetId, {...filter, sort}));
     setSort('priority', true);
     render();
-    if (focusAction) {
+    if (restoreFocus) {
       const work = [...$('#feed').children].find(node => node.dataset.id === id);
-      const control = work?.querySelector(`[data-action="${focusAction}"]:not(:disabled)`) || work?.querySelector('[data-action="' + (focusAction === 'up' ? 'down' : 'up') + '"]:not(:disabled)');
-      control?.focus();
+      work?.querySelector('summary')?.focus();
     }
     tell('优先级已保存');
   } catch (error) { tell(error.message, true); }
@@ -292,7 +309,7 @@ function clearDrag() {
 }
 $('#feed').ondragstart = event => {
   const work = event.target.closest('.work');
-  if (archived || !work || event.target.closest('button,a,input,select,textarea')) { event.preventDefault(); return; }
+  if (archived || !work || event.target.closest('button,a,summary,input,select,textarea')) { event.preventDefault(); return; }
   dragId = work.dataset.id;
   event.dataTransfer.effectAllowed = 'move';
   event.dataTransfer.setData('text/plain', dragId);
@@ -315,6 +332,27 @@ $('#feed').ondrop = event => {
   if (!archived && from && targetId && from !== targetId) moveWork(from, targetId);
 };
 $('#feed').ondragend = clearDrag;
+document.addEventListener('toggle', event => {
+  const dropdown = event.target;
+  if (!dropdown.matches('.dropdown')) return;
+  dropdown.removeAttribute('data-open-up');
+  if (!dropdown.open) return;
+  const panel = dropdown.querySelector('.menu').getBoundingClientRect();
+  const trigger = dropdown.getBoundingClientRect();
+  dropdown.toggleAttribute('data-open-up', panel.bottom > innerHeight - 8 && trigger.top > panel.height + 8);
+}, true);
+document.addEventListener('click', event => {
+  const open = $('.dropdown[open]');
+  if (open && !open.contains(event.target)) open.open = false;
+});
+document.addEventListener('keydown', event => {
+  if (event.key !== 'Escape') return;
+  const open = $('.dropdown[open]');
+  if (open) {
+    open.open = false;
+    open.querySelector('summary').focus();
+  }
+});
 document.querySelectorAll('[data-close]').forEach(button => {
   button.onclick = () => button.closest('dialog').close();
 });
@@ -394,9 +432,8 @@ try {
 } catch { /* default light theme */ }
 if (EMBEDDED) {
   document.documentElement.dataset.embedded = 'nexus';
-  $('#feed-tools').append($('.top-actions'), $('#add'));
   $('.top').hidden = true;
-  $('.intro').classList.add('sr-only');
+  $('.page-title').classList.add('sr-only');
   $('#mode').href = '?embedded=nexus&demo=1';
 }
 if (DEMO) {
@@ -404,6 +441,7 @@ if (DEMO) {
   $('#sample').hidden = false;
   $('#mode').href = EMBEDDED ? '?embedded=nexus' : './';
   $('#mode').textContent = '返回我的记录';
+  $('#backup-menu').before($('#mode'));
   $('#backup-menu').hidden = true;
   $('#storage').textContent = '示例记录不会写入你的清单。';
 } else {
