@@ -1766,7 +1766,8 @@ const boardActive = () => window.__NEXUS_ACTIVE__ !== false && !document.hidden;
 import(new URL('./board-market.mjs?v=20261112-readable',document.baseURI)).then(({mountBoardMarket})=>{
   boardMarket=mountBoardMarket(boardActive);
   renderMarketGrid();
-}).catch(()=>{marketBody.textContent="行情模块暂未加载，请刷新看板。"});
+}).catch(()=>{marketBody.textContent="行情模块暂未加载，请刷新看板。"})
+  .finally(()=>window.parent.postMessage({type:"nexus-board-ready"},"*"));
 document.getElementById("refreshBoardQuotes").onclick=async event=>{
   const button=event.currentTarget;
   button.disabled=true;button.textContent="刷新中…";
@@ -2743,14 +2744,23 @@ function ensureDeskBoard(){
   const frame=$("#deskboardFrame"),tpl=$("#deskboardSource"),loading=$("#deskboardLoading");
   if(!frame||!tpl)return;
   deskboardInitialized=true;window.__deskboardInitialized__=true;
-  frame.addEventListener("load",()=>{
+  let revealed=false;
+  function reveal(){
+    if(revealed)return;
+    revealed=true;
+    window.removeEventListener("message",onBoardReady);
     loading?.classList.add("hide");
     setTimeout(()=>{if(loading)loading.style.display="none"},220);
     try{
       frame.contentWindow.postMessage({type:"nexus-visibility",active:document.body.dataset.nexusView==="board"},"*");
       frame.contentWindow.postMessage({type:"nexus-theme",theme:document.documentElement.dataset.theme||"dark"},"*");
     }catch(_){}
-  },{once:true});
+  }
+  function onBoardReady(event){
+    if(event.source===frame.contentWindow&&event.origin===location.origin&&event.data?.type==="nexus-board-ready")reveal();
+  }
+  window.addEventListener("message",onBoardReady);
+  frame.addEventListener("load",reveal,{once:true});
   frame.srcdoc=tpl.innerHTML;
 }
 function setDeskBoardActive(active){

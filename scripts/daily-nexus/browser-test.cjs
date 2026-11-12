@@ -140,11 +140,20 @@ await p.clock.setFixedTime(new Date('2026-11-12T21:00:00Z'));
 await p.evaluate(symbols=>localStorage.setItem('deskboard_stocks_v3',JSON.stringify(
   symbols.map(symbol=>({symbol,label:symbol.endsWith(':AAPL')?'Apple Inc.':symbol.split(':').at(-1)}))
 )),watchSymbols);
-await p.goto(base+'apps/daily-nexus/?view=board');
+let releaseCalendar;
+const calendarDelay=new Promise(resolve=>{releaseCalendar=resolve});
+await ctx.route('**/external-embedding/embed-widget-events.js',async route=>{
+  await calendarDelay;
+  await route.fulfill({body:'',contentType:'application/javascript'});
+});
+await p.goto(base+'apps/daily-nexus/?view=board',{waitUntil:'domcontentloaded'});
 let board=p.frameLocator('#deskboardFrame');
 await board.getByText('$71,234.50',{exact:true}).waitFor();
 await board.getByText('$123.45',{exact:true}).waitFor();
 await board.getByText('$61.20',{exact:true}).waitFor();
+await p.locator('#deskboardLoading').waitFor({state:'hidden',timeout:5000});
+assert.notEqual(await board.locator('body').evaluate(()=>document.readyState),'complete');
+releaseCalendar();
 assert.deepEqual([...new Set(quoteRequests)].sort(),Object.keys(quotePrices).sort());
 assert.equal(await board.locator('tv-single-ticker').count(),0);
 assert.equal(await board.locator('.board-quote').count(),13);
