@@ -102,7 +102,6 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
  await stock.locator('[data-evidence=news]').click();
  await stock.locator('#newsList').waitFor();
  await stock.locator('[data-evidence=overview]').click();
- await stock.locator('#kronosRun:not([disabled])').click();
  await stock.locator('.kronos-summary strong').filter({hasText:'3/4 条路径到期上涨'}).waitFor();
  assert.match(await stock.locator('.kronos-metrics').innerText(),/\$206.00/);
  await stock.locator('#kronosRun').waitFor({state:'hidden'});
