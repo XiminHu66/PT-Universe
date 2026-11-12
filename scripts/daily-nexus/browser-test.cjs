@@ -101,7 +101,7 @@ assert.equal(await p.getByRole('button',{name:'导出 JSON'}).count(),1);
 assert.equal(await p.getByRole('button',{name:'清空本地设置'}).count(),1);
 
 await p.locator('#themeSelect').selectOption('dark');
-for(const [view,frameID,selector] of [['meal','mealFrame','.ws-top'],['todo','todoFrame','#theme-button'],['media-log','mediaLogFrame','.top'],['monitor','monitorFrame','.topbar']]){
+for(const [view,frameID,selector] of [['meal','mealFrame','.ws-top'],['investment','investmentFrame','#decision-theme'],['todo','todoFrame','#theme-button'],['media-log','mediaLogFrame','.top'],['monitor','monitorFrame','.topbar']]){
   await nav(view).click();
   const frame=p.frameLocator('#'+frameID),root=frame.locator('html[data-theme="dark"][data-embedded="nexus"]');
   await root.waitFor({state:'attached'});
@@ -116,33 +116,49 @@ await p.frameLocator('#mealFrame').locator('html[data-theme="dark"]').waitFor({s
 await p.emulateMedia({colorScheme:'light'});
 await p.frameLocator('#mealFrame').locator('html[data-theme="light"]').waitFor({state:'attached'});
 console.log('Short viewport, personal calendar isolation, theme inheritance, frozen focus target and keyboard names passed');
-let tickerUnavailable=false;
-await ctx.route('https://widgets.tradingview-widget.com/w/en/tv-single-ticker.js',route=>tickerUnavailable
-  ?route.abort()
-  :route.fulfill({contentType:'text/javascript',body:`
-  customElements.define('tv-single-ticker',class extends HTMLElement{
-    connectedCallback(){
-      const root=this.attachShadow({mode:'open'}),boundary=document.createElement('tv-error-boundary');
-      root.append(boundary);
-      if(this.getAttribute('symbol')==='TVC:SPX'){
-        boundary.attachShadow({mode:'open'}).textContent='This symbol is only available on TradingView';
-        boundary.setAttribute('has-error','');
-      }else boundary.textContent='测试报价 123.45';
-    }
-  });`}));
+let quoteOutage=false, tickerRequests=0;
+const quoteRequests=[];
+await ctx.route('https://widgets.tradingview-widget.com/w/en/tv-single-ticker.js',route=>{
+  tickerRequests++;
+  return route.abort();
+});
+await ctx.route('**/api/investment/quote?*',route=>{
+  const symbol=new URL(route.request().url()).searchParams.get('symbol');
+  quoteRequests.push(symbol);
+  const lastTradeAt='2026-11-12T20:50:00Z';
+  return route.fulfill({status:quoteOutage?503:200,headers:{'access-control-allow-origin':'*'},
+    json:{quote:{symbol,currency:'USD',price:symbol==='BTC-USD'?71234.5:123.45,lastTradeAt,history:[{d:'2026-11-11',c:120}]}}});
+});
+await p.clock.setFixedTime(new Date('2026-11-12T21:00:00Z'));
+await p.evaluate(()=>localStorage.setItem('deskboard_stocks_v3',JSON.stringify([
+  {symbol:'TVC:SPX',label:'SPX'},{symbol:'NASDAQ:AAPL',label:'AAPL'},
+  {symbol:'COINBASE:BTCUSD',label:'BTCUSD'}
+])));
 await p.goto(base+'apps/daily-nexus/?view=board');
 let board=p.frameLocator('#deskboardFrame');
-await board.getByText('此标的仅在 TradingView 提供').waitFor();
-assert.equal(await board.locator('.market-fallback a').first().getAttribute('href'),'https://www.tradingview.com/symbols/TVC-SPX/');
-assert.ok(await board.getByText('测试报价 123.45').first().isVisible());
+await board.getByText('$71,234.50',{exact:true}).waitFor();
+await board.getByText('$123.45',{exact:true}).waitFor();
+assert.deepEqual([...new Set(quoteRequests)].sort(),['AAPL','BTC-USD','^GSPC']);
+assert.equal(tickerRequests,0);
+assert.equal(await board.locator('.board-quote time').first().getAttribute('datetime'),'2026-11-12T20:50:00Z');
+assert.equal(await board.locator('.board-quote').first().getAttribute('href'),'https://www.tradingview.com/symbols/TVC-SPX/');
 await board.getByRole('button',{name:'编辑自选列表'}).click();
 assert.equal(await board.locator('#pane-stocks').isVisible(),true);
-tickerUnavailable=true;
+await p.evaluate(()=>localStorage.setItem('deskboard_stocks_v3',JSON.stringify([
+  {symbol:'NASDAQ:AAPL',label:'AAPL'},{symbol:'TSE:7203',label:'Toyota'}
+])));
+quoteOutage=true;
 await p.reload();
 board=p.frameLocator('#deskboardFrame');
-await board.getByText('行情组件暂不可用').first().waitFor({timeout:15000});
-assert.equal(await board.locator('tv-single-ticker[symbol="TVC:SPX"]').count(),1);
-console.log('Watchlist edit, supported quotes, restricted symbols and vendor network fallback passed');
+await board.getByText('$123.45',{exact:true}).waitFor();
+await board.getByText('行情组件暂不可用').waitFor({timeout:15000});
+const beforeRefresh=quoteRequests.length;
+await board.getByRole('button',{name:'刷新报价'}).click();
+await board.getByRole('button',{name:'刷新报价'}).waitFor();
+assert.ok(quoteRequests.length>beforeRefresh);
+assert.equal(await board.getByText('$123.45',{exact:true}).count(),1);
+assert.equal(await board.locator('.market-fallback a').getAttribute('href'),'https://www.tradingview.com/symbols/TSE-7203/');
+console.log('Watchlist edit, USD/crypto/index quotes, cached outage fallback and custom symbol link passed');
 await ctx.close();console.log('Daily Nexus home/task/icon/persistence/focus-learning checks passed');
 const tc=await browser.newContext({timezoneId:'UTC',viewport:{width:1440,height:1000}});let snapshot=1;const rows=[{id:'a',source:'novel',type:'novel',title:'已知小说',url:'https://example.com/a',latest:'第1章',latest_url:'https://example.com/a/1',source_label:'小说来源'}];await tc.route(/^https:\/\//,async r=>{const u=new URL(r.request().url());let data={};if(u.pathname.endsWith('site-updates.json'))data={generated_at:`2026-10-07T${String(10+snapshot).padStart(2,'0')}:00:00Z`,items:rows,sources:{}};else if(u.pathname.endsWith('feed.json'))data={updates:[],items:{},sources:{}};else if(u.pathname.endsWith('music.json'))data={recent_chart:[{title:'音乐条目',artist:'艺人',rank:1},{title:'第二个音乐条目',artist:'艺人二',rank:2}],weekly_chart:[],new_releases:[],sources:{}};else if(u.pathname.endsWith('game-releases.json'))data={date_jst:'2026-10-07',items:{mobile:[],pc:[],console:[]},sources:{}};await r.fulfill({json:data})});await tc.route('**/data/site-updates.json*',r=>r.fulfill({json:{generated_at:`2026-10-07T${String(10+snapshot).padStart(2,'0')}:00:00Z`,items:rows,sources:{}}}));await tc.route('**/data/music.json*',r=>r.fulfill({json:{recent_chart:[{title:'音乐条目',artist:'艺人',rank:1},{title:'第二个音乐条目',artist:'艺人二',rank:2}],weekly_chart:[],new_releases:[],sources:{}}}));await tc.route('**/config/content.json*',r=>r.fulfill({json:{site_updates:[],music:{}}}));const t=await tc.newPage();t.on('pageerror',e=>{errors.push(e.message);console.error('pageerror',e.message)});await t.goto(base+'apps/tsugi-checker/');await t.locator('#siteRefreshLegend').waitFor();assert.equal(await t.locator('#streamLastRefresh').getAttribute('datetime'),'2026-10-07T11:00:00Z');assert.equal(await t.locator('.sidebar #streamLastRefresh').count(),1);assert.equal(await t.locator('.main #streamLastRefresh').count(),0);for(const height of [650,500]){await t.setViewportSize({width:1440,height});for(const zoom of ['1','1.15']){await t.evaluate(z=>document.documentElement.style.setProperty('--tsugi-ui-zoom',z),zoom);const time=await t.locator('#streamLastRefresh').boundingBox(),refresh=await t.locator('#sourceRefreshBtn').boundingBox();assert.ok(time.y>=0&&time.y+time.height<=height,`Refresh timestamp must remain visible at ${height}px and zoom ${zoom}`);assert.ok(refresh.y>=0&&refresh.y+refresh.height<=height);await t.locator('.sidebar-navigation').evaluate(e=>e.scrollTop=e.scrollHeight);assert.ok((await t.locator('#streamLastRefresh').boundingBox()).y+time.height<=height)}}await t.evaluate(()=>document.documentElement.style.setProperty('--tsugi-ui-zoom','1'));await t.setViewportSize({width:1440,height:1000});assert.equal(await t.locator('.refresh-new').count(),0);const baseline=await t.locator('.site-update-card h3').allTextContents();rows[0]={...rows[0],latest:'第2章',latest_url:'https://example.com/a/2'};rows.push({id:'b',source:'novel',type:'novel',title:'本轮新作品',url:'https://example.com/b',latest:'第1章',latest_url:'https://example.com/b/1',source_label:'小说来源'});snapshot++;await t.evaluate(()=>window.tsugiLoad({fresh:true}));assert.equal(await t.locator('#streamLastRefresh').getAttribute('datetime'),'2026-10-07T12:00:00Z');assert.equal(await t.locator('.refresh-new').count(),2);assert.deepEqual(await t.locator('.site-update-card h3').allTextContents(),[...baseline,'本轮新作品']);await t.locator('[data-site-filter=manga]').click();
 assert.equal(await t.locator('[data-site-filter=manga]').getAttribute('aria-pressed'),'true');

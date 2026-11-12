@@ -2,7 +2,7 @@
 (()=>{
   'use strict';
   const routes={'pt-todo-dashboard':'todo','life-desk':'meal','meal-orbit':'meal'};
-  const frames=['meal','todo'].map(name=>({name,frame:document.getElementById(name+'Frame')})).filter(item=>item.frame);
+  const frames=['meal','todo','investment'].map(name=>({name,frame:document.getElementById(name+'Frame')})).filter(item=>item.frame);
   const theme=()=>document.documentElement.dataset.theme||'light';
   function syncTheme(doc,depth=0){
     if(!doc||depth>3)return;
@@ -16,7 +16,7 @@
   for(const {name,frame} of frames){
     frame.addEventListener('load',()=>{
       const doc=frame.contentDocument;if(!doc)return;
-      if(!doc.getElementById('nexus-tool-style')){
+      if(name!=='investment'&&!doc.getElementById('nexus-tool-style')){
         const style=doc.createElement('style');style.id='nexus-tool-style';style.textContent='.ws-top,.d-top,.ptb-root,#ptu-home-link{display:none!important}.ws-shell{padding:18px 18px 40px}.ws-hero{margin-top:6px}.d-shell{padding-top:20px}.d-hero{margin-bottom:18px}@media(max-width:760px){.ws-shell,.d-shell{padding:16px 12px 40px}}';doc.head.append(style);
         doc.addEventListener('load',e=>{if(e.target.tagName==='IFRAME')syncTheme(doc)},true);
         doc.addEventListener('click',e=>{

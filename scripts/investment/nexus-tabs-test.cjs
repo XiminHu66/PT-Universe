@@ -1,7 +1,7 @@
 const {chromium}=require(process.env.PT_PLAYWRIGHT||'playwright');
 const assert=require('node:assert/strict');
-const order=['home','todo','board','tsugi','check','meal','focus','countdown','tools','settings'];
-const removed=['investment','muse','traffic','learning'];
+const order=['home','todo','board','tsugi','investment','vps','media-log','monitor','meal','focus','settings'];
+const removed=['muse','traffic','learning'];
 const base=process.env.PT_TEST_URL||'http://127.0.0.1:8765/';
 let browser;
 async function navigation(page){return page.locator('.sidebar .navbtn[data-view]').evaluateAll(nodes=>nodes.map(n=>n.dataset.view))}
@@ -51,6 +51,21 @@ async function navigation(page){return page.locator('.sidebar .navbtn[data-view]
   await page.locator('[data-view=settings]').click();
   await page.locator('#resetNavConfig').click();
   assert.deepEqual(await navigation(page),order);
+  assert.equal(await page.locator('[data-view=investment] span').innerText(),'投资工作台');
+  assert.equal(await page.locator('#investmentFrame').getAttribute('src'),null);
+  await page.locator('[data-view=investment]').click();
+  const investment=page.frameLocator('#investmentFrame');
+  await investment.locator('#tab-market[aria-selected=true]').waitFor();
+  assert.equal(await investment.locator('#portfolio-open').isVisible(),true);
+  await investment.locator('#tab-audit').click();
+  await investment.locator('#panel-audit').waitFor();
+  await page.locator('[data-view=home]').click();
+  assert.equal(await investment.locator('body').evaluate(()=>window.ptNexusActive),false);
+  await page.locator('[data-view=investment]').click();
+  await investment.locator('#panel-audit').waitFor();
+  assert.equal(await investment.locator('body').evaluate(()=>window.ptNexusActive),true);
+  await page.reload({waitUntil:'domcontentloaded'});
+  await page.locator('#view-investment.active').waitFor();
   await page.locator('[data-view=todo]').click();
   const todo=page.frameLocator('#todoFrame');
   await todo.locator('#add-project').click();
@@ -70,7 +85,7 @@ async function navigation(page){return page.locator('.sidebar .navbtn[data-view]
   await ctx.close();
   const fresh=await browser.newPage();
   await fresh.goto(base+'apps/daily-nexus/?tab=countdown',{waitUntil:'domcontentloaded'});
-  await fresh.locator('#view-countdown.active').waitFor({state:'visible'});
+  await fresh.locator('#view-home.active').waitFor({state:'visible'});
   assert.deepEqual(await navigation(fresh),order);
   console.log('Nexus navigation passed: removed views, one-time migration, custom labels, manual ordering persistence, reset, deep-link fallback, Todo/theme and responsive sizing');
 })().catch(e=>{console.error(e);process.exitCode=1}).finally(async()=>{await browser?.close()});

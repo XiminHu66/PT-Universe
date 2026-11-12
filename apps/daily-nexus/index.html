@@ -470,6 +470,7 @@
     <button class="navbtn" data-view="todo"><div><div class="navicon">✎</div><span>记录</span></div></button>
     <button class="navbtn" data-view="board"><div><div class="navicon">▦</div><span>看板</span></div></button>
     <button class="navbtn" data-view="tsugi"><div><div class="navicon">📚</div><span>追更</span></div></button>
+    <button class="navbtn" data-view="investment"><div><div class="navicon">↗</div><span>投资工作台</span></div></button>
     <button class="navbtn" data-view="vps"><div><div class="navicon">▥</div><span>VPS</span></div></button>
     <button class="navbtn" data-view="media-log"><div><div class="navicon">▤</div><span>作品记录</span></div></button>
     <button class="navbtn" data-view="monitor"><div><div class="navicon">◴</div><span>监控</span></div></button>
@@ -610,6 +611,14 @@
           loading="lazy"
           data-src="../tsugi-checker/?v=20261110-ui"
           referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      </div>
+    </section>
+
+    <section class="view" id="view-investment" aria-label="投资工作台">
+      <div class="embed-frame-wrap">
+        <div class="embed-loading" id="investmentLoading" role="status"><div><b>投资工作台</b><span>正在打开行情和公开交易核验…</span></div></div>
+        <iframe class="embed-frame" id="investmentFrame" title="投资工作台" loading="lazy"
+          data-src="../investment-desk/?embedded=nexus&amp;v=20261112-nexus-market"></iframe>
       </div>
     </section>
 
@@ -936,7 +945,6 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="DeskBoard" />
-<script type="module" src="https://widgets.tradingview-widget.com/w/en/tv-single-ticker.js"></script>
 <title>DeskBoard · Daily Nexus Integrated</title>
 <style>
 :root{
@@ -1019,7 +1027,7 @@ button{cursor:pointer}
 .section-title{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:800;letter-spacing:.10em;color:var(--text)}
 .pulse{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px color-mix(in srgb,var(--green) 12%,transparent)}
 .section-sub{font-size:11px;color:var(--muted);letter-spacing:0}
-.market-body{flex:1;display:grid;gap:1px;background:var(--line);min-height:0;overflow:hidden}
+.market-body{flex:1;display:grid;gap:1px;background:var(--line);min-height:0;overflow:auto}
 .market-cell{background:color-mix(in srgb,var(--panel) var(--glass-alpha),transparent);min-width:0;min-height:0;position:relative;overflow:hidden;--tv-widget-background-color:transparent;--tv-widget-positive-color:#18b77a;--tv-widget-negative-color:#f0445e}
 .market-cell tv-single-ticker{display:block;width:100%;height:100%;min-width:0;min-height:0}
 .market-edit{border:1px solid var(--line);background:transparent;border-radius:8px;padding:4px 7px;color:var(--text)}
@@ -1027,6 +1035,15 @@ button{cursor:pointer}
 .market-fallback{height:100%;display:flex;align-items:center;align-content:center;gap:3px 8px;flex-wrap:wrap;padding:4px 9px;font-size:11px}
 .market-fallback b,.market-fallback a{color:var(--text)}.market-fallback span{color:var(--muted)}
 .market-fallback a{text-decoration:underline;white-space:nowrap}
+.board-quote{height:100%;display:grid;align-content:center;grid-template-columns:minmax(0,1fr) auto;gap:2px 7px;padding:6px 10px;color:var(--text);text-decoration:none;font-variant-numeric:tabular-nums}
+.board-quote:hover{background:var(--chipActive)}
+.board-quote-symbol{grid-column:1/-1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.board-quote-price{font-size:clamp(12px,2vw,20px);line-height:1.2;white-space:nowrap}
+.board-quote-change{align-self:center;font-size:11px;color:var(--muted)}
+.board-quote-change[data-direction=up]{color:var(--green)}
+.board-quote-change[data-direction=down]{color:var(--red)}
+.board-quote time{grid-column:1/-1;color:var(--muted);font-size:10px;line-height:1.15;white-space:nowrap}
+@media(max-width:520px){.board-quote{padding-inline:6px;gap:2px 4px}.board-quote-change{font-size:10px}}
 .market-empty{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;background:color-mix(in srgb,var(--panel) var(--glass-alpha),transparent)}
 .news-head-left{display:flex;align-items:center;gap:11px;min-width:0}
 .switcher{display:flex;gap:4px;background:var(--panel2);padding:3px;border:1px solid var(--line);border-radius:10px}
@@ -1218,8 +1235,8 @@ button{cursor:pointer}
 
   <section class="card section market">
     <header class="section-head">
-      <div class="section-title"><span class="pulse"></span>MARKET <span id="watchCount" class="section-sub"></span></div>
-      <button type="button" class="section-sub market-edit" id="editWatchlist">编辑自选列表</button>
+      <div class="section-title">行情 <span id="watchCount" class="section-sub"></span></div>
+      <div><button type="button" class="section-sub market-edit" id="refreshBoardQuotes">刷新报价</button> <button type="button" class="section-sub market-edit" id="editWatchlist">编辑自选列表</button></div>
     </header>
     <div id="marketBody" class="market-body"></div>
   </section>
@@ -1352,7 +1369,7 @@ button{cursor:pointer}
           <div class="layout-control"><div class="layout-label"><span>重置布局</span><span class="layout-value">默认</span></div><button class="action" style="width:100%" onclick="resetLayout()">恢复默认尺寸</button></div>
         </div>
         <div class="data-note">
-          <div><b>股票 / TradingView</b><span>页面打开时由 TradingView 组件自动持续更新，不是每 15 分钟轮询。是否真正实时取决于具体交易所的数据级别。</span></div>
+          <div><b>股票 / Yahoo Finance</b><span>看板打开时每 15 分钟检查延迟报价，卡片标注实际报价时间。部分自定义市场由 TradingView 提供。</span></div>
           <div><b>RSS / 快讯</b><span>7×24 快讯每 20 秒检查；RSS 每 10 分钟刷新；右下角 ↻ 可立即刷新资讯与行情组件。</span></div>
         </div>
       </div>
@@ -1372,7 +1389,7 @@ button{cursor:pointer}
           <div class="display-title">我保留 / 新增的辅助信息</div>
           <div class="help" style="margin:0">
             • 顶部直接使用 Fear & Greed 市场情绪晴雨表，不再重复 Daily Nexus 的天气、时间或额外行情模块。<br>
-            • 股票由 TradingView 组件保持自动更新；7×24 快讯每 20 秒检查，RSS 每 10 分钟自动刷新。<br>
+            • 看板打开时每 15 分钟检查股票报价，快讯每 20 秒检查，RSS 每 10 分钟刷新。<br>
             • 实时快讯：华尔街见闻 7×24 优先，20 秒轮询；跨域失败时自动回退备用代理 / RSS。<br>            • RSS 成功源数量与更新时间：快速判断是不是某个订阅源失效。<br>
             • RSS 源健康状态：在设置页逐个显示成功/失败。<br>
             • 顶部横幅使用 IWM、TLT、HYG、UUP、GLD、USO、FXY 展示风险偏好、利率、信用、美元、黄金、原油和日元环境，避免和 Watchlist 重复。<br>
@@ -1394,7 +1411,7 @@ window.addEventListener("message",e=>{
     window.__NEXUS_ACTIVE__=!!d.active;
     if(!was&&window.__NEXUS_ACTIVE__){
       setTimeout(()=>{
-        try{startWeather()}catch(_){}
+        try{startWeather();boardMarket?.refresh()}catch(_){}
         try{loadNews(true)}catch(_){}
         try{loadLive(true)}catch(_){}
       },80);
@@ -1726,7 +1743,21 @@ function startWeather(){
 }
 
 
-/* dynamic TradingView */
+/* Market quotes and TradingView calendar */
+let boardMarket, widgetRequested = false, marketModuleFailed = false;
+const boardActive = () => window.__NEXUS_ACTIVE__ !== false && !document.hidden;
+import(new URL('./board-market.mjs?v=20261112',document.baseURI)).then(({mountBoardMarket})=>{
+  boardMarket=mountBoardMarket(boardActive);
+  renderMarketGrid();
+}).catch(()=>{marketModuleFailed=true;renderMarketGrid()});
+document.getElementById("refreshBoardQuotes").onclick=async event=>{
+  const button=event.currentTarget;
+  button.disabled=true;
+  try { await boardMarket?.refresh(true); } finally { button.disabled=false; }
+};
+setInterval(()=>boardMarket?.refresh(),15*60*1000);
+document.addEventListener("visibilitychange",()=>boardMarket?.refresh());
+
 function tvMount(hostId,src,cfg){
   const host=document.getElementById(hostId);if(!host)return;
   host.innerHTML="";
@@ -1789,14 +1820,28 @@ function renderMarketGrid(){
   if(!stocks.length){marketBody.innerHTML='<div class="market-empty">Watchlist 为空</div>';return}
   const cols=resolvedMarketCols(),rows=Math.ceil(stocks.length/cols);
   marketBody.style.gridTemplateColumns=`repeat(${cols},minmax(0,1fr))`;
-  marketBody.style.gridTemplateRows=`repeat(${rows},minmax(0,1fr))`;
-  stocks.forEach(x=>{
+  marketBody.style.gridTemplateRows=`repeat(${rows},minmax(56px,1fr))`;
+  const cells=stocks.map(stock=>{
     const cell=document.createElement("div");cell.className="market-cell";
-    const el=document.createElement("tv-single-ticker");el.setAttribute("symbol",x.symbol);
-    el.setAttribute("title",x.label||x.symbol.split(":").pop());
-    cell.appendChild(el);marketBody.appendChild(cell);
-    watchTicker(el,cell,x);
+    marketBody.appendChild(cell);
+    return {cell,stock};
   });
+  if(boardMarket||marketModuleFailed){
+    const custom=boardMarket ? boardMarket.setCards(cells) : cells;
+    if(custom.length&&!widgetRequested){
+      widgetRequested=true;
+      const script=document.createElement("script");
+      script.type="module";
+      script.src="https://widgets.tradingview-widget.com/w/en/tv-single-ticker.js";
+      document.head.append(script);
+    }
+    for(const {cell,stock} of custom){
+      const el=document.createElement("tv-single-ticker");
+      el.setAttribute("symbol",stock.symbol);
+      el.setAttribute("title",stock.label||stock.symbol);
+      cell.append(el);watchTicker(el,cell,stock);
+    }
+  }
   const cv=document.getElementById("colsValue");if(cv)cv.textContent=layout.cols?`${layout.cols} 列（必要时扩展）`:`自动 ${cols} 列`;
 }
 
@@ -1861,7 +1906,7 @@ async function loadFearGreed(force=false){
 }
 
 function renderTradingView(){
-  document.getElementById("watchCount").textContent=`${stocks.length} WATCHLIST`;
+  document.getElementById("watchCount").textContent=`${stocks.length} 个自选`;
   const theme=resolvedTheme;
   renderMarketGrid();
   tvMount("calendarHost","https://s3.tradingview.com/external-embedding/embed-widget-events.js",{
@@ -1992,7 +2037,7 @@ function switchInfo(mode){
 }
 renderPulse();loadNews();loadLive(true);setInterval(()=>{if(window.__NEXUS_ACTIVE__!==false)loadNews(true)},CONFIG.rssRefreshMinutes*60*1000);setInterval(()=>{if(window.__NEXUS_ACTIVE__!==false&&!document.hidden)loadLive(true)},CONFIG.liveRefreshSeconds*1000);
 document.addEventListener("visibilitychange",()=>{if(window.__NEXUS_ACTIVE__!==false&&!document.hidden)loadLive(true)});
-async function manualRefresh(){const btn=document.querySelector(".refresh");btn.textContent="⋯";try{const jobs=[loadNews(true),loadLive(true),loadFearGreed(true),loadWeather()];await Promise.allSettled(jobs)}finally{setTimeout(()=>btn.textContent="↻",400)}}
+async function manualRefresh(){const btn=document.querySelector(".refresh");btn.textContent="⋯";try{const jobs=[loadNews(true),loadLive(true),loadFearGreed(true),loadWeather(),boardMarket?.refresh(true)];await Promise.allSettled(jobs)}finally{setTimeout(()=>btn.textContent="↻",400)}}
 
 /* extra links */
 function normalizeExtraUrl(url){let u=String(url||"").trim();if(!u)return "";if(!/^https?:\/\//i.test(u))u="https://"+u;try{const x=new URL(u);return /^https?:$/.test(x.protocol)?x.href:""}catch(e){return ""}}
@@ -2208,6 +2253,7 @@ const DEFAULT_NAV_CONFIG=[
   {view:"todo",icon:"✎",label:"记录"},
   {view:"board",icon:"▦",label:"看板"},
   {view:"tsugi",icon:"📚",label:"追更"},
+  {view:"investment",icon:"↗",label:"投资工作台"},
   {view:"vps",icon:"▥",label:"VPS"},
   {view:"media-log",icon:"▤",label:"作品记录"},
   {view:"monitor",icon:"◴",label:"监控"},
@@ -2429,7 +2475,7 @@ function normalizedNavConfig(){
     const d=defaults.get(x?.view);if(!d||seen.has(x.view))return;
     seen.add(x.view);out.push({view:x.view,icon:String(x.icon||d.icon).slice(0,6),label:String(x.view==='todo'&&['Todo','To-do','PT Todo Dashboard','Idea Pad'].includes(x.label)?'记录':(x.view==='tools'&&x.label==='工具'?'工具箱':x.label)||d.label).slice(0,12)});
   });
-  const after={vps:"tsugi","media-log":"vps",monitor:"media-log"};
+  const after={investment:"tsugi",vps:"tsugi","media-log":"vps",monitor:"media-log"};
   DEFAULT_NAV_CONFIG.forEach(d=>{if(!seen.has(d.view)){const i=out.findIndex(x=>x.view===after[d.view]);out.splice(i<0?out.length:i+1,0,{...d});}});
   const layoutVersion=store.get("navLayoutVersion",0);
   // Migrate the default positions once while preserving later manual ordering.
@@ -2441,12 +2487,17 @@ function normalizedNavConfig(){
     const [mediaLog]=out.splice(out.findIndex(x=>x.view==="media-log"),1);
     out.splice(out.findIndex(x=>x.view==="vps")+1,0,mediaLog);
   }
+  if(layoutVersion<5||!seen.has("investment")){
+    const [investment]=out.splice(out.findIndex(x=>x.view==="investment"),1);
+    if(investment.label==="投资")investment.label="投资工作台";
+    out.splice(out.findIndex(x=>x.view==="tsugi")+1,0,investment);
+  }
   return out;
 }
-function nexusNavIcon(view){const paths={"home": "M3 10 12 3l9 7 M5 9v12h14V9 M9 21v-7h6v7", "todo": "M9 5h12v16H3V5h3 M8 3h8v4H8z M7 12l2 2 3-3 M14 12h4 M7 18h11", "board": "M4 20V4 M4 20h17 M8 16v-5 M13 16V7 M18 16v-8", "tsugi": "M3 4h7v17H3z M10 4h7v17h-7z M18 4l3 16 M5 8h3 M12 8h3", "media-log": "M4 4h16v16H4z M8 8h8 M8 12h8 M8 16h5", "monitor": "M3 3h18v18H3z M6 15h3l3-7 3 10 3-5", "vps": "M3 3h18v7H3z M3 14h18v7H3z M6 6h.1 M6 17h.1 M10 6h8 M10 17h8", "meal": "M5 3v6c0 2 6 2 6 0V3 M8 3v18 M19 3c-4 3-4 9 0 9 M19 3v18", "focus": "M12 3a9 9 0 1 0 9 9 M12 7a5 5 0 1 0 5 5 M12 12l8-8 M16 3h5v5", "settings": "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8 M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1z"};return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${paths[view]||paths.home}"/></svg>`}
+function nexusNavIcon(view){const paths={"home": "M3 10 12 3l9 7 M5 9v12h14V9 M9 21v-7h6v7", "todo": "M9 5h12v16H3V5h3 M8 3h8v4H8z M7 12l2 2 3-3 M14 12h4 M7 18h11", "board": "M4 20V4 M4 20h17 M8 16v-5 M13 16V7 M18 16v-8", "tsugi": "M3 4h7v17H3z M10 4h7v17h-7z M18 4l3 16 M5 8h3 M12 8h3", "investment": "M3 4v16h18 M6 15l5-5 4 3 6-7 M17 6h4v4", "media-log": "M4 4h16v16H4z M8 8h8 M8 12h8 M8 16h5", "monitor": "M3 3h18v18H3z M6 15h3l3-7 3 10 3-5", "vps": "M3 3h18v7H3z M3 14h18v7H3z M6 6h.1 M6 17h.1 M10 6h8 M10 17h8", "meal": "M5 3v6c0 2 6 2 6 0V3 M8 3v18 M19 3c-4 3-4 9 0 9 M19 3v18", "focus": "M12 3a9 9 0 1 0 9 9 M12 7a5 5 0 1 0 5 5 M12 12l8-8 M16 3h5v5", "settings": "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8 M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1z"};return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${paths[view]||paths.home}"/></svg>`}
 function applyNavConfig(){
   state.navConfig=normalizedNavConfig();
-  if(store.get("navLayoutVersion",0)<4&&store.set("navConfig",state.navConfig))store.set("navLayoutVersion",4);
+  if(store.get("navLayoutVersion",0)<5&&store.set("navConfig",state.navConfig))store.set("navLayoutVersion",5);
   const sidebar=document.querySelector('.sidebar .nav-items');
   if(!sidebar)return;
   const nodes=new Map($$('.navbtn[data-view]').map(b=>[b.dataset.view,b]));
@@ -2518,6 +2569,7 @@ function switchNexusView(view){
   const compactTitle=$('#compactViewTitle');if(compactTitle)compactTitle.textContent=(state.navConfig.find(x=>x.view===view)||DEFAULT_NAV_CONFIG.find(x=>x.view===view))?.label||'Daily Nexus';
   setDeskBoardActive(view==='board');
   if(view==='tsugi')ensureEmbeddedSite('tsugi');
+  if(view==='investment')ensureEmbeddedSite('investment');
   if(view==='meal')ensureEmbeddedSite('meal');
   if(view==='media-log')ensureEmbeddedSite('mediaLog');
   if(view==='todo')switchIdeaTab(store.get('ideaTab','projects'));
@@ -2740,7 +2792,7 @@ function ensureDeskBoard(){
     loading?.classList.add("hide");
     setTimeout(()=>{if(loading)loading.style.display="none"},220);
     try{
-      frame.contentWindow.postMessage({type:"nexus-visibility",active:true},"*");
+      frame.contentWindow.postMessage({type:"nexus-visibility",active:document.body.dataset.nexusView==="board"},"*");
       frame.contentWindow.postMessage({type:"nexus-theme",theme:document.documentElement.dataset.theme||"dark"},"*");
     }catch(_){}
   },{once:true});
@@ -3743,7 +3795,7 @@ function openModal(sel){$(sel).classList.add('open')}function closeModals(){$$('
 @media(max-width:760px){#ptu-home-link{bottom:calc(76px + env(safe-area-inset-bottom));width:23px;height:28px;border-radius:0 9px 9px 0;opacity:.2}#ptu-home-link i{flex-basis:23px;width:23px;height:28px;font-size:20px}}
 </style>
 <a id="ptu-home-link" href="../../" aria-label="返回 PT Universe"><i aria-hidden="true">‹</i><span>PT Universe</span></a>
-<script src="./decision-tabs.js?v=20261012-navigation3"></script>
+<script src="./decision-tabs.js?v=20261112-investment"></script>
 <script src="learning-focus.js?v=20261112-review"></script>
 <script src="../../pt-sync.js?v=20260827-1"></script>
 <script src="../../pt-bridge.js?v=20260827-1"></script>

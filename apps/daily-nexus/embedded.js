@@ -6,6 +6,7 @@
     const module = document.currentScript.dataset.module;
     root.dataset.embedded = 'nexus';
     root.dataset.nexusModule = module;
+    if (module === 'investment-desk') window.ptNexusActive = parent.document.body.dataset.nexusView === 'investment';
     function inheritTheme() {
       const theme = host.dataset.theme;
       if ((theme === 'dark' || theme === 'light') && root.dataset.theme !== theme) root.dataset.theme = theme;
