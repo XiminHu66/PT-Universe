@@ -17,3 +17,20 @@ assert.deepEqual(marketSessions(Date.parse('2026-11-26T18:05:00Z')), {open:false
 assert.deepEqual(marketSessions(Date.parse('2027-07-06T19:30:00Z')), {open:true, start:'2027-07-06', completed:'2027-07-02'});
 assert.equal(reviewWindow('2028-12-29T21:00:00Z', Date.parse('2028-12-29T22:00:00Z')), null);
 console.log('Trading date tests passed: holidays, early close, Eastern time, stale quotes, unpublished calendar');
+
+const {investmentRefreshSlot} = await import('../../apps/investment-desk/sessions.mjs');
+const {batchQuote, mergeMarketItem} = await import('../../apps/investment-desk/refresh.mjs');
+assert.equal(investmentRefreshSlot(Date.parse('2026-11-12T15:59:59Z')), null);
+assert.equal(investmentRefreshSlot(Date.parse('2026-11-12T16:00:00Z')), '2026-11-12');
+assert.equal(investmentRefreshSlot(Date.parse('2026-07-13T15:00:00Z')), '2026-07-13');
+assert.equal(investmentRefreshSlot(Date.parse('2026-11-26T17:00:00Z')), null);
+assert.equal(investmentRefreshSlot(Date.parse('2026-11-28T17:00:00Z')), null);
+const live = batchQuote({symbol:'QQQ',price:105,lastTradeAt:'2026-11-12T20:00:00Z',history:[{d:'2026-11-11',c:100},{d:'2026-11-12',c:104}]}, 'QQQ');
+assert.equal(live.previousClose, 100);
+assert.ok(Math.abs(live.changePct - 5) < 0.001);
+const merged = mergeMarketItem(live,{price:102,changePct:2,lastTradeAt:'2026-11-12T18:00:00Z',news:[{title:'Latest headline'}]});
+assert.equal(merged.price, 105);
+assert.equal(merged.changePct, live.changePct);
+assert.equal(merged.news.length, 1);
+assert.equal(merged.history.length, 2);
+console.log('Batch quotes passed: market date/DST, previous close, and older details preserving newer price');

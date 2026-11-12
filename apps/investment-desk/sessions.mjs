@@ -52,6 +52,12 @@ export function marketSessions(now = Date.now()) {
   };
 }
 
+export function investmentRefreshSlot(now = Date.now()) {
+  const clock = marketClock(now);
+  // 11:00 ET is 08:00 Pacific year-round. Use the equities calendar for both holidays and early closes.
+  return clock && close(clock.date) > 0 && clock.minutes >= 660 ? clock.date : null;
+}
+
 export function reviewWindow(quoteAt, now = Date.now()) {
   const market = marketSessions(now);
   const quote = marketClock(quoteAt);

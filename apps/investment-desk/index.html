@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../stock-alert/styles.css?v=20261112">
   <link rel="stylesheet" href="../_decision/ui.css?v=2">
   <link rel="stylesheet" href="../_decision/workspace.css?v=1">
-  <link rel="stylesheet" href="./desk.css?v=5">
+  <link rel="stylesheet" href="./desk.css?v=6">
   <link rel="stylesheet" href="../../pt-bridge.css">
 </head>
 <body data-workspace="investment">
@@ -61,9 +61,11 @@
         <div class="investment-feed">
           <span id="marketBadge" class="market-badge"><i></i>检查市场</span>
           <span id="updatedAt" class="updated-at" role="status">等待行情</span>
+          <span id="batchRefreshStatus" class="batch-refresh-status" role="status"></span>
           <div class="top-actions">
             <button id="notifyButton" type="button" title="启用价格提醒">价格提醒</button>
             <button id="refreshButton" type="button">刷新标的</button>
+            <button id="refreshAllButton" type="button" title="持仓与自选。交易日美西 08:00 自动核对，打开页面后可补刷。">刷新全部</button>
           </div>
         </div>
       </div>
@@ -241,9 +243,9 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <script type="module" src="../_decision/workspace.js?v=20261112"></script>
-<script type="module" src="../stock-alert/app.js?v=20261112-focus"></script>
+<script type="module" src="../stock-alert/app.js?v=20261112-batch"></script>
 <script type="module" src="./kronos.js?v=3"></script>
-<script type="module" src="./portfolio.js?v=20261112-plan"></script>
+<script type="module" src="./portfolio.js?v=20261112-batch"></script>
 <script type="module" src="./audit.js?v=20261112"></script>
 <script src="../../pt-sync.js"></script>
 <script src="../../pt-bridge.js"></script>

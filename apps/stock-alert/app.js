@@ -1,14 +1,7 @@
 import {API, refreshData} from '../_shared/on-demand.mjs';
 import {portfolioDecision} from '../_decision/portfolio.mjs';
 import {marketSessions, reviewWindow, showWindow} from '../investment-desk/sessions.mjs';
-const DEFAULT_WATCHLIST = [
-  ["^GSPC", "SPX", "S&P 500"], ["QQQ", "QQQ", "Nasdaq 100 ETF"],
-  ["AAPL", "AAPL", "Apple"], ["SMH", "SMH", "VanEck Semiconductor ETF"],
-  ["NVDA", "NVDA", "NVIDIA"], ["BTC-USD", "BTCUSD", "Bitcoin / USD"],
-  ["INTC", "INTC", "Intel"], ["UNH", "UNH", "UnitedHealth"],
-  ["HOOD", "HOOD", "Robinhood"], ["NOW", "NOW", "ServiceNow"],
-  ["VST", "VST", "Vistra"], ["MRVL", "MRVL", "Marvell Technology"]
-].map(([symbol, display, name]) => ({ symbol, display, name }));
+import {DEFAULT_WATCHLIST, mergeMarketItem} from '../investment-desk/refresh.mjs';
 
 const KEYS = {
   watchlist: "stock_alert_watchlist_v1",
@@ -131,10 +124,7 @@ async function refreshStock(symbol=state.selected,force=false,feedback=false){
   try{
    const result=await refreshData('stock',{symbol,force});const item=result.data;
    if(item.symbol!==symbol||!item.history?.length||item.price==null)throw Error('行情数据无效');
-   const previous=dataFor(symbol),updated={...previous,...item};
-   if(Date.parse(previous?.lastTradeAt)>Date.parse(item.lastTradeAt||0)){
-     for(const key of ['price','lastTradeAt','previousClose','change','changePct'])updated[key]=previous[key];
-   }
+   const updated = mergeMarketItem(dataFor(symbol), item);
    state.data.symbols[symbol]=updated;
    if(integrated)dispatchEvent(new CustomEvent('investment-market-item',{detail:{symbol,item:updated}}));
    const cached=readStorage('stock-demand-data',{});cached[symbol]=item;try{writeStorage('stock-demand-data',cached)}catch{}
@@ -165,7 +155,7 @@ function openMarket() {
   const symbol=state.selected;
   loadedMarket.then(()=>{
     if(symbol!==state.selected||marketPanel.hidden)return;
-    refreshStock(symbol);
+    if (Date.now() - Date.parse(dataFor(symbol)?.fetchedAt) >= 300000 || !dataFor(symbol)?.fetchedAt) refreshStock(symbol);
     refreshCompany(symbol);
   });
 }
@@ -752,11 +742,11 @@ addEventListener('pt-sync-applied',reloadRecords);
 function receivePortfolio(e){
   const {market,companies,errors,busy}=e.detail;
   for(const [symbol,q] of Object.entries(market?.symbols||{})){
-    const old=dataFor(symbol);
-    if(!old||Date.parse(q.lastTradeAt)>=Date.parse(old.lastTradeAt||0))state.data.symbols[symbol]={...old,...q};
+    state.data.symbols[symbol] = mergeMarketItem(dataFor(symbol), q);
   }
   if(companies)for(const c of companies){const old=state.companies.find(item=>item.ticker===c.ticker);if(!old||Date.parse(c.updatedAt)>=Date.parse(old.updatedAt))state.companies=[...state.companies.filter(item=>item.ticker!==c.ticker),c];}
   state.evidenceErrors={...state.evidenceErrors,...errors};state.evidenceBusy=!!busy;
+  updateMarketStatus();
   renderAll();
 }
 addEventListener('workspace-investment-data',receivePortfolio);

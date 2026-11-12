@@ -5,7 +5,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
  page.on('pageerror',e=>errors.push(e.message));
  const original=JSON.parse(fs.readFileSync('apps/stock-alert/data/market.json')).symbols.AAPL;
  const company=JSON.parse(fs.readFileSync('apps/thesis-lab/data/financials.json')).companies[0];
- const now=new Date('2026-11-23T17:00:00Z');
+ const now=new Date('2026-11-23T15:55:00Z');
  await page.clock.setFixedTime(now);
  const offset=now.valueOf()-Date.parse(original.history.at(-1).d);
  const quote=symbol=>({...original,symbol,name:'Fixture '+symbol,price:symbol==='AMD'?200:150,lastTradeAt:now.toISOString(),history:original.history.map(h=>({...h,d:new Date(Date.parse(h.d)+offset).toISOString().slice(0,10)})),sourceURL:'https://example.com/quotes/'+symbol});
