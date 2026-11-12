@@ -1,0 +1,37 @@
+html[data-embedded="nexus"] .ptb-root,
+html[data-nexus-module="media-log"] .top,
+html[data-nexus-module="pt-todo-dashboard"] .topbar :is(.home, h1, #theme-button),
+html[data-nexus-module="idea-pad"] .standalone-link,
+html[data-nexus-module="life-desk"] :is(.ws-top, .ws-hero),
+html[data-nexus-module="resource-center"] .topbar {
+  display: none !important;
+}
+
+html[data-nexus-module="life-desk"] {
+  --ws-bg: #f7f9fc;
+  --ws-card: #fff;
+  --ws-ink: #151821;
+  --ws-muted: #576274;
+  --ws-line: #dce0e9;
+  --ws-accent: #405cca;
+  --nexus-meal-soft: #ecf0ff;
+}
+html[data-nexus-module="life-desk"][data-theme="dark"] {
+  --ws-bg: #121722;
+  --ws-card: #1e232e;
+  --ws-ink: #f5f7fb;
+  --ws-muted: #aab3c4;
+  --ws-line: #343c50;
+  --ws-accent: #a9b6ff;
+  --nexus-meal-soft: #28324e;
+}
+html[data-nexus-module="life-desk"] .ws-shell { padding-top: 4px; }
+html[data-nexus-module="life-desk"] .d-root {
+  --d-bg: var(--ws-bg);
+  --d-card: var(--ws-card);
+  --d-ink: var(--ws-ink);
+  --d-muted: var(--ws-muted);
+  --d-line: var(--ws-line);
+  --d-accent: var(--ws-accent);
+  --d-soft: var(--nexus-meal-soft);
+}

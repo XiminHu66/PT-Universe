@@ -460,12 +460,13 @@
   </style>
   <link rel="stylesheet" href="home-tools.css?v=20261007-10">
   <link rel="stylesheet" href="../../pt-bridge.css?v=20260827-1">
-<link rel="stylesheet" href="boox-connector.css?v=20261021-1"><link rel="stylesheet" href="vps-tab.css?v=20261028-readable2"><script type="module" src="vps-tab.js?v=20261110-retired-tools"></script><link rel="stylesheet" href="streamline.css?v=20261110-ui"><link rel="stylesheet" href="monitor-tab.css?v=20261104-2"><script type="module" src="monitor-tab.js?v=20261110-release2"></script></head>
+<link rel="stylesheet" href="boox-connector.css?v=20261021-1"><link rel="stylesheet" href="vps-tab.css?v=20261028-readable2"><script type="module" src="vps-tab.js?v=20261110-retired-tools"></script><link rel="stylesheet" href="streamline.css?v=20261112-review"><link rel="stylesheet" href="monitor-tab.css?v=20261104-2"><script type="module" src="monitor-tab.js?v=20261110-release2"></script></head>
 <body data-nexus-view="home">
 <div id="themeBg"></div><div class="bgShade"></div>
 <div class="app">
   <nav class="sidebar glass" aria-label="Daily Nexus 主导航">
     <div class="logo" id="appLogo">DN</div>
+    <div class="nav-items">
     <button class="navbtn active" data-view="home" aria-current="page"><div><div class="navicon">⌂</div><span>今日</span></div></button>
     <button class="navbtn" data-view="todo"><div><div class="navicon">✎</div><span>记录</span></div></button>
     <button class="navbtn" data-view="board"><div><div class="navicon">▦</div><span>看板</span></div></button>
@@ -476,7 +477,7 @@
     <button class="navbtn" data-view="meal"><div><div class="navicon">🍜</div><span>吃什么</span></div></button>
     <button class="navbtn" data-view="focus"><div><div class="navicon">◎</div><span>专注</span></div></button>
     <button class="navbtn" data-view="settings"><div><div class="navicon">⚙</div><span>设置</span></div></button>
-    <div class="spacer"></div><button class="navbtn themeSide" id="themeBtn"><div><div class="navicon">◐</div><span>主题</span></div></button>
+    </div>
   </nav>
   <main class="shell">
     <header class="topbar glass"><div id="compactViewTitle" class="compact-view-title">Daily Nexus</div>
@@ -503,8 +504,8 @@
         <div class="header-forecast" id="weatherDays"></div>
       </div>
       <div class="header-actions">
-        <button class="iconbtn calendar-quick" id="openCalendarQuick" title="打开日历">▦</button>
-        <button class="iconbtn" id="quickTheme" title="切换主题">◐</button>
+        <button class="iconbtn calendar-quick" id="openCalendarQuick" aria-label="打开日历">▦</button>
+        <button class="iconbtn" id="quickTheme" aria-label="切换主题">◐</button>
       </div>
     </header>
 
@@ -512,7 +513,7 @@
 
       <div class="home-top-left" aria-label="日历与接下来">
       <article class="card glass homecalendar">
-        <div class="cardhead"><h2><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v14H4z M8 4v4 M16 4v4 M4 10h16"/></svg>日历</h2><span class="sub">点击日期打开清单</span></div>
+        <div class="cardhead"><h2><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v14H4z M8 4v4 M16 4v4 M4 10h16"/></svg>日历</h2><span class="sub">点击日期查看活动与清单</span></div>
         <div class="home-cal-body">
           <div class="home-cal-month">
             <div class="home-calendar-head"><button id="miniCalPrev" aria-label="上个月">‹</button><b id="miniCalTitle">----</b><button id="miniCalNext" aria-label="下个月">›</button></div>
@@ -522,7 +523,7 @@
           <div class="home-today-panel">
             <div class="home-today-head"><b>今天</b><span id="homeCalSummary">暂无清单</span></div>
             <div class="home-today-list" id="homeTodayList"></div>
-            <div class="home-today-add"><input id="homeTodayInput" placeholder="快速添加到今天…"><button id="homeTodayAdd" title="添加">＋</button></div>
+            <div class="home-today-add"><input id="homeTodayInput" aria-label="新今日清单事项" placeholder="快速添加到今天…"><button id="homeTodayAdd" aria-label="添加今日清单事项">＋</button></div>
             <div class="home-today-head" style="margin:6px 0 0"><button id="homeCalOpenToday">打开完整清单 ›</button></div>
           </div>
         </div>
@@ -532,12 +533,13 @@
           <h2><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15 M13 6l6 6-6 6"/></svg>接下来</h2>
           <span class="sub"><button class="pillbtn" id="openUpcoming">全部日程</button></span>
         </div>
-        <div class="upcoming-toolbar">
+        <div class="upcoming-toolbar" role="group" aria-label="活动分类">
           <button class="upcoming-filter active" data-upfilter="all" data-up-label="全部">全部</button>
           <button class="upcoming-filter" data-upfilter="local" data-up-label="本地">本地</button>
           <button class="upcoming-filter" data-upfilter="event" data-up-label="游戏">游戏</button><button class="upcoming-filter" data-upfilter="tech" data-up-label="科技">科技</button>
           <button class="upcoming-filter" data-upfilter="pinned" data-up-label="★">★</button>
         </div>
+        <p class="upcoming-preview" id="upcomingPreview" role="status"></p>
         <div class="upcoming-home-list" id="upcomingHomeList">
           <div class="upcoming-empty">正在读取 Seattle / Eastside 活动与官方展会…</div>
         </div>
@@ -583,9 +585,9 @@
       <nav class="idea-subnav" role="tablist" aria-label="Idea Pad 子板块"><button id="idea-project-tab" role="tab" aria-controls="idea-project-pane" aria-selected="true" data-idea-tab="projects">项目管理</button><button id="idea-notes-tab" role="tab" aria-controls="idea-notes-pane" aria-selected="false" data-idea-tab="notes">随手记</button></nav>
       <div class="embed-frame-wrap idea-pane" id="idea-project-pane" role="tabpanel" aria-labelledby="idea-project-tab">
         <div class="embed-loading" id="todoLoading"><div><b>项目管理</b><span>正在读取项目与待办…</span></div></div>
-        <iframe class="embed-frame" id="todoFrame" title="Idea Pad · 项目管理" loading="lazy" data-src="../pt-todo-dashboard/?embedded=nexus" allow="clipboard-write"></iframe>
+        <iframe class="embed-frame" id="todoFrame" title="Idea Pad · 项目管理" loading="lazy" data-src="../pt-todo-dashboard/?embedded=nexus&v=20261112-review" allow="clipboard-write"></iframe>
       </div>
-      <div class="embed-frame-wrap idea-pane" id="idea-notes-pane" role="tabpanel" aria-labelledby="idea-notes-tab" hidden><div class="embed-loading" id="notesLoading"><div><b>随手记</b><span>正在读取页面与笔记…</span></div></div><iframe class="embed-frame" id="notesFrame" title="Idea Pad · 随手记" loading="lazy" data-src="../idea-pad/?embedded=nexus" allow="clipboard-write"></iframe></div>
+      <div class="embed-frame-wrap idea-pane" id="idea-notes-pane" role="tabpanel" aria-labelledby="idea-notes-tab" hidden><div class="embed-loading" id="notesLoading"><div><b>随手记</b><span>正在读取页面与笔记…</span></div></div><iframe class="embed-frame" id="notesFrame" title="Idea Pad · 随手记" loading="lazy" data-src="../idea-pad/?embedded=nexus&v=20261112-review" allow="clipboard-write"></iframe></div>
     </section>
 
     <section class="view" id="view-board">
@@ -616,7 +618,7 @@
       <div class="embed-frame-wrap">
         <div class="embed-loading" id="mediaLogLoading" role="status"><div><b>作品记录</b><span>正在读取作品和进度…</span></div></div>
         <iframe class="embed-frame" id="mediaLogFrame" title="作品记录" loading="lazy"
-          data-src="../media-log/?embedded=nexus" referrerpolicy="no-referrer"></iframe>
+          data-src="../media-log/?embedded=nexus&v=20261112-review" referrerpolicy="no-referrer"></iframe>
       </div>
     </section>
 
@@ -628,9 +630,9 @@
         <iframe
           class="embed-frame"
           id="mealFrame"
-          title="周末与吃饭"
+          title="吃什么"
           loading="lazy"
-          data-src="../life-desk/?tab=dinner&embedded=nexus&v=20260930-meal-inputs3"
+          data-src="../life-desk/?tab=dinner&embedded=nexus&v=20261112-review"
           referrerpolicy="strict-origin-when-cross-origin"></iframe>
       </div>
     </section>
@@ -638,17 +640,33 @@
     <section class="view" id="view-focus"><div class="workspace">
       <article class="bigcard glass focus-main">
         <div class="section-title"><h2>专注时钟</h2><p id="focusModeLabel">25 分钟工作</p></div>
-        <div class="focus-target"><select class="field" id="focusTaskSelect"><option value="">自由专注</option></select><input class="field" id="focusCustomTask" placeholder="或者输入当前要做的事…"></div>
-        <div class="focus-resume"><button class="pillbtn" id="focusResumeLesson">继续学习 ↗</button><span>从上次章节接着学</span></div>
-        <details class="focus-fold"><summary>选择课程与章节</summary>        <div class="focus-learning"><div class="focus-learning-head"><b>课程专注</b><div class="focus-learning-actions"><a class="pillbtn" id="focusLearningHome" href="../self-learning/" target="_blank" rel="noopener">Self Learning 主页 ↗</a></div></div><div class="focus-learning-select"><select class="field" id="focusCourse" aria-label="专注课程"><option>载入课程…</option></select><select class="field" id="focusLesson" aria-label="专注章节"><option>选择章节</option></select><button class="pillbtn" id="focusOpenLesson" disabled>打开章节 ↗</button></div><p id="focusLearningStatus" role="status"></p></div></details>
+        <label class="focus-target" for="focusTaskSelect">
+          <span>本轮做什么</span>
+          <select class="field" id="focusTaskSelect"><option value="">自由专注</option></select>
+        </label>
         <div class="focusclock" id="focusClock">25:00</div><div class="focus-progress"><i id="focusProgressBar"></i></div>
         <div class="focusactions"><button class="save" id="focusToggle">开始</button><button class="pillbtn" id="focusReset">重置</button><button class="pillbtn" id="focusBreak">休息 5m</button></div>
         <div class="preset-row"><button data-min="15">15m</button><button data-min="25">25m</button><button data-min="45">45m</button><button data-min="60">60m</button><button data-min="90">90m</button></div>
+        <div id="focusCustomPanel" class="focus-target-details" hidden>
+          <input class="field" id="focusCustomTask" aria-label="自定义专注任务" placeholder="输入本轮任务" required>
+        </div>
+        <div id="focusLearningPanel" class="focus-learning focus-target-details" hidden>
+          <div class="focus-learning-actions">
+            <button class="pillbtn" id="focusResumeLesson">继续上次章节 ↗</button>
+            <a class="pillbtn" id="focusLearningHome" href="../self-learning/" target="_blank" rel="noopener">Self Learning 主页 ↗</a>
+          </div>
+          <div class="focus-learning-select">
+            <select class="field" id="focusCourse" aria-label="专注课程"><option>载入课程…</option></select>
+            <select class="field" id="focusLesson" aria-label="专注章节"><option>选择章节</option></select>
+            <button class="pillbtn" id="focusOpenLesson" disabled>打开章节 ↗</button>
+          </div>
+          <p id="focusLearningStatus" role="status"></p>
+        </div>
         <div class="focus-stats"><div class="focus-stat"><span>今日完成</span><b id="focusToday">0</b></div><div class="focus-stat"><span>今日分钟</span><b id="focusMinutes">0</b></div><div class="focus-stat"><span>连续完成</span><b id="focusStreak">0</b></div></div>
       </article>
       <div class="focus-extras">
         <details class="focus-fold glass"><summary>本轮笔记</summary><div class="focus-fold-body"><textarea id="focusNote" aria-label="本轮专注笔记" placeholder="写下这一轮要做的事，或临时想到的事情…"></textarea></div></details>
-        <details class="focus-fold glass"><summary>环境声</summary><div class="focus-fold-body"><p class="hint">浏览器本地生成</p><div class="noise-row"><button data-noise="off" class="active">关闭</button><button data-noise="white">白噪声</button><button data-noise="pink">粉红噪声</button><button data-noise="brown">棕噪声</button><button data-noise="rain">雨声</button><button data-noise="fan">风扇</button><button data-noise="ocean">海浪</button></div></div></details>
+        <details class="focus-fold glass"><summary>环境声</summary><div class="focus-fold-body"><p class="hint">浏览器本地生成</p><div class="noise-row"><button data-noise="off" class="active" aria-pressed="true">关闭</button><button data-noise="white">白噪声</button><button data-noise="pink">粉红噪声</button><button data-noise="brown">棕噪声</button><button data-noise="rain">雨声</button><button data-noise="fan">风扇</button><button data-noise="ocean">海浪</button></div></div></details>
         <details class="focus-fold glass"><summary>最近完成</summary><div class="focus-fold-body"><div class="session-log" id="sessionLog"></div></div></details>
       </div>
     </div></section>
@@ -666,7 +684,7 @@
     </nav>
     <div class="monitor-frame-wrap">
       <p id="monitorLoading" role="status">正在读取资源监控…</p>
-      <iframe id="monitorFrame" class="embed-frame" title="资源监控 · 速览" data-src="../resource-center/?embedded=nexus" referrerpolicy="no-referrer"></iframe>
+      <iframe id="monitorFrame" class="embed-frame" title="资源监控 · 速览" data-src="../resource-center/?embedded=nexus&v=20261112-review" referrerpolicy="no-referrer"></iframe>
     </div>
   </div>
 </section>
@@ -749,8 +767,8 @@
 <div class="sliderrow"><span>透明度</span><input id="bgOpacity" type="range" min="0" max="80" value="28"><output id="bgOpacityOut">28%</output></div><div class="sliderrow"><span>模糊</span><input id="bgBlur" type="range" min="0" max="20" value="0"><output id="bgBlurOut">0px</output></div><div class="sliderrow"><span>水平位置</span><input id="bgX" type="range" min="0" max="100" value="50"><output id="bgXOut">50%</output></div><div class="sliderrow"><span>垂直位置</span><input id="bgY" type="range" min="0" max="100" value="50"><output id="bgYOut">50%</output></div><div class="sliderrow"><span>缩放</span><input id="bgZoom" type="range" min="40" max="200" value="100"><output id="bgZoomOut">100%</output></div><button class="save" id="saveBg">保存主题图设置</button> <button class="pillbtn" id="toggleBg">暂时关闭</button> <button class="pillbtn" id="resetBg">移除图片</button><p class="hint">图片只保存在当前浏览器。填充/完整显示时缩放用于进一步放大画面；平铺模式下用于调整单个图案块大小。上传时会缩到约 1920px 以内，避免 localStorage 过大。</p></div></div></details><details class="settings-group"><summary><b>内容</b><span>天气与首页发现</span></summary><div class="settings-grid"><div class="formbox">
           <h3 style="margin-top:0;font-size:14px">全局天气 / AQI</h3>
           <div class="formrow">
-            <div><label>城市 / 地区</label><input class="field" id="cityInput" value="Seattle" placeholder="Seattle / Bellevue / Tokyo"></div>
-            <div><label>温度单位</label><select class="field" id="weatherUnit"><option value="F">°F · 华氏</option><option value="C">°C · 摄氏</option></select></div>
+            <div><label for="cityInput">城市 / 地区</label><input class="field" id="cityInput" value="Seattle" placeholder="Seattle / Bellevue / Tokyo"></div>
+            <div><label for="weatherUnit">温度单位</label><select class="field" id="weatherUnit"><option value="F">°F · 华氏</option><option value="C">°C · 摄氏</option></select></div>
           </div>
           <button class="save" id="saveCity">保存并刷新</button>
           <button class="pillbtn" id="geoBtn">使用并保存当前位置</button>
@@ -826,36 +844,40 @@
       </article>
     </div></dialog>
 <div class="modal" id="calendarModal"><div class="modalcard glass" style="width:min(860px,96vw)">
-  <div class="modaltop"><h3>日历 · 日期清单</h3><button class="iconbtn closeModal">×</button></div>
+  <div class="modaltop"><h3>日历</h3><button class="iconbtn closeModal" aria-label="关闭日历">×</button></div>
   <div class="calendar-modal-layout">
     <section class="calendar-panel">
-      <div class="calendar-month-head"><button id="calendarPrev">‹</button><b id="calendarMonthTitle">----</b><button id="calendarNext">›</button></div>
+      <div class="calendar-month-head"><button id="calendarPrev" aria-label="上个月">‹</button><b id="calendarMonthTitle">----</b><button id="calendarNext" aria-label="下个月">›</button></div>
       <div class="calendar-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
       <div class="calendar-grid" id="calendarGrid"></div>
     </section>
     <section class="day-checklist">
       <h4 id="calendarSelectedTitle">今天</h4>
+      <h5 class="calendar-section-title">活动</h5>
+      <ul id="calendarEventList" class="calendar-event-list"></ul>
+      <h5 class="calendar-section-title">个人清单</h5>
       <div class="day-sub" id="calendarSelectedSub">点击左侧日期切换</div>
-      <div class="calendar-add"><input class="field" id="calendarTaskInput" placeholder="为这一天添加清单…"><button class="save" id="calendarTaskAdd">＋</button></div>
+      <div class="calendar-add"><input class="field" id="calendarTaskInput" aria-label="新清单事项" placeholder="为这一天添加清单…"><button class="save" id="calendarTaskAdd" aria-label="添加清单事项">＋</button></div>
       <div class="calendar-task-list" id="calendarTaskList"></div>
     </section>
   </div>
 </div></div>
 <div class="modal" id="upcomingModal">
   <div class="modalcard glass" style="width:min(930px,96vw)">
-    <div class="modaltop"><h3>接下来 · 本地 / 游戏 / 科技</h3><button class="iconbtn closeModal">×</button></div>
+    <div class="modaltop"><h3>全部日程</h3><button class="iconbtn closeModal" aria-label="关闭全部日程">×</button></div>
     <div class="upcoming-modal-top">
       <button class="upcoming-filter active" data-upmodalfilter="all">全部</button>
       <button class="upcoming-filter" data-upmodalfilter="local">📍 本地活动</button>
       <button class="upcoming-filter" data-upmodalfilter="event">🎮 游戏展会 / 发布会</button><button class="upcoming-filter" data-upmodalfilter="tech">💻 科技展会</button>
       <button class="upcoming-filter" data-upmodalfilter="pinned">★ 已关注</button>
       <span class="spacer"></span>
-      <label style="margin:0">范围</label>
+      <label for="upcomingHorizon" style="margin:0">范围</label>
       <select class="field" id="upcomingHorizon">
+        <option value="overview">默认范围</option>
         <option value="7">7 天</option>
         <option value="14">14 天</option>
         <option value="30">30 天</option>
-        <option value="45" selected>45 天</option>
+        <option value="45">45 天</option>
         <option value="90">90 天</option>
         <option value="180">180 天</option><option value="365">365 天</option>
       </select>
@@ -1003,6 +1025,11 @@ button{cursor:pointer}
 .market-body{flex:1;display:grid;gap:1px;background:var(--line);min-height:0;overflow:hidden}
 .market-cell{background:color-mix(in srgb,var(--panel) var(--glass-alpha),transparent);min-width:0;min-height:0;position:relative;overflow:hidden;--tv-widget-background-color:transparent;--tv-widget-positive-color:#18b77a;--tv-widget-negative-color:#f0445e}
 .market-cell tv-single-ticker{display:block;width:100%;height:100%;min-width:0;min-height:0}
+.market-edit{border:1px solid var(--line);background:transparent;border-radius:8px;padding:4px 7px;color:var(--text)}
+.market-cell tv-single-ticker[hidden]{display:none}
+.market-fallback{height:100%;display:flex;align-items:center;align-content:center;gap:3px 8px;flex-wrap:wrap;padding:4px 9px;font-size:11px}
+.market-fallback b,.market-fallback a{color:var(--text)}.market-fallback span{color:var(--muted)}
+.market-fallback a{text-decoration:underline;white-space:nowrap}
 .market-empty{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;background:color-mix(in srgb,var(--panel) var(--glass-alpha),transparent)}
 .news-head-left{display:flex;align-items:center;gap:11px;min-width:0}
 .switcher{display:flex;gap:4px;background:var(--panel2);padding:3px;border:1px solid var(--line);border-radius:10px}
@@ -1195,7 +1222,7 @@ button{cursor:pointer}
   <section class="card section market">
     <header class="section-head">
       <div class="section-title"><span class="pulse"></span>MARKET <span id="watchCount" class="section-sub"></span></div>
-      <div class="section-sub">⚙ 可编辑 Watchlist</div>
+      <button type="button" class="section-sub market-edit" id="editWatchlist">编辑自选列表</button>
     </header>
     <div id="marketBody" class="market-body"></div>
   </section>
@@ -1715,6 +1742,51 @@ function resolvedMarketCols(){
   const forced=Number(layout.cols)||0;if(forced>0)return Math.max(forced,Math.ceil(stocks.length/8));
   return Math.min(4,Math.max(1,Math.ceil(stocks.length/6)));
 }
+function watchTicker(widget,cell,stock){
+  let fallback;
+  function showFallback(message){
+    if(!cell.isConnected)return;
+    if(!fallback){
+      fallback=document.createElement("div");fallback.className="market-fallback";
+      const label=document.createElement("b");label.textContent=stock.label||stock.symbol;
+      const status=document.createElement("span");status.setAttribute("role","status");
+      const link=document.createElement("a");
+      link.href="https://www.tradingview.com/symbols/"+encodeURIComponent(stock.symbol.replace(":","-"))+"/";
+      link.target="_blank";link.rel="noopener";link.textContent="查看行情 ↗";
+      fallback.append(label,status,link);cell.appendChild(fallback);
+    }
+    fallback.querySelector("span").textContent=message;
+    widget.hidden=true;
+  }
+  const deadline=setTimeout(()=>{
+    if(!widget.shadowRoot?.querySelector("tv-error-boundary"))showFallback("行情组件暂不可用");
+  },8000);
+  customElements.whenDefined("tv-single-ticker").then(()=>{
+    if(!cell.isConnected)return;
+    const root=widget.shadowRoot;
+    if(!root)return;
+    let boundaryRoot;
+    const inspect=()=>{
+      const boundary=root.querySelector("tv-error-boundary");
+      if(!boundary)return;
+      clearTimeout(deadline);
+      if(boundary.shadowRoot&&boundary.shadowRoot!==boundaryRoot){
+        boundaryRoot=boundary.shadowRoot;
+        observer.observe(boundaryRoot,{subtree:true,childList:true,characterData:true});
+      }
+      if(!boundary.hasAttribute("has-error")){
+        if(fallback){fallback.remove();fallback=null;widget.hidden=false}
+        return;
+      }
+      const details=boundary.shadowRoot?.textContent||"";
+      const restricted=/only available on TradingView|permission denied/i.test(details);
+      showFallback(restricted?"此标的仅在 TradingView 提供":"报价暂不可用");
+    };
+    const observer=new MutationObserver(inspect);
+    observer.observe(root,{subtree:true,childList:true,attributes:true,attributeFilter:["has-error"]});
+    inspect();
+  });
+}
 function renderMarketGrid(){
   if(!marketBody)return;marketBody.innerHTML="";
   if(!stocks.length){marketBody.innerHTML='<div class="market-empty">Watchlist 为空</div>';return}
@@ -1726,6 +1798,7 @@ function renderMarketGrid(){
     const el=document.createElement("tv-single-ticker");el.setAttribute("symbol",x.symbol);
     el.setAttribute("title",x.label||x.symbol.split(":").pop());
     cell.appendChild(el);marketBody.appendChild(cell);
+    watchTicker(el,cell,x);
   });
   const cv=document.getElementById("colsValue");if(cv)cv.textContent=layout.cols?`${layout.cols} 列（必要时扩展）`:`自动 ${cols} 列`;
 }
@@ -1791,7 +1864,6 @@ async function loadFearGreed(force=false){
 }
 
 function renderTradingView(){
-  if(!stocks.length)stocks=clone(DEFAULT_STOCKS);
   document.getElementById("watchCount").textContent=`${stocks.length} WATCHLIST`;
   const theme=resolvedTheme;
   renderMarketGrid();
@@ -1952,6 +2024,9 @@ renderMoreLinks();
 function openSettings(){stockDraft=clone(stocks);feedDraft=clone(feeds);extraLinksDraft=clone(extraLinks);renderStockManager();renderRSSManager();if(stockSearchInput){stockSearchInput.value="";renderStockSearchResults([],"输入股票代码、公司名或关键词即可搜索。")}applyTheme(false);applyLayout(false);applyAppearance();settingsBackdrop.classList.add("show")}
 function closeSettings(){settingsBackdrop.classList.remove("show")}
 settingsBackdrop.addEventListener("click",e=>{if(e.target===settingsBackdrop)closeSettings()});
+document.getElementById("editWatchlist").onclick=()=>{
+  openSettings();showSettingsPane("stocks");stockSearchInput?.focus();
+};
 function showSettingsPane(name){document.querySelectorAll(".settings-tab").forEach(b=>b.classList.toggle("active",b.dataset.pane===name));document.querySelectorAll(".setting-pane").forEach(p=>p.classList.toggle("active",p.id===`pane-${name}`))}
 function move(arr,i,dir){const j=i+dir;if(j<0||j>=arr.length)return;[arr[i],arr[j]]=[arr[j],arr[i]]}
 function catOptions(selected){return[["finance","财经"],["world","时事"],["tech","科技"],["game","游戏"]].map(([v,t])=>`<option value="${v}" ${v===selected?"selected":""}>${t}</option>`).join("")}
@@ -2100,10 +2175,11 @@ async function importConfigFile(ev){
 </template>
 <!-- ===== END INTEGRATED DESKBOARD SOURCE ===== -->
 
-<script src="upcoming-policy.js?v=20261028-sources1"></script>
+<script src="upcoming-policy.js?v=20261112-review"></script>
 <script src="home-tools.js?v=20261007-2"></script>
 <script>
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const focusTaskSelect=$("#focusTaskSelect"),focusCustomTask=$("#focusCustomTask");
 const store={get(k,d){try{const v=localStorage.getItem("dn_"+k);return v===null?d:JSON.parse(v)}catch{return d}},set(k,v){try{localStorage.setItem("dn_"+k,JSON.stringify(v));return true}catch(e){console.warn(e);return false}}};
 const oldCountdown=store.get("countdown",null);
 const oldEventList=store.get("events",[]);
@@ -2154,7 +2230,7 @@ const state={
   tasks:store.get("tasks",[]),
   upcomingManual:migrateUpcomingManual(),
   upcomingPins:store.get("upcomingPins",[]),
-  upcomingHorizon:store.get("upcomingHorizon",180),
+  upcomingHorizon:store.get("upcomingHorizon","overview"),
   youtube:store.get("youtube",{name:"Nintendo",id:"UCGIY_O-8vW4rfX98KlMkvRg"}),
   bg:store.get("bg",{enabled:true,image:"",opacity:28,blur:0,x:50,y:50,zoom:100,mode:"cover"}),
   clockPhoto:store.get("clockPhoto",{enabled:true,image:"",opacity:88,x:50,y:50,zoom:100,mode:"cover"}),
@@ -2190,7 +2266,7 @@ function applyTheme(){
   }catch(_){}
   syncEmbeddedThemes(t);
 }function cycleTheme(){state.theme=state.theme==="auto"?"dark":state.theme==="dark"?"light":"auto";store.set("theme",state.theme);applyTheme()}
-$("#themeBtn").onclick=cycleTheme;$("#quickTheme").onclick=cycleTheme;matchMedia("(prefers-color-scheme: light)").addEventListener?.("change",()=>{if(state.theme==="auto")applyTheme()});
+$("#quickTheme").onclick=cycleTheme;matchMedia("(prefers-color-scheme: light)").addEventListener?.("change",()=>{if(state.theme==="auto")applyTheme()});
 function applyBg(){
   const b=state.bg||{},mode=b.mode||"cover",zoom=Number(b.zoom??100),el=$("#themeBg"),preview=$("#bgPreview"),image=b.image||"";
   el.style.backgroundImage=image?`url("${String(image).replace(/"/g,"%22")}")`:"none";
@@ -2266,18 +2342,24 @@ function dateFromYmd(s){
 }
 function cloneMonth(d){return new Date(d.getFullYear(),d.getMonth(),1,12)}
 let dailyNexusDayKey=ymdLocal(new Date()),miniCalCursor=cloneMonth(new Date()),calendarCursor=cloneMonth(new Date()),selectedCalendarDate=dailyNexusDayKey;
+let calendarEvents=[];
 function calendarItems(dateKey){return Array.isArray(state.calendar?.[dateKey])?state.calendar[dateKey]:[]}
 function saveCalendar(){store.set("calendar",state.calendar);renderMiniCalendar();renderCalendarMonth();renderFocusTasks()}
 function monthCells(cursor){
   const first=new Date(cursor.getFullYear(),cursor.getMonth(),1,12),start=new Date(first);start.setDate(first.getDate()-first.getDay());
   return Array.from({length:42},(_,i)=>{const d=new Date(start);d.setDate(start.getDate()+i);return d});
 }
+function calendarDayButton(key,d,classes,attribute){
+  const tasks=calendarItems(key).length,events=NexusUpcoming.onDay(calendarEvents,key).length;
+  const label=[key,events?events+' 项活动':'',tasks?tasks+' 项清单':''].filter(Boolean).join(' · ');
+  return `<button class="${classes} ${tasks?'has-items':''} ${events?'has-events':''}" ${attribute}="${key}" aria-label="${label}">${d.getDate()}</button>`;
+}
 function renderMiniCalendar(){
   $("#miniCalTitle").textContent=miniCalCursor.toLocaleDateString("zh-CN",{year:"numeric",month:"long"});
   const today=ymdLocal(new Date());
   $("#miniCalGrid").innerHTML=monthCells(miniCalCursor).map(d=>{
-    const key=ymdLocal(d),inside=d.getMonth()===miniCalCursor.getMonth(),has=calendarItems(key).length>0;
-    return `<button class="${inside?'in-month':''} ${key===today?'today':''} ${has?'has-items':''}" data-mini-date="${key}" title="${key}${has?' · 有清单':''}">${d.getDate()}</button>`
+    const key=ymdLocal(d),inside=d.getMonth()===miniCalCursor.getMonth();
+    return calendarDayButton(key,d,`${inside?'in-month':''} ${key===today?'today':''}`,"data-mini-date");
   }).join("");
   $$("[data-mini-date]").forEach(b=>b.onclick=()=>openCalendarDate(b.dataset.miniDate));
   renderHomeTodayList();
@@ -2304,7 +2386,7 @@ function handleDailyNexusDayRollover(){
   const previous=dailyNexusDayKey;dailyNexusDayKey=current;miniCalCursor=cloneMonth(new Date());
   if(selectedCalendarDate===previous)selectedCalendarDate=current;
   renderMiniCalendar();renderCalendarMonth();renderCalendarChecklist();
-  renderHomeCountdown();renderCountdown();renderUpcomingHome();renderUpcomingModal();
+  renderHomeCountdown();renderCountdown();renderUpcomingViews();
 }
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){updateClock();handleDailyNexusDayRollover()}});
 $("#homeTodayAdd").onclick=addHomeTodayTask;
@@ -2315,16 +2397,18 @@ function renderCalendarMonth(){
   $("#calendarMonthTitle").textContent=calendarCursor.toLocaleDateString("zh-CN",{year:"numeric",month:"long"});
   const today=ymdLocal(new Date());
   $("#calendarGrid").innerHTML=monthCells(calendarCursor).map(d=>{
-    const key=ymdLocal(d),inside=d.getMonth()===calendarCursor.getMonth(),has=calendarItems(key).length>0;
-    return `<button class="${inside?'':'out'} ${key===today?'today':''} ${key===selectedCalendarDate?'selected':''} ${has?'has-items':''}" data-cal-date="${key}">${d.getDate()}</button>`
+    const key=ymdLocal(d),inside=d.getMonth()===calendarCursor.getMonth();
+    return calendarDayButton(key,d,`${inside?'':'out'} ${key===today?'today':''} ${key===selectedCalendarDate?'selected':''}`,"data-cal-date");
   }).join("");
   $$("[data-cal-date]").forEach(b=>b.onclick=()=>{selectedCalendarDate=b.dataset.calDate;const d=dateFromYmd(selectedCalendarDate);calendarCursor=cloneMonth(d);renderCalendarMonth();renderCalendarChecklist()});
 }
 function renderCalendarChecklist(){
   const d=dateFromYmd(selectedCalendarDate),items=calendarItems(selectedCalendarDate);
   $("#calendarSelectedTitle").textContent=d.toLocaleDateString("zh-CN",{month:"long",day:"numeric",weekday:"long"});
+  const events=NexusUpcoming.onDay(calendarEvents,selectedCalendarDate);
+  $("#calendarEventList").innerHTML=events.map(x=>`<li>${upcomingLink(x,x.title)}<small>${escapeHtml(upDateTime(x))} · ${escapeHtml(x.source||upcomingCategoryLabel(x.category))}</small></li>`).join('')||'<li class="calendar-task-empty">这一天暂无活动。</li>';
   $("#calendarSelectedSub").textContent=items.length?`${items.filter(x=>x.done).length}/${items.length} 已完成 · 点击日期可切换`:"这一天还没有清单";
-  $("#calendarTaskList").innerHTML=items.length?items.map((x,i)=>`<div class="calendar-task ${x.done?'done':''}"><input type="checkbox" data-cal-toggle="${i}" ${x.done?'checked':''}><span>${escapeHtml(x.text)}</span><button data-cal-delete="${i}" title="删除">×</button></div>`).join(""):'<div class="calendar-task-empty">点击上方输入框，为这一天添加一个待办或标记。</div>';
+  $("#calendarTaskList").innerHTML=items.length?items.map((x,i)=>`<div class="calendar-task ${x.done?'done':''}"><input type="checkbox" data-cal-toggle="${i}" ${x.done?'checked':''}><span>${escapeHtml(x.text)}</span><button data-cal-delete="${i}" aria-label="删除清单事项：${escapeAttr(x.text)}">×</button></div>`).join(""):'<div class="calendar-task-empty">点击上方输入框，为这一天添加一个待办或标记。</div>';
   $$("[data-cal-toggle]").forEach(el=>el.onchange=()=>{const items=calendarItems(selectedCalendarDate);items[+el.dataset.calToggle].done=el.checked;state.calendar[selectedCalendarDate]=items;saveCalendar();renderCalendarChecklist()});
   $$("[data-cal-delete]").forEach(el=>el.onclick=()=>{const items=calendarItems(selectedCalendarDate);items.splice(+el.dataset.calDelete,1);if(items.length)state.calendar[selectedCalendarDate]=items;else delete state.calendar[selectedCalendarDate];saveCalendar();renderCalendarChecklist()});
 }
@@ -2369,14 +2453,14 @@ function nexusNavIcon(view){const paths={"home": "M3 10 12 3l9 7 M5 9v12h14V9 M9
 function applyNavConfig(){
   state.navConfig=normalizedNavConfig();
   if(store.get("navLayoutVersion",0)<4&&store.set("navConfig",state.navConfig))store.set("navLayoutVersion",4);
-  const sidebar=document.querySelector('.sidebar'),spacer=sidebar?.querySelector('.spacer');
-  if(!sidebar||!spacer)return;
+  const sidebar=document.querySelector('.sidebar .nav-items');
+  if(!sidebar)return;
   const nodes=new Map($$('.navbtn[data-view]').map(b=>[b.dataset.view,b]));
   state.navConfig.forEach(item=>{
     const btn=nodes.get(item.view);if(!btn)return;
     const icon=btn.querySelector('.navicon'),label=btn.querySelector('span');
     if(icon){const d=DEFAULT_NAV_CONFIG.find(x=>x.view===item.view);if(item.icon===d?.icon)icon.innerHTML=nexusNavIcon(item.view);else icon.textContent=item.icon;}if(label)label.textContent=item.label;
-    sidebar.insertBefore(btn,spacer);
+    sidebar.append(btn);
   });
   renderNavEditor();
 }
@@ -2678,38 +2762,28 @@ const embeddedSiteState=window.__embeddedSiteState||(window.__embeddedSiteState=
 function resolvedNexusTheme(){
   return document.documentElement.dataset.theme||((state.theme==="light"||state.theme==="dark")?state.theme:(matchMedia("(prefers-color-scheme: light)").matches?"light":"dark"));
 }
-function syncEmbeddedTheme(name,theme=resolvedNexusTheme()){
-  const frame=$("#"+name+"Frame"),st=window.__embeddedSiteState;if(!frame||!st?.[name])return;
+function syncTrackingTheme(theme=resolvedNexusTheme()){
+  if(!window.__embeddedSiteState?.tsugi)return;
+  const frame=$("#tsugiFrame");
   try{
-    const win=frame.contentWindow,doc=win.document;
+    const doc=frame.contentDocument;
     doc.documentElement.dataset.theme=theme;
-    if(name==="tsugi"){
-      win.localStorage.setItem("tsugi-theme",theme);
-      const ownBtn=doc.getElementById("themeBtn");if(ownBtn)ownBtn.style.display="none";
-    }else if(name==="meal"){
-      win.localStorage.setItem("theme",JSON.stringify(theme));
-      const ownBtn=doc.getElementById("themeBtn");if(ownBtn)ownBtn.style.display="none";
-      try{win.drawWheel?.()}catch(_){}
-    }
-    const meta=doc.querySelector('meta[name="theme-color"]');
-    if(meta)meta.setAttribute('content',theme==="dark"?'#0d0f14':'#eef2f7');
-  }catch(_){
-    // Local file testing is cross-origin; after GitHub Pages deployment both child apps share ximinhu66.github.io and this succeeds.
-  }
+    const ownBtn=doc.getElementById("themeBtn");if(ownBtn)ownBtn.style.display="none";
+    doc.querySelector('meta[name="theme-color"]')?.setAttribute('content',theme==="dark"?'#0d0f14':'#eef2f7');
+  }catch(_){}
 }
 function syncEmbeddedThemes(theme=resolvedNexusTheme()){
-  syncEmbeddedTheme('tsugi',theme);syncEmbeddedTheme('meal',theme);
-  syncEmbeddedTheme('todo',theme);syncEmbeddedTheme('notes',theme);syncEmbeddedTheme('mediaLog',theme);
+  syncTrackingTheme(theme);
   dispatchEvent(new CustomEvent('nexus-theme-change',{detail:{theme}}));
 }
 function ensureEmbeddedSite(name){
-  if(embeddedSiteState[name]){syncEmbeddedTheme(name);return}
+  if(embeddedSiteState[name])return;
   const frame=$("#"+name+"Frame"),loading=$("#"+name+"Loading");
   if(!frame)return;
   const src=frame.dataset.src;if(!src)return;
   embeddedSiteState[name]=true;
   frame.addEventListener("load",()=>{
-    syncEmbeddedTheme(name);
+    if(name==="tsugi")syncTrackingTheme();
     loading?.classList.add("hide");
     setTimeout(()=>{if(loading)loading.style.display="none"},220);
   });
@@ -2966,43 +3040,29 @@ function upcomingCategoryLabel(cat){
 }
 function upDateObj(x){const d=new Date(x?.date);return isNaN(d)?null:d}
 function upDayStart(d=new Date()){const x=new Date(d);x.setHours(0,0,0,0);return x}
-function upCalendarKey(itemOrDate){
-  const item=itemOrDate instanceof Date?{date:itemOrDate}:typeof itemOrDate==="object"&&itemOrDate!==null?itemOrDate:{date:itemOrDate};
-  if(item.dateKey&&/^\d{4}-\d{2}-\d{2}$/.test(item.dateKey))return item.dateKey;
-  const raw=String(item.date||"");
-  const m=raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if(m)return `${m[1]}-${m[2]}-${m[3]}`;
-  const d=upDateObj(item);return d?ymdLocal(d):"";
+function upBadge(item){
+  const n=NexusUpcoming.distance(item,ymdLocal(new Date()));
+  if(n<0)return"进行中";
+  if(n===0)return"今天";
+  if(n===1)return"明天";
+  return`${n} 天后`;
 }
-function upKeyToOrdinal(key){
-  const m=String(key).match(/^(\d{4})-(\d{2})-(\d{2})$/);if(!m)return NaN;
-  return Math.floor(Date.UTC(+m[1],+m[2]-1,+m[3])/86400000);
+function upMonthDay(key){
+  return dateFromYmd(key).toLocaleDateString("zh-CN",{month:"numeric",day:"numeric"});
 }
-function upDaysAway(itemOrDate){
-  const key=upCalendarKey(itemOrDate),today=ymdLocal(new Date());
-  const a=upKeyToOrdinal(key),b=upKeyToOrdinal(today);
-  return Number.isFinite(a)&&Number.isFinite(b)?a-b:999;
+function upDateTime(item){
+  const start=NexusUpcoming.day(item),end=NexusUpcoming.endDay(item),time=NexusUpcoming.time(item);
+  return [end!==start?`${upMonthDay(start)}–${upMonthDay(end)}`:upMonthDay(start),time].filter(Boolean).join(' · ');
 }
-function upBadge(itemOrDate,category){
-  const n=upDaysAway(itemOrDate);
-  if(n<0)return"PAST";
-  if(n===0)return"TODAY";
-  if(n===1)return"1D";
-  return`${n}D`;
-}
-function upMonthDay(date){
-  const d=new Date(date);return d.toLocaleDateString("zh-CN",{month:"numeric",day:"numeric"});
-}
-function upDateTime(date){
-  const d=new Date(date),day=d.toLocaleDateString("zh-CN",{month:"long",day:"numeric",weekday:"short"});
-  const hasTime=!(d.getHours()===12&&d.getMinutes()===0);
-  return hasTime?`${day} · ${d.toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"})}`:day;
+function upcomingLink(item,label){
+  const safe=/^https?:\/\//i.test(item.url||"");
+  return safe?`<a href="${escapeAttr(item.url)}" target="_blank" rel="noopener">${escapeHtml(label)}</a>`:`<span>${escapeHtml(label)}</span>`;
 }
 function isPinnedUpcoming(id){const aliases={"official:tga":"official:tga-2026","official:ces":"official:ces-2027"};return state.upcomingPins.includes(id)||state.upcomingPins.includes(aliases[id])}
 function setUpcomingPin(id,on){
   const set=new Set(state.upcomingPins);if(!on){set.delete(id);const aliases={"official:tga":"official:tga-2026","official:ces":"official:ces-2027"};set.delete(aliases[id]);}else set.add(id);
   state.upcomingPins=[...set];store.set("upcomingPins",state.upcomingPins);
-  renderUpcomingHome();renderUpcomingModal();
+  renderUpcomingViews();
 }
 function normalizeGameTitle(s){
   return String(s||"").toLowerCase()
@@ -3201,18 +3261,16 @@ function allUpcomingItems(){
   const map=new Map(),seen=new Set();
   [...upcomingOfficialDynamic,...upcomingLocal,...state.upcomingManual.filter(x=>x.category!=="game"&&x.category!=="music")].forEach(x=>{
     if(!x?.id||!x?.date||!upDateObj(x))return;
-    const key=x.manual?x.id:String(x.url||x.title).toLowerCase().replace(/\/$/,'')+'|'+upCalendarKey(x);
+    const key=x.manual?x.id:String(x.url||x.title).toLowerCase().replace(/\/$/,'')+'|'+NexusUpcoming.day(x);
     if(seen.has(key))return;seen.add(key);
     map.set(x.id,{...x,pinned:isPinnedUpcoming(x.id)});
   });
-  return [...map.values()].sort((a,b)=>new Date(a.date)-new Date(b.date)||(b.priority||0)-(a.priority||0));
+  return NexusUpcoming.sort([...map.values()]);
 }
-function upcomingWithin(days=14){
-  const todayKey=ymdLocal(new Date()),todayOrd=upKeyToOrdinal(todayKey),maxOrd=todayOrd+Number(days);
-  return allUpcomingItems().filter(x=>{
-    const ord=upKeyToOrdinal(upCalendarKey(x));
-    return Number.isFinite(ord)&&ord>=todayOrd&&ord<=maxOrd;
-  });
+function upcomingWithin(range){
+  const today=ymdLocal(new Date());
+  const items=allUpcomingItems();
+  return range==="overview"?NexusUpcoming.overview(items,today):NexusUpcoming.within(items,Number(range),today);
 }
 function filterUpcoming(items,mode){
   if(mode==="pinned")return items.filter(x=>x.pinned);
@@ -3221,53 +3279,64 @@ function filterUpcoming(items,mode){
   if(mode==="tech")return items.filter(x=>x.category==="tech");
   return items;
 }
-function smartHomeUpcoming(items){return NexusUpcoming.select(items,upcomingHomeFilter,ymdLocal(new Date()));}
+function renderUpcomingViews(){
+  calendarEvents=allUpcomingItems();
+  renderMiniCalendar();
+  if($("#calendarModal").classList.contains("open")){renderCalendarMonth();renderCalendarChecklist()}
+  renderUpcomingHome();
+  renderUpcomingModal();
+}
 function renderUpcomingHome(){
-  const horizonItems=NexusUpcoming.overview(allUpcomingItems(),ymdLocal(new Date())),items=smartHomeUpcoming(filterUpcoming(horizonItems,upcomingHomeFilter)),host=$("#upcomingHomeList");
-  if(!host)return;
+  const horizonItems=upcomingWithin(state.upcomingHorizon),matching=filterUpcoming(horizonItems,upcomingHomeFilter),items=NexusUpcoming.select(matching),host=$("#upcomingHomeList");
+  $("#upcomingPreview").textContent=`显示 ${items.length} / 共 ${matching.length}`;
   $$('[data-upfilter]').forEach(b=>{
     const count=filterUpcoming(horizonItems,b.dataset.upfilter).length;
-    b.textContent=`${b.dataset.upLabel||b.textContent.replace(/\s+\d+$/,'')} ${count}`;
+    b.textContent=`${b.dataset.upLabel} ${count}`;
+    b.setAttribute("aria-pressed",String(b.dataset.upfilter===upcomingHomeFilter));
+    if(b.dataset.upfilter==="pinned")b.setAttribute("aria-label",`已关注 ${count}`);
   });
   if(!items.length){
-    const empty={pinned:"还没有关注事件。点任意项目右侧的 ★ 即可关注。",local:"未来 45 天暂无合适的 Seattle / Eastside 活动；系统会自动更新。",event:"未来 180 天暂无已官宣日期的游戏活动。Nintendo Direct、State of Play、Xbox Showcase 官宣后再加入。",tech:"未来 180 天暂无已确认日期的科技展会。"}[upcomingHomeFilter]||"未来 45 天当前没有匹配项目。可手动添加，或稍后刷新自动发现。";
+    const empty=upcomingHomeFilter==="pinned"?"当前范围内暂无已关注的活动。":"当前范围内暂无匹配活动。";
     host.innerHTML=`<div class="upcoming-empty">${empty}</div>`;
   }else{
     host.innerHTML=items.map(x=>`
       <div class="upcoming-row ${x.pinned?"pinned":""}" data-up-id="${escapeAttr(x.id)}">
-        <div class="up-date"><b>${escapeHtml(upMonthDay(x.date))}</b><span>${escapeHtml(new Date(x.date).toLocaleDateString("zh-CN",{weekday:"short"}))}</span></div>
+        <div class="up-date"><b>${escapeHtml(upMonthDay(NexusUpcoming.day(x)))}</b><span>${escapeHtml(dateFromYmd(NexusUpcoming.day(x)).toLocaleDateString("zh-CN",{weekday:"short"}))}</span></div>
         <div class="up-main">
-          <div class="up-title">${escapeHtml(x.title)}</div>
+          <div class="up-title">${x.url?upcomingLink(x,x.title):`<button type="button" data-open-schedule>${escapeHtml(x.title)}</button>`}</div>
           <div class="up-meta"><span class="up-cat">${escapeHtml(upcomingCategoryLabel(x.category))}</span><span class="up-source">${escapeHtml(x.source||"Upcoming")}</span></div>
         </div>
         <span class="up-badge">${escapeHtml(upBadge(x,x.category))}</span>
-        <button class="up-pin ${x.pinned?"active":""}" data-up-pin="${escapeAttr(x.id)}" title="${x.pinned?"取消关注":"关注"}">${x.pinned?"★":"☆"}</button>
+        <button class="up-pin ${x.pinned?"active":""}" data-up-pin="${escapeAttr(x.id)}" aria-label="${x.pinned?"取消关注":"关注"}：${escapeAttr(x.title)}" aria-pressed="${x.pinned}">${x.pinned?"★":"☆"}</button>
       </div>`).join("");
-    $$("[data-up-id]").forEach(row=>row.onclick=e=>{
-      if(e.target.closest("[data-up-pin]"))return;
-      const x=allUpcomingItems().find(i=>i.id===row.dataset.upId);
-      if(x?.url)window.open(x.url,"_blank","noopener");else openUpcomingModal();
+    $$("[data-open-schedule]").forEach(b=>b.onclick=openUpcomingModal);
+    $$("[data-up-pin]").forEach(b=>b.onclick=()=>{
+      const id=b.dataset.upPin;
+      setUpcomingPin(id,!isPinnedUpcoming(id));
+      document.querySelector(`[data-up-pin="${CSS.escape(id)}"]`)?.focus();
     });
-    $$("[data-up-pin]").forEach(b=>b.onclick=e=>{e.stopPropagation();setUpcomingPin(b.dataset.upPin,!isPinnedUpcoming(b.dataset.upPin))});
   }
   $$("[data-upfilter]").forEach(b=>b.classList.toggle("active",b.dataset.upfilter===upcomingHomeFilter));
 }
 function renderUpcomingModal(){
   const host=$("#upcomingModalList");if(!host)return;
-  const horizon=Number($("#upcomingHorizon")?.value||state.upcomingHorizon||180);
-  const items=filterUpcoming(upcomingWithin(horizon),upcomingModalFilter);
+  const items=filterUpcoming(upcomingWithin(state.upcomingHorizon),upcomingModalFilter);
+  $$("[data-upmodalfilter]").forEach(b=>{
+    const active=b.dataset.upmodalfilter===upcomingModalFilter;
+    b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active));
+  });
   if(!items.length){host.innerHTML='<div class="upcoming-empty">这个范围内暂无匹配项目。</div>';return}
   host.innerHTML=items.map(x=>`
     <div class="upcoming-modal-item ${x.pinned?"pinned":""}">
-      <div class="up-date"><b>${escapeHtml(upMonthDay(x.date))}</b><span>${escapeHtml(upBadge(x,x.category))}</span></div>
+      <div class="up-date"><b>${escapeHtml(upMonthDay(NexusUpcoming.day(x)))}</b><span>${escapeHtml(upBadge(x,x.category))}</span></div>
       <div class="upcoming-modal-copy">
         <b>${escapeHtml(x.title)}</b>
-        <p>${escapeHtml(upcomingCategoryLabel(x.category))} · ${escapeHtml(upDateTime(x.date))} · ${escapeHtml(x.source||"Upcoming")}${x.publisher?` · ${escapeHtml(x.publisher)}`:""}</p>
+        <p>${escapeHtml(upcomingCategoryLabel(x.category))} · ${escapeHtml(upDateTime(x))} · ${escapeHtml(x.source||"Upcoming")}${x.publisher?` · ${escapeHtml(x.publisher)}`:""}</p>
       </div>
       <div class="upcoming-actions">
         <button data-modal-pin="${escapeAttr(x.id)}" class="${x.pinned?"starred":""}">${x.pinned?"★ 已关注":"☆ 关注"}</button>
         <button data-to-calendar="${escapeAttr(x.id)}">＋ 日历</button>
-        ${x.url?`<a href="${escapeAttr(x.url)}" target="_blank" rel="noopener">原文 ↗</a>`:""}
+        ${x.url?upcomingLink(x,"原文 ↗"):""}
         ${x.manual?`<button data-delete-up="${escapeAttr(x.id)}">删除</button>`:""}
       </div>
     </div>`).join("");
@@ -3275,12 +3344,12 @@ function renderUpcomingModal(){
   $$("[data-to-calendar]").forEach(b=>b.onclick=()=>addUpcomingToCalendar(b.dataset.toCalendar));
   $$("[data-delete-up]").forEach(b=>b.onclick=()=>{
     state.upcomingManual=state.upcomingManual.filter(x=>x.id!==b.dataset.deleteUp);
-    store.set("upcomingManual",state.upcomingManual);renderUpcomingHome();renderUpcomingModal();
+    store.set("upcomingManual",state.upcomingManual);renderUpcomingViews();
   });
 }
 function addUpcomingToCalendar(id){
   const x=allUpcomingItems().find(i=>i.id===id);if(!x)return;
-  const key=ymdLocal(new Date(x.date)),items=calendarItems(key);
+  const key=NexusUpcoming.day(x),items=calendarItems(key);
   if(!items.some(t=>t.sourceId===id)){
     items.push({id:crypto.randomUUID?.()||String(Date.now()),text:`${upcomingCategoryLabel(x.category)} ${x.title}`,done:false,sourceId:id});
     state.calendar[key]=items;saveCalendar();
@@ -3310,7 +3379,7 @@ async function loadUpcoming(force=false){
   const showStatus=()=>{
     const radar=NexusUpcoming.overview(allUpcomingItems(),ymdLocal(new Date()));
     setUpcomingStatus(radar.length?'ok':'bad',`自动更新 · 本地 ${filterUpcoming(radar,'local').length} / 游戏 ${filterUpcoming(radar,'event').length} / 科技 ${filterUpcoming(radar,'tech').length}`);
-    renderUpcomingHome();renderUpcomingModal();
+    renderUpcomingViews();
   };
   showStatus();
   if(!force&&cache&&Date.now()-cache.time<UPCOMING_CACHE_MS)return;
@@ -3329,18 +3398,18 @@ function defaultUpcomingLocal(){
   return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}T${z(d.getHours())}:${z(d.getMinutes())}`;
 }
 function openUpcomingModal(){
-  $("#upcomingHorizon").value=String(state.upcomingHorizon||180);
+  upcomingModalFilter=upcomingHomeFilter;
+  $("#upcomingHorizon").value=String(state.upcomingHorizon);
   $("#upcomingAddDate").value=$("#upcomingAddDate").value||defaultUpcomingLocal();
   renderUpcomingModal();openModal("#upcomingModal");
 }
 $$("[data-upfilter]").forEach(b=>b.onclick=()=>{upcomingHomeFilter=b.dataset.upfilter;renderUpcomingHome()});
 $$("[data-upmodalfilter]").forEach(b=>b.onclick=()=>{
   upcomingModalFilter=b.dataset.upmodalfilter;
-  $$("[data-upmodalfilter]").forEach(x=>x.classList.toggle("active",x.dataset.upmodalfilter===upcomingModalFilter));
   renderUpcomingModal();
 });
 $("#upcomingHorizon").onchange=e=>{
-  state.upcomingHorizon=Number(e.target.value)||45;store.set("upcomingHorizon",state.upcomingHorizon);renderUpcomingModal();
+  state.upcomingHorizon=e.target.value;store.set("upcomingHorizon",state.upcomingHorizon);renderUpcomingHome();renderUpcomingModal();
 };
 $("#openUpcoming").onclick=openUpcomingModal;
 $("#addUpcomingQuick").onclick=openUpcomingModal;
@@ -3350,12 +3419,12 @@ $("#saveUpcomingManual").onclick=()=>{
   const title=$("#upcomingAddName").value.trim(),date=$("#upcomingAddDate").value,category=$("#upcomingAddCategory").value,url=$("#upcomingAddUrl").value.trim();
   if(!title||!date)return;
   const id="manual:"+(crypto.randomUUID?.()||String(Date.now()));
-  state.upcomingManual.push({id,title,date:new Date(date).toISOString(),dateKey:String(date).slice(0,10),category,source:"手动关注",url:/^https?:\/\//i.test(url)?url:"",manual:true,priority:110});
+  state.upcomingManual.push({id,title,date:new Date(date).toISOString(),dateKey:date.slice(0,10),timeKey:date.slice(11,16),category,source:"手动关注",url:/^https?:\/\//i.test(url)?url:"",manual:true,priority:110});
   store.set("upcomingManual",state.upcomingManual);
   $("#upcomingAddName").value="";$("#upcomingAddUrl").value="";$("#upcomingAddDate").value=defaultUpcomingLocal();
-  setUpcomingPin(id,true);renderUpcomingHome();renderUpcomingModal();
+  setUpcomingPin(id,true);
 };
-renderUpcomingHome();loadUpcoming(false);
+renderUpcomingViews();loadUpcoming(false);
 setInterval(()=>{if(!document.hidden&&($('#view-home').classList.contains('active')||$('#upcomingModal').classList.contains('open')))loadUpcoming(false)},10*60*1000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadUpcoming(false)});
 
@@ -3406,33 +3475,81 @@ function renderVspoLive(items,unavailable=false){
 }
 function refreshDiscover(force=false){discoverIndex++;renderProductRanking();getGitHubRanking(force);getVspoRanking(force)}
 let discoverLoaded=false;
-$('#discoverPanel').open=store.get('discoverExpanded',false)===true;
-$('#discoverPanel').addEventListener('toggle',()=>{store.set('discoverExpanded',$('#discoverPanel').open);if($('#discoverPanel').open&&!discoverLoaded){discoverLoaded=true;refreshDiscover(false)}});
+const discoverPanel=$("#discoverPanel"),discoverSummary=discoverPanel.querySelector("summary");
+let revealDiscovery=false;
+discoverPanel.open=store.get('discoverExpanded',false)===true;
+discoverSummary.addEventListener('click',()=>{revealDiscovery=!discoverPanel.open});
+discoverPanel.addEventListener('toggle',()=>{
+  store.set('discoverExpanded',discoverPanel.open);
+  if(!discoverPanel.open)return;
+  if(!discoverLoaded){discoverLoaded=true;refreshDiscover(false)}
+  if(revealDiscovery){
+    revealDiscovery=false;
+    discoverPanel.querySelector('.discover-controls').scrollIntoView({block:'nearest',behavior:'instant'});
+  }
+});
 $("#refreshDiscover").onclick=()=>{discoverLoaded=true;refreshDiscover(true)};$("#refreshFeedsNow").onclick=()=>{discoverLoaded=true;refreshDiscover(true)};
 if($('#discoverPanel').open){discoverLoaded=true;refreshDiscover(false)}
 
 let focusSessionTask=null,focusSessionLearning=null;
-let focusMode='work',focusTotal=25*60,focusSecs=focusTotal,focusRunning=false,focusTimer=null,focusStart=null;$("#focusNote").value=state.focus.note||'';$("#focusNote").oninput=e=>{state.focus.note=e.target.value;store.set('focus',state.focus)};
+let focusMode='work',focusTotal=25*60,focusSecs=focusTotal,focusRunning=false,focusTimer=null;$("#focusNote").value=state.focus.note||'';$("#focusNote").oninput=e=>{state.focus.note=e.target.value;store.set('focus',state.focus)};
 function renderFocusTasks(){
-  const s=$("#focusTaskSelect"),cur=s?.value||'';if(!s)return;
-  const normal=state.tasks.filter(t=>!t.done).map(t=>({text:t.text,group:"今日备忘"}));
-  const dated=calendarItems(ymdLocal(new Date())).filter(t=>!t.done).map(t=>({text:t.text,group:"今日日历"}));
-  const learning=window.nexusLearningTask?[{text:window.nexusLearningTask.title,value:window.nexusLearningTask.value,group:'学习课程'}]:[];
-  const all=[...normal,...dated,...learning];
-  s.innerHTML='<option value="">自由专注</option>'+all.map(t=>`<option value="${escapeAttr(t.value||t.text)}">${t.group} · ${escapeHtml(t.text)}</option>`).join('');
-  if([...s.options].some(o=>o.value===cur))s.value=cur
+  const current=focusTaskSelect.value;
+  const taskOptions=(items,group)=>items.filter(t=>!t.done).map(t=>
+    `<option value="${escapeAttr(group+':'+t.text)}">${escapeHtml(t.text)}</option>`).join('');
+  const memo=taskOptions(state.tasks,'memo'),calendar=taskOptions(calendarItems(ymdLocal(new Date())),'calendar');
+  focusTaskSelect.innerHTML='<option value="">自由专注</option>'+
+    (memo?`<optgroup label="今日备忘">${memo}</optgroup>`:'')+
+    (calendar?`<optgroup label="今日日历">${calendar}</optgroup>`:'')+
+    '<option value="custom">自定义任务</option><option value="learning">学习课程</option>';
+  if([...focusTaskSelect.options].some(o=>o.value===current))focusTaskSelect.value=current;
+  reflectFocusTarget();
 }
-function focusTaskName(){const value=$('#focusTaskSelect').value;return $('#focusCustomTask').value.trim()||(value===window.nexusLearningTask?.value?window.nexusLearningTask.title:value)||'自由专注'}
+function reflectFocusTarget(){
+  $("#focusCustomPanel").hidden=focusTaskSelect.value!=="custom";
+  $("#focusLearningPanel").hidden=focusTaskSelect.value!=="learning";
+}
+focusTaskSelect.addEventListener('change',reflectFocusTarget);
+function focusTaskName(){
+  const value=focusTaskSelect.value;
+  if(value==="custom")return focusCustomTask.value.trim();
+  if(value==="learning")return window.nexusLearningTask?.title||"";
+  return value?value.slice(value.indexOf(':')+1):"自由专注";
+}
 function renderFocus(){const m=Math.floor(focusSecs/60),s=focusSecs%60;$("#focusClock").textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;$("#focusProgressBar").style.width=((1-focusSecs/focusTotal)*100)+'%';$("#focusModeLabel").textContent=focusMode==='break'?`${Math.round(focusTotal/60)} 分钟休息`:`${Math.round(focusTotal/60)} 分钟工作`;const today=new Date().toDateString(),logs=(state.focus.logs||[]).filter(x=>new Date(x.time).toDateString()===today);$("#focusToday").textContent=logs.length;$("#focusMinutes").textContent=logs.reduce((a,x)=>a+x.minutes,0);$("#focusStreak").textContent=state.focus.streak||0;renderSessionLog()}
 function completeFocus(){if(focusMode==='work'){state.focus.logs=state.focus.logs||[];state.focus.logs.unshift({time:new Date().toISOString(),minutes:Math.round(focusTotal/60),task:focusSessionTask||focusTaskName(),...(focusSessionLearning?{learning:focusSessionLearning}:{})});state.focus.logs=state.focus.logs.slice(0,30);state.focus.streak=(state.focus.streak||0)+1;store.set('focus',state.focus)}focusRunning=false;clearInterval(focusTimer);$("#focusToggle").textContent='开始';renderFocus();dispatchEvent(new CustomEvent('nexus-focus-complete'))}
 function setFocusMinutes(min,mode='work'){focusSessionTask=null;focusSessionLearning=null;focusMode=mode;focusTotal=min*60;focusSecs=focusTotal;focusRunning=false;clearInterval(focusTimer);$("#focusToggle").textContent='开始';renderFocus()}
-$("#focusToggle").onclick=()=>{focusRunning=!focusRunning;$("#focusToggle").textContent=focusRunning?'暂停':'开始';clearInterval(focusTimer);if(focusRunning){if(!focusSessionTask){focusSessionTask=focusTaskName();focusSessionLearning=!$('#focusCustomTask').value.trim()&&$('#focusTaskSelect').value===window.nexusLearningTask?.value?{courseId:window.nexusLearningTask.courseId,lessonId:window.nexusLearningTask.lessonId}:null}focusStart=Date.now();focusTimer=setInterval(()=>{focusSecs=Math.max(0,focusSecs-1);renderFocus();if(!focusSecs)completeFocus()},1000)}};$("#focusReset").onclick=()=>setFocusMinutes(Math.round(focusTotal/60),focusMode);$("#focusBreak").onclick=()=>setFocusMinutes(5,'break');$$('[data-min]').forEach(b=>b.onclick=()=>setFocusMinutes(+b.dataset.min,'work'));
+$("#focusToggle").onclick=()=>{
+  if(!focusRunning&&focusSecs===0)setFocusMinutes(focusTotal/60,focusMode);
+  if(!focusRunning&&focusMode==='work'&&!focusSessionTask){
+    const name=focusTaskName();
+    if(!name){
+      if(focusTaskSelect.value==='custom'){focusCustomTask.focus();focusCustomTask.reportValidity()}
+      else $("#focusCourse").focus();
+      return;
+    }
+    focusSessionTask=name;
+    if(focusTaskSelect.value==='learning'){
+      const {courseId,lessonId}=window.nexusLearningTask;
+      focusSessionLearning={courseId,lessonId};
+    }
+  }
+  focusRunning=!focusRunning;
+  $("#focusToggle").textContent=focusRunning?'暂停':'开始';
+  clearInterval(focusTimer);
+  if(focusRunning){
+    focusTimer=setInterval(()=>{focusSecs=Math.max(0,focusSecs-1);renderFocus();if(focusSecs===0)completeFocus()},1000);
+  }
+};
+$("#focusReset").onclick=()=>setFocusMinutes(focusTotal/60,focusMode);
+$("#focusBreak").onclick=()=>setFocusMinutes(5,'break');
+$$("[data-min]").forEach(b=>b.onclick=()=>setFocusMinutes(+b.dataset.min));
 function renderSessionLog(){const logs=(state.focus.logs||[]).slice(0,6);$("#sessionLog").innerHTML=logs.length?logs.map(x=>`<div class="session-item"><b>${escapeHtml(x.task)}</b><span>${x.minutes}m · ${new Date(x.time).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})}</span></div>`).join(''):'<div class="muted" style="font-size:11px">完成一轮专注后会记录在这里。</div>'}renderFocus();renderFocusTasks();
 let audioCtx=null,noiseSource=null;
 function stopNoise(){
   try{noiseSource?.stop()}catch{}
   noiseSource=null;
-  $$('[data-noise]').forEach(b=>b.classList.toggle('active',b.dataset.noise==='off'))
+  reflectNoise('off')
 }
 function makeAmbientBuffer(type,ctx,seconds=6){
   const length=ctx.sampleRate*seconds,buffer=ctx.createBuffer(1,length,ctx.sampleRate),data=buffer.getChannelData(0);
@@ -3484,8 +3601,16 @@ function playNoise(type){
   gain.gain.value=type==='white'?.20:type==='rain'?.26:type==='fan'?.22:.25;
   src.buffer=makeAmbientBuffer(type,audioCtx);src.loop=true;
   src.connect(gain).connect(audioCtx.destination);src.start();noiseSource=src;
-  $$('[data-noise]').forEach(b=>b.classList.toggle('active',b.dataset.noise===type))
+  reflectNoise(type)
 }
+function reflectNoise(type){
+  $$('[data-noise]').forEach(b=>{
+    const active=b.dataset.noise===type;
+    b.classList.toggle('active',active);
+    b.setAttribute('aria-pressed',String(active));
+  });
+}
+reflectNoise('off');
 $$('[data-noise]').forEach(b=>b.onclick=()=>playNoise(b.dataset.noise));
 
 const quests=[
@@ -3628,7 +3753,7 @@ function openModal(sel){$(sel).classList.add('open')}function closeModals(){$$('
 </style>
 <a id="ptu-home-link" href="../../" aria-label="返回 PT Universe"><i aria-hidden="true">‹</i><span>PT Universe</span></a>
 <script src="./decision-tabs.js?v=20261012-navigation3"></script>
-<script src="learning-focus.js?v=20261028-slim1"></script>
+<script src="learning-focus.js?v=20261112-review"></script>
 <script src="../../pt-sync.js?v=20260827-1"></script>
 <script src="../../pt-bridge.js?v=20260827-1"></script>
 <script>const requestedNexusView=new URLSearchParams(location.search).get("view");if(requestedNexusView)switchNexusView(requestedNexusView);</script>

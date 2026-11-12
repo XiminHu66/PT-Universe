@@ -49,7 +49,7 @@ for(const view of [...names,'bad-view','check','countdown','tools','deal-radar',
  sandbox.switchNexusView(url.searchParams.get('view')||'home');assert.equal(views.find(x=>x.classList.active).dataset.view,expected);
 }
 assert.ok(calls.some(x=>x[0]==='embedded'&&x[1]==='tsugi'));assert.ok(calls.some(x=>x[0]==='embedded'&&x[1]==='mediaLog'));
-assert.match(html,/<iframe[^>]+id="mediaLogFrame"[^>]+data-src="\.\.\/media-log\/\?embedded=nexus"/);assert.ok(!calls.some(x=>x[0]==='embedded'&&['check','dealRadar'].includes(x[1])));
+assert.match(html,/<iframe[^>]+id="mediaLogFrame"[^>]+data-src="\.\.\/media-log\/\?embedded=nexus(?:&[^"]*)?"/);assert.ok(!calls.some(x=>x[0]==='embedded'&&['check','dealRadar'].includes(x[1])));
 const vps=fs.readFileSync('apps/daily-nexus/vps-tab.js','utf8');
 const tools=JSON.parse(vps.match(/const TOOLS=(\[[^\n]+\]);/)[1]);
 assert.equal(tools.find(x=>x.id==='deal-radar')?.url,'../deal-radar/','VPS tools use the sign-in-free board');
