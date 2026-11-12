@@ -1,42 +1,265 @@
-import {esc,fmt,stamp,read,raw,save,json,marketData,link,toast} from '../_decision/core.js';
-import {disclosureLag} from '../_decision/portfolio.mjs';
-import {API,account} from '../_decision/collector.js';
-import {signalResult,fresh} from '../_decision/models.mjs';
-import {refreshData} from '../_shared/on-demand.mjs';
-let disclosureBusy=false,disclosureStatus='打开时按需更新';
-const host=document.querySelector('#public-audit');let data=null,market={symbols:{}},person='all',symbol='',held=false,direction='all',museReports=[];
-const heldSymbols=()=>read('holdings').map(h=>h.symbol);
-function performance(t){if(t.assetType!=='Stock'||t.type!=='Purchase')return '不计算：仅对普通股买入评估公开后价格；卖出不假设做空，期权不套用正股收益。';const r=signalResult({symbol:t.ticker,publishedAt:t.disclosureDate+'T23:59:59-04:00',recordedAt:t.ingestedAt||data.generatedAt,method:'next-open',direction:'long',horizon:20},market);return r.returnPct===undefined?r.text:`披露后 ${r.entryDate} 开盘 → ${r.exitDate} 收盘：${fmt(r.returnPct)}% · ${r.text} · 20 日观察，不含费用分红；${r.retrospective?'历史回看，非实时跟踪实绩':'按披露时间回看'}，不代表该人物真实收益。`}
-function render(){if(!data)return;const selected=read('public-follow',data.sources.map(s=>s.id)),hs=heldSymbols(),sources=data.sources.filter(s=>selected.includes(s.id)&&(person==='all'||s.id===person)),rows=sources.flatMap(s=>(s.trades||[]).map(t=>({...t,source:s}))).filter(t=>(!symbol||t.ticker===symbol)&&(!held||hs.includes(t.ticker))&&(direction==='all'||(direction==='buy'?t.type==='Purchase':t.type.startsWith('Sale')))).sort((a,b)=>b.disclosureDate.localeCompare(a.disclosureDate));
- host.innerHTML=`<section class="d-panel"><h2>Signal Audit · 公开交易核验</h2><button id="refresh-disclosures" ${disclosureBusy?'disabled':''}>↻ 刷新披露</button><p role="status">${esc(disclosureStatus)}</p><p>来源已经接好。先看谁披露了什么，再核对原始申报、报告延迟和你的持仓交集。</p><p class="d-muted">${link(data.providerURL,'数据：Tracefour')} · ${esc(data.license)} · 快照 ${esc(stamp(data.generatedAt))} · 仅打开或手动刷新；首次收录的历史记录均属回看。</p>${!fresh(data.generatedAt,72)?'<p class="d-error">披露快照超过 72 小时，暂不能据此判断最近是否出现新交易。</p>':''}<details><summary>关注人物与来源状态（${selected.length}）</summary>${data.sources.map(s=>'<label class="d-check"><input type="checkbox" data-follow="'+esc(s.id)+'" '+(selected.includes(s.id)?'checked':'')+'>'+esc(s.name)+' · '+(s.kind==='13f'?'机构季度持仓':'议员 / 家属交易')+' · '+(s.ok?'已更新 '+esc(stamp(s.checkedAt)):'失败，保留旧记录：'+esc(s.error))+'</label>').join('')}<p>申报可能延迟、修订；金额是区间，不能推算准确成交价。家属、股票与期权分别标注。13F 是季末持仓，不是实时买单。</p>${data.socialSources.map(s=>'<p>'+link(s.url,s.name)+'：'+esc(s.status)+'</p>').join('')}<p>Serenity 的观点可由 Muse 每日报告带回原帖证据；没有公开可用的 X 自动订阅接口，不能把观点声称为已核验成交。</p></details><div class="d-form"><label>人物<select id="audit-person"><option value="all">全部已关注</option>${data.sources.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.name)+'</option>').join('')}</select></label><label>股票代码<input id="audit-symbol" value="${esc(symbol)}" placeholder="全部 / 例如 NVDA" maxlength="15"></label><label>交易类型<select id="audit-direction"><option value="all">全部</option><option value="buy">买入</option><option value="sell">卖出</option></select></label><label class="d-check"><input type="checkbox" id="audit-held" ${held?'checked':''}>仅与我的持仓相关</label></div></section><h2>议员与家属 · ${rows.length} 条匹配披露</h2>${rows.slice(0,80).map(t=>`<article class="d-panel"><div class="d-row"><h3>${esc(t.ticker)} · ${esc(t.source.name)}</h3><span class="d-pill">${hs.includes(t.ticker)?'与你的持仓相关 · ':''}${esc(t.type)}</span></div><p>${esc(t.assetDescription)} · ${esc(t.assetType)} · ${esc(t.owner==='Spouse'?'配偶':t.owner==='Self'?'本人':t.owner)}</p><p>交易 ${esc(t.transactionDate)} → 披露 ${esc(t.disclosureDate)} · 相隔 ${fmt(disclosureLag(t),0)} 天<br>申报金额 ${esc(t.amountLabel)} · ${link(t.sourceLink,'原始申报')}</p><details><summary>检测：披露后才跟随，会怎样？</summary><p>${esc(performance(t))}</p><small>披露仅提供日期时，从次一完整交易日开盘开始，避免偷看交易日价格。没有覆盖的行情不会猜收益。</small></details><div class="d-actions"><button data-watch="${esc(t.ticker)}">加入观察列表</button><button data-open="${esc(t.ticker)}">查看当前价位</button></div></article>`).join('')||'<div class="d-empty">当前筛选没有披露记录。机构持仓在下方单独显示。</div>'}${rows.length>80?'<p>先显示最近 80 条；按股票或人物缩小范围。</p>':''}<h2>机构 · 季末持仓</h2>${sources.filter(s=>s.kind==='13f').map(s=>{const snap=s.snapshot,items=(snap?.holdings||[]).filter(h=>(!symbol||h.ticker===symbol)&&(!held||hs.includes(h.ticker)));return `<article class="d-panel"><h3>${esc(s.name)}</h3><p>报告期 ${esc(snap?.periodEnd||'缺失')} · 披露 ${esc(snap?.filedAt||'缺失')} · ${link(s.filingHistory?.[0]?.sourceUrl||s.url,'原始申报 / 来源')}</p><p class="d-muted">仓位是报告期末的市值比例。新增 / 股数变化是两个季度的对比，不知道季度内的成交时间和价格。</p><details ${person===s.id?'open':''}><summary>${items.length} 个匹配持仓</summary>${items.slice(0,60).map(h=>`<div class="d-inset"><b>${esc(h.ticker||h.issuerName)}</b> · ${fmt(h.weight*100)}% · ${h.putCall?esc(h.putCall)+'期权 · ':''}${h.isNew?'本季新增':'股数变化 '+fmt(h.sharesChangePct)+'%'}<div class="d-actions">${h.ticker?'<button data-watch="'+esc(h.ticker)+'">加入观察列表</button><button data-open="'+esc(h.ticker)+'">查看当前价位</button>':''}</div></div>`).join('')}</details></article>`}).join('')}<section class="d-panel"><h2>Muse 带回的交易观点</h2><p class="d-muted">社交观点与申报分开显示，保留原文证据；不会单凭观点触发买入。</p>${museReports.flatMap(r=>r.items.filter(i=>/投资|交易|股票|serenity|pelosi/i.test(i.category+' '+i.title)&&i.status!=='unchanged').map(i=>({...i,date:r.date}))).slice(0,15).map(i=>'<div class="d-inset"><h3>'+esc(i.title)+'</h3><small>'+esc(i.date)+' · '+esc(i.status)+'</small><p>'+esc(i.summary)+'</p><p>'+i.urls.map(u=>link(u,'原文')).join(' · ')+'</p>'+(i.action?'<p>建议：'+esc(i.action)+'</p>':'')+'</div>').join('')||'<p>尚无 Muse 投资监视结果。</p>'}<a href="../watch-inbox/">连接 / 查看 Muse 日报</a></section>`;
- host.querySelector('#refresh-disclosures').onclick=()=>refreshDisclosures(true);
- host.querySelector('#audit-person').value=person;host.querySelector('#audit-direction').value=direction;host.querySelector('#audit-person').onchange=e=>{person=e.target.value;render()};host.querySelector('#audit-direction').onchange=e=>{direction=e.target.value;render()};host.querySelector('#audit-symbol').onchange=e=>{symbol=e.target.value.trim().toUpperCase();render()};host.querySelector('#audit-held').onchange=e=>{held=e.target.checked;render()};for(const b of host.querySelectorAll('[data-follow]'))b.onchange=()=>{save('public-follow',[...host.querySelectorAll('[data-follow]:checked')].map(x=>x.dataset.follow));render()};for(const b of host.querySelectorAll('[data-watch]'))b.onclick=()=>{const s=b.dataset.watch;if(!/^[A-Z][A-Z0-9.^-]{0,14}$/.test(s))return toast('该申报未提供可识别的代码');const w=raw('stock_alert_watchlist_v1');if(!w.some(x=>x.symbol===s)){w.push({symbol:s,display:s,name:s});localStorage.setItem('stock_alert_watchlist_v1',JSON.stringify(w));dispatchEvent(new CustomEvent('decision-change',{detail:{key:'watchlist'}}))}toast(s+' 已加入观察列表，持仓页将自动核对证据')};for(const b of host.querySelectorAll('[data-open]'))b.onclick=()=>dispatchEvent(new CustomEvent('investment-select',{detail:{symbol:b.dataset.open,tab:'market'}}));
-}
-addEventListener('investment-select',e=>{if(e.detail.tab==='audit'){symbol=e.detail.symbol;render()}});addEventListener('investment-data',e=>{market=e.detail.market;render()});addEventListener('decision-change',e=>{if(e.detail.key==='holdings')render()});
-let auditSnapshot;
-async function openAudit(){
- if(!auditSnapshot)auditSnapshot=(async()=>{
-  const [trades,quotes]=await Promise.allSettled([json('apps/investment-desk/data/public-trades.json'),marketData()]);
-  if(trades.status==='fulfilled')data=trades.value;
-  try{const cached=JSON.parse(localStorage.getItem('pt-disclosures-data'));if(cached?.sources&&(!data||Date.parse(cached.generatedAt)>Date.parse(data.generatedAt)))data=cached}catch{}
-  if(quotes.status==='fulfilled')market=quotes.value;
-  if(data)render();
- })();
- await auditSnapshot;
- await Promise.allSettled([refreshDisclosures(),loadMuse()]);
- if(!data)host.innerHTML='<div class="d-empty">公开披露暂不可用。重新打开本页后重试。</div>';
+import {esc, fmt, stamp, read, raw, save, json, link, toast} from '../_decision/core.js';
+import {API, refreshData} from '../_shared/on-demand.mjs';
+import {investmentRefreshSlot} from './sessions.mjs';
+import {DEFAULT_WATCHLIST} from './refresh.mjs';
+import {watchSymbols} from './portfolio.js?v=20261112-audit';
+import {normalizeDisclosures, keepAvailableSources} from './disclosures.mjs';
+
+const host = document.querySelector('#public-audit');
+const panel = document.querySelector('#panel-audit');
+const cacheKey = 'pt-disclosures-data';
+const runKey = 'ptu.disclosure-refresh-v1';
+const collectorPath = API + '/api/on-demand/disclosures';
+const tracefour = 'https://tracefour.com/api-docs/congress-trading-api';
+const tickerPattern = /^[A-Z][A-Z0-9.^-]{0,14}$/;
+const pageSize = 24;
+const state = {kind:'congress', person:'all', symbol:'', direction:'all', days:90, held:false, limit:pageSize};
+let data = normalizeDisclosures(raw(cacheKey, null));
+let busy = false, initial, retryAt = 0;
+
+host.innerHTML = `<section class="audit-board" aria-labelledby="audit-title">
+  <header class="audit-heading">
+    <div><h2 id="audit-title">公开交易核验</h2><p id="audit-status" role="status">交易日美西 08:00 检查</p></div>
+    <button id="refresh-disclosures" type="button" hidden>重试抓取</button>
+  </header>
+  <div class="audit-summary" id="audit-summary"></div>
+  <div class="audit-toolbar">
+    <div class="audit-switch" role="group" aria-label="披露类型">
+      <button type="button" data-kind="congress" aria-pressed="true">议员交易</button>
+      <button type="button" data-kind="13f" aria-pressed="false">机构 13F</button>
+    </div>
+    <label><span class="sr-only">来源</span><select id="audit-person"><option value="all">全部已关注</option></select></label>
+    <label><span class="sr-only">股票代码</span><input id="audit-symbol" placeholder="搜索标的" type="search" maxlength="15"></label>
+    <label id="audit-direction-wrap"><span class="sr-only">申报类别</span><select id="audit-direction"><option value="all">全部类别</option><option value="buy">买入</option><option value="sell">卖出</option></select></label>
+    <label id="audit-days-wrap"><span class="sr-only">披露时间</span><select id="audit-days"><option value="30">近 30 天</option><option value="90" selected>近 90 天</option><option value="0">全部日期</option></select></label>
+    <label class="audit-holdings"><input type="checkbox" id="audit-held">仅我的持仓</label>
+  </div>
+  <p class="audit-context" id="audit-context"></p>
+  <div class="audit-results" id="audit-results" role="region" aria-label="披露记录" tabindex="0"></div>
+  <footer class="audit-footer"><span id="audit-count"></span><button type="button" id="audit-more" hidden>显示更多</button></footer>
+  <details class="audit-sources"><summary>关注来源与核验说明</summary><div id="audit-sources"></div>
+    <p>数据整理来自 ${link(tracefour,'Tracefour')}（CC BY 4.0）。看板检查日期顺序、重复记录和官方链接。披露可能滞后，申报金额通常是区间。交易条款、备注及修订以原文为准。</p>
+    <p>13F 显示季度末持仓。新增与股数变化按季度比较，期权单独标示。</p>
+  </details>
+</section>`;
+const get = selector => host.querySelector(selector);
+const selected = () => read('public-follow', data?.sources.map(source => source.id) || []);
+const heldSymbols = () => new Set(read('holdings').map(item => item.symbol));
+const owner = {Self:'本人', Spouse:'配偶', Joint:'共同', Dependent:'受抚养人', Other:'其他'};
+const asset = {Stock:'正股', 'Stock Option':'期权', ETF:'ETF'};
+
+function original(filing) {
+  return filing ? link(filing.url, filing.name) : '<span class="audit-pending">原文待核对</span>';
 }
 
-
-async function loadMuse(){try{const a=await account(false);if(!a)return;const r=await fetch(API+'/api/muse/'+a.id+'/reports',{headers:{authorization:'Bearer '+a.token},signal:AbortSignal.timeout(15000)});if(!r.ok)return;museReports=(await r.json()).reports.slice(0,7);render()}catch{/* Muse is optional; public disclosure evidence remains available. */}}
-addEventListener('pt-sync-applied',()=>{if(!document.querySelector('#panel-audit').hidden)loadMuse()});
-
-async function refreshDisclosures(force=false){
- if(disclosureBusy)return;disclosureBusy=true;disclosureStatus='正在抓取公开申报…';render();
- try{const result=await refreshData('disclosures',{force});if(!Array.isArray(result.data.sources))throw Error('无效披露数据');data=result.data;try{localStorage.setItem('pt-disclosures-data',JSON.stringify(data))}catch{};disclosureStatus='核对完成 · '+stamp(data.generatedAt)+(data.sources.some(s=>!s.ok)?' · 部分来源失败，保留历史':'');}
- catch(e){disclosureStatus=e.message+' · 保留上次成功披露';}
- finally{disclosureBusy=false;render();}
+function actions(symbol, watch) {
+  if (!tickerPattern.test(symbol || '')) return '';
+  const value = esc(symbol);
+  return `<button type="button" data-open="${value}">看行情</button>
+    ${watch.has(symbol) ? '<span class="audit-followed">已自选</span>' : `<button type="button" data-watch="${value}">＋ 自选</button>`}`;
 }
-const auditPanel=document.querySelector('#panel-audit');
-addEventListener('workspace-activate',e=>{if(e.detail.tab==='audit')openAudit()});
-if(auditPanel&&!auditPanel.hidden)openAudit();
+
+function tradeRow(trade, holdings, watch) {
+  const side = trade.type === 'Purchase' ? '买入' : trade.type.startsWith('Sale') ? '卖出' : trade.type === 'Exchange' ? '换股' : esc(trade.type === 'Other' ? '其他' : trade.type);
+  const tone = side === '买入' ? 'buy' : side === '卖出' ? 'sell' : '';
+  return `<tr><td><strong>${esc(trade.ticker)}</strong>${holdings.has(trade.ticker) ? '<small class="audit-held-tag">持仓</small>' : ''}</td>
+    <td>${esc(trade.source.name)}<small>${esc(owner[trade.owner] || trade.owner || '未标明')}</small></td>
+    <td><span class="audit-side ${tone}">${side}</span><small>${esc(asset[trade.assetType] || trade.assetType || '未标明')}</small></td>
+    <td><time datetime="${esc(trade.disclosureDate)}">${esc(trade.disclosureDate)}</time><small>交易 ${esc(trade.transactionDate)} · 相隔 ${trade.lag} 天</small></td>
+    <td>${esc(trade.amountLabel || '未标明')}</td>
+    <td class="audit-actions">${original(trade.filing)}${actions(trade.ticker, watch)}</td></tr>`;
+}
+
+function fundRow(item, holdings, watch) {
+  const {source, holding, quarter} = item;
+  const change = holding.sharesChangePct;
+  const move = holding.isNew ? '季度新增' : Number.isFinite(change) ? `股数 ${change > 0 ? '+' : ''}${fmt(change, 1)}%` : '变化未提供';
+  return `<tr><td><strong>${esc(holding.ticker || holding.issuerName)}</strong>${holdings.has(holding.ticker) ? '<small class="audit-held-tag">持仓</small>' : ''}</td>
+    <td>${esc(source.name)}${holding.putCall ? `<small>${esc(holding.putCall)} 期权</small>` : ''}</td>
+    <td>${esc(move)}<small>权重 ${Number.isFinite(holding.weight) ? fmt(holding.weight * 100) + '%' : '—'}</small></td>
+    <td>${esc(quarter.periodEnd)}<small>披露 ${esc(quarter.filedAt)}</small></td>
+    <td class="audit-actions">${original(quarter.filing)}${actions(holding.ticker,watch)}</td></tr>`;
+}
+
+function updateStatus() {
+  const last = raw(runKey, {});
+  const fresh = data ? `快照 ${stamp(data.generatedAt)}` : '等待披露数据';
+  get('#audit-status').textContent = busy ? '正在核对披露来源…' : last.error ? `${last.error} · ${fresh}` : `交易日美西 08:00 检查 · ${fresh}`;
+  const retry = get('#refresh-disclosures');
+  retry.hidden = !last.error;
+  retry.disabled = busy;
+}
+
+function render() {
+  if (panel.hidden) return;
+  updateStatus();
+  if (!data) {
+    get('#audit-results').innerHTML = '<p class="audit-empty">正在读取最近可用的披露快照。</p>';
+    return;
+  }
+  const follow = selected(), holdings = heldSymbols();
+  const savedWatch = raw('stock_alert_watchlist_v1');
+  const watch = new Set((savedWatch.length ? savedWatch : DEFAULT_WATCHLIST).map(item=>item.symbol));
+  const available = data.sources.filter(source=>source.kind===state.kind);
+  const visible = available.filter(source=>state.person==='all' ? follow.includes(source.id) : source.id===state.person);
+  const congress = state.kind === 'congress';
+  const cut = new Date(Date.now() - state.days * 86400000).toISOString().slice(0, 10);
+  const matches = symbol => (!state.symbol || symbol?.includes(state.symbol)) && (!state.held || holdings.has(symbol));
+  const rows = congress ? visible.flatMap(source=>source.trades.map(trade=>({...trade,source})))
+    .filter(trade=>matches(trade.ticker) && (!state.days || trade.disclosureDate >= cut) &&
+      (state.direction==='all' || (state.direction==='buy' ? trade.type==='Purchase' : trade.type.startsWith('Sale'))))
+    .sort((a,b)=>b.disclosureDate.localeCompare(a.disclosureDate) || b.transactionDate.localeCompare(a.transactionDate))
+    : visible.flatMap(source=>source.snapshot?.holdings.filter(holding=>matches(holding.ticker)).map(holding=>({holding,source,quarter:source.snapshot})) || [])
+      .sort((a,b)=>b.quarter.filedAt.localeCompare(a.quarter.filedAt) || (b.holding.weight||0)-(a.holding.weight||0));
+  const latest = visible.flatMap(source=>congress ? source.trades.map(trade=>trade.disclosureDate) : [source.snapshot?.filedAt]).filter(Boolean).sort().at(-1);
+  const healthy = data.sources.filter(source=>source.ok && (source.kind==='congress' || source.snapshot)).length;
+  const related = rows.filter(row=>holdings.has(congress ? row.ticker : row.holding.ticker)).length;
+  get('#audit-summary').innerHTML = `<span><strong>${rows.length}</strong> ${congress?'匹配披露':'匹配仓位'}</span>
+    <span><strong>${related}</strong> 涉及持仓</span><span>来源最新披露 <strong>${esc(latest || '—')}</strong></span>
+    <span class="${healthy===data.sources.length?'':'audit-pending'}">来源 <strong>${healthy}/${data.sources.length}</strong> 正常</span>`;
+  const person = get('#audit-person');
+  person.innerHTML = '<option value="all">全部已关注</option>' + available.map(source=>`<option value="${esc(source.id)}">${esc(source.name)}</option>`).join('');
+  person.value = state.person;
+  get('#audit-direction-wrap').hidden = get('#audit-days-wrap').hidden = !congress;
+  get('#audit-context').textContent = congress ? '按披露日排序 · 类别以申报为准' : '季末仓位 · 股数变化按季度比较';
+  const columns = congress ? ['标的','披露人','类别 / 资产','披露日','申报金额','核验 / 追踪'] : ['标的','机构','季度变化','报告期末','核验 / 追踪'];
+  get('#audit-results').innerHTML = rows.length ? `<table class="audit-table"><thead><tr>${columns.map(column=>`<th scope="col">${column}</th>`).join('')}</tr></thead>
+    <tbody>${rows.slice(0,state.limit).map(row=>congress ? tradeRow(row,holdings,watch) : fundRow(row,holdings,watch)).join('')}</tbody></table>`
+    : '<p class="audit-empty">当前筛选没有记录。可放宽日期、来源或持仓筛选。</p>';
+  get('#audit-count').textContent = rows.length ? `显示 ${Math.min(rows.length,state.limit)} / ${rows.length}` : '';
+  get('#audit-more').hidden = state.limit >= rows.length;
+  get('#audit-sources').innerHTML = data.sources.map(source=>{
+    const bad = (source.invalid || 0) + (source.kind==='13f' && !source.snapshot ? 1 : 0);
+    const duplicates = source.duplicates || 0;
+    return `<label><input type="checkbox" data-follow="${esc(source.id)}" ${follow.includes(source.id)?'checked':''}>
+      <span>${esc(source.name)} <small>${source.ok ? stamp(source.checkedAt) : '保留上次数据'}${bad ? ` · ${bad} 条格式异常` : ''}${duplicates ? ` · 去重 ${duplicates} 条` : ''}</small></span></label>`;
+  }).join('');
+}
+
+function adopt(payload) {
+  const normalized = normalizeDisclosures(payload);
+  if (!normalized || data && Date.parse(normalized.generatedAt) < Date.parse(data.generatedAt)) return false;
+  data = keepAvailableSources(data, normalized);
+  try { localStorage.setItem(cacheKey,JSON.stringify(data)); } catch {}
+  render();
+  return true;
+}
+
+async function collectorSnapshot() {
+  const response = await fetch(collectorPath,{cache:'no-store',signal:AbortSignal.timeout(20000)});
+  if (!response.ok) throw Error('披露接口暂不可用');
+  return response.json();
+}
+
+function openAudit() {
+  if (!initial) initial = Promise.allSettled([
+    json('apps/investment-desk/data/public-trades.json').then(adopt),
+    collectorSnapshot().then(result=>adopt(result.data))
+  ]).then(()=>{
+    if (!data && !panel.hidden) get('#audit-results').innerHTML = '<p class="audit-empty">暂时无法取得公开申报。</p>';
+  });
+  render();
+}
+
+function active() {
+  return !document.hidden && globalThis.ptNexusActive !== false;
+}
+
+async function refreshDisclosures(retry = false) {
+  const slot = investmentRefreshSlot();
+  if (busy || !active() || !retry && (!slot || Date.now() < retryAt || raw(runKey,{}).slot === slot)) return;
+  busy = true;
+  updateStatus();
+  const run = async lock => {
+    if (!lock || !retry && raw(runKey,{}).slot === slot) return;
+    let collectorState;
+    try {
+      const snapshot = await collectorSnapshot().catch(()=>null);
+      if (slot && investmentRefreshSlot(Date.parse(snapshot?.updatedAt)) === slot && adopt(snapshot.data)) {
+        localStorage.setItem(runKey,JSON.stringify({slot}));
+        return;
+      }
+      const result = await refreshData('disclosures',{force:true,onStatus:packet=>{collectorState=packet.state;}});
+      if (!adopt(result.data)) throw Error('披露快照校验失败');
+      localStorage.setItem(runKey,JSON.stringify({slot}));
+    } catch {
+      if (collectorState === 'busy') {
+        retryAt = Date.now() + 90000;
+        return;
+      }
+      localStorage.setItem(runKey,JSON.stringify({slot,error:'本次抓取失败，保留上次快照'}));
+    }
+  };
+  try {
+    if (navigator.locks) await navigator.locks.request('ptu-investment-refresh',{ifAvailable:!retry},run);
+    else await run(true);
+  } catch {
+    retryAt = Date.now() + 90000;
+  } finally {
+    busy = false;
+    render();
+  }
+}
+
+host.addEventListener('change', event=>{
+  const input = event.target;
+  if (input.id==='audit-person') state.person=input.value;
+  else if (input.id==='audit-direction') state.direction=input.value;
+  else if (input.id==='audit-days') state.days=Number(input.value);
+  else if (input.id==='audit-held') state.held=input.checked;
+  else if (input.dataset.follow) save('public-follow',[...host.querySelectorAll('[data-follow]:checked')].map(item=>item.dataset.follow));
+  else return;
+  state.limit=pageSize;
+  render();
+});
+get('#audit-symbol').addEventListener('input',event=>{
+  state.symbol=event.target.value.trim().toUpperCase();
+  state.limit=pageSize;
+  render();
+});
+host.addEventListener('click',event=>{
+  const button=event.target.closest('button');
+  if (!button) return;
+  if (button.dataset.kind) {
+    state.kind=button.dataset.kind;
+    state.person='all';
+    state.limit=pageSize;
+    for (const tab of host.querySelectorAll('[data-kind]')) tab.setAttribute('aria-pressed',String(tab===button));
+  } else if (button.dataset.watch) {
+    const symbol=button.dataset.watch;
+    watchSymbols([{symbol}]);
+    toast(`${symbol} 已加入自选`);
+  } else if (button.dataset.open) {
+    dispatchEvent(new CustomEvent('investment-select',{detail:{symbol:button.dataset.open,tab:'market'}}));
+    return;
+  } else if (button.id==='audit-more') state.limit+=pageSize;
+  else if (button.id==='refresh-disclosures') { refreshDisclosures(true); return; }
+  else return;
+  render();
+});
+addEventListener('investment-select',event=>{
+  if (event.detail.tab !== 'audit') return;
+  state.symbol=event.detail.symbol;
+  get('#audit-symbol').value=state.symbol;
+  render();
+});
+addEventListener('workspace-activate',event=>{
+  if (event.detail.tab==='audit') openAudit();
+  refreshDisclosures();
+});
+addEventListener('decision-change',event=>{
+  if (['holdings','watchlist'].includes(event.detail.key)) render();
+});
+addEventListener('storage',event=>{
+  if (event.key===cacheKey) {
+    const snapshot=normalizeDisclosures(raw(cacheKey,null));
+    if (snapshot && (!data || Date.parse(snapshot.generatedAt)>=Date.parse(data.generatedAt))) data=snapshot;
+  }
+  if ([cacheKey,runKey,'ptu.decision.holdings','stock_alert_watchlist_v1'].includes(event.key)) render();
+});
+addEventListener('pt-sync-applied',render);
+addEventListener('nexus-activate',()=>refreshDisclosures());
+document.addEventListener('visibilitychange',()=>refreshDisclosures());
+setInterval(()=>refreshDisclosures(),30000);
+if (!panel.hidden) openAudit();
+refreshDisclosures();

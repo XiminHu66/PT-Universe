@@ -1,7 +1,7 @@
 import {esc,read,raw,stamp,copy,setupPage} from './core.js';
 setupPage();
 const investment=document.body.dataset.workspace==='investment',params=new URLSearchParams(location.search);
-const routes=investment?{thesis:'thesis-lab'}:{weekend:'eastside-weekend',...(document.querySelector('#panel-dinner')?{}:{dinner:'meal-orbit'}),restaurants:'meal-orbit',recipes:'meal-orbit',favorites:'meal-orbit',wheel:'meal-orbit'};
+const routes=investment?{}:{weekend:'eastside-weekend',...(document.querySelector('#panel-dinner')?{}:{dinner:'meal-orbit'}),restaurants:'meal-orbit',recipes:'meal-orbit',favorites:'meal-orbit',wheel:'meal-orbit'};
 const buttons=[...document.querySelectorAll('[data-tab]')],frames=new Map();let investmentData=null;let tab='',symbol=params.get('symbol')||raw('ptu.workspace.symbol','NVDA');
 if(!/^[A-Z0-9.^-]{1,20}$/.test(symbol))symbol='NVDA';
 if(investment&&!params.has('symbol')&&read('holdings').length&&!read('holdings').some(h=>h.symbol===symbol))symbol=read('holdings')[0].symbol;
@@ -16,7 +16,7 @@ function activate(next){if(!buttons.some(b=>b.dataset.tab===next))next=investmen
  }else document.querySelector('#panel-'+tab).hidden=false;
  if(tab==='plans')renderPlans();if(investment)dispatchEvent(new CustomEvent('workspace-activate',{detail:{tab,symbol}}));address();summary();
 }
-function summary(){document.querySelector('#ws-summary').textContent=investment?'当前标的 '+symbol+' · 行情与财报共用选择':'已选 '+read('weekend-plans').length+' 个出行安排 · '+read('meal-plans').length+' 份菜单 · '+raw('savedPlaces').length+' 家收藏餐厅';}
+function summary(){document.querySelector('#ws-summary').textContent=investment?'当前标的 '+symbol+'':'已选 '+read('weekend-plans').length+' 个出行安排 · '+read('meal-plans').length+' 份菜单 · '+raw('savedPlaces').length+' 家收藏餐厅';}
 function renderPlans(){const el=document.querySelector('#ws-plans');if(!el)return;const plans=[...read('weekend-plans').map(p=>({...p,kind:'出行'})),...read('meal-plans').map(p=>({...p,kind:'菜单'}))].sort((a,b)=>String(b.at).localeCompare(a.at));el.innerHTML=plans.map((p,i)=>'<article class="d-panel"><small>'+p.kind+' · '+stamp(p.at)+'</small><h2>'+esc(p.title)+'</h2><p>'+esc(p.summary)+'</p><pre>'+esc(p.text)+'</pre><button data-copy="'+i+'">复制安排</button></article>').join('')||'<div class="ws-empty">在半日安排或今晚菜单中选一个方案，会集中出现在这里。</div>';el.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>copy(plans[Number(b.dataset.copy)].text))}
 buttons.forEach((b,i)=>{b.onclick=()=>activate(b.dataset.tab);b.onkeydown=e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();const j=e.key==='Home'?0:e.key==='End'?buttons.length-1:(i+(e.key==='ArrowRight'?1:-1)+buttons.length)%buttons.length;activate(buttons[j].dataset.tab);buttons[j].focus()}}});
 if(investment){document.querySelector('#ws-symbol').value=symbol;document.querySelector('#ws-symbols').innerHTML=[...new Set(['NVDA','AAPL','MSFT','QQQ','SPY',...read('holdings').map(h=>h.symbol)])].map(s=>'<option value="'+esc(s)+'">').join('');document.querySelector('#ws-symbol-form').onsubmit=e=>{e.preventDefault();setSymbol(document.querySelector('#ws-symbol').value);activate('market')};}
@@ -27,7 +27,7 @@ addEventListener('investment-data',e=>{investmentData=e.detail;for(const x of fr
 activate(params.get('tab')|| (investment?'market':'weekend'));
 
 addEventListener('workspace-symbol-changed',e=>{if(investment&&tab==='market')setSymbol(e.detail.symbol)});
-addEventListener('investment-select',e=>{if(!investment)return;setSymbol(e.detail.symbol);activate(e.detail.tab||'review')});
+addEventListener('investment-select',e=>{if(!investment)return;setSymbol(e.detail.symbol);activate(e.detail.tab||'market')});
 addEventListener('decision-change',e=>{if(!investment)return;if(e.detail.key==='holdings'&&read('holdings').length&&!read('holdings').some(h=>h.symbol===symbol))setSymbol(read('holdings')[0].symbol);document.querySelector('#ws-symbols').innerHTML=[...new Set([...read('holdings').map(h=>h.symbol),...raw('stock_alert_watchlist_v1').map(h=>h.symbol)])].map(s=>'<option value="'+esc(s)+'">').join('');for(const x of frames.values())send(x.frame,'records',{key:e.detail.key})});
 
 // Announce interactivity only after all workspace handlers are installed.

@@ -654,7 +654,7 @@ ${time(x.finish + 30)} \u7528\u9910\uFF1A${x.food}
   setupPage();
   var investment = document.body.dataset.workspace === "investment";
   var params = new URLSearchParams(location.search);
-  var routes = investment ? { thesis: "thesis-lab" } : { weekend: "eastside-weekend", ...document.querySelector("#panel-dinner") ? {} : { dinner: "meal-orbit" }, restaurants: "meal-orbit", recipes: "meal-orbit", favorites: "meal-orbit", wheel: "meal-orbit" };
+  var routes = investment ? {} : { weekend: "eastside-weekend", ...document.querySelector("#panel-dinner") ? {} : { dinner: "meal-orbit" }, restaurants: "meal-orbit", recipes: "meal-orbit", favorites: "meal-orbit", wheel: "meal-orbit" };
   var buttons = [...document.querySelectorAll("[data-tab]")];
   var frames = /* @__PURE__ */ new Map();
   var investmentData = null;
@@ -730,7 +730,7 @@ ${time(x.finish + 30)} \u7528\u9910\uFF1A${x.food}
     summary();
   }
   function summary() {
-    document.querySelector("#ws-summary").textContent = investment ? "\u5F53\u524D\u6807\u7684 " + symbol + " \xB7 \u884C\u60C5\u4E0E\u8D22\u62A5\u5171\u7528\u9009\u62E9" : "\u5DF2\u9009 " + read("weekend-plans").length + " \u4E2A\u51FA\u884C\u5B89\u6392 \xB7 " + read("meal-plans").length + " \u4EFD\u83DC\u5355 \xB7 " + raw("savedPlaces").length + " \u5BB6\u6536\u85CF\u9910\u5385";
+    document.querySelector("#ws-summary").textContent = investment ? "\u5F53\u524D\u6807\u7684 " + symbol : "\u5DF2\u9009 " + read("weekend-plans").length + " \u4E2A\u51FA\u884C\u5B89\u6392 \xB7 " + read("meal-plans").length + " \u4EFD\u83DC\u5355 \xB7 " + raw("savedPlaces").length + " \u5BB6\u6536\u85CF\u9910\u5385";
   }
   function renderPlans() {
     const el = document.querySelector("#ws-plans");
@@ -816,7 +816,7 @@ ${time(x.finish + 30)} \u7528\u9910\uFF1A${x.food}
   addEventListener("investment-select", (e) => {
     if (!investment) return;
     setSymbol(e.detail.symbol);
-    activate(e.detail.tab || "review");
+    activate(e.detail.tab || "market");
   });
   addEventListener("decision-change", (e) => {
     if (!investment) return;

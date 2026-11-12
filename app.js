@@ -31,7 +31,7 @@ const APPS=[
 const CATS=[{id:'home',name:'今日总览',icon:'⌂'},{id:'today',name:'今日与看板',icon:'▦'},{id:'money',name:'资金与决策',icon:'↗'},{id:'shopping',name:'购物与发现',icon:'⌁'},{id:'life',name:'生活与饮食',icon:'筷'},{id:'media',name:'媒体与 ACG',icon:'継'},{id:'learning',name:'学习与成长',icon:'学'}];
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const db={get(k,f){try{let v=localStorage.getItem('ptu.'+k);return v===null?f:JSON.parse(v)}catch{return f}},set(k,v){localStorage.setItem('ptu.'+k,JSON.stringify(v))}};
-const APP_ALIASES={'card-lab':['game-systems-studio','play'],'signal-audit':['investment-desk','audit'],'ask-gpt':['investment-desk','review'],'stock-alert':['investment-desk','market'],'thesis-lab':['investment-desk','thesis'],'eastside-weekend':['life-desk','weekend'],'meal-orbit':['life-desk','dinner']};
+const APP_ALIASES={'card-lab':['game-systems-studio','play'],'signal-audit':['investment-desk','audit'],'ask-gpt':['investment-desk','market'],'stock-alert':['investment-desk','market'],'thesis-lab':['investment-desk','market'],'eastside-weekend':['life-desk','weekend'],'meal-orbit':['life-desk','dinner']};
 const migrateIds=xs=>[...new Set(xs.map(id=>APP_ALIASES[id]?.[0]||id))];
 let favorites=migrateIds(db.get('favorites',['daily-nexus','investment-desk','tsugi-checker','3c-scout']));db.set('favorites',favorites);
 let recents=migrateIds(db.get('recents',[])),active=null,results=[],selected=0;

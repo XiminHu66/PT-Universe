@@ -34,3 +34,32 @@ assert.equal(merged.changePct, live.changePct);
 assert.equal(merged.news.length, 1);
 assert.equal(merged.history.length, 2);
 console.log('Batch quotes passed: market date/DST, previous close, and older details preserving newer price');
+
+const {normalizeDisclosures, keepAvailableSources} = await import('../../apps/investment-desk/disclosures.mjs');
+const auditedAt = '2026-11-12T16:00:00Z';
+const house = 'https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/20035143.pdf';
+const sec = 'https://www.sec.gov/Archives/edgar/data/1067983/000119312526172364/xslForm13F_X02/primary_doc.xml';
+const transaction = {ticker:'INTC', type:'Purchase', transactionDate:'2026-07-24', disclosureDate:'2026-08-24', sourceLink:house};
+const politician = {id:'politician', name:'Politician', kind:'congress', ok:true, trades:[
+  transaction, transaction, {...transaction, transactionDate:'2026-02-30'},
+  {...transaction, transactionDate:'2026-08-25'},
+  {...transaction, ticker:'AMD', sourceLink:house.replace('.gov/', '.gov.example.com/')}
+]};
+const fund = {id:'fund', name:'Fund', kind:'13f', ok:true,
+  snapshot:{periodEnd:'2026-06-30', filedAt:'2026-08-14', periodLabel:'2026 Q2', holdings:[{ticker:'AAPL'}]},
+  filingHistory:[
+    {filedAt:'2026-08-14', periodLabel:'2026 Q1', sourceUrl:sec},
+    {filedAt:'2026-08-14', periodLabel:'2026 Q2', sourceUrl:sec.replace('/xslForm13F_X02','')}
+  ]};
+const audited = normalizeDisclosures({generatedAt:auditedAt, sources:[politician, fund]}, Date.parse(auditedAt));
+assert.equal(audited.sources[0].invalid,2);
+assert.equal(audited.sources[0].duplicates,1);
+assert.equal(audited.sources[0].trades[0].lag,31);
+assert.equal(audited.sources[0].trades[0].filing.url,house);
+assert.equal(audited.sources[0].trades[1].filing,null);
+assert.equal(audited.sources[1].snapshot.filing.url,sec.replace('/xslForm13F_X02',''));
+const updated = normalizeDisclosures({generatedAt:auditedAt, sources:[{...politician, trades:[{...transaction, transactionDate:'bad'}]}]}, Date.parse(auditedAt));
+assert.equal(updated.sources[0].ok,false);
+assert.deepEqual(keepAvailableSources(audited,updated).sources.map(source=>source.ok),[false,false]);
+assert.equal(keepAvailableSources(audited,updated).sources[0].trades.length,2);
+console.log('Disclosure checks passed: official links, transaction chronology, deduplication and per-source fallback');
