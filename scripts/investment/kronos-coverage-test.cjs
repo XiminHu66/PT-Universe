@@ -49,10 +49,22 @@ const {chromium} = require('playwright');
     await page.reload();
     await status.filter({hasText:'3/3'}).waitFor();
     assert.equal(submitted.length,3);
+    await page.evaluate(()=>new Promise(resolve=>{
+      navigator.locks.request('ptu-investment-refresh',()=>new Promise(release=>{
+        window.releaseQuoteLock=release;
+        resolve();
+      }));
+    }));
+    const manual = ['BTC-USD','MSFT','TSLA'].map(ticker=>page.waitForRequest(request=>{
+      const url = new URL(request.url());
+      return request.method()==='POST' && url.pathname==='/api/kronos' && url.searchParams.get('symbol')===ticker;
+    }));
     await page.locator('#refreshAllButton:not([disabled])').click();
-    await page.waitForFunction(()=>!document.querySelector('#refreshAllButton').disabled);
+    await Promise.all(manual);
     await status.filter({hasText:'3/3'}).waitFor();
     assert.deepEqual(submitted.slice(3).sort(),['BTC-USD','MSFT','TSLA']);
+    await page.evaluate(()=>window.releaseQuoteLock());
+    await page.waitForFunction(()=>!document.querySelector('#refreshAllButton').disabled);
     await page.locator('#watchTab').click();
     await page.locator('#symbolInput').fill('META');
     await page.locator('#addSymbolForm button').click();

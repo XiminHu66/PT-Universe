@@ -229,19 +229,19 @@ async function refresh(source = 'manual', onlySymbols = null) {
   if (busy || source === 'scheduled' && (!activeWorkspace() || !scheduleDue())) return;
   busy = true;
   batchButton.disabled = true;
+  if (!onlySymbols && source !== 'import') {
+    dispatchEvent(new CustomEvent('investment-model-refresh',{detail:{source}}));
+  }
+  if (source === 'manual') updateBatchStatus('等待行情刷新',true);
   let completion = '';
   const run = async lock => {
-    if (!lock) {
-      if (source === 'manual') completion = '另一标签页正在刷新全部';
-      return;
-    }
+    if (!lock) return;
     if (source === 'scheduled' && (!activeWorkspace() || !scheduleDue())) return;
     const allSymbols = positions().map(item => item.symbol);
     const symbols = onlySymbols ? allSymbols.filter(symbol => onlySymbols.has(symbol)) : allSymbols;
     if (!symbols.length) { completion = '暂无可刷新的标的'; return; }
     const slot = investmentRefreshSlot();
     errors = {};
-    if (!onlySymbols && source !== 'import') dispatchEvent(new CustomEvent('investment-model-refresh',{detail:{source}}));
     publish();
     const {failedQuotes, failedDetails, failedFinancials} = await runBatch(symbols);
     for (const symbol of symbols) importQueue.delete(symbol);
@@ -256,7 +256,7 @@ async function refresh(source = 'manual', onlySymbols = null) {
     batchButton.title = `上次核对 ${stamp(new Date(updatedAt).toISOString())} · ${completion}${failedList.length ? '\n'+failedList.join('\n') : ''}${saved ? '' : '\n浏览器未能保存批量快照'}`;
   };
   try {
-    if (navigator.locks) await navigator.locks.request('ptu-investment-refresh', {ifAvailable:true}, run);
+    if (navigator.locks) await navigator.locks.request('ptu-investment-refresh', {ifAvailable:source !== 'manual'}, run);
     else await run(true);
   } catch {
     completion = '刷新中断，已保留可用快照';
