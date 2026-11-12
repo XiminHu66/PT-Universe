@@ -1,5 +1,6 @@
 import {API, refreshData} from '../_shared/on-demand.mjs';
 import {portfolioDecision} from '../_decision/portfolio.mjs';
+import {marketSessions, reviewWindow, showWindow} from '../investment-desk/sessions.mjs';
 const DEFAULT_WATCHLIST = [
   ["^GSPC", "SPX", "S&P 500"], ["QQQ", "QQQ", "Nasdaq 100 ETF"],
   ["AAPL", "AAPL", "Apple"], ["SMH", "SMH", "VanEck Semiconductor ETF"],
@@ -194,13 +195,15 @@ function ageText(timestamp) {
 }
 
 function updateMarketStatus() {
-  const badge = $("marketBadge"); const marketState = state.data.marketState || inferMarketState();
+  const badge = $("marketBadge");
+  const session = integrated ? marketSessions() : null;
+  const marketState = session ? (session.open ? "open" : "closed") : state.data.marketState || inferMarketState();
   const open = marketState === "open"; badge.classList.toggle("open", open); badge.innerHTML = `<i></i> ${open ? "美股交易中" : "美股已休市"}`;
   const item = dataFor(); const direct = state.directQuoteSymbol === state.selected && state.directQuoteAt;
   const snapshotAt = item?.fetchedAt || state.data.quoteGeneratedAt || state.data.generatedAt;
   if (!snapshotAt && !direct) { $("updatedAt").textContent = "等待报价 · 模型随报价更新"; return; }
   const tradeAt = item?.lastTradeAt || snapshotAt;
-  $("updatedAt").textContent = `行情 ${ageText(tradeAt)} · ${direct ? "浏览器直连" : `后台快照 ${ageText(snapshotAt)}`} · 模型已同步`;
+  $("updatedAt").textContent = `报价 ${ageText(tradeAt)} · ${direct ? "浏览器直连" : `快照 ${ageText(snapshotAt)}`}`;
   $("updatedAt").title='仅打开、切换股票或手动刷新时更新；价格提醒仅在页面取数后判断';
   if(stockStatus)$("updatedAt").textContent+=' · '+stockStatus;
 }
@@ -249,7 +252,7 @@ function renderWatchlist() {
   }
   $('watchlist').setAttribute('aria-labelledby',held?'holdingsTab':'watchTab');
   $('addSymbolForm').hidden=held; $('resetWatchlist').hidden=held;
-  $('listSummary').textContent=held?'CSV 持仓 · 点击标的联动图表与结论':'原有自选 · 点击标的查看证据';
+  $('listSummary').textContent=held?'CSV 持仓':'自选标的';
   $("watchlist").innerHTML = listEntries().map(item => {
     const market = dataFor(item.symbol); const change = finite(market?.changePct); const alert = alertState(item.symbol, market); const modelZone = modelZoneState(market);
     const d = decisionFor(item.symbol).decision;
@@ -260,12 +263,40 @@ function renderWatchlist() {
       <span class="ticker-quote"><strong>${market ? `${currencyMark(market)}${fmt(market.price)}` : "—"}</strong><small class="${change >= 0 ? "positive" : "negative"}">${pct(change)}</small></span>
       ${held ? '' : `<span class="remove-symbol" data-remove="${escapeHtml(item.symbol)}" aria-label="移出观察">×</span>`}
     </button>`;
-  }).join("") || '<p class="position-empty">尚未导入持仓。点击「导入 / 更新 CSV」即可载入；观察列表仍可使用。</p>';
+  }).join("") || '<p class="position-empty">尚未导入持仓。点击「导入 / 更新持仓 CSV」即可载入；观察列表仍可使用。</p>';
 }
 
 function safeSource(url, label) {
   try { const u=new URL(url); if(!['https:','http:'].includes(u.protocol))return ''; return `<a href="${escapeHtml(u.href)}" target="_blank" rel="noopener noreferrer">${label} ↗</a>`; } catch { return ''; }
 }
+function describePlan(d, holding, window) {
+  if (!d.buy) return d.reasons.join('；');
+  if (!window) return '先刷新标的，确认行情覆盖最近一个已收盘的交易日，再使用下方价位。';
+  const messages = {
+    sell: holding.quantity > 0 ? '先复查持仓风险和持有理由，暂缓加仓。' : '暂缓买入，先检查趋势和财报。',
+    trim: holding.quantity > 0 ? '先复查是否需要减仓，查看当前价是否已到卖出观察区。' : '等待回落，避免追价。',
+    buy: '价格已到买入观察区。确认趋势和财报条件仍成立，再考虑买入。',
+    candidate: '价格已到买入观察区。先补查财报和持有理由，再考虑买入。',
+    wait: holding.quantity > 0 ? '继续观察，价格到下方区间时再复查。' : '先等待价格与趋势同时满足条件。'
+  };
+  return messages[d.state] || d.reasons.join('；');
+}
+
+function planRanges(d, holding, window) {
+  if (!d.buy) return '';
+  const range = values => `$${fmt(values[0])}–$${fmt(values[1])}`;
+  const buying = d.price < d.buy[0] ? '已低于买入区，等价格回到区间并复查趋势。'
+    : d.price <= d.buy[1] ? '已到区间，先确认趋势企稳和财报。' : '回落到区间后，检查趋势是否企稳。';
+  const risk = window && d.price < d.invalidation ? '已跌破，优先复查持仓风险。' : '跌破此价先重审持仓风险和买入理由。';
+  const selling = d.price > d.sell[1] ? '已高于区间，持有者可复查是否分批止盈。'
+    : d.price >= d.sell[0] ? '已到区间，持有者可复查是否分批止盈。' : '反弹到区间后，持有者可复查是否分批止盈。';
+  return `<div class="position-ranges plan-levels">
+    <div class="plan-buy"><small>买入 / 加仓观察区</small><strong>${range(d.buy)}</strong><p>${window ? buying : '更新行情后复查买入条件。'}</p></div>
+    <div class="plan-sell"><small>${holding.quantity > 0 ? '减仓 / 止盈观察区' : '反弹观察区'}</small><strong>${range(d.sell)}</strong><p>${window ? selling : '更新行情后复查反弹位置。'}</p></div>
+    <div class="plan-risk"><small>跌破后复查</small><strong>$${fmt(d.invalidation)}</strong><p>${risk}</p></div>
+  </div>`;
+}
+
 function renderPositionDecision() {
   const {holding:h,company:c,decision:d}=decisionFor(state.selected), q=dataFor();
   const pnl=h.quantity>0&&h.cost>0&&q?.currency==='USD'&&d.price>0?(d.price-h.cost)*h.quantity:null;
@@ -276,14 +307,20 @@ function renderPositionDecision() {
     const lo=finite(personal[side+'Low']),hi=finite(personal[side+'High']);
     return lo!==null&&hi!==null?[(side==='buy'?'买入':'卖出')+' $'+fmt(lo)+'–$'+fmt(hi)]:[];
   }).join(' · '):'';
-  $('positionDecision').dataset.rule=d.state;
-  $('positionDecision').innerHTML=`
-    <div class="position-heading"><strong class="decision-tag ${d.state}">${escapeHtml(d.label)}</strong><span>${h.quantity>0?`持仓 ${fmt(h.quantity,6).replace(/\.?0+$/,'')} 股 · 均价 $${fmt(h.cost)}`:'仅观察 · 未持有'}${pnl!==null?` · 浮盈亏 <b class="${pnl>=0?'positive':'negative'}">${pnl>=0?'+':''}$${fmt(pnl)} (${pct((d.price/h.cost-1)*100)})</b>`:''}</span></div>
-    <p class="decision-reasons">${d.reasons.map(escapeHtml).join('；')}</p>
-    ${d.buy?`<div class="position-ranges">${integrated?`<div><small>技术目标价 · 首档阻力</small><strong>$${fmt(d.sell[0])}</strong></div>`:''}<div><small>买入 / 加仓参考</small><strong>$${fmt(d.buy[0])}–${fmt(d.buy[1])}</strong></div><div><small>减仓 / 止盈参考</small><strong>$${fmt(d.sell[0])}–${fmt(d.sell[1])}</strong></div><div><small>失效参考</small><strong>$${fmt(d.invalidation)}</strong></div></div>`:''}
+  const position = $('positionDecision');
+  const window = integrated && d.buy ? reviewWindow(q?.lastTradeAt) : null;
+  const context = JSON.stringify({symbol: state.selected, rule: window ? d.state : '', window, buy: d.buy, sell: d.sell});
+  if (position.dataset.plan !== context) position.dataset.plan = context;
+  position.dataset.rule = d.state;
+  position.innerHTML=`
+    ${integrated ? `<div class="plan-heading"><h2>操作计划</h2><strong class="decision-tag ${window ? d.state : 'unknown'}">${escapeHtml(d.buy && !window ? '待刷新行情' : d.label)}</strong></div>` : ''}
+    <div class="position-heading">${integrated ? '' : `<strong class="decision-tag ${d.state}">${escapeHtml(d.label)}</strong>`}<span>${h.quantity>0?`持仓 ${fmt(h.quantity,6).replace(/\.?0+$/,'')} 股 · 均价 $${fmt(h.cost)}`:'仅观察 · 未持有'}${pnl!==null?` · 浮盈亏 <b class="${pnl>=0?'positive':'negative'}">${pnl>=0?'+':''}$${fmt(pnl)} (${pct((d.price/h.cost-1)*100)})</b>`:''}</span></div>
+    <p class="decision-reasons">${escapeHtml(integrated ? describePlan(d, h, window) : d.reasons.join('；'))}</p>
+    ${window ? `<p class="plan-window"><strong>${showWindow(window.start, window.end)}</strong><span>接下来 5 个交易日。到价再检查条件，期满重算。</span></p>` : ''}
+    ${integrated ? planRanges(d, h, window) : d.buy ? `<div class="position-ranges"><div><small>买入 / 加仓参考</small><strong>$${fmt(d.buy[0])}–${fmt(d.buy[1])}</strong></div><div><small>减仓 / 止盈参考</small><strong>$${fmt(d.sell[0])}–${fmt(d.sell[1])}</strong></div><div><small>失效参考</small><strong>$${fmt(d.invalidation)}</strong></div></div>` : ''}
     ${personalSummary?`<p class="personal-range-summary">个人提醒区间 · ${escapeHtml(personalSummary)}</p>`:''}
     ${state.evidenceErrors[state.selected]?`<p class="evidence-error">本次刷新：${escapeHtml(state.evidenceErrors[state.selected])}；保留带时间的已有证据。</p>`:''}
-    <details id="positionEvidence" ${expanded?'open':''}><summary>判断依据与来源 <span>· ${state.evidenceBusy?'刷新中':escapeHtml(time(q?.lastTradeAt))}</span></summary><ul>${d.evidence.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul><p>${safeSource(q?.sourceURL||'https://finance.yahoo.com/quote/'+encodeURIComponent(state.selected)+'/', '行情原始页面')} · 日线截至 ${escapeHtml(q?.history?.at(-1)?.d||'缺失')}</p><p>${c?`${safeSource(c.sourceURL,'财报原始页面')} · 检查 ${escapeHtml(time(c.updatedAt))}`:'无可用公司财报；ETF 不套用公司财报规则。'}</p><p>区间基于均线、支撑阻力与 ATR，是技术参考，不是公允价值。报价或日线过期时暂停综合信号。</p></details>
+    <details id="positionEvidence" ${expanded?'open':''}><summary>价位怎么算 · 查看依据 <span>· ${state.evidenceBusy?'刷新中':escapeHtml(time(q?.lastTradeAt))}</span></summary><ul>${[...d.reasons,...d.evidence].map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul><p>${safeSource(q?.sourceURL||'https://finance.yahoo.com/quote/'+encodeURIComponent(state.selected)+'/', '行情原始页面')} · 日线截至 ${escapeHtml(q?.history?.at(-1)?.d||'缺失')}</p><p>${c?`${safeSource(c.sourceURL,'财报原始页面')} · 检查 ${escapeHtml(time(c.updatedAt))}`:'无可用公司财报；ETF 不套用公司财报规则。'}</p><p>买入区参考历史支撑，卖出区参考历史上涨遇阻的位置。区间宽度随近期波动变化。卖出区下沿是开始复查止盈的价位。</p></details>
     <div class="position-actions">${integrated?'<button type="button" data-edit-range>调整个人区间</button>':''}<button type="button" data-investment-tab="thesis">财报与论点</button><button type="button" data-investment-tab="audit">核验名人信号</button></div>`;
 }
 
@@ -305,7 +342,7 @@ function renderSelected() {
   $("stat52").textContent = analysis ? `${fmt(analysis.low52)} – ${fmt(analysis.high52)}` : "—";
   $("statVol").textContent = analysis ? `${fmt(analysis.annualVol,1)}%` : "—"; $("statAtr").textContent = analysis ? fmt(analysis.atr) : "—";
   renderPositionDecision();
-  renderChart(item?.history || [], analysis); renderAnalysis(analysis, item?.history || [], item?.fundamentals); renderRangeForm(analysis); renderOptions(item?.options, item?.price); renderNews(item?.news || []); renderAlert(item);
+  renderChart(item?.history || []); renderAnalysis(analysis, item?.history || [], item?.fundamentals); renderRangeForm(analysis); renderOptions(item?.options, item?.price); renderNews(item?.news || []); renderAlert(item);
 }
 
 function sma(values, period) { if (values.length < period) return null; return values.slice(-period).reduce((sum, value) => sum + value, 0) / period; }
@@ -432,20 +469,36 @@ function renderAnalysis(analysis, history = [], fundamentals = null) {
   renderEvidence(history, fundamentals);
 }
 
-function renderChart(history, analysis) {
-  const periods = { "1M":22, "3M":66, "6M":132, "1Y":260 }; const valid = history.filter(row => finite(row.c) !== null); const rows = valid.slice(-(periods[state.period]||260));
+function renderChart(history) {
+  const periods = { "1M":22, "3M":66, "6M":132, "1Y":260 };
+  const valid = history.filter(row => finite(row.c) !== null);
+  const start = Math.max(0, valid.length - (periods[state.period] || 260));
+  const rows = valid.slice(start);
+  const dates = $("chartDates");
+  if (dates) {
+    dates.replaceChildren(...(rows.length < 2 ? [] : [rows[0], rows.at(-1)].map(row => {
+      const label = document.createElement('span');
+      label.textContent = row.d;
+      return label;
+    })));
+  }
   if (rows.length < 2) { $("chart").innerHTML = `<div class="chart-empty">暂无可绘制的历史数据</div>`; return; }
   const width = 900, height = 230, top = 12, bottom = 24; const closes = rows.map(row => Number(row.c));
-  const sma50Values = closes.map((_,index) => index < 49 ? null : closes.slice(index-49,index+1).reduce((sum,value)=>sum+value,0)/50);
+  const sma50Values = rows.map((_, index) => {
+    const end = start + index + 1;
+    return end < 50 ? null : valid.slice(end - 50, end).reduce((sum, row) => sum + Number(row.c), 0) / 50;
+  });
   const values = closes.concat(sma50Values.filter(Number.isFinite)); let min = Math.min(...values), max = Math.max(...values); const pad = Math.max((max-min)*.1, max*.005); min -= pad; max += pad;
   const x = index => index/(rows.length-1)*width; const y = value => top+(max-value)/(max-min)*(height-top-bottom);
   const linePath = valuesArray => valuesArray.map((value,index) => Number.isFinite(value) ? `${index && Number.isFinite(valuesArray[index-1])?"L":"M"}${x(index).toFixed(1)},${y(value).toFixed(1)}` : "").join(" ");
   const pricePath = linePath(closes); const areaPath = `${pricePath} L${width},${height-bottom} L0,${height-bottom} Z`; const smaPath = linePath(sma50Values);
   const levels = [0,.25,.5,.75,1].map(ratio => ({ y:top+ratio*(height-top-bottom), price:max-ratio*(max-min) }));
   const gridLines = levels.map(level => `<line x1="0" y1="${level.y}" x2="${width}" y2="${level.y}"/>`).join("");
-  const gridLabels = levels.map(level => `<text x="${width-4}" y="${level.y-4}">${fmt(level.price)}</text>`).join("");
+  const gridLabels = levels.map(level => integrated
+    ? `<span style="top:${level.y / height * 100}%">${fmt(level.price)}</span>`
+    : `<text x="${width-4}" y="${level.y-4}">${fmt(level.price)}</text>`).join("");
   const id = `g${state.selected.replace(/\W/g,"")}`;
-  $("chart").innerHTML = `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity=".25"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs><g stroke="var(--line)" stroke-width="1" vector-effect="non-scaling-stroke">${gridLines}</g><g fill="var(--muted)" font-size="8" text-anchor="end">${gridLabels}</g><path d="${areaPath}" fill="url(#${id})"/><path d="${smaPath}" fill="none" stroke="var(--blue)" stroke-opacity=".65" stroke-width="1.4" vector-effect="non-scaling-stroke"/><path d="${pricePath}" fill="none" stroke="var(--accent)" stroke-width="2.2" vector-effect="non-scaling-stroke"/><circle cx="${x(rows.length-1)}" cy="${y(closes.at(-1))}" r="3.5" fill="var(--accent)" vector-effect="non-scaling-stroke"/></svg>`;
+  $("chart").innerHTML = `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity=".25"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs><g stroke="var(--line)" stroke-width="1" vector-effect="non-scaling-stroke">${gridLines}</g>${integrated ? '' : `<g fill="var(--muted)" font-size="8" text-anchor="end">${gridLabels}</g>`}<path d="${areaPath}" fill="url(#${id})"/><path d="${smaPath}" fill="none" stroke="var(--blue)" stroke-opacity=".65" stroke-width="1.4" vector-effect="non-scaling-stroke"/><path d="${pricePath}" fill="none" stroke="var(--accent)" stroke-width="2.2" vector-effect="non-scaling-stroke"/><circle cx="${x(rows.length-1)}" cy="${y(closes.at(-1))}" r="3.5" fill="var(--accent)" vector-effect="non-scaling-stroke"/></svg>${integrated ? `<div class="chart-values" aria-hidden="true">${gridLabels}</div>` : ''}`;
 }
 
 function renderRangeForm(analysis) {
@@ -456,7 +509,7 @@ function renderRangeForm(analysis) {
     if($(id+'Input').value!==text)$(id+'Input').value=text;
   }
   const status = $("rangeStatus"); status.textContent = range ? "已保存" : "未设置"; status.classList.toggle("saved",Boolean(range));
-  $("useModelRanges").disabled = integrated ? !decisionFor(state.selected).decision.buy : !analysis;
+  $("useModelRanges").disabled = integrated ? !decisionFor(state.selected).decision.buy || !reviewWindow(dataFor()?.lastTradeAt) : !analysis;
 }
 
 function optionTrendSvg(points) {
@@ -576,7 +629,7 @@ function bindEvents() {
     else return;
     renderOptions(dataFor()?.options, dataFor()?.price);
   });
-  document.querySelectorAll("[data-period]").forEach(button=>button.addEventListener("click",()=>{document.querySelectorAll("[data-period]").forEach(node=>node.classList.remove("active"));button.classList.add("active");state.period=button.dataset.period;renderChart(dataFor()?.history||[],state.analysis);}));
+  document.querySelectorAll("[data-period]").forEach(button=>button.addEventListener("click",()=>{document.querySelectorAll("[data-period]").forEach(node=>{node.classList.toggle("active",node===button);node.setAttribute("aria-pressed",String(node===button));});state.period=button.dataset.period;renderChart(dataFor()?.history||[]);}));
   const rangeFields=['buyLow','buyHigh','sellLow','sellHigh'];
   const readRange=()=>Object.fromEntries(rangeFields.map(key=>[key,$(key+'Input').value]));
   $("rangeForm").addEventListener("input",()=>{state.rangeDrafts[state.selected]=readRange()});
@@ -596,6 +649,7 @@ function bindEvents() {
     renderAll();
   });
   $("useModelRanges").addEventListener("click",()=>{
+    if (integrated && !reviewWindow(dataFor()?.lastTradeAt)) return;
     const {buy,sell}=decisionFor(state.selected).decision;
     const ranges=integrated?buy&&[...buy,...sell]:state.analysis&&rangeFields.map(key=>state.analysis[key]);
     if(!ranges)return;

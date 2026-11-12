@@ -1,4 +1,5 @@
 import {esc} from '../_decision/core.js';
+import {marketSessions, showDate, showWindow} from './sessions.mjs';
 import {API} from '../_shared/on-demand.mjs';
 
 const supported = new Set(['QQQ', 'NVDA', 'AMD', 'GOOGL', 'SMH']);
@@ -6,6 +7,8 @@ const status = document.querySelector('#kronosStatus');
 const result = document.querySelector('#kronosResult');
 const run = document.querySelector('#kronosRun');
 const panel = document.querySelector('#panel-market');
+const position = document.querySelector('#positionDecision');
+const percent = new Intl.NumberFormat('zh-CN', {style:'percent', signDisplay:'exceptZero', maximumFractionDigits:1});
 const cached = new Map();
 const inflight = new Map();
 let symbol = new URLSearchParams(location.search).get('symbol') || 'NVDA';
@@ -16,7 +19,9 @@ const validDate = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.te
 function valid(data, ticker){
   return data?.symbol === ticker && validDate(data.asOf)
     && Array.isArray(data.dates) && data.dates.length === 10 && data.dates.every(validDate)
-    && data.reference > 0 && [data.reference,data.endMedian,data.endLow,data.endHigh].every(Number.isFinite)
+    && [data.reference,data.endMedian,data.endLow,data.endHigh].every(price => Number.isFinite(price) && price > 0)
+    && data.endLow <= data.endMedian && data.endMedian <= data.endHigh
+    && data.dates.every((date, i) => date > (i ? data.dates[i - 1] : data.asOf))
     && Array.isArray(data.paths) && data.paths.length === 4
     && data.paths.every(path => Array.isArray(path) && path.length === 10 && path.every(price => Number.isFinite(price) && price > 0))
     && [data.up,data.down].every(count => Number.isInteger(count) && count >= 0)
@@ -34,37 +39,82 @@ function chart(data) {
   </svg>`;
 }
 
-function paint(){
+function planContext() {
+  const plan = JSON.parse(position.dataset.plan || '{}');
+  return plan.symbol === symbol ? plan : {};
+}
+
+function zoneSamples(data, range, window) {
+  const dates = new Set();
+  let paths = 0;
+  for (const path of data.paths) {
+    const hits = data.dates.filter((date, i) => date >= window.start && date <= window.end && path[i] >= range[0] && path[i] <= range[1]);
+    if (hits.length) paths++;
+    for (const date of hits) dates.add(date);
+  }
+  return {paths, dates:[...dates].sort()};
+}
+
+function planLink(data, plan) {
+  if (!plan.window) return '等操作计划取得最新行情后，再比较模拟情景与观察价位。';
+  if (data.up >= 3 && ['sell', 'trim'].includes(plan.rule)) return '模型多条路径偏涨，操作计划提示先复查持仓。优先看最新报价和持有理由。';
+  if (data.down >= 3 && ['buy', 'candidate'].includes(plan.rule)) return '模型多条路径偏跌。即使价格进入买入区，也先核实支撑和财报。';
+  if (data.up < 3 && data.down < 3) return '四条路径方向不一致。按实际价格是否进入观察区来复查。';
+  return '把模型方向作为参考。按实际价格进入区间后，再复查操作条件。';
+}
+
+function zoneNotes(data, plan) {
+  if (!plan.window) return '';
+  const notes = [['买入观察区', plan.buy], ['反弹观察区', plan.sell]].map(([label, range]) => {
+    const {paths, dates} = zoneSamples(data, range, plan.window);
+    const days = paths ? ` · ${dates.length === 1 ? showDate(dates[0]) : `${showWindow(dates[0], dates.at(-1))} 中的 ${dates.length} 个交易日`}` : '';
+    return `<li>${label} <strong>${paths}/4 条路径</strong>${days}</li>`;
+  });
+  return `<p>操作计划期间，模拟收盘价落入观察区的样本</p><ul class="kronos-zone-list">${notes.join('')}</ul><p>这些日期来自模拟收盘价，实际操作以当日行情触发为准。</p>`;
+}
+
+function paint() {
   const previous = cached.get(symbol);
   const data = valid(previous?.data, symbol) ? previous.data : null;
   const eligible = supported.has(symbol);
   const working = previous?.state === 'running';
-  const fresh = previous?.state === 'fresh' && data?.asOf === previous.session;
+  const session = marketSessions();
+  const fresh = previous?.state === 'fresh' && data?.asOf === previous.session &&
+    (!session?.completed || data.asOf === session.completed) && (!session?.start || data.dates.at(-1) >= session.start);
   run.hidden = !eligible;
   run.disabled = working || fresh || inflight.has(symbol);
-  run.textContent = working ? '推理中' : fresh ? '已更新' : '运行模型';
-  if(!eligible){
-    status.textContent = '当前覆盖 QQQ、NVDA、AMD、GOOGL、SMH';
+  run.textContent = working ? '计算中' : fresh ? '已更新' : data ? '更新情景' : '生成情景';
+  if (!eligible) {
+    status.textContent = '当前覆盖 QQQ、NVDA、AMD、GOOGL、SMH。';
     result.replaceChildren();
     return;
   }
-  status.textContent = working ? 'VPS 正在计算四条路径，可先查看其他证据'
-    : previous?.error ? previous.error
-    : fresh ? `行情截至 ${data.asOf} 收盘 · 目标日 ${data.dates.at(-1)}`
-    : data ? `历史情景 · 截至 ${data.asOf} 收盘`
-    : previous ? '暂无预测。点击运行模型后，通常约两分钟。' : '正在读取最近一次预测';
-  if(!data){result.replaceChildren();return}
-  const direction = data.up >= 3 ? '采样偏上行' : data.down >= 3 ? '采样偏下行' : '采样方向分歧';
-  const state = document.querySelector('#positionDecision').dataset.rule;
-  const divergence = fresh && ((data.down >= 3 && ['buy','candidate'].includes(state)) ||
-    (data.up >= 3 && ['sell','trim'].includes(state)));
+  status.textContent = working ? '正在后台模拟 4 条路径，通常需要几分钟。'
+    : previous?.error ? '暂时无法读取情景，可点击按钮重试。'
+    : data ? `以 ${showDate(data.asOf)}收盘价 ${dollars.format(data.reference)} 为起点。`
+    : previous ? '点击生成后，查看未来 10 个交易日的模拟走势。' : '正在读取最近一次模拟';
+  if (!data) {
+    result.replaceChildren();
+    return;
+  }
+  const plan = planContext();
+  const direction = data.up >= 3 ? `${data.up}/4 条路径到期上涨` : data.down >= 3 ? `${data.down}/4 条路径到期下跌` : '四条路径方向不一致';
   const wasOpen = result.querySelector('details')?.open;
-  result.innerHTML = `<div class="kronos-summary"><strong>${fresh?direction:'历史样本'}</strong>
-    <span>第 10 日中位 ${dollars.format(data.endMedian)}</span>
-    <span>路径范围 ${dollars.format(data.endLow)}–${dollars.format(data.endHigh)}</span></div>
-    ${divergence?'<p class="evidence-error">模型方向与当前操作候选分歧，优先复核价格和财报。</p>':''}
-    <details ${wasOpen?'open':''}><summary>展开 4 条路径 · 上行 ${data.up} / 下行 ${data.down}</summary>
-    ${chart(data)}<p>${esc(data.dates[0])} 至 ${esc(data.dates.at(-1))} · 模型情景 · 收盘参考 ${dollars.format(data.reference)}。路径范围是样本最小至最大值。</p></details>`;
+  result.innerHTML = `<div class="kronos-summary">
+    <strong>${fresh ? direction : '旧情景 · 等待更新'}</strong>
+    <span>${showDate(data.dates.at(-1))}收盘情景</span>
+  </div>
+  <dl class="kronos-metrics">
+    <div><dt>模拟收盘中位价</dt><dd>${dollars.format(data.endMedian)} <small>${percent.format(data.endMedian / data.reference - 1)}</small></dd></div>
+    <div><dt>4 条模拟的收盘价范围</dt><dd>${dollars.format(data.endLow)}–${dollars.format(data.endHigh)}</dd></div>
+  </dl>
+  <p class="kronos-next">${fresh ? planLink(data, plan) : '这份模拟基于较早收盘价，更新后再用于当前计划。'}</p>
+  <details ${wasOpen ? 'open' : ''}><summary>查看四条路径与计算口径</summary>
+    ${chart(data)}
+    <div class="chart-dates"><span>${esc(data.asOf)} 起点</span><span>${esc(data.dates.at(-1))} 收盘</span></div>
+    <p>每条线是一种模拟走势，虚线是起始收盘价。上涨 ${data.up} 条，下跌 ${data.down} 条，持平 ${data.paths.length - data.up - data.down} 条。路径数反映这次采样的一致程度，四条样本不足以估算实际上涨概率。</p>
+    ${fresh ? zoneNotes(data, plan) : ''}
+  </details>`;
 }
 
 function schedule(){
@@ -109,5 +159,5 @@ addEventListener('workspace-select-symbol',e=>select(e.detail.symbol));
 addEventListener('workspace-symbol-changed',e=>select(e.detail.symbol));
 document.addEventListener('visibilitychange',()=>select(symbol));
 new MutationObserver(()=>{if(!panel.hidden&&cached.has(symbol))paint()})
-  .observe(document.querySelector('#positionDecision'),{attributes:true,attributeFilter:['data-rule']});
+  .observe(position,{attributes:true,attributeFilter:['data-plan']});
 select(symbol);
