@@ -104,12 +104,10 @@ import sys
 path=Path(sys.argv[1])
 source=path.read_text()
 if "from './kronos.mjs'" not in source:
-    setup='  const server=http.createServer(async(req,res)=>{'
-    route='    const url=new URL(req.url,siteOrigin);'
-    assert source.count(setup)==1 and source.count(route)==1
+    handler='  const server=http.createServer(async(req,res)=>{\n    const url=new URL(req.url,siteOrigin);'
+    assert source.count(handler)==1,'expected one main HTTP handler'
     source="import {createKronosGateway} from './kronos.mjs';\n"+source
-    source=source.replace(setup,'  const kronos=createKronosGateway({siteOrigin});\n'+setup)
-    source=source.replace(route,route+'\n    if(await kronos(req,res,url))return;')
+    source=source.replace(handler,'  const kronos=createKronosGateway({siteOrigin});\n'+handler+'\n    if(await kronos(req,res,url))return;')
 path.write_text(source)
 PY
 cat > "$stage/gateway/Dockerfile" <<DOCKER
