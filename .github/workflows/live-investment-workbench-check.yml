@@ -1,0 +1,27 @@
+name: Verify the deployed investment workbench
+'on':
+  push:
+    branches: [verify/investment-workbench]
+    paths: ['.github/workflows/live-investment-workbench-check.yml']
+permissions:
+  contents: read
+concurrency:
+  group: investment-workbench-release-verification
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 11
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install the browser verifier
+        run: |
+          npm install --no-save --package-lock=false playwright@1.51.1
+          npx playwright install chromium
+      - name: Verify the live workbench and one real forecast
+        run: node scripts/investment/live-workbench-check.cjs
