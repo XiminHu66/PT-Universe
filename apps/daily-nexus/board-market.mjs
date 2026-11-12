@@ -1,4 +1,4 @@
-import {boardStreams} from './board-streams.mjs?v=20261112-attribution';
+import {boardStreams} from './board-streams.mjs?v=20261112-readable';
 import {API} from '../_shared/on-demand.mjs';
 import {batchQuote, readBatchSnapshot} from '../investment-desk/refresh.mjs';
 
@@ -42,11 +42,17 @@ function marketLink(symbol) {
 export function mountBoardMarket(isActive) {
   const quotes = new Map(), live = new Map(), attempts = new Map(), pending = new Set();
   let cards = [], initializing = true, frame;
+  const changed = new Set();
   const streams = boardStreams((symbol,quote)=>{
     const previous = live.get(symbol);
     if (previous && Date.parse(previous.lastTradeAt) > Date.parse(quote.lastTradeAt)) return;
     live.set(symbol,quote);
-    frame ??= requestAnimationFrame(()=>{ frame = null; render(); });
+    changed.add(symbol);
+    frame ??= requestAnimationFrame(()=>{
+      frame = null;
+      render(changed);
+      changed.clear();
+    });
   },()=>{
     for (const [symbol,quote] of live) {
       merge(symbol,{...quote,closes:quotes.get(symbol)?.closes});
@@ -69,8 +75,9 @@ export function mountBoardMarket(isActive) {
     for (const [symbol, quote] of Object.entries(cached)) merge(symbol,quote);
   } catch {}
 
-  function render() {
+  function render(only) {
     for (const {symbol, card, price, change, time, age, chart} of cards) {
+      if (only && !only.has(symbol)) continue;
       const streamed = live.get(symbol);
       const snapshot = quotes.get(symbol);
       const quote = streamed || snapshot;
@@ -85,7 +92,8 @@ export function mountBoardMarket(isActive) {
       const stale = !!quote && Date.now() - Date.parse(quote.lastTradeAt) > staleMs;
       card.dataset.stale = String(stale);
       card.dataset.source = streamed ? 'live' : 'snapshot';
-      age.textContent = streamed ? '实时' : stale ? '旧报价' : quote ? '备用' : '';
+      age.textContent = streamed ? '实时' : stale ? '旧报价' : quote ? '快照' : '';
+      change.title = streamed ? '过去 24 小时' : '较上一收盘';
       time.textContent = quote ? (streamed ? liveTime : marketTime).format(new Date(quote.lastTradeAt)).replace(',', '') + ' PT'
         : !symbol ? '查看 TradingView' : initializing || pending.has(symbol) ? '读取中' : '报价暂不可用';
       if (quote) time.dateTime = quote.lastTradeAt;
@@ -133,7 +141,7 @@ export function mountBoardMarket(isActive) {
     await ready;
     await syncSharedQuotes();
     const now = Date.now();
-    const symbols = [...new Set(cards.filter(card=>card.symbol && !live.has(card.symbol) && card.cell.dataset.tradingview!=='ready').map(card=>card.symbol))]
+    const symbols = [...new Set(cards.filter(card=>card.symbol && !live.has(card.symbol)).map(card=>card.symbol))]
       .filter(symbol=>!pending.has(symbol) && (force || now - (attempts.get(symbol) || 0) >= refreshMs));
     if (!symbols.length || !isActive()) return;
     symbols.forEach(symbol=>pending.add(symbol));
@@ -184,7 +192,10 @@ export function mountBoardMarket(isActive) {
       card.rel = 'noopener';
       const label = document.createElement('b');
       label.className = 'board-quote-symbol';
-      label.textContent = stock.label || stock.symbol;
+      label.textContent = stock.symbol.split(':').at(-1);
+      card.title = stock.label && stock.label !== label.textContent
+        ? stock.label + ' · 在 TradingView 查看'
+        : '在 TradingView 查看 ' + label.textContent;
       const price = document.createElement('strong');
       price.className = 'board-quote-price';
       const change = document.createElement('span');
@@ -201,7 +212,7 @@ export function mountBoardMarket(isActive) {
       meta.append(age,time,chart);
       card.append(label,change,price,meta);
       cell.replaceChildren(card);
-      cards.push({cell, stock, symbol, coinbase:!!symbol && stock.symbol.startsWith('COINBASE:'), card, price, change, time, age, chart});
+      cards.push({symbol, coinbase:!!symbol && stock.symbol.startsWith('COINBASE:'), card, price, change, time, age, chart});
     }
     streams.setCards(cards);
     render();
