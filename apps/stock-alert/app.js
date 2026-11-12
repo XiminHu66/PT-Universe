@@ -188,6 +188,8 @@ async function fetchLiveSelectedQuote(force=false){return refreshStock(state.sel
 function ageText(timestamp) {
   if (!timestamp) return "等待更新";
   const minutes = Math.max(0, Math.round((Date.now() - new Date(timestamp).getTime()) / 60000));
+  if(minutes>=1440)return `${Math.floor(minutes/1440)} 天前`;
+  if(minutes>=60)return `${Math.floor(minutes/60)} 小时前`;
   return minutes < 2 ? "刚刚" : `${minutes} 分钟前`;
 }
 

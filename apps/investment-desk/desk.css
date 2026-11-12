@@ -88,3 +88,12 @@ html[data-theme="dark"] body[data-workspace="investment"] {
   .investment-feed .top-actions { margin-left: 0; }
   .investment-detail .chart { min-height: 130px; }
 }
+.personal-range-summary { font-size: 12px; color: var(--muted); margin: 7px 0 0; }
+@media (max-width: 650px) {
+  .investment-shell .ws-bar { position: static; padding: 4px 0 8px; }
+  .investment-shell .ws-tabs { flex-wrap: nowrap; }
+  .investment-shell .ws-tabs button { padding: 7px 9px; font-size: 12px; }
+  .investment-evidence { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; padding-bottom: 4px; }
+  .investment-evidence button { white-space: nowrap; flex: 0 0 auto; padding-inline: 8px; }
+  .investment-market .watch-panel .list-context { margin-block: 4px; }
+}
