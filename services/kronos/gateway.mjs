@@ -1,4 +1,4 @@
-const supported = new Set(['QQQ','NVDA','AMD','GOOGL','SMH']);
+const symbolPattern = /^\^?[A-Z0-9][A-Z0-9.=-]{0,14}$/;
 export function createKronosGateway({siteOrigin, upstream='http://pt-kronos:8080', transport=fetch}) {
   return async (req, res, url) => {
     if(url.pathname !== '/hub/api/kronos')return false;
@@ -10,10 +10,10 @@ export function createKronosGateway({siteOrigin, upstream='http://pt-kronos:8080
     if(req.headers.origin!==siteOrigin)return respond(403,{error:'Origin denied'});
     if(!['GET','POST'].includes(req.method))return respond(405,{error:'GET or POST required'});
     const [symbol]=url.searchParams.getAll('symbol');
-    if([...url.searchParams].length!==1||!supported.has(symbol)||req.headers['transfer-encoding']||Number(req.headers['content-length']||0)>0)
+    if([...url.searchParams].length!==1||!symbolPattern.test(symbol)||req.headers['transfer-encoding']||Number(req.headers['content-length']||0)>0)
       return respond(400,{error:'Invalid Kronos request'});
     try{
-      const reply=await transport(upstream+'/kronos?symbol='+symbol,{method:req.method,redirect:'error',signal:AbortSignal.timeout(6000)});
+      const reply=await transport(upstream+'/kronos?symbol='+encodeURIComponent(symbol),{method:req.method,redirect:'error',signal:AbortSignal.timeout(6000)});
       const raw=await reply.text();
       if(Buffer.byteLength(raw)>128000)throw Error('Kronos response too large');
       return respond(reply.status,JSON.parse(raw));

@@ -12,7 +12,9 @@ assert.equal(calls.length,1);
 assert.equal((await D.onDemandRoute(req('/api/kronos?symbol=QQQ'),{},transport)).status,200);
 assert.deepEqual(calls.at(-1),{path:'/hub/api/kronos?symbol=QQQ',method:'GET'});
 assert.equal((await D.onDemandRoute(req('/api/kronos?symbol=QQQ','POST','https://evil'),{},transport)).status,403);
-for(const query of ['symbol=TSLA','symbol=QQQ&symbol=AMD','symbol=QQQ&url=https://evil'])
+assert.equal(D.publicDatasetPath(req('/api/kronos?symbol=TSLA')), '/hub/api/kronos?symbol=TSLA');
+assert.equal(D.publicDatasetPath(req('/api/kronos?symbol=%5EGSPC')), '/hub/api/kronos?symbol=%5EGSPC');
+for(const query of ['symbol=../TSLA','symbol=TSLA%26url%3Dx','symbol=QQQ&symbol=AMD','symbol=QQQ&url=https://evil'])
  assert.throws(()=>D.publicDatasetPath(req('/api/kronos?'+query)));
 assert.equal(calls.length,2);
 const H=await load('src/content-hub.ts'),keys=[];

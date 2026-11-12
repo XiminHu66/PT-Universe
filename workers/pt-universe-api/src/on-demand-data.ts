@@ -3,8 +3,8 @@ export function publicDatasetPath(request:Request){
  const u=new URL(request.url),prefix='/api/on-demand/';
  if(u.pathname==='/api/kronos'){
   const [symbol]=u.searchParams.getAll('symbol');
-  if([...u.searchParams].length!==1||!['QQQ','NVDA','AMD','GOOGL','SMH'].includes(symbol))throw Error('Invalid Kronos symbol');
-  return '/hub/api/kronos?symbol='+symbol;
+  if([...u.searchParams].length!==1||!/^\^?[A-Z0-9][A-Z0-9.=-]{0,14}$/.test(symbol || ''))throw Error('Invalid Kronos symbol');
+  return '/hub/api/kronos?symbol='+encodeURIComponent(symbol);
  }
  if(!u.pathname.startsWith(prefix))return null;
  const dataset=u.pathname.slice(prefix.length),symbol=u.searchParams.get('symbol')||'';
