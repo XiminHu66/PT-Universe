@@ -1763,7 +1763,8 @@ function renderWatchlist(){
   status.textContent=stocks.length?"正在连接 TradingView…":"还没有自选标的";
   marketBody.append(status);
   if(!stocks.length)return;
-  const height=stocks.length*60+2;
+  // Leave room below the rows for TradingView’s bottom-right badge.
+  const height=stocks.length*60+34;
   const wrap=document.createElement("div");wrap.className="tradingview-widget-container";
   wrap.style.setProperty("--watchlist-height",`${height}px`);
   const widget=document.createElement("div");widget.className="tradingview-widget-container__widget";
