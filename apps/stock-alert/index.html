@@ -48,7 +48,7 @@
       <div id="watchlist" class="watchlist" role="tabpanel" aria-live="polite"></div>
       <div class="watch-footer">
         <span><i class="dot buy"></i>买入提醒</span>
-        <span><i class="dot sell"></i>卖出提醒</span>
+        <span><i class="dot sell"></i>止盈提醒</span>
         <span><i class="dot stale"></i>数据陈旧</span>
       </div>
     </aside>
@@ -110,7 +110,7 @@
             <small id="buyDistance">基于支撑位与 ATR</small>
           </div>
           <div id="modelSellBox" class="range-box sell-range">
-            <span>模型卖出观察区</span>
+            <span>模型止盈区间</span>
             <strong id="sellRange">—</strong>
             <small id="sellDistance">基于阻力位与 ATR</small>
           </div>
@@ -148,7 +148,7 @@
             <label>最高价<input id="buyHighInput" inputmode="decimal" type="number" min="0" step="0.01" placeholder="High"></label>
           </fieldset>
           <fieldset>
-            <legend>卖出区间</legend>
+            <legend>止盈区间</legend>
             <label>最低价<input id="sellLowInput" inputmode="decimal" type="number" min="0" step="0.01" placeholder="Low"></label>
             <span>—</span>
             <label>最高价<input id="sellHighInput" inputmode="decimal" type="number" min="0" step="0.01" placeholder="High"></label>
@@ -205,7 +205,7 @@
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20260930-holdings" type="module"></script>
+  <script src="app.js?v=20261112-stop-zones" type="module"></script>
 
 
 <!-- PT-UNIVERSE-BACKLINK -->

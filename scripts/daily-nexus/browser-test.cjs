@@ -126,7 +126,12 @@ await ctx.routeWebSocket('wss://ws-feed.exchange.coinbase.com/',socket=>{
   });
 });
 await ctx.route('https://widgets.tradingview-widget.com/w/en/tv-single-ticker.js',route=>route.fulfill({
-  contentType:'application/javascript',body:"customElements.define('tv-single-ticker',class extends HTMLElement {});"
+  contentType:'application/javascript',body:`customElements.define('tv-single-ticker',class extends HTMLElement {
+    connectedCallback() {
+      const root=this.attachShadow({mode:'open'});
+      root.innerHTML='<p>Quote</p><footer><a href="https://www.tradingview.com/">Price by TradingView</a></footer>';
+    }
+  });`
 }));
 await ctx.route('**/api/investment/quote?*',route=>{
   const symbol=new URL(route.request().url()).searchParams.get('symbol');
@@ -148,7 +153,11 @@ assert.deepEqual([...new Set(quoteRequests)].sort(),['AAPL','BTC-USD','^GSPC']);
 const widget=board.locator('tv-single-ticker[symbol="NASDAQ:AAPL"]');
 await widget.waitFor({state:'attached'});
 await widget.dispatchEvent('tv-widget-ready');
-await board.locator('.market-cell[data-tradingview=ready] .board-tv-quote').waitFor({state:'visible'});
+const liveWidget=board.locator('.market-cell[data-tradingview=ready] .board-tv-quote');
+await liveWidget.waitFor({state:'visible'});
+assert.equal(await liveWidget.getByText('Price by TradingView',{exact:true}).count(),1);
+assert.equal(await liveWidget.locator(':scope > small').count(),0);
+assert.match(await liveWidget.getAttribute('title'),/延迟报价/);
 assert.equal(await board.getByText('$123.45',{exact:true}).isVisible(),false);
 await widget.dispatchEvent('tv-widget-error');
 await board.getByText('$123.45',{exact:true}).waitFor();

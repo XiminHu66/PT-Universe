@@ -52,10 +52,8 @@ export function boardStreams(onQuote, onDisconnect) {
       };
       widget.addEventListener('tv-widget-ready',()=>setReady(true));
       widget.addEventListener('tv-widget-error',()=>setReady(false));
-      const source = document.createElement('small');
-      source.textContent = usExchanges.test(entry.stock.symbol) ? 'TradingView · 延迟' : 'TradingView · 自动更新';
-      source.title = '报价延迟取决于交易所';
-      layer.append(widget,source);
+      layer.title = usExchanges.test(entry.stock.symbol) ? 'TradingView · 延迟报价' : 'TradingView · 自动更新';
+      layer.append(widget);
       frames.set(entry,layer);
       entry.cell.append(layer);
     }

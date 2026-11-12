@@ -1,4 +1,4 @@
-import {boardStreams} from './board-streams.mjs';
+import {boardStreams} from './board-streams.mjs?v=20261112-attribution';
 import {API} from '../_shared/on-demand.mjs';
 import {batchQuote, readBatchSnapshot} from '../investment-desk/refresh.mjs';
 

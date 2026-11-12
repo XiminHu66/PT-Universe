@@ -262,12 +262,12 @@ function renderWatchlist() {
     const location = prices && reviewWindow(market?.lastTradeAt) ? priceLocation(price, prices) : null;
     const zoneTag = {
       buy:['买入区间','buy',prices?.buy ? formatPriceRange(prices.buy) : ''],
-      sell:['卖出区间','trim',prices?.sell ? formatPriceRange(prices.sell) : ''],
-      aboveSell:['高于卖出区','trim',prices?.sell ? formatPriceRange(prices.sell) : ''],
-      risk:['风险区间','sell',prices?.risk ? '低于 $'+fmt(prices.risk) : '']
+      sell:['止盈区间','trim',prices?.sell ? formatPriceRange(prices.sell) : ''],
+      aboveSell:['高于止盈区','trim',prices?.sell ? formatPriceRange(prices.sell) : ''],
+      risk:['止损区间','sell',prices?.risk ? '低于 $'+fmt(prices.risk) : '']
     }[location];
     const active = item.symbol === state.selected;
-    const zoneLabel = alert ? (alert === 'buy' ? '买入提醒' : '卖出提醒') : modelZone ? (modelZone === 'buy' ? '模型买' : '模型卖') : '';
+    const zoneLabel = alert ? (alert === 'buy' ? '买入提醒' : '止盈提醒') : modelZone ? (modelZone === 'buy' ? '模型买' : '模型卖') : '';
     const zone = zoneLabel ? `<em class="zone-tag ${alert ? 'custom' : ''}">${zoneLabel}</em>` : '';
     return `<button class="watch-item ${active ? 'active' : ''} ${modelZone ? `model-${modelZone}` : ''} ${alert ? `alert-${alert}` : ''}" data-symbol="${escapeHtml(item.symbol)}" type="button" ${active ? 'aria-current="true"' : ''}>
       <span class="ticker-avatar">${escapeHtml(item.display.slice(0,4))}</span>
@@ -288,21 +288,21 @@ function safeSource(url, label) {
 }
 const formatPriceRange = values => `$${fmt(values[0])}–$${fmt(values[1])}`;
 const priceZoneLabels = {
-  buy:['当前在买入区间','buy'], sell:['当前在卖出区间','trim'],
-  aboveSell:['当前高于卖出区间','trim'], risk:['当前在风险区间','sell'],
+  buy:['当前在买入区间','buy'], sell:['当前在止盈区间','trim'],
+  aboveSell:['当前高于止盈区间','trim'], risk:['当前在止损区间','sell'],
   belowBuy:['当前低于买入区间','wait'], outside:['当前未到买卖区间','wait']
 };
 
 function describePlan(d, holding, window, location) {
   if (!d.buy) return d.reasons[0] || '暂时无法给出价格区间。';
   if (!window) return '行情需要更新。下方是上次计算的区间。';
-  if (location === 'risk') return holding.quantity > 0 ? '暂停加仓，检查是否需要减仓。' : '暂停买入，等价格和趋势企稳。';
+  if (location === 'risk') return holding.quantity > 0 ? '已触及止损区间。按你的止损计划处理。' : '暂停买入，等价格和趋势企稳。';
   if (location === 'buy') {
     if (d.state === 'buy') return '可考虑分批买入。';
     if (d.state === 'candidate') return '先核对财报，再考虑买入。';
     return '暂缓买入，先确认趋势和财报。';
   }
-  if (location === 'sell' || location === 'aboveSell') return holding.quantity > 0 ? '持有时可考虑分批卖出。' : '等待价格回落。';
+  if (location === 'sell' || location === 'aboveSell') return holding.quantity > 0 ? '持有时可考虑分批止盈。' : '等待价格回落。';
   if (d.state === 'sell') return '趋势或持有理由转弱，暂缓买入。';
   return location === 'belowBuy' ? '等价格企稳，再看买入条件。' : '价格到区间时再评估。';
 }
@@ -311,8 +311,8 @@ function planRanges(prices, location) {
   const {buy, sell, risk} = prices;
   return `<div class="position-ranges plan-levels">
     <div class="plan-buy${location === 'buy' ? ' is-current' : ''}"><small>买入区间</small><strong>${buy ? formatPriceRange(buy) : '暂无'}</strong></div>
-    <div class="plan-sell${location === 'sell' || location === 'aboveSell' ? ' is-current' : ''}"><small>卖出区间</small><strong>${sell ? formatPriceRange(sell) : '暂无'}</strong></div>
-    <div class="plan-risk${location === 'risk' ? ' is-current' : ''}"><small>风险区间</small><strong>${risk ? '低于 $'+fmt(risk) : '暂无'}</strong></div>
+    <div class="plan-sell${location === 'sell' || location === 'aboveSell' ? ' is-current' : ''}"><small>止盈区间</small><strong>${sell ? formatPriceRange(sell) : '暂无'}</strong></div>
+    <div class="plan-risk${location === 'risk' ? ' is-current' : ''}"><small>止损区间</small><strong>${risk ? '低于 $'+fmt(risk) : '暂无'}</strong></div>
   </div>`;
 }
 
@@ -327,7 +327,7 @@ function renderPositionDecision() {
   const personal=state.ranges[state.selected];
   const personalSummary=integrated&&personal?['buy','sell'].flatMap(side=>{
     const lo=finite(personal[side+'Low']),hi=finite(personal[side+'High']);
-    return lo!==null&&hi!==null?[(side==='buy'?'买入':'卖出')+' $'+fmt(lo)+'–$'+fmt(hi)]:[];
+    return lo!==null&&hi!==null?[(side==='buy'?'买入':'止盈')+' $'+fmt(lo)+'–$'+fmt(hi)]:[];
   }).join(' · '):'';
   const position = $('positionDecision');
   const window = integrated && d.buy ? reviewWindow(q?.lastTradeAt) : null;
@@ -343,7 +343,7 @@ function renderPositionDecision() {
     ${!integrated ? `<div class="position-heading"><strong class="decision-tag ${d.state}">${escapeHtml(d.label)}</strong><span>${holdingDetails}${pnlPct ? ` (${pnlPct})` : ''}</span></div>` : ''}
     <p class="decision-reasons">${escapeHtml(integrated ? describePlan(d, h, window, location) : d.reasons.join('；'))}</p>
     ${window ? `<p class="plan-window"><span>观察期</span><strong>${showWindow(window.start, window.end)}</strong></p>` : ''}
-    ${integrated ? (d.buy ? planRanges(prices, location) : '') : d.buy ? `<div class="position-ranges"><div><small>买入 / 加仓参考</small><strong>$${fmt(d.buy[0])}–${fmt(d.buy[1])}</strong></div><div><small>减仓 / 止盈参考</small><strong>$${fmt(d.sell[0])}–${fmt(d.sell[1])}</strong></div><div><small>失效参考</small><strong>$${fmt(d.invalidation)}</strong></div></div>` : ''}
+    ${integrated ? (d.buy ? planRanges(prices, location) : '') : d.buy ? `<div class="position-ranges"><div><small>买入 / 加仓参考</small><strong>$${fmt(d.buy[0])}–${fmt(d.buy[1])}</strong></div><div><small>减仓 / 止盈参考</small><strong>$${fmt(d.sell[0])}–${fmt(d.sell[1])}</strong></div><div><small>止损区间</small><strong>低于 $${fmt(d.invalidation)}</strong></div></div>` : ''}
     ${personalSummary?`<p class="personal-range-summary">个人提醒区间 · ${escapeHtml(personalSummary)}</p>`:''}
     ${state.evidenceErrors[state.selected]?`<p class="evidence-error">本次刷新：${escapeHtml(state.evidenceErrors[state.selected])}；保留带时间的已有证据。</p>`:''}
     <div class="position-footer">
@@ -354,7 +354,7 @@ function renderPositionDecision() {
         <ul>${[...d.reasons,...d.evidence].map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul>
         <p>${safeSource(q?.sourceURL||'https://finance.yahoo.com/quote/'+encodeURIComponent(state.selected)+'/', '行情原始页面')} · 报价 ${escapeHtml(time(q?.lastTradeAt))} · 日线截至 ${escapeHtml(q?.history?.at(-1)?.d||'缺失')}</p>
         <p>${c?`${safeSource(c.sourceURL,'财报原始页面')} · 检查 ${escapeHtml(time(c.updatedAt))}`:'无可用公司财报；ETF 不套用公司财报规则。'}</p>
-        <p>买入区参考历史支撑，卖出区参考历史上涨遇阻的位置。区间宽度随近期波动变化。低于风险价位时暂停加仓，并检查持仓。</p>
+        <p>买入区参考历史支撑，止盈区间参考历史上涨遇阻的位置。区间宽度随近期波动变化。低于止损价位即进入止损区间。</p>
       </details>
       <div class="position-actions">${integrated ? '<button type="button" data-edit-range>调整个人区间</button>' : '<button type="button" data-investment-tab="thesis">财报与论点</button><button type="button" data-investment-tab="audit">核验名人信号</button>'}</div>
     </div>`;
@@ -638,14 +638,14 @@ function relativeTime(dateValue) { const seconds = Math.max(0,(Date.now()-new Da
 function renderAlert(item) {
   const kind = alertState(state.selected,item); const banner = $("alertBanner"); if (!kind || state.dismissedAlert) { banner.hidden = true; return; }
   const range = state.ranges[state.selected]; banner.hidden = false; banner.classList.toggle("sell",kind==="sell");
-  $("alertIcon").textContent = kind === "buy" ? "↓" : "↑"; $("alertTitle").textContent = kind === "buy" ? "进入自定义买入区间" : "进入自定义卖出区间";
+  $("alertIcon").textContent = kind === "buy" ? "↓" : "↑"; $("alertTitle").textContent = kind === "buy" ? "进入自定义买入区间" : "进入自定义止盈区间";
   $("alertText").textContent = `${displayFor(state.selected)} 当前价 $${fmt(item.price)}，位于 $${fmt(range[`${kind}Low`])} – $${fmt(range[`${kind}High`])}。`;
   maybeNotify(kind,item,range);
 }
 function maybeNotify(kind,item,range) {
   if (localStorage.getItem(KEYS.notifications) !== "on" || !('Notification' in window) || Notification.permission !== "granted") return;
   const marker = `${state.selected}-${kind}-${new Date().toISOString().slice(0,10)}`; if (sessionStorage.getItem(marker)) return; sessionStorage.setItem(marker,"1");
-  new Notification(`${displayFor(state.selected)} ${kind === "buy" ? "买入" : "卖出"}区间提醒`, { body:`当前价 $${fmt(item.price)} · 区间 $${fmt(range[`${kind}Low`])}–$${fmt(range[`${kind}High`])}` });
+  new Notification(`${displayFor(state.selected)} ${kind === "buy" ? "买入" : "止盈"}区间提醒`, { body:`当前价 $${fmt(item.price)} · 区间 $${fmt(range[`${kind}Low`])}–$${fmt(range[`${kind}High`])}` });
 }
 
 function navigateInvestment(tab) {

@@ -1033,9 +1033,8 @@ button{cursor:pointer}
 .market-cell{background:var(--card-2);border:1px solid var(--line);border-radius:11px;min-width:0;position:relative;overflow:hidden;--tv-widget-background-color:transparent;--tv-widget-positive-color:#18b77a;--tv-widget-negative-color:#f0445e}
 .market-edit{border:1px solid var(--line);background:var(--card-2);border-radius:7px;padding:4px 7px;color:var(--text)}
 .market-edit:hover{background:var(--chipActive)}
-.board-tv-quote{position:absolute;inset:0;opacity:0;pointer-events:none;display:grid;grid-template-rows:minmax(0,1fr) auto}
+.board-tv-quote{position:absolute;inset:0;opacity:0;pointer-events:none}
 .board-tv-quote tv-single-ticker{display:block;width:100%;max-width:100%;height:100%;--tv-widget-background-color:transparent}
-.board-tv-quote small{color:var(--muted);padding:0 8px 5px;font-size:10px}
 .market-cell[data-tradingview=ready] .board-tv-quote{opacity:1;pointer-events:auto}
 .market-cell[data-tradingview=ready] .board-quote{visibility:hidden}
 .board-quote{height:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;align-content:space-between;gap:3px 5px;padding:9px 10px;color:var(--text);text-decoration:none;font-variant-numeric:tabular-nums}
@@ -1759,7 +1758,7 @@ function startWeather(){
 /* Market quotes and TradingView calendar */
 let boardMarket;
 const boardActive = () => window.__NEXUS_ACTIVE__ !== false && !document.hidden;
-import(new URL('./board-market.mjs?v=20261112-streams',document.baseURI)).then(({mountBoardMarket})=>{
+import(new URL('./board-market.mjs?v=20261112-attribution',document.baseURI)).then(({mountBoardMarket})=>{
   boardMarket=mountBoardMarket(boardActive);
   renderMarketGrid();
 }).catch(()=>{marketBody.textContent="行情模块暂未加载，请刷新看板。"});
