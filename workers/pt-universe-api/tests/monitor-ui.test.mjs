@@ -13,7 +13,7 @@ const location={href:'https://ximinhu66.github.io/PT-Universe/apps/daily-nexus/?
 const window={addEventListener:(name,fn)=>events.set(name,fn)};
 vm.runInNewContext(source,{document,window,location,history:{state:null,replaceState:(_,__,url)=>{location.href=String(url);}},URL,Event,Date:Clock,setTimeout:(fn,ms)=>{timers.set(++timerId,{fn,ms});return timerId},clearTimeout:id=>timers.delete(id),MutationObserver:class{observe(){}}});
 assert.equal(frame.getAttribute('src'),null);assert.equal(timers.size,0);assert.equal(document.querySelector('#monitorStandalone'),null);
-panel.classList.add('active');events.get('nexus-view-change')();assert.match(frame.src,/embedded=nexus&view=overview$/);load();
+panel.classList.add('active');events.get('nexus-view-change')();const monitorURL=new URL(frame.src);assert.equal(monitorURL.pathname,'/PT-Universe/apps/resource-center/');assert.equal(monitorURL.searchParams.get('embedded'),'nexus');assert.equal(monitorURL.searchParams.get('view'),'overview');load();
 assert.equal(messages.at(-1).message.active,true);assert.equal(messages.at(-1).message.view,'overview');assert.equal(timers.size,1);assert.equal([...timers.values()][0].ms,300000);
 document.querySelector('[data-monitor-view=projects]').click();assert.equal(messages.at(-1).message.view,'projects');assert.equal(new URL(location.href).searchParams.get('monitor'),'projects');
 const emit=(origin,source,data)=>events.get('message')({origin,source,data});
