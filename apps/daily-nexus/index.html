@@ -1027,21 +1027,35 @@ button{cursor:pointer}
 .section-title{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:800;letter-spacing:.10em;color:var(--text)}
 .pulse{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px color-mix(in srgb,var(--green) 12%,transparent)}
 .section-sub{font-size:11px;color:var(--muted);letter-spacing:0}
-.market .section-head{background:transparent;gap:8px}
+.market .section-head{background:transparent}
 .market .section-title{font-size:14px;letter-spacing:0}
-.market-heading{display:grid;gap:3px;min-width:0}
-.market-heading .section-sub{white-space:nowrap;font-weight:550}
-.market-body{flex:1;min-height:0;overflow:auto;padding:8px 10px 4px}
-.market-edit{flex:none;border:1px solid var(--line);background:var(--card-2);border-radius:7px;padding:5px 8px;color:var(--text)}
+.market-body{flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,154px),1fr));grid-auto-rows:96px;align-content:start;gap:8px;padding:10px;min-height:0;overflow:auto}
+.market-cell{background:var(--card-2);border:1px solid var(--line);border-radius:11px;min-width:0;position:relative;overflow:hidden;--tv-widget-background-color:transparent;--tv-widget-positive-color:#18b77a;--tv-widget-negative-color:#f0445e}
+.market-edit{border:1px solid var(--line);background:var(--card-2);border-radius:7px;padding:4px 7px;color:var(--text)}
 .market-edit:hover{background:var(--chipActive)}
-.market-body .tradingview-widget-container{height:auto!important}
-.market-body iframe{display:block;width:100%!important;height:var(--watchlist-height)!important}
-.market-body .tradingview-widget-copyright{padding:5px 0;text-align:center;font-size:11px;color:var(--muted)}
-.market-body a{color:var(--soft)}
-.market-message{padding:12px 4px;font-size:13px;color:var(--muted)}
-.market-links{display:flex;flex-wrap:wrap;gap:8px}
-.market-links a{padding:5px 7px;border:1px solid var(--line);border-radius:6px}
-@media(max-width:520px){.market-body{padding-inline:6px;flex:none;overflow:visible}}
+.board-tv-quote{position:absolute;inset:0;opacity:0;pointer-events:none}
+.board-tv-quote tv-single-ticker{display:block;width:100%;max-width:100%;height:100%;--tv-widget-background-color:transparent}
+.market-cell[data-tradingview=ready] .board-tv-quote{opacity:1;pointer-events:auto}
+.market-cell[data-tradingview=ready] .board-quote{visibility:hidden}
+.board-quote{height:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;align-content:space-between;gap:3px 5px;padding:9px 10px;color:var(--text);text-decoration:none;font-variant-numeric:tabular-nums}
+.board-quote:hover,.board-quote:focus-visible{background:var(--chipActive);outline:2px solid var(--blue);outline-offset:-2px}
+.board-quote-symbol{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.board-quote-price{grid-column:1/-1;font-size:20px;font-weight:730;letter-spacing:-.035em;line-height:1.1;white-space:nowrap}
+.board-quote-change{padding:2px 4px;border-radius:4px;font-size:11px;font-weight:660;color:var(--muted);white-space:nowrap}
+.board-quote-change:empty,.board-quote-age:empty{display:none}
+.board-quote-change[data-direction=up]{color:var(--quote-up);background:color-mix(in srgb,var(--quote-up) 11%,transparent)}
+.board-quote-change[data-direction=down]{color:var(--quote-down);background:color-mix(in srgb,var(--quote-down) 10%,transparent)}
+.board-quote{--quote-up:#80e3b7;--quote-down:#ff9da6;--quote-stale:#ffd78f}
+html[data-theme=light] .board-quote{--quote-up:#137052;--quote-down:#a52d41;--quote-stale:#835719}
+.board-quote-meta{display:flex;align-items:center;gap:4px;min-width:0;grid-column:1/-1}
+.board-quote time{color:var(--soft);font-size:10px;line-height:1.15;white-space:nowrap}
+.board-quote-age{font-size:10px;font-weight:650;color:var(--quote-stale);white-space:nowrap}
+.board-quote canvas{width:38px;height:14px;max-width:24%;min-width:0;margin-left:auto;flex:0 1 38px}
+.board-quote[data-stale=true] .board-quote-price{color:var(--soft)}
+.board-quote[data-source=live] .board-quote-age{color:var(--quote-up)}
+.board-quote[data-source=snapshot]:not([data-stale=true]) .board-quote-age{color:var(--muted)}
+@media(max-width:520px){.market-body{grid-template-columns:repeat(auto-fill,minmax(min(100%,132px),1fr));gap:6px;padding:7px}.board-quote{padding-inline:8px}.board-quote-price{font-size:18px}}
+.market-empty{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;background:color-mix(in srgb,var(--panel) var(--glass-alpha),transparent)}
 .news-head-left{display:flex;align-items:center;gap:11px;min-width:0}
 .switcher{display:flex;gap:4px;background:var(--panel2);padding:3px;border:1px solid var(--line);border-radius:10px}
 .switcher button{border:0;background:transparent;padding:5px 9px;border-radius:7px;font-size:11px;color:var(--muted)}
@@ -1214,10 +1228,6 @@ button{cursor:pointer}
 @media(max-width:640px){
   .nav-title span:last-child{display:none}
 }
-@media(max-width:520px){
-  .dashboard{width:100%;grid-template-columns:minmax(0,1fr);grid-template-areas:"sentiment" "market" "news" "nav";grid-template-rows:var(--tape-h) max-content max(320px,48dvh) var(--nav-h);align-content:start;overflow:auto}
-  .sentiment{grid-area:sentiment}.market{grid-area:market}.news{grid-area:news}.nav{grid-area:nav}
-}
 </style>
 </head>
 <body>
@@ -1236,11 +1246,8 @@ button{cursor:pointer}
 
   <section class="card section market">
     <header class="section-head">
-      <div class="market-heading">
-        <div class="section-title">自选行情 <span id="watchCount" class="section-sub"></span></div>
-        <div class="section-sub">美股延迟 · 自动更新</div>
-      </div>
-      <button type="button" class="section-sub market-edit" id="editWatchlist">编辑自选列表</button>
+      <div class="section-title">自选行情 <span id="watchCount" class="section-sub"></span></div>
+      <div><button type="button" class="section-sub market-edit" id="refreshBoardQuotes">刷新备用报价</button> <button type="button" class="section-sub market-edit" id="editWatchlist">编辑自选列表</button></div>
     </header>
     <div id="marketBody" class="market-body"></div>
   </section>
@@ -1307,7 +1314,7 @@ button{cursor:pointer}
         <div class="help">可以直接搜索代码 / 名称加入，也可修改 TradingView Symbol、调整顺序或移除标的。已修正 <b>SMH → NASDAQ:SMH</b>，并将 <b>SPX → TVC:SPX</b>；旧配置会自动迁移。</div>
         <div id="stockManager" class="manager-list"></div>
         <div class="settings-actions">
-          <button class="action primary" onclick="saveStockEdits()">保存自选列表</button>
+          <button class="action primary" onclick="saveStockEdits()">保存 Watchlist</button>
           <button class="action" onclick="resetStocks()">恢复默认股票</button>
         </div>
         <div class="addbox">
@@ -1363,16 +1370,17 @@ button{cursor:pointer}
       </div>
 
       <div id="pane-layout" class="setting-pane">
-        <div class="help">调整后会立即预览并自动保存。横屏时“股票 / 信息比例”控制行情与信息栏的宽度。手机上向下滚动可看完整自选列表。</div>
+        <div class="help">调整后会立即预览并自动保存。横屏时“股票 / 信息比例”控制左右宽度；竖屏时控制上下高度。股票区会根据标的数量自动分列，13 支股票不再触发旧组件的内部滚动条。</div>
         <div class="layout-grid">
           <input id="topHeightRange" type="range" min="94" max="170" step="2" oninput="setLayoutValue('top',this.value)"></div>
           <div class="layout-control"><div class="layout-label"><span>恐慌 / 贪婪晴雨表</span><span id="tapeHeightValue" class="layout-value"></span></div><input id="tapeHeightRange" type="range" min="80" max="110" step="2" oninput="setLayoutValue('tape',this.value)"></div>
           <div class="layout-control"><div class="layout-label"><span>股票 / 信息比例</span><span id="splitValue" class="layout-value"></span></div><input id="splitRange" type="range" min="30" max="75" step="1" oninput="setLayoutValue('split',this.value)"></div>
           <div class="layout-control"><div class="layout-label"><span>底部控制栏</span><span id="navHeightValue" class="layout-value">48px</span></div><div class="help" style="margin:0">整合模式固定为 48px，只保留设置 / 刷新；明暗主题自动跟随 Daily Nexus 主界面。</div></div>
+          <div class="layout-control"><div class="layout-label"><span>股票分列</span><span id="colsValue" class="layout-value"></span></div><select id="marketColsSelect" class="field" onchange="setLayoutValue('cols',this.value)"><option value="0">自动（推荐）</option><option value="1">1 列</option><option value="2">2 列</option><option value="3">3 列</option><option value="4">4 列</option></select></div>
           <div class="layout-control"><div class="layout-label"><span>重置布局</span><span class="layout-value">默认</span></div><button class="action" style="width:100%" onclick="resetLayout()">恢复默认尺寸</button></div>
         </div>
         <div class="data-note">
-          <div><b>行情来源</b><span>自选列表由 TradingView 自动更新。美股显示延迟报价，加密货币实时更新。点击标的可在 TradingView 查看详情。</span></div>
+          <div><b>行情来源</b><span>TradingView 自动更新，延迟取决于交易所。Coinbase 加密货币接收实时成交。未连接的标的每 5 分钟检查备用报价。</span></div>
           <div><b>RSS / 快讯</b><span>7×24 快讯每 20 秒检查；RSS 每 10 分钟刷新；右下角 ↻ 可立即刷新资讯与行情组件。</span></div>
         </div>
       </div>
@@ -1392,7 +1400,7 @@ button{cursor:pointer}
           <div class="display-title">我保留 / 新增的辅助信息</div>
           <div class="help" style="margin:0">
             • 顶部直接使用 Fear & Greed 市场情绪晴雨表，不再重复 Daily Nexus 的天气、时间或额外行情模块。<br>
-            • TradingView 自选行情自动更新，美股显示延迟报价，加密货币实时更新。快讯每 20 秒检查，RSS 每 10 分钟刷新。<br>
+            • 行情自动更新，备用报价每 5 分钟检查，快讯每 20 秒检查，RSS 每 10 分钟刷新。<br>
             • 实时快讯：华尔街见闻 7×24 优先，20 秒轮询；跨域失败时自动回退备用代理 / RSS。<br>            • RSS 成功源数量与更新时间：快速判断是不是某个订阅源失效。<br>
             • RSS 源健康状态：在设置页逐个显示成功/失败。<br>
             • 顶部横幅使用 IWM、TLT、HYG、UUP、GLD、USO、FXY 展示风险偏好、利率、信用、美元、黄金、原油和日元环境，避免和 Watchlist 重复。<br>
@@ -1412,9 +1420,10 @@ window.addEventListener("message",e=>{
   if(d.type==="nexus-visibility"){
     const was=window.__NEXUS_ACTIVE__;
     window.__NEXUS_ACTIVE__=!!d.active;
+    boardMarket?.setActive(boardActive());
     if(!was&&window.__NEXUS_ACTIVE__){
       setTimeout(()=>{
-        try{startWeather()}catch(_){}
+        try{startWeather();boardMarket?.refresh()}catch(_){}
         try{loadNews(true)}catch(_){}
         try{loadLive(true)}catch(_){}
       },80);
@@ -1528,7 +1537,7 @@ const DEFAULT_FEEDS = [
   {name:"法国国际广播电台 RFI",url:"http://www.chinese.rfi.fr/last_24h/rss",cat:"world"}
 ];
 const KEYS={stocks:"deskboard_stocks_v3",feeds:"deskboard_feeds_v3",theme:"deskboard_theme_v3",layout:"deskboard_layout_v6",appearance:"deskboard_appearance_v1",pulseFilter:"deskboard_pulse_filter_v1",rssCache:"deskboard_rss_cache_v8",liveCache:"deskboard_live_cache_v2",extraLinks:"deskboard_extra_links_v1"};
-const DEFAULT_LAYOUT={top:0,tape:84,nav:48,split:56};
+const DEFAULT_LAYOUT={top:0,tape:84,nav:48,split:56,cols:0};
 const DEFAULT_APPEARANCE={bgImage:"",bgOpacity:0,bgBlur:0,bgPosX:50,bgPosY:50,glass:100,clockPhoto:"",clockPhotoShow:false,clockPhotoFit:"cover",clockPhotoOpacity:88,clockPhotoPosX:50,clockPhotoPosY:50};
 const CONFIG={fallbackWeather:{lat:47.6769,lon:-122.2060,label:"Kirkland"},rssRefreshMinutes:10,liveRefreshSeconds:20};
 const MACRO_TAPE=[
@@ -1683,16 +1692,16 @@ document.getElementById("themeQuick")?.addEventListener("click",()=>setThemeMode
 applyTheme(false);setInterval(()=>{if(themeMode==="auto")applyTheme(true)},5*60*1000);
 
 /* layout */
-function applyLayout(){
-  layout.top=Math.max(90,Math.min(150,Number(layout.top)||104));layout.tape=Math.max(80,Math.min(110,Number(layout.tape)||84));layout.nav=48;layout.split=Math.max(30,Math.min(75,Number(layout.split)||56));
+function applyLayout(renderMarket=true){
+  layout.top=Math.max(90,Math.min(150,Number(layout.top)||104));layout.tape=Math.max(80,Math.min(110,Number(layout.tape)||84));layout.nav=48;layout.split=Math.max(30,Math.min(75,Number(layout.split)||56));layout.cols=Math.max(0,Math.min(4,Number(layout.cols)||0));
   const root=document.documentElement.style;root.setProperty("--top-h",`${layout.top}px`);root.setProperty("--tape-h",`${layout.tape}px`);root.setProperty("--nav-h",`${layout.nav}px`);root.setProperty("--market-fr",`${layout.split}fr`);root.setProperty("--news-fr",`${100-layout.split}fr`);
-  const pairs=[["topHeightRange",layout.top],["tapeHeightRange",layout.tape],["navHeightRange",layout.nav],["splitRange",layout.split]];pairs.forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.value=String(v)});
+  const pairs=[["topHeightRange",layout.top],["tapeHeightRange",layout.tape],["navHeightRange",layout.nav],["splitRange",layout.split],["marketColsSelect",layout.cols]];pairs.forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.value=String(v)});
   const vals={topHeightValue:`${layout.top}px`,tapeHeightValue:`${layout.tape}px`,navHeightValue:`${layout.nav}px`,splitValue:`股票 ${layout.split}% · 信息 ${100-layout.split}%`};Object.entries(vals).forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.textContent=v});
-  saveStored(KEYS.layout,layout);
+  saveStored(KEYS.layout,layout);if(renderMarket)renderMarketGrid();
 }
-function setLayoutValue(k,v){layout[k]=Number(v);applyLayout();}
-function resetLayout(){layout={...DEFAULT_LAYOUT};applyLayout();toast("布局已恢复默认")};
-applyLayout();
+function setLayoutValue(k,v){layout[k]=Number(v);applyLayout(k==="cols");}
+function resetLayout(){layout={...DEFAULT_LAYOUT};applyLayout(true);toast("布局已恢复默认")};
+applyLayout(false);
 
 /* weather */
 const wxIcon=code=>{if(code===0)return"☀️";if([1,2].includes(code))return"🌤️";if(code===3)return"☁️";if([45,48].includes(code))return"🌫️";if(code>=51&&code<=67)return"🌧️";if(code>=71&&code<=77)return"🌨️";if(code>=80&&code<=82)return"🌦️";if(code>=95)return"⛈️";return"🌤️"};
@@ -1746,7 +1755,24 @@ function startWeather(){
 }
 
 
-/* TradingView watchlist and calendar */
+/* Market quotes and TradingView calendar */
+let boardMarket;
+const boardActive = () => window.__NEXUS_ACTIVE__ !== false && !document.hidden;
+import(new URL('./board-market.mjs?v=20261112-attribution',document.baseURI)).then(({mountBoardMarket})=>{
+  boardMarket=mountBoardMarket(boardActive);
+  renderMarketGrid();
+}).catch(()=>{marketBody.textContent="行情模块暂未加载，请刷新看板。"});
+document.getElementById("refreshBoardQuotes").onclick=async event=>{
+  const button=event.currentTarget;
+  button.disabled=true;
+  try { await boardMarket?.refresh(true); } finally { button.disabled=false; }
+};
+setInterval(()=>boardMarket?.refresh(),5*60*1000);
+document.addEventListener("visibilitychange",()=>{
+  boardMarket?.setActive(boardActive());
+  boardMarket?.refresh();
+});
+
 function tvMount(hostId,src,cfg){
   const host=document.getElementById(hostId);if(!host)return;
   host.innerHTML="";
@@ -1755,63 +1781,18 @@ function tvMount(hostId,src,cfg){
   const script=document.createElement("script");script.type="text/javascript";script.src=src;script.async=true;script.textContent=JSON.stringify(cfg);
   wrap.append(widget,script);host.appendChild(wrap);
 }
-function renderWatchlist(){
-  document.getElementById("watchCount").textContent=`${stocks.length} 个自选`;
-  marketBody.replaceChildren();
-  const status=document.createElement("p");
-  status.className="market-message";status.setAttribute("role","status");
-  status.textContent=stocks.length?"正在连接 TradingView…":"还没有自选标的";
-  marketBody.append(status);
-  if(!stocks.length)return;
-  // Leave room below the rows for TradingView’s bottom-right badge.
-  const height=stocks.length*60+34;
-  const wrap=document.createElement("div");wrap.className="tradingview-widget-container";
-  wrap.style.setProperty("--watchlist-height",`${height}px`);
-  const widget=document.createElement("div");widget.className="tradingview-widget-container__widget";
-  const credit=document.createElement("div");credit.className="tradingview-widget-copyright";
-  const source=document.createElement("a");source.href="https://www.tradingview.com/markets/";
-  source.target="_blank";source.rel="noopener";source.textContent="行情由 TradingView 提供";credit.append(source);
-  const script=document.createElement("script");script.async=true;
-  script.src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js";
-  script.textContent=JSON.stringify({
-    colorTheme:resolvedTheme,locale:"zh_CN",width:"100%",height:height+32,
-    showChart:false,showSymbolLogo:false,showFloatingTooltip:false,
-    tabs:[{title:"自选行情",symbols:stocks.map(({symbol,label})=>({
-      s:symbol,d:label===symbol.split(":").at(-1)?undefined:label
-    }))}]
+function renderMarketGrid(){
+  if(!marketBody)return;marketBody.innerHTML="";
+  if(!stocks.length){marketBody.innerHTML='<div class="market-empty">Watchlist 为空</div>';return}
+  const columns = Number(layout.cols);
+  marketBody.style.gridTemplateColumns=columns ? `repeat(${columns},minmax(0,1fr))` : "";
+  const cells=stocks.map(stock=>{
+    const cell=document.createElement("div");cell.className="market-cell";
+    marketBody.appendChild(cell);
+    return {cell,stock};
   });
-  // The TradingView loader replaces its placeholder and removes its script element.
-  const observer=new MutationObserver(()=>{
-    const frame=wrap.querySelector("iframe");
-    if(!frame)return;
-    clearTimeout(timeout);
-    observer.disconnect();
-    frame.title="TradingView 自选行情";
-    status.remove();
-  });
-  const fallback=()=>{
-    clearTimeout(timeout);
-    observer.disconnect();
-    if(wrap.isConnected)showWatchlistLinks();
-  };
-  const timeout=setTimeout(fallback,18000);
-  observer.observe(wrap,{childList:true});
-  script.onerror=fallback;
-  wrap.append(widget,credit,script);
-  marketBody.append(wrap);
-}
-
-function showWatchlistLinks(){
-  const status=document.createElement("p");status.className="market-message";status.setAttribute("role","status");
-  status.textContent="TradingView 暂未连通，可以直接打开标的行情。";
-  const links=document.createElement("div");links.className="market-links";
-  for(const {symbol} of stocks){
-    const link=document.createElement("a");
-    link.href="https://www.tradingview.com/symbols/"+encodeURIComponent(symbol.replace(":","-"))+"/";
-    link.target="_blank";link.rel="noopener";link.textContent=symbol.split(":").at(-1);
-    links.append(link);
-  }
-  marketBody.replaceChildren(status,links);
+  boardMarket?.setCards(cells);
+  const cv=document.getElementById("colsValue");if(cv)cv.textContent=columns?`${columns} 列`:"随宽度调整";
 }
 
 const FNG_URL="https://production.dataviz.cnn.io/index/fearandgreed/graphdata";
@@ -1875,14 +1856,14 @@ async function loadFearGreed(force=false){
 }
 
 function renderTradingView(){
+  document.getElementById("watchCount").textContent=`${stocks.length} 个自选`;
   const theme=resolvedTheme;
-  renderWatchlist();
+  renderMarketGrid();
   tvMount("calendarHost","https://s3.tradingview.com/external-embedding/embed-widget-events.js",{
     colorTheme:theme,isTransparent:true,width:"100%",height:"100%",locale:"zh_CN",importanceFilter:"0,1",currencyFilter:"USD,CNY,JPY,EUR"
   });
 }
 renderTradingView();
-window.parent.postMessage({type:"nexus-board-ready"},"*");
 loadFearGreed();
 setInterval(()=>{if(window.__NEXUS_ACTIVE__!==false)loadFearGreed(true)},15*60*1000);
 
@@ -2006,7 +1987,7 @@ function switchInfo(mode){
 }
 renderPulse();loadNews();loadLive(true);setInterval(()=>{if(window.__NEXUS_ACTIVE__!==false)loadNews(true)},CONFIG.rssRefreshMinutes*60*1000);setInterval(()=>{if(window.__NEXUS_ACTIVE__!==false&&!document.hidden)loadLive(true)},CONFIG.liveRefreshSeconds*1000);
 document.addEventListener("visibilitychange",()=>{if(window.__NEXUS_ACTIVE__!==false&&!document.hidden)loadLive(true)});
-async function manualRefresh(){const btn=document.querySelector(".refresh");btn.textContent="⋯";try{const jobs=[loadNews(true),loadLive(true),loadFearGreed(true),loadWeather()];await Promise.allSettled(jobs)}finally{setTimeout(()=>btn.textContent="↻",400)}}
+async function manualRefresh(){const btn=document.querySelector(".refresh");btn.textContent="⋯";try{const jobs=[loadNews(true),loadLive(true),loadFearGreed(true),loadWeather(),boardMarket?.refresh(true)];await Promise.allSettled(jobs)}finally{setTimeout(()=>btn.textContent="↻",400)}}
 
 /* extra links */
 function normalizeExtraUrl(url){let u=String(url||"").trim();if(!u)return "";if(!/^https?:\/\//i.test(u))u="https://"+u;try{const x=new URL(u);return /^https?:$/.test(x.protocol)?x.href:""}catch(e){return ""}}
@@ -2032,7 +2013,7 @@ function resetExtraLinks(){extraLinksDraft=clone(DEFAULT_EXTRA_LINKS);renderLink
 renderMoreLinks();
 
 /* settings shell */
-function openSettings(){stockDraft=clone(stocks);feedDraft=clone(feeds);extraLinksDraft=clone(extraLinks);renderStockManager();renderRSSManager();if(stockSearchInput){stockSearchInput.value="";renderStockSearchResults([],"输入股票代码、公司名或关键词即可搜索。")}applyTheme(false);applyLayout();applyAppearance();settingsBackdrop.classList.add("show")}
+function openSettings(){stockDraft=clone(stocks);feedDraft=clone(feeds);extraLinksDraft=clone(extraLinks);renderStockManager();renderRSSManager();if(stockSearchInput){stockSearchInput.value="";renderStockSearchResults([],"输入股票代码、公司名或关键词即可搜索。")}applyTheme(false);applyLayout(false);applyAppearance();settingsBackdrop.classList.add("show")}
 function closeSettings(){settingsBackdrop.classList.remove("show")}
 settingsBackdrop.addEventListener("click",e=>{if(e.target===settingsBackdrop)closeSettings()});
 document.getElementById("editWatchlist").onclick=()=>{
@@ -2057,7 +2038,7 @@ function removeStock(i){syncStockInputs();stockDraft.splice(i,1);renderStockMana
 function saveStockEdits(){
   syncStockInputs();stockDraft=stockDraft.filter(x=>x.symbol).map(x=>({symbol:x.symbol.toUpperCase(),label:x.label||x.symbol.split(":").pop()}));
   if(!stockDraft.length){toast("至少保留一个标的");return}
-  stocks=clone(stockDraft);saveStored(KEYS.stocks,stocks);renderWatchlist();toast("自选列表已保存")
+  stocks=clone(stockDraft);saveStored(KEYS.stocks,stocks);renderTradingView();toast("Watchlist 已保存")
 }
 function resetStocks(){stockDraft=clone(DEFAULT_STOCKS);renderStockManager();toast("已载入默认股票，点保存生效")}
 function addStock(){
@@ -2174,7 +2155,7 @@ async function importConfigFile(ev){
     if(j.appearance&&typeof j.appearance==="object"){appearance={...DEFAULT_APPEARANCE,...j.appearance};saveStored(KEYS.appearance,appearance)}
     if(["all","important"].includes(j.pulseFilter)){pulseFilter=j.pulseFilter;localStorage.setItem(KEYS.pulseFilter,pulseFilter)}
     if(Array.isArray(j.extraLinks)){extraLinks=j.extraLinks;saveJSON(KEYS.extraLinks,extraLinks)}
-    localStorage.removeItem(KEYS.rssCache);stockDraft=clone(stocks);feedDraft=clone(feeds);extraLinksDraft=clone(extraLinks);renderStockManager();renderRSSManager();renderMoreLinks();applyLayout();applyTheme(false);renderTradingView();applyAppearance();renderPulse();loadNews(true);toast("配置已导入")
+    localStorage.removeItem(KEYS.rssCache);stockDraft=clone(stocks);feedDraft=clone(feeds);extraLinksDraft=clone(extraLinks);renderStockManager();renderRSSManager();renderMoreLinks();applyLayout(true);applyTheme(true);applyAppearance();renderPulse();loadNews(true);toast("配置已导入")
   }catch(e){toast("配置文件无法读取")}
   ev.target.value=""
 }
@@ -2757,23 +2738,14 @@ function ensureDeskBoard(){
   const frame=$("#deskboardFrame"),tpl=$("#deskboardSource"),loading=$("#deskboardLoading");
   if(!frame||!tpl)return;
   deskboardInitialized=true;window.__deskboardInitialized__=true;
-  let revealed=false;
-  function reveal(){
-    if(revealed)return;
-    revealed=true;
-    window.removeEventListener("message",onBoardReady);
+  frame.addEventListener("load",()=>{
     loading?.classList.add("hide");
     setTimeout(()=>{if(loading)loading.style.display="none"},220);
     try{
       frame.contentWindow.postMessage({type:"nexus-visibility",active:document.body.dataset.nexusView==="board"},"*");
       frame.contentWindow.postMessage({type:"nexus-theme",theme:document.documentElement.dataset.theme||"dark"},"*");
     }catch(_){}
-  }
-  function onBoardReady(event){
-    if(event.source===frame.contentWindow&&event.origin===location.origin&&event.data?.type==="nexus-board-ready")reveal();
-  }
-  window.addEventListener("message",onBoardReady);
-  frame.addEventListener("load",reveal,{once:true});
+  },{once:true});
   frame.srcdoc=tpl.innerHTML;
 }
 function setDeskBoardActive(active){
