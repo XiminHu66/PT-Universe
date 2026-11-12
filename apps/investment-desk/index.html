@@ -7,13 +7,19 @@
   <link rel="stylesheet" href="../stock-alert/styles.css?v=20261112">
   <link rel="stylesheet" href="../_decision/ui.css?v=2">
   <link rel="stylesheet" href="../_decision/workspace.css?v=1">
-  <link rel="stylesheet" href="./desk.css?v=3">
+  <link rel="stylesheet" href="./desk.css?v=4">
   <link rel="stylesheet" href="../../pt-bridge.css">
 </head>
 <body data-workspace="investment">
 <main class="ws-shell investment-shell">
   <header class="investment-header">
-    <div><a class="investment-home" href="../../">PT Universe</a><h1>投资工作台</h1></div>
+    <div class="investment-brand"><a class="investment-home" href="../../">PT Universe</a><h1>投资工作台</h1></div>
+    <nav class="ws-bar"><div class="ws-tabs" role="tablist" aria-label="工作台">
+      <button id="tab-market" role="tab" aria-selected="false" aria-controls="panel-market" data-tab="market">标的与决策</button>
+      <button id="tab-review" role="tab" aria-selected="false" aria-controls="panel-review" data-tab="review">持仓管理</button>
+      <button id="tab-thesis" role="tab" aria-selected="false" aria-controls="panel-thesis" data-tab="thesis">财报与论点</button>
+      <button id="tab-audit" role="tab" aria-selected="false" aria-controls="panel-audit" data-tab="audit">公开交易核验</button>
+    </div></nav>
     <form id="ws-symbol-form" class="ws-context">
       <label for="ws-symbol">标的代码</label>
       <input id="ws-symbol" autocomplete="off" maxlength="15" required list="ws-symbols" placeholder="例如 NVDA">
@@ -24,12 +30,6 @@
       <button id="decision-theme" type="button" aria-label="切换明暗主题">明暗</button>
     </div>
   </header>
-  <nav class="ws-bar"><div class="ws-tabs" role="tablist" aria-label="工作台">
-    <button id="tab-market" role="tab" aria-selected="false" aria-controls="panel-market" data-tab="market">标的与决策</button>
-    <button id="tab-review" role="tab" aria-selected="false" aria-controls="panel-review" data-tab="review">持仓管理</button>
-    <button id="tab-thesis" role="tab" aria-selected="false" aria-controls="panel-thesis" data-tab="thesis">财报与论点</button>
-    <button id="tab-audit" role="tab" aria-selected="false" aria-controls="panel-audit" data-tab="audit">公开交易核验</button>
-  </div></nav>
   <div id="ws-summary" class="sr-only" aria-live="polite"></div>
   <section class="ws-panel" id="panel-market" role="tabpanel" aria-labelledby="tab-market" hidden>
     <div class="investment-market">
@@ -51,12 +51,24 @@
       <div id="watchlist" class="watchlist" role="tabpanel" aria-live="polite"></div>
     </aside>
     <div class="investment-detail">
-      <div class="investment-feed">
-        <span id="marketBadge" class="market-badge"><i></i>检查市场</span>
-        <span id="updatedAt" class="updated-at" role="status">等待行情</span>
-        <div class="top-actions">
-          <button id="notifyButton" type="button" title="启用价格提醒">价格提醒</button>
-          <button id="refreshButton" type="button">刷新标的</button>
+      <div class="investment-instrument">
+        <div class="quote-head investment-quote">
+          <div>
+            <div class="symbol-line"><h2 id="quoteSymbol">—</h2><span id="quoteExchange" class="chip">—</span></div>
+            <p id="quoteName">选择一个标的</p>
+          </div>
+          <div class="quote-price-block">
+            <div><span id="quoteCurrency">$</span><strong id="quotePrice">—</strong></div>
+            <span id="quoteChange" class="quote-change">—</span>
+          </div>
+        </div>
+        <div class="investment-feed">
+          <span id="marketBadge" class="market-badge"><i></i>检查市场</span>
+          <span id="updatedAt" class="updated-at" role="status">等待行情</span>
+          <div class="top-actions">
+            <button id="notifyButton" type="button" title="启用价格提醒">价格提醒</button>
+            <button id="refreshButton" type="button">刷新标的</button>
+          </div>
         </div>
       </div>
       <section id="alertBanner" class="alert-banner" hidden>
@@ -64,17 +76,6 @@
         <p id="alertText"></p>
         <button id="dismissAlert" type="button" aria-label="关闭提醒">×</button>
       </section>
-
-      <div class="quote-head investment-quote">
-        <div>
-          <div class="symbol-line"><h2 id="quoteSymbol">—</h2><span id="quoteExchange" class="chip">—</span></div>
-          <p id="quoteName">选择一个标的</p>
-        </div>
-        <div class="quote-price-block">
-          <div><span id="quoteCurrency">$</span><strong id="quotePrice">—</strong></div>
-          <span id="quoteChange" class="quote-change">—</span>
-        </div>
-      </div>
       <nav class="investment-evidence" aria-label="标的详情">
         <button type="button" data-evidence="overview" aria-pressed="true">操作计划</button>
         <button type="button" data-evidence="technical" aria-pressed="false">技术指标</button>
@@ -96,7 +97,8 @@
         </div>
         <section class="chart-card card" aria-labelledby="chart-title">
           <div class="chart-toolbar">
-            <div><h2 id="chart-title">历史走势</h2><p>收盘价和过去 50 个交易日的平均收盘价</p></div>
+            <h2 id="chart-title">历史走势</h2>
+            <div class="chart-legend"><span><i class="line price"></i>收盘价</span><span><i class="line sma"></i>50 日均线</span></div>
             <div class="period-tabs" role="group" aria-label="图表周期">
               <button data-period="1M" aria-pressed="false" type="button">1月</button>
               <button data-period="3M" aria-pressed="false" type="button">3月</button>
@@ -104,7 +106,6 @@
               <button data-period="1Y" aria-pressed="true" class="active" type="button">1年</button>
             </div>
           </div>
-          <div class="chart-legend"><span><i class="line price"></i>收盘价</span><span><i class="line sma"></i>50 日均线</span></div>
           <div id="chart" class="chart" role="img" aria-label="历史价格图表">
             <div class="chart-empty">等待历史数据</div>
           </div>
@@ -246,7 +247,7 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <script type="module" src="../_decision/workspace.js?v=20261112"></script>
-<script type="module" src="../stock-alert/app.js?v=20261112-plan"></script>
+<script type="module" src="../stock-alert/app.js?v=20261112-compact"></script>
 <script type="module" src="./kronos.js?v=2"></script>
 <script type="module" src="./portfolio.js?v=20261112-plan"></script>
 <script type="module" src="./audit.js?v=20261112"></script>

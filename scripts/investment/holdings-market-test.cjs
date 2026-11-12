@@ -112,6 +112,37 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
  await stock.locator('[data-evidence=overview]').click();
  await stock.locator('#holdingsTab').scrollIntoViewIfNeeded();
  await page.screenshot({path:'/tmp/pt-holdings-market-mobile.png',fullPage:true});
+ const originalHoldings = await page.evaluate(() => {
+  const key = 'ptu.decision.holdings';
+  const old = localStorage.getItem(key);
+  const holdings = JSON.parse(old);
+  for (const symbol of ['NVDA','GOOGL','MSFT','META','AMZN','QQQ','SPY','SMH','INTC','TSLA','COST','VOO','DIA','HOOD','NOW','QQQM']) {
+   holdings.push({symbol, quantity:10, cost:100});
+  }
+  localStorage.setItem(key, JSON.stringify(holdings));
+  dispatchEvent(new CustomEvent('workspace-records', {detail:{key:'holdings'}}));
+  return old;
+ });
+ assert.equal(await page.locator('#watchlist .watch-item').count(), 18);
+ for (const [width, height] of [[1920,945],[1366,768],[1024,720]]) {
+  await page.setViewportSize({width, height});
+  const layout = await page.evaluate(() => {
+   const watchlist = document.querySelector('#watchlist');
+   return {
+    chartBottom: document.querySelector('.chart-card').getBoundingClientRect().bottom,
+    pageHeight: document.documentElement.scrollHeight,
+    pageWidth: document.documentElement.scrollWidth,
+    holdingsFit: watchlist.scrollHeight <= watchlist.clientHeight + 1
+   };
+  });
+  assert.ok(layout.chartBottom <= height && layout.pageHeight <= height + 1 && layout.pageWidth <= width + 1,
+   `${width}×${height} overview should fit: ${JSON.stringify(layout)}`);
+  if (width === 1920) assert.ok(layout.holdingsFit, 'All 18 holdings should fit the wide-screen rail');
+ }
+ await page.evaluate(old => {
+  localStorage.setItem('ptu.decision.holdings', old);
+  dispatchEvent(new CustomEvent('workspace-records', {detail:{key:'holdings'}}));
+ }, originalHoldings);
  await page.setViewportSize({width:1440,height:1000});
  await stock.locator('#manageHoldings').click();
  await importCSV('Symbol,Quantity,Cost\nAAPL,7,90',true);
@@ -135,5 +166,5 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
  assert.ok(calls.includes('AMD'));
  assert.deepEqual(errors,[]);
  await browser.close();
- console.log('Holdings market passed: CSV import/replacement, preserved watchlist, custom-symbol quote + matching verdict, evidence, replay, empty/missing data and mobile layout');
+ console.log('Holdings market passed: CSV import/replacement, preserved watchlist, custom-symbol quote + matching verdict, evidence, replay, empty/missing data, mobile layout and first-screen desktop fit');
 })().catch(e=>{console.error(e);process.exit(1)});

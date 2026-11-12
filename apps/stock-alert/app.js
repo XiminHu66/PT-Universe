@@ -320,8 +320,16 @@ function renderPositionDecision() {
     ${integrated ? planRanges(d, h, window) : d.buy ? `<div class="position-ranges"><div><small>买入 / 加仓参考</small><strong>$${fmt(d.buy[0])}–${fmt(d.buy[1])}</strong></div><div><small>减仓 / 止盈参考</small><strong>$${fmt(d.sell[0])}–${fmt(d.sell[1])}</strong></div><div><small>失效参考</small><strong>$${fmt(d.invalidation)}</strong></div></div>` : ''}
     ${personalSummary?`<p class="personal-range-summary">个人提醒区间 · ${escapeHtml(personalSummary)}</p>`:''}
     ${state.evidenceErrors[state.selected]?`<p class="evidence-error">本次刷新：${escapeHtml(state.evidenceErrors[state.selected])}；保留带时间的已有证据。</p>`:''}
-    <details id="positionEvidence" ${expanded?'open':''}><summary>价位怎么算 · 查看依据 <span>· ${state.evidenceBusy?'刷新中':escapeHtml(time(q?.lastTradeAt))}</span></summary><ul>${[...d.reasons,...d.evidence].map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul><p>${safeSource(q?.sourceURL||'https://finance.yahoo.com/quote/'+encodeURIComponent(state.selected)+'/', '行情原始页面')} · 日线截至 ${escapeHtml(q?.history?.at(-1)?.d||'缺失')}</p><p>${c?`${safeSource(c.sourceURL,'财报原始页面')} · 检查 ${escapeHtml(time(c.updatedAt))}`:'无可用公司财报；ETF 不套用公司财报规则。'}</p><p>买入区参考历史支撑，卖出区参考历史上涨遇阻的位置。区间宽度随近期波动变化。卖出区下沿是开始复查止盈的价位。</p></details>
-    <div class="position-actions">${integrated?'<button type="button" data-edit-range>调整个人区间</button>':''}<button type="button" data-investment-tab="thesis">财报与论点</button><button type="button" data-investment-tab="audit">核验名人信号</button></div>`;
+    <div class="position-footer">
+      <details id="positionEvidence" ${expanded?'open':''}>
+        <summary>查看价位依据${state.evidenceBusy?' · 刷新中':''}</summary>
+        <ul>${[...d.reasons,...d.evidence].map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul>
+        <p>${safeSource(q?.sourceURL||'https://finance.yahoo.com/quote/'+encodeURIComponent(state.selected)+'/', '行情原始页面')} · 报价 ${escapeHtml(time(q?.lastTradeAt))} · 日线截至 ${escapeHtml(q?.history?.at(-1)?.d||'缺失')}</p>
+        <p>${c?`${safeSource(c.sourceURL,'财报原始页面')} · 检查 ${escapeHtml(time(c.updatedAt))}`:'无可用公司财报；ETF 不套用公司财报规则。'}</p>
+        <p>买入区参考历史支撑，卖出区参考历史上涨遇阻的位置。区间宽度随近期波动变化。卖出区下沿是开始复查止盈的价位。</p>
+      </details>
+      <div class="position-actions">${integrated?'<button type="button" data-edit-range>调整个人区间</button>':''}<button type="button" data-investment-tab="thesis">财报与论点</button><button type="button" data-investment-tab="audit">核验名人信号</button></div>
+    </div>`;
 }
 
 function renderSelected() {
