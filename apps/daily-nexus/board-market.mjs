@@ -1,13 +1,17 @@
+import {boardStreams} from './board-streams.mjs';
 import {API} from '../_shared/on-demand.mjs';
 import {batchQuote, readBatchSnapshot} from '../investment-desk/refresh.mjs';
 
 const cacheKey = 'ptu.nexus.board-quotes-v1';
 const sharedSnapshotKey = 'ptu.investment.batch-snapshot-v1';
-const refreshMs = 15 * 60_000;
+const refreshMs = 5 * 60_000;
 const staleMs = 36 * 60 * 60_000;
 const marketTime = new Intl.DateTimeFormat('en-US', {
   timeZone:'America/Los_Angeles', month:'numeric', day:'numeric',
   hour:'2-digit', minute:'2-digit', hourCycle:'h23'
+});
+const liveTime = new Intl.DateTimeFormat('en-US', {
+  timeZone:'America/Los_Angeles', hour:'2-digit', minute:'2-digit', second:'2-digit', hourCycle:'h23'
 });
 const US_EXCHANGES = new Set(['NASDAQ','NYSE','AMEX','NYSEARCA','NYSEAMERICAN','BATS','OTC']);
 const equivalents = {
@@ -36,8 +40,21 @@ function marketLink(symbol) {
 }
 
 export function mountBoardMarket(isActive) {
-  const quotes = new Map(), attempts = new Map(), pending = new Set();
-  let cards = [], initializing = true;
+  const quotes = new Map(), live = new Map(), attempts = new Map(), pending = new Set();
+  let cards = [], initializing = true, frame;
+  const streams = boardStreams((symbol,quote)=>{
+    const previous = live.get(symbol);
+    if (previous && Date.parse(previous.lastTradeAt) > Date.parse(quote.lastTradeAt)) return;
+    live.set(symbol,quote);
+    frame ??= requestAnimationFrame(()=>{ frame = null; render(); });
+  },()=>{
+    for (const [symbol,quote] of live) {
+      merge(symbol,{...quote,closes:quotes.get(symbol)?.closes});
+    }
+    live.clear();
+    render();
+  });
+  streams.setActive(isActive());
 
   function merge(symbol, raw) {
     const quote = compactQuote(raw);
@@ -54,8 +71,10 @@ export function mountBoardMarket(isActive) {
 
   function render() {
     for (const {symbol, card, price, change, time, age, chart} of cards) {
-      const quote = quotes.get(symbol);
-      const unit = symbol === '^TNX' ? 'percent' : symbol.startsWith('^') || symbol === 'DX-Y.NYB' ? 'index' : 'currency';
+      const streamed = live.get(symbol);
+      const snapshot = quotes.get(symbol);
+      const quote = streamed || snapshot;
+      const unit = symbol === '^TNX' ? 'percent' : symbol?.startsWith('^') || symbol === 'DX-Y.NYB' ? 'index' : 'currency';
       price.textContent = quote ? new Intl.NumberFormat('en-US', {
         style:unit === 'currency' ? 'currency' : 'decimal', currency:quote.currency,
         minimumFractionDigits:2, maximumFractionDigits:2
@@ -65,11 +84,12 @@ export function mountBoardMarket(isActive) {
       change.dataset.direction = pct > 0 ? 'up' : pct < 0 ? 'down' : '';
       const stale = !!quote && Date.now() - Date.parse(quote.lastTradeAt) > staleMs;
       card.dataset.stale = String(stale);
-      age.textContent = stale ? '旧报价' : '';
-      time.textContent = quote ? marketTime.format(new Date(quote.lastTradeAt)).replace(',', '') + ' PT'
-        : initializing || pending.has(symbol) ? '读取中' : '报价暂不可用';
+      card.dataset.source = streamed ? 'live' : 'snapshot';
+      age.textContent = streamed ? '实时' : stale ? '旧报价' : quote ? '备用' : '';
+      time.textContent = quote ? (streamed ? liveTime : marketTime).format(new Date(quote.lastTradeAt)).replace(',', '') + ' PT'
+        : !symbol ? '查看 TradingView' : initializing || pending.has(symbol) ? '读取中' : '报价暂不可用';
       if (quote) time.dateTime = quote.lastTradeAt;
-      drawTrend(chart,quote?.closes,stale);
+      drawTrend(chart,snapshot?.closes,stale);
     }
   }
 
@@ -113,7 +133,7 @@ export function mountBoardMarket(isActive) {
     await ready;
     await syncSharedQuotes();
     const now = Date.now();
-    const symbols = [...new Set(cards.map(card=>card.symbol))]
+    const symbols = [...new Set(cards.filter(card=>card.symbol && !live.has(card.symbol) && card.cell.dataset.tradingview!=='ready').map(card=>card.symbol))]
       .filter(symbol=>!pending.has(symbol) && (force || now - (attempts.get(symbol) || 0) >= refreshMs));
     if (!symbols.length || !isActive()) return;
     symbols.forEach(symbol=>pending.add(symbol));
@@ -156,7 +176,7 @@ export function mountBoardMarket(isActive) {
     cards = [];
     for (const {cell, stock} of cells) {
       const symbol = quoteSymbol(stock.symbol);
-      if (!symbol) continue;
+
       const card = document.createElement('a');
       card.className = 'board-quote';
       card.href = marketLink(stock.symbol);
@@ -164,7 +184,7 @@ export function mountBoardMarket(isActive) {
       card.rel = 'noopener';
       const label = document.createElement('b');
       label.className = 'board-quote-symbol';
-      label.textContent = stock.label || symbol;
+      label.textContent = stock.label || stock.symbol;
       const price = document.createElement('strong');
       price.className = 'board-quote-price';
       const change = document.createElement('span');
@@ -181,12 +201,12 @@ export function mountBoardMarket(isActive) {
       meta.append(age,time,chart);
       card.append(label,change,price,meta);
       cell.replaceChildren(card);
-      cards.push({symbol, card, price, change, time, age, chart});
+      cards.push({cell, stock, symbol, coinbase:!!symbol && stock.symbol.startsWith('COINBASE:'), card, price, change, time, age, chart});
     }
+    streams.setCards(cards);
     render();
     refresh();
-    return cells.filter(({stock})=>!quoteSymbol(stock.symbol));
   }
 
-  return {setCards, refresh};
+  return {setCards, refresh, setActive:streams.setActive};
 }

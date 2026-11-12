@@ -1,6 +1,7 @@
 import {API, refreshData} from '../_shared/on-demand.mjs';
 import {portfolioDecision} from '../_decision/portfolio.mjs';
 import {marketSessions, reviewWindow, showWindow} from '../investment-desk/sessions.mjs';
+import {priceLocation, priceZones} from '../investment-desk/price-zones.mjs';
 import {DEFAULT_WATCHLIST, mergeMarketItem} from '../investment-desk/refresh.mjs';
 
 const KEYS = {
@@ -257,7 +258,14 @@ function renderWatchlist() {
     const alert = alertState(item.symbol, market);
     const modelZone = integrated ? null : modelZoneState(market);
     const d = decisionFor(item.symbol).decision;
-    const actionable = ['sell', 'trim', 'buy', 'candidate'].includes(d.state);
+    const prices = integrated && d.buy ? priceZones(d) : null;
+    const location = prices && reviewWindow(market?.lastTradeAt) ? priceLocation(price, prices) : null;
+    const zoneTag = {
+      buy:['买入区间','buy',prices?.buy ? formatPriceRange(prices.buy) : ''],
+      sell:['卖出区间','trim',prices?.sell ? formatPriceRange(prices.sell) : ''],
+      aboveSell:['高于卖出区','trim',prices?.sell ? formatPriceRange(prices.sell) : ''],
+      risk:['风险区间','sell',prices?.risk ? '低于 $'+fmt(prices.risk) : '']
+    }[location];
     const active = item.symbol === state.selected;
     const zoneLabel = alert ? (alert === 'buy' ? '买入提醒' : '卖出提醒') : modelZone ? (modelZone === 'buy' ? '模型买' : '模型卖') : '';
     const zone = zoneLabel ? `<em class="zone-tag ${alert ? 'custom' : ''}">${zoneLabel}</em>` : '';
@@ -266,7 +274,8 @@ function renderWatchlist() {
       <span class="ticker-id">
         <strong>${escapeHtml(item.display)}${integrated ? '' : zone}</strong>
         ${integrated ? zone : `<small>${held ? `${fmt(item.quantity, 6).replace(/\.?0+$/,'')} 股 · 成本 $${fmt(item.cost)}` : escapeHtml(item.name || item.symbol)}</small>`}
-        ${(!integrated || (actionable && !alert)) ? `<em class="decision-tag ${d.state}">${escapeHtml(d.label)}</em>` : ''}
+        ${!integrated ? `<em class="decision-tag ${d.state}">${escapeHtml(d.label)}</em>`
+          : zoneTag && !alert ? `<em class="decision-tag price-zone-tag ${zoneTag[1]}" title="${escapeHtml(zoneTag[2])}">${zoneTag[0]}</em>` : ''}
       </span>
       <span class="ticker-quote"><strong>${price === null ? '—' : `${escapeHtml(currencyMark(market))}${fmt(price)}`}</strong>${change === null || price === null ? '' : `<small class="${change >= 0 ? 'positive' : 'negative'}">${pct(change)}</small>`}</span>
       ${held ? '' : `<span class="remove-symbol" data-remove="${escapeHtml(item.symbol)}" aria-label="移出观察">×</span>`}
@@ -277,31 +286,33 @@ function renderWatchlist() {
 function safeSource(url, label) {
   try { const u=new URL(url); if(!['https:','http:'].includes(u.protocol))return ''; return `<a href="${escapeHtml(u.href)}" target="_blank" rel="noopener noreferrer">${label} ↗</a>`; } catch { return ''; }
 }
-function describePlan(d, holding, window) {
-  if (!d.buy) return d.reasons.join('；');
-  if (!window) return '先刷新标的，确认行情覆盖最近一个已收盘的交易日，再使用下方价位。';
-  const messages = {
-    sell: holding.quantity > 0 ? '先复查持仓风险和持有理由，暂缓加仓。' : '暂缓买入，先检查趋势和财报。',
-    trim: holding.quantity > 0 ? '先复查是否需要减仓，查看当前价是否已到卖出观察区。' : '等待回落，避免追价。',
-    buy: '价格已到买入观察区。确认趋势和财报条件仍成立，再考虑买入。',
-    candidate: '价格已到买入观察区。先补查财报和持有理由，再考虑买入。',
-    wait: holding.quantity > 0 ? '继续观察，价格到下方区间时再复查。' : '先等待价格与趋势同时满足条件。'
-  };
-  return messages[d.state] || d.reasons.join('；');
+const formatPriceRange = values => `$${fmt(values[0])}–$${fmt(values[1])}`;
+const priceZoneLabels = {
+  buy:['当前在买入区间','buy'], sell:['当前在卖出区间','trim'],
+  aboveSell:['当前高于卖出区间','trim'], risk:['当前在风险区间','sell'],
+  belowBuy:['当前低于买入区间','wait'], outside:['当前未到买卖区间','wait']
+};
+
+function describePlan(d, holding, window, location) {
+  if (!d.buy) return d.reasons[0] || '暂时无法给出价格区间。';
+  if (!window) return '行情需要更新。下方是上次计算的区间。';
+  if (location === 'risk') return holding.quantity > 0 ? '暂停加仓，检查是否需要减仓。' : '暂停买入，等价格和趋势企稳。';
+  if (location === 'buy') {
+    if (d.state === 'buy') return '可考虑分批买入。';
+    if (d.state === 'candidate') return '先核对财报，再考虑买入。';
+    return '暂缓买入，先确认趋势和财报。';
+  }
+  if (location === 'sell' || location === 'aboveSell') return holding.quantity > 0 ? '持有时可考虑分批卖出。' : '等待价格回落。';
+  if (d.state === 'sell') return '趋势或持有理由转弱，暂缓买入。';
+  return location === 'belowBuy' ? '等价格企稳，再看买入条件。' : '价格到区间时再评估。';
 }
 
-function planRanges(d, holding, window) {
-  if (!d.buy) return '';
-  const range = values => `$${fmt(values[0])}–$${fmt(values[1])}`;
-  const buying = d.price < d.buy[0] ? '已低于买入区，等价格回到区间并复查趋势。'
-    : d.price <= d.buy[1] ? '已到区间，先确认趋势企稳和财报。' : '回落到区间后，检查趋势是否企稳。';
-  const risk = window && d.price < d.invalidation ? '已跌破，优先复查持仓风险。' : '跌破后重新检查持有理由。';
-  const selling = d.price > d.sell[1] ? '已高于区间，持有者可复查是否分批止盈。'
-    : d.price >= d.sell[0] ? '已到区间，持有者可复查是否分批止盈。' : '反弹到区间后，持有者可复查是否分批止盈。';
+function planRanges(prices, location) {
+  const {buy, sell, risk} = prices;
   return `<div class="position-ranges plan-levels">
-    <div class="plan-buy"><small>买入 / 加仓观察区</small><strong>${range(d.buy)}</strong><p>${window ? buying : '更新行情后复查买入条件。'}</p></div>
-    <div class="plan-sell"><small>${holding.quantity > 0 ? '减仓 / 止盈观察区' : '反弹观察区'}</small><strong>${range(d.sell)}</strong><p>${window ? selling : '更新行情后复查反弹位置。'}</p></div>
-    <div class="plan-risk"><small>风险复查线</small><strong>$${fmt(d.invalidation)}</strong><p>${risk}</p></div>
+    <div class="plan-buy${location === 'buy' ? ' is-current' : ''}"><small>买入区间</small><strong>${buy ? formatPriceRange(buy) : '暂无'}</strong></div>
+    <div class="plan-sell${location === 'sell' || location === 'aboveSell' ? ' is-current' : ''}"><small>卖出区间</small><strong>${sell ? formatPriceRange(sell) : '暂无'}</strong></div>
+    <div class="plan-risk${location === 'risk' ? ' is-current' : ''}"><small>风险区间</small><strong>${risk ? '低于 $'+fmt(risk) : '暂无'}</strong></div>
   </div>`;
 }
 
@@ -320,16 +331,19 @@ function renderPositionDecision() {
   }).join(' · '):'';
   const position = $('positionDecision');
   const window = integrated && d.buy ? reviewWindow(q?.lastTradeAt) : null;
+  const prices = priceZones(d);
+  const location = window ? priceLocation(d.price, prices) : null;
+  const [zoneLabel, zoneTone] = priceZoneLabels[location] || [d.buy && !window ? '待刷新行情' : '暂无区间','unknown'];
   const context = JSON.stringify({symbol: state.selected, rule: window ? d.state : '', window, buy: d.buy, sell: d.sell});
   if (position.dataset.plan !== context) position.dataset.plan = context;
   position.dataset.rule = d.state;
   position.innerHTML=`
-    ${integrated ? `<div class="plan-heading"><h2>操作计划</h2><strong class="decision-tag ${window ? d.state : 'unknown'}">${escapeHtml(d.buy && !window ? '待刷新行情' : d.label)}</strong></div>` : ''}
+    ${integrated ? `<div class="plan-heading"><h2>价格区间</h2><strong class="decision-tag ${zoneTone}">${zoneLabel}</strong></div>` : ''}
     ${integrated && shares ? `<p class="position-holding">持仓 ${shares}${pnlPct ? ` <span>· 浮盈亏 <b class="${pnl >= 0 ? 'positive' : 'negative'}">${pnlPct}</b></span>` : ''}</p>` : ''}
     ${!integrated ? `<div class="position-heading"><strong class="decision-tag ${d.state}">${escapeHtml(d.label)}</strong><span>${holdingDetails}${pnlPct ? ` (${pnlPct})` : ''}</span></div>` : ''}
-    <p class="decision-reasons">${escapeHtml(integrated ? describePlan(d, h, window) : d.reasons.join('；'))}</p>
+    <p class="decision-reasons">${escapeHtml(integrated ? describePlan(d, h, window, location) : d.reasons.join('；'))}</p>
     ${window ? `<p class="plan-window"><span>观察期</span><strong>${showWindow(window.start, window.end)}</strong></p>` : ''}
-    ${integrated ? planRanges(d, h, window) : d.buy ? `<div class="position-ranges"><div><small>买入 / 加仓参考</small><strong>$${fmt(d.buy[0])}–${fmt(d.buy[1])}</strong></div><div><small>减仓 / 止盈参考</small><strong>$${fmt(d.sell[0])}–${fmt(d.sell[1])}</strong></div><div><small>失效参考</small><strong>$${fmt(d.invalidation)}</strong></div></div>` : ''}
+    ${integrated ? (d.buy ? planRanges(prices, location) : '') : d.buy ? `<div class="position-ranges"><div><small>买入 / 加仓参考</small><strong>$${fmt(d.buy[0])}–${fmt(d.buy[1])}</strong></div><div><small>减仓 / 止盈参考</small><strong>$${fmt(d.sell[0])}–${fmt(d.sell[1])}</strong></div><div><small>失效参考</small><strong>$${fmt(d.invalidation)}</strong></div></div>` : ''}
     ${personalSummary?`<p class="personal-range-summary">个人提醒区间 · ${escapeHtml(personalSummary)}</p>`:''}
     ${state.evidenceErrors[state.selected]?`<p class="evidence-error">本次刷新：${escapeHtml(state.evidenceErrors[state.selected])}；保留带时间的已有证据。</p>`:''}
     <div class="position-footer">
@@ -340,7 +354,7 @@ function renderPositionDecision() {
         <ul>${[...d.reasons,...d.evidence].map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul>
         <p>${safeSource(q?.sourceURL||'https://finance.yahoo.com/quote/'+encodeURIComponent(state.selected)+'/', '行情原始页面')} · 报价 ${escapeHtml(time(q?.lastTradeAt))} · 日线截至 ${escapeHtml(q?.history?.at(-1)?.d||'缺失')}</p>
         <p>${c?`${safeSource(c.sourceURL,'财报原始页面')} · 检查 ${escapeHtml(time(c.updatedAt))}`:'无可用公司财报；ETF 不套用公司财报规则。'}</p>
-        <p>买入区参考历史支撑，卖出区参考历史上涨遇阻的位置。区间宽度随近期波动变化。卖出区下沿是开始复查止盈的价位。</p>
+        <p>买入区参考历史支撑，卖出区参考历史上涨遇阻的位置。区间宽度随近期波动变化。低于风险价位时暂停加仓，并检查持仓。</p>
       </details>
       <div class="position-actions">${integrated ? '<button type="button" data-edit-range>调整个人区间</button>' : '<button type="button" data-investment-tab="thesis">财报与论点</button><button type="button" data-investment-tab="audit">核验名人信号</button>'}</div>
     </div>`;

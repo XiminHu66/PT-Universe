@@ -63,3 +63,17 @@ assert.equal(updated.sources[0].ok,false);
 assert.deepEqual(keepAvailableSources(audited,updated).sources.map(source=>source.ok),[false,false]);
 assert.equal(keepAvailableSources(audited,updated).sources[0].trades.length,2);
 console.log('Disclosure checks passed: official links, transaction chronology, deduplication and per-source fallback');
+
+
+const {priceZones,priceLocation} = await import('../../apps/investment-desk/price-zones.mjs');
+const zones = priceZones({buy:[98,102],sell:[110,116],invalidation:90});
+assert.equal(priceLocation(89.99,zones),'risk');
+assert.equal(priceLocation(90,zones),'belowBuy');
+assert.equal(priceLocation(98,zones),'buy');
+assert.equal(priceLocation(102,zones),'buy');
+assert.equal(priceLocation(106,zones),'outside');
+assert.equal(priceLocation(110,zones),'sell');
+assert.equal(priceLocation(116,zones),'sell');
+assert.equal(priceLocation(116.01,zones),'aboveSell');
+assert.deepEqual(priceZones({buy:[5,4],sell:[8,9],invalidation:-3}),{buy:null,sell:[8,9],risk:null});
+console.log('Price-zone boundaries passed: buy, sell, risk, invalid and outside intervals');

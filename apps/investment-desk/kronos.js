@@ -84,7 +84,7 @@ function planDifference(data, plan) {
 
 function zoneNotes(data, plan) {
   if (!plan.window) return '';
-  const notes = [['买入观察区', plan.buy], ['反弹观察区', plan.sell]].map(([label, range]) => {
+  const notes = [['买入区间', plan.buy], ['卖出区间', plan.sell]].map(([label, range]) => {
     const {paths, dates} = zoneSamples(data, range, plan.window);
     const days = paths ? ` · ${dates.length === 1 ? showDate(dates[0]) : `${showWindow(dates[0], dates.at(-1))} 中的 ${dates.length} 个交易日`}` : '';
     return `<li>${label} <strong>${paths}/4 条路径</strong>${days}</li>`;
