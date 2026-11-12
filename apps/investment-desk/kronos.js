@@ -55,12 +55,11 @@ function zoneSamples(data, range, window) {
   return {paths, dates:[...dates].sort()};
 }
 
-function planLink(data, plan) {
-  if (!plan.window) return '等操作计划取得最新行情后，再比较模拟情景与观察价位。';
-  if (data.up >= 3 && ['sell', 'trim'].includes(plan.rule)) return '模型多条路径偏涨，操作计划提示先复查持仓。优先看最新报价和持有理由。';
-  if (data.down >= 3 && ['buy', 'candidate'].includes(plan.rule)) return '模型多条路径偏跌。即使价格进入买入区，也先核实支撑和财报。';
-  if (data.up < 3 && data.down < 3) return '四条路径方向不一致。按实际价格是否进入观察区来复查。';
-  return '把模型方向作为参考。按实际价格进入区间后，再复查操作条件。';
+function planDifference(data, plan) {
+  if (!plan.window) return '';
+  if (data.up >= 3 && ['sell', 'trim'].includes(plan.rule)) return '模拟偏涨，操作计划仍提示复查持仓。';
+  if (data.down >= 3 && ['buy', 'candidate'].includes(plan.rule)) return '模拟偏跌。到买入区后，先复查支撑和财报。';
+  return '';
 }
 
 function zoneNotes(data, plan) {
@@ -81,9 +80,9 @@ function paint() {
   const session = marketSessions();
   const fresh = previous?.state === 'fresh' && data?.asOf === previous.session &&
     (!session?.completed || data.asOf === session.completed) && (!session?.start || data.dates.at(-1) >= session.start);
-  run.hidden = !eligible;
+  run.hidden = !eligible || fresh;
   run.disabled = working || fresh || inflight.has(symbol);
-  run.textContent = working ? '计算中' : fresh ? '已更新' : data ? '更新情景' : '生成情景';
+  run.textContent = working ? '计算中' : data ? '更新情景' : '生成情景';
   if (!eligible) {
     status.textContent = '当前覆盖 QQQ、NVDA、AMD、GOOGL、SMH。';
     result.replaceChildren();
@@ -91,14 +90,15 @@ function paint() {
   }
   status.textContent = working ? '正在后台模拟 4 条路径，通常需要几分钟。'
     : previous?.error ? '暂时无法读取情景，可点击按钮重试。'
-    : data ? `以 ${showDate(data.asOf)}收盘价 ${dollars.format(data.reference)} 为起点。`
-    : previous ? '点击生成后，查看未来 10 个交易日的模拟走势。' : '正在读取最近一次模拟';
+    : data ? ''
+    : previous ? '生成后可查看四条模拟路径。' : '正在读取最近一次模拟';
   if (!data) {
     result.replaceChildren();
     return;
   }
   const plan = planContext();
   const direction = data.up >= 3 ? `${data.up}/4 条路径到期上涨` : data.down >= 3 ? `${data.down}/4 条路径到期下跌` : '四条路径方向不一致';
+  const difference = fresh ? planDifference(data, plan) : '';
   const wasOpen = result.querySelector('details')?.open;
   result.innerHTML = `<div class="kronos-summary">
     <strong>${fresh ? direction : '旧情景 · 等待更新'}</strong>
@@ -106,12 +106,12 @@ function paint() {
   </div>
   <dl class="kronos-metrics">
     <div><dt>模拟收盘中位价</dt><dd>${dollars.format(data.endMedian)} <small>${percent.format(data.endMedian / data.reference - 1)}</small></dd></div>
-    <div><dt>4 条模拟的收盘价范围</dt><dd>${dollars.format(data.endLow)}–${dollars.format(data.endHigh)}</dd></div>
+    <div><dt>模拟收盘范围</dt><dd>${dollars.format(data.endLow)}–${dollars.format(data.endHigh)}</dd></div>
   </dl>
-  <p class="kronos-next">${fresh ? planLink(data, plan) : '这份模拟基于较早收盘价，更新后再用于当前计划。'}</p>
-  <details ${wasOpen ? 'open' : ''}><summary>查看四条路径与计算口径</summary>
+  ${difference ? `<p class="kronos-next">${difference}</p>` : ''}
+  <details ${wasOpen ? 'open' : ''}><summary>查看模拟路径</summary>
     ${chart(data)}
-    <div class="chart-dates"><span>${esc(data.asOf)} 起点</span><span>${esc(data.dates.at(-1))} 收盘</span></div>
+    <div class="chart-dates"><span>${esc(data.asOf)} 收盘起点 ${dollars.format(data.reference)}</span><span>${esc(data.dates.at(-1))} 收盘</span></div>
     <p>每条线是一种模拟走势，虚线是起始收盘价。上涨 ${data.up} 条，下跌 ${data.down} 条，持平 ${data.paths.length - data.up - data.down} 条。路径数反映这次采样的一致程度，四条样本不足以估算实际上涨概率。</p>
     ${fresh ? zoneNotes(data, plan) : ''}
   </details>`;

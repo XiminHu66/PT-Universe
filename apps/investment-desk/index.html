@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../stock-alert/styles.css?v=20261112">
   <link rel="stylesheet" href="../_decision/ui.css?v=2">
   <link rel="stylesheet" href="../_decision/workspace.css?v=1">
-  <link rel="stylesheet" href="./desk.css?v=4">
+  <link rel="stylesheet" href="./desk.css?v=5">
   <link rel="stylesheet" href="../../pt-bridge.css">
 </head>
 <body data-workspace="investment">
@@ -33,29 +33,25 @@
   <div id="ws-summary" class="sr-only" aria-live="polite"></div>
   <section class="ws-panel" id="panel-market" role="tabpanel" aria-labelledby="tab-market" hidden>
     <div class="investment-market">
-    <aside class="watch-panel">
-      <div class="panel-heading">
-        <div><h2>标的</h2></div>
-        <button id="resetWatchlist" class="text-button" type="button">恢复自选</button>
-      </div>
+    <aside class="watch-panel" aria-label="标的列表">
       <div class="portfolio-tabs" role="tablist" aria-label="标的列表">
         <button id="holdingsTab" role="tab" aria-controls="watchlist" data-list="holdings">持仓 <span></span></button>
         <button id="watchTab" role="tab" aria-controls="watchlist" data-list="watch">观察 <span></span></button>
       </div>
-      <div class="list-context"><span id="listSummary"></span><button id="manageHoldings" class="text-button" type="button">管理持仓</button></div>
       <form id="addSymbolForm" class="symbol-form">
         <label class="sr-only" for="symbolInput">输入股票代码</label>
         <input id="symbolInput" autocomplete="off" maxlength="12" placeholder="输入代码，如 AMD">
-        <button type="submit">＋</button>
+        <button type="submit" aria-label="加入自选">＋</button>
       </form>
+      <button id="resetWatchlist" class="text-button" type="button">恢复自选</button>
       <div id="watchlist" class="watchlist" role="tabpanel" aria-live="polite"></div>
     </aside>
     <div class="investment-detail">
       <div class="investment-instrument">
         <div class="quote-head investment-quote">
           <div>
-            <div class="symbol-line"><h2 id="quoteSymbol">—</h2><span id="quoteExchange" class="chip">—</span></div>
-            <p id="quoteName">选择一个标的</p>
+            <h2 id="quoteSymbol">—</h2>
+            <p class="quote-subtitle"><span id="quoteName">选择一个标的</span><span id="quoteExchange" hidden></span></p>
           </div>
           <div class="quote-price-block">
             <div><span id="quoteCurrency">$</span><strong id="quotePrice">—</strong></div>
@@ -88,7 +84,7 @@
           <section id="positionDecision" class="position-decision card" aria-live="polite"></section>
           <section class="kronos-panel card" aria-labelledby="kronos-title">
             <div class="kronos-heading">
-              <h2 id="kronos-title">Kronos · 未来 10 个交易日</h2>
+              <h2 id="kronos-title">Kronos · 10 个交易日</h2>
               <button id="kronosRun" type="button" hidden>生成情景</button>
             </div>
             <div id="kronosResult" aria-live="polite"></div>
@@ -113,8 +109,6 @@
           <div class="quote-stats">
             <div><span>上一交易日收盘</span><strong id="statPrev">—</strong></div>
             <div><span>52周区间</span><strong id="stat52">—</strong></div>
-            <div><span>年化波动率</span><strong id="statVol">—</strong></div>
-            <div><span>14 日平均真实波幅</span><strong id="statAtr">—</strong></div>
           </div>
         </section>
       </section>
@@ -247,8 +241,8 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <script type="module" src="../_decision/workspace.js?v=20261112"></script>
-<script type="module" src="../stock-alert/app.js?v=20261112-compact"></script>
-<script type="module" src="./kronos.js?v=2"></script>
+<script type="module" src="../stock-alert/app.js?v=20261112-focus"></script>
+<script type="module" src="./kronos.js?v=3"></script>
 <script type="module" src="./portfolio.js?v=20261112-plan"></script>
 <script type="module" src="./audit.js?v=20261112"></script>
 <script src="../../pt-sync.js"></script>

@@ -127,7 +127,7 @@ let stockStatus='', loadedMarket=null, announcedSymbol=null;
 async function refreshStock(symbol=state.selected,force=false,feedback=false){
  if(stockJobs.has(symbol))return stockJobs.get(symbol);
  const task=(async()=>{
-  if(symbol===state.selected){stockStatus='正在按需更新 '+symbol+'…';updateMarketStatus();}
+  if(symbol===state.selected){stockStatus=integrated ? '刷新中…' : '正在按需更新 '+symbol+'…';updateMarketStatus();}
   try{
    const result=await refreshData('stock',{symbol,force});const item=result.data;
    if(item.symbol!==symbol||!item.history?.length||item.price==null)throw Error('行情数据无效');
@@ -138,7 +138,7 @@ async function refreshStock(symbol=state.selected,force=false,feedback=false){
    state.data.symbols[symbol]=updated;
    if(integrated)dispatchEvent(new CustomEvent('investment-market-item',{detail:{symbol,item:updated}}));
    const cached=readStorage('stock-demand-data',{});cached[symbol]=item;try{writeStorage('stock-demand-data',cached)}catch{}
-   if(symbol===state.selected)stockStatus='按需更新 '+ageText(item.fetchedAt);
+   if(symbol===state.selected)stockStatus=integrated ? '' : '按需更新 '+ageText(item.fetchedAt);
    if(feedback)toast(symbol+' 行情、新闻与期权已核对；来源可能延迟');
    return true;
   }catch(e){if(symbol===state.selected)stockStatus=e.message+' · 保留旧数据';if(feedback)toast(e.message);return false;}
@@ -201,6 +201,13 @@ function updateMarketStatus() {
   const open = marketState === "open"; badge.classList.toggle("open", open); badge.innerHTML = `<i></i> ${open ? "美股交易中" : "美股已休市"}`;
   const item = dataFor(); const direct = state.directQuoteSymbol === state.selected && state.directQuoteAt;
   const snapshotAt = item?.fetchedAt || state.data.quoteGeneratedAt || state.data.generatedAt;
+  if (integrated) {
+    const updated = $("updatedAt");
+    const tradeAt = item?.lastTradeAt;
+    updated.textContent = stockStatus || (tradeAt ? `报价 ${ageText(tradeAt)}` : '等待报价');
+    updated.title = [tradeAt && `报价时间 ${new Date(tradeAt).toLocaleString()}`, snapshotAt && `数据快照 ${new Date(snapshotAt).toLocaleString()}`].filter(Boolean).join(' · ');
+    return;
+  }
   if (!snapshotAt && !direct) { $("updatedAt").textContent = "等待报价 · 模型随报价更新"; return; }
   const tradeAt = item?.lastTradeAt || snapshotAt;
   $("updatedAt").textContent = `报价 ${ageText(tradeAt)} · ${direct ? "浏览器直连" : `快照 ${ageText(snapshotAt)}`}`;
@@ -252,15 +259,26 @@ function renderWatchlist() {
   }
   $('watchlist').setAttribute('aria-labelledby',held?'holdingsTab':'watchTab');
   $('addSymbolForm').hidden=held; $('resetWatchlist').hidden=held;
-  $('listSummary').textContent=held?'CSV 持仓':'自选标的';
+  if ($('listSummary')) $('listSummary').textContent = held ? 'CSV 持仓' : '自选标的';
   $("watchlist").innerHTML = listEntries().map(item => {
-    const market = dataFor(item.symbol); const change = finite(market?.changePct); const alert = alertState(item.symbol, market); const modelZone = modelZoneState(market);
+    const market = dataFor(item.symbol);
+    const price = finite(market?.price);
+    const change = finite(market?.changePct);
+    const alert = alertState(item.symbol, market);
+    const modelZone = integrated ? null : modelZoneState(market);
     const d = decisionFor(item.symbol).decision;
-    const zoneLabel = alert ? `自定${alert === "buy" ? "买" : "卖"}` : modelZone ? `模型${modelZone === "buy" ? "买" : "卖"}` : "";
-    return `<button class="watch-item ${item.symbol === state.selected ? "active" : ""} ${modelZone ? `model-${modelZone}` : ""} ${alert ? `alert-${alert}` : ""}" data-symbol="${escapeHtml(item.symbol)}" type="button">
+    const actionable = ['sell', 'trim', 'buy', 'candidate'].includes(d.state);
+    const active = item.symbol === state.selected;
+    const zoneLabel = alert ? (alert === 'buy' ? '买入提醒' : '卖出提醒') : modelZone ? (modelZone === 'buy' ? '模型买' : '模型卖') : '';
+    const zone = zoneLabel ? `<em class="zone-tag ${alert ? 'custom' : ''}">${zoneLabel}</em>` : '';
+    return `<button class="watch-item ${active ? 'active' : ''} ${modelZone ? `model-${modelZone}` : ''} ${alert ? `alert-${alert}` : ''}" data-symbol="${escapeHtml(item.symbol)}" type="button" ${active ? 'aria-current="true"' : ''}>
       <span class="ticker-avatar">${escapeHtml(item.display.slice(0,4))}</span>
-      <span class="ticker-id"><strong>${escapeHtml(item.display)} ${zoneLabel ? `<em class="zone-tag ${alert ? "custom" : ""}">${zoneLabel}</em>` : ""}</strong><small>${held ? fmt(item.quantity, 6).replace(/\.?0+$/,'')+' 股 · 成本 $'+fmt(item.cost) : escapeHtml(item.name || item.symbol)}</small><em class="decision-tag ${d.state}">${escapeHtml(d.label)}</em></span>
-      <span class="ticker-quote"><strong>${market ? `${currencyMark(market)}${fmt(market.price)}` : "—"}</strong><small class="${change >= 0 ? "positive" : "negative"}">${pct(change)}</small></span>
+      <span class="ticker-id">
+        <strong>${escapeHtml(item.display)}${integrated ? '' : zone}</strong>
+        ${integrated ? zone : `<small>${held ? `${fmt(item.quantity, 6).replace(/\.?0+$/,'')} 股 · 成本 $${fmt(item.cost)}` : escapeHtml(item.name || item.symbol)}</small>`}
+        ${(!integrated || (actionable && !alert)) ? `<em class="decision-tag ${d.state}">${escapeHtml(d.label)}</em>` : ''}
+      </span>
+      <span class="ticker-quote"><strong>${price === null ? '—' : `${escapeHtml(currencyMark(market))}${fmt(price)}`}</strong>${change === null || price === null ? '' : `<small class="${change >= 0 ? 'positive' : 'negative'}">${pct(change)}</small>`}</span>
       ${held ? '' : `<span class="remove-symbol" data-remove="${escapeHtml(item.symbol)}" aria-label="移出观察">×</span>`}
     </button>`;
   }).join("") || '<p class="position-empty">尚未导入持仓。点击「导入 / 更新持仓 CSV」即可载入；观察列表仍可使用。</p>';
@@ -287,13 +305,13 @@ function planRanges(d, holding, window) {
   const range = values => `$${fmt(values[0])}–$${fmt(values[1])}`;
   const buying = d.price < d.buy[0] ? '已低于买入区，等价格回到区间并复查趋势。'
     : d.price <= d.buy[1] ? '已到区间，先确认趋势企稳和财报。' : '回落到区间后，检查趋势是否企稳。';
-  const risk = window && d.price < d.invalidation ? '已跌破，优先复查持仓风险。' : '跌破此价先重审持仓风险和买入理由。';
+  const risk = window && d.price < d.invalidation ? '已跌破，优先复查持仓风险。' : '跌破后重新检查持有理由。';
   const selling = d.price > d.sell[1] ? '已高于区间，持有者可复查是否分批止盈。'
     : d.price >= d.sell[0] ? '已到区间，持有者可复查是否分批止盈。' : '反弹到区间后，持有者可复查是否分批止盈。';
   return `<div class="position-ranges plan-levels">
     <div class="plan-buy"><small>买入 / 加仓观察区</small><strong>${range(d.buy)}</strong><p>${window ? buying : '更新行情后复查买入条件。'}</p></div>
     <div class="plan-sell"><small>${holding.quantity > 0 ? '减仓 / 止盈观察区' : '反弹观察区'}</small><strong>${range(d.sell)}</strong><p>${window ? selling : '更新行情后复查反弹位置。'}</p></div>
-    <div class="plan-risk"><small>跌破后复查</small><strong>$${fmt(d.invalidation)}</strong><p>${risk}</p></div>
+    <div class="plan-risk"><small>风险复查线</small><strong>$${fmt(d.invalidation)}</strong><p>${risk}</p></div>
   </div>`;
 }
 
@@ -301,6 +319,9 @@ function renderPositionDecision() {
   const {holding:h,company:c,decision:d}=decisionFor(state.selected), q=dataFor();
   const pnl=h.quantity>0&&h.cost>0&&q?.currency==='USD'&&d.price>0?(d.price-h.cost)*h.quantity:null;
   const time=value=>value?new Date(value).toLocaleString('zh-CN',{hour12:false}):'缺失';
+  const shares = h.quantity > 0 ? `${fmt(h.quantity, 6).replace(/\.?0+$/, '')} 股` : '';
+  const pnlPct = pnl === null ? '' : pct((d.price / h.cost - 1) * 100);
+  const holdingDetails = shares ? `持仓 ${shares} · 均价 $${fmt(h.cost)}${pnl === null ? '' : ` · 浮盈亏 ${pnl >= 0 ? '+' : '−'}$${fmt(Math.abs(pnl))}`}` : '仅观察 · 未持有';
   const expanded=$('positionEvidence')?.open;
   const personal=state.ranges[state.selected];
   const personalSummary=integrated&&personal?['buy','sell'].flatMap(side=>{
@@ -314,21 +335,24 @@ function renderPositionDecision() {
   position.dataset.rule = d.state;
   position.innerHTML=`
     ${integrated ? `<div class="plan-heading"><h2>操作计划</h2><strong class="decision-tag ${window ? d.state : 'unknown'}">${escapeHtml(d.buy && !window ? '待刷新行情' : d.label)}</strong></div>` : ''}
-    <div class="position-heading">${integrated ? '' : `<strong class="decision-tag ${d.state}">${escapeHtml(d.label)}</strong>`}<span>${h.quantity>0?`持仓 ${fmt(h.quantity,6).replace(/\.?0+$/,'')} 股 · 均价 $${fmt(h.cost)}`:'仅观察 · 未持有'}${pnl!==null?` · 浮盈亏 <b class="${pnl>=0?'positive':'negative'}">${pnl>=0?'+':''}$${fmt(pnl)} (${pct((d.price/h.cost-1)*100)})</b>`:''}</span></div>
+    ${integrated && shares ? `<p class="position-holding">持仓 ${shares}${pnlPct ? ` <span>· 浮盈亏 <b class="${pnl >= 0 ? 'positive' : 'negative'}">${pnlPct}</b></span>` : ''}</p>` : ''}
+    ${!integrated ? `<div class="position-heading"><strong class="decision-tag ${d.state}">${escapeHtml(d.label)}</strong><span>${holdingDetails}${pnlPct ? ` (${pnlPct})` : ''}</span></div>` : ''}
     <p class="decision-reasons">${escapeHtml(integrated ? describePlan(d, h, window) : d.reasons.join('；'))}</p>
-    ${window ? `<p class="plan-window"><strong>${showWindow(window.start, window.end)}</strong><span>接下来 5 个交易日。到价再检查条件，期满重算。</span></p>` : ''}
+    ${window ? `<p class="plan-window"><span>观察期</span><strong>${showWindow(window.start, window.end)}</strong></p>` : ''}
     ${integrated ? planRanges(d, h, window) : d.buy ? `<div class="position-ranges"><div><small>买入 / 加仓参考</small><strong>$${fmt(d.buy[0])}–${fmt(d.buy[1])}</strong></div><div><small>减仓 / 止盈参考</small><strong>$${fmt(d.sell[0])}–${fmt(d.sell[1])}</strong></div><div><small>失效参考</small><strong>$${fmt(d.invalidation)}</strong></div></div>` : ''}
     ${personalSummary?`<p class="personal-range-summary">个人提醒区间 · ${escapeHtml(personalSummary)}</p>`:''}
     ${state.evidenceErrors[state.selected]?`<p class="evidence-error">本次刷新：${escapeHtml(state.evidenceErrors[state.selected])}；保留带时间的已有证据。</p>`:''}
     <div class="position-footer">
       <details id="positionEvidence" ${expanded?'open':''}>
         <summary>查看价位依据${state.evidenceBusy?' · 刷新中':''}</summary>
+        ${integrated && shares ? `<p>${holdingDetails}</p>` : ''}
+        ${window ? '<p>观察期覆盖 5 个交易日。价格到区间时复查条件，期满重算。</p>' : ''}
         <ul>${[...d.reasons,...d.evidence].map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul>
         <p>${safeSource(q?.sourceURL||'https://finance.yahoo.com/quote/'+encodeURIComponent(state.selected)+'/', '行情原始页面')} · 报价 ${escapeHtml(time(q?.lastTradeAt))} · 日线截至 ${escapeHtml(q?.history?.at(-1)?.d||'缺失')}</p>
         <p>${c?`${safeSource(c.sourceURL,'财报原始页面')} · 检查 ${escapeHtml(time(c.updatedAt))}`:'无可用公司财报；ETF 不套用公司财报规则。'}</p>
         <p>买入区参考历史支撑，卖出区参考历史上涨遇阻的位置。区间宽度随近期波动变化。卖出区下沿是开始复查止盈的价位。</p>
       </details>
-      <div class="position-actions">${integrated?'<button type="button" data-edit-range>调整个人区间</button>':''}<button type="button" data-investment-tab="thesis">财报与论点</button><button type="button" data-investment-tab="audit">核验名人信号</button></div>
+      <div class="position-actions">${integrated ? '<button type="button" data-edit-range>调整个人区间</button>' : '<button type="button" data-investment-tab="thesis">财报与论点</button><button type="button" data-investment-tab="audit">核验名人信号</button>'}</div>
     </div>`;
 }
 
@@ -339,16 +363,25 @@ function renderSelected() {
   }
   const item = dataFor(); const watch = state.watchlist.find(entry => entry.symbol === state.selected) || { display: state.selected, name: state.selected };
   $("quoteSymbol").textContent = watch.display; $("quoteName").textContent = item?.name || watch.name || "等待行情";
-  $("quoteExchange").textContent = item?.exchange || "—"; $("quoteCurrency").textContent = currencyMark(item); $("quotePrice").textContent = fmt(item?.price);
+  $("quoteExchange").textContent = item?.exchange || "—";
+  if (integrated) $("quoteExchange").hidden = !item?.exchange;
+  $("quoteCurrency").textContent = currencyMark(item);
+  $("quotePrice").textContent = fmt(item?.price);
   const change = finite(item?.change); const changePct = finite(item?.changePct); const changeNode = $("quoteChange");
-  changeNode.textContent = change === null ? "—" : `${change >= 0 ? "+" : ""}${fmt(change)}  ${pct(changePct)}`;
-  changeNode.className = `quote-change ${change >= 0 ? "positive" : "negative"}`;
+  const signedChange = change === null ? '' : `${change >= 0 ? '+' : '−'}${currencyMark(item)}${fmt(Math.abs(change))}`;
+  changeNode.textContent = integrated ? pct(changePct) : change === null ? '—' : `${change >= 0 ? '+' : ''}${fmt(change)}  ${pct(changePct)}`;
+  changeNode.hidden = integrated && changePct === null;
+  changeNode.title = integrated && signedChange ? `较前收 ${signedChange}` : '';
+  changeNode.className = `quote-change ${(changePct ?? change) >= 0 ? 'positive' : 'negative'}`;
   $("optionsLink").href = `https://finance.yahoo.com/quote/${encodeURIComponent(state.selected)}/options/`;
   $("newsLink").href = `https://finance.yahoo.com/quote/${encodeURIComponent(state.selected)}/news/`;
   const analysis = calculateAnalysis(item?.history || [], item?.price); state.analysis = analysis;
   $("statPrev").textContent = fmt(item?.previousClose);
   $("stat52").textContent = analysis ? `${fmt(analysis.low52)} – ${fmt(analysis.high52)}` : "—";
-  $("statVol").textContent = analysis ? `${fmt(analysis.annualVol,1)}%` : "—"; $("statAtr").textContent = analysis ? fmt(analysis.atr) : "—";
+  if (!integrated) {
+    $("statVol").textContent = analysis ? `${fmt(analysis.annualVol,1)}%` : "—";
+    $("statAtr").textContent = analysis ? fmt(analysis.atr) : "—";
+  }
   renderPositionDecision();
   renderChart(item?.history || []); renderAnalysis(analysis, item?.history || [], item?.fundamentals); renderRangeForm(analysis); renderOptions(item?.options, item?.price); renderNews(item?.news || []); renderAlert(item);
 }
@@ -472,6 +505,10 @@ function renderAnalysis(analysis, history = [], fundamentals = null) {
     ["SMA 200",fmt(analysis.sma200),analysis.sma200?analysis.price>analysis.sma200?"长期偏多":"长期偏弱":"样本不足"], ["RSI 14",fmt(analysis.rsi14,1),analysis.rsi14>70?"偏热":analysis.rsi14<35?"偏冷":"中性"],
     ["MACD",fmt(analysis.macd,2),analysis.macd>analysis.macdSignal?"动量向上":"动量向下"], ["布林带",`${fmt(analysis.bbLower)} / ${fmt(analysis.bbUpper)}`,"下轨 / 上轨"]
   ];
+  if (integrated) indicators.push(
+    ['年化波动率', `${fmt(analysis.annualVol, 1)}%`, '基于近一年日线'],
+    ['ATR 14', fmt(analysis.atr), '14 日平均真实波幅']
+  );
   $("indicatorGrid").innerHTML = indicators.map(([name,value,note]) => `<div class="indicator"><span>${name}</span><strong>${value}</strong><small>${note}</small></div>`).join("");
   $("analysisSummary").textContent = analysis.summary;
   renderEvidence(history, fundamentals);
@@ -617,7 +654,7 @@ function bindEvents() {
     button.onclick=()=>{state.list=button.dataset.list;renderAll()};
     button.onkeydown=e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?1:1-index;buttons[next].click();buttons[next].focus()}};
   });
-  $('manageHoldings').onclick=()=>navigateInvestment('review');
+  $('manageHoldings')?.addEventListener('click', () => navigateInvestment('review'));
   $('positionDecision').onclick=e=>{const button=e.target.closest('[data-investment-tab]');if(button)navigateInvestment(button.dataset.investmentTab)};
   $("watchlist").addEventListener("click", event => {
     const remove = event.target.closest("[data-remove]"); if (remove) { event.stopPropagation(); removeSymbol(remove.dataset.remove); return; }
