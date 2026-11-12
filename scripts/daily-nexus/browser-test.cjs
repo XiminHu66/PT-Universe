@@ -116,27 +116,28 @@ await p.frameLocator('#mealFrame').locator('html[data-theme="dark"]').waitFor({s
 await p.emulateMedia({colorScheme:'light'});
 await p.frameLocator('#mealFrame').locator('html[data-theme="light"]').waitFor({state:'attached'});
 console.log('Short viewport, personal calendar isolation, theme inheritance, frozen focus target and keyboard names passed');
-let quoteOutage=false, coinbase;
-const quoteRequests=[];
-await ctx.routeWebSocket('wss://ws-feed.exchange.coinbase.com/',socket=>{
-  socket.onMessage(message=>{
-    const subscription=JSON.parse(message);
-    assert.deepEqual(subscription.channels,[{name:'ticker',product_ids:['BTC-USD']}]);
-    coinbase=socket;
-  });
-});
-const quotePrices={SPY:757.12,QQQ:688.17,AAPL:123.45,SMH:501.73,NVDA:166.19,'BTC-USD':71234.5,
-  UNH:405.13,HOOD:81.35,NOW:100.66,VST:134.51,MRVL:164.45,AMD:585.3,INTC:61.2};
 const watchSymbols=['AMEX:SPY','NASDAQ:QQQ','NASDAQ:AAPL','NASDAQ:SMH','NASDAQ:NVDA','COINBASE:BTCUSD',
   'NYSE:UNH','NASDAQ:HOOD','NYSE:NOW','NYSE:VST','NASDAQ:MRVL','NASDAQ:AMD','NASDAQ:INTC'];
+const quoteRequests=[];
 await ctx.route('**/api/investment/quote?*',route=>{
-  const symbol=new URL(route.request().url()).searchParams.get('symbol');
-  quoteRequests.push(symbol);
-  const lastTradeAt='2026-11-12T20:50:00Z';
-  return route.fulfill({status:quoteOutage?503:200,headers:{'access-control-allow-origin':'*'},
-    json:{quote:{symbol,currency:'USD',price:quotePrices[symbol],lastTradeAt,history:[{d:'2026-11-10',c:quotePrices[symbol]*0.98},{d:'2026-11-11',c:quotePrices[symbol]*1.01}]}}});
+  quoteRequests.push(route.request().url());
+  return route.abort();
 });
-await p.clock.setFixedTime(new Date('2026-11-12T21:00:00Z'));
+let widgetBlocked=false;
+await ctx.route('**/external-embedding/embed-widget-market-overview.js',route=>{
+  if(widgetBlocked)return route.abort();
+  return route.fulfill({contentType:'application/javascript',body:`(()=>{
+    const config=JSON.parse(document.currentScript.textContent);
+    const widget=document.currentScript.parentElement.querySelector('.tradingview-widget-container__widget');
+    const iframe=document.createElement('iframe');
+    iframe.dataset.theme=config.colorTheme;
+    iframe.srcdoc='<style>body{margin:0}a{height:60px;display:flex;align-items:center;justify-content:space-between}</style>'
+      +config.tabs[0].symbols.map(({s,d})=>'<a href="https://www.tradingview.com/symbols/'
+        +s.replace(':','-')+'/"><b>'+s.split(':').at(-1)+'</b><span>'+(d||'')+'</span><span>$123.45</span></a>').join('');
+    widget.replaceWith(iframe);
+    document.currentScript.remove();
+  })();`});
+});
 await p.evaluate(symbols=>localStorage.setItem('deskboard_stocks_v3',JSON.stringify(
   symbols.map(symbol=>({symbol,label:symbol.endsWith(':AAPL')?'Apple Inc.':symbol.split(':').at(-1)}))
 )),watchSymbols);
@@ -147,84 +148,54 @@ await ctx.route('**/external-embedding/embed-widget-events.js',async route=>{
   await route.fulfill({body:'',contentType:'application/javascript'});
 });
 await p.goto(base+'apps/daily-nexus/?view=board',{waitUntil:'domcontentloaded'});
-let board=p.frameLocator('#deskboardFrame');
-await board.getByText('$71,234.50',{exact:true}).waitFor();
-await board.getByText('$123.45',{exact:true}).waitFor();
-await board.getByText('$61.20',{exact:true}).waitFor();
+const board=p.frameLocator('#deskboardFrame');
+const widget=board.frameLocator('#marketBody iframe');
+await widget.getByText('SPY',{exact:true}).waitFor();
 await p.locator('#deskboardLoading').waitFor({state:'hidden',timeout:5000});
 assert.notEqual(await board.locator('body').evaluate(()=>document.readyState),'complete');
 releaseCalendar();
-assert.deepEqual([...new Set(quoteRequests)].sort(),Object.keys(quotePrices).sort());
-assert.equal(await board.locator('tv-single-ticker').count(),0);
-assert.equal(await board.locator('.board-quote').count(),13);
-assert.equal(await board.locator('.board-quote-symbol').allTextContents().then(values=>values.join(',')),watchSymbols.map(symbol=>symbol.split(':').at(-1)).join(','));
-assert.equal(await board.locator('.board-quote').first().getAttribute('href'),'https://www.tradingview.com/symbols/AMEX-SPY/');
-assert.match(await board.getByRole('link',{name:/AAPL/}).getAttribute('title'),/Apple Inc/);
+assert.equal(await board.locator('#marketBody iframe').count(),1);
+assert.equal(await board.getByText('美股延迟 · 自动更新',{exact:true}).count(),1);
+assert.equal(await board.getByRole('button',{name:'刷新报价'}).count(),0);
+assert.equal(await board.locator('#marketBody iframe').getAttribute('data-theme'),'light');
+assert.deepEqual(await widget.locator('a b').allTextContents(),watchSymbols.map(symbol=>symbol.split(':').at(-1)));
+assert.equal(await widget.getByText('Apple Inc.',{exact:true}).count(),1);
+assert.equal(await widget.getByText('$123.45',{exact:true}).count(),13);
+assert.equal(await widget.locator('a').first().getAttribute('href'),'https://www.tradingview.com/symbols/AMEX-SPY/');
 for(const width of [1600,1024,390,320]){
-  await p.setViewportSize({width,height:900});
-  const layout=await board.locator('#marketBody').evaluate(grid=>{
-    const cards=[...grid.querySelectorAll('.board-quote')];
-    return {
-      fits:grid.scrollWidth<=grid.clientWidth+1,
-      columns:new Set(cards.map(card=>card.offsetLeft)).size,
-      clipped:cards.flatMap(card=>{
-        const outer=card.getBoundingClientRect();
-        return [...card.querySelectorAll('.board-quote-symbol,.board-quote-price,.board-quote-change,time')]
-          .filter(item=>{
-            const box=item.getBoundingClientRect();
-            return box.width>0&&(box.left<outer.left||box.right>outer.right||box.top<outer.top||box.bottom>outer.bottom||item.scrollWidth>item.clientWidth+1);
-          }).map(item=>item.textContent);
-      })
-    };
-  });
-  assert.equal(layout.fits,true,JSON.stringify({width,layout}));
-  assert.deepEqual(layout.clipped,[],JSON.stringify({width,layout}));
-  assert.ok(layout.columns<=(width<=390?2:4),JSON.stringify({width,layout}));
+  await p.setViewportSize({width,height:844});
+  const box=await board.locator('#marketBody iframe').evaluate(frame=>({
+    width:frame.offsetWidth,available:frame.parentElement.clientWidth,height:frame.offsetHeight
+  }));
+  assert.ok(box.width<=box.available+1&&box.height>=13*60,JSON.stringify({width,box}));
+  const last=widget.getByText('INTC',{exact:true});
+  await last.scrollIntoViewIfNeeded();
+  const lastBox=await last.boundingBox();
+  assert.ok(lastBox.y>=0&&lastBox.y+lastBox.height<=844,JSON.stringify({width,lastBox}));
   if(width<=390){
-    const last=board.locator('.board-quote').last();
-    await last.scrollIntoViewIfNeeded();
-    assert.ok(await last.evaluate(card=>card.getBoundingClientRect().bottom<=innerHeight));
-    const scrollers=await last.evaluate(card=>{
-      const dashboard=card.closest('.dashboard'), market=card.closest('.market');
-      return {page:dashboard.scrollTop,market:market.scrollTop,grid:card.closest('.market-body').scrollTop};
-    });
-    assert.ok(scrollers.page>0&&scrollers.market===0&&scrollers.grid===0,JSON.stringify({width,scrollers}));
-    await last.evaluate(card=>{card.closest('.dashboard').scrollTop=0});
+    const scroll=await board.locator('#marketBody').evaluate(body=>({
+      page:body.closest('.dashboard').scrollTop,market:body.scrollTop
+    }));
+    assert.ok(scroll.page>0&&scroll.market===0,JSON.stringify({width,scroll}));
+    await board.locator('.dashboard').evaluate(dashboard=>dashboard.scrollTop=0);
   }
-  if(width===1600||width===390)await p.screenshot({path:`/tmp/pt-nexus-quotes-${width}.png`});
 }
 await p.setViewportSize({width:1440,height:900});
-assert.ok(coinbase);
-const tick={type:'ticker',product_id:'BTC-USD',price:'71400.50',open_24h:'70000',time:'2026-11-12T21:00:00Z'};
-coinbase.send(JSON.stringify(tick));
-const live=board.locator('.board-quote[data-source=live]');
-await live.getByText('$71,400.50',{exact:true}).waitFor();
-coinbase.send(JSON.stringify({...tick,price:'71420.00',time:'2026-11-12T21:00:01Z'}));
-await live.getByText('$71,420.00',{exact:true}).waitFor();
-coinbase.close();
-await board.locator('.board-quote[data-source=snapshot]').getByText('$71,420.00',{exact:true}).waitFor();
-assert.equal(await board.locator('.board-quote time').first().getAttribute('datetime'),'2026-11-12T20:50:00Z');
-assert.equal(await board.locator('.board-quote canvas:not([hidden])').count(),13);
-assert.equal(await board.locator('.board-quote[data-stale=true]').count(),0);
 await board.getByRole('button',{name:'编辑自选列表'}).click();
 assert.equal(await board.locator('#pane-stocks').isVisible(),true);
-await p.evaluate(()=>localStorage.setItem('deskboard_stocks_v3',JSON.stringify([
-  {symbol:'NASDAQ:AAPL',label:'AAPL'},{symbol:'TSE:7203',label:'Toyota'}
-])));
-quoteOutage=true;
-await p.reload();
-board=p.frameLocator('#deskboardFrame');
-await board.getByText('$123.45',{exact:true}).waitFor();
-await board.getByText('查看 TradingView',{exact:true}).waitFor();
-const beforeRefresh=quoteRequests.length;
-const refreshed=p.waitForRequest(request=>new URL(request.url()).pathname==='/api/investment/quote');
-await board.getByRole('button',{name:'刷新报价'}).click();
-await refreshed;
-await board.locator('#refreshBoardQuotes:not([disabled])').waitFor();
-assert.ok(quoteRequests.length>beforeRefresh);
-assert.equal(await board.getByText('$123.45',{exact:true}).count(),1);
-assert.equal(await board.getByRole('link',{name:/7203/}).getAttribute('href'),'https://www.tradingview.com/symbols/TSE-7203/');
-console.log('13 uniform quote cards, responsive layout, TradingView links, live crypto, and cached quote recovery passed');
+await board.locator('#stockManager .manage-row').first().getByRole('button',{name:'移除'}).click();
+await board.locator('#pane-stocks').getByRole('button',{name:/保存/}).click();
+await widget.getByText('QQQ',{exact:true}).waitFor();
+assert.equal(await widget.locator('a').count(),12);
+assert.equal(await widget.getByText('SPY',{exact:true}).count(),0);
+assert.equal(await board.locator('#watchCount').textContent(),'12 个自选');
+widgetBlocked=true;
+await p.reload({waitUntil:'domcontentloaded'});
+await board.getByText('TradingView 暂未连通，可以直接打开标的行情。',{exact:true}).waitFor();
+assert.equal(await board.locator('.market-links a').count(),12);
+assert.equal(await board.getByRole('link',{name:'QQQ',exact:true}).getAttribute('href'),'https://www.tradingview.com/symbols/NASDAQ-QQQ/');
+assert.deepEqual(quoteRequests,[]);
+console.log('One TradingView watchlist, responsive scrolling, watchlist editing, blocked script fallback, and no Worker quote requests passed');
 await ctx.close();console.log('Daily Nexus home/task/icon/persistence/focus-learning checks passed');
 const tc=await browser.newContext({timezoneId:'UTC',viewport:{width:1440,height:1000}});let snapshot=1;const rows=[{id:'a',source:'novel',type:'novel',title:'已知小说',url:'https://example.com/a',latest:'第1章',latest_url:'https://example.com/a/1',source_label:'小说来源'}];await tc.route(/^https:\/\//,async r=>{const u=new URL(r.request().url());let data={};if(u.pathname.endsWith('site-updates.json'))data={generated_at:`2026-10-07T${String(10+snapshot).padStart(2,'0')}:00:00Z`,items:rows,sources:{}};else if(u.pathname.endsWith('feed.json'))data={updates:[],items:{},sources:{}};else if(u.pathname.endsWith('music.json'))data={recent_chart:[{title:'音乐条目',artist:'艺人',rank:1},{title:'第二个音乐条目',artist:'艺人二',rank:2}],weekly_chart:[],new_releases:[],sources:{}};else if(u.pathname.endsWith('game-releases.json'))data={date_jst:'2026-10-07',items:{mobile:[],pc:[],console:[]},sources:{}};await r.fulfill({json:data})});await tc.route('**/data/site-updates.json*',r=>r.fulfill({json:{generated_at:`2026-10-07T${String(10+snapshot).padStart(2,'0')}:00:00Z`,items:rows,sources:{}}}));await tc.route('**/data/music.json*',r=>r.fulfill({json:{recent_chart:[{title:'音乐条目',artist:'艺人',rank:1},{title:'第二个音乐条目',artist:'艺人二',rank:2}],weekly_chart:[],new_releases:[],sources:{}}}));await tc.route('**/config/content.json*',r=>r.fulfill({json:{site_updates:[],music:{}}}));const t=await tc.newPage();t.on('pageerror',e=>{errors.push(e.message);console.error('pageerror',e.message)});await t.goto(base+'apps/tsugi-checker/');await t.locator('#siteRefreshLegend').waitFor();assert.equal(await t.locator('#streamLastRefresh').getAttribute('datetime'),'2026-10-07T11:00:00Z');assert.equal(await t.locator('.sidebar #streamLastRefresh').count(),1);assert.equal(await t.locator('.main #streamLastRefresh').count(),0);for(const height of [650,500]){await t.setViewportSize({width:1440,height});for(const zoom of ['1','1.15']){await t.evaluate(z=>document.documentElement.style.setProperty('--tsugi-ui-zoom',z),zoom);const time=await t.locator('#streamLastRefresh').boundingBox(),refresh=await t.locator('#sourceRefreshBtn').boundingBox();assert.ok(time.y>=0&&time.y+time.height<=height,`Refresh timestamp must remain visible at ${height}px and zoom ${zoom}`);assert.ok(refresh.y>=0&&refresh.y+refresh.height<=height);await t.locator('.sidebar-navigation').evaluate(e=>e.scrollTop=e.scrollHeight);assert.ok((await t.locator('#streamLastRefresh').boundingBox()).y+time.height<=height)}}await t.evaluate(()=>document.documentElement.style.setProperty('--tsugi-ui-zoom','1'));await t.setViewportSize({width:1440,height:1000});assert.equal(await t.locator('.refresh-new').count(),0);const baseline=await t.locator('.site-update-card h3').allTextContents();rows[0]={...rows[0],latest:'第2章',latest_url:'https://example.com/a/2'};rows.push({id:'b',source:'novel',type:'novel',title:'本轮新作品',url:'https://example.com/b',latest:'第1章',latest_url:'https://example.com/b/1',source_label:'小说来源'});snapshot++;await t.evaluate(()=>window.tsugiLoad({fresh:true}));assert.equal(await t.locator('#streamLastRefresh').getAttribute('datetime'),'2026-10-07T12:00:00Z');assert.equal(await t.locator('.refresh-new').count(),2);assert.deepEqual(await t.locator('.site-update-card h3').allTextContents(),[...baseline,'本轮新作品']);await t.locator('[data-site-filter=manga]').click();
 assert.equal(await t.locator('[data-site-filter=manga]').getAttribute('aria-pressed'),'true');
