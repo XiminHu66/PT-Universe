@@ -12,6 +12,20 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
  let calls=[];
  await ctx.route('https://pt-universe-api.*/**',async r=>{
   const u=new URL(r.request().url());
+  if(u.pathname==='/api/kronos'){
+   const symbol=u.searchParams.get('symbol'),asOf=now.toISOString().slice(0,10);
+   const data={symbol,asOf,reference:200,endMedian:206,endLow:192,endHigh:215,up:3,down:1,paths:[205,207,192,215].map(end=>Array(10).fill(end)),dates:Array.from({length:10},(_,i)=>new Date(now.valueOf()+86400000*(i+1)).toISOString().slice(0,10))};
+   return r.fulfill({headers:{'access-control-allow-origin':'*'},json:{state:r.request().method()==='POST'?'fresh':'empty',session:asOf,data:r.request().method()==='POST'?data:null}});
+  }
+  if(u.pathname==='/api/on-demand/stock'){
+   const symbol=u.searchParams.get('symbol');
+   if(symbol==='MISSING')return r.fulfill({status:502,headers:{'access-control-allow-origin':'*'},json:{error:'quote missing'}});
+   return r.fulfill({headers:{'access-control-allow-origin':'*'},json:{state:'fresh',data:quote(symbol)}});
+  }
+  if(u.pathname==='/api/investment/company'){
+   const s=u.searchParams.get('symbol');
+   return r.fulfill({headers:{'access-control-allow-origin':'*'},json:{company:{...company,ticker:s,updatedAt:now.toISOString(),sourceURL:'https://example.com/filings/'+s}}});
+  }
   if(u.pathname==='/api/investment/quote'){
    const s=u.searchParams.get('symbol');calls.push(s);
    await new Promise(resolve=>setTimeout(resolve,150));
@@ -23,7 +37,8 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
  await page.evaluate(()=>localStorage.setItem('stock_alert_watchlist_v1',JSON.stringify([{symbol:'QQQ',display:'QQQ',name:'My original watch'}])));
  await page.reload();
  await page.locator('#tab-market').click();
- const stock=page.frameLocator('iframe[title="stock-alert"]');
+ const stock=page;
+ assert.equal(await page.locator('iframe[title="stock-alert"]').count(),0);
  await stock.locator('#watchTab[aria-selected=true]').waitFor();
  await stock.locator('#holdingsTab').click();
  assert.match(await stock.locator('#watchlist').innerText(),/尚未导入/);
@@ -56,18 +71,26 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
  assert.equal(await stock.locator('[data-symbol=QQQ]').count(),1);
  await stock.locator('#holdingsTab').click();
  // Older static snapshots cannot remove custom-symbol API evidence.
- const child=page.frames().find(f=>f.url().includes('/stock-alert/'));
- await child.evaluate(()=>dispatchEvent(new CustomEvent('workspace-investment-data',{detail:{market:{symbols:{AMD:{symbol:'AMD',price:1,lastTradeAt:'2000-01-01'}}}}})));
+ await page.evaluate(()=>dispatchEvent(new CustomEvent('workspace-investment-data',{detail:{market:{symbols:{AMD:{symbol:'AMD',price:1,lastTradeAt:'2000-01-01'}}}}})));
  assert.equal(await stock.locator('#quotePrice').innerText(),'200.00');
  await page.screenshot({path:'/tmp/pt-holdings-market-desktop.png',fullPage:true});
  await page.setViewportSize({width:390,height:844});
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2));
- assert.ok(await child.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2));
- await stock.locator('.options-card summary').scrollIntoViewIfNeeded();
- assert.ok(await stock.locator('.options-card').evaluate(el=>el.getBoundingClientRect().height<120));
- await stock.locator('.options-card summary').click();
+ await stock.locator('[data-evidence=options]').click();
  await stock.locator('#optionsBody').waitFor();
- await stock.locator('.options-card summary').click();
+ await stock.locator('[data-evidence=news]').click();
+ await stock.locator('#newsList').waitFor();
+ await stock.locator('[data-evidence=overview]').click();
+ await stock.locator('#kronosRun:not([disabled])').click();
+ await stock.locator('#kronosResult strong').filter({hasText:'采样偏上行'}).waitFor();
+ await stock.locator('[data-edit-range]').click();
+ await stock.locator('#buyLowInput').fill('190');
+ await stock.locator('#buyHighInput').fill('200');
+ await stock.locator('#refreshButton').click();
+ assert.equal(await stock.locator('#buyLowInput').inputValue(),'190');
+ await stock.locator('#rangeForm button[type=submit]').click();
+ assert.equal(await stock.evaluate(()=>JSON.parse(localStorage.getItem('stock_alert_ranges_v1')).AMD.buyLow),190);
+ await stock.locator('[data-evidence=overview]').click();
  await stock.locator('#holdingsTab').scrollIntoViewIfNeeded();
  await page.screenshot({path:'/tmp/pt-holdings-market-mobile.png',fullPage:true});
  await page.setViewportSize({width:1440,height:1000});
@@ -83,12 +106,12 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
  await page.locator('#tab-audit[aria-selected=true]').waitFor();
  await page.locator('#tab-market').click();
  // Cached parent data is replayed after reloading the lazily created child.
- await child.goto(child.url());
+ await page.reload();
  await stock.locator('#quotePrice').filter({hasText:'150.00'}).waitFor();
  // Missing/stale data never creates an actionable conclusion.
- await child.evaluate(()=>{const key='ptu.decision.holdings';const hs=JSON.parse(localStorage.getItem(key));hs.push({symbol:'MISSING',quantity:1,cost:null});localStorage.setItem(key,JSON.stringify(hs));dispatchEvent(new CustomEvent('workspace-records',{detail:{key:'holdings'}}))});
+ await page.evaluate(()=>{const key='ptu.decision.holdings';const hs=JSON.parse(localStorage.getItem(key));hs.push({symbol:'MISSING',quantity:1,cost:null});localStorage.setItem(key,JSON.stringify(hs));dispatchEvent(new CustomEvent('workspace-records',{detail:{key:'holdings'}}))});
  await stock.locator('[data-symbol=MISSING]').click();
- assert.match(await stock.locator('#positionDecision').innerText(),/数据不足/);
+ await stock.locator('#positionDecision').filter({hasText:'数据不足'}).waitFor();
  assert.equal(await stock.locator('.position-ranges').count(),0);
  assert.ok(calls.includes('AMD'));
  assert.deepEqual(errors,[]);

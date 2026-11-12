@@ -65,7 +65,7 @@
   setupPage();
   var investment = document.body.dataset.workspace === "investment";
   var params = new URLSearchParams(location.search);
-  var routes = investment ? { market: "stock-alert", thesis: "thesis-lab" } : { weekend: "eastside-weekend", ...document.querySelector("#panel-dinner") ? {} : { dinner: "meal-orbit" }, restaurants: "meal-orbit", recipes: "meal-orbit", favorites: "meal-orbit", wheel: "meal-orbit" };
+  var routes = investment ? { thesis: "thesis-lab" } : { weekend: "eastside-weekend", ...document.querySelector("#panel-dinner") ? {} : { dinner: "meal-orbit" }, restaurants: "meal-orbit", recipes: "meal-orbit", favorites: "meal-orbit", wheel: "meal-orbit" };
   var buttons = [...document.querySelectorAll("[data-tab]")];
   var frames = /* @__PURE__ */ new Map();
   var investmentData = null;
@@ -83,7 +83,10 @@
     symbol = value;
     localStorage.setItem("ptu.workspace.symbol", JSON.stringify(symbol));
     if (investment) document.querySelector("#ws-symbol").value = symbol;
-    if (changed) for (const x of frames.values()) send(x.frame, "symbol", { symbol });
+    if (changed) {
+      for (const x of frames.values()) send(x.frame, "symbol", { symbol });
+      if (investment) dispatchEvent(new CustomEvent("workspace-select-symbol", { detail: { symbol } }));
+    }
     address();
     summary();
   }
@@ -94,7 +97,7 @@
     history.replaceState(null, "", u);
   }
   function activate(next) {
-    if (!buttons.some((b) => b.dataset.tab === next)) next = investment ? "review" : "weekend";
+    if (!buttons.some((b) => b.dataset.tab === next)) next = investment ? "market" : "weekend";
     tab = next;
     buttons.forEach((b) => {
       const on = b.dataset.tab === tab;
@@ -133,6 +136,7 @@
       if (investment) send(x.frame, "symbol", { symbol });
     } else document.querySelector("#panel-" + tab).hidden = false;
     if (tab === "plans") renderPlans();
+    if (investment) dispatchEvent(new CustomEvent("workspace-activate", { detail: { tab, symbol } }));
     address();
     summary();
   }
@@ -163,7 +167,7 @@
     document.querySelector("#ws-symbol-form").onsubmit = (e) => {
       e.preventDefault();
       setSymbol(document.querySelector("#ws-symbol").value);
-      if (tab === "review") activate("market");
+      activate("market");
     };
   }
   addEventListener("message", (e) => {
@@ -193,7 +197,7 @@
     if (!a) return;
     const u = new URL(a.href);
     if (u.origin !== location.origin) return;
-    const slug = u.pathname.match(/\/apps\/([^/]+)/)?.[1], next = !investment && slug === "meal-orbit" ? "dinner" : Object.keys(routes).find((k) => routes[k] === slug);
+    const slug = u.pathname.match(/\/apps\/([^/]+)/)?.[1], next = investment && slug === "stock-alert" ? "market" : !investment && slug === "meal-orbit" ? "dinner" : Object.keys(routes).find((k) => routes[k] === slug);
     if (next) {
       e.preventDefault();
       e.stopImmediatePropagation();
@@ -216,7 +220,10 @@
     investmentData = e.detail;
     for (const x of frames.values()) send(x.frame, "investment-data", investmentData);
   });
-  activate(params.get("tab") || (investment ? "review" : "weekend"));
+  activate(params.get("tab") || (investment ? "market" : "weekend"));
+  addEventListener("workspace-symbol-changed", (e) => {
+    if (investment && tab === "market") setSymbol(e.detail.symbol);
+  });
   addEventListener("investment-select", (e) => {
     if (!investment) return;
     setSymbol(e.detail.symbol);

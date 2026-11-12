@@ -9,6 +9,12 @@ assert.equal((await D.onDemandRoute(req('/api/on-demand/3c','POST','https://evil
 assert.throws(()=>D.publicDatasetPath(req('/api/on-demand/stock?symbol=NVDA&url=https://evil')));
 assert.equal((await D.onDemandRoute(req('/api/on-demand/3c','DELETE'),{},transport)).status,405);
 assert.equal(calls.length,1);
+assert.equal((await D.onDemandRoute(req('/api/kronos?symbol=QQQ'),{},transport)).status,200);
+assert.deepEqual(calls.at(-1),{path:'/hub/api/kronos?symbol=QQQ',method:'GET'});
+assert.equal((await D.onDemandRoute(req('/api/kronos?symbol=QQQ','POST','https://evil'),{},transport)).status,403);
+for(const query of ['symbol=TSLA','symbol=QQQ&symbol=AMD','symbol=QQQ&url=https://evil'])
+ assert.throws(()=>D.publicDatasetPath(req('/api/kronos?'+query)));
+assert.equal(calls.length,2);
 const H=await load('src/content-hub.ts'),keys=[];
 const env={PT_UNIVERSE_DATA:{async get(key){keys.push(key);return {checked_at:new Date().toISOString(),items:[],days:[]}}}};
 await H.hubTick(env);

@@ -68,7 +68,7 @@ export async function readVpsDealBoard(env:KnowledgeEnv){
 }
 // Fixed public-data capability; never accepts a user URL, cookies or credentials.
 export async function onDemandTransport(env:KnowledgeEnv,path:string,method:string){
- if(!/^\/hub\/api\/on-demand\/(3c|disclosures|stock)(\?[A-Za-z0-9_.%=&^-]{1,100})?$/.test(path)||!['GET','POST'].includes(method))throw Error('invalid-data-capability');
+ if(!(/^\/hub\/api\/on-demand\/(3c|disclosures|stock)(\?[A-Za-z0-9_.%=&^-]{1,100})?$/.test(path)||/^\/hub\/api\/kronos\?symbol=(QQQ|NVDA|AMD|GOOGL|SMH)$/.test(path))||!['GET','POST'].includes(method))throw Error('invalid-data-capability');
  const raw=await env.PT_UNIVERSE_DATA.get(CONFIG_KEY);if(!raw)throw Error('transport-not-configured');
  const config=JSON.parse(raw) as Config;if(!validConfig(config))throw Error('transport-invalid');
  return signedFetch(config,path,method,null,'','','',18000);

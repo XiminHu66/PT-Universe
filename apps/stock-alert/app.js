@@ -1,4 +1,4 @@
-import {refreshData} from '../_shared/on-demand.mjs';
+import {API, refreshData} from '../_shared/on-demand.mjs';
 import {portfolioDecision} from '../_decision/portfolio.mjs';
 const DEFAULT_WATCHLIST = [
   ["^GSPC", "SPX", "S&P 500"], ["QQQ", "QQQ", "Nasdaq 100 ETF"],
@@ -16,8 +16,8 @@ const KEYS = {
   theme: "stock_alert_theme_v1",
   notifications: "stock_alert_notifications_v1"
 };
-const RAW_DATA = "data/market.json";
-const RAW_QUOTES = "data/quotes.json";
+const integrated = document.body.dataset.workspace === 'investment';
+const marketPanel = document.getElementById('panel-market');
 const $ = id => document.getElementById(id);
 const state = {
   watchlist: readStorage(KEYS.watchlist, DEFAULT_WATCHLIST),
@@ -32,6 +32,8 @@ const state = {
   analysis: null,
   dismissedAlert: false,
   optionExpiryBySymbol: {},
+  optionSideBySymbol: {},
+  rangeDrafts: {},
   directQuoteAt: null,
   directQuoteSymbol: null,
   directQuoteDisabled: false
@@ -83,8 +85,8 @@ async function loadMarketData(showFeedback = false) {
   const stamp = Date.now();
   // Pages-hosted files are deployed on every data commit and avoid the longer
   // raw.githubusercontent.com CDN cache. Raw GitHub remains the fallback.
-  const sources = [`data/market.json?t=${stamp}`];
-  const quoteSources = [`data/quotes.json?t=${stamp}`];
+  const sources = [new URL(`data/market.json?t=${stamp}`, import.meta.url)];
+  const quoteSources = [new URL(`data/quotes.json?t=${stamp}`, import.meta.url)];
   const [loaded, quotes] = await Promise.all([
     fetchFreshest(sources, "Market"),
     fetchFreshest(quoteSources, "Quote")
@@ -115,11 +117,12 @@ async function loadMarketData(showFeedback = false) {
   } else if (showFeedback) toast("暂时无法更新，保留已有数据");
   $("refreshButton").classList.remove("loading");
   updateMarketStatus(); renderAll();
-  if (!dataFor()) await fetchCustomSymbol(state.selected, showFeedback);
+  if (!integrated && !dataFor()) await fetchCustomSymbol(state.selected, showFeedback);
   return Boolean(loaded?.symbols);
 }
 
-const stockJobs=new Map();let stockStatus='';
+const stockJobs=new Map(), companyJobs=new Map(), companyChecks=new Map();
+let stockStatus='', loadedMarket=null, announcedSymbol=null;
 async function refreshStock(symbol=state.selected,force=false,feedback=false){
  if(stockJobs.has(symbol))return stockJobs.get(symbol);
  const task=(async()=>{
@@ -127,7 +130,12 @@ async function refreshStock(symbol=state.selected,force=false,feedback=false){
   try{
    const result=await refreshData('stock',{symbol,force});const item=result.data;
    if(item.symbol!==symbol||!item.history?.length||item.price==null)throw Error('行情数据无效');
-   state.data.symbols[symbol]={...dataFor(symbol),...item};
+   const previous=dataFor(symbol),updated={...previous,...item};
+   if(Date.parse(previous?.lastTradeAt)>Date.parse(item.lastTradeAt||0)){
+     for(const key of ['price','lastTradeAt','previousClose','change','changePct'])updated[key]=previous[key];
+   }
+   state.data.symbols[symbol]=updated;
+   if(integrated)dispatchEvent(new CustomEvent('investment-market-item',{detail:{symbol,item:updated}}));
    const cached=readStorage('stock-demand-data',{});cached[symbol]=item;try{writeStorage('stock-demand-data',cached)}catch{}
    if(symbol===state.selected)stockStatus='按需更新 '+ageText(item.fetchedAt);
    if(feedback)toast(symbol+' 行情、新闻与期权已核对；来源可能延迟');
@@ -135,6 +143,44 @@ async function refreshStock(symbol=state.selected,force=false,feedback=false){
   }catch(e){if(symbol===state.selected)stockStatus=e.message+' · 保留旧数据';if(feedback)toast(e.message);return false;}
   finally{stockJobs.delete(symbol);if(symbol===state.selected){updateMarketStatus();renderAll();}}
  })();stockJobs.set(symbol,task);return task;
+}
+function refreshCompany(symbol) {
+  if(!integrated||companyJobs.has(symbol)||Date.now()-(companyChecks.get(symbol)||0)<300000)return;
+  const task=(async()=>{
+    try{
+      const response=await fetch(API+'/api/investment/company?symbol='+encodeURIComponent(symbol),{signal:AbortSignal.timeout(18000)});
+      const result=await response.json();
+      if(!response.ok)throw Error(result.error||'财报暂不可用');
+      companyChecks.set(symbol,Date.now());
+      if(result.company)state.companies=[...state.companies.filter(c=>c.ticker!==symbol),result.company];
+      delete state.evidenceErrors[symbol];
+    }catch(error){state.evidenceErrors[symbol]=error.message}
+    finally{companyJobs.delete(symbol);if(symbol===state.selected)renderSelected()}
+  })();
+  companyJobs.set(symbol,task);
+}
+function openMarket() {
+  if(!loadedMarket)loadedMarket=loadMarketData(false);
+  const symbol=state.selected;
+  loadedMarket.then(()=>{
+    if(symbol!==state.selected||marketPanel.hidden)return;
+    refreshStock(symbol);
+    refreshCompany(symbol);
+  });
+}
+function selectMarketSymbol(symbol, announce=true) {
+  if(!/^[A-Z0-9.^-]{1,20}$/.test(symbol))return;
+  if(state.list==='holdings'&&!holdings().some(h=>h.symbol===symbol))state.list='watch';
+  state.selected=symbol;
+  state.dismissedAlert=false;
+  stockStatus="";
+  localStorage.setItem(KEYS.selected,symbol);
+  if(!announce)announcedSymbol=symbol;
+  renderAll();
+  if(!integrated||!marketPanel.hidden){
+    if(integrated)openMarket();
+    else refreshStock(symbol);
+  }
 }
 async function fetchCustomSymbol(symbol,feedback=true){return refreshStock(symbol,false,feedback);}
 async function fetchLiveSelectedQuote(force=false){return refreshStock(state.selected,force,force);}
@@ -164,7 +210,7 @@ function inferMarketState() {
 
 function renderAll() {
   if (!state.watchlist.length) state.watchlist = structuredClone(DEFAULT_WATCHLIST);
-  if (!state.watchlist.some(item => item.symbol === state.selected)) {if(/^[A-Z0-9.^-]{1,20}$/.test(state.selected))state.watchlist.push({symbol:state.selected,display:state.selected,name:state.selected});else state.selected=state.watchlist[0].symbol;}
+  if (!state.watchlist.some(item => item.symbol === state.selected) && !holdings().some(item => item.symbol === state.selected)) {if(/^[A-Z0-9.^-]{1,20}$/.test(state.selected))state.watchlist.push({symbol:state.selected,display:state.selected,name:state.selected});else state.selected=state.watchlist[0].symbol;}
   const entries = listEntries();
   if (state.list === 'holdings' && entries.length && !entries.some(h=>h.symbol===state.selected)) state.selected = entries[0].symbol;
   renderWatchlist(); renderSelected();
@@ -223,17 +269,27 @@ function renderPositionDecision() {
   const pnl=h.quantity>0&&h.cost>0&&q?.currency==='USD'&&d.price>0?(d.price-h.cost)*h.quantity:null;
   const time=value=>value?new Date(value).toLocaleString('zh-CN',{hour12:false}):'缺失';
   const expanded=$('positionEvidence')?.open;
+  const personal=state.ranges[state.selected];
+  const personalSummary=integrated&&personal?['buy','sell'].flatMap(side=>{
+    const lo=finite(personal[side+'Low']),hi=finite(personal[side+'High']);
+    return lo!==null&&hi!==null?[(side==='buy'?'买入':'卖出')+' $'+fmt(lo)+'–$'+fmt(hi)]:[];
+  }).join(' · '):'';
+  $('positionDecision').dataset.rule=d.state;
   $('positionDecision').innerHTML=`
     <div class="position-heading"><strong class="decision-tag ${d.state}">${escapeHtml(d.label)}</strong><span>${h.quantity>0?`持仓 ${fmt(h.quantity,6).replace(/\.?0+$/,'')} 股 · 均价 $${fmt(h.cost)}`:'仅观察 · 未持有'}${pnl!==null?` · 浮盈亏 <b class="${pnl>=0?'positive':'negative'}">${pnl>=0?'+':''}$${fmt(pnl)} (${pct((d.price/h.cost-1)*100)})</b>`:''}</span></div>
     <p class="decision-reasons">${d.reasons.map(escapeHtml).join('；')}</p>
-    ${d.buy?`<div class="position-ranges"><div><small>买入 / 加仓参考</small><strong>$${fmt(d.buy[0])}–${fmt(d.buy[1])}</strong></div><div><small>减仓 / 止盈参考</small><strong>$${fmt(d.sell[0])}–${fmt(d.sell[1])}</strong></div><div><small>失效参考</small><strong>$${fmt(d.invalidation)}</strong></div></div>`:''}
+    ${d.buy?`<div class="position-ranges">${integrated?`<div><small>技术目标价 · 首档阻力</small><strong>$${fmt(d.sell[0])}</strong></div>`:''}<div><small>买入 / 加仓参考</small><strong>$${fmt(d.buy[0])}–${fmt(d.buy[1])}</strong></div><div><small>减仓 / 止盈参考</small><strong>$${fmt(d.sell[0])}–${fmt(d.sell[1])}</strong></div><div><small>失效参考</small><strong>$${fmt(d.invalidation)}</strong></div></div>`:''}
+    ${personalSummary?`<p class="personal-range-summary">个人提醒区间 · ${escapeHtml(personalSummary)}</p>`:''}
     ${state.evidenceErrors[state.selected]?`<p class="evidence-error">本次刷新：${escapeHtml(state.evidenceErrors[state.selected])}；保留带时间的已有证据。</p>`:''}
     <details id="positionEvidence" ${expanded?'open':''}><summary>判断依据与来源 <span>· ${state.evidenceBusy?'刷新中':escapeHtml(time(q?.lastTradeAt))}</span></summary><ul>${d.evidence.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul><p>${safeSource(q?.sourceURL||'https://finance.yahoo.com/quote/'+encodeURIComponent(state.selected)+'/', '行情原始页面')} · 日线截至 ${escapeHtml(q?.history?.at(-1)?.d||'缺失')}</p><p>${c?`${safeSource(c.sourceURL,'财报原始页面')} · 检查 ${escapeHtml(time(c.updatedAt))}`:'无可用公司财报；ETF 不套用公司财报规则。'}</p><p>区间基于均线、支撑阻力与 ATR，是技术参考，不是公允价值。报价或日线过期时暂停综合信号。</p></details>
-    <div class="position-actions"><button type="button" data-investment-tab="thesis">财报与论点</button><button type="button" data-investment-tab="audit">核验名人信号</button></div>`;
+    <div class="position-actions">${integrated?'<button type="button" data-edit-range>调整个人区间</button>':''}<button type="button" data-investment-tab="thesis">财报与论点</button><button type="button" data-investment-tab="audit">核验名人信号</button></div>`;
 }
 
 function renderSelected() {
-  dispatchEvent(new CustomEvent('workspace-symbol-changed',{detail:{symbol:state.selected}}));
+  if(announcedSymbol!==state.selected){
+    announcedSymbol=state.selected;
+    dispatchEvent(new CustomEvent('workspace-symbol-changed',{detail:{symbol:state.selected}}));
+  }
   const item = dataFor(); const watch = state.watchlist.find(entry => entry.symbol === state.selected) || { display: state.selected, name: state.selected };
   $("quoteSymbol").textContent = watch.display; $("quoteName").textContent = item?.name || watch.name || "等待行情";
   $("quoteExchange").textContent = item?.exchange || "—"; $("quoteCurrency").textContent = currencyMark(item); $("quotePrice").textContent = fmt(item?.price);
@@ -391,10 +447,14 @@ function renderChart(history, analysis) {
 }
 
 function renderRangeForm(analysis) {
-  const range = state.ranges[state.selected]; const set = (id,value) => { $(id).value = finite(value) === null ? "" : Number(value).toFixed(2); };
-  set("buyLowInput",range?.buyLow); set("buyHighInput",range?.buyHigh); set("sellLowInput",range?.sellLow); set("sellHighInput",range?.sellHigh);
+  const range = state.ranges[state.selected], draft=state.rangeDrafts[state.selected];
+  for(const id of ['buyLow','buyHigh','sellLow','sellHigh']){
+    const value=range?.[id];
+    const text=draft?.[id]??(finite(value)===null?'':Number(value).toFixed(2));
+    if($(id+'Input').value!==text)$(id+'Input').value=text;
+  }
   const status = $("rangeStatus"); status.textContent = range ? "已保存" : "未设置"; status.classList.toggle("saved",Boolean(range));
-  $("useModelRanges").disabled = !analysis;
+  $("useModelRanges").disabled = integrated ? !decisionFor(state.selected).decision.buy : !analysis;
 }
 
 function optionTrendSvg(points) {
@@ -446,7 +506,8 @@ function renderOptions(options, spotPrice) {
     ladder = `<div class="option-ladder"><div class="ladder-track"></div>${marker("Put Wall",view.putWall,"put")}${marker("现价",spotPrice,"spot")}${marker("Max Pain",view.maxPain,"pain")}${marker("Call Wall",view.callWall,"call")}</div>`;
   }
   const trend = (view.trend || []).filter(point => finite(point.putCallVolume) !== null);
-  const contracts = (view.topContracts || []).slice(0,3).map(contract => `<div class="contract ${contract.type === "put" ? "put" : ""}"><b>${escapeHtml(contract.type?.toUpperCase()||"—")} ${fmt(contract.strike)}</b><span>Vol ${fmtCompact(contract.volume)}</span><span>V/OI ${fmt(contract.volumeOi,1)}</span></div>`).join("");
+  const side=state.optionSideBySymbol[state.selected]||'all';
+  const contracts = (view.topContracts || []).filter(c=>side==='all'||c.type===side).map(contract => `<div class="contract ${contract.type === "put" ? "put" : ""}"><b>${escapeHtml(contract.type?.toUpperCase()||"—")} ${fmt(contract.strike)}</b><span>量 ${fmtCompact(contract.volume)}</span><span>OI ${fmtCompact(contract.openInterest)}</span><span>量/OI ${fmt(contract.volumeOi,1)}</span></div>`).join("");
   const expiryOptions = snapshots.map(item => `<option value="${escapeHtml(item.expiration)}" ${item.expiration === view.expiration ? "selected" : ""}>${escapeHtml(item.expiration)} · ${item.daysToExpiry ?? "—"} DTE</option>`).join("");
   $("optionsBody").innerHTML = `<div class="option-expiry-control"><label for="expirySelect">查看到期日</label><select id="expirySelect" class="expiry-select" ${snapshots.length < 2 ? "disabled" : ""}>${expiryOptions}</select><small>快照 ${ageText(view.capturedAt)}</small></div><div class="options-summary">
     <div class="option-stat"><span>当前到期日</span><strong>${escapeHtml(view.expiration || "—")}</strong><small>${view.daysToExpiry ?? "—"} DTE · 共 ${snapshots.length} 个日期</small></div>
@@ -458,7 +519,7 @@ function renderOptions(options, spotPrice) {
   <section class="option-viz"><div class="mini-heading"><span>Put / Call 成交比趋势</span><small>${trend.length > 1 ? `${trend.length} 个快照` : "正在积累快照"}</small></div><div class="ratio-chart">${optionTrendSvg(trend)}<span>1.0 中性线</span></div></section>
   <section class="option-viz"><div class="mini-heading"><span>期权关键价格带</span><small>OI Wall 是潜在支撑/阻力，不保证守住</small></div>${ladder || '<div class="empty-state compact">等待价格带</div>'}</section>
   <section class="option-viz oi-profile"><div class="mini-heading"><span>行权价 OI 分布</span><small>Call OI ← 行权价 → Put OI</small></div>${profileRows || '<div class="empty-state compact">下次完整数据更新后显示</div>'}</section>
-  <div class="contract-list"><h3>异常活跃合约 · 按 Volume / OI</h3>${contracts || '<div class="empty-state compact">无活跃合约</div>'}</div><p class="options-caption">快照聚合成交量与未平仓量，无法区分每笔主动买入或卖出；Max Pain 与 OI Wall 是描述性统计，不是预测。</p>`;
+  <div class="contract-list"><div class="option-expiry-control"><h3>活跃合约 · 按成交量 / OI</h3><label for="optionSide">类型</label><select id="optionSide" class="expiry-select">${[['all','全部'],['call','Call'],['put','Put']].map(([value,label])=>`<option value="${value}" ${value===side?'selected':''}>${label}</option>`).join('')}</select></div>${contracts || '<div class="empty-state compact">无活跃合约</div>'}</div><p class="options-caption">快照聚合成交量与未平仓量，无法区分每笔主动买入或卖出；Max Pain 与 OI Wall 是描述性统计，不是预测。</p>`;
 }
 
 function renderNews(news) {
@@ -478,13 +539,14 @@ function renderAlert(item) {
   maybeNotify(kind,item,range);
 }
 function maybeNotify(kind,item,range) {
-  if (localStorage.getItem(KEYS.notifications) !== "on" || Notification.permission !== "granted") return;
+  if (localStorage.getItem(KEYS.notifications) !== "on" || !('Notification' in window) || Notification.permission !== "granted") return;
   const marker = `${state.selected}-${kind}-${new Date().toISOString().slice(0,10)}`; if (sessionStorage.getItem(marker)) return; sessionStorage.setItem(marker,"1");
   new Notification(`${displayFor(state.selected)} ${kind === "buy" ? "买入" : "卖出"}区间提醒`, { body:`当前价 $${fmt(item.price)} · 区间 $${fmt(range[`${kind}Low`])}–$${fmt(range[`${kind}High`])}` });
 }
 
 function navigateInvestment(tab) {
-  if (parent!==window) parent.postMessage({channel:'pt-workspace',type:'navigate',tab,symbol:state.selected},location.origin);
+  if (integrated) dispatchEvent(new CustomEvent('investment-select',{detail:{tab,symbol:state.selected}}));
+  else if (parent!==window) parent.postMessage({channel:'pt-workspace',type:'navigate',tab,symbol:state.selected},location.origin);
   else location.href='../investment-desk/?tab='+tab+'&symbol='+encodeURIComponent(state.selected);
 }
 function bindEvents() {
@@ -496,45 +558,86 @@ function bindEvents() {
   $('positionDecision').onclick=e=>{const button=e.target.closest('[data-investment-tab]');if(button)navigateInvestment(button.dataset.investmentTab)};
   $("watchlist").addEventListener("click", event => {
     const remove = event.target.closest("[data-remove]"); if (remove) { event.stopPropagation(); removeSymbol(remove.dataset.remove); return; }
-    const button = event.target.closest("[data-symbol]"); if (!button) return; state.selected = button.dataset.symbol; state.dismissedAlert = false; localStorage.setItem(KEYS.selected,state.selected); renderAll(); if(!dataFor()) fetchCustomSymbol(state.selected).then(()=>fetchLiveSelectedQuote(false)); else fetchLiveSelectedQuote(false);
+    const button = event.target.closest("[data-symbol]"); if (!button) return; selectMarketSymbol(button.dataset.symbol);
   });
   $("addSymbolForm").addEventListener("submit", event => { event.preventDefault(); const input=$("symbolInput"); let symbol=input.value.trim().toUpperCase(); if(!symbol)return; if(symbol==="SPX")symbol="^GSPC"; if(symbol==="BTCUSD")symbol="BTC-USD"; if(!state.watchlist.some(item=>item.symbol===symbol))state.watchlist.push({symbol,display:symbol.replace("-USD","USD").replace("^GSPC","SPX"),name:symbol}); state.selected=symbol; input.value=""; writeStorage(KEYS.watchlist,state.watchlist); localStorage.setItem(KEYS.selected,symbol); renderAll(); fetchCustomSymbol(symbol); });
   $("resetWatchlist").addEventListener("click",()=>{state.watchlist=structuredClone(DEFAULT_WATCHLIST);writeStorage(KEYS.watchlist,state.watchlist);renderAll();toast("已恢复 deskboard 默认列表");});
   $("refreshButton").addEventListener("click",async()=>{
-    dispatchEvent(new Event('workspace-refresh-investment'));
+    if(!integrated)dispatchEvent(new Event('workspace-refresh-investment'));
+    else refreshCompany(state.selected);
     $("refreshButton").classList.add('loading');$("refreshButton").disabled=true;
     try{await refreshStock(state.selected,true,true)}finally{$("refreshButton").classList.remove('loading');$("refreshButton").disabled=false;}
   });
   $("optionsBody").addEventListener("change", event => {
-    if (event.target.id !== "expirySelect") return;
-    state.optionExpiryBySymbol[state.selected] = event.target.value;
+    if (event.target.id === "expirySelect") state.optionExpiryBySymbol[state.selected] = event.target.value;
+    else if(event.target.id === "optionSide")state.optionSideBySymbol[state.selected]=event.target.value;
+    else return;
     renderOptions(dataFor()?.options, dataFor()?.price);
   });
   document.querySelectorAll("[data-period]").forEach(button=>button.addEventListener("click",()=>{document.querySelectorAll("[data-period]").forEach(node=>node.classList.remove("active"));button.classList.add("active");state.period=button.dataset.period;renderChart(dataFor()?.history||[],state.analysis);}));
-  $("rangeForm").addEventListener("submit", event => { event.preventDefault(); const value=id=>finite($(id).value); const range={buyLow:value("buyLowInput"),buyHigh:value("buyHighInput"),sellLow:value("sellLowInput"),sellHigh:value("sellHighInput")}; if([range.buyLow,range.buyHigh,range.sellLow,range.sellHigh].some(v=>v===null)){toast("请完整填写两个价格区间");return;} if(range.buyLow>range.buyHigh||range.sellLow>range.sellHigh){toast("最低价不能高于最高价");return;} state.ranges[state.selected]=range;writeStorage(KEYS.ranges,state.ranges);state.dismissedAlert=false;renderAll();toast("提醒区间已保存"); });
-  $("useModelRanges").addEventListener("click",()=>{if(!state.analysis)return; const a=state.analysis; $("buyLowInput").value=a.buyLow.toFixed(2);$("buyHighInput").value=a.buyHigh.toFixed(2);$("sellLowInput").value=a.sellLow.toFixed(2);$("sellHighInput").value=a.sellHigh.toFixed(2);toast("已填入模型区间，点击保存后生效");});
+  const rangeFields=['buyLow','buyHigh','sellLow','sellHigh'];
+  const readRange=()=>Object.fromEntries(rangeFields.map(key=>[key,$(key+'Input').value]));
+  $("rangeForm").addEventListener("input",()=>{state.rangeDrafts[state.selected]=readRange()});
+  $("rangeForm").addEventListener("submit",event=>{
+    event.preventDefault();
+    const range=Object.fromEntries(Object.entries(readRange()).map(([key,value])=>[key,finite(value)]));
+    const valid=prefix=>{
+      const lo=range[prefix+'Low'],hi=range[prefix+'High'];
+      return (lo===null&&hi===null)||(lo!==null&&hi!==null&&lo>0&&hi>=lo);
+    };
+    if(!valid('buy')||!valid('sell')){toast("每组区间请同时填入大于零的最低价和最高价，或留空");return}
+    if(range.buyLow===null&&range.sellLow===null)delete state.ranges[state.selected];
+    else state.ranges[state.selected]=range;
+    delete state.rangeDrafts[state.selected];
+    writeStorage(KEYS.ranges,state.ranges);
+    toast("个人区间已保存");
+    renderAll();
+  });
+  $("useModelRanges").addEventListener("click",()=>{
+    const {buy,sell}=decisionFor(state.selected).decision;
+    const ranges=integrated?buy&&[...buy,...sell]:state.analysis&&rangeFields.map(key=>state.analysis[key]);
+    if(!ranges)return;
+    state.rangeDrafts[state.selected]=Object.fromEntries(rangeFields.map((key,i)=>[key,ranges[i].toFixed(2)]));
+    renderRangeForm(state.analysis);
+    toast("已填入技术区间，保存后用于提醒");
+  });
+  $("clearRanges")?.addEventListener("click",()=>{
+    state.rangeDrafts[state.selected]=Object.fromEntries(rangeFields.map(key=>[key,'']));
+    renderRangeForm(state.analysis);
+    toast("已清空输入，保存后取消提醒");
+  });
+  for(const button of document.querySelectorAll('[data-evidence]'))button.addEventListener('click',()=>showEvidence(button.dataset.evidence));
+  $("positionDecision").addEventListener('click',event=>{if(event.target.closest('[data-edit-range]'))showEvidence('ranges')});
   $("dismissAlert").addEventListener("click",()=>{state.dismissedAlert=true;$("alertBanner").hidden=true;});
   $("methodButton").addEventListener("click",()=>$("methodDialog").showModal());
-  $("themeButton").addEventListener("click",()=>{document.body.classList.toggle("light");localStorage.setItem(KEYS.theme,document.body.classList.contains("light")?"light":"dark");});
-  $("notifyButton").addEventListener("click",async()=>{if(!("Notification" in window)){toast("当前浏览器不支持系统通知");return;} const result=await Notification.requestPermission(); if(result==="granted"){localStorage.setItem(KEYS.notifications,"on");$("notifyButton").textContent="●";toast("价格通知已启用");}else toast("未获得通知权限");});
+  $("themeButton")?.addEventListener("click",()=>{document.body.classList.toggle("light");localStorage.setItem(KEYS.theme,document.body.classList.contains("light")?"light":"dark");});
+  $("notifyButton").addEventListener("click",async()=>{if(!("Notification" in window)){toast("当前浏览器不支持系统通知");return;} const result=await Notification.requestPermission(); if(result==="granted"){localStorage.setItem(KEYS.notifications,"on");$("notifyButton").textContent=integrated?"提醒已开":"●";toast("价格通知已启用");}else toast("未获得通知权限");});
 }
 function removeSymbol(symbol) { if(state.watchlist.length<=1){toast("至少保留一个标的");return;} state.watchlist=state.watchlist.filter(item=>item.symbol!==symbol);if(state.selected===symbol)state.selected=state.watchlist[0].symbol;writeStorage(KEYS.watchlist,state.watchlist);localStorage.setItem(KEYS.selected,state.selected);renderAll(); }
 
+function showEvidence(section){
+  for(const button of document.querySelectorAll('[data-evidence]'))button.setAttribute('aria-pressed',String(button.dataset.evidence===section));
+  for(const panel of document.querySelectorAll('[data-evidence-panel]'))panel.hidden=panel.dataset.evidencePanel!==section;
+}
 function init() {
-  if (localStorage.getItem(KEYS.theme)==="light") document.body.classList.add("light");
-  if (localStorage.getItem(KEYS.notifications)==="on") $("notifyButton").textContent="●";
+  if (!integrated && localStorage.getItem(KEYS.theme)==="light") document.body.classList.add("light");
+  if (localStorage.getItem(KEYS.notifications)==="on") $("notifyButton").textContent=integrated?"提醒已开":"●";
   if (state.list==='holdings' && !holdings().some(h=>h.symbol===state.selected)) state.selected=holdings()[0].symbol;
-  bindEvents(); updateMarketStatus(); renderAll(); loadMarketData(false).then(()=>fetchLiveSelectedQuote(false));
+  bindEvents(); updateMarketStatus(); renderAll();
+  if(!integrated)loadMarketData(false).then(()=>fetchLiveSelectedQuote(false));
+  else if(!marketPanel.hidden)openMarket();
 
 }
 init();
 
 addEventListener('workspace-select-symbol',e=>{
-  const symbol=e.detail.symbol;
-  if(!/^[A-Z0-9.^-]{1,20}$/.test(symbol)||state.selected===symbol)return;
-  state.list=holdings().some(h=>h.symbol===symbol)?'holdings':'watch';
-  if(state.list==='watch'&&!state.watchlist.some(w=>w.symbol===symbol)){state.watchlist.push({symbol,display:symbol,name:symbol});writeStorage(KEYS.watchlist,state.watchlist);}
-  state.selected=symbol;localStorage.setItem(KEYS.selected,symbol);renderAll();refreshStock(symbol);
+  if(state.selected!==e.detail.symbol)selectMarketSymbol(e.detail.symbol,false);
+});
+addEventListener('workspace-activate',e=>{
+  if(integrated&&e.detail.tab==='market'){
+    if(e.detail.symbol!==state.selected)selectMarketSymbol(e.detail.symbol,false);
+    else openMarket();
+  }
 });
 function reloadRecords(e){
   state.watchlist=readStorage(KEYS.watchlist,DEFAULT_WATCHLIST);
@@ -542,17 +645,20 @@ function reloadRecords(e){
   renderAll();
 }
 addEventListener('workspace-records',reloadRecords);
+if(integrated)addEventListener('decision-change',e=>{if(['holdings','watchlist'].includes(e.detail.key))reloadRecords(e)});
 addEventListener('storage',reloadRecords);
 addEventListener('pt-sync-applied',reloadRecords);
-addEventListener('workspace-investment-data',e=>{
+function receivePortfolio(e){
   const {market,companies,errors,busy}=e.detail;
   for(const [symbol,q] of Object.entries(market?.symbols||{})){
     const old=dataFor(symbol);
     if(!old||Date.parse(q.lastTradeAt)>=Date.parse(old.lastTradeAt||0))state.data.symbols[symbol]={...old,...q};
   }
-  if(companies)state.companies=companies;
-  state.evidenceErrors=errors||{};state.evidenceBusy=!!busy;
+  if(companies)for(const c of companies){const old=state.companies.find(item=>item.ticker===c.ticker);if(!old||Date.parse(c.updatedAt)>=Date.parse(old.updatedAt))state.companies=[...state.companies.filter(item=>item.ticker!==c.ticker),c];}
+  state.evidenceErrors={...state.evidenceErrors,...errors};state.evidenceBusy=!!busy;
   renderAll();
-});
+}
+addEventListener('workspace-investment-data',receivePortfolio);
+if(integrated)addEventListener('investment-data',receivePortfolio);
 // The classic bridge can become ready before this module's imports finish.
 dispatchEvent(new Event('workspace-request-investment'));

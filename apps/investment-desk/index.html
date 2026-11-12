@@ -1,1 +1,234 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>投资工作台 · PT Universe</title><link rel="stylesheet" href="../_decision/ui.css?v=2"><link rel="stylesheet" href="../_decision/workspace.css?v=1"><link rel="stylesheet" href="../../pt-bridge.css"></head><body data-workspace="investment"><main class="ws-shell"><div class="ws-top"><a href="../../">← PT Universe</a><button id="decision-theme" type="button">明暗</button></div><header class="ws-hero"><div><p class="ws-kicker">INVESTMENT DESK</p><h1>投资工作台</h1><p>导入持仓 CSV，自动核对行情、财报与公开交易，直接看买卖候选和参考价位。</p></div><form id="ws-symbol-form" class="ws-context"><label for="ws-symbol">当前标的</label><input id="ws-symbol" aria-label="当前标的" maxlength="20" pattern="[A-Za-z0-9.^-]+" required list="ws-symbols"><datalist id="ws-symbols"></datalist><button type="submit">查看</button></form></header><nav class="ws-bar"><div class="ws-tabs" role="tablist" aria-label="工作台"><button id="tab-review" role="tab" aria-selected="false" aria-controls="panel-review" data-tab="review">持仓与买卖候选</button><button id="tab-market" role="tab" aria-selected="false" aria-controls="panel-market" data-tab="market">行情与区间</button><button id="tab-thesis" role="tab" aria-selected="false" aria-controls="panel-thesis" data-tab="thesis">财报与论点</button><button id="tab-audit" role="tab" aria-selected="false" aria-controls="panel-audit" data-tab="audit">公开交易核验</button></div></nav><div id="ws-summary" class="ws-summary" aria-live="polite"></div><section class="ws-panel" id="panel-review" role="tabpanel" aria-labelledby="tab-review" hidden><div class="d-root" id="portfolio"></div></section><section class="ws-panel" id="panel-audit" role="tabpanel" aria-labelledby="tab-audit" hidden><div class="d-root" id="public-audit"></div></section><div id="ws-frames"></div></main><script type="module" src="../_decision/workspace.js?v=20260930-holdings"></script><script type="module" src="./portfolio.js?v=20260930-holdings"></script><script type="module" src="./audit.js?v=3"></script><script src="../../pt-sync.js"></script><script src="../../pt-bridge.js"></script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>投资工作台 · PT Universe</title>
+  <link rel="stylesheet" href="../stock-alert/styles.css?v=20261112">
+  <link rel="stylesheet" href="../_decision/ui.css?v=2">
+  <link rel="stylesheet" href="../_decision/workspace.css?v=1">
+  <link rel="stylesheet" href="./desk.css?v=1">
+  <link rel="stylesheet" href="../../pt-bridge.css">
+</head>
+<body data-workspace="investment">
+<main class="ws-shell investment-shell">
+  <header class="investment-header">
+    <div><a class="investment-home" href="../../">PT Universe</a><h1>投资工作台</h1></div>
+    <form id="ws-symbol-form" class="ws-context">
+      <label for="ws-symbol">标的代码</label>
+      <input id="ws-symbol" autocomplete="off" maxlength="15" required list="ws-symbols" placeholder="例如 NVDA">
+      <datalist id="ws-symbols"></datalist><button type="submit">查看</button>
+    </form>
+    <button id="decision-theme" type="button" aria-label="切换明暗主题">明暗</button>
+  </header>
+  <nav class="ws-bar"><div class="ws-tabs" role="tablist" aria-label="工作台">
+    <button id="tab-market" role="tab" aria-selected="false" aria-controls="panel-market" data-tab="market">标的与决策</button>
+    <button id="tab-review" role="tab" aria-selected="false" aria-controls="panel-review" data-tab="review">持仓管理</button>
+    <button id="tab-thesis" role="tab" aria-selected="false" aria-controls="panel-thesis" data-tab="thesis">财报与论点</button>
+    <button id="tab-audit" role="tab" aria-selected="false" aria-controls="panel-audit" data-tab="audit">公开交易核验</button>
+  </div></nav>
+  <div id="ws-summary" class="sr-only" aria-live="polite"></div>
+  <section class="ws-panel" id="panel-market" role="tabpanel" aria-labelledby="tab-market" hidden>
+    <div class="investment-market">
+    <aside class="watch-panel">
+      <div class="panel-heading">
+        <div><h2>标的</h2></div>
+        <button id="resetWatchlist" class="text-button" type="button">恢复自选</button>
+      </div>
+      <div class="portfolio-tabs" role="tablist" aria-label="标的列表">
+        <button id="holdingsTab" role="tab" aria-controls="watchlist" data-list="holdings">持仓 <span></span></button>
+        <button id="watchTab" role="tab" aria-controls="watchlist" data-list="watch">观察 <span></span></button>
+      </div>
+      <div class="list-context"><span id="listSummary"></span><button id="manageHoldings" class="text-button" type="button">导入 / 更新 CSV</button></div>
+      <form id="addSymbolForm" class="symbol-form">
+        <label class="sr-only" for="symbolInput">输入股票代码</label>
+        <input id="symbolInput" autocomplete="off" maxlength="12" placeholder="输入代码，如 AMD">
+        <button type="submit">＋</button>
+      </form>
+      <div id="watchlist" class="watchlist" role="tabpanel" aria-live="polite"></div>
+    </aside>
+    <div class="investment-detail">
+      <div class="investment-feed">
+        <span id="marketBadge" class="market-badge"><i></i>检查市场</span>
+        <span id="updatedAt" class="updated-at" role="status">等待行情</span>
+        <div class="top-actions">
+          <button id="notifyButton" type="button" title="启用价格提醒">价格提醒</button>
+          <button id="refreshButton" type="button">刷新标的</button>
+        </div>
+      </div>
+      <section id="alertBanner" class="alert-banner" hidden>
+        <div><span id="alertIcon">!</span><strong id="alertTitle">价格提醒</strong></div>
+        <p id="alertText"></p>
+        <button id="dismissAlert" type="button" aria-label="关闭提醒">×</button>
+      </section>
+
+      <nav class="investment-evidence" aria-label="标的详情">
+        <button type="button" data-evidence="overview" aria-pressed="true">操作与目标</button>
+        <button type="button" data-evidence="technical" aria-pressed="false">技术指标</button>
+        <button type="button" data-evidence="options" aria-pressed="false">期权池</button>
+        <button type="button" data-evidence="news" aria-pressed="false">新闻</button>
+        <button type="button" data-evidence="ranges" aria-pressed="false">自定义区间</button>
+      </nav>
+      <section class="hero-card card" data-evidence-panel="overview">
+        <div class="quote-head">
+          <div>
+            <div class="symbol-line"><h1 id="quoteSymbol">—</h1><span id="quoteExchange" class="chip">—</span></div>
+            <p id="quoteName">选择一个标的</p>
+          </div>
+          <div class="quote-price-block">
+            <div><span id="quoteCurrency">$</span><strong id="quotePrice">—</strong></div>
+            <span id="quoteChange" class="quote-change">—</span>
+          </div>
+        </div>
+        <section id="positionDecision" class="position-decision" aria-live="polite"></section>
+        <section class="kronos-panel" aria-labelledby="kronos-title">
+          <div class="kronos-heading">
+            <div><h2 id="kronos-title">Kronos · 10 日情景</h2><p id="kronosStatus" role="status">正在读取最近一次预测</p></div>
+            <button id="kronosRun" type="button" hidden>运行模型</button>
+          </div>
+          <div id="kronosResult"></div>
+        </section>
+        <div class="chart-toolbar">
+          <div class="period-tabs" role="tablist" aria-label="图表周期">
+            <button data-period="1M" type="button">1M</button>
+            <button data-period="3M" type="button">3M</button>
+            <button data-period="6M" type="button">6M</button>
+            <button data-period="1Y" class="active" type="button">1Y</button>
+          </div>
+          <div class="chart-legend"><span><i class="line price"></i>价格</span><span><i class="line sma"></i>SMA 50</span></div>
+        </div>
+        <div id="chart" class="chart" role="img" aria-label="历史价格图表">
+          <div class="chart-empty">等待历史数据</div>
+        </div>
+        <div class="quote-stats">
+          <div><span>前收</span><strong id="statPrev">—</strong></div>
+          <div><span>52周区间</span><strong id="stat52">—</strong></div>
+          <div><span>年化波动</span><strong id="statVol">—</strong></div>
+          <div><span>ATR 14</span><strong id="statAtr">—</strong></div>
+        </div>
+      </section>
+
+      <section class="analysis-card card" data-evidence-panel="technical" hidden>
+        <div class="section-heading">
+          <div><h2>技术指标明细 <em class="live-model-badge">随报价更新</em></h2></div>
+          <button id="methodButton" class="text-button" type="button">查看算法</button>
+        </div>
+        <div class="decision-grid">
+          <div class="signal-box">
+            <span>仅技术面信号</span>
+            <strong id="signalText">等待数据</strong>
+            <div class="confidence"><i id="confidenceBar"></i></div>
+            <small id="confidenceText">指标一致度 —</small>
+          </div>
+          <div id="modelBuyBox" class="range-box buy-range">
+            <span>模型买入观察区</span>
+            <strong id="buyRange">—</strong>
+            <small id="buyDistance">基于支撑位与 ATR</small>
+          </div>
+          <div id="modelSellBox" class="range-box sell-range">
+            <span>模型卖出观察区</span>
+            <strong id="sellRange">—</strong>
+            <small id="sellDistance">基于阻力位与 ATR</small>
+          </div>
+        </div>
+        <div id="indicatorGrid" class="indicator-grid"></div>
+        <div class="analysis-note">
+          <span>模型解读</span>
+          <p id="analysisSummary">加载历史数据后，将根据趋势、动量、波动和支撑阻力生成区间。</p>
+        </div>
+        <div class="evidence-grid">
+          <section class="backtest-panel">
+            <div class="mini-heading"><span>滚动历史检验</span><small>进入买入区后 20 个交易日</small></div>
+            <div id="backtestMetrics" class="backtest-metrics"><div class="empty-state">等待历史样本</div></div>
+            <p id="backtestNote" class="micro-note">仅使用每个历史时点之前的数据；非独立样本，不含交易成本。</p>
+          </section>
+          <section class="fundamental-panel">
+            <div class="mini-heading"><span>估值背景</span><small>不参与技术区间计算</small></div>
+            <div id="fundamentalMetrics" class="fundamental-metrics"><div class="empty-state">等待基本面数据</div></div>
+            <p class="micro-note">PE 是基本面估值指标，需与行业、增长和盈利质量比较，不能单独当作买卖信号。</p>
+          </section>
+        </div>
+      </section>
+
+      <section class="options-card card" data-evidence-panel="options" hidden>
+        <div class="section-heading">
+          <div><h2>期权池</h2></div>
+          <a id="optionsLink" class="text-button" href="#" target="_blank" rel="noopener">查看完整链 ↗</a>
+        </div>
+        <div id="optionsBody" class="options-body"><div class="empty-state">等待期权数据</div></div>
+      </section>
+
+      <section class="news-card card" data-evidence-panel="news" hidden>
+        <div class="section-heading">
+          <div><h2>相关新闻</h2></div>
+          <a id="newsLink" class="text-button" href="#" target="_blank" rel="noopener">更多 ↗</a>
+        </div>
+        <div id="newsList" class="news-list"><div class="empty-state">等待新闻数据</div></div>
+      </section>
+
+      <section class="alert-settings card" data-evidence-panel="ranges" hidden>
+        <div class="section-heading">
+          <div><h2>我的交易区间</h2></div>
+          <span id="rangeStatus" class="save-status">未设置</span>
+        </div>
+        <p class="helper">价格进入任一区间时，对应标的和页面顶部会高亮。设置保存在当前浏览器。</p>
+        <form id="rangeForm" class="range-form">
+          <fieldset>
+            <legend>买入区间</legend>
+            <label>最低价<input id="buyLowInput" inputmode="decimal" type="number" min="0" step="0.01" placeholder="Low"></label>
+            <span>—</span>
+            <label>最高价<input id="buyHighInput" inputmode="decimal" type="number" min="0" step="0.01" placeholder="High"></label>
+          </fieldset>
+          <fieldset>
+            <legend>卖出区间</legend>
+            <label>最低价<input id="sellLowInput" inputmode="decimal" type="number" min="0" step="0.01" placeholder="Low"></label>
+            <span>—</span>
+            <label>最高价<input id="sellHighInput" inputmode="decimal" type="number" min="0" step="0.01" placeholder="High"></label>
+          </fieldset>
+          <div class="range-actions">
+            <button id="useModelRanges" class="secondary-button" type="button">填入技术区间</button>
+            <button class="primary-button" type="submit">保存区间</button>
+            <button id="clearRanges" class="secondary-button" type="button">清空区间</button>
+          </div>
+        </form>
+      </section>
+
+    </div>
+    </div>
+  </section>
+  <section class="ws-panel" id="panel-review" role="tabpanel" aria-labelledby="tab-review" hidden><div class="d-root" id="portfolio"></div></section>
+  <section class="ws-panel" id="panel-audit" role="tabpanel" aria-labelledby="tab-audit" hidden><div class="d-root" id="public-audit"></div></section>
+  <div id="ws-frames"></div>
+</main>
+  <dialog id="methodDialog" class="method-dialog">
+    <form method="dialog"><button aria-label="关闭">×</button></form>
+    <span class="eyebrow">MODEL NOTES</span>
+    <h2>区间是怎样算出来的？</h2>
+    <p>模型使用近一年日线，组合趋势、动量、波动和历史支撑阻力。它不会预测唯一目标价，而是提供观察区间；页面上的百分比是指标一致度，不是校准后的上涨概率。</p>
+    <ol>
+      <li><b>趋势：</b>SMA 20/50/200 判断多空排列与价格位置。</li>
+      <li><b>动量：</b>RSI 14 与 MACD 判断超买超卖和动量拐点。</li>
+      <li><b>波动：</b>ATR 14 和布林带决定区间宽度，避免用固定百分比。</li>
+      <li><b>支撑阻力：</b>近期高低点、均线与布林带共同形成候选价位。</li>
+      <li><b>滚动检验：</b>每个历史时点只读取当时及以前的数据，测量进入买入区后 20 个交易日的收益与期间最大回撤。</li>
+      <li><b>PE：</b>属于基本面估值，只单独展示，不在缺少行业基准时混入技术区间。</li>
+    </ol>
+    <p class="model-sources"><b>研究与产品参照：</b>
+      <a href="https://onlinelibrary.wiley.com/doi/10.1111/j.1540-6261.1992.tb04681.x" target="_blank" rel="noopener">Brock 等（1992）</a>、
+      <a href="https://web.mit.edu/Alo/www/Papers/techanal.html" target="_blank" rel="noopener">Lo 等（2000）</a>系统研究了技术规则；
+      <a href="https://ideas.repec.org/a/eee/revfin/v23y2014i1p30-45.html" target="_blank" rel="noopener">后续样本外研究</a>也报告经典规则失效。
+      <a href="https://www.tradingview.com/support/folders/43000587405-built-in-indicators/" target="_blank" rel="noopener">TradingView</a>提供相同指标作为分析工具，而非收益保证。
+    </p>
+    <p class="dialog-warning">当前版本是透明规则模型，不是经独立样本和交易成本验证的生产级预测器。财报、宏观事件和跳空可能让历史技术位立即失效。</p>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script type="module" src="../_decision/workspace.js?v=20261112"></script>
+<script type="module" src="../stock-alert/app.js?v=20261112"></script>
+<script type="module" src="./kronos.js?v=1"></script>
+<script type="module" src="./portfolio.js?v=20261112"></script>
+<script type="module" src="./audit.js?v=20261112"></script>
+<script src="../../pt-sync.js"></script>
+<script src="../../pt-bridge.js"></script>
+</body>
+</html>

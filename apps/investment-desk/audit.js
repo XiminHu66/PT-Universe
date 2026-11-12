@@ -13,10 +13,23 @@ function render(){if(!data)return;const selected=read('public-follow',data.sourc
  host.querySelector('#audit-person').value=person;host.querySelector('#audit-direction').value=direction;host.querySelector('#audit-person').onchange=e=>{person=e.target.value;render()};host.querySelector('#audit-direction').onchange=e=>{direction=e.target.value;render()};host.querySelector('#audit-symbol').onchange=e=>{symbol=e.target.value.trim().toUpperCase();render()};host.querySelector('#audit-held').onchange=e=>{held=e.target.checked;render()};for(const b of host.querySelectorAll('[data-follow]'))b.onchange=()=>{save('public-follow',[...host.querySelectorAll('[data-follow]:checked')].map(x=>x.dataset.follow));render()};for(const b of host.querySelectorAll('[data-watch]'))b.onclick=()=>{const s=b.dataset.watch;if(!/^[A-Z][A-Z0-9.^-]{0,14}$/.test(s))return toast('该申报未提供可识别的代码');const w=raw('stock_alert_watchlist_v1');if(!w.some(x=>x.symbol===s)){w.push({symbol:s,display:s,name:s});localStorage.setItem('stock_alert_watchlist_v1',JSON.stringify(w));dispatchEvent(new CustomEvent('decision-change',{detail:{key:'watchlist'}}))}toast(s+' 已加入观察列表，持仓页将自动核对证据')};for(const b of host.querySelectorAll('[data-open]'))b.onclick=()=>dispatchEvent(new CustomEvent('investment-select',{detail:{symbol:b.dataset.open,tab:'market'}}));
 }
 addEventListener('investment-select',e=>{if(e.detail.tab==='audit'){symbol=e.detail.symbol;render()}});addEventListener('investment-data',e=>{market=e.detail.market;render()});addEventListener('decision-change',e=>{if(e.detail.key==='holdings')render()});
-(async()=>{try{const r=await Promise.allSettled([json('apps/investment-desk/data/public-trades.json'),marketData()]);if(r[0].status==='rejected'){try{data=JSON.parse(localStorage.getItem('pt-disclosures-data'))}catch{};if(!data?.sources)throw r[0].reason}else data=r[0].value;try{const cached=JSON.parse(localStorage.getItem('pt-disclosures-data'));if(cached?.sources&&Date.parse(cached.generatedAt)>Date.parse(data.generatedAt))data=cached}catch{};if(!document.querySelector('#panel-audit')?.hidden)refreshDisclosures();if(r[1].status==='fulfilled')market=r[1].value;render()}catch(e){host.innerHTML='<div class="d-empty">披露来源读取失败：'+esc(e.message)+'。刷新页面重试。</div>'}})();
+let auditSnapshot;
+async function openAudit(){
+ if(!auditSnapshot)auditSnapshot=(async()=>{
+  const [trades,quotes]=await Promise.allSettled([json('apps/investment-desk/data/public-trades.json'),marketData()]);
+  if(trades.status==='fulfilled')data=trades.value;
+  try{const cached=JSON.parse(localStorage.getItem('pt-disclosures-data'));if(cached?.sources&&(!data||Date.parse(cached.generatedAt)>Date.parse(data.generatedAt)))data=cached}catch{}
+  if(quotes.status==='fulfilled')market=quotes.value;
+  if(data)render();
+ })();
+ await auditSnapshot;
+ await Promise.allSettled([refreshDisclosures(),loadMuse()]);
+ if(!data)host.innerHTML='<div class="d-empty">公开披露暂不可用。重新打开本页后重试。</div>';
+}
+
 
 async function loadMuse(){try{const a=await account(false);if(!a)return;const r=await fetch(API+'/api/muse/'+a.id+'/reports',{headers:{authorization:'Bearer '+a.token},signal:AbortSignal.timeout(15000)});if(!r.ok)return;museReports=(await r.json()).reports.slice(0,7);render()}catch{/* Muse is optional; public disclosure evidence remains available. */}}
-loadMuse();addEventListener('investment-select',e=>{if(e.detail.tab==='audit')loadMuse()});addEventListener('pt-sync-applied',loadMuse);
+addEventListener('pt-sync-applied',()=>{if(!document.querySelector('#panel-audit').hidden)loadMuse()});
 
 async function refreshDisclosures(force=false){
  if(disclosureBusy)return;disclosureBusy=true;disclosureStatus='正在抓取公开申报…';render();
@@ -25,4 +38,5 @@ async function refreshDisclosures(force=false){
  finally{disclosureBusy=false;render();}
 }
 const auditPanel=document.querySelector('#panel-audit');
-if(auditPanel)new MutationObserver(()=>{if(!auditPanel.hidden)refreshDisclosures()}).observe(auditPanel,{attributes:true,attributeFilter:['hidden']});
+addEventListener('workspace-activate',e=>{if(e.detail.tab==='audit')openAudit()});
+if(auditPanel&&!auditPanel.hidden)openAudit();
