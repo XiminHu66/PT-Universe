@@ -2,7 +2,7 @@ import {esc, fmt, stamp, read, raw, save, json, link, toast} from '../_decision/
 import {API, refreshData} from '../_shared/on-demand.mjs';
 import {investmentRefreshSlot} from './sessions.mjs';
 import {DEFAULT_WATCHLIST} from './refresh.mjs';
-import {watchSymbols} from './portfolio.js?v=20261112-model-batch';
+import {watchSymbols} from './portfolio.js?v=20261112-model-batch2';
 import {normalizeDisclosures, keepAvailableSources} from './disclosures.mjs';
 
 const host = document.querySelector('#public-audit');

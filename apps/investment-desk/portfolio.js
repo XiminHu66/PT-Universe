@@ -282,6 +282,7 @@ function checkSchedule() {
 }
 
 batchButton.addEventListener('click', () => refresh());
+batchButton.disabled = false;
 addEventListener('workspace-activate', checkSchedule);
 addEventListener('investment-refresh', () => { if (activeWorkspace()) refresh(); });
 addEventListener('investment-market-item', event => storeItem(event.detail.symbol, event.detail.item));
