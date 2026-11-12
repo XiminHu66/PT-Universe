@@ -8,7 +8,6 @@
   return ordinal(end)>=ordinal(day(x))?end:day(x);
  };
  const startsBy=(x,today,days)=>Number.isFinite(distance(x,today))&&distance(x,today)<=days&&ordinal(endDay(x))>=ordinal(today);
- const onDay=(items,date)=>items.filter(x=>startsBy(x,date,0));
  const time=x=>{
   if(x.allDay||x.allDay===undefined&&!x.manual&&/T12:00:00(?:$|Z|[+-])/.test(x.date))return '';
   if(x.timeKey)return x.timeKey;
@@ -37,5 +36,5 @@
  function within(items,days,today){return items.filter(x=>startsBy(x,today,days))}
  function overview(items,today){return items.filter(x=>startsBy(x,today,x.category==='local'?45:180))}
  function select(items){return sort(items).slice(0,6)}
- const api={day,endDay,time,sort,onDay,localItems,within,overview,select,distance};root.NexusUpcoming=api;if(typeof module!=='undefined')module.exports=api;
+ const api={day,endDay,time,sort,localItems,within,overview,select,distance};root.NexusUpcoming=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

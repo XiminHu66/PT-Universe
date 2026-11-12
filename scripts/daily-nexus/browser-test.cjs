@@ -56,13 +56,24 @@ assert.equal(await p.locator('[data-upmodalfilter="local"]').getAttribute('aria-
 assert.equal(await p.locator('.upcoming-modal-item').count(),2);
 await p.getByRole('button',{name:'关闭全部日程'}).click();
 const day=p.locator('[data-mini-date="'+eventDay+'"]');
-assert.match(await day.getAttribute('aria-label'),/2 项活动/);
+assert.equal(await day.getAttribute('aria-label'),eventDay);
+assert.equal(await p.locator('#miniCalGrid .has-items').count(),0);
 await day.click();
-assert.match(await p.locator('#calendarEventList').innerText(),/官方活动快照/);
+const dialogDay=p.locator('[data-cal-date="'+eventDay+'"]');
+const dot=locator=>locator.evaluate(e=>getComputedStyle(e,'::after').content);
+assert.equal(await dot(dialogDay),'none');
+assert.equal(await p.locator('#calendarModal').getByText('官方活动快照').count(),0);
+await p.getByRole('textbox',{name:'新清单事项'}).fill('临时个人事项');
+await p.getByRole('button',{name:'添加清单事项'}).click();
+assert.match(await day.getAttribute('aria-label'),/1 项个人清单/);
+assert.equal(await dot(day),'""');
+assert.equal(await dot(dialogDay),'""');
+await p.getByRole('button',{name:'删除清单事项：临时个人事项'}).click();
+assert.equal(await dot(day),'none');
+assert.equal(await dot(dialogDay),'none');
 await p.getByRole('textbox',{name:'新清单事项'}).fill('日历独立清单');
 await p.getByRole('button',{name:'添加清单事项'}).click();
 assert.match(await p.locator('#calendarTaskList').innerText(),/日历独立清单/);
-assert.equal(await p.locator('#calendarEventList li').count(),2);
 await p.getByRole('button',{name:'关闭日历'}).click();
 await p.locator('#discoverPanel summary').click();
 await p.waitForFunction(()=>{const target=document.querySelector('.discover-controls').getBoundingClientRect(),view=document.querySelector('#view-home .dashboard').getBoundingClientRect();return target.top>=view.top&&target.bottom<=view.bottom});
@@ -104,7 +115,7 @@ await p.emulateMedia({colorScheme:'dark'});await nav('meal').click();
 await p.frameLocator('#mealFrame').locator('html[data-theme="dark"]').waitFor({state:'attached'});
 await p.emulateMedia({colorScheme:'light'});
 await p.frameLocator('#mealFrame').locator('html[data-theme="light"]').waitFor({state:'attached'});
-console.log('Short viewport, calendar/activity consistency, theme inheritance, frozen focus target and keyboard names passed');
+console.log('Short viewport, personal calendar isolation, theme inheritance, frozen focus target and keyboard names passed');
 let tickerUnavailable=false;
 await ctx.route('https://widgets.tradingview-widget.com/w/en/tv-single-ticker.js',route=>tickerUnavailable
   ?route.abort()

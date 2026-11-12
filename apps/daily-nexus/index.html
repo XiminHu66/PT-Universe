@@ -123,7 +123,6 @@
     .home-calendar-grid button:hover{background:var(--panel2)}
     .home-calendar-grid button.today{border-color:color-mix(in srgb,var(--accent) 65%,var(--line));font-weight:850;background:color-mix(in srgb,var(--accent) 8%,transparent)}
     .home-calendar-grid button.has-items{background:color-mix(in srgb,var(--accent) 9%,transparent)}
-    .home-calendar-grid button.has-items::after{content:"";position:absolute;width:5px;height:5px;border-radius:50%;background:var(--accent);right:5px;bottom:4px}
     .home-today-panel{min-width:0;display:flex;flex-direction:column}
     .home-today-head{display:flex;align-items:center;gap:7px;margin-bottom:6px}
     .home-today-head b{font-size:16px}
@@ -313,7 +312,7 @@
     .calendar-panel,.day-checklist{border:1px solid var(--line);background:color-mix(in srgb,var(--panel2) 58%,transparent);border-radius:18px;padding:14px;min-height:420px}
     .calendar-month-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.calendar-month-head b{font-size:15px}.calendar-month-head button{border:1px solid var(--line);background:var(--panel);border-radius:10px;width:34px;height:30px}
     .calendar-weekdays,.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.calendar-weekdays span{text-align:center;font-size:10px;color:var(--muted);padding:2px}
-    .calendar-grid button{aspect-ratio:1;border:1px solid transparent;border-radius:10px;background:transparent;font-size:11px;position:relative}.calendar-grid button.out{color:color-mix(in srgb,var(--muted) 48%,transparent)}.calendar-grid button:hover{background:var(--panel)}.calendar-grid button.today{border-color:color-mix(in srgb,var(--accent) 55%,var(--line));font-weight:800}.calendar-grid button.selected{background:color-mix(in srgb,var(--accent) 18%,var(--panel2));border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}.calendar-grid button.has-items::after{content:"";position:absolute;width:5px;height:5px;border-radius:50%;background:var(--accent);right:6px;bottom:5px}
+    .calendar-grid button{aspect-ratio:1;border:1px solid transparent;border-radius:10px;background:transparent;font-size:11px;position:relative}.calendar-grid button.out{color:color-mix(in srgb,var(--muted) 48%,transparent)}.calendar-grid button:hover{background:var(--panel)}.calendar-grid button.today{border-color:color-mix(in srgb,var(--accent) 55%,var(--line));font-weight:800}.calendar-grid button.selected{background:color-mix(in srgb,var(--accent) 18%,var(--panel2));border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
     .day-checklist h4{font-size:15px;margin:0}.day-checklist .day-sub{font-size:11px;color:var(--muted);margin:4px 0 12px}.calendar-add{display:flex;gap:7px;margin-bottom:10px}.calendar-add input{flex:1}.calendar-task-list{display:grid;gap:7px;max-height:300px;overflow:auto}.calendar-task{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:9px;background:var(--panel)}.calendar-task input{accent-color:var(--accent)}.calendar-task span{font-size:12px}.calendar-task.done span{text-decoration:line-through;opacity:.55}.calendar-task button{border:0;background:transparent;color:var(--muted);font-size:15px}.calendar-task-empty{border:1px dashed var(--line);border-radius:12px;padding:18px;text-align:center;color:var(--muted);font-size:11px}
 
     .modal{position:fixed;inset:0;background:rgba(0,0,0,.62);display:none;place-items:center;padding:18px;z-index:20}.modal.open{display:grid}.modalcard{width:min(920px,96vw);max-height:90vh;border-radius:22px;padding:16px;overflow:auto}.modaltop{display:flex;align-items:center;margin-bottom:10px}.modaltop h3{margin:0}.modaltop button{margin-left:auto}.video{aspect-ratio:16/9;width:100%;border:0;border-radius:16px;background:#000}.event-editor-list{display:grid;gap:7px;margin-top:12px}.event-row{display:grid;grid-template-columns:1fr 160px auto;gap:7px;align-items:center}.event-row button{border:1px solid var(--line);background:var(--panel2);border-radius:10px;padding:8px}.muted{color:var(--muted)}
@@ -460,7 +459,7 @@
   </style>
   <link rel="stylesheet" href="home-tools.css?v=20261007-10">
   <link rel="stylesheet" href="../../pt-bridge.css?v=20260827-1">
-<link rel="stylesheet" href="boox-connector.css?v=20261021-1"><link rel="stylesheet" href="vps-tab.css?v=20261028-readable2"><script type="module" src="vps-tab.js?v=20261110-retired-tools"></script><link rel="stylesheet" href="streamline.css?v=20261112-review"><link rel="stylesheet" href="monitor-tab.css?v=20261104-2"><script type="module" src="monitor-tab.js?v=20261110-release2"></script></head>
+<link rel="stylesheet" href="boox-connector.css?v=20261021-1"><link rel="stylesheet" href="vps-tab.css?v=20261028-readable2"><script type="module" src="vps-tab.js?v=20261110-retired-tools"></script><link rel="stylesheet" href="streamline.css?v=20261112-personal-calendar"><link rel="stylesheet" href="monitor-tab.css?v=20261104-2"><script type="module" src="monitor-tab.js?v=20261110-release2"></script></head>
 <body data-nexus-view="home">
 <div id="themeBg"></div><div class="bgShade"></div>
 <div class="app">
@@ -513,7 +512,7 @@
 
       <div class="home-top-left" aria-label="日历与接下来">
       <article class="card glass homecalendar">
-        <div class="cardhead"><h2><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v14H4z M8 4v4 M16 4v4 M4 10h16"/></svg>日历</h2><span class="sub">点击日期查看活动与清单</span></div>
+        <div class="cardhead"><h2><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v14H4z M8 4v4 M16 4v4 M4 10h16"/></svg>日历</h2><span class="sub">点击日期查看个人清单</span></div>
         <div class="home-cal-body">
           <div class="home-cal-month">
             <div class="home-calendar-head"><button id="miniCalPrev" aria-label="上个月">‹</button><b id="miniCalTitle">----</b><button id="miniCalNext" aria-label="下个月">›</button></div>
@@ -853,8 +852,6 @@
     </section>
     <section class="day-checklist">
       <h4 id="calendarSelectedTitle">今天</h4>
-      <h5 class="calendar-section-title">活动</h5>
-      <ul id="calendarEventList" class="calendar-event-list"></ul>
       <h5 class="calendar-section-title">个人清单</h5>
       <div class="day-sub" id="calendarSelectedSub">点击左侧日期切换</div>
       <div class="calendar-add"><input class="field" id="calendarTaskInput" aria-label="新清单事项" placeholder="为这一天添加清单…"><button class="save" id="calendarTaskAdd" aria-label="添加清单事项">＋</button></div>
@@ -2175,7 +2172,7 @@ async function importConfigFile(ev){
 </template>
 <!-- ===== END INTEGRATED DESKBOARD SOURCE ===== -->
 
-<script src="upcoming-policy.js?v=20261112-review"></script>
+<script src="upcoming-policy.js?v=20261112-personal-calendar"></script>
 <script src="home-tools.js?v=20261007-2"></script>
 <script>
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
@@ -2342,7 +2339,6 @@ function dateFromYmd(s){
 }
 function cloneMonth(d){return new Date(d.getFullYear(),d.getMonth(),1,12)}
 let dailyNexusDayKey=ymdLocal(new Date()),miniCalCursor=cloneMonth(new Date()),calendarCursor=cloneMonth(new Date()),selectedCalendarDate=dailyNexusDayKey;
-let calendarEvents=[];
 function calendarItems(dateKey){return Array.isArray(state.calendar?.[dateKey])?state.calendar[dateKey]:[]}
 function saveCalendar(){store.set("calendar",state.calendar);renderMiniCalendar();renderCalendarMonth();renderFocusTasks()}
 function monthCells(cursor){
@@ -2350,9 +2346,9 @@ function monthCells(cursor){
   return Array.from({length:42},(_,i)=>{const d=new Date(start);d.setDate(start.getDate()+i);return d});
 }
 function calendarDayButton(key,d,classes,attribute){
-  const tasks=calendarItems(key).length,events=NexusUpcoming.onDay(calendarEvents,key).length;
-  const label=[key,events?events+' 项活动':'',tasks?tasks+' 项清单':''].filter(Boolean).join(' · ');
-  return `<button class="${classes} ${tasks?'has-items':''} ${events?'has-events':''}" ${attribute}="${key}" aria-label="${label}">${d.getDate()}</button>`;
+  const count=calendarItems(key).length;
+  const label=count?`${key} · ${count} 项个人清单`:key;
+  return `<button class="${classes} ${count?'has-items':''}" ${attribute}="${key}" aria-label="${label}">${d.getDate()}</button>`;
 }
 function renderMiniCalendar(){
   $("#miniCalTitle").textContent=miniCalCursor.toLocaleDateString("zh-CN",{year:"numeric",month:"long"});
@@ -2405,8 +2401,6 @@ function renderCalendarMonth(){
 function renderCalendarChecklist(){
   const d=dateFromYmd(selectedCalendarDate),items=calendarItems(selectedCalendarDate);
   $("#calendarSelectedTitle").textContent=d.toLocaleDateString("zh-CN",{month:"long",day:"numeric",weekday:"long"});
-  const events=NexusUpcoming.onDay(calendarEvents,selectedCalendarDate);
-  $("#calendarEventList").innerHTML=events.map(x=>`<li>${upcomingLink(x,x.title)}<small>${escapeHtml(upDateTime(x))} · ${escapeHtml(x.source||upcomingCategoryLabel(x.category))}</small></li>`).join('')||'<li class="calendar-task-empty">这一天暂无活动。</li>';
   $("#calendarSelectedSub").textContent=items.length?`${items.filter(x=>x.done).length}/${items.length} 已完成 · 点击日期可切换`:"这一天还没有清单";
   $("#calendarTaskList").innerHTML=items.length?items.map((x,i)=>`<div class="calendar-task ${x.done?'done':''}"><input type="checkbox" data-cal-toggle="${i}" ${x.done?'checked':''}><span>${escapeHtml(x.text)}</span><button data-cal-delete="${i}" aria-label="删除清单事项：${escapeAttr(x.text)}">×</button></div>`).join(""):'<div class="calendar-task-empty">点击上方输入框，为这一天添加一个待办或标记。</div>';
   $$("[data-cal-toggle]").forEach(el=>el.onchange=()=>{const items=calendarItems(selectedCalendarDate);items[+el.dataset.calToggle].done=el.checked;state.calendar[selectedCalendarDate]=items;saveCalendar();renderCalendarChecklist()});
@@ -3280,9 +3274,6 @@ function filterUpcoming(items,mode){
   return items;
 }
 function renderUpcomingViews(){
-  calendarEvents=allUpcomingItems();
-  renderMiniCalendar();
-  if($("#calendarModal").classList.contains("open")){renderCalendarMonth();renderCalendarChecklist()}
   renderUpcomingHome();
   renderUpcomingModal();
 }
@@ -3335,7 +3326,7 @@ function renderUpcomingModal(){
       </div>
       <div class="upcoming-actions">
         <button data-modal-pin="${escapeAttr(x.id)}" class="${x.pinned?"starred":""}">${x.pinned?"★ 已关注":"☆ 关注"}</button>
-        <button data-to-calendar="${escapeAttr(x.id)}">＋ 日历</button>
+        <button data-to-calendar="${escapeAttr(x.id)}">＋ 加入个人清单</button>
         ${x.url?upcomingLink(x,"原文 ↗"):""}
         ${x.manual?`<button data-delete-up="${escapeAttr(x.id)}">删除</button>`:""}
       </div>
@@ -3355,7 +3346,7 @@ function addUpcomingToCalendar(id){
     state.calendar[key]=items;saveCalendar();
   }
   const btn=document.querySelector(`[data-to-calendar="${CSS.escape(id)}"]`);
-  if(btn){btn.textContent="✓ 已加入";setTimeout(()=>btn.textContent="＋ 日历",1200)}
+  if(btn){btn.textContent="✓ 已加入";setTimeout(()=>btn.textContent="＋ 加入个人清单",1200)}
 }
 function setUpcomingStatus(mode,text){
   const dot=$("#upcomingStatusDot"),label=$("#upcomingStatus");
