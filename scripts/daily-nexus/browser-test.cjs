@@ -127,7 +127,7 @@ await ctx.route('**/api/investment/quote?*',route=>{
   quoteRequests.push(symbol);
   const lastTradeAt='2026-11-12T20:50:00Z';
   return route.fulfill({status:quoteOutage?503:200,headers:{'access-control-allow-origin':'*'},
-    json:{quote:{symbol,currency:'USD',price:symbol==='BTC-USD'?71234.5:123.45,lastTradeAt,history:[{d:'2026-11-11',c:120}]}}});
+    json:{quote:{symbol,currency:'USD',price:symbol==='BTC-USD'?71234.5:123.45,lastTradeAt,history:[{d:'2026-11-10',c:119},{d:'2026-11-11',c:120}]}}});
 });
 await p.clock.setFixedTime(new Date('2026-11-12T21:00:00Z'));
 await p.evaluate(()=>localStorage.setItem('deskboard_stocks_v3',JSON.stringify([
@@ -141,6 +141,8 @@ await board.getByText('$123.45',{exact:true}).waitFor();
 assert.deepEqual([...new Set(quoteRequests)].sort(),['AAPL','BTC-USD','^GSPC']);
 assert.equal(tickerRequests,0);
 assert.equal(await board.locator('.board-quote time').first().getAttribute('datetime'),'2026-11-12T20:50:00Z');
+assert.equal(await board.locator('.board-quote canvas:not([hidden])').count(),3);
+assert.equal(await board.locator('.board-quote[data-stale=true]').count(),0);
 assert.equal(await board.locator('.board-quote').first().getAttribute('href'),'https://www.tradingview.com/symbols/TVC-SPX/');
 await board.getByRole('button',{name:'编辑自选列表'}).click();
 assert.equal(await board.locator('#pane-stocks').isVisible(),true);
@@ -153,8 +155,10 @@ board=p.frameLocator('#deskboardFrame');
 await board.getByText('$123.45',{exact:true}).waitFor();
 await board.getByText('行情组件暂不可用').waitFor({timeout:15000});
 const beforeRefresh=quoteRequests.length;
+const refreshed=p.waitForRequest(request=>new URL(request.url()).pathname==='/api/investment/quote');
 await board.getByRole('button',{name:'刷新报价'}).click();
-await board.getByRole('button',{name:'刷新报价'}).waitFor();
+await refreshed;
+await board.locator('#refreshBoardQuotes:not([disabled])').waitFor();
 assert.ok(quoteRequests.length>beforeRefresh);
 assert.equal(await board.getByText('$123.45',{exact:true}).count(),1);
 assert.equal(await board.locator('.market-fallback a').getAttribute('href'),'https://www.tradingview.com/symbols/TSE-7203/');

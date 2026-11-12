@@ -1,12 +1,20 @@
 import {esc, raw, read as records} from '../_decision/core.js';
-import {marketSessions, showDate, showWindow} from './sessions.mjs';
+import {investmentRefreshSlot, showDate, showWindow} from './sessions.mjs';
 import {API} from '../_shared/on-demand.mjs';
 import {DEFAULT_WATCHLIST} from './refresh.mjs';
 
 const symbolPattern = /^\^?[A-Z0-9][A-Z0-9.=-]{0,14}$/;
 const cryptoPattern = /^[A-Z0-9]+-(USD|EUR|GBP|CAD|JPY|AUD|BTC|ETH|USDT|USDC)$/;
 const pendingStates = new Set(['queued', 'running']);
-const submitted = new Map();
+const batchKey = 'ptu.kronos.batch-v1';
+const batchStatus = document.querySelector('#kronosBatchStatus');
+const waiting = new Set(['submitting', ...pendingStates]);
+const terminalStates = new Set(['fresh','stale','empty','error','unavailable','limited']);
+const newSymbols = new Set();
+const pollInterval = 30_000;
+let batch = raw(batchKey,{slot:null,items:{}});
+let monitor, polling = false;
+
 const status = document.querySelector('#kronosStatus');
 const result = document.querySelector('#kronosResult');
 const run = document.querySelector('#kronosRun');
@@ -19,7 +27,7 @@ let symbol = new URLSearchParams(location.search).get('symbol') || 'NVDA';
 let timer;
 const title = document.querySelector('#kronos-title');
 let submitting = false;
-let recheck = false;
+
 
 function formatPrice(value, currency = 'USD') {
   if (currency === 'GBp' || currency === 'GBX') return `${value.toLocaleString('en-GB')}p`;
@@ -93,8 +101,8 @@ function paint() {
   const continuous = (previous?.calendar || data?.calendar) === '24/7' || cryptoPattern.test(symbol);
   title.textContent = continuous ? 'Kronos · 10 天' : 'Kronos · 10 个交易日';
   run.hidden = !eligible || fresh;
-  run.disabled = working || inflight.has(symbol);
-  run.textContent = previous?.state === 'running' ? '计算中' : previous?.state === 'queued' ? '排队中' : data ? '更新情景' : '生成情景';
+  run.disabled = working || submitting;
+  run.textContent = previous?.state === 'running' ? '计算中' : previous?.state === 'queued' ? '排队中' : '更新全部';
   if (!eligible) {
     status.textContent = '该标的代码格式暂不支持。';
     result.replaceChildren();
@@ -102,7 +110,7 @@ function paint() {
   }
   status.textContent = previous?.state === 'running' ? '正在后台模拟 4 条路径，通常需要几分钟。'
     : previous?.state === 'queued' ? (previous.error || `VPS 队列第 ${previous.queuePosition || 1} 位，轮到后自动计算。`)
-    : previous?.error || (data ? '' : '等待加入推理队列');
+    : previous?.error || (data ? '' : '暂无模拟，交易日美西 08:00 批量更新');
   if (!data) {
     result.replaceChildren();
     return;
@@ -165,6 +173,7 @@ async function read(ticker, method = 'GET') {
       const payload = await response.json();
       if (!response.ok) throw Error(payload.error || '预测服务暂不可用');
       if (payload.data && !valid(payload.data, ticker)) throw Error('收到无效模型快照');
+      if (!pendingStates.has(payload.state) && !terminalStates.has(payload.state)) throw Error('收到无效队列状态');
       cached.set(ticker, {...payload, checkedAt:Date.now()});
       return payload;
     } catch (error) {
@@ -188,36 +197,119 @@ function universe() {
     .filter(item => symbolPattern.test(item));
 }
 
-function submissionPeriod(ticker) {
-  const now = Date.now() - 20 * 60000;
-  const utcDay = new Date(now).toISOString().slice(0, 10);
-  if (cryptoPattern.test(ticker)) return utcDay;
-  return marketSessions(now)?.completed || utcDay;
+let known = new Set(universe());
+
+function showBatch() {
+  const entries = Object.entries(batch.items);
+  if (!entries.length) return;
+  const count = state => entries.filter(([,item])=>item === state).length;
+  const queued = count('queued'), running = count('running'), sending = count('submitting');
+  const done = count('fresh'), remaining = queued + running + sending;
+  const failed = entries.length - done - remaining;
+  const phase = sending ? '提交中' : running ? '计算中' : queued ? '排队中' : '';
+  const label = `${done}/${entries.length}${phase ? ' · '+phase : failed ? '' : ' 已完成'}${failed ? ' · '+failed+' 未更新' : ''}`;
+  if (batchStatus.textContent !== label) batchStatus.textContent = label;
+  batchStatus.dataset.state = remaining ? 'running' : failed ? 'partial' : 'done';
+  const details = entries.filter(([,state])=>state!=='fresh').map(([ticker,state])=>`${ticker} ${({queued:'排队中',running:'计算中',submitting:'提交中'})[state] || '未更新'}`);
+  batchStatus.title = details.length ? details.join(' · ') : '本批情景已更新';
 }
 
-async function enqueueUniverse() {
-  if (!visibleWorkspace()) return;
-  if (submitting) { recheck = true; return; }
-  submitting = true;
-  try {
-    const pending = universe().filter(ticker => submitted.get(ticker) !== submissionPeriod(ticker));
-    const submit = async ticker => {
-      const period = submissionPeriod(ticker);
-      const response = await read(ticker,'POST');
-      if (response) submitted.set(ticker, period);
-    };
-    if (pending[0] === symbol) await submit(pending.shift());
-    // Only enqueue requests overlap. The VPS owns the queue and serializes inference.
-    await Promise.all(Array.from({length:Math.min(3,pending.length)}, async () => {
-      while (pending.length && visibleWorkspace()) await submit(pending.shift());
+function syncBatch() {
+  batch = raw(batchKey,batch);
+}
+
+function saveBatch() {
+  try { localStorage.setItem(batchKey,JSON.stringify(batch)); } catch {}
+  showBatch();
+}
+
+function monitorBatch() {
+  clearTimeout(monitor);
+  monitor = null;
+  if (visibleWorkspace() && !submitting && Object.values(batch.items).some(state=>pendingStates.has(state))) {
+    monitor = setTimeout(checkProgress,pollInterval);
+  }
+}
+
+async function checkProgress() {
+  monitor = null;
+  if (!visibleWorkspace() || submitting || polling) return;
+  polling = true;
+  const check = async lock => {
+    if (!lock) return;
+    syncBatch();
+    // Inference is FIFO on the VPS. Read only the head of the remaining queue.
+    const tickers = Object.entries(batch.items).filter(([,state])=>pendingStates.has(state))
+      .sort(([,a],[,b])=>Number(b==='running')-Number(a==='running')).slice(0,4).map(([ticker])=>ticker);
+    await Promise.all(tickers.map(async ticker=>{
+      const response = await read(ticker);
+      if (response) batch.items[ticker] = response.state;
     }));
+    saveBatch();
+  };
+  try {
+    if (navigator.locks) await navigator.locks.request(batchKey,{ifAvailable:true},check);
+    else await check(true);
+  } finally {
+    polling = false;
+    monitorBatch();
+  }
+}
+
+async function startBatch(source, tickers = universe()) {
+  if (!visibleWorkspace() || submitting || !tickers.length) return;
+  const slot = source === 'added' ? null : investmentRefreshSlot();
+  if (source === 'scheduled' && (!slot || batch.slot === slot)) return;
+  submitting = true;
+  clearTimeout(monitor);
+  paint();
+  const submit = async lock => {
+    if (!lock) return;
+    syncBatch();
+    if (source === 'scheduled' && batch.slot === slot) return;
+    if (source !== 'added') batch.items = {};
+    const pending = [...tickers];
+    for (const ticker of tickers) {
+      batch.items[ticker] = 'submitting';
+      newSymbols.delete(ticker);
+    }
+    showBatch();
+    await Promise.all(Array.from({length:Math.min(4,pending.length)},async () => {
+      while (pending.length) {
+        const ticker = pending.shift();
+        const response = await read(ticker,'POST');
+        batch.items[ticker] = response?.state || 'unavailable';
+        showBatch();
+      }
+    }));
+    if (slot) batch.slot = slot;
+    saveBatch();
+  };
+  try {
+    if (navigator.locks) await navigator.locks.request(batchKey,submit);
+    else await submit(true);
   } finally {
     submitting = false;
-    if (recheck) {
-      recheck = false;
-      queueMicrotask(enqueueUniverse);
-    }
+    paint();
+    monitorBatch();
   }
+}
+
+function checkBatch() {
+  if (!visibleWorkspace()) return;
+  const slot = investmentRefreshSlot();
+  if (slot && batch.slot !== slot) startBatch('scheduled');
+  else if (newSymbols.size) startBatch('added',[...newSymbols]);
+  else if (!monitor) monitorBatch();
+}
+
+function checkAdditions() {
+  const symbols = universe();
+  for (const ticker of symbols) {
+    if (!known.has(ticker)) newSymbols.add(ticker);
+    known.add(ticker);
+  }
+  checkBatch();
 }
 
 function select(ticker) {
@@ -225,29 +317,33 @@ function select(ticker) {
   symbol = ticker.trim().toUpperCase();
   paint();
   schedule();
-  if (active() && submitted.get(symbol) === submissionPeriod(symbol)) read(symbol);
-  enqueueUniverse();
+  if (active()) read(symbol);
+  checkAdditions();
 }
 
-run.addEventListener('click', () => read(symbol,'POST'));
+run.addEventListener('click', () => startBatch('manual'));
+addEventListener('investment-model-refresh', event => startBatch(event.detail.source));
 addEventListener('workspace-activate', event => {
   if (event.detail.tab === 'market') select(event.detail.symbol);
-  else { clearTimeout(timer); enqueueUniverse(); }
+  else { clearTimeout(timer); checkBatch(); }
 });
 addEventListener('workspace-select-symbol', event => select(event.detail.symbol));
 addEventListener('workspace-symbol-changed', event => select(event.detail.symbol));
 addEventListener('decision-change', event => {
-  if (['holdings','watchlist'].includes(event.detail.key)) enqueueUniverse();
+  if (['holdings','watchlist'].includes(event.detail.key)) checkAdditions();
 });
-addEventListener('investment-watchlist-changed', enqueueUniverse);
-addEventListener('workspace-records', enqueueUniverse);
-addEventListener('pt-sync-applied', enqueueUniverse);
+addEventListener('investment-watchlist-changed', checkAdditions);
+addEventListener('workspace-records', checkAdditions);
+addEventListener('pt-sync-applied', checkAdditions);
 addEventListener('storage', event => {
-  if (['ptu.decision.holdings','stock_alert_watchlist_v1'].includes(event.key)) enqueueUniverse();
+  if (event.key === batchKey && !submitting && !polling) { syncBatch(); showBatch(); monitorBatch(); }
+  if (['ptu.decision.holdings','stock_alert_watchlist_v1'].includes(event.key)) checkAdditions();
 });
 addEventListener('nexus-activate', () => select(symbol));
 document.addEventListener('visibilitychange', () => select(symbol));
-setInterval(enqueueUniverse, 60000);
+setInterval(checkBatch,30000);
+showBatch();
+monitorBatch();
 new MutationObserver(() => { if (active() && cached.has(symbol)) paint(); })
   .observe(position, {attributes:true, attributeFilter:['data-plan']});
 select(symbol);

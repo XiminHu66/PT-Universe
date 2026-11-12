@@ -2,6 +2,7 @@ import {API} from '../_shared/on-demand.mjs';
 import {batchQuote, readBatchSnapshot} from '../investment-desk/refresh.mjs';
 
 const cacheKey = 'ptu.nexus.board-quotes-v1';
+const sharedSnapshotKey = 'ptu.investment.batch-snapshot-v1';
 const refreshMs = 15 * 60_000;
 const staleMs = 36 * 60 * 60_000;
 const marketTime = new Intl.DateTimeFormat('en-US', {
@@ -26,7 +27,8 @@ function compactQuote(raw) {
   return {price:raw.price, lastTradeAt:raw.lastTradeAt,
     currency:/^[A-Z]{3}$/.test(raw.currency) ? raw.currency : 'USD',
     changePct:Number.isFinite(raw.changePct) ? raw.changePct : null,
-    checkedAt:raw.checkedAt};
+    checkedAt:raw.checkedAt,
+    closes:(raw.closes || raw.history?.slice(-16).map(bar=>bar.c) || []).filter(value=>Number.isFinite(value)&&value>0)};
 }
 
 function marketLink(symbol) {
@@ -35,7 +37,7 @@ function marketLink(symbol) {
 
 export function mountBoardMarket(isActive) {
   const quotes = new Map(), attempts = new Map(), pending = new Set();
-  let cards = [];
+  let cards = [], initializing = true;
 
   function merge(symbol, raw) {
     const quote = compactQuote(raw);
@@ -51,7 +53,7 @@ export function mountBoardMarket(isActive) {
   } catch {}
 
   function render() {
-    for (const {symbol, price, change, time} of cards) {
+    for (const {symbol, card, price, change, time, age, chart} of cards) {
       const quote = quotes.get(symbol);
       const unit = symbol === '^TNX' ? 'percent' : symbol.startsWith('^') || symbol === 'DX-Y.NYB' ? 'index' : 'currency';
       price.textContent = quote ? new Intl.NumberFormat('en-US', {
@@ -61,27 +63,55 @@ export function mountBoardMarket(isActive) {
       const pct = quote?.changePct;
       change.textContent = Number.isFinite(pct) ? (pct > 0 ? '+' : '') + pct.toFixed(2) + '%' : '';
       change.dataset.direction = pct > 0 ? 'up' : pct < 0 ? 'down' : '';
-      time.textContent = quote
-        ? (Date.now() - Date.parse(quote.lastTradeAt) > staleMs ? '旧报价 ' : '') + marketTime.format(new Date(quote.lastTradeAt)) + ' PT'
-        : pending.has(symbol) ? '正在读取报价' : '报价暂不可用';
-      time.dateTime = quote?.lastTradeAt || '';
+      const stale = !!quote && Date.now() - Date.parse(quote.lastTradeAt) > staleMs;
+      card.dataset.stale = String(stale);
+      age.textContent = stale ? '旧报价' : '';
+      time.textContent = quote ? marketTime.format(new Date(quote.lastTradeAt)).replace(',', '') + ' PT'
+        : initializing || pending.has(symbol) ? '读取中' : '报价暂不可用';
+      if (quote) time.dateTime = quote.lastTradeAt;
+      drawTrend(chart,quote?.closes,stale);
     }
   }
+
+  function drawTrend(chart, closes = [], stale) {
+    chart.hidden = closes.length < 2 || stale;
+    if (chart.hidden) return;
+    const ctx = chart.getContext('2d');
+    const low = Math.min(...closes), range = Math.max(...closes) - low || 1;
+    ctx.clearRect(0,0,chart.width,chart.height);
+    ctx.strokeStyle = closes.at(-1) >= closes[0] ? '#20876b' : '#bd4d60';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (const [i,close] of closes.entries()) {
+      const x = 1 + i * (chart.width - 2) / (closes.length - 1);
+      const y = chart.height - 2 - (close - low) * (chart.height - 4) / range;
+      if (i) ctx.lineTo(x,y);
+      else ctx.moveTo(x,y);
+    }
+    ctx.stroke();
+  }
+
+  async function syncSharedQuotes() {
+    const data = await readBatchSnapshot();
+    for (const [symbol,quote] of Object.entries(data?.symbols || {})) merge(symbol,quote);
+    render();
+  }
+  addEventListener('storage',event=>{
+    if (event.key === sharedSnapshotKey) syncSharedQuotes();
+  });
 
   const ready = Promise.allSettled([
     fetch(new URL('../stock-alert/data/quotes.json', import.meta.url), {signal:AbortSignal.timeout(8000)})
       .then(response=>response.ok ? response.json() : null)
       .then(data=>{ for (const [symbol, quote] of Object.entries(data?.symbols || {})) merge(symbol,quote); render(); }),
-    readBatchSnapshot().then(data=>{
-      for (const [symbol, quote] of Object.entries(data?.symbols || {})) merge(symbol,quote);
-      render();
-    })
-  ]);
+    syncSharedQuotes()
+  ]).then(()=>{ initializing = false; render(); });
 
   async function refresh(force = false) {
     if (!isActive()) return;
     // Use the persisted trading-desk snapshot before sending any duplicate quote requests.
     await ready;
+    await syncSharedQuotes();
     const now = Date.now();
     const symbols = [...new Set(cards.map(card=>card.symbol))]
       .filter(symbol=>!pending.has(symbol) && (force || now - (attempts.get(symbol) || 0) >= refreshMs));
@@ -94,9 +124,15 @@ export function mountBoardMarket(isActive) {
         const symbol = symbols[next++];
         attempts.set(symbol, now);
         try {
-          const response = await fetch(API + '/api/investment/quote?symbol=' + encodeURIComponent(symbol),
-            {signal:AbortSignal.timeout(12000)});
-          if (!response.ok) continue;
+          const fetchQuote = () => fetch(API + '/api/investment/quote?symbol=' + encodeURIComponent(symbol),
+            {signal:AbortSignal.timeout(25000)});
+          let response = await fetchQuote().catch(()=>null);
+          const last = quotes.get(symbol);
+          if (isActive() && (!response || response.status >= 500) && (!last || now - Date.parse(last.lastTradeAt) > staleMs)) {
+            await new Promise(resolve=>setTimeout(resolve,700));
+            if (isActive()) response = await fetchQuote();
+          }
+          if (!response?.ok) continue;
           const {quote} = await response.json();
           merge(symbol, {...batchQuote(quote,symbol), checkedAt:new Date().toISOString()});
         } catch {
@@ -134,9 +170,18 @@ export function mountBoardMarket(isActive) {
       const change = document.createElement('span');
       change.className = 'board-quote-change';
       const time = document.createElement('time');
-      card.append(label,price,change,time);
+      const age = document.createElement('span');
+      age.className = 'board-quote-age';
+      const meta = document.createElement('span');
+      meta.className = 'board-quote-meta';
+      const chart = document.createElement('canvas');
+      chart.width = 76;
+      chart.height = 28;
+      chart.setAttribute('aria-hidden','true');
+      meta.append(age,time,chart);
+      card.append(label,change,price,meta);
       cell.replaceChildren(card);
-      cards.push({symbol, price, change, time});
+      cards.push({symbol, card, price, change, time, age, chart});
     }
     render();
     refresh();

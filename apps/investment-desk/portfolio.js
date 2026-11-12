@@ -241,6 +241,7 @@ async function refresh(source = 'manual', onlySymbols = null) {
     if (!symbols.length) { completion = '暂无可刷新的标的'; return; }
     const slot = investmentRefreshSlot();
     errors = {};
+    if (!onlySymbols && source !== 'import') dispatchEvent(new CustomEvent('investment-model-refresh',{detail:{source}}));
     publish();
     const {failedQuotes, failedDetails, failedFinancials} = await runBatch(symbols);
     for (const symbol of symbols) importQueue.delete(symbol);

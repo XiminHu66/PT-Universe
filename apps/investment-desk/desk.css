@@ -286,3 +286,11 @@ html[data-theme="dark"] body[data-workspace="investment"] {
 }
 
 html[data-nexus-module="investment-desk"] :is(.investment-home, #decision-theme) { display: none; }
+
+.kronos-batch-status {
+  margin-inline-start: auto; padding: 2px 6px; border: 1px solid var(--line); border-radius: 6px;
+  color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.kronos-batch-status:empty { display: none; }
+.kronos-batch-status[data-state="running"] { color: var(--blue); }
+.kronos-batch-status[data-state="partial"] { color: var(--amber); }
