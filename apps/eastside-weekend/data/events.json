@@ -1,179 +1,8 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-12T17:01:44.201988+00:00",
-  "attemptedAt": "2026-11-12T17:01:44.201988+00:00",
+  "updatedAt": "2026-11-13T20:02:20.539243+00:00",
+  "attemptedAt": "2026-11-13T20:02:20.539243+00:00",
   "events": [
-    {
-      "id": "e3e536cacf4514a6",
-      "title": "Seattle Center Sculpture Walk 2026",
-      "start": "2026-11-12",
-      "end": null,
-      "url": "https://www.seattlecenter.com/events/event-calendar/seattle-center-sculpture-walk-2026-x46461",
-      "city": "Seattle",
-      "venue": "Memorial Stadium · Seattle Center",
-      "cost": "Free",
-      "free": true,
-      "description": "Explore our temporary art installations on campus throughout the year.",
-      "category": "户外",
-      "lat": 47.6219473,
-      "lon": -122.3517443,
-      "locationExact": true,
-      "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
-      "stale": false
-    },
-    {
-      "id": "ec3d446c38616c7d",
-      "title": "Community Food Drive",
-      "start": "2026-11-12T09:00:00",
-      "end": null,
-      "url": "https://www.lynnwoodwa.gov/Community/Events-Calendar/Community-Food-Drive",
-      "city": "Lynnwood",
-      "venue": "Lynnwood Civic Campus, 19100 44th Ave. W, Lynnwood, 98036",
-      "cost": "Free To Learn More Visit: Nourishing Network",
-      "free": false,
-      "description": "Community Food Drive supporting Nourishing Network Lynnwood Civic Campus, 19100 44th Ave. W, Lynnwood 98036",
-      "category": "社区活动",
-      "lat": 47.8268089,
-      "lon": -122.2931594,
-      "locationExact": true,
-      "source": "Lynnwood",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
-      "stale": false
-    },
-    {
-      "id": "299bd58b2158ec5c",
-      "title": "Drop-In Play at the Redmond Community Center at Marymoor Village",
-      "start": "2026-11-12T10:00:00",
-      "end": "2026-11-12T12:00:00",
-      "url": "https://experienceredmond.com/event/drop-in-play-at-the-redmond-community-center-at-marymoor-village/2026-11-12/",
-      "city": "Redmond",
-      "venue": "Redmond Community Center at Marymoor Village, 6505 176th Ave NE, Redmond",
-      "cost": "费用未注明",
-      "free": false,
-      "description": "(Ages 0 – 6) Drop-In Indoor Play is a time for socialization and fun! Children will play indoors with our fun interactive toys while you meet other parents and enjoy play time in a welcoming space. Join us every Tuesday ",
-      "category": "社区活动",
-      "lat": 47.674,
-      "lon": -122.1215,
-      "locationExact": false,
-      "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
-      "stale": false
-    },
-    {
-      "id": "7ebd20d2d60ce182",
-      "title": "Flatstick Pub Study Hall",
-      "start": "2026-11-12T19:00:00",
-      "end": "2026-11-12T23:00:00",
-      "url": "https://experienceredmond.com/event/flatstick-pub-study-hall/2026-11-12/",
-      "city": "Redmond",
-      "venue": "Flatstick Pub, 7530 164th Ave NE Suite A108, Redmond",
-      "cost": "费用未注明",
-      "free": false,
-      "description": "We offer free games for anyone with a valid school ID. This includes teachers and faculty, bring in your classmates or coworkers for a night of fun!",
-      "category": "社区活动",
-      "lat": 47.674,
-      "lon": -122.1215,
-      "locationExact": false,
-      "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
-      "stale": false
-    },
-    {
-      "id": "9134d7d17fdbf1e8",
-      "title": "Boots & Brews Line Dancing",
-      "start": "2026-11-12T19:00:00",
-      "end": "2026-11-12T20:00:00",
-      "url": "https://experienceredmond.com/event/boots-brews-line-dancing/2026-11-12/",
-      "city": "Redmond",
-      "venue": "Watts Brewing Company, 15510 Redmond - Woodinville Rd NE #E110,, Woodinville",
-      "cost": "费用未注明",
-      "free": false,
-      "description": "Wildflower Dance Co is excited to partner with Watts Brewing Company for weekly Boots and Brews line dance classes! Watts has a great vibe, spacious dance floor, and beer, wine and cider available for purchase. Wildflowe",
-      "category": "社区活动",
-      "lat": 47.674,
-      "lon": -122.1215,
-      "locationExact": false,
-      "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
-      "stale": false
-    },
-    {
-      "id": "615080d4f469d225",
-      "title": "Trivia at Flatstick Pub",
-      "start": "2026-11-12T19:00:00",
-      "end": "2026-11-12T21:00:00",
-      "url": "https://experienceredmond.com/event/trivia-at-flatstick-pub/2026-11-12/",
-      "city": "Redmond",
-      "venue": "Flatstick Pub, 7530 164th Ave NE Suite A108, Redmond",
-      "cost": "费用未注明",
-      "free": false,
-      "description": "Flatstick Pub hosts 2 rounds of trivia with the first round starting at 7PM and the second one starting at 8PM. Trivia is free to play, come test your knowledge and have an opportunity to win a $50 Flatstick gift card!",
-      "category": "社区活动",
-      "lat": 47.674,
-      "lon": -122.1215,
-      "locationExact": false,
-      "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
-      "stale": false
-    },
-    {
-      "id": "6dca0a1856bbb667",
-      "title": "RAGTIME",
-      "start": "2026-11-12T19:30:00",
-      "end": null,
-      "url": "https://www.visiteverett.com/Calendar.aspx?EID=3707",
-      "city": "Everett",
-      "venue": "2710 Wetmore Avenue Everett WA 98201",
-      "cost": "费用未注明",
-      "free": false,
-      "description": "In 1902 New York, anything seemed possible. RAGTIME is a uniquely compelling exploration of America at the turn of the 20th century, weaving together three unforgettable stories: a daring Harlem pianist, a determined Jew",
-      "category": "社区活动",
-      "lat": 47.979,
-      "lon": -122.2021,
-      "locationExact": false,
-      "source": "Everett",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
-      "stale": false
-    },
-    {
-      "id": "4e29457e3dc042e4",
-      "title": "Garth Brooks: Blame It All On My Roots",
-      "start": "2026-11-12T19:30:00",
-      "end": null,
-      "url": "https://www.seattlecenter.com/events/event-calendar/garth-brooks-blame-it-all-on-my-roots-x51729",
-      "city": "Seattle",
-      "venue": "Climate Pledge Arena · Seattle Center",
-      "cost": "Entry Charge",
-      "free": false,
-      "description": "Garth Brooks announced that the next stop on his “Blame It All On My Roots” Arena Tour will be Seattle’s Climate Pledge Arena on Friday, November 13, Saturday, November 14, and a matinee show on Sunday, November 15.",
-      "category": "艺术音乐",
-      "lat": 47.6221,
-      "lon": -122.353988,
-      "locationExact": true,
-      "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
-      "stale": false
-    },
-    {
-      "id": "446aeedf5d3e2acd",
-      "title": "Eureka Day",
-      "start": "2026-11-12T19:30:00",
-      "end": null,
-      "url": "https://www.seattlecenter.com/events/event-calendar/eureka-day-x50664",
-      "city": "Seattle",
-      "venue": "Bagley Wright Theatre · Seattle Center",
-      "cost": "Entry Charge",
-      "free": false,
-      "description": "Jonathan Spector’s popular Tony Award winner serves up a razor‑sharp satire of well‑meaning chaos and shines a light on the shared responsibility that holds a community together.",
-      "category": "社区活动",
-      "lat": 47.6239152,
-      "lon": -122.3536861,
-      "locationExact": true,
-      "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
-      "stale": false
-    },
     {
       "id": "12bd05db2f407361",
       "title": "Seattle Center Sculpture Walk 2026",
@@ -190,7 +19,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -209,7 +38,7 @@
       "lon": -122.2930066,
       "locationExact": true,
       "source": "Lynnwood",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -228,7 +57,26 @@
       "lon": -122.1519296,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "4fd102e197f667d9",
+      "title": "Community Food Drive",
+      "start": "2026-11-13T12:00:00",
+      "end": null,
+      "url": "https://www.lynnwoodwa.gov/Community/Events-Calendar/Community-Food-Drive",
+      "city": "Lynnwood",
+      "venue": "Lynnwood Civic Campus, 19100 44th Ave. W, Lynnwood, 98036",
+      "cost": "Free To Learn More Visit: Nourishing Network",
+      "free": false,
+      "description": "Community Food Drive supporting Nourishing Network Lynnwood Civic Campus, 19100 44th Ave. W, Lynnwood 98036",
+      "category": "社区活动",
+      "lat": 47.8268089,
+      "lon": -122.2931594,
+      "locationExact": true,
+      "source": "Lynnwood",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -247,7 +95,26 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "fdb021811fd34603",
+      "title": "Latin Dance Social",
+      "start": "2026-11-13T18:00:00",
+      "end": null,
+      "url": "https://bellevuewa.gov/events/latin-dance-social",
+      "city": "Bellevue",
+      "venue": "Bellevue · 具体地点见原文",
+      "cost": "费用未注明",
+      "free": false,
+      "description": "Go!",
+      "category": "艺术音乐",
+      "lat": 47.6101,
+      "lon": -122.2015,
+      "locationExact": false,
+      "source": "Bellevue",
+      "checkedAt": "2026-11-13T20:02:20.539243+00:00",
       "stale": false
     },
     {
@@ -266,7 +133,7 @@
       "lon": -122.2021,
       "locationExact": false,
       "source": "Everett",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -285,7 +152,7 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -304,7 +171,7 @@
       "lon": -122.3502714,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -323,7 +190,7 @@
       "lon": -122.353988,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -342,7 +209,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -361,7 +228,7 @@
       "lon": -122.1670273,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -380,7 +247,7 @@
       "lon": -122.2348,
       "locationExact": false,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -399,7 +266,7 @@
       "lon": -122.2348,
       "locationExact": false,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -418,7 +285,7 @@
       "lon": -122.2031021,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -437,7 +304,26 @@
       "lon": -122.1750642,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "604fee718a2b1900",
+      "title": "Mini City Hall Medicaid Workshop",
+      "start": "2026-11-14T10:00:00",
+      "end": null,
+      "url": "https://bellevuewa.gov/events/mini-city-hall-medicaid-workshop",
+      "city": "Bellevue",
+      "venue": "Bellevue · 具体地点见原文",
+      "cost": "费用未注明",
+      "free": false,
+      "description": "Go!",
+      "category": "社区活动",
+      "lat": 47.6101,
+      "lon": -122.2015,
+      "locationExact": false,
+      "source": "Bellevue",
+      "checkedAt": "2026-11-13T20:02:20.539243+00:00",
       "stale": false
     },
     {
@@ -456,7 +342,26 @@
       "lon": -122.3509426,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "6052c683f9ba5e9c",
+      "title": "Mini City Hall Medicaid Consultations",
+      "start": "2026-11-14T13:00:00",
+      "end": null,
+      "url": "https://bellevuewa.gov/events/mini-city-hall-medicaid-consultations",
+      "city": "Bellevue",
+      "venue": "Bellevue · 具体地点见原文",
+      "cost": "费用未注明",
+      "free": false,
+      "description": "Go!",
+      "category": "社区活动",
+      "lat": 47.6101,
+      "lon": -122.2015,
+      "locationExact": false,
+      "source": "Bellevue",
+      "checkedAt": "2026-11-13T20:02:20.539243+00:00",
       "stale": false
     },
     {
@@ -475,7 +380,7 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -494,7 +399,7 @@
       "lon": -122.3502714,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -513,7 +418,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -532,7 +437,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -551,7 +456,7 @@
       "lon": -122.2361175,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -570,7 +475,7 @@
       "lon": -122.2021,
       "locationExact": false,
       "source": "Everett",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -589,7 +494,7 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -608,7 +513,7 @@
       "lon": -122.3502714,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -627,7 +532,7 @@
       "lon": -122.353988,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -646,7 +551,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -665,7 +570,7 @@
       "lon": -122.2155708,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -684,7 +589,7 @@
       "lon": -122.2021,
       "locationExact": false,
       "source": "Everett",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -703,7 +608,7 @@
       "lon": -122.1928743,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -722,7 +627,7 @@
       "lon": -122.351606,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -741,7 +646,7 @@
       "lon": -122.3502714,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -760,7 +665,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -779,7 +684,7 @@
       "lon": -122.353988,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -798,7 +703,7 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -817,7 +722,7 @@
       "lon": -122.2021,
       "locationExact": false,
       "source": "Everett",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -836,7 +741,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -849,13 +754,13 @@
       "venue": "Bellevue · 具体地点见原文",
       "cost": "费用未注明",
       "free": false,
-      "description": "City Hall and other city facilities will be closed on Wednesday, Nov. 11, for Veterans Day.",
+      "description": "Go!",
       "category": "社区活动",
       "lat": 47.6101,
       "lon": -122.2015,
       "locationExact": false,
       "source": "Bellevue",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T20:02:20.539243+00:00",
       "stale": false
     },
     {
@@ -868,13 +773,13 @@
       "venue": "Bellevue · 具体地点见原文",
       "cost": "费用未注明",
       "free": false,
-      "description": "City Hall and other city facilities will be closed on Wednesday, Nov. 11, for Veterans Day.",
+      "description": "Go!",
       "category": "艺术音乐",
       "lat": 47.6101,
       "lon": -122.2015,
       "locationExact": false,
       "source": "Bellevue",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T20:02:20.539243+00:00",
       "stale": false
     },
     {
@@ -893,7 +798,26 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "2175eef25a6f14df",
+      "title": "Guidance for Businesses for How to Interact with Federal Immigration",
+      "start": "2026-11-17T10:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/City-of-Kirkland-Know-Your-Rights-Training-for-Business",
+      "city": "Kirkland",
+      "venue": "Virtual & In Person Kirkland City Hall Peter Kirk Room, 123 5th Avenue, Kirkland, 98033",
+      "cost": "Free",
+      "free": true,
+      "description": "As immigrant communities face escalating attacks in our communities, it is more important than ever that workplaces understand their rights and know how to respond to encounters with immigration enforcement. This trainin",
+      "category": "艺术音乐",
+      "lat": 47.6781959,
+      "lon": -122.2071862,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -912,7 +836,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -931,7 +855,7 @@
       "lon": -122.353988,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -950,7 +874,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -969,7 +893,7 @@
       "lon": -122.1955701,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -988,7 +912,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1007,7 +931,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1026,7 +950,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1045,7 +969,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1064,7 +988,7 @@
       "lon": -122.2021,
       "locationExact": false,
       "source": "Everett",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1077,13 +1001,13 @@
       "venue": "Bellevue · 具体地点见原文",
       "cost": "费用未注明",
       "free": false,
-      "description": "City Hall and other city facilities will be closed on Wednesday, Nov. 11, for Veterans Day.",
+      "description": "Go!",
       "category": "社区活动",
       "lat": 47.6101,
       "lon": -122.2015,
       "locationExact": false,
       "source": "Bellevue",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T20:02:20.539243+00:00",
       "stale": false
     },
     {
@@ -1102,7 +1026,7 @@
       "lon": -122.3523744,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1121,7 +1045,7 @@
       "lon": -122.353988,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1140,7 +1064,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1159,7 +1083,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1178,7 +1102,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1197,7 +1121,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1216,7 +1140,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1235,7 +1159,7 @@
       "lon": -122.351606,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1254,7 +1178,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1273,7 +1197,7 @@
       "lon": -122.352168,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1292,7 +1216,7 @@
       "lon": -122.3523744,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1311,7 +1235,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1330,7 +1254,7 @@
       "lon": -122.352168,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1349,26 +1273,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
-      "stale": false
-    },
-    {
-      "id": "519afc490ff44f00",
-      "title": "Keep Bellevue Beautiful - Northwest Bellevue",
-      "start": "2026-11-21T09:00:00",
-      "end": null,
-      "url": "https://bellevuewa.gov/events/keep-bellevue-beautiful-northwest-bellevue-0",
-      "city": "Bellevue",
-      "venue": "Bellevue · 具体地点见原文",
-      "cost": "费用未注明",
-      "free": false,
-      "description": "City Hall and other city facilities will be closed on Wednesday, Nov. 11, for Veterans Day.",
-      "category": "社区活动",
-      "lat": 47.6101,
-      "lon": -122.2015,
-      "locationExact": false,
-      "source": "Bellevue",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1387,7 +1292,7 @@
       "lon": -122.196883,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1406,7 +1311,7 @@
       "lon": -122.2208797,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1425,7 +1330,7 @@
       "lon": -122.174938,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1444,7 +1349,7 @@
       "lon": -122.315137,
       "locationExact": true,
       "source": "Lynnwood",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1463,7 +1368,7 @@
       "lon": -122.2931297,
       "locationExact": true,
       "source": "Lynnwood",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1482,7 +1387,7 @@
       "lon": -122.351606,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1501,7 +1406,7 @@
       "lon": -122.2060275,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1520,7 +1425,7 @@
       "lon": -122.3523744,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1539,7 +1444,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1558,7 +1463,7 @@
       "lon": -122.3523744,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1577,7 +1482,7 @@
       "lon": -122.352168,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1596,7 +1501,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1615,7 +1520,7 @@
       "lon": -122.351606,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1634,7 +1539,7 @@
       "lon": -122.2021,
       "locationExact": false,
       "source": "Everett",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1653,7 +1558,7 @@
       "lon": -122.3523744,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1672,7 +1577,7 @@
       "lon": -122.187596,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1691,7 +1596,7 @@
       "lon": -122.3523744,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1710,7 +1615,7 @@
       "lon": -122.2021,
       "locationExact": false,
       "source": "Everett",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1729,7 +1634,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1748,7 +1653,7 @@
       "lon": -122.352168,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1767,7 +1672,7 @@
       "lon": -122.3509426,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1786,7 +1691,7 @@
       "lon": -122.353988,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1805,7 +1710,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1824,7 +1729,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1843,7 +1748,7 @@
       "lon": -122.352168,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1862,7 +1767,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1881,7 +1786,7 @@
       "lon": -122.352168,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1900,7 +1805,7 @@
       "lon": -122.3523744,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1919,7 +1824,7 @@
       "lon": -122.1955701,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1938,7 +1843,7 @@
       "lon": -122.353988,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1957,7 +1862,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1976,7 +1881,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -1995,7 +1900,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2014,7 +1919,7 @@
       "lon": -122.2087,
       "locationExact": false,
       "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2033,7 +1938,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2052,7 +1957,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2071,7 +1976,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2090,7 +1995,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2109,7 +2014,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2128,7 +2033,7 @@
       "lon": -122.352168,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2147,7 +2052,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2166,7 +2071,7 @@
       "lon": -122.3509426,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2185,7 +2090,7 @@
       "lon": -122.2087,
       "locationExact": false,
       "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2204,7 +2109,7 @@
       "lon": -122.1750642,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2223,7 +2128,7 @@
       "lon": -122.3509426,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2242,7 +2147,64 @@
       "lon": -122.3523744,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "dca01880a8175333",
+      "title": "George Balanchine’s The Nutcracker 2026",
+      "start": "2026-11-27T14:00:00",
+      "end": null,
+      "url": "https://www.seattlecenter.com/events/event-calendar/george-balanchines-the-nutcracker-2026",
+      "city": "Seattle",
+      "venue": "Marion Oliver McCaw Hall · Seattle Center",
+      "cost": "Entry Charge",
+      "free": false,
+      "description": "George Balanchine’s The Nutcracker® has been an integral part of Pacific Northwest holiday celebrations for over a decade. This magical, candy-filled adventure is ready to complete your annual traditions with friends and",
+      "category": "社区活动",
+      "lat": 47.6239994,
+      "lon": -122.3502714,
+      "locationExact": true,
+      "source": "Seattle",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "cda85d184d53d430",
+      "title": "Winterfest Entertainment: Holiday Harmony POP",
+      "start": "2026-11-27T14:00:00",
+      "end": null,
+      "url": "https://www.seattlecenter.com/events/event-calendar/winterfest-entertainment-holiday-harmony-pop",
+      "city": "Seattle",
+      "venue": "Armory Food & Event Hall · Seattle Center",
+      "cost": "Free",
+      "free": true,
+      "description": "Singers perform festive music in 4-part harmony.",
+      "category": "社区活动",
+      "lat": 47.6215514,
+      "lon": -122.3509426,
+      "locationExact": true,
+      "source": "Seattle",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "c4e7eeb47767f092",
+      "title": "Winterfest Entertainment: DJ Fishlure",
+      "start": "2026-11-27T15:30:00",
+      "end": null,
+      "url": "https://www.seattlecenter.com/events/event-calendar/winterfest-entertainment-dj-fishlure",
+      "city": "Seattle",
+      "venue": "Armory Food & Event Hall · Seattle Center",
+      "cost": "Free",
+      "free": true,
+      "description": "Holiday-themed DJ set.",
+      "category": "社区活动",
+      "lat": 47.6215514,
+      "lon": -122.3509426,
+      "locationExact": true,
+      "source": "Seattle",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2261,7 +2223,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2280,7 +2242,7 @@
       "lon": -122.2348432,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2299,7 +2261,7 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2318,7 +2280,7 @@
       "lon": -122.2087,
       "locationExact": false,
       "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2337,7 +2299,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2356,7 +2318,7 @@
       "lon": -122.2023761,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2375,7 +2337,7 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2394,7 +2356,7 @@
       "lon": -122.2774348,
       "locationExact": true,
       "source": "Lynnwood",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2413,7 +2375,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2432,7 +2394,7 @@
       "lon": -122.2021,
       "locationExact": false,
       "source": "Everett",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2451,7 +2413,7 @@
       "lon": -122.1955701,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2470,7 +2432,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2489,7 +2451,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2508,7 +2470,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2527,7 +2489,7 @@
       "lon": -122.186542,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2546,7 +2508,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2565,7 +2527,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2584,7 +2546,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2603,7 +2565,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2622,7 +2584,7 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2641,7 +2603,26 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "583dd5bf0faed86c",
+      "title": "Google Holiday Lights",
+      "start": "2026-12-04T17:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2660,7 +2641,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2679,7 +2660,7 @@
       "lon": -122.2012025,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2698,7 +2679,7 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2717,7 +2698,26 @@
       "lon": -122.2350005,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "ba9ba1e8001c3102",
+      "title": "Google Holiday Lights",
+      "start": "2026-12-05T16:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2736,7 +2736,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2755,7 +2755,26 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "c55e9e31e70d0d08",
+      "title": "Josten Park Forest Stewardship Event",
+      "start": "2026-12-06T10:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Eventbrite/Josten-Park-Forest-Stewardship-Event-2004796579537",
+      "city": "Kirkland",
+      "venue": "Josten Park, 112th Pl NE & NE 129th St, Kirkland, 98034",
+      "cost": "Free",
+      "free": true,
+      "description": "Join Green Kirkland for a fun day of forest stewardship at Josten Park! Josten Park, 112th Pl NE & NE 129th St, Kirkland 98034",
+      "category": "户外",
+      "lat": 47.7155393,
+      "lon": -122.1912418,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2774,7 +2793,7 @@
       "lon": -122.1431549,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2793,7 +2812,7 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2812,7 +2831,7 @@
       "lon": -122.187596,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2831,7 +2850,26 @@
       "lon": -122.2073605,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "6f3f002d8d061be8",
+      "title": "Google Holiday Lights",
+      "start": "2026-12-06T16:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2850,7 +2888,7 @@
       "lon": -122.29478,
       "locationExact": true,
       "source": "Lynnwood",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2869,7 +2907,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2888,7 +2926,26 @@
       "lon": -122.2021,
       "locationExact": false,
       "source": "Everett",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "5fd5f23a3a3c8bd4",
+      "title": "Google Holiday Lights",
+      "start": "2026-12-07T16:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2907,7 +2964,26 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "9411549e600649f9",
+      "title": "Google Holiday Lights",
+      "start": "2026-12-08T16:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2926,7 +3002,26 @@
       "lon": -122.207315,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "54609baf26fbbcfa",
+      "title": "Google Holiday Lights",
+      "start": "2026-12-09T16:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2945,7 +3040,7 @@
       "lon": -122.1955701,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2964,7 +3059,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -2983,7 +3078,45 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "c2354b7213a49234",
+      "title": "Highlands Park Habitat Stewardship",
+      "start": "2026-12-10T14:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Eventbrite/Highlands-Park-Habitat-Stewardship-2004497345520",
+      "city": "Kirkland",
+      "venue": "Highlands Park, 11210 NE 102nd St, Kirkland, 98033",
+      "cost": "Free",
+      "free": true,
+      "description": "Join Green Kirkland for a fun day of urban forest stewardship at Highlands Park! Highlands Park, 11210 NE 102nd St, Kirkland 98033",
+      "category": "户外",
+      "lat": 47.6909558,
+      "lon": -122.1898545,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "d0168c6a485517c4",
+      "title": "Google Holiday Lights",
+      "start": "2026-12-10T16:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3002,7 +3135,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3021,7 +3154,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3040,7 +3173,26 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "a4d76147f55e5888",
+      "title": "Google Holiday Lights",
+      "start": "2026-12-11T16:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3059,7 +3211,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3078,7 +3230,7 @@
       "lon": -122.2022025,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3097,7 +3249,7 @@
       "lon": -122.2627053,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3116,7 +3268,7 @@
       "lon": -122.2031021,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3135,7 +3287,45 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "15908da9faceb8c5",
+      "title": "South Norway Hill Park Forest Restoration Day",
+      "start": "2026-12-12T13:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Eventbrite/South-Norway-Hill-Park-Forest-Restoration-Day-2004796423069",
+      "city": "Kirkland",
+      "venue": "South Norway Hill Park, 14701 122nd Ave NE, Kirkland, 98034",
+      "cost": "Free",
+      "free": true,
+      "description": "Join Green Kirkland for a fun day of forest restoration at South Norway Hill Park! South Norway Hill Park, 14701 122nd Ave NE, Kirkland 98034",
+      "category": "户外",
+      "lat": 47.7342869,
+      "lon": -122.1785307,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "0aa01ce86ae2ce8f",
+      "title": "Google Holiday Lights",
+      "start": "2026-12-12T16:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3154,7 +3344,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3173,7 +3363,7 @@
       "lon": -122.2087,
       "locationExact": false,
       "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3192,7 +3382,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3211,7 +3401,26 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "35033b70ebecaa40",
+      "title": "Google Holiday Lights",
+      "start": "2026-12-13T16:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3230,7 +3439,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3249,7 +3458,26 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "d8253e37a0e5aa43",
+      "title": "Google Holiday Lights",
+      "start": "2026-12-14T16:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3268,7 +3496,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3287,7 +3515,26 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "2f8ceb3677772293",
+      "title": "Google Holiday Lights",
+      "start": "2026-12-15T16:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3306,7 +3553,26 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "b2a630dcd4b26a37",
+      "title": "Google Holiday Lights",
+      "start": "2026-12-16T16:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3325,7 +3591,7 @@
       "lon": -122.1955701,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3344,7 +3610,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3363,7 +3629,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3382,7 +3648,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3401,26 +3667,7 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
-      "stale": false
-    },
-    {
-      "id": "b9e80b5d8d009b96",
-      "title": "Highlands Park Habitat Stewardship",
-      "start": "2026-12-17T14:00:00",
-      "end": null,
-      "url": "https://www.kirklandwa.gov/Eventbrite/Highlands-Park-Habitat-Stewardship-2004497345520",
-      "city": "Kirkland",
-      "venue": "Highlands Park, 11210 NE 102nd St, Kirkland, 98033",
-      "cost": "Free",
-      "free": true,
-      "description": "Join Green Kirkland for a fun day of urban forest stewardship at Highlands Park! Highlands Park, 11210 NE 102nd St, Kirkland 98033",
-      "category": "户外",
-      "lat": 47.6909558,
-      "lon": -122.1898545,
-      "locationExact": true,
-      "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3439,7 +3686,26 @@
       "lon": -122.2021,
       "locationExact": false,
       "source": "Everett",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "64642f5b1b9eb636",
+      "title": "Google Holiday Lights",
+      "start": "2026-12-17T16:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3458,7 +3724,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3477,7 +3743,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3496,7 +3762,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3515,7 +3781,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3534,7 +3800,26 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "67cfbeb88c3169e8",
+      "title": "Google Holiday Lights",
+      "start": "2026-12-18T16:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3553,7 +3838,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3572,7 +3857,7 @@
       "lon": -122.2087,
       "locationExact": false,
       "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3591,7 +3876,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3610,7 +3895,7 @@
       "lon": -122.315137,
       "locationExact": true,
       "source": "Lynnwood",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3629,7 +3914,26 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "1f566c665ab0d351",
+      "title": "Google Holiday Lights",
+      "start": "2026-12-19T16:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3648,7 +3952,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3667,7 +3971,7 @@
       "lon": -122.2021,
       "locationExact": false,
       "source": "Everett",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3686,7 +3990,7 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3705,7 +4009,26 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "013794f002c26cde",
+      "title": "Google Holiday Lights",
+      "start": "2026-12-20T16:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3724,7 +4047,26 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "69799cfce60dd701",
+      "title": "Google Holiday Lights",
+      "start": "2026-12-21T16:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3743,7 +4085,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3762,7 +4104,26 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "debd7594f94ff0be",
+      "title": "Google Holiday Lights",
+      "start": "2026-12-22T16:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3781,7 +4142,26 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "faad5d3a165e5c6c",
+      "title": "Google Holiday Lights",
+      "start": "2026-12-23T16:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3800,7 +4180,7 @@
       "lon": -122.1955701,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3819,7 +4199,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3838,7 +4218,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3857,7 +4237,26 @@
       "lon": -122.2087,
       "locationExact": false,
       "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "59c7c6e5230b81be",
+      "title": "Google Holiday Lights",
+      "start": "2026-12-24T16:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3876,7 +4275,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3895,7 +4294,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3914,7 +4313,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3933,7 +4332,26 @@
       "lon": -122.2087,
       "locationExact": false,
       "source": "Kirkland",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "a8ce71c552aeb589",
+      "title": "Google Holiday Lights",
+      "start": "2026-12-25T16:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3952,7 +4370,26 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "c69c2e3a16b3b191",
+      "title": "Google Holiday Lights",
+      "start": "2026-12-26T16:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3971,7 +4408,26 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "4a913523f8e78c93",
+      "title": "Google Holiday Lights",
+      "start": "2026-12-27T16:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     },
     {
@@ -3990,7 +4446,26 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "stale": false
+    },
+    {
+      "id": "831b7f580d2f86c9",
+      "title": "Google Holiday Lights",
+      "start": "2026-12-28T16:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
       "stale": false
     }
   ],
@@ -4000,9 +4475,9 @@
       "name": "Kirkland 官方活动",
       "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events",
       "ok": true,
-      "count": 26,
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
-      "lastSuccessAt": "2026-11-12T17:01:44.201988+00:00",
+      "count": 54,
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "lastSuccessAt": "2026-11-13T19:59:23.112730+00:00",
       "error": null,
       "optional": false
     },
@@ -4011,9 +4486,9 @@
       "name": "Redmond 官方活动",
       "url": "https://experienceredmond.com/redmond-events/",
       "ok": true,
-      "count": 62,
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
-      "lastSuccessAt": "2026-11-12T17:01:44.201988+00:00",
+      "count": 58,
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "lastSuccessAt": "2026-11-13T19:59:23.112730+00:00",
       "error": null,
       "optional": false
     },
@@ -4022,9 +4497,9 @@
       "name": "Bellevue 官方活动",
       "url": "https://bellevuewa.gov/calendar",
       "ok": true,
-      "count": 4,
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
-      "lastSuccessAt": "2026-11-12T17:01:44.201988+00:00",
+      "count": 6,
+      "checkedAt": "2026-11-13T20:02:20.539243+00:00",
+      "lastSuccessAt": "2026-11-13T20:02:20.539243+00:00",
       "error": null,
       "optional": false
     },
@@ -4034,8 +4509,8 @@
       "url": "https://www.lynnwoodwa.gov/Community/Events-Calendar",
       "ok": true,
       "count": 7,
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
-      "lastSuccessAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "lastSuccessAt": "2026-11-13T19:59:23.112730+00:00",
       "error": null,
       "optional": false
     },
@@ -4044,9 +4519,9 @@
       "name": "Everett 官方活动",
       "url": "https://www.visiteverett.com/Calendar.aspx",
       "ok": true,
-      "count": 12,
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
-      "lastSuccessAt": "2026-11-12T17:01:44.201988+00:00",
+      "count": 11,
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "lastSuccessAt": "2026-11-13T19:59:23.112730+00:00",
       "error": null,
       "optional": false
     },
@@ -4056,8 +4531,8 @@
       "url": "https://visitkent.com/events/",
       "ok": true,
       "count": 43,
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
-      "lastSuccessAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "lastSuccessAt": "2026-11-13T19:59:23.112730+00:00",
       "error": null,
       "optional": false
     },
@@ -4067,21 +4542,21 @@
       "url": "https://www.seattlecenter.com/events/event-calendar",
       "ok": true,
       "count": 56,
-      "checkedAt": "2026-11-12T17:01:44.201988+00:00",
-      "lastSuccessAt": "2026-11-12T17:01:44.201988+00:00",
+      "checkedAt": "2026-11-13T19:59:23.112730+00:00",
+      "lastSuccessAt": "2026-11-13T19:59:23.112730+00:00",
       "error": null,
       "optional": false
     }
   ],
   "timezone": "America/Los_Angeles",
-  "through": "2026-12-27",
+  "through": "2026-12-28",
   "refresh": {
     "state": "ok",
-    "lastAttemptAt": "2026-11-12T17:01:44.201988+00:00",
-    "lastCompleteAt": "2026-11-12T17:01:44.201988+00:00",
+    "lastAttemptAt": "2026-11-13T20:02:20.539243+00:00",
+    "lastCompleteAt": "2026-11-13T20:02:20.539243+00:00",
     "failedSources": [],
-    "attempts": 1,
+    "attempts": 3,
     "maxAgeHours": 36,
-    "runId": "43264928415"
+    "runId": "43497252341"
   }
 }
