@@ -17,5 +17,8 @@
     "consumers": [{ "queue": "pt-universe-refresh", "max_batch_size": 1, "max_batch_timeout": 5, "max_retries": 2 }]
   },
   "browser": { "binding": "BROWSER" },
+  "ratelimits": [
+    { "name": "USAGE_VISIT_LIMIT", "namespace_id": "2026111601", "simple": { "limit": 20, "period": 60 } }
+  ],
   "triggers": { "crons": ["31 15,16 * * *", "*/15 * * * *"] }
 }

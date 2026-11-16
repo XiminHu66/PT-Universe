@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
+import {DatabaseSync} from 'node:sqlite';
 const output=await build({entryPoints:['src/resources.ts'],bundle:true,platform:'node',format:'esm',write:false});
 const {resourcesRoute,verifyResourceToken}=await import('data:text/javascript;base64,'+Buffer.from(output.outputFiles[0].text).toString('base64'));
 const pair=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']),publicKey=await crypto.subtle.exportKey('jwk',pair.publicKey),now=Math.floor(Date.now()/1000);
@@ -32,3 +33,42 @@ for (const [path, token, method, origin, expected] of [
  ['releases?repo=other', read, 'GET', 'https://ximinhu66.github.io', 400]
 ]) assert.equal((await resourcesRoute(req(path,token,method,undefined,origin),env,publicKey)).status,expected);
 console.log('PASS: release records are owner-authenticated, read-only, and reject arbitrary inputs.');
+
+const usageBundle=await build({entryPoints:['src/usage.ts'],bundle:true,platform:'node',format:'esm',write:false});
+const {usageVisit,recordUsageAccount,usageSummary,pruneUsage}=await import('data:text/javascript;base64,'+Buffer.from(usageBundle.outputFiles[0].text).toString('base64'));
+const sqlite=new DatabaseSync(':memory:');
+const db={
+ prepare(sql){const statement=sqlite.prepare(sql);let args=[];return {bind(...values){args=values;return this;},async run(){return statement.run(...args);},async first(){return statement.get(...args)||null;}};},
+ async batch(statements){return Promise.all(statements.map(statement=>statement.run()));},
+};
+const own=crypto.randomUUID(),other=crypto.randomUUID(),workerOrigin='https://ximinhu66.github.io';
+let allowance=true;
+const usageEnv={...env,DB:db,USAGE_VISIT_LIMIT:{async limit(){return {success:allowance};}}};
+const visit=(site,id=own,origin=workerOrigin,ip='192.0.2.1')=>new Request('https://api.example/api/usage/visit',{method:'POST',headers:{origin,'cf-connecting-ip':ip},body:JSON.stringify({site,id})});
+assert.equal(await usageVisit(visit('nexus',own,'https://evil.example'),usageEnv),403);
+allowance=false;assert.equal(await usageVisit(visit('nexus'),usageEnv),429);allowance=true;
+assert.equal(await usageVisit(new Request('https://api.example/api/usage/visit',{method:'POST',headers:{origin:workerOrigin,'cf-connecting-ip':'192.0.2.1'},body:'x'.repeat(513)}),usageEnv),400);
+assert.equal(await usageVisit(visit('bad'),usageEnv),400);
+await Promise.all(['nexus','nexus','universe'].map(async kind=>assert.equal(await usageVisit(visit(kind),usageEnv),204)));
+await Promise.all([recordUsageAccount(db,own,'sync'),recordUsageAccount(db,other,'shared-ai'),recordUsageAccount(db,other,'shared-ai')]);
+const hashId=async(type,id)=>Buffer.from(await crypto.subtle.digest('SHA-256',new TextEncoder().encode('pt-usage:'+type+':'+id))).toString('hex');
+const marks=JSON.stringify({browser:await hashId('browser',own),accounts:[await hashId('account',own)]});
+assert.equal((await resourcesRoute(req('usage'),usageEnv,publicKey)).status,401);
+assert.equal((await resourcesRoute(req('usage',read,'GET',undefined,'https://evil.example'),usageEnv,publicKey)).status,403);
+assert.equal((await resourcesRoute(req('usage',configure,'POST',marks),usageEnv,publicKey)).status,401);
+assert.equal((await resourcesRoute(req('usage',read,'POST',JSON.stringify({browser:own,accounts:[]})),usageEnv,publicKey)).status,400);
+assert.equal((await resourcesRoute(req('usage',read,'POST',marks),usageEnv,publicKey)).status,200);
+const aggregate=await resourcesRoute(req('usage',read),usageEnv,publicKey);
+assert.equal(aggregate.headers.get('cache-control'),'private,no-store');
+const numbers=await aggregate.text();
+assert.ok(![own,other,marks,'192.0.2.1'].some(value=>numbers.includes(value)));
+assert.deepEqual(JSON.parse(numbers).today,{browsers:1,ownBrowsers:1,nexusBrowsers:1,accounts:2,ownAccounts:1,sharedAiAccounts:1,ownSharedAiAccounts:0});
+assert.equal(sqlite.prepare('select count(*) as n from pt_usage_activity').get().n,4);
+assert.ok(sqlite.prepare('select identity from pt_usage_activity').all().every(row=>/^[0-9a-f]{64}$/.test(row.identity)));
+await recordUsageAccount(db,other,'sync',new Date('2026-11-01T07:05:00Z'));
+assert.equal((await usageSummary(db,new Date('2026-11-01T07:10:00Z'))).today.accounts,1);
+assert.equal((await usageSummary(db,new Date('2026-11-01T06:59:00Z'))).today.accounts,0);
+await pruneUsage(db,new Date('2026-11-17T20:00:00Z'));
+assert.equal(sqlite.prepare("select count(*) as n from pt_usage_activity where day='2026-11-01'").get().n,0);
+sqlite.close();
+console.log('PASS: usage reports require owner auth, rate-limited browser intake deduplicates, shared AI accounts include direct requests, and IDs/IP do not appear in reports.');

@@ -1,11 +1,12 @@
 import {cachedResources} from './resources-cache';
 import {OWNER_CONNECT_PUBLIC_KEY,readVpsSnapshot,hash} from './knowledge';
 import {sanitizeVpsSnapshot} from './vps';
+import {markUsageOwner,usageSummary} from './usage';
 // @ts-ignore Shared dependency-free collector is also exercised directly by Node tests.
 import {ResourceCollector,automaticConnections} from '../../../services/resource-monitor/collector.mjs';
 // @ts-ignore Shared dependency-free GitHub reader.
 import {collectReleases} from '../../../services/resource-monitor/releases.mjs';
-type ResourceEnv={PT_UNIVERSE_DATA:KVNamespace;RESOURCE_GITHUB_TOKEN?:string;RESOURCE_CF_TOKEN?:string;RESOURCE_CF_ACCOUNT_ID?:string};
+type ResourceEnv={DB:D1Database;PT_UNIVERSE_DATA:KVNamespace;RESOURCE_GITHUB_TOKEN?:string;RESOURCE_CF_TOKEN?:string;RESOURCE_CF_ACCOUNT_ID?:string};
 const SNAPSHOT='private/resources/inventory-v1',ORIGIN='https://ximinhu66.github.io',ISSUER='https://pt-vps-tools.h1nano.chatgpt.site';
 const collector=new ResourceCollector();
 const headers={'cache-control':'private,no-store','referrer-policy':'no-referrer','x-content-type-options':'nosniff'};
@@ -35,9 +36,14 @@ export async function resourcesRoute(request:Request,env:ResourceEnv,publicKey:J
   const body=await request.text();if(new TextEncoder().encode(body).length>250000||grant.digest!==await hash(body))return json({error:'Invalid signed inventory'},400);
   try{const value=resourceScope(JSON.parse(body)),encoded=JSON.stringify(value),old=await env.PT_UNIVERSE_DATA.get(SNAPSHOT);if(old!==encoded)await env.PT_UNIVERSE_DATA.put(SNAPSHOT,encoded);inventoryCache.delete(env.PT_UNIVERSE_DATA);return json({ok:true,changed:old!==encoded});}catch{return json({error:'Invalid resource inventory'},400);}
  }
- if(request.method!=='GET')return json({error:'Read only'},405);
+ const usage=u.pathname===prefix+'/usage'&&!u.search;
+ if(request.method!=='GET'&&!(usage&&request.method==='POST'))return json({error:'Read only'},405);
  if(!await verifyResourceToken(token,'resources:read',Date.now(),publicKey))return json({error:'请连接 PT 资源后台',code:'connect_required'},401);
  try{
+  if(usage){
+   if(request.method==='POST'&&!await markUsageOwner(request,env.DB))return json({error:'无效的浏览器标记'},400);
+   return json(await usageSummary(env.DB));
+  }
   if(u.pathname===prefix+'/vps'&&!u.search){const cached=vpsCache.get(env.PT_UNIVERSE_DATA);if(cached&&Date.now()-cached.at<20000)return json(cached.value);const value=sanitizeVpsSnapshot(await readVpsSnapshot(env));vpsCache.set(env.PT_UNIVERSE_DATA,{at:Date.now(),value});return json(value);}
   if(u.pathname===prefix+'/browser'&&!u.search){if(!browserReader)return json({status:{provider:'browser',state:'unavailable',checkedAt:new Date().toISOString()}});return json(await cachedResources('browser',env,browserReader));}
   if(u.pathname===prefix+'/releases'){

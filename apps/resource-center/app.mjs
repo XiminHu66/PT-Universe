@@ -4,6 +4,7 @@ import {assess,validateMeasurement,esc,safeURL,finite} from './model.mjs?v=3';
 import {readPublicGithub} from './public-reader.mjs';
 import {RESOURCE_API,resourceSession,connectResources,clearResourceSession,returningToNexus} from './auth.mjs?v=3';
 import {createReleaseView} from './releases.mjs?v=1';
+import {createUsageView} from './usage-view.mjs?v=1';
 const EMBEDDED=new URL(location.href).searchParams.get('embedded')==='nexus'&&window.parent!==window;
 const TITLES={overview:'资源概览',workflows:'工作流',projects:'项目与占用',settings:'读取检查',releases:'发布验收'};
 const VIEWS=Object.keys(TITLES),requested=new URL(location.href).searchParams.get('view');
@@ -18,6 +19,7 @@ let saved=read(),data=null,view=VIEWS.includes(requested)?requested:EMBEDDED?'ov
 const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(saved));return true}catch{$('#notice').textContent='浏览器存储不可用；此次数据仅保留到关闭页面。';return false}};
 const link=(url,text)=>`<a href="${esc(safeURL(url))}" target="_blank" rel="noopener noreferrer">${esc(text)} ↗</a>`;
 const releaseView=createReleaseView({getJSON,active:()=>active()&&view==='releases',notify:notifyHost,workspace:$('#workspace'),notice:$('#notice')});
+const usageView=createUsageView({panel:$('#usage-panel'),url:RESOURCE_API+'/usage',active:()=>PRIVATE&&view==='overview'&&active(),session:resourceSession});
 const labels={safe:'余量充足',warning:'需要留意',danger:'危险区',stale:'采样已过期',unknown:'用量待核实'};
 function quotaRows(){const order=['GitHub Actions','Oracle VPS','Cloudflare'];const rows=(data?.quotas||[]).filter(q=>!['gh-compute','gh-storage'].includes(q.id)).map(q=>{const m=saved.measurements?.[q.id];return m&&Date.parse(m.observedAt)>Date.parse(q.observedAt||'1970-01-01')?{...q,...m}:q;});return [...(data?actionsQuotas(data):[]),...rows].sort((a,b)=>order.indexOf(a.provider)-order.indexOf(b.provider));}
 function overview(){return overviewHTML(data,quotaRows(),saved.red||85);}
@@ -28,6 +30,7 @@ function filterProjects(){const term=$('#project-search').value.trim().toLowerCa
 function settingsView(){return automaticHTML(data)+coverageHTML(data,quotaRows(),saved.red||85)+`<div class="settings-grid"><section class="panel"><h2>预警</h2><label>红线（已用百分比）<input id="red-setting" type="number" min="71" max="99" value="${saved.red||85}"></label><p>70% 标黄，默认 85% 标红。未知、过期和不完整数据不会判为安全。Cloudflare 上限为 Free 套餐参考；Actions 按私有运行用量折算额度，公共标准运行单列；计算额度与存储分别判断。</p></section><section class="panel"><h2>更新与授权</h2><p>打开监控后自动连接；页面可见时每五分钟检查，离开暂停。清单缓存六小时，用量缓存一小时，Browser 历史缓存十五分钟。无新增定时任务、模型或 Actions 调用。</p><a href="./setup.html">授权设置 / 更换 Token →</a><button class="text-button" id="reconnect">重新连接身份</button></section></div><details class="panel" data-disclosure="local-data"><summary>本机核对值与导出</summary><p>手动值只保存在此浏览器；导出可能包含私有仓库资料。</p><div class="actions"><button id="export">导出快照</button><button id="import">导入核对值</button><input type="file" id="import-file" accept="application/json" hidden><button id="reset">清除核对值</button></div></details>`;}
 const filters={};
 function render(){
+ usageView.render();
  if(view!=='releases'&&!data)return;
  $('#page-title').textContent=TITLES[view];$('#red-label').textContent=saved.red||85;
  $('#connect').hidden=PRIVATE;$('#setup-link').hidden=PRIVATE;
@@ -50,6 +53,7 @@ function setView(next){
  if(view==='releases')releaseView.cancel();
  view=next;if(!EMBEDDED){saved.view=view;persist();}else window.parent.postMessage({type:'pt-resource-view',view},location.origin);
  render();
+ if(view==='overview')void usageView.load();
  if(view==='releases'||!data)void refresh();
 }
 function bindSettings(){
@@ -130,6 +134,7 @@ async function refreshRelease(force){
 async function refresh(force=false){if(!active())return;if(view==='releases')return refreshRelease(force);if(busy||autoBusy||connecting)return;busy=true;const startedPrivate=PRIVATE,epoch=activityEpoch;$('#refresh').disabled=true;$('#refresh').textContent='正在检查…';try{
  PRIVATE=!!resourceSession();
  if(!PRIVATE){connectBackend(force);if(connecting)return;}
+ if(view==='overview')void usageView.load(force);
  if(!data){data=await getJSON(PRIVATE?RESOURCE_API+'/data':'./public.json');for(const r of data.repositories){if(saved.repos?.[r.name])r.artifacts=saved.repos[r.name];}render();}
  if(!PRIVATE){$('#public-banner').hidden=false;return;}
  if(force){const fresh=await getJSON(RESOURCE_API+'/data');data.connections=fresh.connections;}
@@ -140,7 +145,7 @@ async function refresh(force=false){if(!active())return;if(view==='releases')ret
  render();
  }catch(e){if(active()&&epoch===activityEpoch)$('#notice').textContent=e.message;}finally{busy=false;if(view!=='releases'&&data&&PRIVATE&&epoch===activityEpoch)await refreshAutomatic(force);$('#refresh').disabled=false;$('#refresh').textContent='↻ 检查更新';if(startedPrivate&&!PRIVATE&&active())connectBackend();notifyHost();if(resumePending&&active()){resumePending=false;queueMicrotask(()=>refresh());}}}
 $('#connect').onclick=()=>{connectBackend(true);notifyHost();};$('#refresh').onclick=()=>refresh(true);document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
-function activation(){if(!active()){if(!paused){paused=true;activityEpoch++;}for(const controller of requests)controller.abort();}else{if(paused&&(busy||autoBusy))resumePending=true;paused=false;if(view==='releases'||!data||Date.now()-lastAuto>15*60000)void refresh();}}
+function activation(){usageView.render();if(!active()){if(!paused){paused=true;activityEpoch++;}for(const controller of requests)controller.abort();}else{if(paused&&(busy||autoBusy))resumePending=true;paused=false;if(view==='overview')void usageView.load();if(view==='releases'||!data||Date.now()-lastAuto>15*60000)void refresh();}}
 window.addEventListener('nexus-activate',activation);document.addEventListener('visibilitychange',activation);
 if(EMBEDDED)window.addEventListener('message',event=>{
  if(event.origin!==location.origin||event.source!==window.parent||event.data?.type!=='pt-resource-host')return;

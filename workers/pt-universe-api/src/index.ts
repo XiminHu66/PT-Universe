@@ -23,6 +23,7 @@ import { anythingLLMRoute } from './anythingllm';
 import { mediaRoute } from './media';
 import {checkAiRoute} from './check-ai';
 import { contentHubRoute, hubTick } from './content-hub';
+import {pruneUsage,recordUsageAccount,usageVisit} from './usage';
 
 type RefreshScope='all'|'sites'|'music'|'games';
 type RefreshOrigin='manual'|'scheduled:08:31';
@@ -133,7 +134,7 @@ async function refreshBudget(env:Env):Promise<RefreshBudget>{
     reservePercent:50,resetsAt:reset.toISOString(),scheduledRunFinished,inFlightRefreshes
   };
 }
-async function syncRoute(request:Request,env:Env,url:URL){
+async function syncRoute(request:Request,env:Env,url:URL,verify=authenticate){
   if(url.pathname==='/api/sync/register'&&request.method==='POST'){
     const body=await request.json<{id?:string;token?:string}>();
     if(!body.id||!body.token||!/^[-0-9a-f]{36}$/i.test(body.id)||body.token.length<32)return error(request,'无效的同步凭据');
@@ -143,7 +144,7 @@ async function syncRoute(request:Request,env:Env,url:URL){
   const match=url.pathname.match(/^\/api\/sync\/([^/]+)\/([^/]+)$/);
   if(!match)return null;
   const id=decodeURIComponent(match[1]),scope=decodeURIComponent(match[2]);
-  if(!/^[\w-]{1,40}$/.test(scope)||!await authenticate(request,env,id))return error(request,'同步凭据无效',401);
+  if(!/^[\w-]{1,40}$/.test(scope)||!await verify(request,env,id))return error(request,'同步凭据无效',401);
   if(request.method==='GET'){
     const row=await env.DB.prepare('SELECT ciphertext,revision,updated_at FROM sync_blobs WHERE sync_id=? AND scope=?').bind(id,scope).first<{ciphertext:string;revision:number;updated_at:string}>();
     return reply(request,row?{ciphertext:row.ciphertext,revision:row.revision,updatedAt:row.updated_at}:{ciphertext:null,revision:0,updatedAt:null});
@@ -616,13 +617,20 @@ async function status(env:Env){
 }
 
 export default {
-  async fetch(request:Request,env:Env):Promise<Response>{
+  async fetch(request:Request,env:Env,ctx?:ExecutionContext):Promise<Response>{
     const url=new URL(request.url);
     if(url.pathname.startsWith('/api/deal-radar/'))return dealRadarRoute(request,url,env);
     if(request.method==='OPTIONS')return new Response(null,{status:204,headers:cors(request)});
+    const track=(kind:'sync'|'shared-ai'):typeof authenticate=>async(r,e,id)=>{
+      const valid=await authenticate(r,e,id);
+      if(valid)ctx?.waitUntil(recordUsageAccount(e.DB,id,kind).catch(()=>{}));
+      return valid;
+    };
     try{
       if(url.pathname==='/api/health')return reply(request,{ok:true,time:now(),storage:'KV + D1',rssOrbit:'external',refresh_revision:SITE_REFRESH_REVISION});
-      const checkAI=await checkAiRoute(request,env,authenticate);if(checkAI)return reply(request,checkAI.body,checkAI.status);
+      if(url.pathname==='/api/usage/visit')return new Response(null,{status:await usageVisit(request,env),headers:{...cors(request),'cache-control':'no-store'}});
+      const aiAuth=track('shared-ai');
+      const checkAI=await checkAiRoute(request,env,aiAuth);if(checkAI)return reply(request,checkAI.body,checkAI.status);
       const hub=await contentHubRoute(request,env);if(hub)return reply(request,hub.body,hub.status||200);
       if(url.pathname==='/api/status')return reply(request,await status(env));
       if(url.pathname==='/api/refresh/browser-status')return reply(request,await browserPlatformStatus(env));
@@ -646,12 +654,12 @@ export default {
       const media=await mediaRoute(request,env);if(media)return media instanceof Response?media:reply(request,media);
       const demand=await onDemandRoute(request,env);if(demand)return reply(request,demand.body,demand.status);
       const research=await researchRoute(request,env);if(research)return reply(request,research);
-      const foodRecipes=await foodRecipesRoute(request,env,authenticate);if(foodRecipes)return reply(request,foodRecipes.body,foodRecipes.status);
-      const lifeAi=await lifeAiRoute(request,env,authenticate);if(lifeAi)return reply(request,lifeAi.body,lifeAi.status);
+      const foodRecipes=await foodRecipesRoute(request,env,url.pathname.endsWith('/recognize-recipe')?aiAuth:authenticate);if(foodRecipes)return reply(request,foodRecipes.body,foodRecipes.status);
+      const lifeAi=await lifeAiRoute(request,env,aiAuth);if(lifeAi)return reply(request,lifeAi.body,lifeAi.status);
       const gemini=await geminiProbeRoute(request,env);if(gemini)return reply(request,gemini.body,gemini.status);
       const ai=await researchAIRoute(request,env,authenticate);if(ai)return reply(request,ai.body,ai.status);
       const workbench=await workbenchRoute(request);if(workbench)return reply(request,workbench);
-      const sync=await syncRoute(request,env,url);if(sync)return sync;
+      const sync=await syncRoute(request,env,url,track('sync'));if(sync)return sync;
       const proxy=await proxyRoute(request,url);if(proxy)return proxy;
       const data=url.pathname.match(/^\/api\/data\/([^/]+\.json)$/);
       if(data&&DATA_FILES.includes(data[1]))return new Response(await getData(env,data[1]),{headers:{'content-type':'application/json; charset=utf-8','cache-control':'public,max-age=300,stale-while-revalidate=86400',...cors(request)}});
@@ -675,6 +683,7 @@ export default {
       const pick=(type:string)=>parts.find(x=>x.type===type)?.value||'';
       const hour=Number(pick('hour')),minute=Number(pick('minute'));
       if(hour!==8||minute!==31)return;
+      ctx.waitUntil(pruneUsage(env.DB,due).catch(()=>{}));
       const source:RefreshOrigin='scheduled:08:31';
       const day=`${pick('year')}-${pick('month')}-${pick('day')}`;
       const requestId=crypto.randomUUID(),stamp=now();

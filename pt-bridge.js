@@ -1,6 +1,10 @@
 (function(){
   'use strict';
   if(location.hostname.endsWith('github.io'))fetch('https://pt-universe-api.summer07-nanjolno.workers.dev/api/analytics',{method:'POST',body:JSON.stringify({path:location.pathname}),headers:{'content-type':'text/plain;charset=UTF-8'},keepalive:true}).catch(()=>{});
+  if(location.hostname==='ximinhu66.github.io')import('./pt-usage.mjs?v=1').then(({recordVisit})=>{
+    recordVisit();
+    document.addEventListener('visibilitychange',recordVisit);
+  }).catch(()=>{});
   const apps=[
     ['pt-todo-dashboard','☑','PT Todo Dashboard'],
     ['media-vault','↓','Media Vault · 万能下载'],

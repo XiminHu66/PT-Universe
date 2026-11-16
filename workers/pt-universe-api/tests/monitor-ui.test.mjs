@@ -31,6 +31,7 @@ document.hidden=true;events.get('nexus-view-change')();assert.equal(timers.size,
 console.log('PASS: one lazy iframe, compact unified controls, no standalone link, sender validation, five-minute cached updates, manual force refresh, pause and resume.');
 const resourceHTML=readFileSync('../../apps/resource-center/index.html','utf8'),resourceSource=readFileSync('../../apps/resource-center/app.mjs','utf8').replace(/^import .*;\n/gm,'');
 const releaseSource=readFileSync('../../apps/resource-center/releases.mjs','utf8').replace(/^import .*;\n/gm,'').replace('export function','function');
+const usageSource=readFileSync('../../apps/resource-center/usage-view.mjs','utf8').replace(/^import .*;\n/gm,'').replaceAll('export function','function');
 async function run({authenticated=true,unauthorized=false,deferVps=false,vpsFailures=0,cacheAge=null,deferredAuth=false,view='overview'}={}){
  const sourceCommit='a'.repeat(40);
  const page=parseHTML(resourceHTML).document,resourceEvents=new Map(),reads=[],connections=[],statuses=[],store=new Map();let token=authenticated?'fixture-read-grant':'',lastData=null,vpsAttempts=0,finishAuth=null;
@@ -43,20 +44,23 @@ async function run({authenticated=true,unauthorized=false,deferVps=false,vpsFail
  localStorage:{getItem:key=>store.get(key)||null,setItem:(key,value)=>store.set(key,value)},
  RESOURCE_API:'https://api.example/resources',returningToNexus:false,resourceSession:()=>token,connectResources:(manual,view)=>{connections.push({manual,view});if(deferredAuth)return new Promise(resolve=>{finishAuth=()=>{token='fixture-read-grant';resolve();}});},clearResourceSession:()=>{token=''},
  actionsQuotas:()=>[],overviewHTML:d=>{lastData=d;return '<p>overview fixture</p>'},automaticHTML:()=>'',coverageHTML:()=>'',fmt:String,date:String,esc:String,finite:Number.isFinite,
- fetch:async(url,init)=>{reads.push({url,signal:init.signal});if(url.endsWith('/deployment.json'))return Response.json({sourceCommit});if(url.endsWith('/releases'))return Response.json({status:{state:'ok'},items:[]});if(url.endsWith('/vps')){vpsAttempts++;if(deferVps&&vpsAttempts===1)await new Promise((resolve,reject)=>{init.signal.addEventListener('abort',()=>reject(init.signal.reason),{once:true});});if(vpsAttempts<=vpsFailures)return Response.json({error:'temporary'},{status:503});}if(unauthorized)return Response.json({error:'expired'},{status:401});
+ fetch:async(url,init)=>{reads.push({url,signal:init.signal,method:init.method,body:init.body});if(url.endsWith('/deployment.json'))return Response.json({sourceCommit});if(url.endsWith('/releases'))return Response.json({status:{state:'ok'},items:[]});if(url.endsWith('/vps')){vpsAttempts++;if(deferVps&&vpsAttempts===1)await new Promise((resolve,reject)=>{init.signal.addEventListener('abort',()=>reject(init.signal.reason),{once:true});});if(vpsAttempts<=vpsFailures)return Response.json({error:'temporary'},{status:503});}if(unauthorized)return Response.json({error:'expired'},{status:401});
+  if(url.endsWith('/usage'))return Response.json({day:'2026-11-16',since:'2026-11-15',today:{browsers:3,sharedAiAccounts:2,ownSharedAiAccounts:1},week:{browsers:7}});
   return Response.json(url.endsWith('/data')?{repositories:[],quotas:[],projects:[],connections:[]}:url.endsWith('/vps')?{sampleAt:new Date(clock).toISOString(),memory:{usedBytes:1e9,totalBytes:12e9},disk:{usedBytes:20e9,totalBytes:40e9},cpu:{percent:10},services:[]}:{status:{provider:new URL(url).searchParams.get('provider')||'browser',state:'ok'}});}
  };
  sandbox.createReleaseView=vm.runInNewContext('(()=>{'+releaseSource+'\nreturn createReleaseView})()',sandbox);
+ sandbox.ownUsageIdentities=async()=>({browser:'a'.repeat(64),accounts:[]});
+ sandbox.createUsageView=vm.runInNewContext('(()=>{'+usageSource+'\nreturn createUsageView})()',sandbox);
  vm.runInNewContext(resourceSource,sandbox);await new Promise(r=>setImmediate(r));
  const send=(data,origin=location.origin)=>resourceEvents.get('message')({origin,source:parent,data:{type:'pt-resource-host',view:'overview',active:true,...data}});
  return {page,reads,connections,statuses,send,resourceWindow,data:()=>lastData,finishAuth:()=>finishAuth?.()};
 }
 const fresh=await run({authenticated:false});assert.equal(fresh.connections.length,1);assert.deepEqual(fresh.connections[0],{manual:false,view:'overview'});assert.equal(fresh.reads.length,0,'connect before fetching private data');fresh.send({});assert.equal(fresh.connections.length,1,'no duplicate connection during navigation');
-const connected=await run();assert.equal(connected.connections.length,0);assert.equal(connected.reads.length,7);const firstReads=connected.reads.length;
+const connected=await run();assert.equal(connected.connections.length,0);assert.equal(connected.reads.length,8);const firstReads=connected.reads.length;
 connected.send({action:'refresh',force:false});await new Promise(r=>setImmediate(r));assert.equal(connected.reads.length,firstReads,'fresh provider and VPS caches are reused');
 connected.send({action:'refresh',force:true},'https://evil.example');await new Promise(r=>setImmediate(r));assert.equal(connected.reads.length,firstReads);
 connected.send({active:false,theme:'dark'});assert.equal(connected.page.documentElement.dataset.theme,'dark');connected.send({active:false,action:'refresh',force:true});await new Promise(r=>setImmediate(r));assert.equal(connected.reads.length,firstReads);assert.equal(connected.page.documentElement.dataset.theme,'light');
-connected.send({action:'refresh',force:true});await new Promise(r=>setImmediate(r));assert.equal(connected.reads.length,firstReads+7,'manual refresh bypasses browser caches');
+connected.send({action:'refresh',force:true});await new Promise(r=>setImmediate(r));assert.equal(connected.reads.length,firstReads+8,'manual refresh bypasses browser caches');
 const expired=await run({unauthorized:true});assert.equal(expired.connections.length,1,'401 automatically renews the existing connection');assert.equal(expired.connections[0].manual,false);
 console.log('PASS: automatic connection before reads, session/cache reuse, renewal on 401, explicit refresh, hidden request suppression and untrusted action rejection.');
 
@@ -69,7 +73,19 @@ console.log('PASS: intentional cancellation is neutral, stale caches refresh, tr
 const resumed=await run({deferVps:true});resumed.send({active:false});resumed.send({active:true});await new Promise(r=>setImmediate(r));await new Promise(r=>setImmediate(r));assert.equal(resumed.data().vpsStatus.state,'ok','returning during cancellation starts one fresh check without retaining a false outage');
 const retainedFailure=await run({vpsFailures:10,cacheAge:4*60000});assert.equal(retainedFailure.data().vpsStatus.state,'unavailable');assert.equal(retainedFailure.data().vpsStatus.observedAt,new Date(clock-4*60000).toISOString(),'real failure retains the original observation time');assert.match(retainedFailure.data().vpsStatus.coverage,/503/);
 
-const inPlace=await run({authenticated:false,deferredAuth:true});assert.equal(inPlace.reads.length,0);inPlace.finishAuth();await new Promise(r=>setImmediate(r));await new Promise(r=>setImmediate(r));assert.equal(inPlace.reads.length,7);assert.equal(inPlace.data().vpsStatus.state,'ok','a returned auth grant loads private inventory and refreshes in place');
+const inPlace=await run({authenticated:false,deferredAuth:true});assert.equal(inPlace.reads.length,0);inPlace.finishAuth();await new Promise(r=>setImmediate(r));await new Promise(r=>setImmediate(r));assert.equal(inPlace.reads.length,8);assert.equal(inPlace.data().vpsStatus.state,'ok','a returned auth grant loads private inventory and refreshes in place');
+
+const usagePanel=connected.page.querySelector('#usage-panel');
+assert.equal(fresh.page.querySelector('#usage-panel').hidden,true);
+assert.equal(usagePanel.hidden,false);
+assert.match(usagePanel.querySelector('.usage-watch').textContent,/1 个待核对账户/);
+usagePanel.querySelector('[data-period=week]').click();
+assert.equal(usagePanel.querySelector('.usage-stat strong').textContent,'7');
+usagePanel.querySelector('[data-mark]').click();await new Promise(r=>setImmediate(r));
+assert.equal(connected.reads.at(-1).method,'POST');
+assert.deepEqual(JSON.parse(connected.reads.at(-1).body),{browser:'a'.repeat(64),accounts:[]});
+connected.send({view:'settings'});assert.equal(usagePanel.hidden,true);
+console.log('PASS: usage figures stay inside the authenticated overview, show unknown Gemini accounts, period switching and persist owner marks.');
 
 const release=await run({view:'releases'});
 assert.deepEqual(release.reads.map(x=>x.url),['../../deployment.json','https://api.example/resources/releases']);

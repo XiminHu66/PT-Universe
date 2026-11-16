@@ -21,3 +21,16 @@ html[data-embedded=nexus][data-connection-required=true] main>header{display:fle
 .release-card .release-select select{min-height:34px}.release-card .release-mark{margin:6px 0 0}
 @media(max-width:850px){.release-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.release-grid{grid-template-columns:1fr}}
+
+.usage-panel{margin:0 0 12px;padding:12px 14px}
+.usage-panel[hidden]{display:none}
+.usage-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:9px}
+.usage-head h2{margin:0}
+.usage-head button[aria-pressed=true]{border-color:var(--blue);color:var(--blue);font-weight:700}
+.usage-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.usage-stat{border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0}
+.usage-stat span,.usage-stat small{display:block;color:var(--muted);font-size:12px}
+.usage-stat strong{display:block;font-size:23px;line-height:1.35;font-variant-numeric:tabular-nums}
+.usage-note,.usage-watch{font-size:12px;margin:8px 0 0;color:var(--muted)}
+.usage-watch{color:var(--yellow);font-weight:650}
+@media(max-width:680px){.usage-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.usage-head .actions{flex-wrap:wrap}}
