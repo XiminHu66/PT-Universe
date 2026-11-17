@@ -1,6 +1,6 @@
 /* Manual reference levels only. Quotes and their connection stay in TradingView. */
 const marketCells=new Map();
-let marketEditing=false,marketDialog=null,marketReturnFocus=null,marketDrag=null;
+let marketDialog=null,marketReturnFocus=null,marketDrag=null;
 function marketPrice(value){
   if(value==null||value==='')return null;
   const n=Number(value);return Number.isFinite(n)&&n>0?n:null;
@@ -31,7 +31,7 @@ function renderEditableMarketGrid(){
     if(!cell){
       cell=document.createElement('div');cell.className='market-cell';cell.dataset.symbol=x.symbol;
       const head=document.createElement('div');head.className='market-card-head';
-      const handle=document.createElement('button');handle.type='button';handle.className='market-drag';handle.textContent='⠿';handle.setAttribute('aria-label','拖动排序 '+x.label);handle.title='拖动排序；方向键移动';
+      const handle=document.createElement('button');handle.type='button';handle.className='market-drag';handle.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="5" cy="3" r="1.3"/><circle cx="11" cy="3" r="1.3"/><circle cx="5" cy="8" r="1.3"/><circle cx="11" cy="8" r="1.3"/><circle cx="5" cy="13" r="1.3"/><circle cx="11" cy="13" r="1.3"/></svg>';handle.setAttribute('aria-label','拖动排序 '+x.label);handle.title='拖动排序；方向键移动';
       handle.addEventListener('pointerdown',e=>marketStartDrag(e,x.symbol));
       handle.addEventListener('keydown',e=>{
         if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;
@@ -40,36 +40,35 @@ function renderEditableMarketGrid(){
         const next=[...stocks];[next[i],next[j]]=[next[j],next[i]];
         try{marketSave(next)}catch(err){toast(err.message)}
       });
-      const link=document.createElement('a');link.className='market-symbol';link.href='https://www.tradingview.com/symbols/'+encodeURIComponent(x.symbol.replace(':','-'))+'/';link.target='_blank';link.rel='noopener';
       const levels=document.createElement('div');levels.className='market-levels';
-      const edit=document.createElement('button');edit.type='button';edit.className='market-edit';edit.textContent='✎';edit.addEventListener('click',()=>openMarketEditor(x.symbol));
-      head.append(handle,link,levels,edit);
+      const edit=document.createElement('button');edit.type='button';edit.className='market-edit';edit.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m10.5 2.5 3 3-7.8 7.8-3.7.7.7-3.7Z"/><path d="m9 4 3 3"/></svg>';edit.addEventListener('click',()=>openMarketEditor(x.symbol));
+      head.append(handle,levels,edit);
       const widget=document.createElement('tv-single-ticker');widget.setAttribute('symbol',x.symbol);widget.setAttribute('hide-market-status','');widget.setAttribute('title',x.label);
       cell.append(head,widget);marketCells.set(x.symbol,cell);marketBody.appendChild(cell);
     }
     // CSS order avoids disconnecting/reconnecting live quote components during reorder.
     cell.style.order=index;cell.dataset.emphasis=x.emphasis;
-    const link=cell.querySelector('.market-symbol');link.textContent=x.symbol.split(':').pop();link.title=x.label;
+    cell.setAttribute('role','group');cell.setAttribute('aria-label',x.label+' 行情卡片');
+    cell.querySelector('.market-drag').setAttribute('aria-label','拖动排序 '+x.label);
     const edit=cell.querySelector('.market-edit');edit.setAttribute('aria-label','编辑 '+x.label+' 参考价');edit.title='编辑买卖参考价';
     const levels=cell.querySelector('.market-levels');levels.replaceChildren();
     for(const [key,label,op,cls] of [['buyPrice','买','≤','buy'],['sellPrice','卖','≥','sell']]){
       if(x[key]==null)continue;
-      const tag=document.createElement('span');tag.className='market-level '+cls;tag.textContent=label+op+marketPriceText(x[key]);tag.title='手动'+(label==='买'?'买入':'卖出')+'参考价 '+op+' '+marketPriceText(x[key]);
+      const tag=document.createElement('button');tag.type='button';tag.className='market-level '+cls;
+      const caption=document.createElement('span');caption.className='market-level-caption';caption.textContent=label+' '+op;
+      const price=document.createElement('strong');price.textContent=marketPriceText(x[key]);tag.append(caption,price);
+      tag.addEventListener('click',()=>openMarketEditor(x.symbol));tag.setAttribute('aria-label','编辑 '+x.label+' '+(label==='买'?'买入':'卖出')+'参考价 '+marketPriceText(x[key]));
+      tag.title='手动'+(label==='买'?'买入':'卖出')+'参考价 '+op+' '+marketPriceText(x[key]);
       levels.appendChild(tag);
     }
   });
   if(!stocks.length){const empty=document.createElement('div');empty.className='market-empty';empty.textContent='点击右上角 ＋ 添加标的';marketBody.appendChild(empty)}
   marketBody.style.setProperty('--market-cols',resolvedMarketCols());
-  marketBody.classList.toggle('market-sorting',marketEditing);
   const count=document.getElementById('watchCount');if(count)count.textContent=stocks.length+' WATCHLIST';
   const cv=document.getElementById('colsValue');if(cv)cv.textContent=layout.cols?layout.cols+' 列（必要时扩展）':'自动 '+resolvedMarketCols()+' 列';
 }
-function toggleMarketEditing(){
-  marketEditing=!marketEditing;const btn=document.getElementById('marketEditToggle');btn.textContent=marketEditing?'完成':'排序';btn.setAttribute('aria-pressed',String(marketEditing));marketBody.classList.toggle('market-sorting',marketEditing);
-  if(marketEditing)toast('拖动 ⠿ 排序，也可聚焦后按方向键');
-}
 function marketStartDrag(e,symbol){
-  if(!marketEditing||e.button!==0)return;e.preventDefault();
+  if(e.button!==0)return;e.preventDefault();
   const handle=e.currentTarget,cell=marketCells.get(symbol);let target=null,started=false;
   marketDrag?.();handle.setPointerCapture(e.pointerId);
   const move=event=>{
@@ -97,7 +96,7 @@ function ensureMarketDialog(){
     <div id="marketSearchResults" class="market-search-results"></div>
     <label>显示名称<input id="marketEditorLabel" maxlength="80" autocomplete="off"></label>
     <div class="market-price-fields"><label>买入参考价 ≤<input id="marketEditorBuy" type="number" min="0" step="any" inputmode="decimal" placeholder="未设置"></label><label>卖出参考价 ≥<input id="marketEditorSell" type="number" min="0" step="any" inputmode="decimal" placeholder="未设置"></label></div>
-    <label>卡片高亮<select id="marketEditorEmphasis"><option value="">默认</option><option value="blue">蓝色</option><option value="violet">紫色</option><option value="amber">琥珀色</option></select></label>
+    <label>手动卡片高亮<select id="marketEditorEmphasis"><option value="">默认</option><option value="blue">蓝色</option><option value="violet">紫色</option><option value="amber">琥珀色</option></select></label>
     <p class="market-editor-note">手动参考价，币种与小卡一致；留空即可清除。标签不判断是否触价，行情继续由 TradingView 自动更新。</p>
     <p id="marketEditorError" class="market-editor-error" role="alert"></p>
     <footer class="market-editor-actions"><button type="button" class="market-remove">移除</button><button type="button" class="market-cancel">取消</button><button type="submit" class="market-save">保存</button></footer></form>`;
