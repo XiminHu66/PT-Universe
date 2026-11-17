@@ -24,7 +24,7 @@ jobs:
         node-version: '24'
     - run: npm install --no-save --package-lock=false playwright@1.58.2
     - run: npx playwright install --with-deps chromium
-    - run: node --test scripts/daily-nexus/boox-test.cjs
+    - run: node --test scripts/daily-nexus/boox-test.cjs scripts/daily-nexus/market-layout-test.cjs
     - run: node scripts/daily-nexus/boox-browser-test.cjs
     - run: node scripts/daily-nexus/navigation-test.cjs
     - run: node scripts/daily-nexus/browser-test.cjs

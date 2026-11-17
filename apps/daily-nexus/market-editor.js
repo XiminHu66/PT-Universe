@@ -2,32 +2,48 @@
 const marketCells=new Map();
 let marketDialog=null,marketReturnFocus=null,marketDrag=null;
 let marketPanelObserver=null;
+let marketLayoutFrame=null;
+function scheduleMarketLayout(){
+  if(marketLayoutFrame!==null)return;
+  marketLayoutFrame=requestAnimationFrame(()=>{marketLayoutFrame=null;updateMarketPanelWidth()});
+}
+function calculateMarketLayout({available,share,desiredColumns,preferredWidth,gap,inset,contentHeight,count,maxRowHeight}){
+  const budget=Math.min(available-320,available*share/100);
+  const columns=Math.max(1,Math.min(desiredColumns,Math.floor((budget-inset+gap)/(340+gap))));
+  const cardWidth=Math.floor(Math.min(preferredWidth,(budget-inset-(columns-1)*gap)/columns));
+  const panelWidth=Math.min(available-320,inset+columns*cardWidth+(columns-1)*gap);
+  const rows=Math.max(1,Math.ceil(count/columns));
+  const rowHeight=Math.max(86,Math.min(maxRowHeight,Math.floor((contentHeight-(rows-1)*gap)/rows)-2));
+  return {columns,cardWidth,panelWidth,rows,rowHeight};
+}
 function updateMarketPanelWidth(){
   const dashboard=document.querySelector('body>main.dashboard');
   if(!dashboard)return;
   if(!marketPanelObserver&&typeof ResizeObserver!=='undefined'){
-    marketPanelObserver=new ResizeObserver(updateMarketPanelWidth);marketPanelObserver.observe(dashboard);
+    marketPanelObserver=new ResizeObserver(scheduleMarketLayout);marketPanelObserver.observe(dashboard);marketPanelObserver.observe(marketBody);
   }
-  if(window.innerWidth<=1100){dashboard.style.removeProperty('--market-panel-width');marketBody.style.removeProperty('--market-card-width');marketBody.style.removeProperty('--market-row-height');return}
+  // A hidden tab has no usable geometry. ResizeObserver runs again when it is shown.
+  if(!dashboard.clientWidth||!marketBody.clientWidth)return;
   const css=getComputedStyle(dashboard),bodyCSS=getComputedStyle(marketBody),panelCSS=getComputedStyle(marketBody.parentElement);
   const px=value=>parseFloat(value)||0;
   const available=dashboard.clientWidth-px(css.paddingLeft)-px(css.paddingRight)-px(css.columnGap);
   const gap=px(bodyCSS.columnGap),preferredWidth=px(bodyCSS.getPropertyValue('--market-card-max-width'))||340;
-  const gutter=marketBody.offsetWidth-marketBody.clientWidth;
+  const gutter=Math.max(0,marketBody.offsetWidth-marketBody.clientWidth);
   const inset=px(bodyCSS.paddingLeft)+px(bodyCSS.paddingRight)+px(panelCSS.borderLeftWidth)+px(panelCSS.borderRightWidth)+gutter;
-  const budget=Math.min(available-320,available*(Number(layout.split)||68)/100);
-  const columns=Math.max(1,Math.min(resolvedMarketCols(),Math.floor((budget-inset+gap)/(340+gap))));
-  const cardWidth=Math.floor(Math.min(preferredWidth,(budget-inset-(columns-1)*gap)/columns));
-  // Fit the panel to whole cards; give the remaining width to the news feed.
-  const width=Math.min(available-320,inset+columns*cardWidth+(columns-1)*gap);
-  marketBody.style.setProperty('--market-card-width',cardWidth+'px');
-  marketBody.style.setProperty('--market-scrollbar-width',gutter+'px');
-  dashboard.style.setProperty('--market-panel-width',width+'px');
-  const rows=Math.max(1,Math.ceil(stocks.length/columns));
+  if(window.innerWidth<=1100){
+    dashboard.style.removeProperty('--market-panel-width');marketBody.style.removeProperty('--market-row-height');
+    const usable=marketBody.clientWidth-px(bodyCSS.paddingLeft)-px(bodyCSS.paddingRight);
+    marketBody.style.setProperty('--market-layout-cols',Math.max(1,Math.min(resolvedMarketCols(),Math.floor((usable+gap)/(340+gap)))));
+    return;
+  }
   const contentHeight=marketBody.clientHeight-px(bodyCSS.paddingTop)-px(bodyCSS.paddingBottom);
-  const rowHeight=Math.max(86,Math.min(px(bodyCSS.getPropertyValue('--market-row-max-height'))||96,Math.floor((contentHeight-(rows-1)*gap)/rows)-2));
-  marketBody.style.setProperty('--market-row-height',rowHeight+'px');
-  const ratio=Math.round(width/available*100),value=document.getElementById('splitValue');
+  const fit=calculateMarketLayout({available,share:Number(layout.split)||68,desiredColumns:resolvedMarketCols(),preferredWidth,gap,inset,contentHeight,count:stocks.length,maxRowHeight:px(bodyCSS.getPropertyValue('--market-row-max-height'))||96});
+  // The panel and grid use the SAME column count. Never let auto-fill drop a
+  // whole column when a Windows scrollbar or fractional pixel takes a few px.
+  marketBody.style.setProperty('--market-layout-cols',fit.columns);
+  dashboard.style.setProperty('--market-panel-width',fit.panelWidth+'px');
+  marketBody.style.setProperty('--market-row-height',fit.rowHeight+'px');
+  const ratio=Math.round(fit.panelWidth/available*100),value=document.getElementById('splitValue');
   if(value)value.textContent=`股票 ${ratio}% · 信息 ${100-ratio}%（上限 ${layout.split}%）`;
 }
 function marketPrice(value){
