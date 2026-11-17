@@ -8,17 +8,25 @@ function updateMarketPanelWidth(){
   if(!marketPanelObserver&&typeof ResizeObserver!=='undefined'){
     marketPanelObserver=new ResizeObserver(updateMarketPanelWidth);marketPanelObserver.observe(dashboard);
   }
-  if(window.innerWidth<=1100){dashboard.style.removeProperty('--market-panel-width');return}
+  if(window.innerWidth<=1100){dashboard.style.removeProperty('--market-panel-width');marketBody.style.removeProperty('--market-card-width');marketBody.style.removeProperty('--market-row-height');return}
   const css=getComputedStyle(dashboard),bodyCSS=getComputedStyle(marketBody),panelCSS=getComputedStyle(marketBody.parentElement);
   const px=value=>parseFloat(value)||0;
   const available=dashboard.clientWidth-px(css.paddingLeft)-px(css.paddingRight)-px(css.columnGap);
-  const gap=px(bodyCSS.columnGap),cardWidth=340;
-  const inset=px(bodyCSS.paddingLeft)+px(bodyCSS.paddingRight)+px(panelCSS.borderLeftWidth)+px(panelCSS.borderRightWidth);
+  const gap=px(bodyCSS.columnGap),preferredWidth=px(bodyCSS.getPropertyValue('--market-card-max-width'))||340;
+  const gutter=marketBody.offsetWidth-marketBody.clientWidth;
+  const inset=px(bodyCSS.paddingLeft)+px(bodyCSS.paddingRight)+px(panelCSS.borderLeftWidth)+px(panelCSS.borderRightWidth)+gutter;
   const budget=Math.min(available-320,available*(Number(layout.split)||68)/100);
-  const columns=Math.max(1,Math.min(resolvedMarketCols(),Math.floor((budget-inset+gap)/(cardWidth+gap))));
+  const columns=Math.max(1,Math.min(resolvedMarketCols(),Math.floor((budget-inset+gap)/(340+gap))));
+  const cardWidth=Math.floor(Math.min(preferredWidth,(budget-inset-(columns-1)*gap)/columns));
   // Fit the panel to whole cards; give the remaining width to the news feed.
   const width=Math.min(available-320,inset+columns*cardWidth+(columns-1)*gap);
+  marketBody.style.setProperty('--market-card-width',cardWidth+'px');
+  marketBody.style.setProperty('--market-scrollbar-width',gutter+'px');
   dashboard.style.setProperty('--market-panel-width',width+'px');
+  const rows=Math.max(1,Math.ceil(stocks.length/columns));
+  const contentHeight=marketBody.clientHeight-px(bodyCSS.paddingTop)-px(bodyCSS.paddingBottom);
+  const rowHeight=Math.max(86,Math.min(px(bodyCSS.getPropertyValue('--market-row-max-height'))||96,Math.floor((contentHeight-(rows-1)*gap)/rows)-2));
+  marketBody.style.setProperty('--market-row-height',rowHeight+'px');
   const ratio=Math.round(width/available*100),value=document.getElementById('splitValue');
   if(value)value.textContent=`股票 ${ratio}% · 信息 ${100-ratio}%（上限 ${layout.split}%）`;
 }
