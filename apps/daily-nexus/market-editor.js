@@ -1,6 +1,27 @@
 /* Manual reference levels only. Quotes and their connection stay in TradingView. */
 const marketCells=new Map();
 let marketDialog=null,marketReturnFocus=null,marketDrag=null;
+let marketPanelObserver=null;
+function updateMarketPanelWidth(){
+  const dashboard=document.querySelector('body>main.dashboard');
+  if(!dashboard)return;
+  if(!marketPanelObserver&&typeof ResizeObserver!=='undefined'){
+    marketPanelObserver=new ResizeObserver(updateMarketPanelWidth);marketPanelObserver.observe(dashboard);
+  }
+  if(window.innerWidth<=1100){dashboard.style.removeProperty('--market-panel-width');return}
+  const css=getComputedStyle(dashboard),bodyCSS=getComputedStyle(marketBody),panelCSS=getComputedStyle(marketBody.parentElement);
+  const px=value=>parseFloat(value)||0;
+  const available=dashboard.clientWidth-px(css.paddingLeft)-px(css.paddingRight)-px(css.columnGap);
+  const gap=px(bodyCSS.columnGap),cardWidth=340;
+  const inset=px(bodyCSS.paddingLeft)+px(bodyCSS.paddingRight)+px(panelCSS.borderLeftWidth)+px(panelCSS.borderRightWidth);
+  const budget=Math.min(available-320,available*(Number(layout.split)||68)/100);
+  const columns=Math.max(1,Math.min(resolvedMarketCols(),Math.floor((budget-inset+gap)/(cardWidth+gap))));
+  // Fit the panel to whole cards; give the remaining width to the news feed.
+  const width=Math.min(available-320,inset+columns*cardWidth+(columns-1)*gap);
+  dashboard.style.setProperty('--market-panel-width',width+'px');
+  const ratio=Math.round(width/available*100),value=document.getElementById('splitValue');
+  if(value)value.textContent=`股票 ${ratio}% · 信息 ${100-ratio}%（上限 ${layout.split}%）`;
+}
 function marketPrice(value){
   if(value==null||value==='')return null;
   const n=Number(value);return Number.isFinite(n)&&n>0?n:null;
@@ -42,9 +63,9 @@ function renderEditableMarketGrid(){
       });
       const levels=document.createElement('div');levels.className='market-levels';
       const edit=document.createElement('button');edit.type='button';edit.className='market-edit';edit.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m10.5 2.5 3 3-7.8 7.8-3.7.7.7-3.7Z"/><path d="m9 4 3 3"/></svg>';edit.addEventListener('click',()=>openMarketEditor(x.symbol));
-      head.append(handle,levels,edit);
+      head.append(handle,edit);
       const widget=document.createElement('tv-single-ticker');widget.setAttribute('symbol',x.symbol);widget.setAttribute('hide-market-status','');widget.setAttribute('title',x.label);
-      cell.append(head,widget);marketCells.set(x.symbol,cell);marketBody.appendChild(cell);
+      cell.append(head,widget,levels);marketCells.set(x.symbol,cell);marketBody.appendChild(cell);
     }
     // CSS order avoids disconnecting/reconnecting live quote components during reorder.
     cell.style.order=index;cell.dataset.emphasis=x.emphasis;
@@ -52,18 +73,20 @@ function renderEditableMarketGrid(){
     cell.querySelector('.market-drag').setAttribute('aria-label','拖动排序 '+x.label);
     const edit=cell.querySelector('.market-edit');edit.setAttribute('aria-label','编辑 '+x.label+' 参考价');edit.title='编辑买卖参考价';
     const levels=cell.querySelector('.market-levels');levels.replaceChildren();
+    const referenceTitle=document.createElement('span');referenceTitle.className='market-reference-title';referenceTitle.textContent='参考价';levels.appendChild(referenceTitle);
     for(const [key,label,op,cls] of [['buyPrice','买','≤','buy'],['sellPrice','卖','≥','sell']]){
-      if(x[key]==null)continue;
-      const tag=document.createElement('button');tag.type='button';tag.className='market-level '+cls;
-      const caption=document.createElement('span');caption.className='market-level-caption';caption.textContent=label+' '+op;
-      const price=document.createElement('strong');price.textContent=marketPriceText(x[key]);tag.append(caption,price);
-      tag.addEventListener('click',()=>openMarketEditor(x.symbol));tag.setAttribute('aria-label','编辑 '+x.label+' '+(label==='买'?'买入':'卖出')+'参考价 '+marketPriceText(x[key]));
-      tag.title='手动'+(label==='买'?'买入':'卖出')+'参考价 '+op+' '+marketPriceText(x[key]);
+      const configured=x[key]!=null;
+      const tag=document.createElement('button');tag.type='button';tag.className=(configured?'market-level ':'market-level-empty ')+cls;
+      const caption=document.createElement('span');caption.className='market-level-caption';caption.textContent=(label==='买'?'买入':'卖出')+' '+op;
+      const price=document.createElement('strong');price.textContent=configured?marketPriceText(x[key]):'—';tag.append(caption,price);
+      tag.addEventListener('click',()=>openMarketEditor(x.symbol));tag.setAttribute('aria-label','编辑 '+x.label+' '+(label==='买'?'买入':'卖出')+'参考价'+(configured?' '+marketPriceText(x[key]):'，未设置'));
+      tag.title='手动'+(label==='买'?'买入':'卖出')+'参考价 '+(configured?op+' '+marketPriceText(x[key]):'未设置');
       levels.appendChild(tag);
     }
   });
   if(!stocks.length){const empty=document.createElement('div');empty.className='market-empty';empty.textContent='点击右上角 ＋ 添加标的';marketBody.appendChild(empty)}
   marketBody.style.setProperty('--market-cols',resolvedMarketCols());
+  updateMarketPanelWidth();
   const count=document.getElementById('watchCount');if(count)count.textContent=stocks.length+' WATCHLIST';
   const cv=document.getElementById('colsValue');if(cv)cv.textContent=layout.cols?layout.cols+' 列（必要时扩展）':'自动 '+resolvedMarketCols()+' 列';
 }
