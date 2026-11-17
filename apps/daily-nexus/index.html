@@ -947,6 +947,7 @@
 <meta name="apple-mobile-web-app-title" content="DeskBoard" />
 <script type="module" src="https://widgets.tradingview-widget.com/w/en/tv-single-ticker.js"></script>
 <title>DeskBoard · Daily Nexus Integrated</title>
+<link rel="stylesheet" href="./market-editor.css?v=20261117a">
 <style>
 :root{
   color-scheme:dark;
@@ -1238,7 +1239,7 @@ button{cursor:pointer}
   <section class="card section market">
     <header class="section-head">
       <div class="section-title"><span class="pulse"></span>MARKET <span id="watchCount" class="section-sub"></span></div>
-      <div class="section-sub">⚙ 可编辑 Watchlist</div>
+      <div class="market-tools"><button type="button" id="marketEditToggle" aria-pressed="false" onclick="toggleMarketEditing()">排序</button><button type="button" id="marketAdd" aria-label="添加看板标的" onclick="openMarketEditor()">＋</button></div>
     </header>
     <div id="marketBody" class="market-body"></div>
   </section>
@@ -1404,6 +1405,7 @@ button{cursor:pointer}
 </div>
 <div id="toast" class="toast"></div>
 
+<script src="./market-editor.js?v=20261117a"></script>
 <script>
 window.__NEXUS_ACTIVE__=true;
 window.addEventListener("message",e=>{
@@ -1758,25 +1760,7 @@ function resolvedMarketCols(){
   const forced=Number(layout.cols)||0;if(forced>0)return Math.max(forced,Math.ceil(stocks.length/8));
   return Math.min(4,Math.max(1,Math.ceil(stocks.length/6)));
 }
-function renderMarketGrid(){
-  if(!marketBody)return;marketBody.innerHTML="";
-  if(!stocks.length){marketBody.innerHTML='<div class="market-empty">Watchlist 为空</div>';return}
-  const cols=resolvedMarketCols();
-  marketBody.style.setProperty("--market-cols",cols);
-  stocks.forEach(x=>{
-    const cell=document.createElement("div");cell.className="market-cell";
-    const ticker=x.symbol.split(":").at(-1);
-    const link=document.createElement("a");
-    link.className="market-symbol";link.textContent=ticker;link.title=x.label||ticker;
-    link.href="https://www.tradingview.com/symbols/"+encodeURIComponent(x.symbol.replace(":","-"))+"/";
-    link.target="_blank";link.rel="noopener";
-    const el=document.createElement("tv-single-ticker");el.setAttribute("symbol",x.symbol);
-    el.setAttribute("hide-market-status","");
-    el.setAttribute("title",x.label||ticker);
-    cell.append(link,el);marketBody.appendChild(cell);
-  });
-  const cv=document.getElementById("colsValue");if(cv)cv.textContent=layout.cols?`${layout.cols} 列（必要时扩展）`:`自动 ${cols} 列`;
-}
+function renderMarketGrid(){renderEditableMarketGrid()}
 
 const FNG_URL="https://production.dataviz.cnn.io/index/fearandgreed/graphdata";
 const FNG_CACHE_KEY="deskboard_fear_greed_v1";
@@ -2017,7 +2001,7 @@ function syncStockInputs(){document.querySelectorAll(".stock-label").forEach(x=>
 function moveStock(i,d){syncStockInputs();move(stockDraft,i,d);renderStockManager()}
 function removeStock(i){syncStockInputs();stockDraft.splice(i,1);renderStockManager()}
 function saveStockEdits(){
-  syncStockInputs();stockDraft=stockDraft.filter(x=>x.symbol).map(x=>({symbol:x.symbol.toUpperCase(),label:x.label||x.symbol.split(":").pop()}));
+  syncStockInputs();stockDraft=stockDraft.filter(x=>x.symbol).map(normalizeMarketStock).filter(Boolean);
   if(!stockDraft.length){toast("至少保留一个标的");return}
   stocks=clone(stockDraft);saveStored(KEYS.stocks,stocks);renderTradingView();toast("Watchlist 已保存")
 }
@@ -2129,7 +2113,7 @@ async function importConfigFile(ev){
   const f=ev.target.files?.[0];if(!f)return;
   try{
     const j=JSON.parse(await f.text());
-    if(Array.isArray(j.stocks)&&j.stocks.length){stocks=j.stocks;saveStored(KEYS.stocks,stocks)}
+    if(Array.isArray(j.stocks)&&j.stocks.length){stocks=j.stocks.map(normalizeMarketStock).filter(Boolean);saveStored(KEYS.stocks,stocks)}
     if(Array.isArray(j.feeds)&&j.feeds.length){feeds=j.feeds;saveStored(KEYS.feeds,feeds)}
     if(["auto","light","dark"].includes(j.themeMode)){themeMode=j.themeMode;localStorage.setItem(KEYS.theme,themeMode)}
     if(j.layout&&typeof j.layout==="object"){layout={...DEFAULT_LAYOUT,...j.layout};saveStored(KEYS.layout,layout)}
