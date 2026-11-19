@@ -1,103 +1,8 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-18T17:31:38.744608+00:00",
-  "attemptedAt": "2026-11-18T17:31:38.744608+00:00",
+  "updatedAt": "2026-11-19T23:11:36.988467+00:00",
+  "attemptedAt": "2026-11-19T23:11:36.988467+00:00",
   "events": [
-    {
-      "id": "dcdb7e8e4b6a6680",
-      "title": "Seattle Center Sculpture Walk 2026",
-      "start": "2026-11-18",
-      "end": null,
-      "url": "https://www.seattlecenter.com/events/event-calendar/seattle-center-sculpture-walk-2026-x46467",
-      "city": "Seattle",
-      "venue": "Memorial Stadium · Seattle Center",
-      "cost": "Free",
-      "free": true,
-      "description": "Explore our temporary art installations on campus throughout the year.",
-      "category": "户外",
-      "lat": 47.6219473,
-      "lon": -122.3517443,
-      "locationExact": true,
-      "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
-      "stale": false
-    },
-    {
-      "id": "61d8b5372281865b",
-      "title": "Community Food Drive",
-      "start": "2026-11-18T09:00:00",
-      "end": null,
-      "url": "https://www.lynnwoodwa.gov/Community/Events-Calendar/Community-Food-Drive",
-      "city": "Lynnwood",
-      "venue": "Lynnwood Civic Campus, 19100 44th Ave. W, Lynnwood, 98036",
-      "cost": "Free To Learn More Visit: Nourishing Network",
-      "free": false,
-      "description": "Community Food Drive supporting Nourishing Network Lynnwood Civic Campus, 19100 44th Ave. W, Lynnwood 98036",
-      "category": "社区活动",
-      "lat": 47.8268089,
-      "lon": -122.2931594,
-      "locationExact": true,
-      "source": "Lynnwood",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
-      "stale": false
-    },
-    {
-      "id": "7b5a64e3d0774996",
-      "title": "Musingo",
-      "start": "2026-11-18T18:30:00",
-      "end": "2026-11-18T21:00:00",
-      "url": "https://visitkent.com/event/musingo-27/",
-      "city": "Kent",
-      "venue": "Firestarter Bar & Grill, 21008 108th Ave. S.E., Kent",
-      "cost": "Free",
-      "free": true,
-      "description": "Turn up the volume at Firestarter Bar and Grill every Wednesday for Musingo, a high-energy twist on traditional Bingo. Instead of watching for numbers, you’ll listen for iconic song hooks and compete for prizes in a live",
-      "category": "社区活动",
-      "lat": 47.4144198,
-      "lon": -122.1955701,
-      "locationExact": true,
-      "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
-      "stale": false
-    },
-    {
-      "id": "3a2cc9a196cada3e",
-      "title": "Flatstick Pub Bingo",
-      "start": "2026-11-18T19:00:00",
-      "end": "2026-11-18T21:00:00",
-      "url": "https://experienceredmond.com/event/flatstick-bingo/2026-11-18/",
-      "city": "Redmond",
-      "venue": "Flatstick Pub, 7530 164th Ave NE Suite A108, Redmond",
-      "cost": "费用未注明",
-      "free": false,
-      "description": "Come play bingo with us on Wednesdays from 7-9PM. Bingo is always free and prizes include, Flatstick Gift cards, Brewery swag, Flatstick Swag, and much more. Come join the fun!",
-      "category": "社区活动",
-      "lat": 47.674,
-      "lon": -122.1215,
-      "locationExact": false,
-      "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
-      "stale": false
-    },
-    {
-      "id": "1f63c3b2eb1ebb57",
-      "title": "Trivia at Postdoc Brewing",
-      "start": "2026-11-18T20:00:00",
-      "end": "2026-11-18T21:45:00",
-      "url": "https://experienceredmond.com/event/trivia-at-postdoc-brewing/2026-11-18/",
-      "city": "Redmond",
-      "venue": "Postdoc Brewing, 17625 NE 65th St #100, Redmond",
-      "cost": "费用未注明",
-      "free": false,
-      "description": "",
-      "category": "社区活动",
-      "lat": 47.674,
-      "lon": -122.1215,
-      "locationExact": false,
-      "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
-      "stale": false
-    },
     {
       "id": "1d6bacd9347cb1f3",
       "title": "Seattle Center Sculpture Walk 2026",
@@ -114,7 +19,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -133,7 +38,26 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "stale": false
+    },
+    {
+      "id": "067c3921088dc524",
+      "title": "Community Food Drive",
+      "start": "2026-11-19T15:00:00",
+      "end": null,
+      "url": "https://www.lynnwoodwa.gov/Community/Events-Calendar/Community-Food-Drive",
+      "city": "Lynnwood",
+      "venue": "Lynnwood Civic Campus, 19100 44th Ave. W, Lynnwood, 98036",
+      "cost": "Free To Learn More Visit: Nourishing Network",
+      "free": false,
+      "description": "Community Food Drive supporting Nourishing Network Lynnwood Civic Campus, 19100 44th Ave. W, Lynnwood 98036",
+      "category": "社区活动",
+      "lat": 47.8268089,
+      "lon": -122.2931594,
+      "locationExact": true,
+      "source": "Lynnwood",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -152,7 +76,7 @@
       "lon": -122.2021,
       "locationExact": false,
       "source": "Everett",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -171,7 +95,7 @@
       "lon": -122.2015,
       "locationExact": false,
       "source": "Bellevue",
-      "checkedAt": "2026-11-18T17:31:38.744608+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -190,7 +114,7 @@
       "lon": -122.3523744,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -209,7 +133,7 @@
       "lon": -122.353988,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -228,7 +152,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -247,7 +171,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -266,7 +190,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -285,7 +209,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -304,7 +228,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -323,7 +247,7 @@
       "lon": -122.351606,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -342,7 +266,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -361,7 +285,7 @@
       "lon": -122.352168,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -380,7 +304,7 @@
       "lon": -122.3523744,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -399,7 +323,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -418,7 +342,7 @@
       "lon": -122.352168,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -437,7 +361,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -456,7 +380,7 @@
       "lon": -122.2015,
       "locationExact": false,
       "source": "Bellevue",
-      "checkedAt": "2026-11-18T17:31:38.744608+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -475,7 +399,7 @@
       "lon": -122.196883,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -494,7 +418,7 @@
       "lon": -122.2208797,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -513,7 +437,7 @@
       "lon": -122.174938,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -532,7 +456,7 @@
       "lon": -122.315137,
       "locationExact": true,
       "source": "Lynnwood",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -551,7 +475,7 @@
       "lon": -122.351606,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -570,7 +494,7 @@
       "lon": -122.2931297,
       "locationExact": true,
       "source": "Lynnwood",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -589,7 +513,7 @@
       "lon": -122.2060275,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -608,7 +532,7 @@
       "lon": -122.3523744,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -627,7 +551,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -646,7 +570,7 @@
       "lon": -122.3523744,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -665,7 +589,7 @@
       "lon": -122.2015,
       "locationExact": false,
       "source": "Bellevue",
-      "checkedAt": "2026-11-18T17:31:38.744608+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -684,7 +608,7 @@
       "lon": -122.352168,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -703,7 +627,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -722,7 +646,7 @@
       "lon": -122.2021,
       "locationExact": false,
       "source": "Everett",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -741,7 +665,7 @@
       "lon": -122.351606,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -760,7 +684,7 @@
       "lon": -122.3523744,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -779,7 +703,7 @@
       "lon": -122.187596,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -798,7 +722,7 @@
       "lon": -122.3523744,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -817,7 +741,7 @@
       "lon": -122.2021,
       "locationExact": false,
       "source": "Everett",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -836,7 +760,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -855,7 +779,7 @@
       "lon": -122.352168,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -874,7 +798,7 @@
       "lon": -122.3509426,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -893,7 +817,7 @@
       "lon": -122.353988,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -912,7 +836,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -931,7 +855,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -950,7 +874,7 @@
       "lon": -122.2015,
       "locationExact": false,
       "source": "Bellevue",
-      "checkedAt": "2026-11-18T17:31:38.744608+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -969,7 +893,7 @@
       "lon": -122.352168,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -988,7 +912,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1007,7 +931,7 @@
       "lon": -122.352168,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1026,7 +950,7 @@
       "lon": -122.3523744,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1045,7 +969,7 @@
       "lon": -122.1955701,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1064,7 +988,7 @@
       "lon": -122.353988,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1083,7 +1007,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1102,7 +1026,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1121,7 +1045,7 @@
       "lon": -122.2015,
       "locationExact": false,
       "source": "Bellevue",
-      "checkedAt": "2026-11-18T17:31:38.744608+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1140,7 +1064,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1159,7 +1083,26 @@
       "lon": -122.2087,
       "locationExact": false,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "stale": false
+    },
+    {
+      "id": "9b429183216e5ff7",
+      "title": "Fit for the Feast Swim Workout",
+      "start": "2026-11-26T09:00:00",
+      "end": null,
+      "url": "https://bellevuewa.gov/events/fit-feast-swim-workout",
+      "city": "Bellevue",
+      "venue": "Bellevue · 具体地点见原文",
+      "cost": "费用未注明",
+      "free": false,
+      "description": "Go!",
+      "category": "社区活动",
+      "lat": 47.6101,
+      "lon": -122.2015,
+      "locationExact": false,
+      "source": "Bellevue",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1178,7 +1121,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1197,7 +1140,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1216,7 +1159,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1235,7 +1178,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1254,7 +1197,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1273,7 +1216,7 @@
       "lon": -122.352168,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1292,7 +1235,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1311,7 +1254,7 @@
       "lon": -122.3509426,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1330,7 +1273,7 @@
       "lon": -122.2087,
       "locationExact": false,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1349,7 +1292,7 @@
       "lon": -122.1750642,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1368,7 +1311,7 @@
       "lon": -122.3509426,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1387,7 +1330,7 @@
       "lon": -122.3523744,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1406,7 +1349,7 @@
       "lon": -122.3502714,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1425,7 +1368,7 @@
       "lon": -122.3509426,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1444,7 +1387,7 @@
       "lon": -122.3509426,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1463,7 +1406,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1482,7 +1425,7 @@
       "lon": -122.3523744,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1501,7 +1444,26 @@
       "lon": -122.3509426,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "stale": false
+    },
+    {
+      "id": "9729bf4aa747416d",
+      "title": "Snowflake Lane",
+      "start": "2026-11-27T19:00:00",
+      "end": null,
+      "url": "https://bellevuewa.gov/events/snowflake-lane-2",
+      "city": "Bellevue",
+      "venue": "Bellevue · 具体地点见原文",
+      "cost": "费用未注明",
+      "free": false,
+      "description": "Go!",
+      "category": "社区活动",
+      "lat": 47.6101,
+      "lon": -122.2015,
+      "locationExact": false,
+      "source": "Bellevue",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1520,7 +1482,7 @@
       "lon": -122.3502714,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1539,7 +1501,7 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1558,7 +1520,7 @@
       "lon": -122.352168,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1577,7 +1539,7 @@
       "lon": -122.3517443,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1596,7 +1558,7 @@
       "lon": -122.3509426,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1615,7 +1577,7 @@
       "lon": -122.2348432,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1634,7 +1596,7 @@
       "lon": -122.2348432,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1653,7 +1615,7 @@
       "lon": -122.3523744,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1672,7 +1634,7 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1691,7 +1653,7 @@
       "lon": -122.3508473,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1710,7 +1672,7 @@
       "lon": -122.3509426,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1729,7 +1691,7 @@
       "lon": -122.3523744,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1748,7 +1710,7 @@
       "lon": -122.3502714,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1767,7 +1729,7 @@
       "lon": -122.3509426,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1786,7 +1748,7 @@
       "lon": -122.2087,
       "locationExact": false,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1805,7 +1767,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1824,7 +1786,7 @@
       "lon": -122.3509426,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1843,7 +1805,7 @@
       "lon": -122.2023761,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1862,7 +1824,7 @@
       "lon": -122.3523744,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1881,7 +1843,7 @@
       "lon": -122.353988,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1900,7 +1862,7 @@
       "lon": -122.3502714,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1919,7 +1881,7 @@
       "lon": -122.3536861,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1938,7 +1900,26 @@
       "lon": -122.352168,
       "locationExact": true,
       "source": "Seattle",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "stale": false
+    },
+    {
+      "id": "a3deaed8de6b5b02",
+      "title": "Seattle Center Sculpture Walk 2026",
+      "start": "2026-11-29",
+      "end": null,
+      "url": "https://www.seattlecenter.com/events/event-calendar/seattle-center-sculpture-walk-2026-x46478",
+      "city": "Seattle",
+      "venue": "Memorial Stadium · Seattle Center",
+      "cost": "Free",
+      "free": true,
+      "description": "Explore our temporary art installations on campus throughout the year.",
+      "category": "户外",
+      "lat": 47.6219473,
+      "lon": -122.3517443,
+      "locationExact": true,
+      "source": "Seattle",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1957,7 +1938,7 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1976,7 +1957,7 @@
       "lon": -122.2774348,
       "locationExact": true,
       "source": "Lynnwood",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -1995,7 +1976,7 @@
       "lon": -122.2021,
       "locationExact": false,
       "source": "Everett",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2014,7 +1995,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2033,7 +2014,7 @@
       "lon": -122.1955701,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2052,7 +2033,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2071,7 +2052,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2090,7 +2071,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2109,7 +2090,7 @@
       "lon": -122.186542,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2128,7 +2109,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2147,7 +2128,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2166,7 +2147,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2185,7 +2166,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2204,7 +2185,7 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2223,7 +2204,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2242,7 +2223,26 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "stale": false
+    },
+    {
+      "id": "39a309ca9f5f3ee5",
+      "title": "Christmas in Lynnwood",
+      "start": "2026-12-04T19:00:00",
+      "end": null,
+      "url": "https://www.lynnwoodwa.gov/Community/Events-Calendar/Christmas-in-Lynnwood",
+      "city": "Lynnwood",
+      "venue": "Community Life Center, 19820 Scriber Lake Rd, Lynnwood, 98036",
+      "cost": "Free",
+      "free": true,
+      "description": "Celebrate the holiday season with the Lynnwood community at Christmas in Lynnwood! Join us for a special evening of Christmas music, seasonal readings, and a community celebration as we come together to share in the joy ",
+      "category": "社区活动",
+      "lat": 47.8190022,
+      "lon": -122.3141463,
+      "locationExact": true,
+      "source": "Lynnwood",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2261,7 +2261,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2280,7 +2280,7 @@
       "lon": -122.1928743,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2299,7 +2299,26 @@
       "lon": -122.2012025,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "stale": false
+    },
+    {
+      "id": "60f84089f9f3fd57",
+      "title": "Santa at Carpinito Bros: Christmas Trees + Holiday Light Display",
+      "start": "2026-12-05T10:00:00",
+      "end": "2026-12-05T17:00:00",
+      "url": "https://visitkent.com/event/santa-at-carpinito-bros-christmas-trees-holiday-light-display/",
+      "city": "Kent",
+      "venue": "Carpinito Brothers, 1148 Central Ave. N., Kent",
+      "cost": "Free",
+      "free": true,
+      "description": "Kick off the holiday season at Carpinito Brothers starting in November. Wander through a free holiday light display while picking out your family’s Christmas tree, fresh wreaths, cedar garland and poinsettias. On select ",
+      "category": "社区活动",
+      "lat": 47.3949655,
+      "lon": -122.2274561,
+      "locationExact": true,
+      "source": "Kent",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2318,7 +2337,7 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2337,7 +2356,7 @@
       "lon": -122.2350005,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2356,7 +2375,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2375,7 +2394,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2394,7 +2413,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2413,7 +2432,7 @@
       "lon": -122.1912418,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2432,7 +2451,26 @@
       "lon": -122.1431549,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "stale": false
+    },
+    {
+      "id": "1f524860e02e59c5",
+      "title": "Santa at Carpinito Bros: Christmas Trees + Holiday Light Display",
+      "start": "2026-12-06T10:00:00",
+      "end": "2026-12-06T17:00:00",
+      "url": "https://visitkent.com/event/santa-at-carpinito-bros-christmas-trees-holiday-light-display-2/",
+      "city": "Kent",
+      "venue": "Carpinito Brothers, 1148 Central Ave. N., Kent",
+      "cost": "Free",
+      "free": true,
+      "description": "Kick off the holiday season at Carpinito Brothers starting in November. Wander through a free holiday light display while picking out your family’s Christmas tree, fresh wreaths, cedar garland and poinsettias. On select ",
+      "category": "社区活动",
+      "lat": 47.3949655,
+      "lon": -122.2274561,
+      "locationExact": true,
+      "source": "Kent",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2451,7 +2489,7 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2470,7 +2508,7 @@
       "lon": -122.187596,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2489,7 +2527,7 @@
       "lon": -122.2073605,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2508,7 +2546,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2527,7 +2565,7 @@
       "lon": -122.29478,
       "locationExact": true,
       "source": "Lynnwood",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2546,7 +2584,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2565,7 +2603,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2584,7 +2622,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2603,7 +2641,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2622,7 +2660,7 @@
       "lon": -122.207315,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2641,7 +2679,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2660,7 +2698,7 @@
       "lon": -122.1955701,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2679,7 +2717,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2698,7 +2736,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2717,7 +2755,7 @@
       "lon": -122.1898545,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2736,7 +2774,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2755,7 +2793,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2774,7 +2812,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2793,7 +2831,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2812,7 +2850,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2831,7 +2869,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2850,7 +2888,7 @@
       "lon": -122.2022025,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2869,7 +2907,7 @@
       "lon": -122.2627053,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2888,7 +2926,26 @@
       "lon": -122.2031021,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "stale": false
+    },
+    {
+      "id": "073ecfc1e0b8f666",
+      "title": "Santa at Carpinito Bros: Christmas Trees + Holiday Light Display",
+      "start": "2026-12-12T10:00:00",
+      "end": "2026-12-12T17:00:00",
+      "url": "https://visitkent.com/event/santa-at-carpinito-bros-christmas-trees-holiday-light-display-3/",
+      "city": "Kent",
+      "venue": "Carpinito Brothers, 1148 Central Ave. N., Kent",
+      "cost": "Free",
+      "free": true,
+      "description": "Kick off the holiday season at Carpinito Brothers starting in November. Wander through a free holiday light display while picking out your family’s Christmas tree, fresh wreaths, cedar garland and poinsettias. On select ",
+      "category": "社区活动",
+      "lat": 47.3949655,
+      "lon": -122.2274561,
+      "locationExact": true,
+      "source": "Kent",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2907,7 +2964,7 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2926,7 +2983,7 @@
       "lon": -122.1785307,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2945,7 +3002,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2964,7 +3021,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -2983,7 +3040,7 @@
       "lon": -122.2087,
       "locationExact": false,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3002,7 +3059,26 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "stale": false
+    },
+    {
+      "id": "da3e17077357a99d",
+      "title": "Santa at Carpinito Bros: Christmas Trees + Holiday Light Display",
+      "start": "2026-12-13T10:00:00",
+      "end": "2026-12-13T17:00:00",
+      "url": "https://visitkent.com/event/santa-at-carpinito-bros-christmas-trees-holiday-light-display-4/",
+      "city": "Kent",
+      "venue": "Carpinito Brothers, 1148 Central Ave. N., Kent",
+      "cost": "Free",
+      "free": true,
+      "description": "Kick off the holiday season at Carpinito Brothers starting in November. Wander through a free holiday light display while picking out your family’s Christmas tree, fresh wreaths, cedar garland and poinsettias. On select ",
+      "category": "社区活动",
+      "lat": 47.3949655,
+      "lon": -122.2274561,
+      "locationExact": true,
+      "source": "Kent",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3021,7 +3097,7 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3040,7 +3116,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3059,7 +3135,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3078,7 +3154,7 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3097,7 +3173,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3116,7 +3192,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3135,7 +3211,7 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3154,7 +3230,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3173,7 +3249,7 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3192,7 +3268,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3211,7 +3287,7 @@
       "lon": -122.1955701,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3230,7 +3306,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3249,7 +3325,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3268,7 +3344,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3287,7 +3363,7 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3306,7 +3382,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3325,7 +3401,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3344,7 +3420,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3363,7 +3439,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3382,7 +3458,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3401,7 +3477,7 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3420,7 +3496,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3439,7 +3515,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3458,7 +3534,7 @@
       "lon": -122.2087,
       "locationExact": false,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3477,7 +3553,7 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3496,7 +3572,7 @@
       "lon": -122.1928743,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3515,7 +3591,26 @@
       "lon": -122.315137,
       "locationExact": true,
       "source": "Lynnwood",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "stale": false
+    },
+    {
+      "id": "857387ce1adb23d3",
+      "title": "Santa at Carpinito Bros: Christmas Trees + Holiday Light Display",
+      "start": "2026-12-19T10:00:00",
+      "end": "2026-12-19T17:00:00",
+      "url": "https://visitkent.com/event/santa-at-carpinito-bros-christmas-trees-holiday-light-display-5/",
+      "city": "Kent",
+      "venue": "Carpinito Brothers, 1148 Central Ave. N., Kent",
+      "cost": "Free",
+      "free": true,
+      "description": "Kick off the holiday season at Carpinito Brothers starting in November. Wander through a free holiday light display while picking out your family’s Christmas tree, fresh wreaths, cedar garland and poinsettias. On select ",
+      "category": "社区活动",
+      "lat": 47.3949655,
+      "lon": -122.2274561,
+      "locationExact": true,
+      "source": "Kent",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3534,7 +3629,7 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3553,7 +3648,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3572,7 +3667,45 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "stale": false
+    },
+    {
+      "id": "a344b850c8239760",
+      "title": "Tacoma Stars Major Arena Soccer League",
+      "start": "2026-12-19T18:05:00",
+      "end": "2026-12-19T18:05:00",
+      "url": "https://visitkent.com/event/tacoma-stars-1/",
+      "city": "Kent",
+      "venue": "accesso Showare Center, 625 W. James St., Kent",
+      "cost": "费用未注明",
+      "free": false,
+      "description": "Watch the Tacoma Stars bring fast-paced Major Arena Soccer League action to Kent’s accesso ShoWare Center. Built on high-scoring offenses, off-the-wall passes and constant physical play, every home match offers an afford",
+      "category": "社区活动",
+      "lat": 47.387658,
+      "lon": -122.2399926,
+      "locationExact": true,
+      "source": "Kent",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "stale": false
+    },
+    {
+      "id": "bf15d93ee6eddb98",
+      "title": "Santa at Carpinito Bros: Christmas Trees + Holiday Light Display",
+      "start": "2026-12-20T10:00:00",
+      "end": "2026-12-20T17:00:00",
+      "url": "https://visitkent.com/event/santa-at-carpinito-bros-christmas-trees-holiday-light-display-6/",
+      "city": "Kent",
+      "venue": "Carpinito Brothers, 1148 Central Ave. N., Kent",
+      "cost": "Free",
+      "free": true,
+      "description": "Kick off the holiday season at Carpinito Brothers starting in November. Wander through a free holiday light display while picking out your family’s Christmas tree, fresh wreaths, cedar garland and poinsettias. On select ",
+      "category": "社区活动",
+      "lat": 47.3949655,
+      "lon": -122.2274561,
+      "locationExact": true,
+      "source": "Kent",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3591,7 +3724,7 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3610,7 +3743,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3629,7 +3762,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3648,7 +3781,26 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "stale": false
+    },
+    {
+      "id": "0343670c0e463409",
+      "title": "Winter Craft Days",
+      "start": "2026-12-21T12:00:00",
+      "end": "2026-12-21T15:30:00",
+      "url": "https://visitkent.com/event/winter-craft-days/",
+      "city": "Kent",
+      "venue": "Greater Kent Historical Society and Museum, 855 E. Smith St., Kent",
+      "cost": "Free",
+      "free": true,
+      "description": "Looking for a creative way to entertain the kids over winter break? Bring the whole family to the Kent Historical Museum for Winter Craft Days, running Dec. 21–23 and Dec. 26–30 from noon to 3:30 p.m. Drop in once or mak",
+      "category": "社区活动",
+      "lat": 47.3835361,
+      "lon": -122.2244155,
+      "locationExact": true,
+      "source": "Kent",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3667,7 +3819,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3686,7 +3838,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3705,7 +3857,26 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "stale": false
+    },
+    {
+      "id": "78be7657ae2e8158",
+      "title": "Winter Craft Days",
+      "start": "2026-12-22T12:00:00",
+      "end": "2026-12-22T15:30:00",
+      "url": "https://visitkent.com/event/winter-craft-days-2/",
+      "city": "Kent",
+      "venue": "Greater Kent Historical Society and Museum, 855 E. Smith St., Kent",
+      "cost": "Free",
+      "free": true,
+      "description": "Looking for a creative way to entertain the kids over winter break? Bring the whole family to the Kent Historical Museum for Winter Craft Days, running Dec. 21–23 and Dec. 26–30 from noon to 3:30 p.m. Drop in once or mak",
+      "category": "社区活动",
+      "lat": 47.3835361,
+      "lon": -122.2244155,
+      "locationExact": true,
+      "source": "Kent",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3724,7 +3895,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3743,7 +3914,26 @@
       "lon": -122.2360178,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "stale": false
+    },
+    {
+      "id": "86f89c8e0e3b64d2",
+      "title": "Winter Craft Days",
+      "start": "2026-12-23T12:00:00",
+      "end": "2026-12-23T15:30:00",
+      "url": "https://visitkent.com/event/winter-craft-days-3/",
+      "city": "Kent",
+      "venue": "Greater Kent Historical Society and Museum, 855 E. Smith St., Kent",
+      "cost": "Free",
+      "free": true,
+      "description": "Looking for a creative way to entertain the kids over winter break? Bring the whole family to the Kent Historical Museum for Winter Craft Days, running Dec. 21–23 and Dec. 26–30 from noon to 3:30 p.m. Drop in once or mak",
+      "category": "社区活动",
+      "lat": 47.3835361,
+      "lon": -122.2244155,
+      "locationExact": true,
+      "source": "Kent",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3762,7 +3952,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3781,7 +3971,7 @@
       "lon": -122.1955701,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3800,7 +3990,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3819,7 +4009,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3838,7 +4028,7 @@
       "lon": -122.2087,
       "locationExact": false,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3857,7 +4047,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3876,7 +4066,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3895,7 +4085,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3914,7 +4104,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3933,7 +4123,7 @@
       "lon": -122.2087,
       "locationExact": false,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3952,7 +4142,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3971,7 +4161,26 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "stale": false
+    },
+    {
+      "id": "5a88939fad2cd050",
+      "title": "Winter Craft Days",
+      "start": "2026-12-26T12:00:00",
+      "end": "2026-12-26T15:30:00",
+      "url": "https://visitkent.com/event/winter-craft-days-4/",
+      "city": "Kent",
+      "venue": "Greater Kent Historical Society and Museum, 855 E. Smith St., Kent",
+      "cost": "Free",
+      "free": true,
+      "description": "Looking for a creative way to entertain the kids over winter break? Bring the whole family to the Kent Historical Museum for Winter Craft Days, running Dec. 21–23 and Dec. 26–30 from noon to 3:30 p.m. Drop in once or mak",
+      "category": "社区活动",
+      "lat": 47.3835361,
+      "lon": -122.2244155,
+      "locationExact": true,
+      "source": "Kent",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -3990,7 +4199,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -4009,7 +4218,26 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "stale": false
+    },
+    {
+      "id": "d143977a776047bf",
+      "title": "Winter Craft Days",
+      "start": "2026-12-27T12:00:00",
+      "end": "2026-12-27T15:30:00",
+      "url": "https://visitkent.com/event/winter-craft-days-5/",
+      "city": "Kent",
+      "venue": "Greater Kent Historical Society and Museum, 855 E. Smith St., Kent",
+      "cost": "Free",
+      "free": true,
+      "description": "Looking for a creative way to entertain the kids over winter break? Bring the whole family to the Kent Historical Museum for Winter Craft Days, running Dec. 21–23 and Dec. 26–30 from noon to 3:30 p.m. Drop in once or mak",
+      "category": "社区活动",
+      "lat": 47.3835361,
+      "lon": -122.2244155,
+      "locationExact": true,
+      "source": "Kent",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -4028,7 +4256,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -4047,7 +4275,26 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "stale": false
+    },
+    {
+      "id": "b589ff59e6a8abf3",
+      "title": "Winter Craft Days",
+      "start": "2026-12-28T12:00:00",
+      "end": "2026-12-28T15:30:00",
+      "url": "https://visitkent.com/event/winter-craft-days-6/",
+      "city": "Kent",
+      "venue": "Greater Kent Historical Society and Museum, 855 E. Smith St., Kent",
+      "cost": "Free",
+      "free": true,
+      "description": "Looking for a creative way to entertain the kids over winter break? Bring the whole family to the Kent Historical Museum for Winter Craft Days, running Dec. 21–23 and Dec. 26–30 from noon to 3:30 p.m. Drop in once or mak",
+      "category": "社区活动",
+      "lat": 47.3835361,
+      "lon": -122.2244155,
+      "locationExact": true,
+      "source": "Kent",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -4066,7 +4313,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -4085,7 +4332,26 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "stale": false
+    },
+    {
+      "id": "14b3b4063f1a0615",
+      "title": "Winter Craft Days",
+      "start": "2026-12-29T12:00:00",
+      "end": "2026-12-29T15:30:00",
+      "url": "https://visitkent.com/event/winter-craft-days-7/",
+      "city": "Kent",
+      "venue": "Greater Kent Historical Society and Museum, 855 E. Smith St., Kent",
+      "cost": "Free",
+      "free": true,
+      "description": "Looking for a creative way to entertain the kids over winter break? Bring the whole family to the Kent Historical Museum for Winter Craft Days, running Dec. 21–23 and Dec. 26–30 from noon to 3:30 p.m. Drop in once or mak",
+      "category": "社区活动",
+      "lat": 47.3835361,
+      "lon": -122.2244155,
+      "locationExact": true,
+      "source": "Kent",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -4104,7 +4370,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -4123,7 +4389,26 @@
       "lon": -122.2399926,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "stale": false
+    },
+    {
+      "id": "eae6e89788397550",
+      "title": "Winter Craft Days",
+      "start": "2026-12-30T12:00:00",
+      "end": "2026-12-30T15:30:00",
+      "url": "https://visitkent.com/event/winter-craft-days-8/",
+      "city": "Kent",
+      "venue": "Greater Kent Historical Society and Museum, 855 E. Smith St., Kent",
+      "cost": "Free",
+      "free": true,
+      "description": "Looking for a creative way to entertain the kids over winter break? Bring the whole family to the Kent Historical Museum for Winter Craft Days, running Dec. 21–23 and Dec. 26–30 from noon to 3:30 p.m. Drop in once or mak",
+      "category": "社区活动",
+      "lat": 47.3835361,
+      "lon": -122.2244155,
+      "locationExact": true,
+      "source": "Kent",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -4142,7 +4427,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -4161,7 +4446,7 @@
       "lon": -122.1955701,
       "locationExact": true,
       "source": "Kent",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -4180,7 +4465,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -4199,7 +4484,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -4218,7 +4503,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -4237,7 +4522,7 @@
       "lon": -122.2087,
       "locationExact": false,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -4256,7 +4541,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -4275,7 +4560,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -4294,7 +4579,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -4313,7 +4598,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -4332,7 +4617,7 @@
       "lon": -122.2087,
       "locationExact": false,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -4351,7 +4636,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -4370,7 +4655,7 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -4389,7 +4674,7 @@
       "lon": -122.3151,
       "locationExact": false,
       "source": "Lynnwood",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -4408,7 +4693,7 @@
       "lon": -122.1969695,
       "locationExact": true,
       "source": "Kirkland",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     },
     {
@@ -4427,7 +4712,64 @@
       "lon": -122.1215,
       "locationExact": false,
       "source": "Redmond",
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "stale": false
+    },
+    {
+      "id": "36f8994433275117",
+      "title": "Christmas Tree Recycling",
+      "start": "2027-01-03T10:00:00",
+      "end": null,
+      "url": "https://www.lynnwoodwa.gov/Government/Departments/Public-Works/Waste-Reduction/Christmas-Tree-Recycling",
+      "city": "Lynnwood",
+      "venue": "Lynnwood · 具体地点见原文",
+      "cost": "Donations are greatly appreciated by the Boy Scouts. Please make checks payable",
+      "free": false,
+      "description": "Need help recycling your Christmas tree? 1 more date",
+      "category": "社区活动",
+      "lat": 47.8209,
+      "lon": -122.3151,
+      "locationExact": false,
+      "source": "Lynnwood",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "stale": false
+    },
+    {
+      "id": "33639eabb0dd0573",
+      "title": "Google Holiday Lights",
+      "start": "2027-01-03T16:00:00",
+      "end": null,
+      "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events/Parks-and-Community-Services/Special-Events-Division/Google-Holiday-Lights",
+      "city": "Kirkland",
+      "venue": "Feriton Spur Park, 509 6th Street South, Kirkland, 98033",
+      "cost": "Free Related Information www.explorekirkland.com/events",
+      "free": false,
+      "description": "Be a part of the epic annual tradition of Google Holiday Lights! Feriton Spur Park, 509 6th Street South, Kirkland 98033 35 more dates",
+      "category": "社区活动",
+      "lat": 47.6724186,
+      "lon": -122.1969695,
+      "locationExact": true,
+      "source": "Kirkland",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "stale": false
+    },
+    {
+      "id": "30e69d7645353799",
+      "title": "Tacoma Stars Major Arena Soccer League",
+      "start": "2027-01-03T16:05:00",
+      "end": "2027-01-03T16:05:00",
+      "url": "https://visitkent.com/event/tacoma-stars-major-arena-soccer-league/",
+      "city": "Kent",
+      "venue": "accesso Showare Center, 625 W. James St., Kent",
+      "cost": "费用未注明",
+      "free": false,
+      "description": "Watch the Tacoma Stars bring fast-paced Major Arena Soccer League action to Kent’s accesso ShoWare Center. Built on high-scoring offenses, off-the-wall passes and constant physical play, every home match offers an afford",
+      "category": "社区活动",
+      "lat": 47.387658,
+      "lon": -122.2399926,
+      "locationExact": true,
+      "source": "Kent",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
       "stale": false
     }
   ],
@@ -4437,9 +4779,9 @@
       "name": "Kirkland 官方活动",
       "url": "https://www.kirklandwa.gov/Whats-Happening/Community-Events",
       "ok": true,
-      "count": 56,
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
-      "lastSuccessAt": "2026-11-18T17:29:56.214826+00:00",
+      "count": 57,
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "lastSuccessAt": "2026-11-19T23:11:36.988467+00:00",
       "error": null,
       "optional": false
     },
@@ -4448,9 +4790,9 @@
       "name": "Redmond 官方活动",
       "url": "https://experienceredmond.com/redmond-events/",
       "ok": true,
-      "count": 63,
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
-      "lastSuccessAt": "2026-11-18T17:29:56.214826+00:00",
+      "count": 61,
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "lastSuccessAt": "2026-11-19T23:11:36.988467+00:00",
       "error": null,
       "optional": false
     },
@@ -4459,9 +4801,9 @@
       "name": "Bellevue 官方活动",
       "url": "https://bellevuewa.gov/calendar",
       "ok": true,
-      "count": 5,
-      "checkedAt": "2026-11-18T17:31:38.744608+00:00",
-      "lastSuccessAt": "2026-11-18T17:31:38.744608+00:00",
+      "count": 7,
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "lastSuccessAt": "2026-11-19T23:11:36.988467+00:00",
       "error": null,
       "optional": false
     },
@@ -4470,9 +4812,9 @@
       "name": "Lynnwood 官方活动",
       "url": "https://www.lynnwoodwa.gov/Community/Events-Calendar",
       "ok": true,
-      "count": 7,
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
-      "lastSuccessAt": "2026-11-18T17:29:56.214826+00:00",
+      "count": 9,
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "lastSuccessAt": "2026-11-19T23:11:36.988467+00:00",
       "error": null,
       "optional": false
     },
@@ -4482,8 +4824,8 @@
       "url": "https://www.visiteverett.com/Calendar.aspx",
       "ok": true,
       "count": 4,
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
-      "lastSuccessAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "lastSuccessAt": "2026-11-19T23:11:36.988467+00:00",
       "error": null,
       "optional": false
     },
@@ -4492,9 +4834,9 @@
       "name": "Kent 官方活动",
       "url": "https://visitkent.com/events/",
       "ok": true,
-      "count": 42,
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
-      "lastSuccessAt": "2026-11-18T17:29:56.214826+00:00",
+      "count": 57,
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "lastSuccessAt": "2026-11-19T23:11:36.988467+00:00",
       "error": null,
       "optional": false
     },
@@ -4504,21 +4846,21 @@
       "url": "https://www.seattlecenter.com/events/event-calendar",
       "ok": true,
       "count": 56,
-      "checkedAt": "2026-11-18T17:29:56.214826+00:00",
-      "lastSuccessAt": "2026-11-18T17:29:56.214826+00:00",
+      "checkedAt": "2026-11-19T23:11:36.988467+00:00",
+      "lastSuccessAt": "2026-11-19T23:11:36.988467+00:00",
       "error": null,
       "optional": false
     }
   ],
   "timezone": "America/Los_Angeles",
-  "through": "2027-01-02",
+  "through": "2027-01-03",
   "refresh": {
     "state": "ok",
-    "lastAttemptAt": "2026-11-18T17:31:38.744608+00:00",
-    "lastCompleteAt": "2026-11-18T17:31:38.744608+00:00",
+    "lastAttemptAt": "2026-11-19T23:11:36.988467+00:00",
+    "lastCompleteAt": "2026-11-19T23:11:36.988467+00:00",
     "failedSources": [],
-    "attempts": 2,
+    "attempts": 1,
     "maxAgeHours": 36,
-    "runId": "44359220407"
+    "runId": "44635435826"
   }
 }
