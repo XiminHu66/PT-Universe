@@ -34,11 +34,15 @@ concurrency:
   group: pt-universe-pages-v2
   cancel-in-progress: false
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event_name != 'workflow_run' || (github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.event != 'pull_request')
+    outputs:
+      deploy: ${{ steps.publication.outputs.deploy }}
+      source: ${{ steps.publication.outputs.source }}
+      artifact_name: ${{ steps.publication.outputs.artifact_name }}
+      run_attempt: ${{ github.run_attempt }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -54,7 +58,9 @@ jobs:
             url='https://ximinhu66.github.io/PT-Universe/deployment.json?v='+str(time.time_ns())
             with urllib.request.urlopen(urllib.request.Request(url,headers={'Cache-Control':'no-cache'}),timeout=15) as r:deployed=json.load(r).get('sourceCommit','')
         except Exception:pass
-        with open(os.environ['GITHUB_OUTPUT'],'a') as f:f.write('deploy='+str(sha!=deployed).lower()+'\nsource='+sha+'\n')
+        artifact_name = 'pt-universe-pages-' + os.environ['GITHUB_RUN_ATTEMPT']
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+            f.write(f'deploy={str(sha != deployed).lower()}\nsource={sha}\nartifact_name={artifact_name}\n')
         print('Current source',sha,'published',deployed,'deploy',sha!=deployed)
         PY
     - name: Read the full shared recipe source
@@ -98,20 +104,39 @@ jobs:
         node scripts/build-pages.mjs
     - uses: actions/upload-pages-artifact@v3
       with:
-        name: pt-universe-pages-${{ github.run_attempt }}
+        name: ${{ steps.publication.outputs.artifact_name }}
         path: _site
         retention-days: 1
       if: steps.publication.outputs.deploy == 'true' && (success())
+
+  deploy:
+    needs: build
+    if: needs.build.outputs.deploy == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+    - name: Check the artifact source on a deploy-only retry
+      if: needs.build.outputs.run_attempt != github.run_attempt
+      env:
+        GH_TOKEN: ${{ github.token }}
+        EXPECTED_SOURCE: ${{ needs.build.outputs.source }}
+      run: |
+        current_source=$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)
+        if [ "$current_source" != "$EXPECTED_SOURCE" ]; then
+          echo '::error::The existing Pages artifact is from an older source revision. Re-run all jobs to build the current main branch.'
+          exit 1
+        fi
     - name: Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v4
       with:
-        artifact_name: pt-universe-pages-${{ github.run_attempt }}
-      if: steps.publication.outputs.deploy == 'true' && (success())
+        artifact_name: ${{ needs.build.outputs.artifact_name }}
     - name: Verify the deployed source revision
-      if: steps.publication.outputs.deploy == 'true'
       env:
-        EXPECTED_SOURCE: ${{ steps.publication.outputs.source }}
+        EXPECTED_SOURCE: ${{ needs.build.outputs.source }}
       run: |
         python - <<'PY'
         import json,os,time,urllib.request
@@ -125,5 +150,3 @@ jobs:
             if attempt==11:raise SystemExit('Published Pages revision was not observed')
             time.sleep(3)
         PY
-    timeout-minutes: 15
-    if: github.event_name != 'workflow_run' || (github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.event != 'pull_request')
