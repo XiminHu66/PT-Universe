@@ -12,7 +12,7 @@
 
 ## 安装
 
-1. 在 iPhone 的 Safari 打开 [PT-Widgets.js](https://github.com/XiminHu66/PT-Universe/blob/main/tools/scriptable/PT-Widgets.js)，打开 **Raw** 并复制全文。
+1. 在 iPhone 的 Safari 打开 [PT-Widgets.js](PT-Widgets.js)，打开 **Raw** 并复制全文。
 2. 在 Scriptable 中点 **＋**，把脚本命名为 **PT Widgets**，粘贴并保存。点运行，先预览任意一张卡。
 3. 回到主屏幕，长按空白处 → **编辑 → 添加小组件 → Scriptable → 中号**。添加后长按卡 → **编辑小组件**，将 **Script** 设为 `PT Widgets`，将 **Parameter** 设为 `invest`。重复一次，第二张填 `deals`。
 4. 横屏配置请看下文。更新脚本时替换同名脚本内的代码即可，手机里已导入的参考价和优惠规则会继续使用。
