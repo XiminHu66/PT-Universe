@@ -77,3 +77,50 @@ assert.equal(priceLocation(116,zones),'sell');
 assert.equal(priceLocation(116.01,zones),'aboveSell');
 assert.deepEqual(priceZones({buy:[5,4],sell:[8,9],invalidation:-3}),{buy:null,sell:[8,9],risk:null});
 console.log('Price-zone boundaries passed: buy, sell, risk, invalid and outside intervals');
+
+const {confirmedSession, completedBars, evaluateRules, META_PRIOR, wilderAtr} = await import('../../apps/investment-desk/swing-rules.mjs');
+const {currentPriceWindow, recentTradingSessions} = await import('../../apps/investment-desk/sessions.mjs');
+const signalDate = '2026-11-20';
+const beforeClose = Date.parse('2026-11-23T20:00:00Z');
+const beforeConfirmation = Date.parse('2026-11-23T21:10:00Z');
+const afterConfirmation = Date.parse('2026-11-23T21:16:00Z');
+assert.equal(confirmedSession(beforeConfirmation), signalDate);
+assert.equal(confirmedSession(afterConfirmation), '2026-11-23');
+assert.equal(currentPriceWindow('2026-11-20T21:00:00Z', beforeClose), null);
+assert.equal(currentPriceWindow('2026-11-23T19:15:00Z', beforeClose), null);
+assert.ok(currentPriceWindow('2026-11-23T19:45:00Z', beforeClose));
+assert.deepEqual(priceZones({buy:[98,102],sell:[101,116],invalidation:104}), {buy:[98,102],sell:null,risk:null});
+const dates = recentTradingSessions(signalDate, 320);
+assert.equal(dates.length, 320);
+const neutral = dates.map(d => ({d,o:100,h:101,l:99,c:100,a:100,v:100}));
+const last = {d:signalDate,o:103,h:105,l:102,c:104,a:104,v:350};
+const ruleHistory = [...neutral.slice(0,-1),last,{...last,d:'2026-11-23',o:110,h:113,l:108,c:110,a:110}];
+const series = {symbol:'AAA',currency:'USD',instrumentType:'EQUITY',history:ruleHistory};
+const benchmark = {symbol:'SPY',currency:'USD',instrumentType:'ETF',history:neutral};
+const args = {symbol:'AAA',series,benchmark,now:beforeClose};
+const rules = evaluateRules(args);
+assert.equal(rules.asOf, signalDate);
+assert.equal(rules.n, 320);
+assert.equal(rules.momentum, 0);
+assert.equal(rules.gap.entry, true);
+assert.ok(Math.abs(rules.gap.rv - 3.64) < 1e-10);
+assert.ok(Math.abs(rules.atr - (13 * 2 + 5) / 14) < 1e-10);
+assert.equal(rules.donchian.high20, 101);
+const atr14 = (13 * 2 + 5) / 14;
+const logit = 0.03924820527549046
+  - 0.11631795807187534 * (100.08 - 100.02) / (3 * atr14)
+  + 0.1581207061415078 * ((104 / 100 - 1) * 5)
+  + 0.11759256335181996 * ((4 - 2 / atr14) / 2)
+  - 0.10822466637280638 * Math.log(3.5)
+  - 0.06963896469740448 * ((104 - 102) / (105 - 102) - 0.5);
+assert.ok(Math.abs(rules.donchian.score - 1 / (1 + Math.exp(-logit))) < 1e-12);
+assert.equal(rules.donchian.entry, rules.donchian.score >= META_PRIOR);
+assert.equal(rules.sma.entry, true);
+assert.equal(rules.sma.exit, false);
+assert.equal(evaluateRules({...args, series:{...series, instrumentType:'ETF'}}).gap, null);
+assert.equal(evaluateRules({...args, benchmark:{...benchmark,history:neutral.slice(0,-1)}}).donchian.score, null);
+assert.equal(evaluateRules({...args, series:{...series,history:neutral.slice(0,-1)}}).status, 'missing');
+assert.equal(completedBars(neutral.filter((_,i) => i !== 310), signalDate).length, 9);
+assert.equal(evaluateRules({...args, now:afterConfirmation}).n, 320);
+assert.equal(wilderAtr(neutral.slice(0,14)), 2);
+console.log('Swing rules passed: confirmed NYSE day, stale quote gating, continuous adjusted bars, Wilder ATR, ETF exclusion, dollar volume and frozen Meta-L2');

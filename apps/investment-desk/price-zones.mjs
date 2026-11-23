@@ -6,7 +6,9 @@ function band(values) {
 }
 
 export function priceZones(decision) {
-  return {buy:band(decision.buy), sell:band(decision.sell), risk:money(decision.invalidation)};
+  const buy = band(decision.buy), sell = band(decision.sell), risk = money(decision.invalidation);
+  return {buy, sell:buy && sell && sell[0] <= buy[1] ? null : sell,
+    risk:buy && risk && risk >= buy[0] ? null : risk};
 }
 
 export function priceLocation(price, {buy, sell, risk}) {
