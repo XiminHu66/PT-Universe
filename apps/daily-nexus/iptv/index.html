@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#10141b">
+  <title>直播电视 · Daily Nexus</title>
+  <link rel="stylesheet" href="./player.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/hls.js@1.6.13/dist/hls.min.js" integrity="sha384-z+tuLqMWl1/cPv7O+39RO0EURSNvorimpcCaMgeNwU+qFBx+AlUIl7jaAwg0cYil" crossorigin="anonymous"></script>
+  <script type="module" src="./player.mjs"></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="site-header">
+      <div>
+        <a class="back" href="../?view=vps">← Daily Nexus · VPS</a>
+        <h1>直播电视</h1>
+      </div>
+      <div class="sync">
+        <span id="sync-status" role="status">正在读取频道</span>
+        <button id="refresh" type="button">刷新频道</button>
+      </div>
+    </header>
+    <main class="workspace">
+      <section class="player" aria-label="直播播放器">
+        <div class="screen" id="screen" data-empty="true">
+          <video id="video" controls playsinline preload="none" aria-label="直播画面"></video>
+          <div class="placeholder">
+            <span aria-hidden="true">▶</span>
+            <p>选择一个频道开始播放</p>
+          </div>
+        </div>
+        <div class="player-footer">
+          <div>
+            <h2 id="now-playing">未选频道</h2>
+            <p id="play-status" role="status"></p>
+          </div>
+          <button id="retry" type="button" hidden>重试播放</button>
+        </div>
+      </section>
+      <section class="directory" aria-label="频道">
+        <div class="directory-head">
+          <h2>频道 <span id="channel-count"></span></h2>
+          <button id="favorites" type="button" aria-pressed="false">我的收藏</button>
+        </div>
+        <div class="filters">
+          <input id="search" type="search" placeholder="搜索频道" aria-label="搜索频道" autocomplete="off">
+          <select id="group" aria-label="频道分组">
+            <option value="featured">央视与卫视</option>
+            <option value="all">所有频道</option>
+          </select>
+        </div>
+        <ul id="channels" aria-label="频道列表"></ul>
+        <p id="empty" class="empty" hidden></p>
+      </section>
+    </main>
+    <footer>频道列表来自 <a href="https://github.com/vbskycn/iptv" target="_blank" rel="noopener noreferrer">vbskycn/iptv</a></footer>
+  </div>
+</body>
+</html>
