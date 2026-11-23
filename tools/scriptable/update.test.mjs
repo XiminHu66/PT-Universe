@@ -40,7 +40,7 @@ class MockRequest {
     this.response = { statusCode: override?.status ?? 200 };
     if (override) return override.body;
     if (channel) return JSON.stringify({ api: 1, version, commit: commit(version) });
-    if (version === 1) return runtime;
+    if (version === 1) return runtime.replace('// PT Widgets runtime v2', '// PT Widgets runtime v1').replace('const VERSION = 2;', 'const VERSION = 1;');
     return '// PT Widgets runtime v' + version + '\nmodule.exports={api:1,version:' + version
       + ', async main(){ if(args.widgetParameter==="news") throw Error("test render error"); record(); }};';
   }
@@ -52,8 +52,8 @@ function start({ widget = false, parameter = 'news' } = {}) {
     config: { runsInWidget: widget, widgetFamily: 'accessoryRectangular' }, args: { widgetParameter: parameter },
     console: { warn() {} }, record: () => render.push('new'),
     Script: { setWidget: () => render.push('old'), complete() {} },
-    Font: { systemFont() {}, semiboldSystemFont() {} }, Color: class {},
-    ListWidget: class { setPadding() {} addText() { return {}; } addSpacer() {} },
+    Font: { systemFont() {}, semiboldSystemFont() {} }, Color: class { static dynamic(day) { return day; } },
+    ListWidget: class { addStack() { return new this.constructor(); } centerAlignContent() {} setPadding() {} addText() { return {}; } addSpacer() {} },
     URLScheme: { forRunningScript: () => 'scriptable:///run/PT%20Widgets' },
     Alert: class {
       addAction() {} addCancelAction() {}

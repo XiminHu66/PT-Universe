@@ -62,3 +62,8 @@ body>main.dashboard>.news{grid-area:news;container-type:inline-size}
 .market-search-results{display:flex;flex-wrap:wrap;gap:5px;max-height:120px;overflow:auto}
 .market-search-results button{border:1px solid var(--line);border-radius:6px;padding:5px 7px;background:var(--panel);color:var(--text);font-size:12px}
 .market-search-results button:hover{border-color:var(--blue)}
+.market-tools #widgetSyncOpen{height:27px;padding:0 8px;font:inherit;font-size:11px;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:8px;cursor:pointer;white-space:nowrap}
+.market-tools #widgetSyncOpen:hover{border-color:var(--blue)}
+#widgetSyncDialog [hidden]{display:none}
+#widgetSyncDialog label:has(input[hidden]){display:none}
+#widgetSyncDialog .market-editor-actions{flex-wrap:wrap}
