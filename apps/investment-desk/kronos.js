@@ -331,6 +331,10 @@ addEventListener('workspace-activate', event => {
 });
 addEventListener('workspace-select-symbol', event => select(event.detail.symbol));
 addEventListener('workspace-symbol-changed', event => select(event.detail.symbol));
+addEventListener('investment-evidence-change', event => {
+  if (event.detail === 'simulation') select(symbol);
+  else clearTimeout(timer);
+});
 addEventListener('decision-change', event => {
   if (['holdings','watchlist'].includes(event.detail.key)) checkAdditions();
 });

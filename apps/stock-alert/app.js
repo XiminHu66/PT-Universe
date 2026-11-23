@@ -731,6 +731,7 @@ function removeSymbol(symbol) { if(state.watchlist.length<=1){toast("至少保�
 function showEvidence(section){
   for(const button of document.querySelectorAll('[data-evidence]'))button.setAttribute('aria-pressed',String(button.dataset.evidence===section));
   for(const panel of document.querySelectorAll('[data-evidence-panel]'))panel.hidden=panel.dataset.evidencePanel!==section;
+  if (integrated) dispatchEvent(new CustomEvent('investment-evidence-change',{detail:section}));
 }
 function init() {
   if (!integrated && localStorage.getItem(KEYS.theme)==="light") document.body.classList.add("light");

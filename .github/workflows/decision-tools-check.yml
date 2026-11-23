@@ -37,8 +37,8 @@ jobs:
       run: |
         python -m http.server 8765 --bind 127.0.0.1 > /tmp/pt-server.log 2>&1 &
         trap 'kill "$!" 2>/dev/null || true' EXIT
-        node scripts/investment/browser-test.cjs
         node scripts/investment/holdings-market-test.cjs
+        node scripts/investment/browser-test.cjs
         node scripts/investment/nexus-tabs-test.cjs
     - name: Verify other decision browser flows
       run: |
