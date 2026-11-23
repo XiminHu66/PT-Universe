@@ -468,7 +468,10 @@ function marketWidget(rows, compact, syncStatus = '本机清单') {
     text(widget, row.stock.symbol.split(':').pop(), 19, tone('ink'), 1, true);
     text(widget, formatQuote(row.q, row.q.price), 27, tone('ink'), 1, true);
     widget.addSpacer(4);
-    text(widget, stockDetail(row), 12, tone(row.target?.reached ? 'reached' : 'brand'), 2, true);
+    const signal = tone(row.target?.reached ? 'reached' : 'brand');
+    const [level, distance] = stockDetail(row).split(' · ');
+    text(widget, level, 12, signal, 1, true);
+    if (distance) text(widget, distance, 11, signal);
     widget.addSpacer();
     text(widget, row.state + ' · ' + stamp(row.q.at), 10, tone('muted'));
     if (syncStatus.startsWith('同步离线')) text(widget, '同步离线', 10, tone('warning'));
@@ -502,7 +505,9 @@ function dealWidget(data, compact) {
   const { widget, tone } = layout;
   if (!top.length) return emptyState(layout, partial ? '来源暂不可用' : '暂无符合条件的优惠',
     partial ? '轻点打开优惠雷达' : 'Steam / Epic · 优惠雷达');
-  for (const [index, item] of top.slice(0, compact ? 1 : 2).entries()) {
+  const visible = top.slice(0, compact ? 1 : 2);
+  if (visible.length === 1) widget.addSpacer();
+  for (const [index, item] of visible.entries()) {
     if (index) {
       widget.addSpacer(5);
       divider(widget, tone);
@@ -511,15 +516,14 @@ function dealWidget(data, compact) {
     const line = widget.addStack();
     line.layoutVertically();
     if (!compact) line.url = item.url;
-    text(line, item.title, compact ? 16 : 14, tone('ink'), compact ? 3 : 2, true);
+    const size = compact ? 16 : visible.length === 1 ? 19 : 14;
+    text(line, item.title, size, tone('ink'), compact ? 3 : 2, true);
     const label = item.end ? item.label + ' · 截止 ' + stamp(item.end)
       : item.kind === 'game' ? item.label + ' · 截止未公布' : item.label;
     text(line, label, 11, tone('deal'), compact ? 2 : 1);
   }
-  if (partial) {
-    widget.addSpacer();
-    text(widget, '部分来源暂不可用', 10, tone('warning'));
-  }
+  if (partial || visible.length === 1) widget.addSpacer();
+  if (partial) text(widget, '部分来源暂不可用', 10, tone('warning'));
   return widget;
 }
 
@@ -538,7 +542,7 @@ function newsWidget(packet, compact) {
     const line = widget.addStack();
     line.layoutVertically();
     if (!compact) line.url = item.url;
-    text(line, item.title, compact ? 21 : 15, tone('ink'), compact ? 4 : 2, true);
+    text(line, item.title, compact ? 20 : 15, tone('ink'), compact ? 3 : 2, true);
     const stale = packet.offline || Date.now() - item.at > 2 * DAY;
     if (!compact) text(line, (stale ? '缓存 · ' : '') + stamp(item.at), 10, tone('muted'));
   }
