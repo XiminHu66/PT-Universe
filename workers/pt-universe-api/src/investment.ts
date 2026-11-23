@@ -13,11 +13,44 @@ async function readCompany(symbol:string,ticker:string,env:Env){
  await env.PT_UNIVERSE_DATA.put(key,JSON.stringify(company),{expirationTtl:21600});
  return company;
 }
+
+async function readRuleBars(symbol:string,ticker:string,env:Env) {
+ const key = 'investment/rule-bars/v1/' + symbol;
+ const cached = await env.PT_UNIVERSE_DATA.get(key, 'json');
+ if (cached) return cached;
+ const route = `/v8/finance/chart/${ticker}?range=2y&interval=1d`;
+ const raw = await upstream('https://query1.finance.yahoo.com' + route)
+  .catch(() => upstream('https://query2.finance.yahoo.com' + route));
+ const series = raw.chart?.result?.[0];
+ const quote = series?.indicators?.quote?.[0];
+ if (!quote || !Array.isArray(series.timestamp)) throw Error('规则日线暂不可用');
+ const adjusted = series.indicators?.adjclose?.[0]?.adjclose;
+ const history = series.timestamp.slice(-321).flatMap((time:number, offset:number, tail:number[]) => {
+  const i = series.timestamp.length - tail.length + offset;
+  if (!Number.isFinite(time)) return [];
+  const row = {d:new Date(time * 1000).toISOString().slice(0,10),
+    o:quote.open?.[i], h:quote.high?.[i], l:quote.low?.[i], c:quote.close?.[i], v:quote.volume?.[i],
+    a:adjusted?.[i]};
+  return [row.o,row.h,row.l,row.c].every(value => Number.isFinite(value) && value > 0) ? [row] : [];
+ });
+ if (!history.length) throw Error('规则日线暂不可用');
+ const result = {symbol, currency:series.meta?.currency, instrumentType:series.meta?.instrumentType,
+  history, checkedAt:new Date().toISOString(), source:'Yahoo Finance'};
+ await env.PT_UNIVERSE_DATA.put(key, JSON.stringify(result), {expirationTtl:300});
+ return result;
+}
+
 export async function investmentRoute(request:Request,env:Env){
- const u=new URL(request.url);const companyOnly=u.pathname==='/api/investment/company';if(!companyOnly&&u.pathname!=='/api/investment/quote')return null;
+ const u=new URL(request.url);
+ const companyOnly=u.pathname==='/api/investment/company', ruleBars=u.pathname==='/api/investment/rule-bars';
+ if(!companyOnly&&!ruleBars&&u.pathname!=='/api/investment/quote')return null;
  if(request.method!=='GET')return {status:405,body:{error:'仅支持 GET'}};
  const symbol=(u.searchParams.get('symbol')||'').toUpperCase();if(!/^[A-Z^][A-Z0-9.^-]{0,14}$/.test(symbol))return {status:400,body:{error:'股票代码无效'}};
  const ticker=encodeURIComponent(symbol.replace(/\.([AB])$/,'-$1'));
+ if(ruleBars) {
+  try { return {body:await readRuleBars(symbol,ticker,env)}; }
+  catch { return {status:502,body:{error:'规则日线暂不可用'}}; }
+ }
  if(companyOnly){
   try{return {body:{company:await readCompany(symbol,ticker,env)}};}
   catch{return {status:502,body:{error:'财报暂不可用'}};}

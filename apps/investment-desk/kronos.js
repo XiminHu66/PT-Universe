@@ -2,6 +2,7 @@ import {esc, raw, read as records} from '../_decision/core.js';
 import {investmentRefreshSlot, showDate, showWindow} from './sessions.mjs';
 import {API} from '../_shared/on-demand.mjs';
 import {DEFAULT_WATCHLIST} from './refresh.mjs';
+import {confirmedSession} from './swing-rules.mjs?v=20261123';
 
 const symbolPattern = /^\^?[A-Z0-9][A-Z0-9.=-]{0,14}$/;
 const cryptoPattern = /^[A-Z0-9]+-(USD|EUR|GBP|CAD|JPY|AUD|BTC|ETH|USDT|USDC)$/;
@@ -84,12 +85,12 @@ function planDifference(data, plan) {
 
 function zoneNotes(data, plan) {
   if (!plan.window) return '';
-  const notes = [['买入区间', plan.buy], ['止盈区间', plan.sell]].map(([label, range]) => {
+  const notes = [['技术观察区', plan.buy], ['止盈参考区', plan.sell]].filter(([, range]) => Array.isArray(range)).map(([label, range]) => {
     const {paths, dates} = zoneSamples(data, range, plan.window);
     const days = paths ? ` · ${dates.length === 1 ? showDate(dates[0]) : `${showWindow(dates[0], dates.at(-1))} 中的 ${dates.length} 个交易日`}` : '';
     return `<li>${label} <strong>${paths}/4 条路径</strong>${days}</li>`;
   });
-  return `<p>操作计划期间，模拟收盘价落入观察区的样本</p><ul class="kronos-zone-list">${notes.join('')}</ul><p>这些日期来自模拟收盘价，实际操作以当日行情触发为准。</p>`;
+  return notes.length ? `<p>操作计划期间，模拟收盘价落入参考区的样本</p><ul class="kronos-zone-list">${notes.join('')}</ul>` : '';
 }
 
 function paint() {
@@ -97,8 +98,9 @@ function paint() {
   const data = valid(previous?.data, symbol) ? previous.data : null;
   const eligible = symbolPattern.test(symbol);
   const working = pendingStates.has(previous?.state);
-  const fresh = previous?.state === 'fresh' && data?.asOf === previous.session;
   const continuous = (previous?.calendar || data?.calendar) === '24/7' || cryptoPattern.test(symbol);
+  const expected = continuous ? previous?.session : confirmedSession();
+  const fresh = !!data && previous?.state === 'fresh' && data.asOf === previous.session && (!expected || data.asOf >= expected);
   title.textContent = continuous ? 'Kronos · 10 天' : 'Kronos · 10 个交易日';
   run.hidden = !eligible || fresh;
   run.disabled = working || submitting;
@@ -122,7 +124,7 @@ function paint() {
   const wasOpen = result.querySelector('details')?.open;
   result.innerHTML = `<div class="kronos-summary">
     <strong>${fresh ? direction : '旧情景 · 等待更新'}</strong>
-    <span>${showDate(data.dates.at(-1))}收盘情景</span>
+    <span>${showDate(data.asOf)} 收盘起算 · 模拟至 ${showDate(data.dates.at(-1))}</span>
   </div>
   <dl class="kronos-metrics">
     <div><dt>模拟收盘中位价</dt><dd>${price(data.endMedian)} <small>${percent.format(data.endMedian / data.reference - 1)}</small></dd></div>

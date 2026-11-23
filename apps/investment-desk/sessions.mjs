@@ -1,6 +1,7 @@
 // Published NYSE US equities calendar, including 13:00 ET closes.
 // https://www.nyse.com/trade/hours-calendars
 const holidays = {
+  2025: '01-01 01-09 01-20 02-17 04-18 05-26 06-19 07-04 09-01 11-27 12-25',
   2026: '01-01 01-19 02-16 04-03 05-25 06-19 07-03 09-07 11-26 12-25',
   2027: '01-01 01-18 02-15 03-26 05-31 06-18 07-05 09-06 11-25 12-24',
   2028: '01-17 02-21 04-14 05-29 06-19 07-04 09-04 11-23 12-25'
@@ -52,6 +53,16 @@ export function marketSessions(now = Date.now()) {
   };
 }
 
+export function recentTradingSessions(day, count) {
+  const result = [];
+  let date = marketDay(day, -1);
+  while (date && result.length < count) {
+    result.unshift(date);
+    date = marketDay(shift(date, -1), -1);
+  }
+  return result;
+}
+
 export function investmentRefreshSlot(now = Date.now()) {
   const clock = marketClock(now);
   // 11:00 ET is 08:00 Pacific year-round. Use the equities calendar for both holidays and early closes.
@@ -70,6 +81,15 @@ export function reviewWindow(quoteAt, now = Date.now()) {
 
 export function showDate(date) {
   return date.slice(0, 4) + '年' + Number(date.slice(5, 7)) + '月' + Number(date.slice(8, 10)) + '日';
+}
+
+export function currentPriceWindow(quoteAt, now = Date.now()) {
+  const window = reviewWindow(quoteAt, now);
+  const market = marketSessions(now);
+  if (!window || !market) return null;
+  const quote = marketClock(quoteAt);
+  if (market.open && (quote.date !== market.start || now - Date.parse(quoteAt) > 30 * 60000)) return null;
+  return window;
 }
 
 export function showWindow(start, end) {

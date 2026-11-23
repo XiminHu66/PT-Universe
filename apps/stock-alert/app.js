@@ -1,8 +1,10 @@
 import {API, refreshData} from '../_shared/on-demand.mjs';
 import {portfolioDecision} from '../_decision/portfolio.mjs';
-import {marketSessions, reviewWindow, showWindow} from '../investment-desk/sessions.mjs';
+import {marketSessions, currentPriceWindow, showWindow} from '../investment-desk/sessions.mjs';
 import {priceLocation, priceZones} from '../investment-desk/price-zones.mjs';
 import {DEFAULT_WATCHLIST, mergeMarketItem} from '../investment-desk/refresh.mjs';
+
+import {createSwingPanel} from '../investment-desk/swing-panel.js?v=20261123';
 
 const KEYS = {
   watchlist: "stock_alert_watchlist_v1",
@@ -12,6 +14,7 @@ const KEYS = {
   notifications: "stock_alert_notifications_v1"
 };
 const integrated = document.body.dataset.workspace === 'investment';
+const swingPanel = integrated ? createSwingPanel(() => showEvidence('strategy')) : null;
 const marketPanel = document.getElementById('panel-market');
 const $ = id => document.getElementById(id);
 const state = {
@@ -152,6 +155,7 @@ function refreshCompany(symbol) {
   companyJobs.set(symbol,task);
 }
 function openMarket() {
+  swingPanel?.select(state.selected);
   if(!loadedMarket)loadedMarket=loadMarketData(false);
   const symbol=state.selected;
   loadedMarket.then(()=>{
@@ -259,12 +263,12 @@ function renderWatchlist() {
     const modelZone = integrated ? null : modelZoneState(market);
     const d = decisionFor(item.symbol).decision;
     const prices = integrated && d.buy ? priceZones(d) : null;
-    const location = prices && reviewWindow(market?.lastTradeAt) ? priceLocation(price, prices) : null;
+    const location = prices && currentPriceWindow(market?.lastTradeAt) ? priceLocation(price, prices) : null;
     const zoneTag = {
-      buy:['买入区间','buy',prices?.buy ? formatPriceRange(prices.buy) : ''],
+      buy:['技术观察区','buy',prices?.buy ? formatPriceRange(prices.buy) : ''],
       sell:['止盈区间','trim',prices?.sell ? formatPriceRange(prices.sell) : ''],
       aboveSell:['高于止盈区','trim',prices?.sell ? formatPriceRange(prices.sell) : ''],
-      risk:['止损区间','sell',prices?.risk ? '低于 $'+fmt(prices.risk) : '']
+      risk:['风险参考位','sell',prices?.risk ? '低于 $'+fmt(prices.risk) : '']
     }[location];
     const active = item.symbol === state.selected;
     const zoneLabel = alert ? (alert === 'buy' ? '买入提醒' : '止盈提醒') : modelZone ? (modelZone === 'buy' ? '模型买' : '模型卖') : '';
@@ -288,18 +292,18 @@ function safeSource(url, label) {
 }
 const formatPriceRange = values => `$${fmt(values[0])}–$${fmt(values[1])}`;
 const priceZoneLabels = {
-  buy:['当前在买入区间','buy'], sell:['当前在止盈区间','trim'],
-  aboveSell:['当前高于止盈区间','trim'], risk:['当前在止损区间','sell'],
-  belowBuy:['当前低于买入区间','wait'], outside:['当前未到买卖区间','wait']
+  buy:['已到技术观察区','buy'], sell:['已到止盈参考区','trim'],
+  aboveSell:['高于止盈参考区','trim'], risk:['低于风险参考位','sell'],
+  belowBuy:['低于技术观察区','wait'], outside:['暂未到参考区','wait']
 };
 
 function describePlan(d, holding, window, location) {
   if (!d.buy) return d.reasons[0] || '暂时无法给出价格区间。';
   if (!window) return '行情需要更新。下方是上次计算的区间。';
-  if (location === 'risk') return holding.quantity > 0 ? '已触及止损区间。按你的止损计划处理。' : '暂停买入，等价格和趋势企稳。';
+  if (location === 'risk') return holding.quantity > 0 ? '已穿越技术风险参考位，复查持仓退出条件。' : '暂停买入，等价格和趋势企稳。';
   if (location === 'buy') {
     if (d.state === 'buy') return '可考虑分批买入。';
-    if (d.state === 'candidate') return '先核对财报，再考虑买入。';
+    if (d.state === 'candidate') return '到了技术观察区，等财报核对和趋势确认。';
     return '暂缓买入，先确认趋势和财报。';
   }
   if (location === 'sell' || location === 'aboveSell') return holding.quantity > 0 ? '持有时可考虑分批止盈。' : '等待价格回落。';
@@ -307,12 +311,12 @@ function describePlan(d, holding, window, location) {
   return location === 'belowBuy' ? '等价格企稳，再看买入条件。' : '价格到区间时再评估。';
 }
 
-function planRanges(prices, location) {
+function planRanges(prices, location, holding) {
   const {buy, sell, risk} = prices;
   return `<div class="position-ranges plan-levels">
-    <div class="plan-buy${location === 'buy' ? ' is-current' : ''}"><small>买入区间</small><strong>${buy ? formatPriceRange(buy) : '暂无'}</strong></div>
-    <div class="plan-sell${location === 'sell' || location === 'aboveSell' ? ' is-current' : ''}"><small>止盈区间</small><strong>${sell ? formatPriceRange(sell) : '暂无'}</strong></div>
-    <div class="plan-risk${location === 'risk' ? ' is-current' : ''}"><small>止损区间</small><strong>${risk ? '低于 $'+fmt(risk) : '暂无'}</strong></div>
+    <div class="plan-buy${location === 'buy' ? ' is-current' : ''}"><small>技术观察区</small><strong>${buy ? formatPriceRange(buy) : '暂无'}</strong></div>
+    <div class="plan-sell${location === 'sell' || location === 'aboveSell' ? ' is-current' : ''}"><small>止盈参考区</small><strong>${sell ? formatPriceRange(sell) : '暂无'}</strong></div>
+    <div class="plan-risk${location === 'risk' ? ' is-current' : ''}"><small>${holding ? '技术风险参考' : '观察失效位'}</small><strong>${risk ? '低于 $'+fmt(risk) : '暂无'}</strong></div>
   </div>`;
 }
 
@@ -330,11 +334,11 @@ function renderPositionDecision() {
     return lo!==null&&hi!==null?[(side==='buy'?'买入':'止盈')+' $'+fmt(lo)+'–$'+fmt(hi)]:[];
   }).join(' · '):'';
   const position = $('positionDecision');
-  const window = integrated && d.buy ? reviewWindow(q?.lastTradeAt) : null;
+  const window = integrated && d.buy ? currentPriceWindow(q?.lastTradeAt) : null;
   const prices = priceZones(d);
   const location = window ? priceLocation(d.price, prices) : null;
   const [zoneLabel, zoneTone] = priceZoneLabels[location] || [d.buy && !window ? '待刷新行情' : '暂无区间','unknown'];
-  const context = JSON.stringify({symbol: state.selected, rule: window ? d.state : '', window, buy: d.buy, sell: d.sell});
+  const context = JSON.stringify({symbol: state.selected, rule: window ? d.state : '', window, buy: prices.buy, sell: prices.sell});
   if (position.dataset.plan !== context) position.dataset.plan = context;
   position.dataset.rule = d.state;
   position.innerHTML=`
@@ -343,7 +347,7 @@ function renderPositionDecision() {
     ${!integrated ? `<div class="position-heading"><strong class="decision-tag ${d.state}">${escapeHtml(d.label)}</strong><span>${holdingDetails}${pnlPct ? ` (${pnlPct})` : ''}</span></div>` : ''}
     <p class="decision-reasons">${escapeHtml(integrated ? describePlan(d, h, window, location) : d.reasons.join('；'))}</p>
     ${window ? `<p class="plan-window"><span>观察期</span><strong>${showWindow(window.start, window.end)}</strong></p>` : ''}
-    ${integrated ? (d.buy ? planRanges(prices, location) : '') : d.buy ? `<div class="position-ranges"><div><small>买入 / 加仓参考</small><strong>$${fmt(d.buy[0])}–${fmt(d.buy[1])}</strong></div><div><small>减仓 / 止盈参考</small><strong>$${fmt(d.sell[0])}–${fmt(d.sell[1])}</strong></div><div><small>止损区间</small><strong>低于 $${fmt(d.invalidation)}</strong></div></div>` : ''}
+    ${integrated ? (d.buy ? planRanges(prices, location, h.quantity > 0) : '') : d.buy ? `<div class="position-ranges"><div><small>买入 / 加仓参考</small><strong>$${fmt(d.buy[0])}–${fmt(d.buy[1])}</strong></div><div><small>减仓 / 止盈参考</small><strong>$${fmt(d.sell[0])}–${fmt(d.sell[1])}</strong></div><div><small>止损区间</small><strong>低于 $${fmt(d.invalidation)}</strong></div></div>` : ''}
     ${personalSummary?`<p class="personal-range-summary">个人提醒区间 · ${escapeHtml(personalSummary)}</p>`:''}
     ${state.evidenceErrors[state.selected]?`<p class="evidence-error">本次刷新：${escapeHtml(state.evidenceErrors[state.selected])}；保留带时间的已有证据。</p>`:''}
     <div class="position-footer">
@@ -365,6 +369,7 @@ function renderSelected() {
     announcedSymbol=state.selected;
     dispatchEvent(new CustomEvent('workspace-symbol-changed',{detail:{symbol:state.selected}}));
   }
+  swingPanel?.select(state.selected);
   const item = dataFor(); const watch = state.watchlist.find(entry => entry.symbol === state.selected) || { display: state.selected, name: state.selected };
   $("quoteSymbol").textContent = watch.display; $("quoteName").textContent = item?.name || watch.name || "等待行情";
   $("quoteExchange").textContent = item?.exchange || "—";
@@ -558,7 +563,7 @@ function renderRangeForm(analysis) {
     if($(id+'Input').value!==text)$(id+'Input').value=text;
   }
   const status = $("rangeStatus"); status.textContent = range ? "已保存" : "未设置"; status.classList.toggle("saved",Boolean(range));
-  $("useModelRanges").disabled = integrated ? !decisionFor(state.selected).decision.buy || !reviewWindow(dataFor()?.lastTradeAt) : !analysis;
+  $("useModelRanges").disabled = integrated ? !decisionFor(state.selected).decision.buy || !currentPriceWindow(dataFor()?.lastTradeAt) : !analysis;
 }
 
 function optionTrendSvg(points) {
@@ -668,7 +673,10 @@ function bindEvents() {
   $("resetWatchlist").addEventListener("click",()=>{state.watchlist=structuredClone(DEFAULT_WATCHLIST);writeStorage(KEYS.watchlist,state.watchlist);if(integrated)dispatchEvent(new Event('investment-watchlist-changed'));renderAll();toast("已恢复 deskboard 默认列表");});
   $("refreshButton").addEventListener("click",async()=>{
     if(!integrated)dispatchEvent(new Event('workspace-refresh-investment'));
-    else refreshCompany(state.selected);
+    else {
+      refreshCompany(state.selected);
+      swingPanel?.refresh(true);
+    }
     $("refreshButton").classList.add('loading');$("refreshButton").disabled=true;
     try{await refreshStock(state.selected,true,true)}finally{$("refreshButton").classList.remove('loading');$("refreshButton").disabled=false;}
   });
@@ -698,11 +706,11 @@ function bindEvents() {
     renderAll();
   });
   $("useModelRanges").addEventListener("click",()=>{
-    if (integrated && !reviewWindow(dataFor()?.lastTradeAt)) return;
-    const {buy,sell}=decisionFor(state.selected).decision;
-    const ranges=integrated?buy&&[...buy,...sell]:state.analysis&&rangeFields.map(key=>state.analysis[key]);
+    if (integrated && !currentPriceWindow(dataFor()?.lastTradeAt)) return;
+    const {buy,sell}=priceZones(decisionFor(state.selected).decision);
+    const ranges=integrated?buy&&[...buy,...(sell??[null,null])]:state.analysis&&rangeFields.map(key=>state.analysis[key]);
     if(!ranges)return;
-    state.rangeDrafts[state.selected]=Object.fromEntries(rangeFields.map((key,i)=>[key,ranges[i].toFixed(2)]));
+    state.rangeDrafts[state.selected]=Object.fromEntries(rangeFields.map((key,i)=>[key,ranges[i]?.toFixed(2) ?? '']));
     renderRangeForm(state.analysis);
     toast("已填入技术区间，保存后用于提醒");
   });
