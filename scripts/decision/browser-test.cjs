@@ -4,6 +4,13 @@ const base=process.env.PT_TEST_URL||'http://127.0.0.1:8765/';
 (async()=>{
  const browser=await chromium.launch({headless:true,executablePath:process.env.PT_CHROME||undefined,args:['--no-sandbox']});const ctx=await browser.newContext({viewport:{width:1440,height:1050}});const page=await ctx.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await ctx.route('**/pt-analytics.js',r=>r.fulfill({body:''}));await ctx.route('**/api/analytics',r=>r.fulfill({body:'{}'}));
+ // This check exercises the lower-price trigger with a fresh quote.
+ const market = require('../../apps/stock-alert/data/market.json');
+ const quote = { ...market.symbols.NVDA, price: 150, lastTradeAt: new Date().toISOString() };
+ await ctx.route(/\/apps\/stock-alert\/data\/market\.json(?:\?|$)/, route =>
+  route.fulfill({ json: { ...market, symbols: { ...market.symbols, NVDA: quote } } }));
+ await ctx.route(/\/apps\/stock-alert\/data\/quotes\.json(?:\?|$)/, route =>
+  route.fulfill({ json: { symbols: {} } }));
  const go=async path=>{console.log('Route',path);if(/^(stock-alert|thesis-lab|meal-orbit|eastside-weekend|signal-audit)\//.test(path))path+=(path.includes('?')?'&':'?')+'standalone=1';if(path==='watch-inbox/')path+='?legacy=1';await page.goto(base+'apps/'+path,{waitUntil:'domcontentloaded'});};
  await go('signal-audit/');await page.locator('#signal-manual summary').click();await page.locator('#signal-form').waitFor();await page.locator('#signal-refresh').waitFor({state:'visible'});await page.waitForFunction(()=>document.querySelector('#signal-refresh')&&!document.querySelector('#signal-refresh').disabled);
  await page.locator('[name=original]').fill('Test bot says $NVDA bullish, publication retained.');await page.locator('#signal-extract').click();assert.equal(await page.locator('[name=symbol]').inputValue(),'NVDA');await page.locator('[name=bot]').fill('QA BOT');await page.locator('[name=publishedAt]').fill(new Date(Date.now()-8*86400000).toISOString().slice(0,16));await page.locator('[name=horizon]').selectOption('1');await page.getByRole('button',{name:'核对并保存原始记录'}).click();await page.getByRole('heading',{name:'QA BOT · NVDA · 看多'}).waitFor();assert.equal(await page.locator('[data-s-archive]').count(),1);await page.locator('[data-s-archive]').click();assert.match(await page.locator('#decision-app').innerText(),/已归档/);await page.reload();await page.locator('[data-s-archive]').waitFor();

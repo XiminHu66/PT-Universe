@@ -1,0 +1,59 @@
+#readerSourcesButton { display: none; }
+.reading-desk body { overflow: hidden; }
+.reading-desk .app-shell { display: block; height: 100vh; min-height: 0; }
+.reading-desk .workspace { height: 100%; overflow: auto; }
+.reading-desk :is(.sidebar, .mobile-menu, .ptb-root, #ptu-home-link, #eyebrow, #hotTopicsHeading span) {
+  display: none;
+}
+.reading-desk .topbar { height: 60px; padding-inline: clamp(12px, 2.5vw, 27px); gap: 8px; }
+.reading-desk .topbar h1 { margin: 0; font-size: var(--fs-18, 18px); white-space: nowrap; }
+.reading-desk .top-actions { gap: 6px; min-width: 0; }
+.reading-desk .top-actions .icon-button { width: 44px; height: 44px; flex: none; }
+.reading-desk .search-box { width: clamp(90px, 32vw, 320px); min-width: 0; }
+.reading-desk .search-box input { display: block; width: 100%; min-width: 0; font-size: max(16px, var(--fs-13)); }
+.reading-desk .toolbar { flex-wrap: wrap; overflow: visible; }
+.reading-desk .filter-group { flex: 0 1 auto; flex-wrap: wrap; }
+.reading-desk .content-grid { min-height: calc(100vh - 120px); }
+.reading-desk #loadMoreButton[hidden] { display: none; }
+.reading-desk .article-main { overflow-wrap: anywhere; }
+.reading-desk #hotTopicsView { overflow: visible; scrollbar-gutter: auto; }
+.reading-desk #hotTopicsSettings { min-height: 44px; }
+.reading-desk .hot-topics-active .hot-kicker { display: none; }
+.reading-desk #readerSourcesButton, .reading-desk .reader-sources-control, #readerSourcesDialog button {
+  display: inline-block;
+  min-height: 44px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  white-space: nowrap;
+}
+.reading-desk .hot-topics-active #readerSourcesButton, .reading-desk .desk-hot-settings .dialog-tabs { display: none; }
+.reading-desk #hotTopicsSources { padding-top: 12px; }
+#readerSourcesDialog {
+  width: min(520px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  background: var(--surface);
+  color: var(--text);
+}
+#readerSourcesDialog::backdrop { background: #0e18108c; }
+#readerSourcesForm h2 { margin: 0; }
+#readerSourcesForm p { margin: 6px 0; color: var(--muted); }
+#readerSourceOptions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); gap: 4px 12px; }
+#readerSourceOptions label { display: flex; align-items: center; gap: 6px; min-height: 44px; cursor: pointer; overflow-wrap: anywhere; }
+#readerSourceOptions input { accent-color: var(--accent); width: 18px; height: 18px; flex: none; }
+#readerSourcesForm footer { display: flex; justify-content: flex-end; gap: 8px; }
+#readerSourcesForm #readerSourcesSave { background: var(--accent-2); color: var(--accent); }
+@media (min-width: 901px) {
+  .reading-desk .reader-panel { top: 120px; height: calc(100vh - 120px); }
+}
+@media (max-width: 620px) {
+  .reading-desk .search-box { padding-inline: 8px; }
+  .reading-desk .topbar { gap: 4px; padding-inline: 8px; }
+  .reading-desk .top-actions { gap: 4px; }
+  .reading-desk .top-actions .icon-button { width: 38px; }
+  .reading-desk .hot-topics-filters { flex-wrap: wrap; }
+}

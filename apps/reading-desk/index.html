@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f5f5f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#171c19" media="(prefers-color-scheme: dark)">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="打开 RSS Orbit、ChatGPT、Muse，随手记下阅读笔记。">
+<title>Reading Desk · 阅读工作台</title>
+<link rel="stylesheet" href="styles.css?v=20261123-2">
+</head>
+<body>
+<div class="shell">
+  <header class="header">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">▤</span>
+      <strong>Reading Desk</strong>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="阅读栏目">
+      <button id="tab-rss" type="button" role="tab" aria-controls="panel-rss" aria-selected="true" data-tab="rss">RSS Orbit</button>
+      <button id="tab-gpt" type="button" role="tab" aria-controls="panel-gpt" aria-selected="false" data-tab="gpt">ChatGPT</button>
+      <button id="tab-muse" type="button" role="tab" aria-controls="panel-muse" aria-selected="false" data-tab="muse">Muse</button>
+      <button id="tab-memo" type="button" role="tab" aria-controls="panel-memo" aria-selected="false" data-tab="memo">Memo</button>
+    </nav>
+  </header>
+  <main class="main">
+    <section class="panel rss-panel" id="panel-rss" role="tabpanel" aria-labelledby="tab-rss">
+      <div class="sectionbar">
+        <div class="subtabs" aria-label="RSS 阅读模式">
+          <button type="button" class="on" data-rss-view="frequent" aria-pressed="true">常用</button>
+          <button type="button" data-rss-view="hot" aria-pressed="false">今日热点</button>
+        </div>
+        <a href="../rss-dashboard/?reader=1&amp;view=frequent" target="_blank" rel="noopener noreferrer" class="quiet-link" id="rss-open">独立打开 ↗</a>
+      </div>
+      <div class="rss-frame-wrap"><iframe title="RSS Orbit 原生阅读器" id="rss-frame" src="../rss-dashboard/?reader=1&amp;view=frequent" referrerpolicy="same-origin"></iframe></div>
+    </section>
+    <section class="panel content-panel" id="panel-gpt" role="tabpanel" aria-labelledby="tab-gpt" hidden>
+      <div class="intro"><h1>ChatGPT 定时任务</h1><p>全部时间为太平洋时间。</p></div>
+      <div class="heading"><h2>工作日简报</h2><span>周一至周五 · 09:00</span></div>
+      <div class="cards two">
+        <article class="task-card priority"><span class="glyph" aria-hidden="true">◉</span><div class="task-copy"><h3>工作日 RSS AI 简报</h3><p>中文 RSS 与 AI 新闻、过去 24 小时的重要更新</p><span class="meta">周一至周五</span></div><a class="task-link" data-task="rss-ai" href="https://chatgpt.com/schedules" target="_blank" rel="noopener noreferrer">打开任务列表 ↗</a></article>
+        <article class="task-card priority"><span class="glyph" aria-hidden="true">$</span><div class="task-copy"><h3>工作日持仓与机会扫描</h3><p>持仓买卖信号、基本面与操作速查</p><span class="meta">周一至周五</span></div><a class="task-link" data-task="investing" href="https://chatgpt.com/schedules" target="_blank" rel="noopener noreferrer">打开任务列表 ↗</a></article>
+      </div>
+      <div class="heading"><h2>其他活跃任务</h2><span>每日 / 每周</span></div>
+      <div class="cards">
+        <article class="task-card"><span class="glyph" aria-hidden="true">✉</span><div class="task-copy"><h3>Email Monitor</h3><p>重要邮件、账单与待回复消息</p><span class="meta">每天 · 08:35</span></div><a class="task-link" data-task="email" href="https://chatgpt.com/schedules" target="_blank" rel="noopener noreferrer">打开任务列表 ↗</a></article>
+        <article class="task-card"><span class="glyph" aria-hidden="true">◇</span><div class="task-copy"><h3>羊毛、退款与奖励扫描</h3><p>每周值得关注的优惠与权益</p><span class="meta">周一 · 09:28</span></div><a class="task-link" data-task="deals" href="https://chatgpt.com/schedules" target="_blank" rel="noopener noreferrer">打开任务列表 ↗</a></article>
+        <article class="task-card"><span class="glyph" aria-hidden="true">✧</span><div class="task-copy"><h3>GenAI Research Picks</h3><p>每周 3–5 篇高价值论文和技术报告</p><span class="meta">周五 · 09:00</span></div><a class="task-link" data-task="papers" href="https://chatgpt.com/schedules" target="_blank" rel="noopener noreferrer">打开任务列表 ↗</a></article>
+      </div>
+      <div class="foot-actions"><a class="primary-link" href="https://chatgpt.com/schedules" target="_blank" rel="noopener noreferrer">打开 ChatGPT Scheduled · 所有任务 ↗</a><button id="gpt-links-toggle" type="button" class="text-button" aria-expanded="false" aria-controls="gpt-link-settings">设置直达链接</button></div>
+      <form class="settings" id="gpt-link-settings" novalidate hidden>
+        <h3>一次性设置 · 直接打开指定会话</h3>
+        <p>粘贴已登录的 ChatGPT 会话地址，留空则打开任务列表。链接仅保存在此浏览器。</p>
+        <div id="task-link-form" class="link-fields"></div>
+        <button class="small-primary" type="submit">保存链接</button><span id="task-link-status" role="status"></span>
+      </form>
+    </section>
+    <section class="panel content-panel" id="panel-muse" role="tabpanel" aria-labelledby="tab-muse" hidden>
+      <div class="intro"><h1>Muse</h1><p>从 Muse 首页进入 Spaces 或定时任务，也可以保存已验证的直达链接。</p></div>
+      <div class="cards two">
+        <article class="task-card muse-card"><span class="glyph" aria-hidden="true">▦</span><div class="task-copy"><h3>Spaces · 我的空间</h3><p>打开你创建的专题空间与动态内容</p></div><a id="muse-spaces-link" class="task-link" href="https://applink.muse.ai/" target="_blank" rel="noopener noreferrer">打开 Muse ↗</a></article>
+        <article class="task-card muse-card"><span class="glyph" aria-hidden="true">◷</span><div class="task-copy"><h3>定时任务</h3><p>查看 Muse 的日常与周期性任务结果</p></div><a id="muse-tasks-link" class="task-link" href="https://applink.muse.ai/" target="_blank" rel="noopener noreferrer">打开 Muse ↗</a></article>
+      </div>
+      <div class="secondary-card"><div><h3>Muse Watch Inbox · 每日监视</h3><p>你已部署在 PT Universe 的监视报告收件箱</p></div><a href="../watch-inbox/" target="_blank" rel="noopener noreferrer" class="quiet-link">打开 ↗</a></div>
+      <div class="foot-actions"><a class="primary-link" href="https://muse.ai/" target="_blank" rel="noopener noreferrer">Muse 网页 ↗</a><a class="quiet-link" href="https://apps.apple.com/us/app/muse-from-meta/id6760173601" target="_blank" rel="noopener noreferrer">App Store ↗</a><button id="muse-links-toggle" class="text-button" type="button" aria-expanded="false" aria-controls="muse-link-settings">设置直达链接</button></div>
+      <form class="settings" id="muse-link-settings" novalidate hidden>
+        <h3>自定义 Muse 直达链接</h3>
+        <p>粘贴你在 Muse 中打开过的 HTTPS 地址，留空则使用官方入口。链接仅保存在此浏览器。</p>
+        <label>Spaces 入口<input id="muse-spaces-input" type="url" placeholder="https://muse.ai/…" inputmode="url" autocomplete="off" spellcheck="false"></label>
+        <label>定时任务入口<input id="muse-tasks-input" type="url" placeholder="https://muse.ai/…" inputmode="url" autocomplete="off" spellcheck="false"></label>
+        <button class="small-primary" type="submit">保存链接</button><span id="muse-link-status" role="status"></span>
+      </form>
+    </section>
+    <section class="panel content-panel memo-panel" id="panel-memo" role="tabpanel" aria-labelledby="tab-memo" hidden>
+      <div class="memo-head"><div><h1>Memo</h1><p>仅保存在此浏览器</p></div><span id="memo-status" role="status" aria-live="polite">正在载入…</span></div>
+      <div id="memo-conflict" class="memo-conflict" hidden><p>另一标签页已保存新版。当前内容仍可复制或导出。</p><button type="button" id="memo-latest">载入已保存版本</button></div>
+      <label for="memo-text" class="sr-only">备忘录正文</label>
+      <textarea id="memo-text" placeholder="想到了什么，就先写在这里…" spellcheck="true" disabled></textarea>
+      <div class="memo-actions"><button type="button" id="memo-copy">复制</button><button type="button" id="memo-export">导出 TXT</button><button type="button" id="memo-clear" class="danger">清空</button></div>
+      <div class="memo-footer"><span id="memo-action-status" role="status"></span><a href="../idea-pad/" target="_blank" rel="noopener noreferrer" class="quiet-link">长期笔记请用 Idea Pad ↗</a></div>
+    </section>
+  </main>
+</div>
+<script src="memo-store.js?v=20261123-2"></script>
+<script src="app.js?v=20261123-2"></script>
+</body>
+</html>
