@@ -31,18 +31,23 @@ jobs:
     - run: node scripts/decision/test-models.mjs
     - run: node scripts/decision/test-meals.mjs
     - run: node scripts/investment/test.mjs
-    - run: npm install --no-save --package-lock=false playwright@1.51.1
+    - run: npm install --no-save --package-lock=false playwright@1.58.2
     - run: npx playwright install --with-deps chromium
-    - name: Verify browser flows
+    - name: Verify investment browser flows
       run: |
         python -m http.server 8765 --bind 127.0.0.1 > /tmp/pt-server.log 2>&1 &
+        trap 'kill "$!" 2>/dev/null || true' EXIT
+        node scripts/investment/browser-test.cjs
+        node scripts/investment/holdings-market-test.cjs
+        node scripts/investment/nexus-tabs-test.cjs
+    - name: Verify other decision browser flows
+      run: |
+        python -m http.server 8765 --bind 127.0.0.1 > /tmp/pt-server.log 2>&1 &
+        trap 'kill "$!" 2>/dev/null || true' EXIT
         node scripts/decision/muse-submit-test.cjs
         node scripts/decision/browser-test.cjs
         node scripts/decision/workspace-test.cjs
         node scripts/decision/automatic-test.cjs
-        node scripts/investment/browser-test.cjs
-        node scripts/investment/holdings-market-test.cjs
-        node scripts/investment/nexus-tabs-test.cjs
         node scripts/decision/nexus-meal-test.cjs
         node scripts/decision/meal-inputs-test.cjs
         node scripts/decision/life-ai-browser-test.cjs
