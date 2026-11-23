@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="styles.css?v=20260828-11">
   <link rel="stylesheet" href="hot-topics.css?v=20261029-1">
   <link rel="stylesheet" href="../../pt-bridge.css?v=20260827-1">
+  <link rel="stylesheet" href="reading-desk.css?v=20261123-2">
 </head>
 <body>
   <div class="app-shell">
@@ -52,6 +53,7 @@
         </div>
         <div class="top-actions">
           <label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="搜索标题、摘要或来源" autocomplete="off"><kbd>/</kbd></label>
+          <button type="button" class="reader-sources-control" id="readerSourcesButton" aria-haspopup="dialog">常用源</button>
           <button class="icon-button" id="refreshButton" aria-label="刷新数据" title="刷新数据">↻</button>
           <button class="icon-button" id="themeButton" aria-label="切换主题" title="切换主题">◐</button>
         </div>
@@ -106,6 +108,16 @@
       </div>
     </main>
   </div>
+
+  <dialog id="readerSourcesDialog" aria-labelledby="readerSourcesTitle">
+    <form id="readerSourcesForm" method="dialog">
+      <h2 id="readerSourcesTitle">选择常用源</h2>
+      <p>选择要在 Reading Desk 常用列表展示的订阅。</p>
+      <div id="readerSourceOptions"></div>
+      <p id="readerSourcesStatus" role="status"></p>
+      <footer><button value="cancel">取消</button><button id="readerSourcesSave" value="save">保存</button></footer>
+    </form>
+  </dialog>
 
   <dialog id="manageDialog" class="manage-dialog">
     <form method="dialog" class="dialog-shell">
@@ -168,8 +180,8 @@
 
   <div id="toast" role="status"></div>
   <a id="ptu-home-link" href="../../" aria-label="返回 PT Universe"><i aria-hidden="true">‹</i><span>PT Universe</span></a>
-  <script src="app.js?v=20260908-scroll-top"></script>
-  <script src="hot-topics.js?v=20261029-1"></script>
+  <script src="app.js?v=20261123-reading-desk"></script>
+  <script src="hot-topics.js?v=20261123-reading-desk"></script>
 <script src="../../pt-sync.js?v=20260827-1"></script>
 <script src="../../pt-bridge.js?v=20260827-1"></script>
 </body>

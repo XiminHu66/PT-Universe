@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="../stock-alert/styles.css?v=20261112">
   <link rel="stylesheet" href="../_decision/ui.css?v=2">
   <link rel="stylesheet" href="../_decision/workspace.css?v=1">
-  <link rel="stylesheet" href="./desk.css?v=10">
+  <link rel="stylesheet" href="./desk.css?v=11">
   <link rel="stylesheet" href="../../pt-bridge.css">
   <link rel="stylesheet" href="../daily-nexus/embedded.css?v=20261112-review">
 </head>
@@ -76,7 +76,9 @@
       </section>
       <nav class="investment-evidence" aria-label="标的详情">
         <button type="button" data-evidence="overview" aria-pressed="true">操作计划</button>
+        <button type="button" data-evidence="strategy" aria-pressed="false">策略与回测</button>
         <button type="button" data-evidence="technical" aria-pressed="false">技术指标</button>
+        <button type="button" data-evidence="simulation" aria-pressed="false">情景模拟</button>
         <button type="button" data-evidence="options" aria-pressed="false">期权池</button>
         <button type="button" data-evidence="news" aria-pressed="false">新闻</button>
         <button type="button" data-evidence="ranges" aria-pressed="false">自定义区间</button>
@@ -84,14 +86,12 @@
       <section class="decision-overview" data-evidence-panel="overview" aria-label="操作计划和走势">
         <div class="decision-grid-layout">
           <section id="positionDecision" class="position-decision card" aria-live="polite"></section>
-          <section class="kronos-panel card" aria-labelledby="kronos-title">
-            <div class="kronos-heading">
-              <h2 id="kronos-title">Kronos · 10 个交易日</h2>
-              <span id="kronosBatchStatus" class="kronos-batch-status" role="status" aria-label="Kronos 批次进度"></span>
-              <button id="kronosRun" type="button" hidden>生成情景</button>
+          <section class="strategy-quick card" aria-labelledby="strategy-quick-title">
+            <div class="rule-heading">
+              <h2 id="strategy-quick-title">规则核对</h2>
+              <button type="button" data-open-strategy>看条件与回测</button>
             </div>
-            <div id="kronosResult" aria-live="polite"></div>
-            <p id="kronosStatus" role="status">正在读取最近一次模拟</p>
+            <div id="strategy-quick" aria-live="polite">等待读取已收盘日线</div>
           </section>
         </div>
         <section class="chart-card card" aria-labelledby="chart-title">
@@ -114,6 +114,37 @@
             <div><span>52周区间</span><strong id="stat52">—</strong></div>
           </div>
         </section>
+      </section>
+
+      <section class="strategy-detail" data-evidence-panel="strategy" hidden aria-label="策略与回测">
+        <section class="card strategy-evidence" aria-labelledby="strategy-title">
+          <div class="rule-heading">
+            <h2 id="strategy-title">收盘规则</h2>
+            <button type="button" id="strategy-retry">核对日线</button>
+          </div>
+          <div id="strategy-rules" aria-live="polite">等待读取已收盘日线</div>
+        </section>
+        <section class="card strategy-replay" aria-labelledby="strategy-replay-title">
+          <div class="rule-heading">
+            <h2 id="strategy-replay-title">组合历史表现</h2>
+            <div class="period-tabs" role="group" aria-label="回测区间">
+              <button type="button" data-strategy-period="recent" aria-pressed="true">2025 年起</button>
+              <button type="button" data-strategy-period="frozen" aria-pressed="false">冻结后</button>
+              <button type="button" data-strategy-period="long" aria-pressed="false">近十年</button>
+            </div>
+          </div>
+          <div id="strategy-replay"></div>
+        </section>
+      </section>
+
+      <section class="kronos-panel card" data-evidence-panel="simulation" hidden aria-labelledby="kronos-title">
+        <div class="kronos-heading">
+          <h2 id="kronos-title">Kronos · 10 个交易日</h2>
+          <span id="kronosBatchStatus" class="kronos-batch-status" role="status" aria-label="Kronos 批次进度"></span>
+          <button id="kronosRun" type="button" hidden>生成情景</button>
+        </div>
+        <div id="kronosResult" aria-live="polite"></div>
+        <p id="kronosStatus" role="status">正在读取最近一次模拟</p>
       </section>
 
       <section class="analysis-card card" data-evidence-panel="technical" hidden>
@@ -242,8 +273,8 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <script type="module" src="../_decision/workspace.js?v=20261112-audit"></script>
-<script type="module" src="../stock-alert/app.js?v=20261112-stop-zones"></script>
-<script type="module" src="./kronos.js?v=7"></script>
+<script type="module" src="../stock-alert/app.js?v=20261123-swing"></script>
+<script type="module" src="./kronos.js?v=8"></script>
 <script type="module" src="./portfolio.js?v=20261112-model-batch3"></script>
 <script type="module" src="./audit.js?v=20261112-model-batch3"></script>
 <script src="../../pt-sync.js"></script>

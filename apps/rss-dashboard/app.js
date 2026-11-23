@@ -1,10 +1,70 @@
 const DATA_URL='data/feed.json';
+const readerParams = new URLSearchParams(location.search);
+const readingDeskMode = readerParams.get('reader') === '1';
+document.documentElement.classList.toggle('reading-desk', readingDeskMode);
 const DEFAULT_PROXY_URL='https://rss-orbit-proxy.summer07-nanjolno.workers.dev';
 const MAX_ITEMS_PER_SOURCE=100;
 const DEFAULT_CATEGORIES={finance:{name:'财经',icon:'↗',color:'#dd8a35'},world:{name:'时事',icon:'◎',color:'#5b8fd7'},tech:{name:'科技',icon:'◇',color:'#7b72d8'},game:{name:'游戏',icon:'✦',color:'#cf6f85'},other:{name:'其他',icon:'○',color:'#7c8b83'}};
 const KEYS={read:'pt.rss.read',saved:'pt.rss.saved',hidden:'pt.rss.hidden',deleted:'pt.rss.deleted',sourceOverrides:'pt.rss.sourceOverrides',categories:'pt.rss.categories',health:'pt.rss.health',theme:'pt.rss.theme',custom:'pt.rss.custom',customItems:'pt.rss.customItems',readerRatio:'pt.rss.readerRatio',fontScale:'pt.rss.fontScale',proxyUrl:'pt.rss.proxyUrl'};
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const store={get(k,f){try{const v=localStorage.getItem(k);return v===null?f:JSON.parse(v)}catch{return f}},set(k,v){localStorage.setItem(k,JSON.stringify(v))}};
+const readerFavoritesKey = 'pt.rss.readerFavorites';
+const storedReaderFavorites = readingDeskMode ? store.get(readerFavoritesKey, []) : [];
+let readerFavorites = new Set(Array.isArray(storedReaderFavorites) ? storedReaderFavorites : []);
+let readerSourcesReady = false;
+
+function availableReaderSources() {
+  return allSources().filter(source => !hiddenIds.has(source.id) && !deletedIds.has(source.id));
+}
+
+function renderReaderSourceOptions() {
+  const list = $('#readerSourceOptions');
+  const sources = availableReaderSources();
+  list.innerHTML = sources.length
+    ? sources.map(source => `<label><input type="checkbox" name="source" value="${esc(source.id)}"${readerFavorites.has(source.id) ? ' checked' : ''}> <span>${esc(source.name)}</span></label>`).join('')
+    : `<p>${readerSourcesReady ? '暂无可用订阅源。' : '正在读取订阅源…'}</p>`;
+  $('#readerSourcesSave').disabled = !sources.length;
+}
+
+function openReaderSourcePicker() {
+  const dialog = $('#readerSourcesDialog');
+  if (dialog.open) return;
+  $('#readerSourcesStatus').textContent = '';
+  renderReaderSourceOptions();
+  dialog.showModal();
+}
+
+function bindReaderSources() {
+  $('#readerSourcesButton').onclick = openReaderSourcePicker;
+  $('#articleList').addEventListener('click', event => {
+    if (event.target.closest('[data-reader-sources]')) openReaderSourcePicker();
+  });
+  $('#readerSourcesForm').addEventListener('submit', event => {
+    if (event.submitter?.value === 'cancel') return;
+    event.preventDefault();
+    const selection = new FormData(event.currentTarget).getAll('source');
+    try {
+      store.set(readerFavoritesKey, selection);
+    } catch {
+      $('#readerSourcesStatus').textContent = '保存失败。请检查浏览器存储设置。';
+      return;
+    }
+    readerFavorites = new Set(selection);
+    $('#readerSourcesDialog').close();
+    if (selectedId && !readerFavorites.has(currentArticle()?.source_id)) closeReader();
+    visibleLimit = 40;
+    renderList();
+    resetFeedScroll();
+  });
+  window.addEventListener('storage', event => {
+    if (event.key !== readerFavoritesKey && event.key !== null) return;
+    const sources = store.get(readerFavoritesKey, []);
+    readerFavorites = new Set(Array.isArray(sources) ? sources : []);
+    if (selectedId && !readerFavorites.has(currentArticle()?.source_id)) closeReader();
+    renderList();
+  });
+}
+
 function loadCategories(){const saved=store.get(KEYS.categories,[]),seen=new Set(),entries=[];if(Array.isArray(saved))saved.forEach(item=>{const base=DEFAULT_CATEGORIES[item?.id];if(!base||seen.has(item.id))return;seen.add(item.id);entries.push([item.id,{...base,name:String(item.name||base.name).trim().slice(0,18)||base.name}])});Object.entries(DEFAULT_CATEGORIES).forEach(([id,value])=>{if(!seen.has(id))entries.push([id,{...value}])});return Object.fromEntries(entries)}
 let CATEGORIES=loadCategories();
 let data={items:[],sources:[],stats:{},generated_at:null};
@@ -52,6 +112,7 @@ function sourceInitial(name=''){return [...name.trim()][0]||'R'}
 
 function filteredItems(){
   let items=enabledItems();
+  if(readingDeskMode)items=items.filter(item=>readerFavorites.has(item.source_id));
   if(view==='today')items=items.filter(x=>isToday(x.published_at));
   if(view==='unread')items=items.filter(x=>!readIds.has(x.id));
   if(view==='saved')items=items.filter(x=>savedIds.has(x.id));
@@ -81,7 +142,7 @@ function titleState(){
   if(category){title=categoryInfo(category).name;eye='CATEGORY'}
   if(feed){title=allSources().find(x=>x.id===feed)?.name||'订阅源';eye='SOURCE'}
   if(query){title=`搜索：${query}`;eye='SEARCH'}
-  $('#viewTitle').textContent=title;$('#eyebrow').textContent=eye;
+  $('#viewTitle').textContent=readingDeskMode?'常用':title;$('#eyebrow').textContent=eye;
 }
 
 function articleCard(item){
@@ -93,8 +154,13 @@ function articleCard(item){
 
 function renderList(){
   renderedItems=filteredItems();const shown=renderedItems.slice(0,visibleLimit);
-  $('#resultCount').textContent=renderedItems.length;$('#summaryText').textContent=query?'匹配标题、摘要、作者和来源':`${allSources().filter(x=>!hiddenIds.has(x.id)).length} 个来源 · 中文优先`;
-  if(!shown.length){$('#articleList').innerHTML='<div class="empty-state"><div><span>◌</span><h2>这里暂时是空的</h2><p>换一个筛选条件，或刷新订阅数据。</p></div></div>'}
+  const selectedSources = readingDeskMode && availableReaderSources().filter(source => readerFavorites.has(source.id)).length;
+  $('#resultCount').textContent=renderedItems.length;$('#summaryText').textContent=query?'匹配标题、摘要、作者和来源':readingDeskMode?`已选 ${selectedSources} 个来源`:`${allSources().filter(x=>!hiddenIds.has(x.id)).length} 个来源 · 中文优先`;
+  if (readingDeskMode && !readerSourcesReady) {
+    $('#articleList').innerHTML = '<div class="empty-state"><p>正在读取订阅源…</p></div>';
+  } else if (readingDeskMode && !selectedSources) {
+    $('#articleList').innerHTML = '<div class="empty-state"><div><h2>还没有选定常用源</h2><p>选好之后，这里只显示来自这些订阅的文章。</p><button type="button" class="reader-sources-control" data-reader-sources>选择常用源</button></div></div>';
+  } else if(!shown.length){$('#articleList').innerHTML='<div class="empty-state"><div><span>◌</span><h2>这里暂时是空的</h2><p>换一个筛选条件，或刷新订阅数据。</p></div></div>'}
   else $('#articleList').innerHTML=shown.map(articleCard).join('');
   $$('.article-image').forEach(img=>wireImage(img,240));
   $('#loadMoreButton').hidden=shown.length>=renderedItems.length;
@@ -226,14 +292,21 @@ function renderProxySettings(state=''){const input=$('#proxyUrlInput'),status=$(
 async function connectProxy(){const input=$('#proxyUrlInput'),button=$('#proxyConnectButton'),raw=input.value.trim();if(!raw){store.set(KEYS.proxyUrl,'');renderProxySettings();toast('已关闭实时刷新代理');return}const url=safeUrl(raw);if(!url||!url.startsWith('https://'))return toast('请输入完整的 HTTPS Worker 地址');const base=url.replace(/\/+$/,'');button.disabled=true;button.textContent='正在测试…';try{const response=await fetch(`${base}/health?t=${Date.now()}`,{cache:'no-store'}),payload=await response.json();if(!response.ok||payload?.service!=='rss-orbit-proxy'||payload?.feeds!==12)throw new Error();store.set(KEYS.proxyUrl,base);renderProxySettings('ok');toast('Cloudflare Worker 已连接')}catch{renderProxySettings('error');toast('Worker 连接失败，请检查部署地址')}finally{button.disabled=false;button.textContent='保存并测试'}}
 
 function setTheme(theme){document.documentElement.dataset.theme=theme;store.set(KEYS.theme,theme);document.querySelector('meta[name="theme-color"]').content=theme==='dark'?'#0d1210':'#f4f7f4'}
-function applyReaderRatio(value=store.get(KEYS.readerRatio,42),persist=false){const requested=Math.min(72,Math.max(28,Number(value)||42));if(persist)store.set(KEYS.readerRatio,requested);const input=$('#readerWidthInput'),output=$('#readerWidthOutput');if(innerWidth<=900){if(input){input.max=72;input.value=requested}if(output)output.textContent=`${requested}%`;return}const side=246,listMin=300,readerMin=320,available=Math.max(0,innerWidth-side),maxWidth=Math.max(readerMin,available-listMin),width=Math.min(maxWidth,Math.max(readerMin,Math.round(available*requested/100))),actual=Math.round(width/available*100),maxRatio=Math.min(72,Math.round(maxWidth/available*100));document.documentElement.style.setProperty('--reader',`${width}px`);if(input){input.max=Math.max(28,maxRatio);input.value=Math.min(requested,maxRatio)}if(output)output.textContent=`${actual}%`}
+function applyReaderRatio(value=store.get(KEYS.readerRatio,42),persist=false){const requested=Math.min(72,Math.max(28,Number(value)||42));if(persist)store.set(KEYS.readerRatio,requested);const input=$('#readerWidthInput'),output=$('#readerWidthOutput');if(innerWidth<=900){if(input){input.max=72;input.value=requested}if(output)output.textContent=`${requested}%`;return}const side=readingDeskMode?0:246,listMin=300,readerMin=320,available=Math.max(0,innerWidth-side),maxWidth=Math.max(readerMin,available-listMin),width=Math.min(maxWidth,Math.max(readerMin,Math.round(available*requested/100))),actual=Math.round(width/available*100),maxRatio=Math.min(72,Math.round(maxWidth/available*100));document.documentElement.style.setProperty('--reader',`${width}px`);if(input){input.max=Math.max(28,maxRatio);input.value=Math.min(requested,maxRatio)}if(output)output.textContent=`${actual}%`}
 function applyFontScale(value=store.get(KEYS.fontScale,110),persist=false){const scale=Math.min(140,Math.max(90,Number(value)||110));if(persist)store.set(KEYS.fontScale,scale);for(let size=8;size<=40;size++)document.documentElement.style.setProperty(`--fs-${size}`,`${(size*scale/100).toFixed(2)}px`);const input=$('#fontScaleInput'),output=$('#fontScaleOutput');if(input)input.value=scale;if(output)output.textContent=`${scale}%`}
 function closeSidebar(){$('#sidebar').classList.remove('open');$('#scrim').classList.remove('show')}
 function openManage(){resetSourceForm();renderManager();renderProxySettings();$('#manageDialog').showModal();closeSidebar()}
 function showPane(name){$$('[data-pane]').forEach(x=>x.classList.toggle('active',x.dataset.pane===name));$$('.dialog-pane').forEach(x=>x.classList.toggle('active',x.id===`pane-${name}`))}
 function syncStatus(){if(manualRefreshAt){$('#syncDot').className='ok';$('#syncText').textContent=`手动刷新于 ${fullDate(manualRefreshAt)}`;return}const stamp=data.generated_at?new Date(data.generated_at):null;if(stamp&&Number.isFinite(stamp.getTime())){$('#syncDot').className='ok';$('#syncText').textContent=`Cloudflare 更新于 ${fullDate(stamp)}`}else{$('#syncDot').className='error';$('#syncText').textContent='等待 Cloudflare 首次抓取'}}
 async function loadCloudflareStatus(){const proxy=proxyBase();if(!proxy)return;try{const response=await fetch(`${proxy}/health?t=${Date.now()}`,{cache:'no-store'}),payload=await response.json();if(!response.ok)return;if(payload?.last_refresh)data.generated_at=payload.last_refresh;const checkedAt=payload?.last_refresh||new Date().toISOString();if(payload?.source_health){Object.entries(payload.source_health).forEach(([id,value])=>setSourceHealth(id,{state:value?.ok?'ok':'error',checked_at:value?.fetched_at||checkedAt,cache:'CRON',error:value?.ok?'':healthError(value?.error),item_count:sourceHealth[id]?.item_count},false));store.set(KEYS.health,sourceHealth)}else if(payload?.last_result){const failed=new Set(payload.last_result.failed||[]);defaultSources().forEach(source=>setSourceHealth(source.id,{state:failed.has(source.id)?'error':'ok',checked_at:checkedAt,cache:'CRON',error:failed.has(source.id)?'定时抓取失败':''},false));store.set(KEYS.health,sourceHealth)}}catch{}}
-async function loadData(){const btn=$('#refreshButton');btn.classList.add('loading');try{const response=await fetch(DATA_URL);if(!response.ok)throw new Error();const payload=await response.json();if(Array.isArray(payload.items))data={...payload,items:applySourcePreferences(payload.items),generated_at:null};const cached=await refreshDefaultFeeds(false);await loadCloudflareStatus();await refreshCustomFeeds();syncStatus();renderAll();if(!cached.sourceCount)toast('Cloudflare 缓存暂时不可用，正在显示内置备用数据')}catch{$('#syncDot').className='error';$('#syncText').textContent='数据缓存暂时不可用';renderAll()}finally{btn.classList.remove('loading')}}
+async function loadData(){const btn=$('#refreshButton');btn.classList.add('loading');try{const response=await fetch(DATA_URL);if(!response.ok)throw new Error();const payload=await response.json();if(Array.isArray(payload.items))data={...payload,items:applySourcePreferences(payload.items),generated_at:null};
+if (readingDeskMode) renderReaderSnapshot();
+const cached=await refreshDefaultFeeds(false);await loadCloudflareStatus();await refreshCustomFeeds();syncStatus();renderAll();if(!cached.sourceCount)toast('Cloudflare 缓存暂时不可用，正在显示内置备用数据')}catch{$('#syncDot').className='error';$('#syncText').textContent='数据缓存暂时不可用';renderAll()}finally{btn.classList.remove('loading');if(readingDeskMode&&!readerSourcesReady)renderReaderSnapshot()}}
+function renderReaderSnapshot() {
+  readerSourcesReady = true;
+  if ($('#readerSourcesDialog').open && $('#readerSourcesSave').disabled) renderReaderSourceOptions();
+  renderAll();
+}
 async function refreshNow(){const btn=$('#refreshButton');if(btn.classList.contains('loading'))return;btn.classList.add('loading');btn.disabled=true;toast(proxyBase()?'正在通过 Cloudflare 即时刷新全部 RSS…':'正在直接读取 RSS 源…');try{const defaults=await refreshDefaultFeeds(true),custom=await refreshCustomFeeds(),fresh=defaults.sourceCount+custom.sourceCount,total=defaults.totalSources+custom.totalSources,itemCount=defaults.itemCount+custom.itemCount,unavailable=total-fresh;if(fresh)manualRefreshAt=new Date();syncStatus();if($('#manageDialog').open)renderManager();renderAll();if(fresh===total)toast(`全部 ${fresh} 个来源已实时刷新 · ${itemCount} 篇`);else if(fresh)toast(`实时更新 ${fresh}/${total} 个来源；${unavailable} 个请查看健康状态`);else toast('全部来源当前无法实时刷新，已保留已有内容')}finally{btn.classList.remove('loading');btn.disabled=false}}
 
 $$('.nav-item').forEach(x=>x.onclick=()=>{view=x.dataset.view;category=null;feed=null;quickFilter='all';visibleLimit=40;$$('.filter-pill').forEach(y=>y.classList.toggle('active',y.dataset.filter==='all'));renderAll();closeSidebar();resetFeedScroll()});
@@ -252,7 +325,8 @@ $('#fontScaleInput').oninput=e=>applyFontScale(e.target.value,true);
 $('#addFeedButton').onclick=saveSource;$('#cancelEditButton').onclick=resetSourceForm;$('#restoreSourcesButton').onclick=restoreDefaultSources;$('#exportButton').onclick=exportOpml;$('#opmlInput').onchange=e=>e.target.files?.[0]&&importOpml(e.target.files[0]);
 $('#resetStateButton').onclick=()=>{if(confirm('清除全部已读和稍后读记录吗？')){readIds.clear();savedIds.clear();saveSet(KEYS.read,readIds);saveSet(KEYS.saved,savedIds);renderAll();toast('阅读状态已清除')}};
 document.addEventListener('keydown',e=>{if(e.target.matches('input,select,textarea')||$('#manageDialog').open)return;if(e.key==='/'){e.preventDefault();$('#searchInput').focus()}if(['j','k'].includes(e.key.toLowerCase())){e.preventDefault();const idx=Math.max(0,renderedItems.findIndex(x=>x.id===selectedId)),next=e.key.toLowerCase()==='j'?Math.min(renderedItems.length-1,selectedId?idx+1:0):Math.max(0,idx-1);if(renderedItems[next]){selectArticle(renderedItems[next].id);document.querySelector(`[data-article="${CSS.escape(renderedItems[next].id)}"]`)?.scrollIntoView({block:'nearest'})}}if(e.key.toLowerCase()==='o'&&selectedId)openOriginal(selectedId);if(e.key.toLowerCase()==='s'&&selectedId)toggleSaved(selectedId);if(e.key.toLowerCase()==='m'&&selectedId)toggleRead(selectedId);if(e.key==='Escape')closeReader()});
-window.addEventListener('message',e=>{if(e.data?.type==='pt-universe-theme'&&['light','dark'].includes(e.data.theme))setTheme(e.data.theme)});
+window.addEventListener('message',e=>{if(readingDeskMode&&(e.origin!==location.origin||e.source!==parent))return;if(e.data?.type==='pt-universe-theme'&&['light','dark'].includes(e.data.theme))setTheme(e.data.theme)});
 window.addEventListener('resize',()=>applyReaderRatio(store.get(KEYS.readerRatio,42)));
 
+if(readingDeskMode)bindReaderSources();
 setTheme(store.get(KEYS.theme,matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));applyFontScale();applyReaderRatio();renderCategoryOptions();renderAll();loadData();

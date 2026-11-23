@@ -132,7 +132,7 @@ assert.equal(musicPolicyContext.freshPacificMorning('2026-07-03T14:32:00Z','2026
 assert.ok(workerSrc.includes("source!=='scheduled:08:31')try{result.games"));
 assert.ok(workerSrc.includes('gameCommit?'));
 const pagesWorkflow=fs.readFileSync('../../.github/workflows/pages.yml','utf8');
-assert.ok(pagesWorkflow.includes("str(sha!=deployed).lower()"),'Pages must skip already published source revisions');
+assert.match(pagesWorkflow,/str\(sha\s*!=\s*deployed\)\.lower\(\)/,'Pages must skip already published source revisions');
 assert.ok(pagesWorkflow.includes("steps.publication.outputs.deploy == 'true'"),'publication steps must use the source-revision gate');
 assert.ok(pagesWorkflow.includes("github.event.workflow_run.head_repository.full_name == github.repository"),'workflow handoff must be repository-bound');
 const gamesWorkflow=fs.readFileSync('../../.github/workflows/refresh-tsugi-games.yml','utf8');
