@@ -64,6 +64,7 @@ function marketSave(next){
   localStorage.setItem(KEYS.stocks,JSON.stringify(normalized));stocks=normalized;
   stockDraft=clone(stocks);renderEditableMarketGrid();
   if(settingsBackdrop.classList.contains('show'))renderStockManager();
+  window.PTWatchlistWidget?.changed();
 }
 function renderEditableMarketGrid(){
   if(!marketBody)return;

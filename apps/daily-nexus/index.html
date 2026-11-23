@@ -947,7 +947,7 @@
 <meta name="apple-mobile-web-app-title" content="DeskBoard" />
 <script type="module" src="https://widgets.tradingview-widget.com/w/en/tv-single-ticker.js"></script>
 <title>DeskBoard · Daily Nexus Integrated</title>
-<link rel="stylesheet" href="./market-editor.css?v=20261117e">
+<link rel="stylesheet" href="./market-editor.css?v=20261123-widget">
 <style>
 :root{
   color-scheme:dark;
@@ -1239,7 +1239,7 @@ button{cursor:pointer}
   <section class="card section market">
     <header class="section-head">
       <div class="section-title"><span class="pulse"></span>MARKET <span id="watchCount" class="section-sub"></span></div>
-      <div class="market-tools"><button type="button" id="marketAdd" aria-label="添加看板标的" onclick="openMarketEditor()">＋</button></div>
+      <div class="market-tools"><button type="button" id="widgetSyncOpen" aria-haspopup="dialog">手机同步</button><button type="button" id="marketAdd" aria-label="添加看板标的" onclick="openMarketEditor()">＋</button></div>
     </header>
     <div id="marketBody" class="market-body"></div>
   </section>
@@ -1401,7 +1401,21 @@ button{cursor:pointer}
 </div>
 <div id="toast" class="toast"></div>
 
-<script src="./market-editor.js?v=20261117e"></script>
+<dialog class="market-editor" id="widgetSyncDialog" aria-labelledby="widgetSyncTitle">
+  <form method="dialog">
+    <header><h2 id="widgetSyncTitle">手机自选股同步</h2><button class="market-editor-close" aria-label="关闭">×</button></header>
+    <p class="market-editor-note">启用后，网页保存自选股或参考价会推送给投资行动卡。首次在 PT Widgets 选「连接 Daily Nexus」并粘贴配对码。</p>
+    <p class="market-editor-note" id="widgetSyncStatus" role="status"></p>
+    <label>配对码<input id="widgetSyncCode" aria-label="配对码" type="text" readonly hidden autocomplete="off" spellcheck="false"></label>
+    <div class="market-editor-actions">
+      <button class="market-save" type="button" id="widgetSyncSetup">启用同步</button>
+      <button class="market-save" type="button" id="widgetSyncCopy" hidden>复制配对码</button>
+      <button class="market-cancel" type="button" id="widgetSyncPush" hidden>立即同步</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="./market-editor.js?v=20261123-widget"></script>
 <script>
 window.__NEXUS_ACTIVE__=true;
 window.addEventListener("message",e=>{
@@ -2000,7 +2014,7 @@ function removeStock(i){syncStockInputs();stockDraft.splice(i,1);renderStockMana
 function saveStockEdits(){
   syncStockInputs();stockDraft=stockDraft.filter(x=>x.symbol).map(normalizeMarketStock).filter(Boolean);
   if(!stockDraft.length){toast("至少保留一个标的");return}
-  stocks=clone(stockDraft);saveStored(KEYS.stocks,stocks);renderTradingView();toast("Watchlist 已保存")
+  stocks=clone(stockDraft);saveStored(KEYS.stocks,stocks);renderTradingView();window.PTWatchlistWidget?.changed();toast("Watchlist 已保存")
 }
 function resetStocks(){stockDraft=clone(DEFAULT_STOCKS);renderStockManager();toast("已载入默认股票，点保存生效")}
 function addStock(){
@@ -2110,7 +2124,7 @@ async function importConfigFile(ev){
   const f=ev.target.files?.[0];if(!f)return;
   try{
     const j=JSON.parse(await f.text());
-    if(Array.isArray(j.stocks)&&j.stocks.length){stocks=j.stocks.map(normalizeMarketStock).filter(Boolean);saveStored(KEYS.stocks,stocks)}
+    if(Array.isArray(j.stocks)&&j.stocks.length){stocks=j.stocks.map(normalizeMarketStock).filter(Boolean);saveStored(KEYS.stocks,stocks);window.PTWatchlistWidget?.changed()}
     if(Array.isArray(j.feeds)&&j.feeds.length){feeds=j.feeds;saveStored(KEYS.feeds,feeds)}
     if(["auto","light","dark"].includes(j.themeMode)){themeMode=j.themeMode;localStorage.setItem(KEYS.theme,themeMode)}
     if(j.layout&&typeof j.layout==="object"){layout={...DEFAULT_LAYOUT,...j.layout};saveStored(KEYS.layout,layout)}
@@ -2122,6 +2136,7 @@ async function importConfigFile(ev){
   ev.target.value=""
 }
 </script>
+<script src="./widget-sync.js?v=20261123-1"></script>
 
 </body>
 </html>
