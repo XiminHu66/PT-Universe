@@ -51,7 +51,7 @@ function researchTable(research, period) {
     const tone = x.ret > 0 ? 'positive' : x.ret < 0 ? 'negative' : '';
     return `<tr><th scope="row">${x.label}</th><td class="${tone}">${pct(x.ret, 2, true)}</td><td>${pct(x.win)}</td><td>${pct(x.dd)}</td><td>${x.trades || '—'}</td></tr>`;
   }).join('');
-  const note = period === 'long' ? '50/50 十年结果使用冻结模型回填训练前及训练期，作诊断对照。'
+  const note = period === 'long' ? '50/50 十年结果为历史回填，包含冻结模型训练前及训练期，供诊断对照。'
     : period === 'recent' ? '同口径关闭 Meta-L2 后，50/50 为 −4.40%，原规则为 −12.29%。' : '';
   return `<p class="rule-note">${date(sample.start)} 至 ${date(research.asOf)} · 自选 300 池 · 单边 12.5 bps</p>
     <div class="strategy-table-wrap"><table class="strategy-table">
