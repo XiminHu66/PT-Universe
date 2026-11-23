@@ -291,7 +291,7 @@ async function importOpml(file){try{const doc=new DOMParser().parseFromString(aw
 function renderProxySettings(state=''){const input=$('#proxyUrlInput'),status=$('#proxyStatus'),url=proxyBase();if(input&&state!=='error')input.value=url;if(!status)return;status.className='';if(state==='error'){status.className='error';status.textContent='连接失败，请检查 Worker 地址'}else if(state==='ok'||url){status.className='ok';status.textContent=url?`已连接 · ${new URL(url).hostname}`:'连接成功'}else status.textContent='尚未连接 Cloudflare Worker'}
 async function connectProxy(){const input=$('#proxyUrlInput'),button=$('#proxyConnectButton'),raw=input.value.trim();if(!raw){store.set(KEYS.proxyUrl,'');renderProxySettings();toast('已关闭实时刷新代理');return}const url=safeUrl(raw);if(!url||!url.startsWith('https://'))return toast('请输入完整的 HTTPS Worker 地址');const base=url.replace(/\/+$/,'');button.disabled=true;button.textContent='正在测试…';try{const response=await fetch(`${base}/health?t=${Date.now()}`,{cache:'no-store'}),payload=await response.json();if(!response.ok||payload?.service!=='rss-orbit-proxy'||payload?.feeds!==12)throw new Error();store.set(KEYS.proxyUrl,base);renderProxySettings('ok');toast('Cloudflare Worker 已连接')}catch{renderProxySettings('error');toast('Worker 连接失败，请检查部署地址')}finally{button.disabled=false;button.textContent='保存并测试'}}
 
-function setTheme(theme){document.documentElement.dataset.theme=theme;store.set(KEYS.theme,theme);document.querySelector('meta[name="theme-color"]').content=theme==='dark'?'#0d1210':'#f4f7f4'}
+function setTheme(theme,persist=true){document.documentElement.dataset.theme=theme;if(persist)store.set(KEYS.theme,theme);document.querySelector('meta[name="theme-color"]').content=theme==='dark'?'#0d1210':'#f4f7f4'}
 function applyReaderRatio(value=store.get(KEYS.readerRatio,42),persist=false){const requested=Math.min(72,Math.max(28,Number(value)||42));if(persist)store.set(KEYS.readerRatio,requested);const input=$('#readerWidthInput'),output=$('#readerWidthOutput');if(innerWidth<=900){if(input){input.max=72;input.value=requested}if(output)output.textContent=`${requested}%`;return}const side=readingDeskMode?0:246,listMin=300,readerMin=320,available=Math.max(0,innerWidth-side),maxWidth=Math.max(readerMin,available-listMin),width=Math.min(maxWidth,Math.max(readerMin,Math.round(available*requested/100))),actual=Math.round(width/available*100),maxRatio=Math.min(72,Math.round(maxWidth/available*100));document.documentElement.style.setProperty('--reader',`${width}px`);if(input){input.max=Math.max(28,maxRatio);input.value=Math.min(requested,maxRatio)}if(output)output.textContent=`${actual}%`}
 function applyFontScale(value=store.get(KEYS.fontScale,110),persist=false){const scale=Math.min(140,Math.max(90,Number(value)||110));if(persist)store.set(KEYS.fontScale,scale);for(let size=8;size<=40;size++)document.documentElement.style.setProperty(`--fs-${size}`,`${(size*scale/100).toFixed(2)}px`);const input=$('#fontScaleInput'),output=$('#fontScaleOutput');if(input)input.value=scale;if(output)output.textContent=`${scale}%`}
 function closeSidebar(){$('#sidebar').classList.remove('open');$('#scrim').classList.remove('show')}
@@ -328,5 +328,11 @@ document.addEventListener('keydown',e=>{if(e.target.matches('input,select,textar
 window.addEventListener('message',e=>{if(readingDeskMode&&(e.origin!==location.origin||e.source!==parent))return;if(e.data?.type==='pt-universe-theme'&&['light','dark'].includes(e.data.theme))setTheme(e.data.theme)});
 window.addEventListener('resize',()=>applyReaderRatio(store.get(KEYS.readerRatio,42)));
 
-if(readingDeskMode)bindReaderSources();
-setTheme(store.get(KEYS.theme,matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));applyFontScale();applyReaderRatio();renderCategoryOptions();renderAll();loadData();
+const systemTheme = matchMedia('(prefers-color-scheme:dark)');
+if (readingDeskMode) {
+  bindReaderSources();
+  systemTheme.addEventListener('change', event => {
+    if (!store.get(KEYS.theme, null)) setTheme(event.matches ? 'dark' : 'light', false);
+  });
+}
+setTheme(store.get(KEYS.theme,systemTheme.matches?'dark':'light'),!readingDeskMode);applyFontScale();applyReaderRatio();renderCategoryOptions();renderAll();loadData();

@@ -14,6 +14,7 @@
 .reading-desk .toolbar { flex-wrap: wrap; overflow: visible; }
 .reading-desk .filter-group { flex: 0 1 auto; flex-wrap: wrap; }
 .reading-desk .content-grid { min-height: calc(100vh - 120px); }
+.reading-desk #loadMoreButton[hidden] { display: none; }
 .reading-desk .article-main { overflow-wrap: anywhere; }
 .reading-desk #hotTopicsView { overflow: visible; scrollbar-gutter: auto; }
 .reading-desk #hotTopicsSettings { min-height: 44px; }
