@@ -13,9 +13,15 @@
 ## 安装
 
 1. 在 iPhone 的 Safari 打开 [PT-Widgets.js](PT-Widgets.js)，打开 **Raw** 并复制全文。
-2. 在 Scriptable 中点 **＋**，把脚本命名为 **PT Widgets**，粘贴并保存。点运行，先预览任意一张卡。
+2. 已安装旧版时，编辑原有的 **PT Widgets**，用新入口代码替换全文并保存。这次迁移只做一次。首次安装则点 **＋**，把脚本命名为 **PT Widgets** 后粘贴并保存。联网运行一次，第一次会下载发布版，完成后可以预览卡片。
 3. 回到主屏幕，长按空白处 → **编辑 → 添加小组件 → Scriptable → 中号**。添加后长按卡 → **编辑小组件**，将 **Script** 设为 `PT Widgets`，将 **Parameter** 设为 `invest`。重复一次，第二张填 `deals`。
-4. 横屏配置请看下文。更新脚本时替换同名脚本内的代码即可，手机里已导入的参考价和优惠规则会继续使用。
+4. 横屏配置请看下文。已有组件会继续使用同名脚本和原参数，可直接跳过步骤 3。
+
+## 以后怎么更新
+
+打开 Scriptable，运行 **PT Widgets → 检查更新**。看到「已安装」后，下次打开脚本或 iOS 刷新时就会使用新版。菜单标题会显示运行版本。三张卡共用一套代码，手机里已导入的自选股、参考价、优惠规则和通知记录可以继续使用。
+
+代码更新只会在首次联网运行和点「检查更新」时发生。普通组件刷新从手机读取已安装版本。更新失败时保留旧版；若新版代码无法加载，或组件渲染抛错，组件会依次尝试已安装的旧版。这里更新的是组件代码，Daily Nexus 的新参考价仍通过原来的导入流程传到手机。
 
 ## 导入投资参考价
 
@@ -44,3 +50,9 @@
 Apple 让 iOS 决定小组件何时刷新。脚本按模式建议刷新间隔，并从现有公开读取接口取数；它不触发现有服务器的手动刷新任务。
 
 [Scriptable 组件文档](https://docs.scriptable.app/listwidget/) · [Apple StandBy 说明](https://support.apple.com/guide/iphone/use-standby-iph878d77632/ios) · [Apple 快捷指令自动化](https://support.apple.com/guide/shortcuts/add-automations-apdfbdbd7123/ios)
+
+## 仓库发布方式
+
+- `PT-Widgets.js` 是一次安装的入口。维持入口 API 兼容，让后续发布只更新 `PT-Widgets.runtime.js`。
+- 发布新版时，将运行文件首行与 `VERSION` 的数字一起递增。在验证后，把 `scriptable-widgets-stable` 分支的 `tools/scriptable/channel.json` 指向该运行文件所在的完整提交 SHA。格式为 `{"api":1,"version":1,"commit":"<40 位提交 SHA>"}`。每个版本号只对应一个发布提交。
+- 更新器从该分支读发布信息，再按指定提交下载运行文件。部署可以直接使用 GitHub 文件读写，不需要添加 Actions 工作流。
