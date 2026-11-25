@@ -12,6 +12,58 @@ const readerFavoritesKey = 'pt.rss.readerFavorites';
 const storedReaderFavorites = readingDeskMode ? store.get(readerFavoritesKey, []) : [];
 let readerFavorites = new Set(Array.isArray(storedReaderFavorites) ? storedReaderFavorites : []);
 let readerSourcesReady = false;
+let deskSnapshotAt = null;
+let deskSourcesChecked = false;
+const deskFeedResults = new Map();
+
+function readDeskSession(viewName) {
+  try { return JSON.parse(sessionStorage.getItem('pt.readingDesk.rss.' + viewName)) || {}; }
+  catch { return {}; }
+}
+
+function writeDeskSession(viewName, state) {
+  try { sessionStorage.setItem('pt.readingDesk.rss.' + viewName, JSON.stringify(state)); }
+  catch { /* The iframe retains the current position while mounted. */ }
+}
+
+function deskScrollPosition(selector) {
+  const workspace = $('.workspace');
+  const top = workspace.getBoundingClientRect().top + ($('.topbar')?.offsetHeight || 0);
+  const anchor = $$(selector).find(el => el.getBoundingClientRect().bottom > top);
+  return { scroll: workspace.scrollTop, anchor: anchor?.dataset.deskKey, offset: anchor?.getBoundingClientRect().top };
+}
+
+function restoreDeskScroll(state, selector) {
+  const workspace = $('.workspace');
+  const anchor = state.anchor && $$(selector).find(el => el.dataset.deskKey === state.anchor);
+  workspace.scrollTop = anchor && Number.isFinite(state.offset)
+    ? workspace.scrollTop + anchor.getBoundingClientRect().top - state.offset
+    : Number(state.scroll) || 0;
+}
+
+function renderDeskFreshness() {
+  if (!readingDeskMode) return;
+  const selected = availableReaderSources().filter(source => readerFavorites.has(source.id));
+  const status = $('#readerSync');
+  const results = selected.map(source => deskFeedResults.get(source.id));
+  const stamps = results.filter(result => result?.fresh && Date.parse(result.at) > 0).map(result => Date.parse(result.at));
+  const stamp = stamps.length ? Math.min(...stamps) : 0;
+  const partial = stamps.length < selected.length;
+  status.hidden = !readerSourcesReady || !selected.length;
+  if (!deskSourcesChecked) {
+    status.textContent = deskSnapshotAt ? '正在检查更新 · 当前快照 ' + fullDate(deskSnapshotAt) : '正在检查订阅更新…';
+  } else if (stamp) {
+    status.textContent = (partial ? `已更新 ${stamps.length}/${selected.length} 个源 · ` : '')
+      + (Date.now() - stamp > 3 * 3600000 ? '缓存于 ' : '数据更新于 ') + fullDate(stamp)
+      + (partial ? ' · 其余来源可能仅有旧数据' : '');
+  } else {
+    const cached = results.filter(result => Date.parse(result?.at) > 0).map(result => Date.parse(result.at));
+    const newest = cached.length ? Math.max(...cached) : Date.parse(deskSnapshotAt);
+    status.textContent = Number.isFinite(newest)
+      ? '实时数据暂不可用 · 备用数据 ' + fullDate(newest)
+      : '订阅暂不可用 · 请稍后刷新';
+  }
+}
 
 function availableReaderSources() {
   return allSources().filter(source => !hiddenIds.has(source.id) && !deletedIds.has(source.id));
@@ -54,6 +106,7 @@ function bindReaderSources() {
     if (selectedId && !readerFavorites.has(currentArticle()?.source_id)) closeReader();
     visibleLimit = 40;
     renderList();
+    renderDeskFreshness();
     resetFeedScroll();
   });
   window.addEventListener('storage', event => {
@@ -62,6 +115,7 @@ function bindReaderSources() {
     readerFavorites = new Set(Array.isArray(sources) ? sources : []);
     if (selectedId && !readerFavorites.has(currentArticle()?.source_id)) closeReader();
     renderList();
+    renderDeskFreshness();
   });
 }
 
@@ -146,6 +200,14 @@ function titleState(){
 }
 
 function articleCard(item){
+  if (readingDeskMode) {
+    const url = safeUrl(item.link);
+    const meta = `<p class="desk-article-meta">${esc(item.source)} · ${esc(fullDate(item.published_at) || '发布时间未知')}</p>`;
+    const title = `<h2>${esc(item.title)}</h2>`;
+    return `<article class="desk-article" data-article="${esc(item.id)}" data-desk-key="${esc(item.id)}">${url
+      ? `<a class="desk-article-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer">${meta}${title}</a>`
+      : `<div class="desk-article-link">${meta}${title}</div>`}</article>`;
+  }
   const image=safeUrl(item.image),saved=savedIds.has(item.id),read=readIds.has(item.id),color=sourceColor(item.source_id);
   return `<article class="article-card ${read?'read':''} ${selectedId===item.id?'selected':''} ${image?'':'no-image'}" data-article="${esc(item.id)}" tabindex="0">
     <i class="unread-dot"></i><div class="article-main"><div class="article-meta"><i class="source-dot" style="--dot:${color}"></i><b>${esc(item.source)}</b><span>·</span><span>${timeLabel(item.published_at)}</span>${item.author?`<span>· ${esc(item.author)}</span>`:''}</div><h2>${esc(item.title)}</h2>${item.summary?`<p>${esc(item.summary)}</p>`:''}</div>
@@ -155,7 +217,7 @@ function articleCard(item){
 function renderList(){
   renderedItems=filteredItems();const shown=renderedItems.slice(0,visibleLimit);
   const selectedSources = readingDeskMode && availableReaderSources().filter(source => readerFavorites.has(source.id)).length;
-  $('#resultCount').textContent=renderedItems.length;$('#summaryText').textContent=query?'匹配标题、摘要、作者和来源':readingDeskMode?`已选 ${selectedSources} 个来源`:`${allSources().filter(x=>!hiddenIds.has(x.id)).length} 个来源 · 中文优先`;
+  $('#resultCount').textContent=renderedItems.length;$('#summaryText').textContent=query?(readingDeskMode?'搜索文章和来源':'匹配标题、摘要、作者和来源'):readingDeskMode?`已选 ${selectedSources} 个来源`:`${allSources().filter(x=>!hiddenIds.has(x.id)).length} 个来源 · 中文优先`;
   if (readingDeskMode && !readerSourcesReady) {
     $('#articleList').innerHTML = '<div class="empty-state"><p>正在读取订阅源…</p></div>';
   } else if (readingDeskMode && !selectedSources) {
@@ -164,6 +226,7 @@ function renderList(){
   else $('#articleList').innerHTML=shown.map(articleCard).join('');
   $$('.article-image').forEach(img=>wireImage(img,240));
   $('#loadMoreButton').hidden=shown.length>=renderedItems.length;
+  if (readingDeskMode) return;
   $$('[data-article]').forEach(el=>{el.onclick=e=>{if(e.target.closest('[data-save]')||e.target.closest('[data-open]'))return;selectArticle(el.dataset.article)};el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectArticle(el.dataset.article)}}});
   $$('[data-save]').forEach(x=>x.onclick=e=>{e.stopPropagation();toggleSaved(x.dataset.save)});
   $$('[data-open]').forEach(x=>x.onclick=e=>{e.stopPropagation();openOriginal(x.dataset.open)});
@@ -264,8 +327,9 @@ async function refreshCustomFeed(source,quiet=false){
     const retained=mergeSourceHistory(items,customItems,source.id);
     customItems=[...retained,...customItems.filter(x=>x.source_id!==source.id)];store.set(KEYS.customItems,customItems);
     setSourceHealth(source.id,{state:meta.cache==='STALE'?'stale':'ok',item_count:retained.length,checked_at:meta.fetchedAt,cache:meta.cache,error:''});
+    if (readingDeskMode) deskFeedResults.set(source.id, { at: meta.fetchedAt, fresh: meta.cache !== 'STALE' });
     if(!quiet)toast(`${source.name}：保留 ${retained.length} 篇`);return true;
-  }catch(error){setSourceHealth(source.id,{state:'error',checked_at:new Date().toISOString(),error:healthError(error)});if(!quiet)toast(`${source.name} 暂时无法读取`);return false}
+  }catch(error){if (readingDeskMode) deskFeedResults.delete(source.id);setSourceHealth(source.id,{state:'error',checked_at:new Date().toISOString(),error:healthError(error)});if(!quiet)toast(`${source.name} 暂时无法读取`);return false}
 }
 async function refreshCustomFeeds(){const sources=customFeeds.filter(x=>!hiddenIds.has(x.id));if(!sources.length)return{sourceCount:0,totalSources:0,itemCount:0};const results=await Promise.all(sources.map(async source=>({source,ok:await refreshCustomFeed(source,true)}))),successful=results.filter(x=>x.ok);return{sourceCount:successful.length,totalSources:sources.length,itemCount:successful.reduce((sum,x)=>sum+customItems.filter(item=>item.source_id===x.source.id).length,0)}}
 
@@ -275,8 +339,9 @@ async function refreshDefaultFeed(source,force=false){
     const proxyId=source.proxy_id===false?'':source.id,{text,meta}=await fetchText(source.url,proxyId,force),items=await parseCustomFeed(text,source),stale=meta.cache==='STALE';
     const retained=mergeSourceHistory(items,data.items,source.id);
     setSourceHealth(source.id,{state:stale?'stale':'ok',item_count:retained.length,checked_at:meta.fetchedAt,cache:meta.cache,error:''});
+    if (readingDeskMode) deskFeedResults.set(source.id, { at: meta.fetchedAt, fresh: !stale });
     return retained.length?{source,items:retained,fresh:!stale}:null;
-  }catch(error){setSourceHealth(source.id,{state:'error',checked_at:new Date().toISOString(),error:healthError(error)});return null}
+  }catch(error){if (readingDeskMode) deskFeedResults.delete(source.id);setSourceHealth(source.id,{state:'error',checked_at:new Date().toISOString(),error:healthError(error)});return null}
 }
 async function refreshDefaultFeeds(force=false){
   const sources=defaultSources().filter(x=>!hiddenIds.has(x.id)),results=await Promise.all(sources.map(source=>refreshDefaultFeed(source,force))),successful=results.filter(Boolean),fresh=successful.filter(x=>x.fresh);
@@ -299,15 +364,52 @@ function openManage(){resetSourceForm();renderManager();renderProxySettings();$(
 function showPane(name){$$('[data-pane]').forEach(x=>x.classList.toggle('active',x.dataset.pane===name));$$('.dialog-pane').forEach(x=>x.classList.toggle('active',x.id===`pane-${name}`))}
 function syncStatus(){if(manualRefreshAt){$('#syncDot').className='ok';$('#syncText').textContent=`手动刷新于 ${fullDate(manualRefreshAt)}`;return}const stamp=data.generated_at?new Date(data.generated_at):null;if(stamp&&Number.isFinite(stamp.getTime())){$('#syncDot').className='ok';$('#syncText').textContent=`Cloudflare 更新于 ${fullDate(stamp)}`}else{$('#syncDot').className='error';$('#syncText').textContent='等待 Cloudflare 首次抓取'}}
 async function loadCloudflareStatus(){const proxy=proxyBase();if(!proxy)return;try{const response=await fetch(`${proxy}/health?t=${Date.now()}`,{cache:'no-store'}),payload=await response.json();if(!response.ok)return;if(payload?.last_refresh)data.generated_at=payload.last_refresh;const checkedAt=payload?.last_refresh||new Date().toISOString();if(payload?.source_health){Object.entries(payload.source_health).forEach(([id,value])=>setSourceHealth(id,{state:value?.ok?'ok':'error',checked_at:value?.fetched_at||checkedAt,cache:'CRON',error:value?.ok?'':healthError(value?.error),item_count:sourceHealth[id]?.item_count},false));store.set(KEYS.health,sourceHealth)}else if(payload?.last_result){const failed=new Set(payload.last_result.failed||[]);defaultSources().forEach(source=>setSourceHealth(source.id,{state:failed.has(source.id)?'error':'ok',checked_at:checkedAt,cache:'CRON',error:failed.has(source.id)?'定时抓取失败':''},false));store.set(KEYS.health,sourceHealth)}}catch{}}
-async function loadData(){const btn=$('#refreshButton');btn.classList.add('loading');try{const response=await fetch(DATA_URL);if(!response.ok)throw new Error();const payload=await response.json();if(Array.isArray(payload.items))data={...payload,items:applySourcePreferences(payload.items),generated_at:null};
-if (readingDeskMode) renderReaderSnapshot();
-const cached=await refreshDefaultFeeds(false);await loadCloudflareStatus();await refreshCustomFeeds();syncStatus();renderAll();if(!cached.sourceCount)toast('Cloudflare 缓存暂时不可用，正在显示内置备用数据')}catch{$('#syncDot').className='error';$('#syncText').textContent='数据缓存暂时不可用';renderAll()}finally{btn.classList.remove('loading');if(readingDeskMode&&!readerSourcesReady)renderReaderSnapshot()}}
+async function loadData() {
+  const btn = $('#refreshButton');
+  btn.classList.add('loading');
+  const state = readingDeskMode ? readDeskSession('frequent') : null;
+  try {
+    const response = await fetch(DATA_URL);
+    if (!response.ok) throw new Error();
+    const payload = await response.json();
+    if (Array.isArray(payload.items)) {
+      deskSnapshotAt = payload.generated_at;
+      data = { ...payload, items: applySourcePreferences(payload.items), generated_at: null };
+    }
+    if (readingDeskMode) {
+      renderReaderSnapshot();
+      renderDeskFreshness();
+      if (!document.body.classList.contains('hot-topics-active')) restoreDeskScroll(state, '.desk-article');
+    }
+    const cached = await refreshDefaultFeeds(false);
+    await loadCloudflareStatus();
+    await refreshCustomFeeds();
+    syncStatus();
+    const position = readingDeskMode && !document.body.classList.contains('hot-topics-active')
+      ? ($('.workspace').scrollTop > 0 ? deskScrollPosition('.desk-article') : state)
+      : null;
+    renderAll();
+    if (position) restoreDeskScroll(position, '.desk-article');
+    if (!cached.sourceCount && !readingDeskMode) toast('Cloudflare 缓存暂时不可用，正在显示内置备用数据');
+  } catch {
+    $('#syncDot').className = 'error';
+    $('#syncText').textContent = '数据缓存暂时不可用';
+    renderAll();
+  } finally {
+    btn.classList.remove('loading');
+    if (readingDeskMode) {
+      deskSourcesChecked = true;
+      if (!readerSourcesReady) renderReaderSnapshot();
+      renderDeskFreshness();
+    }
+  }
+}
 function renderReaderSnapshot() {
   readerSourcesReady = true;
   if ($('#readerSourcesDialog').open && $('#readerSourcesSave').disabled) renderReaderSourceOptions();
   renderAll();
 }
-async function refreshNow(){const btn=$('#refreshButton');if(btn.classList.contains('loading'))return;btn.classList.add('loading');btn.disabled=true;toast(proxyBase()?'正在通过 Cloudflare 即时刷新全部 RSS…':'正在直接读取 RSS 源…');try{const defaults=await refreshDefaultFeeds(true),custom=await refreshCustomFeeds(),fresh=defaults.sourceCount+custom.sourceCount,total=defaults.totalSources+custom.totalSources,itemCount=defaults.itemCount+custom.itemCount,unavailable=total-fresh;if(fresh)manualRefreshAt=new Date();syncStatus();if($('#manageDialog').open)renderManager();renderAll();if(fresh===total)toast(`全部 ${fresh} 个来源已实时刷新 · ${itemCount} 篇`);else if(fresh)toast(`实时更新 ${fresh}/${total} 个来源；${unavailable} 个请查看健康状态`);else toast('全部来源当前无法实时刷新，已保留已有内容')}finally{btn.classList.remove('loading');btn.disabled=false}}
+async function refreshNow(){const btn=$('#refreshButton');if(btn.classList.contains('loading'))return;btn.classList.add('loading');btn.disabled=true;toast(proxyBase()?'正在通过 Cloudflare 即时刷新全部 RSS…':'正在直接读取 RSS 源…');try{const defaults=await refreshDefaultFeeds(true),custom=await refreshCustomFeeds(),fresh=defaults.sourceCount+custom.sourceCount,total=defaults.totalSources+custom.totalSources,itemCount=defaults.itemCount+custom.itemCount,unavailable=total-fresh;if(fresh)manualRefreshAt=new Date();syncStatus();if($('#manageDialog').open)renderManager();renderAll();if(fresh===total)toast(`全部 ${fresh} 个来源已实时刷新 · ${itemCount} 篇`);else if(fresh)toast(`实时更新 ${fresh}/${total} 个来源；${unavailable} 个请查看健康状态`);else toast('全部来源当前无法实时刷新，已保留已有内容')}finally{btn.classList.remove('loading');btn.disabled=false;renderDeskFreshness()}}
 
 $$('.nav-item').forEach(x=>x.onclick=()=>{view=x.dataset.view;category=null;feed=null;quickFilter='all';visibleLimit=40;$$('.filter-pill').forEach(y=>y.classList.toggle('active',y.dataset.filter==='all'));renderAll();closeSidebar();resetFeedScroll()});
 $$('.filter-pill').forEach(x=>x.onclick=()=>{quickFilter=x.dataset.filter;visibleLimit=40;$$('.filter-pill').forEach(y=>y.classList.toggle('active',y===x));renderList();resetFeedScroll()});
@@ -324,13 +426,25 @@ $('#readerWidthInput').oninput=e=>applyReaderRatio(e.target.value,true);
 $('#fontScaleInput').oninput=e=>applyFontScale(e.target.value,true);
 $('#addFeedButton').onclick=saveSource;$('#cancelEditButton').onclick=resetSourceForm;$('#restoreSourcesButton').onclick=restoreDefaultSources;$('#exportButton').onclick=exportOpml;$('#opmlInput').onchange=e=>e.target.files?.[0]&&importOpml(e.target.files[0]);
 $('#resetStateButton').onclick=()=>{if(confirm('清除全部已读和稍后读记录吗？')){readIds.clear();savedIds.clear();saveSet(KEYS.read,readIds);saveSet(KEYS.saved,savedIds);renderAll();toast('阅读状态已清除')}};
-document.addEventListener('keydown',e=>{if(e.target.matches('input,select,textarea')||$('#manageDialog').open)return;if(e.key==='/'){e.preventDefault();$('#searchInput').focus()}if(['j','k'].includes(e.key.toLowerCase())){e.preventDefault();const idx=Math.max(0,renderedItems.findIndex(x=>x.id===selectedId)),next=e.key.toLowerCase()==='j'?Math.min(renderedItems.length-1,selectedId?idx+1:0):Math.max(0,idx-1);if(renderedItems[next]){selectArticle(renderedItems[next].id);document.querySelector(`[data-article="${CSS.escape(renderedItems[next].id)}"]`)?.scrollIntoView({block:'nearest'})}}if(e.key.toLowerCase()==='o'&&selectedId)openOriginal(selectedId);if(e.key.toLowerCase()==='s'&&selectedId)toggleSaved(selectedId);if(e.key.toLowerCase()==='m'&&selectedId)toggleRead(selectedId);if(e.key==='Escape')closeReader()});
+document.addEventListener('keydown',e=>{if(e.target.matches('input,select,textarea')||$('#manageDialog').open)return;if(e.key==='/'){e.preventDefault();$('#searchInput').focus()}if(readingDeskMode)return;if(['j','k'].includes(e.key.toLowerCase())){e.preventDefault();const idx=Math.max(0,renderedItems.findIndex(x=>x.id===selectedId)),next=e.key.toLowerCase()==='j'?Math.min(renderedItems.length-1,selectedId?idx+1:0):Math.max(0,idx-1);if(renderedItems[next]){selectArticle(renderedItems[next].id);document.querySelector(`[data-article="${CSS.escape(renderedItems[next].id)}"]`)?.scrollIntoView({block:'nearest'})}}if(e.key.toLowerCase()==='o'&&selectedId)openOriginal(selectedId);if(e.key.toLowerCase()==='s'&&selectedId)toggleSaved(selectedId);if(e.key.toLowerCase()==='m'&&selectedId)toggleRead(selectedId);if(e.key==='Escape')closeReader()});
 window.addEventListener('message',e=>{if(readingDeskMode&&(e.origin!==location.origin||e.source!==parent))return;if(e.data?.type==='pt-universe-theme'&&['light','dark'].includes(e.data.theme))setTheme(e.data.theme)});
 window.addEventListener('resize',()=>applyReaderRatio(store.get(KEYS.readerRatio,42)));
 
 const systemTheme = matchMedia('(prefers-color-scheme:dark)');
 if (readingDeskMode) {
   bindReaderSources();
+  const state = readDeskSession('frequent');
+  query = typeof state.query === 'string' ? state.query : '';
+  visibleLimit = Math.min(1000, Math.max(40, Number(state.limit) || 40));
+  $('#searchInput').value = query;
+  function rememberFrequent() {
+    if (!document.body.classList.contains('hot-topics-active') && readerSourcesReady) {
+      writeDeskSession('frequent', { ...deskScrollPosition('.desk-article'), query, limit: visibleLimit });
+    }
+  }
+  $('.workspace').addEventListener('scrollend', rememberFrequent);
+  $('#articleList').addEventListener('click', rememberFrequent);
+  window.addEventListener('pagehide', rememberFrequent);
   systemTheme.addEventListener('change', event => {
     if (!store.get(KEYS.theme, null)) setTheme(event.matches ? 'dark' : 'light', false);
   });

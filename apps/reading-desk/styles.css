@@ -195,3 +195,21 @@ h1 { font-size: clamp(1.55rem, 3.8vw, 2.2rem); line-height: 1.2; letter-spacing:
   .task-card:not(.priority, .muse-card) { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 10px; }
   .task-card:not(.priority, .muse-card) .task-link { grid-column: 2; justify-self: start; }
 }
+
+#memo-entry { margin-inline-start: auto; color: var(--muted); font-weight: 500; }
+#memo-entry[aria-current="page"] { color: var(--accent); }
+.header { justify-content: flex-start; }
+.linked-card { position: relative; }
+.linked-card .task-link::after { position: absolute; inset: 0; content: ""; border-radius: inherit; }
+.card-actions { position: relative; display: flex; flex-wrap: wrap; gap: 0 14px; pointer-events: none; }
+.card-actions a, .card-actions button { pointer-events: auto; }
+:is(.priority, .muse-card) .card-actions { grid-column: 2; }
+.report-start { margin-top: 16px; padding: 4px 14px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); }
+.report-start summary { min-height: 44px; padding-block: 10px; color: var(--accent); cursor: pointer; }
+.report-start p { margin-bottom: 10px; color: var(--muted); font-size: .88rem; }
+.report-start button { margin-bottom: 10px; }
+#locator-address { width: 100%; min-height: 44px; margin-bottom: 10px; }
+#locator-status { font-size: .85rem; }
+@media (max-width: 560px) {
+  .linked-card .card-actions { grid-column: 2; }
+}

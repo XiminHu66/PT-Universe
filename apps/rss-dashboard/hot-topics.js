@@ -4,13 +4,16 @@
  const q=s=>document.querySelector(s),button=q('[data-view="saved"]');if(!button)return;
  const desk = document.documentElement.classList.contains('reading-desk');
  const workspace = q('.workspace');
- let frequentScroll = 0, hotScroll = 0, openedInDesk = false;
+ const deskState = desk ? readDeskSession('hot') : {};
+ const deskLimit = 10;
+ let frequentPosition = desk ? readDeskSession('frequent') : {};
+ let hotPosition = deskState, openedInDesk = false, loadedAt = 0;
  const KEY='pt.rss.hotTopics.',read=(key,f)=>{try{return JSON.parse(localStorage.getItem(KEY+key))??f;}catch{return f;}},write=(key,v)=>{try{localStorage.setItem(KEY+key,JSON.stringify(v));}catch{}};
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const safe=v=>{try{const u=new URL(v);return ['http:','https:'].includes(u.protocol)&&!u.username&&!u.password?u.href:'';}catch{return '';}};
  const canonical=v=>{try{const u=new URL(v);u.hash='';for(const k of [...u.searchParams.keys()])if(/^utm_|^(fbclid|gclid)$/.test(k))u.searchParams.delete(k);return u.href;}catch{return v;}};
  const fmt=v=>v&&Number.isFinite(Date.parse(v))?new Date(v).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
- let active=false,busy=false,payload=read('snapshot',null),kind='all',term='',previous=0,normalSearch='',hidden=new Set(read('hidden',[])),seenRecorded=false,visibleLimit=60;
+ let active=false,busy=false,payload=read('snapshot',null),kind='all',term='',previous=0,normalSearch='',hidden=new Set(read('hidden',[])),seenRecorded=false,visibleLimit=desk?Math.min(1000,Math.max(deskLimit,Number(deskState.limit)||deskLimit)):60;
  const pane=document.createElement('section');pane.id='hotTopicsView';pane.hidden=true;pane.setAttribute('aria-label','今日热点');
  pane.innerHTML='<div class="hot-topics-head"><div><span class="hot-kicker">DAILY SIGNALS</span><h2>今天，哪些消息值得一看</h2><p id="hotTopicsStatus" role="status">热榜与 RSS，统一查看</p></div><button type="button" id="hotTopicsSettings">信息源设置</button></div><div class="hot-topics-filters"><div role="group" aria-label="热点筛选"><button type="button" data-hot-kind="all" class="on">全部</button><button type="button" data-hot-kind="hotlist">热榜</button><button type="button" data-hot-kind="rss">RSS</button><button type="button" data-hot-kind="new">上次查看后新增</button></div><span id="hotTopicsTotal"></span></div><div id="hotTopicsList" aria-live="polite"></div><button type="button" class="load-more" id="hotTopicsMore" hidden>继续加载热点</button><div class="hot-topics-foot">榜单排名按各平台分别显示；RSS 按发布时间排列。点击标题阅读原文。</div>';
  q('.workspace').append(pane);
@@ -32,17 +35,68 @@
    if(old){if(!old.sources.some(s=>s.id===source.id))old.sources.push(source);if(!old.summary&&x.summary)old.summary=x.summary;continue;}
    map.set(key,{...x,sources:[source],time});
   }
-  return [...map.values()].filter(x=>!term||(x.title+' '+x.sources.map(s=>s.name).join(' ')).toLowerCase().includes(term.toLowerCase())).sort((a,b)=>b.time-a.time);
+  const items = [...map.values()].filter(x=>!term||(x.title+' '+x.sources.map(s=>s.name).join(' ')).toLowerCase().includes(term.toLowerCase())).sort((a,b)=>b.time-a.time);
+  return desk ? deskRows(items) : items;
+ }
+ const relatedTopic = /人工智能|生成式|大模型|开源模型|半导体|芯片|英伟达|台积电|谷歌|微软|苹果|量化|graph\s*rag|openai|anthropic|deepseek|claude|gemini|nvidia|\b(?:ai|llm|gpt|rag|agent|amd|tsm|meta)\b/i;
+ function deskRows(items) {
+  const groups = new Map();
+  // Merge identical headline text after removing punctuation and presentation tags.
+  // Retain numbers and names so separate updates remain separate.
+  for (const item of items) {
+   const title = item.title.normalize('NFKC').replace(/^[【\[][^】\]]{1,10}[】\]]/, '')
+     .toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
+   const key = title.length >= 8 ? title : canonical(item.url);
+   const earlier = groups.get(key);
+   if (!earlier) {
+    groups.set(key, { ...item, sources: [...item.sources] });
+    continue;
+   }
+   const main = item.kind === 'rss' && earlier.kind !== 'rss' ? item : earlier;
+   const sources = [...new Map([...earlier.sources, ...item.sources].map(source => [source.id, source])).values()];
+   groups.set(key, { ...main, sources });
+  }
+  const ordered = [...groups.values()].sort((a, b) => score(b) - score(a) || b.time - a.time);
+  const selected = [], rest = [], counts = new Map();
+  for (const item of ordered) {
+   const source = item.source || item.source_id;
+   const count = counts.get(source) || 0;
+   if (selected.length < deskLimit && count < 2) {
+    selected.push(item);
+    counts.set(source, count + 1);
+   } else rest.push(item);
+  }
+  return [...selected, ...rest];
+ }
+ function score(item) {
+  const freshness = Math.max(0, Math.min(24, 24 - (Date.now() - item.time) / 3600000));
+  return freshness + (item.kind === 'rss' ? 16 : 0) + (relatedTopic.test(item.title) ? 12 : 0);
+ }
+ function deskCard(item) {
+  const stamp = item.published_at || item.collected_at;
+  const label = item.published_at ? '发布' : '上榜采集';
+  const other = item.sources.length > 1 ? ' · 另有 ' + (item.sources.length - 1) + ' 个来源' : '';
+  return '<article class="hot-topic" data-desk-key="'+esc(canonical(item.url))+'"><div class="hot-topic-meta">'
+   + '<span>'+esc(item.source || item.sources[0]?.name || '来源未知')+'</span><time datetime="'+esc(stamp)+'">'+label+' '+esc(fmt(stamp))+'</time>'
+   + esc(other)+'</div><h3><a href="'+esc(safe(item.url))+'" target="_blank" rel="noopener noreferrer">'
+   + esc(item.title)+' <span aria-hidden="true">↗</span></a></h3></article>';
+ }
+ function cacheIsOld() {
+  return !!payload && (payload.stale || desk && Date.now() - Date.parse(payload.generated_at) > 3 * 3600000);
  }
  function render(){
-  const items=rows();q('#hotTopicsTotal').textContent=items.length+' 条 · 过去 24 小时';q('#hotTopicsCount').textContent=items.length;
+  const position = desk && active && workspace.scrollTop > 0 ? deskScrollPosition('#hotTopicsList [data-desk-key]') : null;
+  const items=rows();q('#hotTopicsTotal').textContent=desk
+   ? '显示 '+Math.min(visibleLimit,items.length)+' / '+items.length+' 个话题'
+   : items.length+' 条 · 过去 24 小时';q('#hotTopicsCount').textContent=items.length;
   const status=q('#hotTopicsStatus');
   if(busy)status.textContent='正在读取已采集的热点…';
-  else if(payload)status.textContent=(payload.stale?'当前使用上次成功数据 · ':'最近采集 ')+fmt(payload.generated_at)+' · '+sources().length+' 个信息源';
+  else if(payload)status.textContent=(cacheIsOld()?'当前使用上次成功数据 · ':'最近采集 ')+fmt(payload.generated_at)+' · '+sources().length+' 个信息源';
   else status.textContent='VPS 热点暂时不可用；仍可查看原有 RSS 的今日更新。';
-  status.classList.toggle('hot-stale',!!payload?.stale);
-  q('#hotTopicsList').innerHTML=items.length?items.slice(0,visibleLimit).map(x=>'<article class="hot-topic"><div class="hot-topic-meta"><span class="hot-type '+(x.kind==='hotlist'?'is-hot':'')+'">'+(x.kind==='hotlist'?'热榜':'RSS')+'</span><time>'+esc(fmt(x.published_at||x.collected_at))+'</time>'+(previous&&Date.parse(x.first_seen_at||x.collected_at)>previous?'<span class="hot-new">新增</span>':'')+'</div><h3><a href="'+esc(safe(x.url))+'" target="_blank" rel="noopener noreferrer">'+esc(x.title)+' <span>↗</span></a></h3><div class="hot-topic-sources">'+x.sources.slice(0,4).map(s=>'<span>'+esc(s.name)+(s.rank?' · #'+Number(s.rank):'')+(Number.isInteger(s.change)&&s.change!==0?' <b class="'+(s.change>0?'up':'down')+'">'+(s.change>0?'↑':'↓')+Math.abs(s.change)+'</b>':'')+'</span>').join('')+'</div>'+(x.summary?'<details><summary>查看摘要</summary><p>'+esc(String(x.summary).replace(/<[^>]*>/g,' ').slice(0,500))+'</p></details>':'')+'</article>').join(''):'<div class="hot-empty"><span>◌</span><h3>'+(busy?'正在读取热点':'暂时没有符合筛选的消息')+'</h3><p>可切换筛选、调整信息源，或稍后刷新。</p></div>';
+  status.classList.toggle('hot-stale',cacheIsOld());
+  q('#hotTopicsList').innerHTML=items.length?items.slice(0,visibleLimit).map(desk ? deskCard : x=>'<article class="hot-topic"><div class="hot-topic-meta"><span class="hot-type '+(x.kind==='hotlist'?'is-hot':'')+'">'+(x.kind==='hotlist'?'热榜':'RSS')+'</span><time>'+esc(fmt(x.published_at||x.collected_at))+'</time>'+(previous&&Date.parse(x.first_seen_at||x.collected_at)>previous?'<span class="hot-new">新增</span>':'')+'</div><h3><a href="'+esc(safe(x.url))+'" target="_blank" rel="noopener noreferrer">'+esc(x.title)+' <span>↗</span></a></h3><div class="hot-topic-sources">'+x.sources.slice(0,4).map(s=>'<span>'+esc(s.name)+(s.rank?' · #'+Number(s.rank):'')+(Number.isInteger(s.change)&&s.change!==0?' <b class="'+(s.change>0?'up':'down')+'">'+(s.change>0?'↑':'↓')+Math.abs(s.change)+'</b>':'')+'</span>').join('')+'</div>'+(x.summary?'<details><summary>查看摘要</summary><p>'+esc(String(x.summary).replace(/<[^>]*>/g,' ').slice(0,500))+'</p></details>':'')+'</article>').join(''):'<div class="hot-empty"><span>◌</span><h3>'+(busy?'正在读取热点':'暂时没有符合筛选的消息')+'</h3><p>可切换筛选、调整信息源，或稍后刷新。</p></div>';
   q('#hotTopicsMore').hidden=items.length<=visibleLimit;
+  if (position) restoreDeskScroll(position, '#hotTopicsList [data-desk-key]');
   q('[data-view="saved"] b').textContent='今日热点';q('#savedCount').hidden=true;
   if(active)for(const node of document.querySelectorAll('.main-nav .nav-item')){const on=node===button;if(node.classList.contains('active')!==on)node.classList.toggle('active',on);}
  }
@@ -50,29 +104,43 @@
   const list=sources();q('#hotSourcesStatus').textContent=(payload?'VPS 热点采集 '+fmt(payload.generated_at)+' · ':'')+'共 '+list.length+' 个信息源，'+list.filter(s=>!hidden.has(s.id)).length+' 个已选';
   q('#hotSourceList').innerHTML=['hotlist','rss'].map(group=>'<section class="hot-source-group"><h3>'+(group==='hotlist'?'平台热榜':'RSS 订阅')+'</h3>'+list.filter(s=>s.kind===group).map(s=>'<label class="hot-source-row"><input type="checkbox" data-hot-source="'+esc(s.id)+'" '+(hidden.has(s.id)?'':'checked')+'><span><strong>'+esc(s.name)+'</strong><small>'+esc(s.status==='ok'?'已采集':s.status==='error'?'来源异常，保留已有内容':s.status==='reader'?'复用原阅读器':'等待采集')+'</small></span></label>').join('')+'</section>').join('');
  }
- async function load(){
-  if(busy)return;busy=true;render();
+ async function load(force = false){
+  if (busy || (desk && !force && Date.now() - loadedAt < 300000)) return;
+  busy=true;render();
   try{const base=typeof proxyBase==='function'?proxyBase():'https://rss-orbit-proxy.summer07-nanjolno.workers.dev';if(!base)throw Error();
-   const r=await fetch(base+'/hot-topics',{cache:'no-store',signal:AbortSignal.timeout(22000)});if(!r.ok)throw Error();const d=await r.json();if(d.revision!=='rss-hot-topics-v1'||!Array.isArray(d.items)||!Array.isArray(d.sources))throw Error();payload=d;write('snapshot',{...d,items:d.items.slice(0,300)});
+   const r=await fetch(base+'/hot-topics',{cache:'no-store',signal:AbortSignal.timeout(22000)});if(!r.ok)throw Error();const d=await r.json();if(d.revision!=='rss-hot-topics-v1'||!Array.isArray(d.items)||!Array.isArray(d.sources))throw Error();payload=d;loadedAt=Date.now();write('snapshot',{...d,items:d.items.slice(0,300)});
   }catch{if(payload)payload={...payload,stale:true};}
   finally{busy=false;render();renderSources();if(active&&!seenRecorded){write('lastSeen',Date.now());seenRecorded=true;}}
  }
  function enter(){
   if(!active){
    normalSearch=q('#searchInput').value;
-   if(!openedInDesk){previous=Number(read('lastSeen',0));seenRecorded=false;term='';}
+   if(!openedInDesk){
+    previous=Number(read('lastSeen',0));seenRecorded=false;
+    term=desk && typeof deskState.term==='string'?deskState.term:'';
+    if (desk && ['all','hotlist','rss','new'].includes(deskState.kind)) kind=deskState.kind;
+    pane.querySelectorAll('[data-hot-kind]').forEach(node=>node.classList.toggle('on',node.dataset.hotKind===kind));
+   }
    q('#searchInput').value=term;
-   if(desk){frequentScroll=workspace.scrollTop;openedInDesk=true;}
+   if(desk){
+    if (readerSourcesReady) frequentPosition=deskScrollPosition('.desk-article');
+    openedInDesk=true;
+   }
   }
   active=true;document.body.classList.add('hot-topics-active');pane.hidden=false;heading.hidden=false;q('#sidebar').classList.remove('open');q('#scrim').classList.remove('show');render();
-  if(desk)workspace.scrollTop=hotScroll;
-  load();
+  if(desk)restoreDeskScroll(hotPosition, '#hotTopicsList [data-desk-key]');
+  void load().then(() => {
+   if (desk && active && workspace.scrollTop === 0) restoreDeskScroll(hotPosition, '#hotTopicsList [data-desk-key]');
+  });
  }
  function leave(){
   if(!active)return;
-  if(desk)hotScroll=workspace.scrollTop;
+  if (desk) {
+   rememberHot();
+   hotPosition=deskScrollPosition('#hotTopicsList [data-desk-key]');
+  }
   active=false;document.body.classList.remove('hot-topics-active');pane.hidden=true;heading.hidden=true;q('#searchInput').value=normalSearch;
-  if(desk)workspace.scrollTop=frequentScroll;
+  if(desk)restoreDeskScroll(frequentPosition, '.desk-article');
  }
  function openSources(){
   const dialog=q('#manageDialog');if(!dialog.open)q('#settingsButton').click();
@@ -86,19 +154,26 @@
   if(target===button){e.preventDefault();e.stopImmediatePropagation();enter();return;}
   if(target===settingsTab||target.id==='hotTopicsSettings'){e.preventDefault();e.stopImmediatePropagation();openSources();return;}
   if(target.matches('[data-pane]'))settingsTab.classList.remove('active');
-  if(active&&target.id==='refreshButton'){e.preventDefault();e.stopImmediatePropagation();load();return;}
+  if(active&&target.id==='refreshButton'){e.preventDefault();e.stopImmediatePropagation();load(true);return;}
   if(active&&target.closest('.main-nav,#categoryNav,#feedNav'))leave();
  },true);
- q('#searchInput').addEventListener('input',e=>{if(active){e.stopImmediatePropagation();term=e.target.value.trim();visibleLimit=60;render();}},true);
+ q('#searchInput').addEventListener('input',e=>{if(active){e.stopImmediatePropagation();term=e.target.value.trim();visibleLimit=desk?deskLimit:60;render();}},true);
  document.addEventListener('keydown',e=>{if(active&&!q('#manageDialog').open&&!e.target.matches('input,textarea,select')&&['j','k','o','s','m'].includes(e.key.toLowerCase()))e.stopImmediatePropagation();},true);
- pane.addEventListener('click',e=>{const b=e.target.closest('[data-hot-kind]');if(!b)return;kind=b.dataset.hotKind;visibleLimit=60;for(const node of pane.querySelectorAll('[data-hot-kind]'))node.classList.toggle('on',node===b);render();});
+ pane.addEventListener('click',e=>{const b=e.target.closest('[data-hot-kind]');if(!b)return;kind=b.dataset.hotKind;visibleLimit=desk?deskLimit:60;for(const node of pane.querySelectorAll('[data-hot-kind]'))node.classList.toggle('on',node===b);render();});
  settings.addEventListener('change',e=>{const id=e.target.dataset.hotSource;if(!id)return;if(e.target.checked)hidden.delete(id);else hidden.add(id);write('hidden',[...hidden]);render();renderSources();});
- q('#hotTopicsMore').onclick=()=>{visibleLimit+=60;render();};
+ q('#hotTopicsMore').onclick=()=>{visibleLimit+=desk?20:60;render();};
  q('#hotEnableAll').onclick=()=>{hidden.clear();write('hidden',[]);render();renderSources();};
  q('#hotDisableAll').onclick=()=>{hidden=new Set(sources().map(s=>s.id));write('hidden',[...hidden]);render();renderSources();};
  new MutationObserver(()=>{if(active)render();}).observe(q('#feedNav'),{childList:true});
  new MutationObserver(()=>{if(active&&button.classList.contains('active')===false)render();}).observe(q('.main-nav'),{subtree:true,attributes:true,attributeFilter:['class']});
- setInterval(()=>{if(active&&!document.hidden)load();},300000);
+ function rememberHot() {
+  if (active) writeDeskSession('hot', { ...deskScrollPosition('#hotTopicsList [data-desk-key]'), term, kind, limit: visibleLimit });
+ }
+ if (desk) {
+  q('.hot-topics-foot').textContent = '优先显示中文科技、AI 和相关动态。发布方链接优先，热榜条目打开平台原页面。';
+  window.addEventListener('pagehide', rememberHot);
+  pane.addEventListener('click', event => { if (event.target.closest('a')) rememberHot(); });
+ } else setInterval(()=>{if(active&&!document.hidden)load();},300000);
  if(desk)window.addEventListener('message',event=>{
   if(parent===window||event.origin!==location.origin||event.source!==parent||event.data?.type!=='reading-desk-rss-view')return;
   if(event.data.view==='hot'&&!active){q('#readerSourcesDialog').close();enter();}

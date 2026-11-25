@@ -2,7 +2,7 @@
 import argparse
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import unquote, urlsplit
 
 from playwright.sync_api import expect, sync_playwright
 
@@ -21,11 +21,31 @@ items = [{'id': f'{source["id"]}-{i}', 'source_id': source['id'], 'source': sour
           'link': f'https://example.org/{source["id"]}/{i}', 'summary': '用于本地浏览器验收',
           'published_at': now}
          for source in sources for i in range(24)]
-feed = {'sources': sources, 'items': items}
+feed = {'sources': sources, 'items': items, 'generated_at': '2026-01-03T20:00:00Z'}
 hot = {'revision': 'rss-hot-topics-v1', 'generated_at': now,
        'sources': [{'id': 'sample', 'name': '样本热榜', 'kind': 'hotlist', 'status': 'ok'}],
        'items': [{'id': 'hot-1', 'kind': 'hotlist', 'source_id': 'sample', 'source': '样本热榜',
                   'title': '热点样本', 'url': 'https://example.org/hot', 'collected_at': now}]}
+hot['items'].extend([
+    {'id': 'hot-duplicate', 'kind': 'hotlist', 'source_id': 'second-board', 'source': '另一热榜',
+     'title': 'OpenAI 发布实验模型', 'url': 'https://example.org/repost', 'collected_at': now},
+    {'id': 'hot-original', 'kind': 'rss', 'source_id': 'original', 'source': '发布者',
+     'title': 'OpenAI 发布实验模型！', 'url': 'https://example.org/original', 'published_at': now},
+])
+hot['items'].extend(
+    {'id': f'hot-extra-{i}', 'kind': 'hotlist', 'source_id': f'board-{i % 6}', 'source': f'榜单 {i % 6}',
+     'title': f'不重复的热榜样本标题 {i}', 'url': f'https://example.org/board/{i}', 'collected_at': now}
+    for i in range(24)
+)
+locator_url = 'https://chatgpt.com/c/reading-desk-locator-fixture'
+locator_fixture = '''<!doctype html>
+<main style="height: 500px; overflow-y: auto">
+  <article data-testid="conversation-turn-1"><div data-message-author-role="assistant">旧的简报</div></article>
+  <div style="height: 1500px">较早的回复</div>
+  <article data-testid="conversation-turn-2" style="height: 1600px">
+    <div data-message-author-role="assistant">最新简报开头</div>
+  </article>
+</main>'''
 base = args.url.rstrip('/')
 desk_url = f'{base}/apps/reading-desk/'
 rss_url = f'{base}/apps/rss-dashboard/'
@@ -33,7 +53,9 @@ rss_url = f'{base}/apps/rss-dashboard/'
 
 def route_request(route):
     url = route.request.url
-    if url.startswith(rss_url + 'data/feed.json'):
+    if url == locator_url:
+        route.fulfill(body=locator_fixture, content_type='text/html')
+    elif url.startswith(rss_url + 'data/feed.json'):
         route.fulfill(json=feed)
     elif url.endswith('.workers.dev/hot-topics'):
         route.fulfill(json=hot, headers={'Access-Control-Allow-Origin': '*'})
@@ -89,18 +111,23 @@ with sync_playwright() as playwright:
     rss.get_by_role('button', name='保存', exact=True).click()
     expect(rss.locator('#resultCount')).to_have_text('24')
     expect(rss.locator('[data-article]').filter(has_text='样本乙')).to_have_count(0)
-    article = rss.locator('[data-article]').first
-    article.click()
-    expect(rss.get_by_role('link', name='阅读原文 ↗')).to_have_attribute('href', items[0]['link'])
-    rss.get_by_role('button', name='关闭预览').click()
+    article = rss.locator('[data-article]').first.get_by_role('link')
+    expect(article).to_have_attribute('href', items[0]['link'])
+    expect(article).to_have_attribute('target', '_blank')
+    expect(rss.get_by_role('button', name='稍后读')).to_have_count(0)
+    expect(rss.locator('#readerSync')).to_contain_text('备用数据')
     workspace = rss.locator('.workspace')
     workspace.evaluate('(element) => element.scrollTop = 400')
     assert workspace.evaluate('(element) => element.scrollTop') == 400
 
     page.get_by_role('button', name='今日热点').click()
-    expect(rss.get_by_role('link', name='热点样本 ↗')).to_have_attribute('href', 'https://example.org/hot')
+    expect(rss.get_by_role('link', name='热点样本', exact=True)).to_have_attribute('href', 'https://example.org/hot')
+    expect(rss.get_by_role('link', name='OpenAI 发布实验模型！', exact=True)).to_have_attribute('href', 'https://example.org/original')
+    expect(rss.get_by_role('link', name='OpenAI 发布实验模型', exact=True)).to_have_count(0)
+    expect(rss.locator('#hotTopicsList article')).to_have_count(10)
     rss.get_by_role('button', name='热榜', exact=True).click()
-    expect(rss.get_by_role('link', name='热点样本 ↗')).to_be_visible()
+    expect(rss.get_by_role('link', name='热点样本', exact=True)).to_be_visible()
+    expect(rss.locator('#hotTopicsList')).to_contain_text('上榜采集')
     rss.get_by_role('button', name='信息源设置').click()
     expect(rss.locator('#hotTopicsSources')).to_be_visible()
     rss.locator('#manageDialog').get_by_role('button', name='关闭', exact=True).click()
@@ -117,20 +144,43 @@ with sync_playwright() as playwright:
     expect(page.locator('[data-task]')).to_have_count(5)
     task = page.locator('[data-task="rss-ai"]')
     expect(task).to_have_attribute('href', 'https://chatgpt.com/schedules')
-    page.get_by_role('button', name='设置直达链接').click()
+    page.get_by_role('button', name='配置直达 · 工作日 RSS AI 简报').click()
     field = page.get_by_role('textbox', name='工作日 RSS AI 简报')
     field.fill('https://example.org/c/test')
     page.get_by_role('button', name='保存链接').click()
     expect(field).to_have_attribute('aria-invalid', 'true')
-    field.fill('https://chatgpt.com/c/example-conversation')
+    field.fill(locator_url + '?utm_source=test')
+    expect(page.get_by_role('link', name='试开')).to_have_attribute('href', locator_url)
     page.get_by_role('button', name='保存链接').click()
-    expect(task).to_have_attribute('href', 'https://chatgpt.com/c/example-conversation')
+    expect(task).to_have_attribute('href', locator_url)
+    expect(page.get_by_role('link', name='工作日 RSS AI 简报 · Safari 网页')).to_have_attribute(
+        'href', locator_url + '?no_universal_links=1')
+    if args.browser == 'chromium':
+        page.locator('#report-start summary').click()
+        page.get_by_role('button', name='复制书签地址').click()
+        expect(page.locator('#locator-status')).to_contain_text('已复制')
+        bookmarklet = page.evaluate('navigator.clipboard.readText()')
+        assert bookmarklet.startswith('javascript:')
+        report = context.new_page()
+        report.goto(locator_url)
+        report.evaluate(unquote(bookmarklet.removeprefix('javascript:')))
+        report.wait_for_function("Math.abs(document.querySelector('[data-testid=conversation-turn-2]').getBoundingClientRect().top - document.querySelector('main').getBoundingClientRect().top) < 2")
+        report.close()
     select_tab(page, 'RSS Orbit')
     assert workspace.evaluate('(element) => element.scrollTop') == 400
     page.reload()
     expect(rss.locator('#resultCount')).to_have_text('24')
     select_tab(page, 'ChatGPT')
-    expect(task).to_have_attribute('href', 'https://chatgpt.com/c/example-conversation')
+    expect(task).to_have_attribute('href', locator_url)
+
+    select_tab(page, 'RSS Orbit')
+    page.get_by_role('button', name='今日热点').click()
+    expect(rss.locator('#hotTopicsView')).to_be_visible()
+    select_tab(page, 'ChatGPT')
+    page.reload()
+    select_tab(page, 'RSS Orbit')
+    expect(page.get_by_role('button', name='今日热点')).to_have_attribute('aria-pressed', 'true')
+    expect(rss.locator('#hotTopicsView')).to_be_visible()
 
     select_tab(page, 'Muse')
     expect(page.locator('#muse-spaces-link')).to_have_attribute('href', 'https://applink.muse.ai/')
@@ -145,7 +195,7 @@ with sync_playwright() as playwright:
     page.get_by_role('button', name='保存链接').click()
     expect(page.locator('#muse-spaces-link')).to_have_attribute('href', 'https://muse.ai/spaces/example-space')
 
-    select_tab(page, 'Memo')
+    page.get_by_role('link', name='Memo', exact=True).click()
     memo = page.get_by_role('textbox', name='备忘录正文')
     memo.fill('测试便签\nSecond line')
     expect(page.locator('#memo-status')).to_have_text('已保存')
@@ -153,7 +203,7 @@ with sync_playwright() as playwright:
     expect(memo).to_have_value('测试便签\nSecond line')
     select_tab(page, 'Muse')
     expect(page.locator('#muse-spaces-link')).to_have_attribute('href', 'https://muse.ai/spaces/example-space')
-    select_tab(page, 'Memo')
+    page.get_by_role('link', name='Memo', exact=True).click()
     page.get_by_role('button', name='复制', exact=True).click()
     expect(page.locator('#memo-action-status')).to_have_text('已复制全文')
     if args.browser == 'chromium':
@@ -186,9 +236,12 @@ with sync_playwright() as playwright:
     for width, height in [(744, 1133), (1133, 744), (375, 667), (320, 568), (1440, 900)]:
         page.set_viewport_size({'width': width, 'height': height})
         for name in ['RSS Orbit', 'ChatGPT', 'Muse', 'Memo']:
-            select_tab(page, name)
+            if name == 'Memo':
+                page.get_by_role('link', name='Memo', exact=True).click()
+            else:
+                select_tab(page, name)
             assert width_fits(page), (width, height, name)
-            panel = page.get_by_role('tabpanel')
+            panel = page.locator('.panel:not([hidden])')
             assert panel.evaluate('(el) => el.scrollWidth <= el.clientWidth'), (width, height, name)
         select_tab(page, 'RSS Orbit')
         for name in ['今日热点', '常用']:
@@ -208,7 +261,7 @@ with sync_playwright() as playwright:
     standalone.goto(rss_url + '?tab=hot-topics')
     expect(standalone.get_by_role('link', name='热点样本 ↗')).to_be_visible()
     standalone.goto(rss_url + '?reader=1&view=hot')
-    expect(standalone.get_by_role('link', name='热点样本 ↗')).to_be_visible()
+    expect(standalone.get_by_role('link', name='热点样本', exact=True)).to_be_visible()
     expect(standalone.locator('.sidebar')).to_be_hidden()
 
     failing = browser.new_context()
