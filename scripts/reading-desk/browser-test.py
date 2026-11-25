@@ -2,7 +2,7 @@
 import argparse
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import unquote, urlsplit
+from urllib.parse import unquote, urlencode, urlsplit
 
 from playwright.sync_api import expect, sync_playwright
 
@@ -143,8 +143,10 @@ with sync_playwright() as playwright:
     expect(page.locator('.priority h3')).to_have_text(['工作日 RSS AI 简报', '工作日持仓与机会扫描'])
     expect(page.locator('[data-task]')).to_have_count(5)
     task = page.locator('[data-task="rss-ai"]')
-    expect(task).to_have_attribute('href', 'https://chatgpt.com/schedules')
-    page.get_by_role('button', name='配置直达 · 工作日 RSS AI 简报').click()
+    expect(task).to_be_hidden()
+    expect(page.locator('#panel-gpt a[href="https://chatgpt.com/schedules"]')).to_have_count(1)
+    expect(page.get_by_role('button', name='绑定原会话', exact=False)).to_have_count(5)
+    page.get_by_role('button', name='绑定原会话 · 工作日 RSS AI 简报').click()
     field = page.get_by_role('textbox', name='工作日 RSS AI 简报')
     field.fill('https://example.org/c/test')
     page.get_by_role('button', name='保存链接').click()
@@ -248,6 +250,28 @@ with sync_playwright() as playwright:
             page.get_by_role('button', name=name, exact=True).click()
             assert rss.locator('.workspace').evaluate('(el) => el.scrollWidth <= el.clientWidth'), (width, height, name)
     assert not errors, errors
+
+    task_keys = ['rss-ai', 'investing', 'email', 'deals', 'papers']
+    task_ids = {key: f'{i:08d}-0000-4000-8000-{i:012d}' for i, key in enumerate(task_keys, 1)}
+    setup_link = desk_url + '#gpt/setup?' + urlencode(task_ids)
+    setup = context.new_page()
+    setup.goto(desk_url + '#gpt/setup?' + urlencode(dict.fromkeys(task_keys, task_ids['rss-ai'])))
+    expect(setup.locator('#gpt-batch-status')).to_contain_text('重复链接')
+    expect(setup.get_by_role('button', name='应用 5 个链接')).to_be_hidden()
+    expect(setup.locator('[data-task="rss-ai"]')).to_have_attribute('href', locator_url)
+    setup.goto(setup_link)
+    expect(setup).to_have_url(desk_url + '#gpt')
+    expect(setup.locator('[data-task="rss-ai"]')).to_have_attribute('href', locator_url)
+    setup.get_by_role('button', name='应用 5 个链接').click()
+    expect(setup.locator('#gpt-batch-result')).to_contain_text('已绑定 5 个原会话')
+    setup.reload()
+    for key in task_keys:
+        expect(setup.locator(f'[data-task="{key}"]')).to_have_attribute('href', 'https://chatgpt.com/c/' + task_ids[key])
+    setup.get_by_role('button', name='设置直达链接').click()
+    setup.get_by_role('textbox', name='整套配置链接').fill(setup_link)
+    setup.get_by_role('button', name='读取配置链接').click()
+    expect(setup.get_by_role('button', name='应用 5 个链接')).to_be_visible()
+    setup.close()
 
     standalone = context.new_page()
     standalone.set_viewport_size({'width': 1200, 'height': 900})

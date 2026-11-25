@@ -213,3 +213,9 @@ h1 { font-size: clamp(1.55rem, 3.8vw, 2.2rem); line-height: 1.2; letter-spacing:
 @media (max-width: 560px) {
   .linked-card .card-actions { grid-column: 2; }
 }
+
+.gpt-batch { margin-bottom: 14px; }
+.gpt-batch h2 { font-size: 1rem; }
+#gpt-batch-result { margin-bottom: 14px; color: var(--accent); font-size: .88rem; }
+.task-unbound .card-actions { position: static; }
+.task-unbound .card-actions button::after { position: absolute; inset: 0; content: ""; }
