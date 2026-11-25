@@ -126,7 +126,6 @@ function configureLinks(service, entries, form) {
     edit.type = 'button';
     edit.className = 'text-button';
     edit.textContent = '配置直达';
-    edit.setAttribute('aria-label', `配置直达 · ${card.querySelector('h3').textContent}`);
     edit.addEventListener('click', () => showSettings(entry.input));
     const web = document.createElement('a');
     web.className = 'quiet-link';
@@ -139,6 +138,7 @@ function configureLinks(service, entries, form) {
     card.append(actions);
     card.classList.add('linked-card');
     entry.web = web;
+    entry.edit = edit;
     entry.fallback = entry.anchor.href;
     entry.fallbackLabel = entry.anchor.textContent;
     const test = document.createElement('a');
@@ -165,9 +165,16 @@ function configureLinks(service, entries, form) {
       let url = '';
       try { url = normalizedLink(values?.[entry.key], service); } catch { /* Use the official fallback. */ }
       entry.input.value = url;
-      entry.anchor.href = url || entry.fallback;
+      const missingTaskLink = service === 'gpt' && !url;
+      entry.anchor.hidden = missingTaskLink;
+      if (missingTaskLink) entry.anchor.removeAttribute('href');
+      else entry.anchor.href = url || entry.fallback;
+      entry.edit.textContent = missingTaskLink ? '绑定原会话' : '配置直达';
       entry.anchor.textContent = url ? (service === 'gpt' ? '打开原会话 ↗' : '打开直达位置 ↗') : entry.fallbackLabel;
-      const title = entry.anchor.closest('.task-card').querySelector('h3').textContent;
+      const card = entry.anchor.closest('.task-card');
+      const title = card.querySelector('h3').textContent;
+      card.classList.toggle('task-unbound', missingTaskLink);
+      entry.edit.setAttribute('aria-label', `${entry.edit.textContent} · ${title}`);
       entry.anchor.setAttribute('aria-label', `${title} · ${entry.anchor.textContent}`);
       if (service === 'gpt' && url) {
         const webUrl = new URL(url);
@@ -186,8 +193,21 @@ function configureLinks(service, entries, form) {
     input.focus();
   }
 
+  function save(values) {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(values));
+      apply(values);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   try { apply(JSON.parse(localStorage.getItem(storageKey))); }
-  catch { status.textContent = '无法读取本机链接，正在使用官方入口。'; }
+  catch {
+    apply(null);
+    status.textContent = '无法读取本机链接，请检查浏览器储存设置。';
+  }
   toggle.addEventListener('click', () => {
     if (form.hidden) showSettings(entries[0].input);
     else {
@@ -208,14 +228,9 @@ function configureLinks(service, entries, form) {
         return;
       }
     }
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(values));
-      apply(values);
-      status.textContent = '已保存到此浏览器。';
-    } catch {
-      status.textContent = '保存失败。仍可使用之前的链接。';
-    }
+    status.textContent = save(values) ? '已保存到此浏览器。' : '保存失败。仍可使用之前的链接。';
   });
+  return save;
 }
 
 const gptLinks = $$('[data-task]').map(anchor => {
@@ -231,11 +246,85 @@ const gptLinks = $$('[data-task]').map(anchor => {
   $('#task-link-form').append(label);
   return { input, anchor, key: anchor.dataset.task };
 });
-configureLinks('gpt', gptLinks, $('#gpt-link-settings'));
+const saveGptLinks = configureLinks('gpt', gptLinks, $('#gpt-link-settings'));
 configureLinks('muse', [
   { input: $('#muse-spaces-input'), anchor: $('#muse-spaces-link'), key: 'spaces' },
   { input: $('#muse-tasks-input'), anchor: $('#muse-tasks-link'), key: 'tasks' }
 ], $('#muse-link-settings'));
+
+const gptSetupPrefix = '#gpt/setup?';
+const gptBatch = $('#gpt-batch');
+const gptBatchApply = $('#gpt-batch-apply');
+const gptBatchStatus = $('#gpt-batch-status');
+const gptBatchResult = $('#gpt-batch-result');
+let pendingTaskLinks = null;
+
+function previewGptSetup(hash) {
+  const params = new URLSearchParams(hash.slice(gptSetupPrefix.length));
+  const links = {};
+  const ids = new Set();
+  for (const { key } of gptLinks) {
+    const id = params.get(key);
+    if (params.getAll(key).length !== 1 || !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)
+      || ids.has(id.toLowerCase())) break;
+    ids.add(id.toLowerCase());
+    links[key] = new URL('/c/' + id.toLowerCase(), 'https://chatgpt.com').href;
+  }
+  pendingTaskLinks = ids.size === gptLinks.length && [...params].length === gptLinks.length ? links : null;
+  gptBatch.hidden = false;
+  gptBatchResult.hidden = true;
+  gptBatchApply.hidden = !pendingTaskLinks;
+  gptBatchStatus.textContent = pendingTaskLinks
+    ? '已识别五个不同的原会话。应用后会更新当前浏览器的任务链接。'
+    : '这套配置缺少任务或有重复链接。请重新复制完整链接。';
+}
+
+function readGptSetup() {
+  if (!location.hash.startsWith(gptSetupPrefix)) return;
+  previewGptSetup(location.hash);
+  history.replaceState(history.state, '', '#gpt');
+}
+
+window.addEventListener('hashchange', readGptSetup);
+readGptSetup();
+
+$('#gpt-batch-preview').addEventListener('click', () => {
+  const input = $('#gpt-batch-input');
+  try {
+    const url = new URL(input.value.trim());
+    if (url.origin !== location.origin || url.pathname !== location.pathname || !url.hash.startsWith(gptSetupPrefix)) {
+      throw new Error();
+    }
+    previewGptSetup(url.hash);
+    input.value = '';
+    if (pendingTaskLinks) gptBatchApply.focus();
+    else $('#gpt-batch-dismiss').focus();
+  } catch {
+    $('#task-link-status').textContent = '请粘贴完整的 Reading Desk 配置链接。';
+    input.focus();
+  }
+});
+
+$('#gpt-batch-dismiss').addEventListener('click', () => {
+  pendingTaskLinks = null;
+  gptBatch.hidden = true;
+  $('#gpt-links-toggle').focus();
+});
+
+gptBatchApply.addEventListener('click', () => {
+  if (!pendingTaskLinks) return;
+  if (!saveGptLinks(pendingTaskLinks)) {
+    gptBatchStatus.textContent = '应用失败。请检查当前浏览器的储存设置后重试。';
+    return;
+  }
+  pendingTaskLinks = null;
+  gptBatch.hidden = true;
+  gptBatchResult.hidden = false;
+  gptBatchResult.textContent = '已绑定 5 个原会话。现在点任务卡片即可打开对应会话。';
+  $('#gpt-link-settings').hidden = true;
+  $('#gpt-links-toggle').setAttribute('aria-expanded', 'false');
+  gptLinks[0].anchor.focus();
+});
 
 $('#copy-locator').addEventListener('click', async () => {
   const code = 'javascript:' + encodeURIComponent('void (' + jumpToLatestReportStart.toString() + ')()');

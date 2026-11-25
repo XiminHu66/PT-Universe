@@ -8,7 +8,7 @@
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="打开 RSS Orbit、ChatGPT、Muse，随手记下阅读笔记。">
 <title>Reading Desk · 阅读工作台</title>
-<link rel="stylesheet" href="styles.css?v=20261125-1">
+<link rel="stylesheet" href="styles.css?v=20261125-2">
 </head>
 <body>
 <div class="shell">
@@ -37,16 +37,25 @@
     </section>
     <section class="panel content-panel" id="panel-gpt" role="tabpanel" aria-labelledby="tab-gpt" hidden>
       <div class="intro"><h1>ChatGPT 简报</h1></div>
+      <section class="settings gpt-batch" id="gpt-batch" aria-labelledby="gpt-batch-title" hidden>
+        <h2 id="gpt-batch-title">绑定五个任务的原会话</h2>
+        <p id="gpt-batch-status" role="status"></p>
+        <div class="foot-actions">
+          <button class="small-primary" type="button" id="gpt-batch-apply">应用 5 个链接</button>
+          <button class="text-button" type="button" id="gpt-batch-dismiss">关闭</button>
+        </div>
+      </section>
+      <p id="gpt-batch-result" role="status" hidden></p>
       <div class="heading"><h2>工作日简报</h2><span>周一至周五 · 09:00</span></div>
       <div class="cards two">
-        <article class="task-card priority"><span class="glyph" aria-hidden="true">◉</span><div class="task-copy"><h3>工作日 RSS AI 简报</h3><p>中文 RSS 与 AI 新闻、过去 24 小时的重要更新</p><span class="meta">周一至周五</span></div><a class="task-link" data-task="rss-ai" href="https://chatgpt.com/schedules" target="_blank" rel="noopener noreferrer">打开任务列表 ↗</a></article>
-        <article class="task-card priority"><span class="glyph" aria-hidden="true">$</span><div class="task-copy"><h3>工作日持仓与机会扫描</h3><p>持仓买卖信号、基本面与操作速查</p><span class="meta">周一至周五</span></div><a class="task-link" data-task="investing" href="https://chatgpt.com/schedules" target="_blank" rel="noopener noreferrer">打开任务列表 ↗</a></article>
+        <article class="task-card priority"><span class="glyph" aria-hidden="true">◉</span><div class="task-copy"><h3>工作日 RSS AI 简报</h3><p>中文 RSS 与 AI 新闻、过去 24 小时的重要更新</p><span class="meta">周一至周五</span></div><a class="task-link" data-task="rss-ai" target="_blank" rel="noopener noreferrer" hidden>打开原会话 ↗</a></article>
+        <article class="task-card priority"><span class="glyph" aria-hidden="true">$</span><div class="task-copy"><h3>工作日持仓与机会扫描</h3><p>持仓买卖信号、基本面与操作速查</p><span class="meta">周一至周五</span></div><a class="task-link" data-task="investing" target="_blank" rel="noopener noreferrer" hidden>打开原会话 ↗</a></article>
       </div>
       <div class="heading"><h2>其他活跃任务</h2><span>每日 / 每周</span></div>
       <div class="cards">
-        <article class="task-card"><span class="glyph" aria-hidden="true">✉</span><div class="task-copy"><h3>Email Monitor</h3><p>重要邮件、账单与待回复消息</p><span class="meta">每天 · 08:35</span></div><a class="task-link" data-task="email" href="https://chatgpt.com/schedules" target="_blank" rel="noopener noreferrer">打开任务列表 ↗</a></article>
-        <article class="task-card"><span class="glyph" aria-hidden="true">◇</span><div class="task-copy"><h3>羊毛、退款与奖励扫描</h3><p>每周值得关注的优惠与权益</p><span class="meta">周一 · 09:28</span></div><a class="task-link" data-task="deals" href="https://chatgpt.com/schedules" target="_blank" rel="noopener noreferrer">打开任务列表 ↗</a></article>
-        <article class="task-card"><span class="glyph" aria-hidden="true">✧</span><div class="task-copy"><h3>GenAI Research Picks</h3><p>每周 3–5 篇高价值论文和技术报告</p><span class="meta">周五 · 09:00</span></div><a class="task-link" data-task="papers" href="https://chatgpt.com/schedules" target="_blank" rel="noopener noreferrer">打开任务列表 ↗</a></article>
+        <article class="task-card"><span class="glyph" aria-hidden="true">✉</span><div class="task-copy"><h3>Email Monitor</h3><p>重要邮件、账单与待回复消息</p><span class="meta">每天 · 08:35</span></div><a class="task-link" data-task="email" target="_blank" rel="noopener noreferrer" hidden>打开原会话 ↗</a></article>
+        <article class="task-card"><span class="glyph" aria-hidden="true">◇</span><div class="task-copy"><h3>羊毛、退款与奖励扫描</h3><p>每周值得关注的优惠与权益</p><span class="meta">周一 · 09:28</span></div><a class="task-link" data-task="deals" target="_blank" rel="noopener noreferrer" hidden>打开原会话 ↗</a></article>
+        <article class="task-card"><span class="glyph" aria-hidden="true">✧</span><div class="task-copy"><h3>GenAI Research Picks</h3><p>每周 3–5 篇高价值论文和技术报告</p><span class="meta">周五 · 09:00</span></div><a class="task-link" data-task="papers" target="_blank" rel="noopener noreferrer" hidden>打开原会话 ↗</a></article>
       </div>
       <details class="report-start" id="report-start">
         <summary>总是落在旧消息或末尾？定位到最新回复开头</summary>
@@ -62,6 +71,9 @@
         <p>粘贴已登录的原会话地址，再点「试开」检查。会话卡片由系统决定是否唤起 App。「Safari 网页」留在浏览器，方便用书签定位。</p>
         <div id="task-link-form" class="link-fields"></div>
         <button class="small-primary" type="submit">保存链接</button><span id="task-link-status" role="status"></span>
+        <label for="gpt-batch-input">整套配置链接</label>
+        <input id="gpt-batch-input" type="url" autocomplete="off" placeholder="粘贴五项任务的配置链接">
+        <button class="text-button" type="button" id="gpt-batch-preview">读取配置链接</button>
       </form>
     </section>
     <section class="panel content-panel" id="panel-muse" role="tabpanel" aria-labelledby="tab-muse" hidden>
@@ -92,6 +104,6 @@
 </div>
 <script src="memo-store.js?v=20261125-1"></script>
 <script src="report-locator.js?v=20261125-1"></script>
-<script src="app.js?v=20261125-1"></script>
+<script src="app.js?v=20261125-2"></script>
 </body>
 </html>
