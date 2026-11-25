@@ -57,3 +57,26 @@
   .reading-desk .top-actions .icon-button { width: 38px; }
   .reading-desk .hot-topics-filters { flex-wrap: wrap; }
 }
+
+#readerSync { display: none; }
+.reading-desk #readerSync:not([hidden]) {
+  display: block;
+  margin: 0;
+  padding: 5px clamp(12px, 2.5vw, 27px);
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+}
+.reading-desk .hot-topics-active #readerSync,
+.reading-desk .workspace > .toolbar,
+.reading-desk #readerPanel,
+.reading-desk .hot-topics-head h2 { display: none; }
+.reading-desk .content-grid { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+.reading-desk #articleList { gap: 0; }
+.desk-article { border-bottom: 1px solid var(--line); }
+.desk-article-link { display: block; padding: 11px 8px; color: var(--text); text-decoration: none; }
+.desk-article-link:hover h2, .desk-article-link:focus-visible h2 { text-decoration: underline; }
+.desk-article-link h2 { margin: 0; font-size: clamp(16px, 2.1vw, 20px); line-height: 1.45; overflow-wrap: anywhere; }
+.desk-article-meta { margin: 0 0 3px; color: var(--muted); font-size: 12px; }
+
+.reading-desk .hot-topic { padding-block: 10px; }

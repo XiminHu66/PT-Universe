@@ -6,16 +6,31 @@ const tabs = $$('[data-tab]');
 const rssTabs = $$('[data-rss-view]');
 const frame = $('#rss-frame');
 const rssPath = new URL('../rss-dashboard/', location.href);
+const viewKey = 'pt.readingDesk.rssView';
 let rssView = 'frequent';
+try {
+  if (sessionStorage.getItem(viewKey) === 'hot') rssView = 'hot';
+} catch { /* The current page still remembers its view. */ }
+if (!location.hash && !history.state?.readingDeskRssView) {
+  history.replaceState({ ...history.state, readingDeskRssView: rssView }, '');
+}
 
 function setRoute() {
   const [section, view] = location.hash.slice(1).split('/');
-  const tab = tabs.some(button => button.dataset.tab === section) ? section : 'rss';
-  if (tab === 'rss') rssView = view === 'hot' ? 'hot' : 'frequent';
+  const tab = section === 'memo' || tabs.some(button => button.dataset.tab === section) ? section : 'rss';
+  if (tab === 'rss') {
+    const requestedView = view || history.state?.readingDeskRssView;
+    if (['hot', 'frequent'].includes(requestedView)) rssView = requestedView;
+    try { sessionStorage.setItem(viewKey, rssView); } catch { /* Optional session state. */ }
+  }
+  const memoPanel = $('#panel-memo');
+  memoPanel.hidden = tab !== 'memo';
+  memoPanel.inert = tab !== 'memo';
+  $('#memo-entry').setAttribute('aria-current', tab === 'memo' ? 'page' : 'false');
   for (const button of tabs) {
     const selected = button.dataset.tab === tab;
     button.setAttribute('aria-selected', String(selected));
-    button.tabIndex = selected ? 0 : -1;
+    button.tabIndex = selected || (tab === 'memo' && button.dataset.tab === 'rss') ? 0 : -1;
     const panel = document.getElementById(button.getAttribute('aria-controls'));
     panel.hidden = !selected;
     panel.inert = !selected;
@@ -26,6 +41,7 @@ function setRoute() {
   const url = new URL(rssPath);
   url.search = new URLSearchParams({ reader: '1', view: rssView });
   $('#rss-open').href = url.href;
+  if (tab === 'rss' && !frame.hasAttribute('src')) frame.src = url.href;
   sendRssView();
 }
 
@@ -57,82 +73,135 @@ $('.tabs').addEventListener('keydown', event => {
 for (const button of rssTabs) {
   button.addEventListener('click', () => navigate(`#rss/${button.dataset.rssView}`));
 }
+$('#memo-entry').addEventListener('click', event => {
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  navigate('#memo');
+});
 frame.addEventListener('load', sendRssView);
 window.addEventListener('popstate', setRoute);
 window.addEventListener('hashchange', setRoute);
 setRoute();
 
-const gptLinks = $$('[data-task]').map(anchor => {
-  const label = document.createElement('label');
-  label.textContent = anchor.closest('.task-card').querySelector('h3').textContent;
-  const input = document.createElement('input');
-  input.type = 'url';
-  input.inputMode = 'url';
-  input.autocomplete = 'off';
-  input.spellcheck = false;
-  input.placeholder = 'https://chatgpt.com/c/…';
-  label.append(input);
-  $('#task-link-form').append(label);
-  return { input, anchor, key: anchor.dataset.task };
-});
-
 function normalizedLink(value, service) {
   if (!value) return '';
   const url = new URL(value);
-  if (url.protocol !== 'https:' || url.port || url.username || url.password || url.search || url.hash) {
-    throw new Error('请输入没有参数、片段或账号信息的 HTTPS 地址。');
+  if (url.protocol !== 'https:' || url.port || url.username || url.password) {
+    throw new Error('请输入没有账号信息的 HTTPS 地址。');
   }
+  for (const key of [...url.searchParams.keys()]) {
+    if (/^(utm_.*|fbclid|gclid|ref|no_universal_links)$/i.test(key)) url.searchParams.delete(key);
+  }
+  if (url.hash === '#no_universal_links') url.hash = '';
   if (service === 'gpt') {
     if (url.hostname !== 'chatgpt.com' || !/^\/(?:g\/[\w-]+\/)?c\/[\w-]+\/?$/.test(url.pathname)) {
-      throw new Error('请使用 chatgpt.com 上的会话地址。');
+      throw new Error('请粘贴 chatgpt.com 的原会话地址（/c/…）。');
     }
-  } else if (!['muse.ai', 'www.muse.ai'].includes(url.hostname)
+    // Keep a supplied message selector or text fragment, never fabricate one.
+    if ([...url.searchParams].some(([key, val]) => !/^(message_id|messageId)$/.test(key) || !/^[\w-]+$/.test(val))) {
+      throw new Error('请粘贴原会话地址，或移除无法识别的参数。');
+    }
+    if (url.hash && !/^#(?:[\w-]+|:~:text=[^#]+)$/.test(url.hash)) {
+      throw new Error('无法识别该会话的定位片段。');
+    }
+  } else if (!['muse.ai', 'www.muse.ai', 'applink.muse.ai'].includes(url.hostname)
     || !/^\/(?:[\w-]+\/)*[\w-]*$/.test(url.pathname)
-    || /(?:^|\/)(?:redirect|out|l|login|logout|auth|oauth|linkshim)(?:\/|$)/i.test(url.pathname)) {
-    throw new Error('请使用已在 muse.ai 打开验证的页面地址。');
+    || /(?:^|\/)(?:redirect|out|l|login|logout|auth|oauth|linkshim)(?:\/|$)/i.test(url.pathname)
+    || [...url.searchParams].some(([key, val]) => /redirect|return|next|url|target|token|auth/i.test(key) || !/^[\w.-]+$/.test(val))
+    || (url.hash && !/^#[\w/-]+$/.test(url.hash))) {
+    throw new Error('请粘贴已验证的 Muse 网页或 App 直达链接。');
   }
   return url.href;
 }
 
-function configureLinks(service, links, form, toggle, status) {
+function configureLinks(service, entries, form) {
   const storageKey = `pt.readingDesk.links.${service}`;
-  for (const entry of links) {
+  const toggle = $(service === 'gpt' ? '#gpt-links-toggle' : '#muse-links-toggle');
+  const status = form.querySelector('[role="status"]');
+  for (const entry of entries) {
+    const card = entry.anchor.closest('.task-card');
+    const actions = document.createElement('div');
+    actions.className = 'card-actions';
+    const edit = document.createElement('button');
+    edit.type = 'button';
+    edit.className = 'text-button';
+    edit.textContent = '配置直达';
+    edit.setAttribute('aria-label', `配置直达 · ${card.querySelector('h3').textContent}`);
+    edit.addEventListener('click', () => showSettings(entry.input));
+    const web = document.createElement('a');
+    web.className = 'quiet-link';
+    web.textContent = 'Safari 网页';
+    web.target = '_blank';
+    web.rel = 'noopener noreferrer';
+    web.hidden = true;
+    if (service === 'gpt') actions.append(web);
+    actions.append(edit);
+    card.append(actions);
+    card.classList.add('linked-card');
+    entry.web = web;
     entry.fallback = entry.anchor.href;
     entry.fallbackLabel = entry.anchor.textContent;
+    const test = document.createElement('a');
+    test.className = 'quiet-link';
+    test.textContent = '试开';
+    test.target = '_blank';
+    test.rel = 'noopener noreferrer';
+    test.hidden = true;
+    const label = entry.input.closest('label');
+    const field = document.createElement('div');
+    label.before(field);
+    field.append(label, test);
+    entry.updateTest = () => {
+      let testUrl = '';
+      try { testUrl = normalizedLink(entry.input.value.trim(), service); } catch { /* Invalid drafts cannot be opened. */ }
+      test.hidden = !testUrl;
+      test.href = testUrl || '#';
+    };
+    entry.input.addEventListener('input', entry.updateTest);
   }
 
   function apply(values) {
-    for (const entry of links) {
+    for (const entry of entries) {
       let url = '';
-      try {
-        url = normalizedLink(values?.[entry.key], service);
-      } catch {
-        // A stale or invalid saved value falls back to the official entry.
-      }
+      try { url = normalizedLink(values?.[entry.key], service); } catch { /* Use the official fallback. */ }
       entry.input.value = url;
       entry.anchor.href = url || entry.fallback;
-      entry.anchor.textContent = url ? (service === 'gpt' ? '阅读报告 ↗' : '打开直达链接 ↗') : entry.fallbackLabel;
+      entry.anchor.textContent = url ? (service === 'gpt' ? '打开原会话 ↗' : '打开直达位置 ↗') : entry.fallbackLabel;
+      const title = entry.anchor.closest('.task-card').querySelector('h3').textContent;
+      entry.anchor.setAttribute('aria-label', `${title} · ${entry.anchor.textContent}`);
+      if (service === 'gpt' && url) {
+        const webUrl = new URL(url);
+        webUrl.searchParams.set('no_universal_links', '1');
+        entry.web.href = webUrl.href;
+        entry.web.setAttribute('aria-label', `${title} · Safari 网页`);
+      }
+      entry.web.hidden = !url;
+      entry.updateTest();
     }
   }
 
-  try {
-    apply(JSON.parse(localStorage.getItem(storageKey)));
-  } catch {
-    status.textContent = '无法读取本机链接，正在使用官方入口。';
+  function showSettings(input) {
+    form.hidden = false;
+    toggle.setAttribute('aria-expanded', 'true');
+    input.focus();
   }
+
+  try { apply(JSON.parse(localStorage.getItem(storageKey))); }
+  catch { status.textContent = '无法读取本机链接，正在使用官方入口。'; }
   toggle.addEventListener('click', () => {
-    form.hidden = !form.hidden;
-    toggle.setAttribute('aria-expanded', String(!form.hidden));
-    if (!form.hidden) links[0].input.focus();
+    if (form.hidden) showSettings(entries[0].input);
+    else {
+      form.hidden = true;
+      toggle.setAttribute('aria-expanded', 'false');
+    }
   });
   form.addEventListener('submit', event => {
     event.preventDefault();
     const values = {};
-    for (const { input, key } of links) {
+    for (const { input, key } of entries) {
       input.removeAttribute('aria-invalid');
-      try {
-        values[key] = normalizedLink(input.value.trim(), service);
-      } catch (error) {
+      try { values[key] = normalizedLink(input.value.trim(), service); }
+      catch (error) {
         input.setAttribute('aria-invalid', 'true');
         status.textContent = error instanceof TypeError ? '请输入完整的 HTTPS 地址。' : error.message;
         input.focus();
@@ -149,11 +218,38 @@ function configureLinks(service, links, form, toggle, status) {
   });
 }
 
-configureLinks('gpt', gptLinks, $('#gpt-link-settings'), $('#gpt-links-toggle'), $('#task-link-status'));
+const gptLinks = $$('[data-task]').map(anchor => {
+  const label = document.createElement('label');
+  label.textContent = anchor.closest('.task-card').querySelector('h3').textContent;
+  const input = document.createElement('input');
+  input.type = 'url';
+  input.inputMode = 'url';
+  input.autocomplete = 'off';
+  input.spellcheck = false;
+  input.placeholder = 'https://chatgpt.com/c/…';
+  label.append(input);
+  $('#task-link-form').append(label);
+  return { input, anchor, key: anchor.dataset.task };
+});
+configureLinks('gpt', gptLinks, $('#gpt-link-settings'));
 configureLinks('muse', [
   { input: $('#muse-spaces-input'), anchor: $('#muse-spaces-link'), key: 'spaces' },
   { input: $('#muse-tasks-input'), anchor: $('#muse-tasks-link'), key: 'tasks' }
-], $('#muse-link-settings'), $('#muse-links-toggle'), $('#muse-link-status'));
+], $('#muse-link-settings'));
+
+$('#copy-locator').addEventListener('click', async () => {
+  const code = 'javascript:' + encodeURIComponent('void (' + jumpToLatestReportStart.toString() + ')()');
+  try {
+    await navigator.clipboard.writeText(code);
+    $('#locator-status').textContent = '已复制。请贴到 Safari 书签的地址字段。';
+  } catch {
+    const field = $('#locator-address');
+    field.hidden = false;
+    field.value = code;
+    field.select();
+    $('#locator-status').textContent = '请手动复制以下书签地址。';
+  }
+});
 
 const memo = $('#memo-text');
 const memoStatus = $('#memo-status');
