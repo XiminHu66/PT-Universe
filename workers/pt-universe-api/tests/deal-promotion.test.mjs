@@ -87,4 +87,32 @@ assert.equal(parsePromotionSource(bestBuyPage, 'bestbuy')[0].imageUrl, 'https://
 const cnPost = 'https://www.dealmoon.com/cn/ssd/12345.html';
 const moon = `<script type="application/ld+json">${JSON.stringify({'@type':'CollectionPage',mainEntity:{itemListElement:[{item:{url:cnPost,name:'存储优惠'}}]}})}</script><a class="deal-personal-strack" href="${cnPost}"><img class="snapshot" src="https://imgcache.dealmoon.com/thumbimg.dealmoon.com/ssd.jpg"></a>`;
 assert.equal(parsePromotionSource(moon, 'dealmoon')[0].imageUrl, 'https://imgcache.dealmoon.com/thumbimg.dealmoon.com/ssd.jpg');
+
+const dailyBestBuy = '<div class="wf-offer"><img class="wf-image" src="https://pisces.bbystatic.com/image2/BestBuy_US/images/products/ssd.jpg"><a class="wf-offer-link v-line-clamp" href="/product/example/J7XSRH5CXG">SSD</a><div class="wf-price-block--placeholder"></div></div>';
+const [daily] = parsePromotionSource(dailyBestBuy, 'bestbuy');
+assert.ok(daily.imageUrl);
+assert.equal(daily.offer.current, undefined);
+const [egg] = parsePromotionSource('<section class="goods-container"><a class="goods-title" href="/desktop/p/3D5-006P-00033?Item=9SIC4SPM6K3923&amp;cm_sp=tracking">Gaming desktop</a><span class="goods-price-current">$<strong>869</strong><sup>.99</sup></span><span class="goods-price-was">$1,299.99</span><p class="goods-promo">Extra discount with promo code</p><a class="goods-img"><img src="https://c1.neweggimages.com/productimage/nb300/desktop.jpg"></a></section>', 'newegg');
+assert.equal(egg.offer.current, 869.99);
+assert.equal(egg.offer.original, 1299.99);
+assert.equal(egg.imageUrl, 'https://c1.neweggimages.com/productimage/nb300/desktop.jpg');
+assert.equal(new URL(egg.url).search, '?Item=9SIC4SPM6K3923');
+
+const steamItem = { id: 100, type: 0, name: 'Example Game', currency: 'USD', discounted: true, original_price: 1999, final_price: 999, small_capsule_image: 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/100/capsule_184x69.jpg?t=1' };
+const steam = parsePromotionSource(JSON.stringify({ specials: { items: [steamItem, { ...steamItem, id: 101, final_price: 0 }, { ...steamItem, id: 102, currency: 'EUR' }, { ...steamItem, id: 103, discount_expiration: 1 }] } }), 'steam');
+assert.equal(steam.length, 1);
+assert.equal(steam[0].url, 'https://store.steampowered.com/app/100/');
+assert.equal(steam[0].offer.current, 9.99);
+assert.equal(steam[0].imageUrl.endsWith('capsule_184x69.jpg'), true);
+
+const walmartItem = { usItemId: '123456', name: 'Sample Storage', canonicalUrl: '/ip/test/123456', availabilityStatus: 'IN_STOCK', sellerName: 'Walmart.com', priceInfo: { linePrice: '$29.99', wasPrice: '$49.99' } };
+const json = { props: { pageProps: { initialData: { contentLayout: { modules: [{ configs: { productsConfig: { products: [walmartItem, { ...walmartItem, sellerName: 'Third Party', usItemId: '654321', canonicalUrl: '/ip/similar/654321?conditionGroupCode=2&tracking=3' }, { ...walmartItem, usItemId: '555555' }] } } }] } } } } };
+const walmart = parsePromotionSource('<script id="__NEXT_DATA__">' + JSON.stringify(json) + '</script>', 'walmart');
+assert.equal(walmart.length, 2);
+assert.equal(walmart[0].offer.original, 49.99);
+assert.equal(walmart[1].offer.original, undefined);
+assert.equal(new URL(walmart[1].url).search, '?conditionGroupCode=2');
+
+const hot = '<a data-type="sp" href="/product/14822956"><p class="sp-subject-detail">运动长裤</p><p class="sp-subject-price"><span>$74</span><i>$128</i></p><p class="sp-subject-store"><span>商家</span></p></a>';
+assert.equal(parsePromotionSource(hot, 'dealmoon')[0].offer.discount, 42.2);
 console.log('PASS: manual-only sources, owner quote gate, atomic SQLite budget, source scope, and exact USD quote conditions.');

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { chineseTitle } from "../src/lib/promotion-language";
 import { priceFromTitle } from "../src/lib/promotion-pricing";
-import { applyTarget, classifyWatch, merchantProduct, parseImport, promotionImageUrl, updateQuote, type Quote } from "../src/lib/promotion";
+import { applyTarget, classifyWatch, FIRST_CAMPAIGN, merchantProduct, parseImport, promotionImageUrl, updateCampaignSources, updateQuote, type Quote } from "../src/lib/promotion";
 
 test("Excel import deduplicates ASIN links and retains reference price without setting a target", () => {
   let id = 0;
@@ -79,4 +79,16 @@ test("promotion photos stay scoped to a source image host and strip unrelated pa
   assert.equal(promotionImageUrl("slickdeals", "https://static.slickdealscdn.com.invalid/attachment/1/2/300x300/90.thumb"), undefined);
   assert.equal(promotionImageUrl("slickdeals", "https://static.slickdealscdn.com/attachment/avatar/1/2/50x50/avatar.static"), undefined);
   assert.equal(promotionImageUrl("slickdeals", "data:image/png;base64,AAAA"), undefined);
+});
+
+test("upgrades the old default sources while respecting custom campaigns", () => {
+  const old = { ...FIRST_CAMPAIGN, sourceVersion: undefined, sources: ["slickdeals", "dealmoon", "bestbuy", "costco"] as const };
+  const previous = { ...old, sources: [...old.sources] };
+  const newer = updateCampaignSources(previous);
+  assert.deepEqual(newer.sources, FIRST_CAMPAIGN.sources);
+  assert.equal(newer.snapshots, previous.snapshots);
+  assert.equal(updateCampaignSources(newer), newer);
+  const custom = { ...previous, sources: ["slickdeals"] as const };
+  assert.deepEqual(updateCampaignSources({ ...custom, sources: [...custom.sources] }).sources, ["slickdeals"]);
+  assert.deepEqual(updateCampaignSources({ ...previous, id: "custom" }).sources, previous.sources);
 });

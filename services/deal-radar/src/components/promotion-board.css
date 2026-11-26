@@ -115,6 +115,7 @@
 .promo-jump { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .promo-jump a { padding: 0.35rem 0.65rem; border-radius: 0.4rem; background: var(--secondary); font-weight: 620; }
 .promo-progress { padding-block: 0.65rem; }
+.promo-progress[data-result="partial"] progress { accent-color: #a36017; }
 .promo-progress button { min-height: 2rem; }
 .promo-filters { margin-block: 0.65rem 0.35rem; }
 .promo-filters input[type="number"] { width: 7.2rem; }

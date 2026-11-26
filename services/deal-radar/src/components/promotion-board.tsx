@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ImageIcon } from "lucide-react";
 import {
   applyTarget, categoryOf, classifyWatch, FIRST_CAMPAIGN, MAX_ACTIVE_WATCHES, merchantProduct,
-  parseImport, priceValue, promotionImageUrl, PROMOTION_CATEGORIES, PROMOTION_SOURCES, safeHttps, updateQuote,
+  parseImport, priceValue, promotionImageUrl, PROMOTION_CATEGORIES, PROMOTION_SOURCES, safeHttps, updateCampaignSources, updateQuote,
   type Campaign, type Lead, type PromotionCategory, type PromotionSource, type Quote, type SourceSnapshot, type Watch,
 } from "@/lib/promotion";
 import { formatPacific } from "@/lib/time";
@@ -23,7 +23,7 @@ const makeId = () => crypto.randomUUID();
 const displayTime = (time: number) => formatPacific(time) ?? "";
 const terms = (value: string) => value.toLowerCase().split(/[,，]/).map(term => term.trim()).filter(Boolean);
 
-type Task = { key: string; label: string; status: "waiting" | "running" | "done" | "failed"; detail?: string; work: () => Promise<string> };
+type Task = { key: string; label: string; source?: PromotionSource; status: "waiting" | "running" | "done" | "failed"; detail?: string; work: () => Promise<string> };
 type Store = { active: string; campaigns: Campaign[] };
 const initial: Store = { active: FIRST_CAMPAIGN.id, campaigns: [FIRST_CAMPAIGN] };
 type OwnerConnection = { token: () => string | null; connect: () => void };
@@ -75,7 +75,9 @@ function readStore(): Store {
     const raw = localStorage.getItem(STORE);
     if (!raw) return initial;
     const data = JSON.parse(raw) as Store;
-    if (Array.isArray(data.campaigns) && data.campaigns.length && data.campaigns.every(c => c?.id && c?.name && Array.isArray(c.sources) && Array.isArray(c.watches) && c.snapshots)) return data;
+    if (Array.isArray(data.campaigns) && data.campaigns.length && data.campaigns.every(c => c?.id && c?.name && Array.isArray(c.sources) && Array.isArray(c.watches) && c.snapshots)) {
+      return { ...data, campaigns: data.campaigns.map(updateCampaignSources) };
+    }
   } catch { /* A fresh state is usable if storage is disabled. */ }
   return initial;
 }
@@ -127,7 +129,7 @@ function CampaignEditor({ campaign, onSave, onClose }: { campaign: Campaign; onS
     <fieldset><legend>刷新来源</legend><div className="promo-controls">
       {sources.map(source => <label key={source} className="promo-check"><input type="checkbox" name={source} defaultChecked={campaign.sources.includes(source)} />{PROMOTION_SOURCES[source].name}</label>)}
     </div></fieldset>
-    <p className="promo-muted">商家活动页用于黑五。其他大促可选择通用的社区来源。日期用于标记活动，来源展示的是当前发布内容。</p>
+    <p className="promo-muted">Costco、Walmart 为黑五专题，其他渠道也可用于日常优惠。页面显示各来源当时发布的内容。</p>
     {error && <p role="alert">{error}</p>}
     <div className="promo-controls"><button className="promo-primary" type="submit">保存活动</button><button type="button" onClick={onClose}>取消</button></div>
   </form>;
@@ -246,6 +248,7 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
   const campaignWords = terms(campaign.keywords);
   const queryWords = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
   const cap = priceValue(maxPrice);
+  const leadCategory = (lead: Lead) => categoryOf(`${lead.title} ${displayTitle(lead)}`, lead.source);
   const availableLeads = allLeads.filter(lead => {
     const text = `${displayTitle(lead)} ${lead.title} ${lead.detail ?? ""} ${PROMOTION_SOURCES[lead.source].name}`.toLowerCase();
     const price = (lead.offer ?? priceFromTitle(lead.title)).current;
@@ -256,12 +259,12 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
   });
   const categoryCounts = new Map<PromotionCategory, number>();
   for (const lead of availableLeads) {
-    const key = categoryOf(`${lead.title} ${displayTitle(lead)}`);
+    const key = leadCategory(lead);
     categoryCounts.set(key, (categoryCounts.get(key) ?? 0) + 1);
   }
   const groups = new Map<string, Lead[]>();
   for (const lead of availableLeads) {
-    if (category !== "all" && categoryOf(`${lead.title} ${displayTitle(lead)}`) !== category) continue;
+    if (category !== "all" && leadCategory(lead) !== category) continue;
     const key = merchantProduct(lead.url)?.key ?? lead.title.toLowerCase().replace(/\s+/g, " ");
     const group = groups.get(key);
     if (group) group.push(lead);
@@ -317,14 +320,19 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
     .sort((a, b) => Number(classifyWatch(b) === "已到价") - Number(classifyWatch(a) === "已到价") || Number(b.enabled) - Number(a.enabled));
   const done = tasks.filter(task => task.status === "done" || task.status === "failed").length;
   const failed = tasks.filter(task => task.status === "failed").length;
+  const hasFailedSources = tasks.some(task => task.status === "failed" && task.source);
   const hits = campaign.watches.filter(watch => classifyWatch(watch) === "已到价").length;
 
-  async function refresh(kind: "all" | "watch", single?: Watch) {
+  async function refresh(kind: "all" | "watch" | "failed-sources", single?: Watch) {
     if (running.current) return;
     const pending: Task[] = [];
     const id = campaign.id;
-    const append = (key: string, label: string, work: Task["work"]) => pending.push({ key, label, status: "waiting", work });
-    if (kind === "all") for (const source of campaign.sources) append(source, PROMOTION_SOURCES[source].name, async () => {
+    const failedSources = new Set(tasks.filter(task => task.source && task.status === "failed").map(task => task.source));
+    const append = (key: string, label: string, work: Task["work"], source?: PromotionSource) =>
+      pending.push({ key, label, source, status: "waiting", work });
+    const selectedSources = kind === "all" ? campaign.sources :
+      kind === "failed-sources" ? campaign.sources.filter(source => failedSources.has(source)) : [];
+    for (const source of selectedSources) append(source, PROMOTION_SOURCES[source].name, async () => {
       const snapshot = await request<SourceSnapshot>(source);
       if (!Array.isArray(snapshot.leads) || !Number.isFinite(snapshot.checkedAt)) throw Error("后台返回的优惠格式无效");
       editCampaign(id, c => {
@@ -336,8 +344,9 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
         return { ...c, snapshots: { ...c.snapshots, [source]: { ...snapshot, leads } } };
       });
       return `${snapshot.leads.length} 条优惠`;
-    });
-    for (const watch of single ? [single] : selectedWatches) append(watch.id, watch.title, async () => {
+    }, source);
+    const watches = single ? [single] : kind === "all" ? selectedWatches : [];
+    for (const watch of watches) append(watch.id, watch.title, async () => {
       try {
         const token = owner.token();
         if (!token) throw Error("请连接 PT 私有后台后核价");
@@ -355,7 +364,7 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
     setBusy(true);
     setShowProgress(true);
     setNotice("");
-    setTasks(pending.map(({ key, label, status }) => ({ key, label, status })));
+    setTasks(pending.map(({ key, label, source, status }) => ({ key, label, source, status })));
     function mark(key: string, status: Task["status"], detail?: string) {
       setTasks(previous => previous.map(item => item.key === key ? { ...item, status, detail } : item));
     }
@@ -365,9 +374,13 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
       catch (error) { mark(task.key, "failed", error instanceof Error ? error.message : "请求失败"); }
     }
     try {
-      for (let index = 0; index < pending.length; index += 2) {
-        await Promise.all(pending.slice(index, index + 2).map(execute));
+      let nextTask = 0;
+      async function runQueue() {
+        while (nextTask < pending.length) {
+          await execute(pending[nextTask++]);
+        }
       }
+      await Promise.all([runQueue(), runQueue(), runQueue()]);
     } finally {
       running.current = false;
       setShowProgress(false);
@@ -450,12 +463,13 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
     {editor && <CampaignEditor key={editor.id} campaign={editor} onSave={saveCampaign} onClose={() => setEditor(null)} />}
     {storageError && <p role="alert" className="promo-panel">浏览器存储不可写，本页改动刷新后可能丢失。</p>}
     {notice && <p role="status" className="promo-panel">{notice}</p>}
-    {tasks.length > 0 && <section className="promo-panel promo-progress" aria-label="刷新进度">
-      <div className="promo-section-heading"><h2>刷新进度</h2><div className="promo-controls"><strong role="status">{busy ? "进行中" : failed ? "完成，有失败项" : "刷新完成"} · {done}/{tasks.length}{failed ? ` · ${failed} 项失败` : ""}</strong>{!busy && <button type="button" aria-expanded={showProgress} onClick={() => setShowProgress(!showProgress)}>{showProgress ? "收起详情" : "查看来源详情"}</button>}</div></div>
+    {tasks.length > 0 && <section className="promo-panel promo-progress" data-result={!busy && failed ? "partial" : undefined} aria-label="刷新进度">
+      <div className="promo-section-heading"><h2>刷新进度</h2><div className="promo-controls"><strong role="status">{busy ? "进行中" : failed ? "完成，有失败项" : "刷新完成"} · {done}/{tasks.length}{failed ? ` · ${failed} 项失败` : ""}</strong>{!busy && hasFailedSources && <button type="button" onClick={() => void refresh("failed-sources")}>只重试失败来源</button>}{!busy && <button type="button" aria-expanded={showProgress} onClick={() => setShowProgress(!showProgress)}>{showProgress ? "收起详情" : "查看来源详情"}</button>}</div></div>
       {(busy || showProgress) && <><progress max={tasks.length} value={done} aria-label="已完成来源和商品数" />
       <ul className="promo-progress-list">
         {tasks.map(task => <li key={task.key}><span>{task.label}</span><span data-result={task.status}>
           {task.status === "waiting" ? "等待" : task.status === "running" ? "读取中…" : task.status === "done" ? task.detail : `失败 · ${task.detail}`}
+          {task.source && task.status === "failed" && <> · <External url={PROMOTION_SOURCES[task.source].url}>打开原站 ↗</External></>}
         </span></li>)}
       </ul>
       {!busy && failed > 0 && <p className="promo-muted">失败的来源和商品保留上次成功报价及日期。</p>}</>}
@@ -510,7 +524,7 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
         const upcoming = lead.validFrom && lead.validFrom > today;
         const expired = lead.validUntil && lead.validUntil < today;
         return <article key={lead.url} className="promo-lead">
-          <div className="promo-lead-meta"><span className="promo-chip">{PROMOTION_CATEGORIES[categoryOf(`${lead.title} ${title}`)][0]}</span><span className="promo-muted">
+          <div className="promo-lead-meta"><span className="promo-chip">{PROMOTION_CATEGORIES[leadCategory(lead)][0]}</span><span className="promo-muted">
             {upcoming ? "即将开始" : expired ? "已结束" : lead.publishedAt ? displayTime(lead.publishedAt) : ""}
           </span></div>
           <div className="promo-lead-product">
