@@ -33,3 +33,6 @@ src/app/demo/
 scripts/
 snapshots/
 .workbuddy/
+
+# The static GitHub Pages entry imports monorepo apps outside this image's context.
+src/pages-entry.tsx
