@@ -5,7 +5,42 @@
 <main><header class="page-header"><div><div class="eyebrow">PERSONAL WATCHLIST</div><h1 id="page-title">我的监控</h1><p id="page-subtitle">关注价格和进度，有变化时再来处理。</p></div><div class="header-actions"><span id="today"></span><button class="primary" id="add">＋ 添加监控 <kbd>N</kbd></button></div></header>
 <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
 <section class="stats" aria-label="监控概况"><button data-stat="active"><span>已启用</span><strong id="stat-active">0<small>项</small></strong></button><button data-stat="events"><span>未读提醒</span><strong id="stat-events">0<small>条</small></strong></button><button data-stat="hotel"><span>酒店低价机会</span><strong id="stat-opportunities">0<small>条</small></strong></button><button data-stat="attention" class="attention-stat"><span>待核对 / 异常</span><strong id="stat-errors">0<small>项</small></strong></button></section>
-<section class="workspace"><div class="workspace-nav"><nav aria-label="监控分类"><button data-view="all" class="active">全部 <b id="nav-all">0</b></button><button data-view="shopping">购物 <b id="nav-shopping">0</b></button><button data-view="uscis">USCIS <b id="nav-uscis">0</b></button><button data-view="hotel">酒店 <b id="nav-hotel">0</b></button><button data-view="events">提醒收件箱 <b id="nav-events">0</b></button></nav></div><div class="section-heading"><div><h2 id="list-title">关注列表</h2><span id="list-count">0 个关注对象</span></div><div class="toolbar"><label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="搜索监控…" aria-label="搜索监控"><kbd>/</kbd></label><select id="status-filter" aria-label="按状态筛选"><option value="all">全部状态</option><option value="active">已启用</option><option value="attention">待核对 / 异常</option><option value="paused">已暂停</option></select><button class="icon-button" id="refresh" title="刷新列表" aria-label="刷新列表">↻</button></div></div><div class="list-columns" id="list-columns" aria-hidden="true"><span>监控对象</span><span>当前记录 / 目标</span><span>检查状态</span><span>操作</span></div><div id="list" class="object-grid" aria-live="polite"></div></section>
+<section class="workspace"><div class="workspace-nav"><nav aria-label="监控分类"><button data-view="all" class="active">全部 <b id="nav-all">0</b></button><button data-view="shopping">购物 <b id="nav-shopping">0</b></button><button data-view="uscis">USCIS <b id="nav-uscis">0</b></button><button data-view="hotel">酒店 <b id="nav-hotel">0</b></button><button data-view="events">提醒收件箱 <b id="nav-events">0</b></button></nav></div><section id="uscis-workspace" class="immigration-panel" aria-label="移民案件跟踪" hidden>
+  <article class="immigration-card">
+    <header><div><span class="immigration-type">I-485</span><h2>绿卡内部更新</h2></div><span class="badge paused" data-case-compare>等待首次导入</span></header>
+    <p>在你登录的 myUSCIS 中打开案件详情，将返回的 JSON 粘贴到这里。用于比较内部事件和时间戳。</p>
+    <form novalidate>
+      <div class="immigration-inputs">
+        <label>申请人<select name="role"><option value="primary">主申</option><option value="spouse">配偶</option></select></label>
+        <label>收据号<input name="receipt" type="password" maxlength="20" autocomplete="off" spellcheck="false" placeholder="打开接口时填写"></label>
+        <button type="button" class="secondary" data-case-open>打开内部接口 ↗</button>
+      </div>
+      <label>内部详情 JSON<textarea name="snapshot" rows="3" maxlength="250000" autocomplete="off" spellcheck="false" placeholder="粘贴 myUSCIS 返回的 JSON"></textarea></label>
+      <div class="immigration-actions">
+        <button type="submit" class="primary">导入并比较</button>
+        <label class="checkbox"><input type="checkbox" name="persist">在本机保留历史</label>
+        <button type="button" class="text-button" data-case-clear hidden>清除本申请人历史</button>
+      </div>
+    </form>
+    <p class="hint">仅在本机解析。选择保留时，只保存核对快照所需的摘要。时间使用美西时区。</p>
+    <p class="immigration-feedback" data-case-feedback role="status" aria-live="polite"></p>
+    <dl class="immigration-metrics" data-case-metrics></dl>
+    <ul class="immigration-timeline" data-case-timeline></ul>
+    <div class="immigration-links">
+      <a href="https://my.uscis.gov/" target="_blank" rel="noopener noreferrer">myUSCIS 正式通知 ↗</a>
+      <a href="https://travel.state.gov/content/travel/en/legal/visa-law0/visa-bulletin.html" target="_blank" rel="noopener noreferrer">Visa Bulletin 表 A ↗</a>
+    </div>
+  </article>
+  <article class="immigration-card">
+    <header><div><span class="immigration-type">I-129</span><h2>H-1B 公开状态</h2></div></header>
+    <p>用 I-797C 上的收据号查询。添加监控后，现有后台会每天检查公开状态并保留最近一次成功的记录。</p>
+    <div class="immigration-actions">
+      <button type="button" id="add-h1b" class="primary">添加 H-1B 监控</button>
+      <a href="https://egov.uscis.gov/casestatus/landing.do" target="_blank" rel="noopener noreferrer">打开 USCIS 官方查询 ↗</a>
+    </div>
+    <p class="hint">正式批准、补件、加急和 COS 结果，以雇主或代理律师收到的通知为准。</p>
+  </article>
+</section><div class="section-heading"><div><h2 id="list-title">关注列表</h2><span id="list-count">0 个关注对象</span></div><div class="toolbar"><label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="搜索监控…" aria-label="搜索监控"><kbd>/</kbd></label><select id="status-filter" aria-label="按状态筛选"><option value="all">全部状态</option><option value="active">已启用</option><option value="attention">待核对 / 异常</option><option value="paused">已暂停</option></select><button class="icon-button" id="refresh" title="刷新列表" aria-label="刷新列表">↻</button></div></div><div class="list-columns" id="list-columns" aria-hidden="true"><span>监控对象</span><span>当前记录 / 目标</span><span>检查状态</span><span>操作</span></div><div id="list" class="object-grid" aria-live="polite"></div></section>
 <section class="activity" id="activity-section"><div class="section-heading"><div><h2>最近提醒</h2><span>变动和临近截止时间</span></div><button id="all-events" class="text-button">查看收件箱 →</button></div><div id="activity-list"></div></section>
 <footer><span><i class="tiny-dot"></i>关闭页面后，后台仍会按计划检查</span><span id="last-sync">尚未同步</span></footer></main>
 
@@ -35,4 +70,4 @@
 <dialog id="source-dialog" class="form-dialog"><form id="source-form"><div class="dialog-header"><div><div class="eyebrow">QUOTE SOURCE</div><h2>报价来源</h2></div><button type="button" class="close" data-close="source-dialog" aria-label="关闭">×</button></div><label>来源名称<input name="label" placeholder="例如酒店官网"></label><label>具体报价链接<input name="url" type="url" required></label><label>币种<input name="currency" value="USD" maxlength="3" pattern="[A-Za-z]{3}" title="使用三字母币种，例如 USD"></label><label>唯一价格区域<input name="priceSelector" placeholder="CSS选择器"></label><label>房型与政策区域 <small>酒店需要</small><input name="termsSelector" placeholder="CSS选择器"></label><label class="checkbox"><input name="quotedTotal" type="checkbox">这是整段住宿含税总价，包含强制费用</label><label class="checkbox"><input name="browser" type="checkbox" checked>使用浏览器加载</label><p id="source-error" class="error-text" role="alert" hidden></p><div class="dialog-actions"><button type="button" class="secondary" data-close="source-dialog">取消</button><button type="submit" class="primary">保存来源</button></div></form></dialog>
 
 <dialog id="settings-dialog" class="form-dialog"><form id="settings-form"><div class="dialog-header"><div><div class="eyebrow">PREFERENCES</div><h2>通知与数据</h2></div><button type="button" class="close" data-close="settings-dialog" aria-label="关闭">×</button></div><p class="hint">事件默认保存在站内。外部推送只发送事件类型，不包含完整案件编号或订单信息。</p><label>ntfy 推送地址<input name="notificationURL" type="url" placeholder="https://ntfy.sh/你的随机主题"></label><label class="checkbox"><input name="enabled" type="checkbox">启用外部推送</label><p class="hint">请使用至少8位、难以猜测的主题名，并在手机ntfy客户端订阅。未配置时不影响后台检查与事件保存。</p><button id="export" type="button" class="secondary">导出我的监控记录</button><p class="hint">导出文件包含私人数据，请自行保管。服务端自动保存记录，浏览器不保存案件与订单正文。</p><p id="settings-error" class="error-text" role="alert" hidden></p><div class="dialog-actions"><button type="button" class="secondary" data-close="settings-dialog">关闭</button><button type="submit" class="primary">保存设置</button></div></form></dialog>
-<div id="toast" role="status" aria-live="polite" hidden></div><script type="module" src="app.mjs"></script></body></html>
+<div id="toast" role="status" aria-live="polite" hidden></div><script type="module" src="app.mjs?v=2"></script></body></html>

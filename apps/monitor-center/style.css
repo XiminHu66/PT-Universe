@@ -11,3 +11,94 @@ dialog{border:1px solid #cfd4de;border-radius:9px;padding:24px;background:white;
 
 /* Editing retains the single-column layout and exposes current values immediately. */
 .composer.editing .type-picker,.composer.editing .step-heading,.composer.editing .delivery-note{display:none}.composer.editing [data-stage="1"]{border-top:1px solid var(--line);padding-top:20px;margin-top:22px}.edit-source-row{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:5px;margin-bottom:10px}.edit-source-row>div{flex:1;min-width:0}.edit-source-row strong{font-size:13px;font-weight:600;display:block}.edit-source-row span{display:block;font-size:12px;color:var(--muted);overflow-wrap:anywhere;margin-top:4px}.edit-source-row button{white-space:nowrap;font-size:12px;padding:7px 10px}.composer.editing .composer-actions>span{display:block}.composer.editing input[readonly]{background:#f1f3f6;color:var(--muted)}
+
+.immigration-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 14px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+  background: #f8f9fc;
+}
+.immigration-panel[hidden] { display: none; }
+.immigration-card {
+  min-width: 0;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+.immigration-card header, .immigration-actions, .immigration-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+}
+.immigration-card header { justify-content: space-between; }
+.immigration-card header > div { display: flex; align-items: center; gap: 8px; }
+.immigration-card h2 { font-size: 16px; }
+.immigration-card p { color: var(--muted); font-size: 13px; line-height: 1.65; }
+.immigration-card label { display: block; font-size: 13px; color: var(--ink); }
+.immigration-card a { color: var(--green); font-size: 13px; }
+.immigration-type {
+  color: #53419a;
+  background: #f4f0fd;
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-size: 12px;
+  font-weight: 650;
+}
+.immigration-inputs {
+  display: grid;
+  grid-template-columns: max-content minmax(100px, 1fr) max-content;
+  align-items: end;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.immigration-inputs input, .immigration-inputs select, .immigration-card textarea {
+  display: block;
+  margin-top: 5px;
+  background: white;
+  color: var(--ink);
+  border: 1px solid #cdd2db;
+  border-radius: 5px;
+  padding: 8px;
+  width: 100%;
+}
+.immigration-inputs button { min-height: 36px; }
+.immigration-card textarea { resize: vertical; min-height: 64px; }
+.immigration-actions { margin-top: 10px; }
+.immigration-card .checkbox { display: inline-flex; align-items: center; gap: 5px; }
+.immigration-card .immigration-feedback:empty, .immigration-metrics:empty, .immigration-timeline:empty { display: none; }
+.immigration-card .immigration-feedback.error-text { color: var(--red); }
+.immigration-metrics {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 5px 12px;
+  margin-top: 14px;
+  padding: 10px 0;
+  border-block: 1px solid var(--line);
+  font-size: 13px;
+}
+.immigration-metrics dt { color: var(--muted); }
+.immigration-metrics dd { margin: 0; overflow-wrap: anywhere; }
+.immigration-timeline { list-style: none; margin: 0 0 12px; padding: 0; max-height: 180px; overflow: auto; }
+.immigration-timeline li {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 3px 12px;
+  padding: 6px 0;
+  font-size: 12px;
+  border-bottom: 1px solid #eceef2;
+}
+.immigration-timeline li span { color: var(--muted); }
+.immigration-links { margin-top: 10px; }
+@media (max-width: 800px) {
+  .immigration-panel { grid-template-columns: minmax(0, 1fr); padding: 12px; }
+}
+@media (max-width: 400px) {
+  .immigration-card { padding: 12px; }
+  .immigration-inputs { grid-template-columns: max-content minmax(0, 1fr); }
+  .immigration-inputs button { grid-column: 1 / -1; justify-self: start; }
+}
