@@ -3,10 +3,12 @@ from __future__ import annotations
 import json
 import os
 import re
+from contextlib import ExitStack
 from datetime import date, datetime
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 
+import requests
 from bs4 import BeautifulSoup
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 from playwright.sync_api import sync_playwright
@@ -135,6 +137,20 @@ def results_api_url(filter_name: str, sort_by: str, count: int) -> str:
     )
 
 
+def fetch_search_rows(source_id: str, label: str, filter_name: str, sort_by: str, limit: int) -> list[dict]:
+    url = results_api_url(filter_name, sort_by, max(limit, 50))
+    response = requests.get(
+        url, headers={"User-Agent": UA, "Accept": "application/json", "Accept-Language": "en-US,en;q=0.9"},
+        timeout=15,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    if not isinstance(payload, dict):
+        return []
+    html = payload.get("results_html") or payload.get("html") or ""
+    return parse_results_html(html, source_id, label, limit) if isinstance(html, str) else []
+
+
 def scrape_one(page, source_id: str, label: str, filter_name: str, sort_by: str, limit: int) -> tuple[int, list[dict], str]:
     url = search_url(filter_name, sort_by)
     page.goto(url, wait_until="domcontentloaded", timeout=60000)
@@ -222,23 +238,29 @@ def main() -> None:
                 rows.append(dict(row))
         return rows
 
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True, executable_path=os.environ.get("PT_CHROMIUM_EXECUTABLE"), args=["--disable-dev-shm-usage"])
-        context = browser.new_context(
-            user_agent=UA,
-            locale="en-US",
-            viewport={"width": 1440, "height": 1200},
-        )
-        # Harmless storefront cookies that remove some preference/age friction.
-        context.add_cookies([
-            {"name": "birthtime", "value": "568022401", "domain": "store.steampowered.com", "path": "/"},
-            {"name": "lastagecheckage", "value": "1-January-1988", "domain": "store.steampowered.com", "path": "/"},
-        ])
-        page = context.new_page()
-
+    with ExitStack() as stack:
+        page = None
         for source_id, label, filter_name, sort_by, limit in specs:
             try:
-                dom_count, raw_rows, note = scrape_one(page, source_id, label, filter_name, sort_by, limit)
+                try:
+                    raw_rows = fetch_search_rows(source_id, label, filter_name, sort_by, limit)
+                except requests.RequestException as e:
+                    print(f"STEAMPC direct endpoint unavailable for {source_id}: {e}")
+                    raw_rows = []
+                dom_count, note = 0, "search_results_api"
+                if not raw_rows:
+                    if page is None:
+                        p = stack.enter_context(sync_playwright())
+                        browser = p.chromium.launch(headless=True, executable_path=os.environ.get("PT_CHROMIUM_EXECUTABLE"), args=["--disable-dev-shm-usage"])
+                        stack.callback(browser.close)
+                        context = browser.new_context(user_agent=UA, locale="en-US", viewport={"width": 1440, "height": 1200})
+                        stack.callback(context.close)
+                        context.add_cookies([
+                            {"name": "birthtime", "value": "568022401", "domain": "store.steampowered.com", "path": "/"},
+                            {"name": "lastagecheckage", "value": "1-January-1988", "domain": "store.steampowered.com", "path": "/"},
+                        ])
+                        page = context.new_page()
+                    dom_count, raw_rows, note = scrape_one(page, source_id, label, filter_name, sort_by, limit)
                 filtered = []
                 for row in raw_rows:
                     d = as_date(row.get("release_date") or "")
@@ -274,9 +296,6 @@ def main() -> None:
                     "error": f"{type(e).__name__}: {e}",
                 }
                 print(f"STEAMPC ERR {source_id}: {type(e).__name__}: {e}; preserved {len(fallback)} last-good items")
-
-        context.close()
-        browser.close()
 
     # Deduplicate games that may occur in both lists. Prefer the first occurrence.
     dedup: list[dict] = []

@@ -8,7 +8,7 @@ import {dealRadarRoute} from './deal-radar';
 import {monitorRoute} from './monitor';
 import {dealLabRoute} from './deal-lab';
 import {dealPromotionRoute} from './deal-promotion';
-import {sourceIsFresh,SITE_REFRESH_REVISION} from './site-updates';
+import {SITE_REFRESH_REVISION} from './site-updates';
 import {browserSiteList,browserChapterBatch} from './browser-site-parser';
 import { museRoute } from './muse';
 import { investmentRoute } from './investment';
@@ -28,6 +28,7 @@ import {pruneUsage,recordUsageAccount,toolVisit,usageVisit} from './usage';
 
 type RefreshScope='all'|'sites'|'music'|'games';
 type RefreshOrigin='manual'|'scheduled:08:31';
+type ScheduledRefreshScope='sites'|'music';
 type RefreshMessage={requestId:string;scope:RefreshScope;source:RefreshOrigin;limitKeys?:string[];gameCommit?:string};
 type RefreshRunSummary={request_id:string;scope:RefreshScope;status:string;started_at:string|null;completed_at:string|null;error:string|null};
 type RefreshBudget={day:string;officialDailyMs:number;safeDailyMs:number;usedMs:number;reservedMs:number;remainingMs:number;estimatedFullRefreshMs:number;remainingRefreshes:number;platformUsedMs:number;reservePercent:number;resetsAt:string;scheduledRunFinished:boolean;inFlightRefreshes:number};
@@ -111,7 +112,7 @@ async function refreshBudget(env:Env):Promise<RefreshBudget>{
   const [usage,durations,scheduled,active,platform]=await Promise.all([
     env.DB.prepare("SELECT COALESCE(SUM(duration_ms),0) AS total FROM refresh_runs WHERE scope IN ('all','sites','music') AND status IN ('success','partial','failed') AND completed_at >= datetime('now','start of day')").first<{total:number}>(),
     env.DB.prepare("SELECT duration_ms FROM refresh_runs WHERE scope='all' AND status='success' AND duration_ms IS NOT NULL ORDER BY rowid DESC LIMIT 7").all<{duration_ms:number}>(),
-    env.DB.prepare("SELECT COUNT(*) AS total FROM refresh_runs WHERE scope='all' AND source LIKE 'scheduled:%' AND status IN ('success','partial','failed') AND completed_at >= datetime('now','start of day')").first<{total:number}>(),
+    env.DB.prepare("SELECT COUNT(*) AS total FROM refresh_runs WHERE scope IN ('all','sites','music') AND source LIKE 'scheduled:%' AND status IN ('success','partial','failed') AND completed_at >= datetime('now','start of day')").first<{total:number}>(),
     env.DB.prepare("SELECT COUNT(*) AS total, SUM(CASE WHEN source LIKE 'scheduled:%' THEN 1 ELSE 0 END) AS scheduled FROM refresh_runs WHERE scope IN ('all','sites','music') AND status IN ('queued','running')").first<{total:number;scheduled:number}>(),
     browserHistory(env.BROWSER).catch(()=>[])
   ]);
@@ -357,7 +358,7 @@ async function withBrowser<T>(env:Env,fn:(browser:Browser)=>Promise<T>){
   for(let attempt=0;attempt<3&&!browser;attempt++)try{browser=await launch(env.BROWSER,{keep_alive:60_000})}catch(e){lastError=e;if(!String(e).includes('429')||attempt===2)throw e;await new Promise(resolve=>setTimeout(resolve,22_000))}
   if(!browser)throw lastError;
   // Keep one page open for the whole refresh, including the gaps between source pages.
-  const keeper=await browser.newPage();
+  const keeper=await browser.newPage().catch(async e=>{await closeFast(browser);throw e});
   try{return await fn(browser)}finally{await closeFast(keeper);await closeFast(browser)}
 }
 function normalizedUrl(value:unknown){try{const url=new URL(String(value||''));url.hash='';url.search='';return url.href.replace(/\/$/,'')}catch{return String(value||'').replace(/[?#].*$/,'').replace(/\/$/,'')}}
@@ -449,7 +450,7 @@ async function refreshSites(env:Env,sharedBrowser?:Browser,source:RefreshOrigin=
     for(const s of sources){
       console.log('refresh_source_started',{source:s.id});
       const prior=history.filter((x:any)=>x.source===s.id);
-      if(source!=='manual'&&source!=='scheduled:08:31'&&sourceIsFresh(cached,s.id,new Date().toISOString().slice(0,10))){
+      if(source==='scheduled:08:31'&&siteSourceFresh(cached,s.id,pacificRefreshTime(new Date()).day)){
         items.push(...mergeSiteRows([],prior,s.limit));states[s.id]=cached.sources[s.id];continue;
       }
       try{
@@ -571,20 +572,38 @@ async function runRefresh(env:Env,scope:RefreshScope,source:RefreshOrigin='manua
   const state={generated_at:now(),scope,refresh_source:source,result};await putData(env,'state.json',state);return result;
 }
 
-function samePacificDay(stamp:string){const day=(date:Date)=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(date);return Number.isFinite(Date.parse(stamp))&&day(new Date(stamp))===day(new Date())}
-// A delayed scheduled queue delivery must never become an afternoon scrape.
-function insideScheduledWindow(instant:Date){
-  const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(instant);
-  const time=(part:string)=>Number(parts.find(x=>x.type===part)?.value??NaN);
-  return time('hour')===8&&time('minute')>=31;
+const pacificRefreshFormatter=new Intl.DateTimeFormat('en-US',{
+  timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit',
+  hour:'2-digit',minute:'2-digit',hourCycle:'h23'
+});
+function pacificRefreshTime(instant:Date){
+  const parts=pacificRefreshFormatter.formatToParts(instant);
+  const get=(key:string)=>parts.find(x=>x.type===key)?.value||'';
+  return {day:`${get('year')}-${get('month')}-${get('day')}`,hour:Number(get('hour')),minute:Number(get('minute'))};
 }
-// A snapshot is fresh only when both core music sources were actually scraped today.
+function samePacificDay(stamp:string){return Number.isFinite(Date.parse(stamp))&&pacificRefreshTime(new Date(stamp)).day===pacificRefreshTime(new Date()).day}
+function insideScheduledWindow(instant:Date){
+  const {hour,minute}=pacificRefreshTime(instant);
+  return hour===8&&minute>=31;
+}
+function scheduledRefreshSlot(due:Date,cron:string){
+  const {day,hour,minute}=pacificRefreshTime(due);
+  if(hour!==8)return null;
+  if(minute===31&&cron==='31 15,16 * * *')return {day,kind:'primary'} as const;
+  if(minute===45&&cron==='*/15 * * * *')return {day,kind:'recovery'} as const;
+  return null;
+}
 function freshPacificMorning(stamp:string,day:string){
   const ms=Date.parse(stamp||'');
   if(!Number.isFinite(ms)||ms>Date.now()+300_000)return false;
-  const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(new Date(ms));
-  const get=(key:string)=>parts.find(x=>x.type===key)?.value||'';
-  return day===get('year')+'-'+get('month')+'-'+get('day')&&Number(get('hour'))>=8;
+  const local=pacificRefreshTime(new Date(ms));
+  return local.day===day&&local.hour>=8;
+}
+function siteSourceFresh(snapshot:any,id:string,day:string){
+  const source=snapshot?.sources?.[id];
+  return source?.ok===true&&!source.fallback&&!source.discovery_error
+    &&Number(source.verifiedChapterCount)>0&&freshPacificMorning(source.checked_at,day)
+    &&Array.isArray(snapshot?.items)&&snapshot.items.some((item:any)=>item.source===id);
 }
 function musicSnapshotFresh(snapshot:any,day:string){
   if(!freshPacificMorning(snapshot?.generated_at,day))return false;
@@ -595,6 +614,47 @@ function musicSnapshotFresh(snapshot:any,day:string){
       &&freshPacificMorning(source.checked_at,day)
       &&freshPacificMorning(source.last_success_at,day);
   });
+}
+async function syncMorningGameSnapshot(env:Env,day:string){
+  if(!insideScheduledWindow(new Date())||pacificRefreshTime(new Date()).day!==day)return;
+  const cached=safeJson<{generated_at?:string}>(await env.PT_UNIVERSE_DATA.get('data/game-releases.json'),{});
+  if(freshPacificMorning(cached.generated_at||'',day))return;
+  await refreshGames(env);
+}
+async function scheduleTsugiRefresh(env:Env,due:Date,slot:NonNullable<ReturnType<typeof scheduledRefreshSlot>>){
+  const started=new Date(),source:RefreshOrigin='scheduled:08:31';
+  console.log('tsugi_schedule_received',{slot:slot.kind,due:due.toISOString(),started:started.toISOString()});
+  if(!insideScheduledWindow(started)||pacificRefreshTime(started).day!==slot.day){
+    console.warn('tsugi_schedule_outside_window',{slot:slot.kind,day:slot.day});
+    return;
+  }
+  await env.DB.prepare("UPDATE refresh_runs SET status='failed',completed_at=?,error='Refresh session exceeded six minutes and was reclaimed' WHERE scope IN ('all','sites','music') AND status IN ('queued','running') AND (started_at IS NULL OR datetime(started_at)<datetime('now','-6 minutes'))").bind(now()).run();
+  const [sites,music]=await Promise.all(['site-updates.json','music.json'].map(async name=>safeJson<any>(await env.PT_UNIVERSE_DATA.get('data/'+name),{})));
+  const scopes:ScheduledRefreshScope[]=[];
+  if(!['manhuagui','linovelib','copymanga'].every(id=>siteSourceFresh(sites,id,slot.day)))scopes.push('sites');
+  if(!musicSnapshotFresh(music,slot.day))scopes.push('music');
+  if(!scopes.length){console.log('tsugi_schedule_already_fresh',{slot:slot.kind,day:slot.day});return;}
+  if(slot.kind==='recovery'&&(await refreshBudget(env)).remainingRefreshes<1){
+    console.warn('tsugi_recovery_browser_budget',{day:slot.day,scopes});return;
+  }
+  const enqueued=await Promise.allSettled(scopes.map(async scope=>{
+    const requestId=`tsugi-${slot.day}-${slot.kind}-${scope}`;
+    const row=await env.DB.prepare(`INSERT OR IGNORE INTO refresh_runs(request_id,scope,source,status,started_at)
+      SELECT ?,?,?, 'queued',? WHERE NOT EXISTS (
+        SELECT 1 FROM refresh_runs WHERE scope IN ('all',?) AND status IN ('queued','running')
+      )`).bind(requestId,scope,source,now(),scope).run();
+    if(!row.meta.changes)return;
+    try{await env.REFRESH_QUEUE.send({requestId,scope,source} satisfies RefreshMessage);}
+    catch(e){
+      await env.DB.prepare("UPDATE refresh_runs SET status='failed',completed_at=?,error=? WHERE request_id=? AND status='queued'")
+        .bind(now(),String(e),requestId).run();
+      throw e;
+    }
+  }));
+  for(const [i,result] of enqueued.entries())if(result.status==='rejected'){
+    console.error('tsugi_schedule_enqueue_failed',{scope:scopes[i],slot:slot.kind,error:String(result.reason)});
+  }
+  if(enqueued.some(result=>result.status==='rejected'))throw new Error('Tsugi scheduled enqueue failed');
 }
 function refreshQuality(result:Json){
   const issues:string[]=[];
@@ -678,63 +738,25 @@ export default {
     }catch(e){console.error('request_failed',{path:url.pathname,error:String(e)});return error(request,e instanceof Error?e.message:String(e),500)}
   },
   async scheduled(_controller:ScheduledController,env:Env,ctx:ExecutionContext){
-    if(_controller.cron==='*/15 * * * *'){ctx.waitUntil(decisionTick(env));ctx.waitUntil(hubTick(env));return;}
-    ctx.waitUntil((async()=>{
-      // Scheduled UTC cron slots are interpreted in Pacific local time (PST/PDT).
-      const due=new Date(_controller.scheduledTime);
-      const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(due);
-      const pick=(type:string)=>parts.find(x=>x.type===type)?.value||'';
-      const hour=Number(pick('hour')),minute=Number(pick('minute'));
-      if(hour!==8||minute!==31)return;
-      ctx.waitUntil(pruneUsage(env.DB,due).catch(()=>{}));
-      const source:RefreshOrigin='scheduled:08:31';
-      const day=`${pick('year')}-${pick('month')}-${pick('day')}`;
-      const requestId=crypto.randomUUID(),stamp=now();
-      const record=async(status:string,reason:string)=>{
-        await env.DB.prepare('INSERT INTO refresh_runs(request_id,scope,source,status,started_at,completed_at,result_json) VALUES(?,?,?,?,?,?,?)')
-          .bind(requestId,'all',source,status,stamp,now(),JSON.stringify({reason,pacificDay:day,scheduledAt:due.toISOString()})).run();
-      };
-      // A very late callback must not turn into another afternoon refresh.
-      if(Date.now()-due.getTime()>30*60_000){await record('skipped','delayed_past_morning_window');return;}
-      const fresh=async(name:string,check:(snapshot:any)=>boolean)=>{
-        try{
-          const snapshot=safeJson<any>(await env.PT_UNIVERSE_DATA.get('data/'+name),{});
-          const date=Date.parse(snapshot.generated_at||'');
-          if(!Number.isFinite(date)||!check(snapshot))return false;
-          const local=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(new Date(date));
-          const get=(type:string)=>local.find(x=>x.type===type)?.value||'';
-          return `${get('year')}-${get('month')}-${get('day')}`===day && Number(get('hour'))>=8;
-        }catch{return false;}
-      };
-      const [siteFresh,musicFresh]=await Promise.all([
-        fresh('site-updates.json',v=>Array.isArray(v.items)&&v.items.length>0&&['manhuagui','linovelib','copymanga'].every(id=>sourceIsFresh(v,id,new Date().toISOString().slice(0,10)))),
-        fresh('music.json',v=>musicSnapshotFresh(v,day))
-      ]);
-      // GitHub imports its completed, commit-pinned game snapshot separately.
-      if(siteFresh&&musicFresh){await record('skipped','reading_and_music_fresh_today');return;}
-      const scope:RefreshScope=siteFresh?'music':musicFresh?'sites':'all';
-      await env.DB.prepare("UPDATE refresh_runs SET status='failed',completed_at=?,error='Stale queue session reclaimed before scheduled recovery' WHERE status IN ('queued','running') AND (started_at IS NULL OR datetime(started_at)<datetime('now','-6 minutes'))").bind(now()).run();
-      const active=await env.DB.prepare("SELECT request_id FROM refresh_runs WHERE scope IN ('all','sites','music') AND status IN ('queued','running') AND datetime(started_at) >= datetime('now','-6 minutes') ORDER BY rowid DESC LIMIT 1").first();
-      if(active){await record('skipped','refresh_already_running');return;}
-      const lock=await env.DB.prepare('INSERT OR IGNORE INTO refresh_limits(limit_key,last_requested_at) VALUES(?,?)')
-        .bind(`scheduled:${day}:${minute}`,stamp).run();
-      if(!lock.meta.changes){await record('skipped','slot_already_claimed');return;}
-      await env.DB.prepare('INSERT INTO refresh_runs(request_id,scope,source,status,started_at) VALUES(?,?,?,?,?)')
-        .bind(requestId,scope,source,'queued',stamp).run();
-      try{await env.REFRESH_QUEUE.send({requestId,scope,source} satisfies RefreshMessage)}
-      catch(e){
-        await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,error=? WHERE request_id=?')
-          .bind('failed',now(),String(e),requestId).run();throw e;
-      }
-    })());
+    if(_controller.cron==='*/15 * * * *'){ctx.waitUntil(decisionTick(env));ctx.waitUntil(hubTick(env));}
+    const due=new Date(_controller.scheduledTime),slot=scheduledRefreshSlot(due,_controller.cron);
+    if(!slot)return;
+    if(slot.kind==='primary')ctx.waitUntil(pruneUsage(env.DB,due).catch(()=>{}));
+    if(slot.kind==='recovery')ctx.waitUntil(syncMorningGameSnapshot(env,slot.day).catch(e=>console.warn('tsugi_game_sync_failed',{day:slot.day,error:String(e)})));
+    ctx.waitUntil(scheduleTsugiRefresh(env,due,slot).catch(e=>{
+      console.error('tsugi_schedule_failed',{slot:slot.kind,day:slot.day,error:String(e)});throw e;
+    }));
   },
   async queue(batch:MessageBatch<RefreshMessage>,env:Env){
     for(const message of batch.messages){const {requestId,scope,limitKeys=[],gameCommit}=message.body,start=Date.now(),deadline=scope==='all'?225_000:scope==='games'?150_000:scope==='sites'?210_000:scope==='music'?75_000:60_000;try{
       if(message.body.source==='scheduled:08:31'&&!insideScheduledWindow(new Date(start))){
-        await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,result_json=? WHERE request_id=?')
+        await env.DB.prepare("UPDATE refresh_runs SET status=?,completed_at=?,result_json=? WHERE request_id=? AND status='queued'")
           .bind('skipped',now(),JSON.stringify({reason:'queue_outside_08_31_window'}),requestId).run();
         message.ack();continue;
       }
-      await env.DB.prepare('UPDATE refresh_runs SET status=?,started_at=? WHERE request_id=?').bind('running',now(),requestId).run();const result=await withDeadline(runRefresh(env,scope,message.body.source,gameCommit),deadline,`${scope} 刷新`);await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,duration_ms=?,result_json=? WHERE request_id=?').bind(refreshQuality(result).ok?'success':'partial',now(),Date.now()-start,JSON.stringify({...result,quality:refreshQuality(result)}),requestId).run();console.log('refresh_completed',{requestId,scope,quality:refreshQuality(result)});message.ack()}catch(e){console.error('refresh_failed',{requestId,scope,error:String(e)});await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,duration_ms=?,error=? WHERE request_id=?').bind('failed',now(),Date.now()-start,String(e),requestId).run();for(const key of limitKeys)await env.DB.prepare('DELETE FROM refresh_limits WHERE limit_key=?').bind(key).run();message.ack()}}
+      const scheduled=message.body.source==='scheduled:08:31';
+      const claim=await env.DB.prepare(`UPDATE refresh_runs SET status='running',started_at=? WHERE request_id=?${scheduled?" AND status='queued'":''}`).bind(now(),requestId).run();
+      if(scheduled&&!claim.meta.changes){message.ack();continue;}
+      const result=await withDeadline(runRefresh(env,scope,message.body.source,gameCommit),deadline,`${scope} 刷新`);await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,duration_ms=?,result_json=? WHERE request_id=?').bind(refreshQuality(result).ok?'success':'partial',now(),Date.now()-start,JSON.stringify({...result,quality:refreshQuality(result)}),requestId).run();console.log('refresh_completed',{requestId,scope,quality:refreshQuality(result)});message.ack()}catch(e){console.error('refresh_failed',{requestId,scope,error:String(e)});await env.DB.prepare('UPDATE refresh_runs SET status=?,completed_at=?,duration_ms=?,error=? WHERE request_id=?').bind('failed',now(),Date.now()-start,String(e),requestId).run();for(const key of limitKeys)await env.DB.prepare('DELETE FROM refresh_limits WHERE limit_key=?').bind(key).run();message.ack()}}
   }
 } satisfies ExportedHandler<Env,RefreshMessage>;

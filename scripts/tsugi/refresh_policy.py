@@ -13,13 +13,14 @@ def fresh(value,now):
 def game_decision(snapshot,now,event='schedule'):
     if event!='schedule':return True,'explicit_refresh'
     local=now.astimezone(PACIFIC)
-    if local.hour!=8 or local.minute<31:return False,'outside_daily_0831_window'
     sources=snapshot.get('sources',{})
     healthy=fresh(snapshot.get('generated_at'),now) and all(
         (s:=sources.get(key,{})).get('ok') is True and not s.get('fallback')
         and fresh(s.get('checked_at'),now) for key in REQUIRED)
     has_items=any(snapshot.get('items',{}).get(k) for k in ('mobile','pc','console'))
-    return (False,'verified_today') if healthy and has_items else (True,'missing_stale_or_partial')
+    if healthy and has_items:return False,'verified_today'
+    if local.hour!=8 or local.minute<31:return False,'outside_daily_0831_window'
+    return True,'missing_stale_or_partial'
 def main():
     file=Path('apps/tsugi-checker/data/game-releases.json')
     try:data=json.loads(file.read_text())
@@ -35,4 +36,6 @@ def main():
     output=f'refresh={str(run).lower()}\nreason={reason}\n'
     with open(os.environ['GITHUB_OUTPUT'],'a') as f:f.write(output)
     print(output)
+    if reason=='outside_daily_0831_window':
+        raise SystemExit('Scheduled runner missed the 08:31 Pacific window and today has no verified game snapshot')
 if __name__=='__main__':main()
