@@ -25,7 +25,10 @@ const script = outputFiles.find((file) => file.path.endsWith(".js"));
 if (!script) throw Error("Deal Radar bundle missing");
 const globals = path.join(root, "src/app/globals.css");
 const styles = await postcss([tailwind({ base: root, optimize: true })]).process(await readFile(globals, "utf8"), { from: globals });
-const css = styles.css + "\n" + await readFile(path.join(root, "src/components/deal-board.css"), "utf8");
+const componentStyles = await Promise.all(["deal-board.css", "promotion-board.css"].map(file =>
+  readFile(path.join(root, "src/components", file), "utf8"),
+));
+const css = [styles.css, ...componentStyles].join("\n");
 const styleName = `radar-${createHash("sha256").update(css).digest("hex").slice(0, 12)}.css`;
 const template = await readFile(path.join(root, "src/pages.html"), "utf8");
 await Promise.all([

@@ -1,0 +1,421 @@
+"use client";
+
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  applyTarget, categoryOf, classifyWatch, FIRST_CAMPAIGN, MAX_ACTIVE_WATCHES, merchantProduct,
+  parseImport, priceValue, PROMOTION_CATEGORIES, PROMOTION_SOURCES, safeHttps, updateQuote,
+  type Campaign, type Lead, type PromotionCategory, type PromotionSource, type Quote, type SourceSnapshot, type Watch,
+} from "@/lib/promotion";
+import { formatPacific } from "@/lib/time";
+
+const API = "https://pt-universe-api.summer07-nanjolno.workers.dev/api/deal-radar/promo/";
+const STORE = "pt.deal-radar.promotions.v1";
+const MAX_CAMPAIGNS = 24;
+const MAX_WATCHES = 150;
+const sources = Object.keys(PROMOTION_SOURCES) as PromotionSource[];
+const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+const makeId = () => crypto.randomUUID();
+const displayTime = (time: number) => formatPacific(time) ?? "";
+const terms = (value: string) => value.toLowerCase().split(/[,，]/).map(term => term.trim()).filter(Boolean);
+
+type Task = { key: string; label: string; status: "waiting" | "running" | "done" | "failed"; detail?: string; work: () => Promise<string> };
+type Store = { active: string; campaigns: Campaign[] };
+const initial: Store = { active: FIRST_CAMPAIGN.id, campaigns: [FIRST_CAMPAIGN] };
+type OwnerConnection = { token: () => string | null; connect: () => void };
+
+function readStore(): Store {
+  try {
+    const raw = localStorage.getItem(STORE);
+    if (!raw) return initial;
+    const data = JSON.parse(raw) as Store;
+    if (Array.isArray(data.campaigns) && data.campaigns.length && data.campaigns.every(c => c?.id && c?.name && Array.isArray(c.sources) && Array.isArray(c.watches) && c.snapshots)) return data;
+  } catch { /* A fresh state is usable if storage is disabled. */ }
+  return initial;
+}
+
+async function request<T>(id: string, options?: { url: string; token: string }): Promise<T> {
+  const response = await fetch(API + id, {
+    method: "POST", credentials: "omit", cache: "no-store", signal: AbortSignal.timeout(22_000),
+    ...(options ? { headers: { "content-type": "application/json", authorization: "Bearer " + options.token }, body: JSON.stringify({ url: options.url }) } : {}),
+  });
+  const data = await response.json().catch(() => null);
+  if (!response.ok || !data) throw Error(data?.error ?? `后台 HTTP ${response.status}`);
+  return data as T;
+}
+
+function watchKey(watch: Watch) {
+  return merchantProduct(watch.url)?.key ?? (watch.url || watch.title.toLowerCase());
+}
+
+function listingSearch(query: string) {
+  return `../deal-lab/?q=${encodeURIComponent(query)}#products`;
+}
+
+function External({ url, children }: { url: string; children: React.ReactNode }) {
+  return <a href={url} target="_blank" rel="noopener noreferrer">{children}</a>;
+}
+
+function CampaignEditor({ campaign, onSave, onClose }: { campaign: Campaign; onSave: (next: Campaign) => void; onClose: () => void }) {
+  const [error, setError] = useState("");
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const name = String(data.get("name") ?? "").trim();
+    const start = String(data.get("start") ?? "");
+    const end = String(data.get("end") ?? "");
+    const checkedSources = sources.filter(source => data.has(source));
+    if (!name || !start || !end || start > end || !checkedSources.length) {
+      setError("填写活动名称、正确的起止日期，并至少选择一个来源。");
+      return;
+    }
+    onSave({ ...campaign, name, start, end, keywords: String(data.get("keywords") ?? "").trim(), sources: checkedSources });
+  }
+  return <form className="promo-panel promo-form" onSubmit={submit}>
+    <div className="promo-editor-fields">
+      <label>活动名称<input name="name" required maxLength={80} defaultValue={campaign.name} /></label>
+      <label>开始日期<input name="start" type="date" required defaultValue={campaign.start} /></label>
+      <label>结束日期<input name="end" type="date" required defaultValue={campaign.end} /></label>
+    </div>
+    <label>优惠关键词，逗号分隔，任一命中<input name="keywords" maxLength={200} defaultValue={campaign.keywords} placeholder="例如：SSD，Mini PC，掌机" /></label>
+    <fieldset><legend>刷新来源</legend><div className="promo-controls">
+      {sources.map(source => <label key={source} className="promo-check"><input type="checkbox" name={source} defaultChecked={campaign.sources.includes(source)} />{PROMOTION_SOURCES[source].name}</label>)}
+    </div></fieldset>
+    <p className="promo-muted">商家活动页用于黑五。其他大促可选择通用的社区来源。日期用于标记活动，来源展示的是当前发布内容。</p>
+    {error && <p role="alert">{error}</p>}
+    <div className="promo-controls"><button className="promo-primary" type="submit">保存活动</button><button type="button" onClick={onClose}>取消</button></div>
+  </form>;
+}
+
+function WatchEditor({ watch, onSave, onClose }: { watch: Watch | null; onSave: (value: Watch) => void; onClose: () => void }) {
+  const [error, setError] = useState("");
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const title = String(data.get("title") ?? "").trim();
+    const raw = String(data.get("url") ?? "").trim();
+    const url = raw ? safeHttps(raw)?.href : "";
+    const target = priceValue(data.get("target"));
+    if (!title || url === undefined || (data.get("target") && target === null)) {
+      setError("请填写名称、有效的 HTTPS 链接和大于 0 的目标价。");
+      return;
+    }
+    const base = watch && url === watch.url ? watch : { id: watch?.id ?? makeId(), title, url, target: null, enabled: watch?.enabled ?? false };
+    const edited = { ...applyTarget(base, target), title, url };
+    const manualPrice = priceValue(data.get("manualPrice"));
+    if (data.get("manualPrice") && (!url || manualPrice === null)) {
+      setError("记录现价时请填写商品链接和大于 0 的价格。");
+      return;
+    }
+    onSave(manualPrice && url ? updateQuote(edited, {
+      name: title, price: manualPrice, url, method: "manual", checkedAt: Date.now(),
+      availability: data.has("inStock") ? "in-stock" : "unknown",
+    }) : edited);
+  }
+  return <form className="promo-form promo-edit-watch" onSubmit={submit}>
+    <div className="promo-editor-fields">
+      <label>商品名称或匹配词<input name="title" required maxLength={220} defaultValue={watch?.title} placeholder="型号，或 Mini PC, 64GB" /></label>
+      <label>商品链接<input name="url" type="url" maxLength={1200} defaultValue={watch?.url} placeholder="留空时按关键词匹配优惠" /></label>
+      <label>目标价（USD）<input name="target" type="number" min="0.01" max="999999.99" step="0.01" defaultValue={watch?.target ?? ""} /></label>
+    </div>
+    <details>
+      <summary>记录我在商家页面看到的价格</summary>
+      <div className="promo-controls promo-manual-price">
+        <label>当前实付价（USD）<input name="manualPrice" type="number" min="0.01" max="999999.99" step="0.01" /></label>
+        <label className="promo-check"><input type="checkbox" name="inStock" />我已确认有货</label>
+      </div>
+    </details>
+    {error && <p role="alert">{error}</p>}
+    <div className="promo-controls"><button className="promo-primary" type="submit">保存追踪</button><button type="button" onClick={onClose}>取消</button></div>
+  </form>;
+}
+
+export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
+  const [state, setState] = useState<Store>(initial);
+  const current = useRef(state);
+  const running = useRef(false);
+  const [ready, setReady] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [tasks, setTasks] = useState<Omit<Task, "work">[]>([]);
+  const [notice, setNotice] = useState("");
+  const [storageError, setStorageError] = useState(false);
+  const [editor, setEditor] = useState<Campaign | null>(null);
+  const [watchEditor, setWatchEditor] = useState<Watch | "new" | null>(null);
+  const [category, setCategory] = useState<PromotionCategory | "all">("all");
+  const [sourceFilter, setSourceFilter] = useState<PromotionSource | "all">("all");
+  const [query, setQuery] = useState("");
+  const [watchQuery, setWatchQuery] = useState("");
+  const [onlySelected, setOnlySelected] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    current.current = readStore();
+    setState(current.current);
+    setReady(true);
+    const sync = (event: StorageEvent) => {
+      if (event.key !== STORE) return;
+      current.current = readStore();
+      setState(current.current);
+    };
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
+  }, []);
+
+  function change(update: (value: Store) => Store) {
+    const next = update(current.current);
+    current.current = next;
+    setState(next);
+    try {
+      localStorage.setItem(STORE, JSON.stringify(next));
+      setStorageError(false);
+    } catch { setStorageError(true); }
+  }
+
+  function editCampaign(id: string, update: (c: Campaign) => Campaign) {
+    change(value => ({ ...value, campaigns: value.campaigns.map(c => c.id === id ? update(c) : c) }));
+  }
+
+  function editWatch(campaignId: string, watchId: string, update: (watch: Watch) => Watch) {
+    editCampaign(campaignId, value => ({ ...value, watches: value.watches.map(w => w.id === watchId ? update(w) : w) }));
+  }
+
+  const campaign = state.campaigns.find(c => c.id === state.active) ?? state.campaigns[0];
+  const latest = campaign.sources.map(source => campaign.snapshots[source]?.checkedAt ?? 0).reduce((a, b) => Math.max(a, b), 0);
+  const selectedWatches = campaign.watches.filter(watch => watch.enabled && merchantProduct(watch.url));
+  const allLeads = campaign.sources.flatMap(source => campaign.snapshots[source]?.leads ?? []);
+  const campaignWords = terms(campaign.keywords);
+  const visibleLeads = allLeads.filter(lead => {
+    const text = `${lead.title} ${lead.detail ?? ""}`.toLowerCase();
+    return (sourceFilter === "all" || lead.source === sourceFilter) &&
+      (category === "all" || categoryOf(lead.title) === category) && text.includes(query.trim().toLowerCase()) &&
+      (!campaignWords.length || campaignWords.some(word => text.includes(word)));
+  });
+  const grouped = new Map<string, Lead[]>();
+  for (const lead of visibleLeads) {
+    const key = merchantProduct(lead.url)?.key ?? lead.title.toLowerCase().replace(/\s+/g, " ");
+    const group = grouped.get(key);
+    if (group) group.push(lead);
+    else grouped.set(key, [lead]);
+  }
+  const watchResults = campaign.watches.filter(watch => (!onlySelected || watch.enabled) && watch.title.toLowerCase().includes(watchQuery.trim().toLowerCase()))
+    .sort((a, b) => Number(classifyWatch(b) === "已到价") - Number(classifyWatch(a) === "已到价") || Number(b.enabled) - Number(a.enabled));
+  const done = tasks.filter(task => task.status === "done" || task.status === "failed").length;
+  const failed = tasks.filter(task => task.status === "failed").length;
+  const hits = campaign.watches.filter(watch => classifyWatch(watch) === "已到价").length;
+
+  async function refresh(kind: "all" | "watch", single?: Watch) {
+    if (running.current) return;
+    const pending: Task[] = [];
+    const id = campaign.id;
+    const append = (key: string, label: string, work: Task["work"]) => pending.push({ key, label, status: "waiting", work });
+    if (kind === "all") for (const source of campaign.sources) append(source, PROMOTION_SOURCES[source].name, async () => {
+      const snapshot = await request<SourceSnapshot>(source);
+      if (!Array.isArray(snapshot.leads) || !Number.isFinite(snapshot.checkedAt)) throw Error("后台返回的优惠格式无效");
+      editCampaign(id, c => ({ ...c, snapshots: { ...c.snapshots, [source]: snapshot } }));
+      return `${snapshot.leads.length} 条优惠`;
+    });
+    for (const watch of single ? [single] : selectedWatches) append(watch.id, watch.title, async () => {
+      try {
+        const token = owner.token();
+        if (!token) throw Error("请连接 PT 私有后台后核价");
+        const { quote } = await request<{ quote: Quote }>("quote", { url: watch.url, token });
+        if (!quote || priceValue(quote.price) === null || !Number.isFinite(quote.checkedAt)) throw Error("后台返回的报价格式无效");
+        editWatch(id, watch.id, currentWatch => updateQuote(currentWatch, quote));
+        return quote.availability === "in-stock" ? currency.format(quote.price) : quote.availability === "out-of-stock" ? "缺货" : "库存待确认";
+      } catch (error) {
+        editWatch(id, watch.id, currentWatch => ({ ...currentWatch, error: error instanceof Error ? error.message : "核价失败" }));
+        throw error;
+      }
+    });
+    if (!pending.length) return;
+    running.current = true;
+    setBusy(true);
+    setNotice("");
+    setTasks(pending.map(({ key, label, status }) => ({ key, label, status })));
+    function mark(key: string, status: Task["status"], detail?: string) {
+      setTasks(previous => previous.map(item => item.key === key ? { ...item, status, detail } : item));
+    }
+    async function execute(task: Task) {
+      mark(task.key, "running");
+      try { mark(task.key, "done", await task.work()); }
+      catch (error) { mark(task.key, "failed", error instanceof Error ? error.message : "请求失败"); }
+    }
+    try {
+      for (let index = 0; index < pending.length; index += 2) {
+        await Promise.all(pending.slice(index, index + 2).map(execute));
+      }
+    } finally {
+      running.current = false;
+      setBusy(false);
+    }
+  }
+
+  function resetView() {
+    setTasks([]); setNotice(""); setEditor(null); setWatchEditor(null);
+    setCategory("all"); setSourceFilter("all"); setQuery(""); setWatchQuery(""); setOnlySelected(false);
+  }
+
+  function saveCampaign(next: Campaign) {
+    change(value => ({
+      active: next.id,
+      campaigns: value.campaigns.some(c => c.id === next.id) ? value.campaigns.map(c => c.id === next.id ? next : c) : [...value.campaigns, next],
+    }));
+    resetView();
+  }
+
+  function saveWatch(watch: Watch) {
+    const duplicate = campaign.watches.some(entry => entry.id !== watch.id && watchKey(entry) === watchKey(watch));
+    if (duplicate || (!campaign.watches.some(w => w.id === watch.id) && campaign.watches.length >= MAX_WATCHES)) {
+      setNotice(duplicate ? "这个商品已在清单内。" : `最多保存 ${MAX_WATCHES} 件商品。`);
+      return;
+    }
+    const next = { ...watch, enabled: watch.enabled && !!merchantProduct(watch.url) };
+    editCampaign(campaign.id, c => ({ ...c, watches: c.watches.some(w => w.id === watch.id) ? c.watches.map(w => w.id === watch.id ? next : w) : [...c.watches, next] }));
+    setWatchEditor(null);
+    setNotice("");
+  }
+
+  async function importFile(file?: File) {
+    if (!file) return;
+    if (file.size > 2_000_000 || !file.name.toLowerCase().endsWith(".xlsx")) {
+      setNotice("选择 2 MB 以内的 .xlsx 文件。");
+      return;
+    }
+    const id = campaign.id;
+    try {
+      const { default: readExcel } = await import("read-excel-file");
+      const imported = parseImport(await readExcel(file), makeId);
+      let added = 0;
+      editCampaign(id, value => {
+        const keys = new Set(value.watches.map(watchKey));
+        const unique = imported.filter(watch => !keys.has(watchKey(watch))).slice(0, MAX_WATCHES - value.watches.length);
+        added = unique.length;
+        return { ...value, watches: [...value.watches, ...unique] };
+      });
+      setNotice(`已导入 ${added} 件。勾选要核价的商品并设置目标价。`);
+    } catch (error) { setNotice(error instanceof Error ? error.message : "导入失败"); }
+  }
+
+  function addLead(lead: Lead) {
+    setWatchEditor({ id: makeId(), title: lead.title, url: lead.url, target: null, enabled: false });
+    document.getElementById("promo-watch-heading")?.scrollIntoView({ block: "start" });
+  }
+
+  function connectOwner() {
+    try { owner.connect(); } catch (error) { setNotice(error instanceof Error ? error.message : "连接失败"); }
+  }
+
+  return <main className="promo-board">
+    <header className="promo-heading">
+      <div><h1>{campaign.name}</h1><p>{campaign.start} 至 {campaign.end} · 美区 / USD {latest ? `· 最近读取 ${displayTime(latest)}` : ""}</p></div>
+      <button className="promo-primary" type="button" disabled={!ready || busy || !!editor || !!watchEditor} onClick={() => void refresh("all")}>{busy ? "正在刷新…" : "手动刷新"}</button>
+    </header>
+    <div className="promo-controls promo-campaign-controls">
+      <label>活动 <select value={campaign.id} disabled={!ready || busy} onChange={event => { const active = event.target.value; change(value => ({ ...value, active })); resetView(); }}>
+        {state.campaigns.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+      </select></label>
+      <button type="button" disabled={!ready || busy} onClick={() => { setWatchEditor(null); setEditor(campaign); }}>活动设置</button>
+      <button type="button" disabled={!ready || busy || state.campaigns.length >= MAX_CAMPAIGNS} onClick={() => {
+        setWatchEditor(null);
+        setEditor({ ...campaign, id: makeId(), name: "", start: "", end: "", snapshots: {}, watches: [] });
+      }}>复制为新活动</button>
+    </div>
+    {editor && <CampaignEditor key={editor.id} campaign={editor} onSave={saveCampaign} onClose={() => setEditor(null)} />}
+    {storageError && <p role="alert" className="promo-panel">浏览器存储不可写，本页改动刷新后可能丢失。</p>}
+    {notice && <p role="status" className="promo-panel">{notice}</p>}
+    {tasks.length > 0 && <section className="promo-panel" aria-label="刷新进度">
+      <div className="promo-section-heading"><h2>刷新进度</h2><strong role="status">{busy ? "进行中" : failed ? "完成，有失败项" : "刷新完成"} · {done}/{tasks.length}{failed ? ` · ${failed} 项失败` : ""}</strong></div>
+      <progress max={tasks.length} value={done} aria-label="已完成来源和商品数" />
+      <ul className="promo-progress-list">
+        {tasks.map(task => <li key={task.key}><span>{task.label}</span><span data-result={task.status}>
+          {task.status === "waiting" ? "等待" : task.status === "running" ? "读取中…" : task.status === "done" ? task.detail : `失败 · ${task.detail}`}
+        </span></li>)}
+      </ul>
+      {!busy && failed > 0 && <p className="promo-muted">失败的来源和商品保留上次成功报价及日期。</p>}
+    </section>}
+
+    <section className="promo-panel" aria-labelledby="promo-watch-heading">
+      <div className="promo-section-heading"><div><h2 id="promo-watch-heading">我的追踪 <span>{campaign.watches.length}</span></h2><p className="promo-muted">已到价 {hits} · 已勾选核价 {selectedWatches.length}/{MAX_ACTIVE_WATCHES} · 清单存于此浏览器</p></div>
+        <div className="promo-controls">
+          {!owner.token() && <button type="button" disabled={busy} onClick={connectOwner}>连接私有后台</button>}
+          <button type="button" disabled={busy || !!editor} onClick={() => fileInput.current?.click()}>导入 Excel</button>
+          <input hidden ref={fileInput} type="file" accept=".xlsx" onChange={event => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ""; void importFile(file); }} />
+          <button className="promo-primary" type="button" disabled={busy || !!editor} onClick={() => setWatchEditor("new")}>添加追踪</button>
+        </div>
+      </div>
+      {watchEditor && <WatchEditor key={watchEditor === "new" ? "new" : watchEditor.id} watch={watchEditor === "new" ? null : watchEditor} onSave={saveWatch} onClose={() => setWatchEditor(null)} />}
+      {campaign.watches.length > 0 && <div className="promo-controls promo-watch-filter">
+        <input aria-label="搜索追踪清单" placeholder="搜索清单" value={watchQuery} onChange={event => setWatchQuery(event.target.value)} />
+        <label className="promo-check"><input type="checkbox" checked={onlySelected} onChange={event => setOnlySelected(event.target.checked)} />仅已勾选</label>
+      </div>}
+      {!campaign.watches.length && !watchEditor && <p className="promo-muted">粘贴商品链接核价，或输入用逗号分隔的关键词来匹配优惠。</p>}
+      {campaign.watches.length > 0 && !watchResults.length && <p className="promo-muted">没有匹配的追踪商品。</p>}
+      <div className="promo-watch-list">{watchResults.map(watch => {
+        const product = merchantProduct(watch.url);
+        const status = classifyWatch(watch);
+        const words = terms(watch.title);
+        const matches = product ? allLeads.filter(lead => merchantProduct(lead.url)?.key === product.key) :
+          watch.url ? allLeads.filter(lead => lead.url === watch.url) : words.length ? allLeads.filter(lead => words.every(word => lead.title.toLowerCase().includes(word))) : [];
+        return <article className="promo-watch" key={watch.id}>
+          <div>
+            <div className="promo-watch-name">{watch.url && safeHttps(watch.url) ? <External url={watch.url}>{watch.title}</External> : <strong>{watch.title}</strong>}</div>
+            {watch.quote && <p className="promo-muted">{watch.quote.name} · {watch.quote.method === "manual" ? "手动记录" : "商家报价"} · {displayTime(watch.quote.checkedAt)}</p>}
+            {watch.reference != null && <p className="promo-muted">导入参考价 {currency.format(watch.reference)} {watch.referenceDate ?? ""}</p>}
+            {watch.error && <p className="promo-warning">{watch.error}</p>}
+            {matches.length > 0 && <details><summary>匹配优惠 {matches.length}</summary><ul>{matches.slice(0, 8).map(lead => <li key={lead.url}><External url={lead.url}>{lead.title}</External></li>)}</ul></details>}
+          </div>
+          <div className="promo-price"><strong>{watch.quote ? currency.format(watch.quote.price) : "—"}</strong><span>目标 {watch.target ? currency.format(watch.target) : "未设"}</span></div>
+          <span className="promo-chip" data-hit={status === "已到价"}>{product || watch.quote ? status : "线索匹配"}</span>
+          <div className="promo-controls promo-watch-actions">
+            {product && <label className="promo-check"><input type="checkbox" aria-label={`随刷新核价 ${watch.title}`} checked={watch.enabled} disabled={busy || (!watch.enabled && selectedWatches.length >= MAX_ACTIVE_WATCHES)} onChange={event => {
+              const enabled = event.target.checked;
+              editWatch(campaign.id, watch.id, w => ({ ...w, enabled }));
+            }} />随刷新核价</label>}
+            {product && <button type="button" disabled={busy || !!editor || !!watchEditor} onClick={() => void refresh("watch", watch)}>核价</button>}
+            {product?.asin && <External url={`https://keepa.com/#!product/1-${product.asin}`}>Keepa</External>}
+            <External url={listingSearch(watch.title)}>比价</External>
+            <button type="button" disabled={busy || !!editor} onClick={() => setWatchEditor(watch)}>编辑</button>
+            <button type="button" disabled={busy || !!editor} onClick={() => {
+              editCampaign(campaign.id, c => ({ ...c, watches: c.watches.filter(w => w.id !== watch.id) }));
+              if (watchEditor && watchEditor !== "new" && watchEditor.id === watch.id) setWatchEditor(null);
+            }}>移除</button>
+          </div>
+        </article>;
+      })}</div>
+    </section>
+
+    <section className="promo-panel" aria-labelledby="promo-leads-heading">
+      <div className="promo-section-heading"><h2 id="promo-leads-heading">分类优惠 <span>{grouped.size}</span></h2><div className="promo-controls">
+        <input aria-label="搜索优惠" placeholder="搜索型号、商品或商家" value={query} onChange={event => setQuery(event.target.value)} />
+        <External url={listingSearch(query)}>查更多商家</External>
+      </div></div>
+      <div className="promo-controls promo-categories" aria-label="优惠分类">
+        {(["all", ...Object.keys(PROMOTION_CATEGORIES)] as (PromotionCategory | "all")[]).map(key => (
+          <button key={key} type="button" aria-pressed={category === key} onClick={() => setCategory(key)}>{key === "all" ? "全部" : PROMOTION_CATEGORIES[key][0]}</button>
+        ))}
+      </div>
+      <div className="promo-controls promo-source-controls">
+        <label>来源 <select value={sourceFilter} onChange={event => setSourceFilter(event.target.value as PromotionSource | "all")}>
+          <option value="all">全部来源</option>
+          {campaign.sources.map(source => <option key={source} value={source}>{PROMOTION_SOURCES[source].name}</option>)}
+        </select></label>
+        {campaign.sources.map(source => <span key={source}>
+          <External url={PROMOTION_SOURCES[source].url}>{PROMOTION_SOURCES[source].name} ↗</External>
+          {campaign.snapshots[source] && <small className="promo-muted"> · {displayTime(campaign.snapshots[source]!.checkedAt)}</small>}
+        </span>)}
+      </div>
+      {!grouped.size && <p className="promo-muted">{latest ? "没有符合筛选条件的优惠。" : "点「手动刷新」获取当前优惠。"}</p>}
+      <div className="promo-leads">{[...grouped.values()].map(group => {
+        const lead = group[0];
+        return <article key={lead.url} className="promo-lead">
+          <div className="promo-controls"><span className="promo-chip">{PROMOTION_CATEGORIES[categoryOf(lead.title)][0]}</span><span className="promo-muted">{lead.publishedAt ? displayTime(lead.publishedAt) : ""}</span></div>
+          <h3><External url={lead.url}>{lead.title}</External></h3>
+          {lead.detail && <p className="promo-muted">{lead.detail}</p>}
+          <div className="promo-controls">
+            {group.map(item => <External key={item.url} url={item.url}>{PROMOTION_SOURCES[item.source].name}</External>)}
+            <button type="button" disabled={busy || !!editor} onClick={() => addLead(lead)}>加入追踪</button>
+          </div>
+        </article>;
+      })}</div>
+    </section>
+  </main>;
+}

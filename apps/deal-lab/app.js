@@ -14,7 +14,8 @@ function select(label,id,options,value){const l=el('label'),s=el('select');s.id=
 function when(v){if(!v||v==='N/A')return '未提供';const d=new Date(v);return isNaN(d)?String(v):d.toLocaleString('zh-CN',{timeZone:'America/Los_Angeles'});}
 function badge(text,cls=''){return el('span','badge '+cls,text);}
 function empty(text){return el('div','empty',text);}
-function initConnect(){sessionStorage.setItem('pt.deal-lab.return.v1',JSON.stringify({path:location.pathname,expiresAt:Date.now()+600000}));connect();}
+const incomingProduct=(new URLSearchParams(location.search||'').get('q')||'').trim().slice(0,160);
+function initConnect(){sessionStorage.setItem('pt.deal-lab.return.v1',JSON.stringify({path:location.pathname,query:incomingProduct,expiresAt:Date.now()+600000}));connect();}
 async function status(){try{const r=await fetch(BASE+'status',{headers:{authorization:'Bearer '+(sessionStorage.getItem('pt.monitor.session.v1')||'')},credentials:'omit',cache:'no-store',signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error('状态 HTTP '+r.status);state.status=await r.json();for(const [p,s] of Object.entries(state.status.sources||{})){const t=Date.parse(s.usage?.lastCall||'')+1000*(s.budget?.cooldown||0);if(Number.isFinite(t))state.cooldowns[p]=Math.max(state.cooldowns[p]||0,t);}$('#sessionStatus').textContent=state.status.authorized?'私有后台已连接':'尚未连接';$('#connect').textContent=state.status.authorized?'重新连接':'连接私有后台';if(state.page==='products'&&!state.busy&&document.activeElement?.id!=='productTerm')render();}catch(e){$('#sessionStatus').textContent='后台暂时不可用';note(e.message,true);}}
 function setPage(page){state.controller?.abort();state.busy=false;state.page=Object.hasOwn(TITLES,page)?page:'products';history.replaceState(null,'','#'+state.page);note('');document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===state.page));$('#heading').textContent=TITLES[state.page];render();}
 function render(){const root=$('#view');root.replaceChildren();if(state.page==='products')products(root);else if(state.page==='games')games(root);else if(state.page==='free')free(root);else wishlist(root);}
@@ -148,4 +149,5 @@ function renderTrends(root){
 }
 async function loadTrends(){return work(async signal=>{state.trends=(await query('steam','trends',{days:30},signal)).data;render();note('已读取实际历史，不消耗外部查询额度。');});}
 $('#connect').onclick=initConnect;$('#theme').onclick=()=>{document.body.classList.toggle('dark');store.write('dark',document.body.classList.contains('dark'));};document.body.classList.toggle('dark',store.read('dark',false));for(const b of document.querySelectorAll('[data-page]'))b.onclick=()=>setPage(b.dataset.page);window.addEventListener('hashchange',()=>setPage(location.hash.slice(1)));
-setPage(location.hash.slice(1));void status();if(!connected()&&location.origin==='https://ximinhu66.github.io'){sessionStorage.setItem('pt.deal-lab.return.v1',JSON.stringify({path:location.pathname,expiresAt:Date.now()+600000}));connect({automatic:true});}
+if(incomingProduct)store.write('productTerm',incomingProduct);
+setPage(location.hash.slice(1));void status();if(!connected()&&location.origin==='https://ximinhu66.github.io'){sessionStorage.setItem('pt.deal-lab.return.v1',JSON.stringify({path:location.pathname,query:incomingProduct,expiresAt:Date.now()+600000}));connect({automatic:true});}

@@ -7,6 +7,7 @@ import {resourcesRoute} from './resources';
 import {dealRadarRoute} from './deal-radar';
 import {monitorRoute} from './monitor';
 import {dealLabRoute} from './deal-lab';
+import {dealPromotionRoute} from './deal-promotion';
 import {sourceIsFresh,SITE_REFRESH_REVISION} from './site-updates';
 import {browserSiteList,browserChapterBatch} from './browser-site-parser';
 import { museRoute } from './muse';
@@ -619,6 +620,7 @@ async function status(env:Env){
 export default {
   async fetch(request:Request,env:Env,ctx?:ExecutionContext):Promise<Response>{
     const url=new URL(request.url);
+    if(url.pathname.startsWith('/api/deal-radar/promo/'))return dealPromotionRoute(request,url,env);
     if(url.pathname.startsWith('/api/deal-radar/'))return dealRadarRoute(request,url,env);
     if(request.method==='OPTIONS')return new Response(null,{status:204,headers:cors(request)});
     const track=(kind:'sync'|'shared-ai'):typeof authenticate=>async(r,e,id)=>{
