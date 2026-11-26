@@ -2,9 +2,12 @@ import type { DealPrice } from "./promotion-pricing";
 
 export const PROMOTION_SOURCES = {
   slickdeals: { name: "Slickdeals", url: "https://slickdeals.net/newsearch.php?mode=frontpage&searcharea=deals&searchin=first&rss=1" },
-  dealmoon: { name: "北美省钱快报", url: "https://www.dealmoon.com/" },
-  bestbuy: { name: "Best Buy 活动页", url: "https://www.bestbuy.com/black-friday" },
+  dealmoon: { name: "北美省钱快报", url: "https://www.dealmoon.com/cn/hot-picks" },
+  bestbuy: { name: "Best Buy 每日优惠", url: "https://www.bestbuy.com/site/misc/deal-of-the-day/pcmcat248000050016.c?id=pcmcat248000050016" },
   costco: { name: "Costco 活动页", url: "https://www.costco.com/o/-/black-friday" },
+  newegg: { name: "Newegg 每日优惠", url: "https://www.newegg.com/Shell-Shocker/EventSaleStore/ID-10381" },
+  walmart: { name: "Walmart 黑五", url: "https://www.walmart.com/shop/deals/black-friday" },
+  steam: { name: "Steam 美区特惠", url: "https://store.steampowered.com/search/?specials=1" },
 } as const;
 
 export type PromotionSource = keyof typeof PROMOTION_SOURCES;
@@ -31,16 +34,29 @@ export type Watch = {
 export type Campaign = {
   id: string; name: string; start: string; end: string; keywords: string;
   sources: PromotionSource[]; snapshots: Partial<Record<PromotionSource, SourceSnapshot>>; watches: Watch[];
+  sourceVersion?: number;
 };
 
-export function categoryOf(title: string): PromotionCategory {
+export function categoryOf(title: string, source?: PromotionSource): PromotionCategory {
+  if (source === "steam") return "gaming";
   return (Object.keys(PROMOTION_CATEGORIES) as PromotionCategory[]).find(key => PROMOTION_CATEGORIES[key][1].test(title)) ?? "other";
 }
 
 export const FIRST_CAMPAIGN: Campaign = {
   id: "black-friday-2026", name: "2026 黑五 · 网购星期一", start: "2026-11-27", end: "2026-11-30",
-  keywords: "", sources: ["slickdeals", "dealmoon", "bestbuy", "costco"], snapshots: {}, watches: [],
+  keywords: "", sources: ["slickdeals", "costco", "newegg", "walmart", "steam", "dealmoon", "bestbuy"], snapshots: {}, watches: [], sourceVersion: 2,
 };
+
+export function updateCampaignSources(campaign: Campaign): Campaign {
+  if (campaign.sourceVersion === FIRST_CAMPAIGN.sourceVersion) return campaign;
+  const defaultSources: PromotionSource[] = ["slickdeals", "dealmoon", "bestbuy", "costco"];
+  const stillDefault = campaign.id === FIRST_CAMPAIGN.id &&
+    campaign.sources.length === defaultSources.length && defaultSources.every(source => campaign.sources.includes(source));
+  return {
+    ...campaign, sourceVersion: FIRST_CAMPAIGN.sourceVersion,
+    sources: stillDefault ? [...FIRST_CAMPAIGN.sources] : campaign.sources,
+  };
+}
 
 export const MAX_ACTIVE_WATCHES = 10;
 
@@ -67,8 +83,16 @@ export function merchantProduct(raw: string): MerchantProduct | null {
   }
   if (host === "costco.com") id = url.pathname.match(/^\/p\/[^?#]+\/(\d+)\/?$/i)?.[1]
     ?? url.pathname.match(/\.product\.(\d+)\.html$/i)?.[1];
-  if (host === "newegg.com") id = url.pathname.match(/^\/(?:[^/]+\/)?p\/(N[A-Z0-9]+)\/?$/i)?.[1];
-  if (host === "walmart.com") id = url.pathname.match(/^\/ip\/(?:[^/]+\/)?(\d+)\/?$/i)?.[1];
+  if (host === "newegg.com") {
+    id = url.pathname.match(/^\/(?:[^/]+\/)?p\/(N[A-Z0-9]+)\/?$/i)?.[1];
+    const item = url.searchParams.get("Item");
+    if (item && item.toUpperCase() !== id?.toUpperCase()) return null;
+  }
+  if (host === "walmart.com") {
+    const condition = url.searchParams.get("conditionGroupCode");
+    if (condition && condition !== "1") return null;
+    id = url.pathname.match(/^\/ip\/(?:[^/]+\/)?(\d+)\/?$/i)?.[1];
+  }
   if (host === "target.com") id = url.pathname.match(/^\/p\/(?:[^/]+\/)?-\/A-(\d+)\/?$/i)?.[1];
   return id ? { url: `https://www.${host}${url.pathname.replace(/\/$/, "")}`, key: `${host}/${id.toUpperCase()}` } : null;
 }
@@ -93,6 +117,13 @@ const imagePaths: Record<PromotionSource, Record<string, RegExp>> = {
     "images.costco-static.com": /^\/ImageDelivery\//,
   },
   bestbuy: { "pisces.bbystatic.com": /^\/image2\/BestBuy_US\// },
+  newegg: { "c1.neweggimages.com": /^\/productimage\/[^?#]+\.(?:avif|webp|jpe?g|png)$/i },
+  walmart: { "i5.walmartimages.com": /^\/(?:seo|asr)\/[^?#]+\.(?:avif|webp|jpe?g|png)$/i },
+  steam: {
+    "shared.akamai.steamstatic.com": /^\/store_item_assets\/steam\/(?:apps|subs|bundles)\/[^?#]+\.(?:avif|webp|jpe?g|png)$/i,
+    "shared.fastly.steamstatic.com": /^\/store_item_assets\/steam\/(?:apps|subs|bundles)\/[^?#]+\.(?:avif|webp|jpe?g|png)$/i,
+    "cdn.akamai.steamstatic.com": /^\/steam\/(?:apps|subs|bundles)\/[^?#]+\.(?:avif|webp|jpe?g|png)$/i,
+  },
   dealmoon: {
     "imgcache.dealmoon.com": /^\/thumbimg\.dealmoon\.com\/[^?#]+\.(?:avif|webp|jpe?g|png)$/i,
     "thumbimg.dealmoon.com": /^\/[^?#]+\.(?:avif|webp|jpe?g|png)$/i,
@@ -109,6 +140,11 @@ export function promotionImageUrl(source: PromotionSource, raw: unknown): string
   url.hash = "";
   if (source === "costco" && url.hostname === "gdx-assets.costco.com" && width && /^(?:320|480|640)$/.test(width)) {
     url.searchParams.set("width", width);
+  }
+  if (source === "walmart") {
+    url.searchParams.set("odnHeight", "200");
+    url.searchParams.set("odnWidth", "200");
+    url.searchParams.set("odnBg", "FFFFFF");
   }
   return url.href;
 }

@@ -1,12 +1,13 @@
 import { parseDocument } from 'htmlparser2';
 import { findAll, findOne, isTag, textContent } from 'domutils';
+import type { Element } from 'domhandler';
 import { merchantProduct, priceValue, promotionImageUrl, PROMOTION_SOURCES, safeHttps, type Lead, type PromotionSource, type Quote } from '../../../services/deal-radar/src/lib/promotion';
 import { dealPrice, priceFromTitle, type DealPrice } from '../../../services/deal-radar/src/lib/promotion-pricing';
 import { verifyMonitorToken } from './monitor';
 
 const ORIGIN = 'https://ximinhu66.github.io';
 const BASE = '/api/deal-radar/promo/';
-const REVISION = 'manual-promotion-v3';
+const REVISION = 'manual-promotion-v4';
 const headers = {
   'access-control-allow-origin': ORIGIN,
   'access-control-allow-methods': 'GET, POST, OPTIONS',
@@ -58,12 +59,33 @@ function sourceLink(value: unknown, source: PromotionSource): string | null {
     const absolute = new URL(value, PROMOTION_SOURCES[source].url);
     const url = safeHttps(absolute.href);
     if (!url || url.hostname.replace(/^www\./, '') !== new URL(PROMOTION_SOURCES[source].url).hostname.replace(/^www\./, '')) return null;
+    const neweggItem = url.searchParams.get('Item');
+    const walmartCondition = url.searchParams.get('conditionGroupCode');
     url.search = '';
+    if (source === 'newegg' && neweggItem && /^(?:N82E|9S)[A-Z0-9]{5,24}$/i.test(neweggItem) &&
+      !url.pathname.toUpperCase().endsWith('/' + neweggItem.toUpperCase())) url.searchParams.set('Item', neweggItem);
+    if (source === 'walmart' && walmartCondition && /^(?:2|3|4|5|6)$/.test(walmartCondition)) url.searchParams.set('conditionGroupCode', walmartCondition);
     url.hash = '';
     return url.href;
   } catch {
     return null;
   }
+}
+
+function hasClass(tag: Element, name: string) {
+  return tag.attribs.class?.split(/\s+/).includes(name) ?? false;
+}
+
+function firstClass(tag: Element | undefined, name: string) {
+  return tag ? findOne(node => hasClass(node, name), tag.children, true) ?? undefined : undefined;
+}
+
+function nodeText(tag?: Element | null) {
+  return tag ? compact(textContent(tag)) : '';
+}
+
+function localPrice(tag?: Element | null) {
+  return priceValue(nodeText(tag).replace(/\s/g, '')) ?? undefined;
 }
 
 function cardImage(source: PromotionSource, attributes?: Record<string, string>) {
@@ -134,12 +156,24 @@ export function parsePromotionSource(html: string, source: PromotionSource): Lea
     const items = record(collection?.mainEntity)?.itemListElement;
     const cards = parseDocument(html);
     const photos = new Map<string, string>();
-    for (const anchor of findAll(tag => tag.name === 'a' && tag.attribs.class?.includes('deal-personal-strack'), cards.children)) {
-      const url = sourceLink(anchor.attribs.href, source);
-      if (!url || photos.has(url)) continue;
-      const image = findOne(tag => tag.name === 'img' && tag.attribs.class?.split(/\s+/).includes('snapshot'), anchor.children, true);
-      const img = cardImage(source, image?.attribs);
-      if (img) photos.set(url, img);
+    for (const anchor of findAll(tag => tag.name === 'a', cards.children)) {
+      if (byUrl.size >= 32) break;
+      if (anchor.attribs['data-type'] === 'sp') {
+        const title = firstClass(anchor, 'sp-subject-detail');
+        const prices = firstClass(anchor, 'sp-subject-price');
+        const store = firstClass(anchor, 'sp-subject-store');
+        const spans = prices?.children.filter(isTag) ?? [];
+        add(anchor.attribs.href, nodeText(title), {
+          detail: nodeText(store?.children.find(isTag)),
+          offer: dealPrice({ current: localPrice(spans[0]), original: localPrice(spans[1]), basis: 'listed' }),
+          imageUrl: cardImage(source, findOne(tag => tag.name === 'img', anchor.children, true)?.attribs),
+        });
+      } else if (hasClass(anchor, 'deal-personal-strack')) {
+        const url = sourceLink(anchor.attribs.href, source);
+        const image = firstClass(anchor, 'snapshot');
+        const img = cardImage(source, image?.attribs);
+        if (url && img && !photos.has(url)) photos.set(url, img);
+      }
     }
     if (Array.isArray(items)) for (const row of items.slice(0, 32)) {
       const item = record(record(row)?.item);
@@ -148,21 +182,106 @@ export function parsePromotionSource(html: string, source: PromotionSource): Lea
       const url = sourceLink(item?.url, source);
       const images = Array.isArray(item?.image) ? item.image : [item?.image];
       const structuredImage = images.slice(0, 8).map(image => promotionImageUrl(source, record(image)?.url ?? image)).find(Boolean);
+      const headline = priceFromTitle(name);
+      const current = offer?.priceCurrency === 'USD' ? priceValue(offer.price) ?? headline.current : headline.current;
       add(url, name, {
         detail: compact(record(offer?.seller)?.name, 130) || undefined,
-        offer: priceFromTitle(name),
+        offer: dealPrice({ ...headline, current }),
         imageUrl: structuredImage ?? photos.get(url ?? ''),
       });
     }
   } else if (source === 'bestbuy') {
     const content = parseDocument(html);
     for (const card of findAll(tag => tag.attribs['data-testid'] === 'offer-card', content.children)) {
-      const textLink = findOne(tag => tag.attribs['data-testid'] === 'offer-card-body-copy-link', card.children, true);
-      if (!textLink) continue;
-      const title = compact(textContent(textLink));
+      const link = findOne(tag => tag.attribs['data-testid'] === 'offer-card-body-copy-link', card.children, true);
+      if (!link) continue;
+      const title = nodeText(link);
       const imageLink = findOne(tag => tag.attribs['data-testid'] === 'offer-card-image-link', card.children, true);
       const image = imageLink && findOne(tag => tag.name === 'img', imageLink.children, true);
-      add(textLink.attribs.href, title, { offer: priceFromTitle(title), imageUrl: cardImage(source, image?.attribs) });
+      add(link.attribs.href, title, { offer: priceFromTitle(title), imageUrl: cardImage(source, image?.attribs) });
+    }
+    for (const link of findAll(tag => tag.name === 'a' && hasClass(tag, 'wf-offer-link') && hasClass(tag, 'v-line-clamp'), content.children)) {
+      const product = merchantProduct(sourceLink(link.attribs.href, source) ?? '');
+      if (!product?.bestBuy) continue;
+      let card = link.parent;
+      while (card && isTag(card) && !hasClass(card, 'wf-offer')) card = card.parent;
+      const type = card && isTag(card) ? card : undefined;
+      const now = firstClass(type, 'pricing-price__current-price');
+      const was = firstClass(type, 'pricing-price__regular-price');
+      const photo = firstClass(type, 'wf-image');
+      add(product.url, nodeText(link), {
+        offer: dealPrice({ current: localPrice(now), original: localPrice(was), basis: 'listed' }),
+        imageUrl: cardImage(source, photo?.attribs),
+      });
+    }
+  } else if (source === 'newegg') {
+    const content = parseDocument(html);
+    for (const card of findAll(tag => hasClass(tag, 'goods-container'), content.children)) {
+      const link = firstClass(card, 'goods-title');
+      const photoLink = firstClass(card, 'goods-img');
+      const url = sourceLink(link?.attribs.href, source);
+      if (!url || !/\/p\/[A-Z0-9-]+$/i.test(new URL(url).pathname)) continue;
+      const current = localPrice(firstClass(card, 'goods-price-current'));
+      if (!current) continue;
+      const promo = nodeText(firstClass(card, 'goods-promo'));
+      const title = nodeText(link);
+      const note = [(/\b(?:open.box|refurbished)\b/i.test(title) && '开箱或翻新品'),
+        (/promo code|coupon/i.test(promo) && '另有券码，显示价未扣券')].filter(Boolean).join(' · ') || undefined;
+      const img = photoLink && findOne(tag => tag.name === 'img', photoLink.children, true);
+      add(url, title, {
+        offer: dealPrice({ current, original: localPrice(firstClass(card, 'goods-price-was')), basis: 'listed', note }),
+        imageUrl: cardImage(source, img?.attribs),
+      });
+    }
+  } else if (source === 'walmart') {
+    const data = html.match(/<script\b(?=[^>]*\bid=["']__NEXT_DATA__["'])[^>]*>([\s\S]*?)<\/script>/i)?.[1];
+    const root = record(data ? JSON.parse(data) : undefined);
+    const props = record(record(root?.props)?.pageProps);
+    const modules = record(record(props?.initialData)?.contentLayout)?.modules;
+    if (Array.isArray(modules)) for (const module of modules.slice(0, 100)) {
+      const products = record(record(record(module)?.configs)?.productsConfig)?.products;
+      if (!Array.isArray(products)) continue;
+      for (const raw of products.slice(0, 32)) {
+        const item = record(raw);
+        if (!item || !/^\d+$/.test(String(item.usItemId)) || item.availabilityStatus === 'OUT_OF_STOCK') continue;
+        const url = sourceLink(item.canonicalUrl, source);
+        if (!url || new URL(url).pathname.match(/^\/ip\/(?:[^/]+\/)?(\d+)\/?$/)?.[1] !== item.usItemId) continue;
+        const prices = record(item.priceInfo);
+        const codes = record(prices?.priceDisplayCodes);
+        if (!prices || prices.isB2BPrice || prices.priceDisplayCondition || codes?.hidePriceForSOI) continue;
+        const current = priceValue(prices.linePrice) ?? undefined;
+        if (!current) continue;
+        const title = compact(item.name);
+        const flags = record(item.badges)?.flags;
+        const holiday = Array.isArray(flags) && flags.some(flag => record(flag)?.key === 'HOLIDAY_DEAL');
+        const original = priceValue(prices.wasPrice) ?? undefined;
+        if (!holiday && !(original && original > current)) continue;
+        const isRestored = new URL(url).searchParams.has('conditionGroupCode') || /restored|refurbished|pre.owned|open.box/i.test(title);
+        const variants = /^options from/i.test(compact(prices.priceRangeString));
+        const thirdParty = typeof item.sellerName === 'string' && !/^walmart(?:\.com)?$/i.test(item.sellerName);
+        const note = [isRestored && '翻新或二手', thirdParty && '平台第三方卖家'].filter(Boolean).join(' · ') || undefined;
+        add(url, title, {
+          offer: dealPrice({ current, original: isRestored || variants || thirdParty ? undefined : original, basis: 'listed', kind: variants ? 'from' : 'exact', note }),
+          imageUrl: promotionImageUrl(source, record(item.imageInfo)?.thumbnailUrl),
+        });
+      }
+      if (byUrl.size >= 32) break;
+    }
+  } else if (source === 'steam') {
+    const items = record(record(JSON.parse(html))?.specials)?.items;
+    if (Array.isArray(items)) for (const raw of items.slice(0, 64)) {
+      const item = record(raw);
+      if (!item || item.currency !== 'USD' || item.discounted !== true ||
+        typeof item.id !== 'number' || !Number.isSafeInteger(item.id) || item.id <= 0 || typeof item.type !== 'number' || ![0, 1, 2].includes(item.type)) continue;
+      const original = typeof item.original_price === 'number' && Number.isSafeInteger(item.original_price) ? item.original_price / 100 : 0;
+      const current = typeof item.final_price === 'number' && Number.isSafeInteger(item.final_price) ? item.final_price / 100 : 0;
+      const expires = typeof item.discount_expiration === 'number' ? item.discount_expiration * 1000 : 0;
+      if (current <= 0 || original <= current || (expires && expires <= Date.now())) continue;
+      const path = ['app', 'sub', 'bundle'][item.type];
+      add(`/${path}/${item.id}/`, item.name, {
+        offer: dealPrice({ current, original, basis: 'listed' }),
+        imageUrl: promotionImageUrl(source, item.small_capsule_image) ?? promotionImageUrl(source, item.header_image),
+      });
     }
   } else {
     // Retailer HTML has a second copy in hydration scripts. The main content
@@ -285,7 +404,8 @@ async function upstream(url: string, limit: number, options?: { prefix?: boolean
   });
   if (!response.ok) {
     await response.body?.cancel().catch(() => {});
-    throw Error(response.status >= 300 && response.status < 400 ? '来源要求跳转，请打开原页核对' : `来源返回 HTTP ${response.status}`);
+    const action = [401, 403, 429].includes(response.status) ? '来源限制后台读取' : '来源暂不可用';
+    throw Error(response.status >= 300 && response.status < 400 ? '来源要求跳转，请打开原页核对' : `${action}（HTTP ${response.status}）`);
   }
   return limitedText(response, limit, options?.prefix);
 }
@@ -337,7 +457,9 @@ export async function dealPromotionRoute(request: Request, url: URL, env: Env) {
       const html = await upstream(product.url, product.key.startsWith('costco.com/') ? 4_000_000 : 2_500_000);
       return out({ quote: parsePromotionQuote(html, product, Date.now()) });
     }
-    const html = await upstream(PROMOTION_SOURCES[source].url, source === 'costco' ? 4_000_000 : 1_500_000);
+    const feed = source === 'steam' ? 'https://store.steampowered.com/api/featuredcategories/?cc=us&l=english' : PROMOTION_SOURCES[source].url;
+    const limit = source === 'costco' || source === 'walmart' ? 4_000_000 : 1_500_000;
+    const html = await upstream(feed, limit);
     const leads = parsePromotionSource(html, source);
     if (source === 'slickdeals' && leads.some(lead => !lead.imageUrl && slickDealId(lead.url))) {
       const frontPage = await upstream('https://slickdeals.net/', 1_250_000, { prefix: true, timeout: 5000 }).catch(() => '');
