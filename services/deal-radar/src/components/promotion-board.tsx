@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { ImageIcon } from "lucide-react";
 import {
   applyTarget, categoryOf, classifyWatch, FIRST_CAMPAIGN, MAX_ACTIVE_WATCHES, merchantProduct,
-  parseImport, priceValue, PROMOTION_CATEGORIES, PROMOTION_SOURCES, safeHttps, updateQuote,
+  parseImport, priceValue, promotionImageUrl, PROMOTION_CATEGORIES, PROMOTION_SOURCES, safeHttps, updateQuote,
   type Campaign, type Lead, type PromotionCategory, type PromotionSource, type Quote, type SourceSnapshot, type Watch,
 } from "@/lib/promotion";
 import { formatPacific } from "@/lib/time";
@@ -37,6 +38,18 @@ function getTranslator() {
 function dates(lead: Lead) {
   return lead.validFrom && lead.validUntil
     ? `${lead.validFrom.replaceAll("-", "/")} – ${lead.validUntil.replaceAll("-", "/")}` : "";
+}
+
+function DealThumbnail({ lead }: { lead: Lead }) {
+  const image = promotionImageUrl(lead.source, lead.imageUrl);
+  const [failed, setFailed] = useState<string>();
+  return <div className="promo-thumbnail" aria-hidden="true">
+    {image && failed !== image
+      // The source has already provided a sized thumbnail and the public Pages build has no image optimizer.
+      // eslint-disable-next-line @next/next/no-img-element
+      ? <img src={image} alt="" width={96} height={96} loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={() => setFailed(image)} />
+      : <ImageIcon size={23} strokeWidth={1.5} />}
+  </div>;
 }
 
 function PriceLabels({ lead }: { lead: Lead }) {
@@ -314,7 +327,14 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
     if (kind === "all") for (const source of campaign.sources) append(source, PROMOTION_SOURCES[source].name, async () => {
       const snapshot = await request<SourceSnapshot>(source);
       if (!Array.isArray(snapshot.leads) || !Number.isFinite(snapshot.checkedAt)) throw Error("后台返回的优惠格式无效");
-      editCampaign(id, c => ({ ...c, snapshots: { ...c.snapshots, [source]: snapshot } }));
+      editCampaign(id, c => {
+        const previous = new Map(c.snapshots[source]?.leads.map(lead => [lead.url, lead.imageUrl]));
+        const leads = snapshot.leads.map(lead => {
+          const imageUrl = promotionImageUrl(source, lead.imageUrl) ?? promotionImageUrl(source, previous.get(lead.url));
+          return { ...lead, imageUrl };
+        });
+        return { ...c, snapshots: { ...c.snapshots, [source]: { ...snapshot, leads } } };
+      });
       return `${snapshot.leads.length} 条优惠`;
     });
     for (const watch of single ? [single] : selectedWatches) append(watch.id, watch.title, async () => {
@@ -493,7 +513,10 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
           <div className="promo-lead-meta"><span className="promo-chip">{PROMOTION_CATEGORIES[categoryOf(`${lead.title} ${title}`)][0]}</span><span className="promo-muted">
             {upcoming ? "即将开始" : expired ? "已结束" : lead.publishedAt ? displayTime(lead.publishedAt) : ""}
           </span></div>
-          <h3><External url={lead.url}>{title}</External></h3>
+          <div className="promo-lead-product">
+            <DealThumbnail lead={group.find(item => promotionImageUrl(item.source, item.imageUrl)) ?? lead} />
+            <h3><External url={lead.url}>{title}</External></h3>
+          </div>
           <PriceLabels lead={lead} />
           {dateRange && <p className="promo-muted promo-valid">活动期 {dateRange}</p>}
           {lead.detail && <p className="promo-muted">{lead.detail}</p>}

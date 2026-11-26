@@ -126,6 +126,25 @@
 .promo-lead-guide { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.3rem 0.6rem; }
 .promo-lead-guide ul { list-style: none; padding: 0.2rem 0; }
 .promo-lead-meta { display: flex; align-items: center; justify-content: space-between; gap: 0.35rem; }
+.promo-lead-product {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: center;
+}
+.promo-thumbnail {
+  display: grid;
+  width: 5rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 0.46rem;
+  background: var(--secondary);
+  color: var(--muted-foreground);
+  overflow: hidden;
+}
+.promo-thumbnail:has(img) { background: white; }
+.promo-thumbnail img { width: 100%; height: 100%; object-fit: contain; }
 .promo-card-prices {
   margin: 0;
   padding-block: 0.45rem 0.2rem;
@@ -167,5 +186,7 @@
 .promo-watch-dialog .promo-edit-watch { border: 0; margin: 0; padding-bottom: 0; }
 @media (max-width: 520px) {
   .promo-filters input:not([type]) { flex-basis: 100%; }
+  .promo-lead-product { grid-template-columns: 5.5rem minmax(0, 1fr); }
+  .promo-thumbnail { width: 5.5rem; }
   .promo-lead-meta, .promo-card-actions { flex-wrap: wrap; }
 }

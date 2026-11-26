@@ -1,12 +1,12 @@
 import { parseDocument } from 'htmlparser2';
 import { findAll, findOne, isTag, textContent } from 'domutils';
-import { merchantProduct, priceValue, PROMOTION_SOURCES, safeHttps, type Lead, type PromotionSource, type Quote } from '../../../services/deal-radar/src/lib/promotion';
+import { merchantProduct, priceValue, promotionImageUrl, PROMOTION_SOURCES, safeHttps, type Lead, type PromotionSource, type Quote } from '../../../services/deal-radar/src/lib/promotion';
 import { dealPrice, priceFromTitle, type DealPrice } from '../../../services/deal-radar/src/lib/promotion-pricing';
 import { verifyMonitorToken } from './monitor';
 
 const ORIGIN = 'https://ximinhu66.github.io';
 const BASE = '/api/deal-radar/promo/';
-const REVISION = 'manual-promotion-v2';
+const REVISION = 'manual-promotion-v3';
 const headers = {
   'access-control-allow-origin': ORIGIN,
   'access-control-allow-methods': 'GET, POST, OPTIONS',
@@ -66,9 +66,45 @@ function sourceLink(value: unknown, source: PromotionSource): string | null {
   }
 }
 
+function cardImage(source: PromotionSource, attributes?: Record<string, string>) {
+  if (!attributes) return;
+  const variants = attributes.srcset?.split(',').flatMap(candidate => {
+    const [url, size] = candidate.trim().split(/\s+/);
+    const width = size?.match(/^(\d+)w$/);
+    return width ? [{ url, width: Number(width[1]) }] : [];
+  }).sort((a, b) => a.width - b.width) ?? [];
+  const preferred = variants.find(variant => variant.width >= 240) ?? variants.at(-1);
+  return promotionImageUrl(source, preferred?.url) ??
+    promotionImageUrl(source, attributes.src) ?? promotionImageUrl(source, attributes['data-src']);
+}
+
+function slickDealId(url: string) {
+  return url.match(/^(?:https:\/\/slickdeals\.net)?\/f\/(\d+)(?=[-/?#]|$)/i)?.[1];
+}
+
+export function attachSlickdealsImages(leads: Lead[], html: string): Lead[] {
+  const wanted = new Set(leads.flatMap(lead => slickDealId(lead.url) ?? []));
+  const images = new Map<string, string>();
+  const cards = /<a\b(?=[^>]*\bclass=["'][^"']*\bdealCardImage\b)[^>]*>([\s\S]{1,2500}?)<\/a>/gi;
+  for (const card of html.matchAll(cards)) {
+    const href = card[0].match(/\bhref=["']([^"']+)["']/i)?.[1];
+    const id = href ? slickDealId(href) : undefined;
+    if (!id || !wanted.has(id) || images.has(id)) continue;
+    const tree = parseDocument(card[1]);
+    const img = findOne(tag => tag.name === 'img', tree.children, true);
+    const src = cardImage('slickdeals', img?.attribs);
+    if (src) images.set(id, src);
+    if (images.size === wanted.size) break;
+  }
+  return leads.map(lead => {
+    const imageUrl = lead.imageUrl ?? images.get(slickDealId(lead.url) ?? '');
+    return imageUrl ? { ...lead, imageUrl } : lead;
+  });
+}
+
 export function parsePromotionSource(html: string, source: PromotionSource): Lead[] {
   const byUrl = new Map<string, Lead>();
-  const add = (value: unknown, name: unknown, extras: Pick<Lead, 'publishedAt' | 'detail' | 'offer' | 'validFrom' | 'validUntil'> = {}) => {
+  const add = (value: unknown, name: unknown, extras: Pick<Lead, 'publishedAt' | 'detail' | 'offer' | 'validFrom' | 'validUntil' | 'imageUrl'> = {}) => {
     const url = sourceLink(value, source);
     const title = compact(name);
     if (!url || !title || byUrl.has(url) || byUrl.size >= 32) return;
@@ -83,27 +119,50 @@ export function parsePromotionSource(html: string, source: PromotionSource): Lea
         const child = findOne(tag => tag.name === name, item.children, false);
         return child ? textContent(child) : '';
       };
+      const media = findOne(tag => ['media:thumbnail', 'media:content', 'enclosure'].includes(tag.name) &&
+        promotionImageUrl(source, tag.attribs.url) !== undefined, item.children, true);
       const published = Date.parse(field('pubDate'));
       const title = field('title');
       add(field('link'), title, {
         publishedAt: Number.isFinite(published) && published <= Date.now() ? published : undefined,
         offer: priceFromTitle(title, plain(field('description').slice(0, 3500))),
+        imageUrl: promotionImageUrl(source, media?.attribs.url),
       });
     }
   } else if (source === 'dealmoon') {
     const collection = structuredData(html).find(node => isType(node, 'CollectionPage'));
     const items = record(collection?.mainEntity)?.itemListElement;
+    const cards = parseDocument(html);
+    const photos = new Map<string, string>();
+    for (const anchor of findAll(tag => tag.name === 'a' && tag.attribs.class?.includes('deal-personal-strack'), cards.children)) {
+      const url = sourceLink(anchor.attribs.href, source);
+      if (!url || photos.has(url)) continue;
+      const image = findOne(tag => tag.name === 'img' && tag.attribs.class?.split(/\s+/).includes('snapshot'), anchor.children, true);
+      const img = cardImage(source, image?.attribs);
+      if (img) photos.set(url, img);
+    }
     if (Array.isArray(items)) for (const row of items.slice(0, 32)) {
       const item = record(record(row)?.item);
       const offer = record(item?.offers);
       const name = compact(item?.name);
-      add(item?.url, name, { detail: compact(record(offer?.seller)?.name, 130) || undefined, offer: priceFromTitle(name) });
+      const url = sourceLink(item?.url, source);
+      const images = Array.isArray(item?.image) ? item.image : [item?.image];
+      const structuredImage = images.slice(0, 8).map(image => promotionImageUrl(source, record(image)?.url ?? image)).find(Boolean);
+      add(url, name, {
+        detail: compact(record(offer?.seller)?.name, 130) || undefined,
+        offer: priceFromTitle(name),
+        imageUrl: structuredImage ?? photos.get(url ?? ''),
+      });
     }
   } else if (source === 'bestbuy') {
-    const cards = /<a\b(?=[^>]*data-testid="offer-card-body-copy-link")[^>]*href="([^"]+)"[^>]*>([\s\S]{1,2500}?)<\/a>/gi;
-    for (const card of html.matchAll(cards)) {
-      const title = plain(card[2]);
-      add(card[1], title, { offer: priceFromTitle(title) });
+    const content = parseDocument(html);
+    for (const card of findAll(tag => tag.attribs['data-testid'] === 'offer-card', content.children)) {
+      const textLink = findOne(tag => tag.attribs['data-testid'] === 'offer-card-body-copy-link', card.children, true);
+      if (!textLink) continue;
+      const title = compact(textContent(textLink));
+      const imageLink = findOne(tag => tag.attribs['data-testid'] === 'offer-card-image-link', card.children, true);
+      const image = imageLink && findOne(tag => tag.name === 'img', imageLink.children, true);
+      add(textLink.attribs.href, title, { offer: priceFromTitle(title), imageUrl: cardImage(source, image?.attribs) });
     }
   } else {
     // Retailer HTML has a second copy in hydration scripts. The main content
@@ -142,6 +201,7 @@ export function parsePromotionSource(html: string, source: PromotionSource): Lea
           kind: /price varies by size/i.test(body) ? 'from' : 'exact',
         }),
         validFrom: date(1) ?? undefined, validUntil: date(4) ?? undefined,
+        imageUrl: cardImage(source, attrs('media-asset')?.attribs),
       });
     }
   }
@@ -195,7 +255,7 @@ export function parsePromotionQuote(html: string, product: NonNullable<ReturnTyp
   return { name, price, availability, checkedAt, url: product.url };
 }
 
-async function limitedText(response: Response, limit: number) {
+async function limitedText(response: Response, limit: number, allowPrefix = false) {
   const reader = response.body?.getReader();
   if (!reader) throw Error('来源没有返回内容');
   const decoder = new TextDecoder();
@@ -205,8 +265,12 @@ async function limitedText(response: Response, limit: number) {
     for (;;) {
       const { done, value } = await reader.read();
       if (done) return pieces.join('') + decoder.decode();
+      const remaining = limit - bytes;
+      if (value.byteLength > remaining) {
+        if (allowPrefix) return pieces.join('') + decoder.decode(value.subarray(0, remaining));
+        throw Error('来源页面超过读取上限');
+      }
       bytes += value.byteLength;
-      if (bytes > limit) throw Error('来源页面超过读取上限');
       pieces.push(decoder.decode(value, { stream: true }));
     }
   } finally {
@@ -214,16 +278,16 @@ async function limitedText(response: Response, limit: number) {
   }
 }
 
-async function upstream(url: string, limit: number) {
+async function upstream(url: string, limit: number, options?: { prefix?: boolean; timeout?: number }) {
   const response = await fetch(url, {
-    redirect: 'manual', signal: AbortSignal.timeout(12_000),
+    redirect: 'manual', signal: AbortSignal.timeout(options?.timeout ?? 12_000),
     headers: { accept: 'text/html,application/rss+xml,application/xml;q=0.9,*/*;q=0.7', 'accept-language': 'en-US,en;q=0.9', 'user-agent': 'Mozilla/5.0 (compatible; PTUniverseDealRadar/1.0)' },
   });
   if (!response.ok) {
     await response.body?.cancel().catch(() => {});
     throw Error(response.status >= 300 && response.status < 400 ? '来源要求跳转，请打开原页核对' : `来源返回 HTTP ${response.status}`);
   }
-  return limitedText(response, limit);
+  return limitedText(response, limit, options?.prefix);
 }
 
 async function reserve(db: D1Database, key: string, limit: number, step: number) {
@@ -274,7 +338,12 @@ export async function dealPromotionRoute(request: Request, url: URL, env: Env) {
       return out({ quote: parsePromotionQuote(html, product, Date.now()) });
     }
     const html = await upstream(PROMOTION_SOURCES[source].url, source === 'costco' ? 4_000_000 : 1_500_000);
-    return out({ checkedAt: Date.now(), leads: parsePromotionSource(html, source) });
+    const leads = parsePromotionSource(html, source);
+    if (source === 'slickdeals' && leads.some(lead => !lead.imageUrl && slickDealId(lead.url))) {
+      const frontPage = await upstream('https://slickdeals.net/', 1_250_000, { prefix: true, timeout: 5000 }).catch(() => '');
+      return out({ checkedAt: Date.now(), leads: frontPage ? attachSlickdealsImages(leads, frontPage) : leads });
+    }
+    return out({ checkedAt: Date.now(), leads });
   } catch (error) {
     const raw = error instanceof Error ? error.message : '';
     const message = /^(来源|商家|没有读到|报价)/.test(raw) ? raw : '来源超时或暂不可用';
