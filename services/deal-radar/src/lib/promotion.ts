@@ -21,7 +21,7 @@ export const PROMOTION_CATEGORIES = {
 } satisfies Record<string, readonly [string, RegExp]>;
 
 export type PromotionCategory = keyof typeof PROMOTION_CATEGORIES;
-export type Lead = { title: string; url: string; source: PromotionSource; detail?: string; publishedAt?: number; offer?: DealPrice; validFrom?: string; validUntil?: string };
+export type Lead = { title: string; url: string; source: PromotionSource; imageUrl?: string; detail?: string; publishedAt?: number; offer?: DealPrice; validFrom?: string; validUntil?: string };
 export type Quote = { name: string; price: number; availability: "in-stock" | "out-of-stock" | "unknown"; checkedAt: number; url: string; method?: "manual" };
 export type SourceSnapshot = { checkedAt: number; leads: Lead[] };
 export type Watch = {
@@ -81,6 +81,36 @@ export function safeHttps(raw: string): URL | null {
   } catch {
     return null;
   }
+}
+
+const imagePaths: Record<PromotionSource, Record<string, RegExp>> = {
+  slickdeals: {
+    "static.slickdealscdn.com": /^\/attachment\/(?:\d+\/)+\d+x\d+\/\d+\.(?:thumb|jpg|png|webp)$/i,
+    "slickdeals.net": /^\/attachment\/(?:\d+\/)+\d+x\d+\/\d+\.(?:thumb|jpg|png|webp)$/i,
+  },
+  costco: {
+    "gdx-assets.costco.com": /^\/adobe\/assets\/[^?#]+\.(?:avif|webp|jpe?g|png)$/i,
+    "images.costco-static.com": /^\/ImageDelivery\//,
+  },
+  bestbuy: { "pisces.bbystatic.com": /^\/image2\/BestBuy_US\// },
+  dealmoon: {
+    "imgcache.dealmoon.com": /^\/thumbimg\.dealmoon\.com\/[^?#]+\.(?:avif|webp|jpe?g|png)$/i,
+    "thumbimg.dealmoon.com": /^\/[^?#]+\.(?:avif|webp|jpe?g|png)$/i,
+  },
+};
+
+export function promotionImageUrl(source: PromotionSource, raw: unknown): string | undefined {
+  if (typeof raw !== "string") return;
+  const url = safeHttps(raw.trim());
+  const hosts = Object.hasOwn(imagePaths, source) ? imagePaths[source] : undefined;
+  if (!url || !hosts || !Object.hasOwn(hosts, url.hostname) || !hosts[url.hostname].test(url.pathname)) return;
+  const width = url.searchParams.get("width");
+  url.search = "";
+  url.hash = "";
+  if (source === "costco" && url.hostname === "gdx-assets.costco.com" && width && /^(?:320|480|640)$/.test(width)) {
+    url.searchParams.set("width", width);
+  }
+  return url.href;
 }
 
 export function priceValue(value: unknown): number | null {

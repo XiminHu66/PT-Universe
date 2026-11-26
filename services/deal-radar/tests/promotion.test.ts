@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { chineseTitle } from "../src/lib/promotion-language";
 import { priceFromTitle } from "../src/lib/promotion-pricing";
-import { applyTarget, classifyWatch, merchantProduct, parseImport, updateQuote, type Quote } from "../src/lib/promotion";
+import { applyTarget, classifyWatch, merchantProduct, parseImport, promotionImageUrl, updateQuote, type Quote } from "../src/lib/promotion";
 
 test("Excel import deduplicates ASIN links and retains reference price without setting a target", () => {
   let id = 0;
@@ -69,4 +69,14 @@ test("product labels retain brand and model while translating useful product wor
   assert.match(chineseTitle("Gap Factory Men's Relaxed Hooded Puffer Jacket (Black or Navy) $20.65 + Free S&H"), /Gap Factory.*男款.*连帽棉服/);
   assert.match(chineseTitle("Nike Men's MC Trainer 3 Workout Shoes $36"), /Nike.*MC Trainer 3.*训练鞋/);
   assert.equal(chineseTitle("罗技无线鼠标 $24.99"), "罗技无线鼠标");
+});
+
+
+test("promotion photos stay scoped to a source image host and strip unrelated parameters", () => {
+  const image = "https://static.slickdealscdn.com/attachment/1/2/300x300/90.thumb";
+  assert.equal(promotionImageUrl("slickdeals", image + "?campaign=hidden#fragment"), image);
+  assert.equal(promotionImageUrl("bestbuy", image), undefined);
+  assert.equal(promotionImageUrl("slickdeals", "https://static.slickdealscdn.com.invalid/attachment/1/2/300x300/90.thumb"), undefined);
+  assert.equal(promotionImageUrl("slickdeals", "https://static.slickdealscdn.com/attachment/avatar/1/2/50x50/avatar.static"), undefined);
+  assert.equal(promotionImageUrl("slickdeals", "data:image/png;base64,AAAA"), undefined);
 });
