@@ -1,11 +1,12 @@
 import { parseDocument } from 'htmlparser2';
-import { findAll, findOne, textContent } from 'domutils';
+import { findAll, findOne, isTag, textContent } from 'domutils';
 import { merchantProduct, priceValue, PROMOTION_SOURCES, safeHttps, type Lead, type PromotionSource, type Quote } from '../../../services/deal-radar/src/lib/promotion';
+import { dealPrice, priceFromTitle, type DealPrice } from '../../../services/deal-radar/src/lib/promotion-pricing';
 import { verifyMonitorToken } from './monitor';
 
 const ORIGIN = 'https://ximinhu66.github.io';
 const BASE = '/api/deal-radar/promo/';
-const REVISION = 'manual-promotion-v1';
+const REVISION = 'manual-promotion-v2';
 const headers = {
   'access-control-allow-origin': ORIGIN,
   'access-control-allow-methods': 'GET, POST, OPTIONS',
@@ -67,11 +68,11 @@ function sourceLink(value: unknown, source: PromotionSource): string | null {
 
 export function parsePromotionSource(html: string, source: PromotionSource): Lead[] {
   const byUrl = new Map<string, Lead>();
-  const add = (value: unknown, name: unknown, description?: unknown, publishedAt?: number) => {
+  const add = (value: unknown, name: unknown, extras: Pick<Lead, 'publishedAt' | 'detail' | 'offer' | 'validFrom' | 'validUntil'> = {}) => {
     const url = sourceLink(value, source);
     const title = compact(name);
     if (!url || !title || byUrl.has(url) || byUrl.size >= 32) return;
-    byUrl.set(url, { source, url, title, detail: compact(description, 130) || undefined, publishedAt });
+    byUrl.set(url, { source, url, title, ...extras });
   };
 
   if (source === 'slickdeals') {
@@ -83,22 +84,65 @@ export function parsePromotionSource(html: string, source: PromotionSource): Lea
         return child ? textContent(child) : '';
       };
       const published = Date.parse(field('pubDate'));
-      add(field('link'), field('title'), undefined, Number.isFinite(published) && published <= Date.now() ? published : undefined);
+      const title = field('title');
+      add(field('link'), title, {
+        publishedAt: Number.isFinite(published) && published <= Date.now() ? published : undefined,
+        offer: priceFromTitle(title, plain(field('description').slice(0, 3500))),
+      });
     }
   } else if (source === 'dealmoon') {
     const collection = structuredData(html).find(node => isType(node, 'CollectionPage'));
     const items = record(collection?.mainEntity)?.itemListElement;
     if (Array.isArray(items)) for (const row of items.slice(0, 32)) {
       const item = record(record(row)?.item);
-      add(item?.url, item?.name, record(record(item?.offers)?.seller)?.name);
+      const offer = record(item?.offers);
+      const name = compact(item?.name);
+      add(item?.url, name, { detail: compact(record(offer?.seller)?.name, 130) || undefined, offer: priceFromTitle(name) });
+    }
+  } else if (source === 'bestbuy') {
+    const cards = /<a\b(?=[^>]*data-testid="offer-card-body-copy-link")[^>]*href="([^"]+)"[^>]*>([\s\S]{1,2500}?)<\/a>/gi;
+    for (const card of html.matchAll(cards)) {
+      const title = plain(card[2]);
+      add(card[1], title, { offer: priceFromTitle(title) });
     }
   } else {
-    const pattern = source === 'bestbuy'
-      ? /<a\b(?=[^>]*data-testid="offer-card-body-copy-link")[^>]*href="([^"]+)"[^>]*>([\s\S]{1,2500}?)<\/a>/gi
-      : /<a\b[^>]*href="((?:https:\/\/www\.costco\.com)?\/p\/[^"]+\/\d+)"[^>]*>([\s\S]{1,500}?)<\/a>/gi;
-    for (const match of html.matchAll(pattern)) {
-      if (source === 'costco' && /<img\b|Shop now|Buy online|View details/i.test(match[2])) continue;
-      add(match[1], plain(match[2]));
+    // Retailer HTML has a second copy in hydration scripts. The main content
+    // attaches each price and date to its own product card.
+    const main = html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i)?.[1];
+    const content = parseDocument(main ?? html);
+    const isProductLink = (href = '') => /^(?:https:\/\/www\.costco\.com)?\/p\/[^?#]+\/\d+\/?$/i.test(href);
+    const anchors = findAll(tag => tag.name === 'a' && isProductLink(tag.attribs.href), content.children);
+    for (const anchor of anchors) {
+      const title = compact(textContent(anchor));
+      if (!title || /^(?:buy online|shop now|view details)$/i.test(title)) continue;
+      let card = anchor.parent;
+      while (card && isTag(card) && card.attribs['data-testid'] !== 'Grid') card = card.parent;
+      const attrs = (testId: string) => card && isTag(card)
+        ? findOne(tag => tag.attribs['data-testid'] === testId, card.children, true)
+        : null;
+      const price = attrs('Text_prices_and_percentages_prices');
+      const prefix = attrs('Text_prices_and_percentages_prepend_text');
+      const suffix = attrs('Text_prices_and_percentages_append_text');
+      const dollars = priceValue(price ? textContent(price).replace(/\s/g, '') : undefined) ?? undefined;
+      const extra = suffix ? compact(textContent(suffix)) : '';
+      const savings = extra.match(/^after\s+\$([\d,.]+)\s+off$/i);
+      const saved = savings ? priceValue(savings[1]) ?? undefined : undefined;
+      const onlySavings = !!prefix && /save/i.test(textContent(prefix));
+      const body = card && isTag(card) ? compact(textContent(card), 1000) : '';
+      const scope: DealPrice['scope'] = /warehouse\s*&\s*online/i.test(body) ? 'both' :
+        /online only/i.test(body) ? 'online' : /warehouse only/i.test(body) ? 'warehouse' : undefined;
+      const dates = body.match(/valid\s+(\d{1,2})\/(\d{1,2})\/((?:\d{4}|\d{2}))\s*[-–]\s*(\d{1,2})\/(\d{1,2})\/((?:\d{4}|\d{2}))/i);
+      const date = (offset: number) => dates && `${dates[offset + 2].padStart(4, '20')}-${dates[offset].padStart(2, '0')}-${dates[offset + 1].padStart(2, '0')}`;
+      add(anchor.attribs.href, title, {
+        offer: dealPrice({
+          current: onlySavings ? undefined : dollars,
+          savings: onlySavings ? dollars : saved,
+          original: !onlySavings && dollars !== undefined && saved !== undefined ? dollars + saved : undefined,
+          basis: 'before-promo', scope,
+          kind: /price varies by size/i.test(body) ? 'from' : 'exact',
+        }),
+        validFrom: date(1) ?? undefined, validUntil: date(4) ?? undefined,
+      });
     }
   }
 

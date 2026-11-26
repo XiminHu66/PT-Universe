@@ -61,4 +61,15 @@ const marketplace = { ...bestBuyOffer, sku: '12771375', price: 129.99, seller: {
 assert.equal(parsePromotionQuote(html([marketplace, bestBuyOffer], { url: bestBuyCanonical, sku: '6505727' }), bestBuy, Date.now()).price, 169.99);
 assert.throws(() => parsePromotionQuote(html([marketplace], { url: bestBuyCanonical, sku: '6505727' }), bestBuy, Date.now()));
 assert.throws(() => parsePromotionQuote(html([marketplace, bestBuyOffer], { url: bestBuyCanonical, sku: '1234567' }), bestBuy, Date.now()));
+const costco = '<main><div data-testid="Grid"><a href="/p/-/sample/12345">1 TB SSD</a><div>Warehouse &amp; Online</div><div data-testid="Text_prices_and_percentages_prices">$119.99</div><div data-testid="Text_prices_and_percentages_append_text">After $30 OFF</div><div>Valid 11/27/26 - 11/30/26</div></div><div data-testid="Grid"><a href="/p/-/different/54321">Headphones</a><span data-testid="Text_prices_and_percentages_prepend_text">Save</span><span data-testid="Text_prices_and_percentages_prices">$75</span></div></main>';
+const official = parsePromotionSource(costco, 'costco');
+assert.equal(official[0].offer.current, 119.99);
+assert.equal(official[0].offer.original, 149.99);
+assert.equal(official[0].offer.discount, 20);
+assert.equal(official[0].offer.scope, 'both');
+assert.equal(official[0].validFrom, '2026-11-27');
+assert.equal(official[0].validUntil, '2026-11-30');
+assert.equal(official[1].offer.savings, 75);
+assert.equal(official[1].offer.current, undefined);
+assert.equal(official[1].offer.original, undefined);
 console.log('PASS: manual-only sources, owner quote gate, atomic SQLite budget, source scope, and exact USD quote conditions.');

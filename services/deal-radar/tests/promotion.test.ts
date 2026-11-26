@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { chineseTitle } from "../src/lib/promotion-language";
+import { priceFromTitle } from "../src/lib/promotion-pricing";
 import { applyTarget, classifyWatch, merchantProduct, parseImport, updateQuote, type Quote } from "../src/lib/promotion";
 
 test("Excel import deduplicates ASIN links and retains reference price without setting a target", () => {
@@ -32,4 +34,39 @@ test("only in-stock matching quotes hit the target and a failed check cannot sho
   assert.equal(classifyWatch(updateQuote(hit, { ...quote, availability: "unknown" })), "库存待确认");
   assert.equal(classifyWatch(applyTarget(hit, 38)), "未到价");
   assert.equal(classifyWatch(applyTarget(hit, 42)), "待复核");
+});
+
+
+test("separates a posted sale price, baseline, and discount with explicit evidence", () => {
+  const jacket = priceFromTitle("Gap Factory Hooded Puffer Jacket $20.65 + Free S&H on $50+",
+    "Gap Factory has it for $26.99 - 10% off in cart - 15% with promo code = $20.65. Shipping is free.");
+  assert.equal(jacket.current, 20.65);
+  assert.equal(jacket.original, 26.99);
+  assert.equal(jacket.discount, 23.5);
+  assert.equal(jacket.kind, "conditional");
+  assert.equal(jacket.basis, "before-promo");
+  const bestBuy = priceFromTitle("Save $87.98 on the Nintendo bundle — only $499.99 after savings");
+  assert.equal(bestBuy.current, 499.99);
+  assert.equal(bestBuy.original, 587.97);
+  assert.equal(bestBuy.discount, 15);
+  assert.equal(priceFromTitle("New SSD now $89.99 (was $119.99)").basis, "listed");
+});
+
+test("does not turn a saving, an MSRP, monthly charge, or conflicting body into a current price", () => {
+  assert.equal(priceFromTitle("Save $75 on a bundle").current, undefined);
+  assert.equal(priceFromTitle("TV MSRP $1,899").current, undefined);
+  assert.equal(priceFromTitle("TV $19.99/mo").current, undefined);
+  assert.equal(priceFromTitle("TV $599 + $50 gift card").current, undefined);
+  const otherVariant = priceFromTitle("Electric Razor (White) $75 + Free S&H", "The black variant is on sale for $60, was $110.");
+  assert.equal(otherVariant.current, 75);
+  assert.equal(otherVariant.original, undefined);
+  assert.equal(priceFromTitle("Oura Ring 5, now as low as $299").current, 299);
+  assert.equal(priceFromTitle("黑五护肤低至7折").upTo, true);
+  assert.equal(priceFromTitle("黑五护肤低至7折").discount, 30);
+});
+
+test("product labels retain brand and model while translating useful product words", () => {
+  assert.match(chineseTitle("Gap Factory Men's Relaxed Hooded Puffer Jacket (Black or Navy) $20.65 + Free S&H"), /Gap Factory.*男款.*连帽棉服/);
+  assert.match(chineseTitle("Nike Men's MC Trainer 3 Workout Shoes $36"), /Nike.*MC Trainer 3.*训练鞋/);
+  assert.equal(chineseTitle("罗技无线鼠标 $24.99"), "罗技无线鼠标");
 });

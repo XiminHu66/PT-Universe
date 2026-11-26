@@ -1,3 +1,5 @@
+import type { DealPrice } from "./promotion-pricing";
+
 export const PROMOTION_SOURCES = {
   slickdeals: { name: "Slickdeals", url: "https://slickdeals.net/newsearch.php?mode=frontpage&searcharea=deals&searchin=first&rss=1" },
   dealmoon: { name: "北美省钱快报", url: "https://www.dealmoon.com/" },
@@ -11,18 +13,20 @@ export const PROMOTION_CATEGORIES = {
   hardware: ["电脑 / NAS / 存储", /mini\s?pc|minisforum|beelink|gmktec|nas\b|synology|terra[mn]aster|nvme|[hs]sd\b|hdd\b|硬盘|主机|desktop|laptop|macbook|电脑|显卡|rtx\s?\d|ryzen|内存/i],
   gaming: ["游戏 / 掌机", /steam|switch|playstation|xbox|gaming|nintendo|游戏|掌机|quest\s?\d|xreal/i],
   reading: ["墨水屏 / 书 / 漫画", /kindle|kobo|boox|e-?ink|漫画|墨水屏|manga|graphic novel|box set|paperback|scribe|remarkable/i],
-  desk: ["桌面 / 音频", /monitor|headphones?|earbuds?|airpods|keyboard|mouse|thunderbolt|usb.c|显示器|耳机|外设|键盘|鼠标|音响/i],
-  home: ["家居 / 日用", /vacuum|litter|robot|home|kitchen|furniture|air fryer|coffee|cameras?|家具|扫地|洗地|厨|收纳|清洁|电饭|咖啡/i],
+  desk: ["桌面 / 音频", /monitor|soundbar|speaker|headphones?|earbuds?|airpods|keyboard|mouse|thunderbolt|usb.c|显示器|耳机|外设|键盘|鼠标|音响/i],
+  fashion: ["服饰 / 鞋包 / 珠宝", /jacket|hoodie|sweatshirt|shoes?|clogs?|sneakers?|apparel|jewelry|diamond|服饰|外套|卫衣|运动鞋|珠宝/i],
+  grocery: ["食品 / 饮料", /potato chips|coffee beans|chewing gum|sugar.free gum|snacks?|chocolates?|蛋白粉|零食|薯片|口香糖|食品/i],
+  home: ["家居 / 日用", /lamp|batteries|razor|mattress|toppers?|comforter|vacuum|litter|robot|home|kitchen|furniture|air fryer|coffee|cameras?|家具|扫地|洗地|厨|收纳|清洁|电饭|咖啡/i],
   other: ["其他", /.*/],
 } satisfies Record<string, readonly [string, RegExp]>;
 
 export type PromotionCategory = keyof typeof PROMOTION_CATEGORIES;
-export type Lead = { title: string; url: string; source: PromotionSource; detail?: string; publishedAt?: number };
+export type Lead = { title: string; url: string; source: PromotionSource; detail?: string; publishedAt?: number; offer?: DealPrice; validFrom?: string; validUntil?: string };
 export type Quote = { name: string; price: number; availability: "in-stock" | "out-of-stock" | "unknown"; checkedAt: number; url: string; method?: "manual" };
 export type SourceSnapshot = { checkedAt: number; leads: Lead[] };
 export type Watch = {
   id: string; title: string; url: string; target: number | null; enabled: boolean;
-  quote?: Quote; reference?: number; referenceDate?: string; error?: string; hitAt?: number;
+  quote?: Quote; reference?: number; referenceDate?: string; error?: string; hitAt?: number; originalTitle?: string;
 };
 export type Campaign = {
   id: string; name: string; start: string; end: string; keywords: string;
@@ -34,7 +38,7 @@ export function categoryOf(title: string): PromotionCategory {
 }
 
 export const FIRST_CAMPAIGN: Campaign = {
-  id: "black-friday-2026", name: "2026 黑五 · Cyber Monday", start: "2026-11-27", end: "2026-11-30",
+  id: "black-friday-2026", name: "2026 黑五 · 网购星期一", start: "2026-11-27", end: "2026-11-30",
   keywords: "", sources: ["slickdeals", "dealmoon", "bestbuy", "costco"], snapshots: {}, watches: [],
 };
 

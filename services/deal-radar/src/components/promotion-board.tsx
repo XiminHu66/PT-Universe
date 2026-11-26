@@ -7,12 +7,16 @@ import {
   type Campaign, type Lead, type PromotionCategory, type PromotionSource, type Quote, type SourceSnapshot, type Watch,
 } from "@/lib/promotion";
 import { formatPacific } from "@/lib/time";
+import { chineseTitle, productTitle } from "@/lib/promotion-language";
+import { priceFromTitle } from "@/lib/promotion-pricing";
 
 const API = "https://pt-universe-api.summer07-nanjolno.workers.dev/api/deal-radar/promo/";
 const STORE = "pt.deal-radar.promotions.v1";
 const MAX_CAMPAIGNS = 24;
 const MAX_WATCHES = 150;
 const sources = Object.keys(PROMOTION_SOURCES) as PromotionSource[];
+const datePacific = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Los_Angeles", year: "numeric", month: "2-digit", day: "2-digit" });
+const PAGE_SIZE = 24;
 const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 const makeId = () => crypto.randomUUID();
 const displayTime = (time: number) => formatPacific(time) ?? "";
@@ -22,6 +26,36 @@ type Task = { key: string; label: string; status: "waiting" | "running" | "done"
 type Store = { active: string; campaigns: Campaign[] };
 const initial: Store = { active: FIRST_CAMPAIGN.id, campaigns: [FIRST_CAMPAIGN] };
 type OwnerConnection = { token: () => string | null; connect: () => void };
+type Sort = "latest" | "discount" | "price";
+type Translation = { translate: (text: string) => Promise<string>; destroy: () => void };
+type TranslatorAPI = { create: (options: { sourceLanguage: "en"; targetLanguage: "zh" }) => Promise<Translation> };
+
+function getTranslator() {
+  return (globalThis as typeof globalThis & { Translator?: TranslatorAPI }).Translator;
+}
+
+function dates(lead: Lead) {
+  return lead.validFrom && lead.validUntil
+    ? `${lead.validFrom.replaceAll("-", "/")} – ${lead.validUntil.replaceAll("-", "/")}` : "";
+}
+
+function PriceLabels({ lead }: { lead: Lead }) {
+  const price = lead.offer ?? priceFromTitle(lead.title);
+  const hasPrice = price.current !== undefined;
+  const scope = { both: "仓库与线上活动", warehouse: "仓库活动", online: "线上活动" } as const;
+  return <>
+    <dl className="promo-card-prices">
+      <div><dt>{price.kind === "from" ? "起售价" : price.kind === "conditional" ? "优惠后" : "活动价"}</dt>
+        <dd className="promo-card-now" data-known={hasPrice}>{hasPrice ? currency.format(price.current!) : "未公布"}</dd></div>
+      <div><dt>{price.basis === "before-promo" ? "优惠前" : "原价"}</dt><dd>{price.original ? <s>{currency.format(price.original)}</s> : "—"}</dd></div>
+      <div><dt>折扣</dt><dd>{price.discount ? <strong className="promo-discount">{price.upTo ? "最高 " : ""}省 {price.discount}%</strong>
+        : price.savings ? <strong className="promo-discount">省 {currency.format(price.savings)}</strong> : "—"}</dd></div>
+    </dl>
+    {(price.scope || price.note) && <p className="promo-offer-condition">
+      {[price.scope && scope[price.scope], price.note].filter(Boolean).join(" · ")}
+    </p>}
+  </>;
+}
 
 function readStore(): Store {
   try {
@@ -140,11 +174,21 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
   const [storageError, setStorageError] = useState(false);
   const [editor, setEditor] = useState<Campaign | null>(null);
   const [watchEditor, setWatchEditor] = useState<Watch | "new" | null>(null);
+  const [watchError, setWatchError] = useState("");
   const [category, setCategory] = useState<PromotionCategory | "all">("all");
   const [sourceFilter, setSourceFilter] = useState<PromotionSource | "all">("all");
   const [query, setQuery] = useState("");
   const [watchQuery, setWatchQuery] = useState("");
   const [onlySelected, setOnlySelected] = useState(false);
+  const [sort, setSort] = useState<Sort>("latest");
+  const [pricedOnly, setPricedOnly] = useState(false);
+  const [maxPrice, setMaxPrice] = useState("");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [showProgress, setShowProgress] = useState(false);
+  const [localized, setLocalized] = useState<Record<string, string>>({});
+  const [translationStatus, setTranslationStatus] = useState("");
+  const watchDialog = useRef<HTMLDialogElement>(null);
+  const translating = useRef(false);
   const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -181,21 +225,81 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
   const campaign = state.campaigns.find(c => c.id === state.active) ?? state.campaigns[0];
   const latest = campaign.sources.map(source => campaign.snapshots[source]?.checkedAt ?? 0).reduce((a, b) => Math.max(a, b), 0);
   const selectedWatches = campaign.watches.filter(watch => watch.enabled && merchantProduct(watch.url));
+  function displayTitle(lead: Lead) {
+    return localized[lead.title] ?? chineseTitle(lead.title);
+  }
+
   const allLeads = campaign.sources.flatMap(source => campaign.snapshots[source]?.leads ?? []);
   const campaignWords = terms(campaign.keywords);
-  const visibleLeads = allLeads.filter(lead => {
-    const text = `${lead.title} ${lead.detail ?? ""}`.toLowerCase();
+  const queryWords = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const cap = priceValue(maxPrice);
+  const availableLeads = allLeads.filter(lead => {
+    const text = `${displayTitle(lead)} ${lead.title} ${lead.detail ?? ""} ${PROMOTION_SOURCES[lead.source].name}`.toLowerCase();
+    const price = (lead.offer ?? priceFromTitle(lead.title)).current;
     return (sourceFilter === "all" || lead.source === sourceFilter) &&
-      (category === "all" || categoryOf(lead.title) === category) && text.includes(query.trim().toLowerCase()) &&
-      (!campaignWords.length || campaignWords.some(word => text.includes(word)));
+      queryWords.every(word => text.includes(word)) &&
+      (!campaignWords.length || campaignWords.some(word => text.includes(word))) &&
+      (!pricedOnly || price !== undefined) && (cap === null || (price !== undefined && price <= cap));
   });
-  const grouped = new Map<string, Lead[]>();
-  for (const lead of visibleLeads) {
-    const key = merchantProduct(lead.url)?.key ?? lead.title.toLowerCase().replace(/\s+/g, " ");
-    const group = grouped.get(key);
-    if (group) group.push(lead);
-    else grouped.set(key, [lead]);
+  const categoryCounts = new Map<PromotionCategory, number>();
+  for (const lead of availableLeads) {
+    const key = categoryOf(`${lead.title} ${displayTitle(lead)}`);
+    categoryCounts.set(key, (categoryCounts.get(key) ?? 0) + 1);
   }
+  const groups = new Map<string, Lead[]>();
+  for (const lead of availableLeads) {
+    if (category !== "all" && categoryOf(`${lead.title} ${displayTitle(lead)}`) !== category) continue;
+    const key = merchantProduct(lead.url)?.key ?? lead.title.toLowerCase().replace(/\s+/g, " ");
+    const group = groups.get(key);
+    if (group) group.push(lead);
+    else groups.set(key, [lead]);
+  }
+  const today = datePacific.format(new Date());
+  const order = [...groups.values()].sort(([a], [b]) => {
+    const ap = a.offer ?? priceFromTitle(a.title);
+    const bp = b.offer ?? priceFromTitle(b.title);
+    if (sort === "price") return (ap.current ?? Infinity) - (bp.current ?? Infinity);
+    if (sort === "discount") return (bp.discount ?? -1) - (ap.discount ?? -1);
+    return (b.publishedAt ?? 0) - (a.publishedAt ?? 0);
+  });
+  const savedKeys = new Set(campaign.watches.map(watchKey));
+  const filtersActive = !!query || !!maxPrice || pricedOnly || sourceFilter !== "all" || category !== "all";
+  const untranslated = allLeads.filter(lead => !/\p{Script=Han}/u.test(lead.title) && !localized[lead.title]);
+
+  useEffect(() => {
+    const dialog = watchDialog.current;
+    if (watchEditor && dialog && !dialog.open) dialog.showModal();
+    if (!watchEditor && dialog?.open) dialog.close();
+  }, [watchEditor]);
+
+  async function translateTitles() {
+    const translatorAPI = getTranslator();
+    if (!translatorAPI || translating.current || !untranslated.length) return;
+    translating.current = true;
+    setTranslationStatus("正在准备浏览器翻译…");
+    let engine: Translation | undefined;
+    try {
+      engine = await translatorAPI.create({ sourceLanguage: "en", targetLanguage: "zh" });
+      const updates: Record<string, string> = {};
+      const unique = [...new Set(untranslated.map(lead => lead.title))].slice(0, 128);
+      for (const title of unique) {
+        const result = await engine.translate(productTitle(title)).catch(() => "");
+        if (/\p{Script=Han}/u.test(result)) updates[title] = result.trim().slice(0, 220);
+      }
+      setLocalized(previous => ({ ...previous, ...updates }));
+      setTranslationStatus(Object.keys(updates).length ? `已翻译 ${Object.keys(updates).length} 条标题` : "暂未读到翻译结果");
+    } catch {
+      setTranslationStatus("浏览器翻译暂不可用，已保留中文商品关键词和原文。");
+    } finally {
+      engine?.destroy();
+      translating.current = false;
+    }
+  }
+
+  function resetFilters() {
+    setCategory("all"); setSourceFilter("all"); setQuery(""); setPricedOnly(false); setMaxPrice(""); setVisibleCount(PAGE_SIZE);
+  }
+
   const watchResults = campaign.watches.filter(watch => (!onlySelected || watch.enabled) && watch.title.toLowerCase().includes(watchQuery.trim().toLowerCase()))
     .sort((a, b) => Number(classifyWatch(b) === "已到价") - Number(classifyWatch(a) === "已到价") || Number(b.enabled) - Number(a.enabled));
   const done = tasks.filter(task => task.status === "done" || task.status === "failed").length;
@@ -229,6 +333,7 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
     if (!pending.length) return;
     running.current = true;
     setBusy(true);
+    setShowProgress(true);
     setNotice("");
     setTasks(pending.map(({ key, label, status }) => ({ key, label, status })));
     function mark(key: string, status: Task["status"], detail?: string) {
@@ -245,13 +350,14 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
       }
     } finally {
       running.current = false;
+      setShowProgress(false);
       setBusy(false);
     }
   }
 
   function resetView() {
     setTasks([]); setNotice(""); setEditor(null); setWatchEditor(null);
-    setCategory("all"); setSourceFilter("all"); setQuery(""); setWatchQuery(""); setOnlySelected(false);
+    resetFilters(); setSort("latest"); setWatchQuery(""); setOnlySelected(false);
   }
 
   function saveCampaign(next: Campaign) {
@@ -263,15 +369,17 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
   }
 
   function saveWatch(watch: Watch) {
+    const existing = campaign.watches.some(entry => entry.id === watch.id);
     const duplicate = campaign.watches.some(entry => entry.id !== watch.id && watchKey(entry) === watchKey(watch));
-    if (duplicate || (!campaign.watches.some(w => w.id === watch.id) && campaign.watches.length >= MAX_WATCHES)) {
-      setNotice(duplicate ? "这个商品已在清单内。" : `最多保存 ${MAX_WATCHES} 件商品。`);
+    if (duplicate || (!existing && campaign.watches.length >= MAX_WATCHES)) {
+      setWatchError(duplicate ? "这个商品已在清单内。" : `最多保存 ${MAX_WATCHES} 件商品。`);
       return;
     }
     const next = { ...watch, enabled: watch.enabled && !!merchantProduct(watch.url) };
     editCampaign(campaign.id, c => ({ ...c, watches: c.watches.some(w => w.id === watch.id) ? c.watches.map(w => w.id === watch.id ? next : w) : [...c.watches, next] }));
     setWatchEditor(null);
-    setNotice("");
+    setWatchError("");
+    setNotice(existing ? "已更新追踪。" : "已加入我的追踪。");
   }
 
   async function importFile(file?: File) {
@@ -296,8 +404,7 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
   }
 
   function addLead(lead: Lead) {
-    setWatchEditor({ id: makeId(), title: lead.title, url: lead.url, target: null, enabled: false });
-    document.getElementById("promo-watch-heading")?.scrollIntoView({ block: "start" });
+    setWatchEditor({ id: makeId(), title: displayTitle(lead), originalTitle: productTitle(lead.title), url: lead.url, target: null, enabled: false });
   }
 
   function connectOwner() {
@@ -306,12 +413,12 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
 
   return <main className="promo-board">
     <header className="promo-heading">
-      <div><h1>{campaign.name}</h1><p>{campaign.start} 至 {campaign.end} · 美区 / USD {latest ? `· 最近读取 ${displayTime(latest)}` : ""}</p></div>
+      <div><h1>{campaign.name === "2026 黑五 · Cyber Monday" ? FIRST_CAMPAIGN.name : campaign.name}</h1><p>{campaign.start} 至 {campaign.end} · 美国站 / 美元 {latest ? `· 最近读取 ${displayTime(latest)}` : ""}</p></div>
       <button className="promo-primary" type="button" disabled={!ready || busy || !!editor || !!watchEditor} onClick={() => void refresh("all")}>{busy ? "正在刷新…" : "手动刷新"}</button>
     </header>
     <div className="promo-controls promo-campaign-controls">
       <label>活动 <select value={campaign.id} disabled={!ready || busy} onChange={event => { const active = event.target.value; change(value => ({ ...value, active })); resetView(); }}>
-        {state.campaigns.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+        {state.campaigns.map(c => <option key={c.id} value={c.id}>{c.name === "2026 黑五 · Cyber Monday" ? FIRST_CAMPAIGN.name : c.name}</option>)}
       </select></label>
       <button type="button" disabled={!ready || busy} onClick={() => { setWatchEditor(null); setEditor(campaign); }}>活动设置</button>
       <button type="button" disabled={!ready || busy || state.campaigns.length >= MAX_CAMPAIGNS} onClick={() => {
@@ -319,21 +426,88 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
         setEditor({ ...campaign, id: makeId(), name: "", start: "", end: "", snapshots: {}, watches: [] });
       }}>复制为新活动</button>
     </div>
+    <nav className="promo-jump" aria-label="大促页面导航"><a href="#promo-leads-heading" onClick={event => { event.preventDefault(); document.getElementById("promo-leads-heading")?.scrollIntoView(); }}>逛优惠</a><a href="#promo-watch-section" onClick={event => { event.preventDefault(); document.getElementById("promo-watch-section")?.scrollIntoView(); }}>我的追踪 · {campaign.watches.length}</a></nav>
     {editor && <CampaignEditor key={editor.id} campaign={editor} onSave={saveCampaign} onClose={() => setEditor(null)} />}
     {storageError && <p role="alert" className="promo-panel">浏览器存储不可写，本页改动刷新后可能丢失。</p>}
     {notice && <p role="status" className="promo-panel">{notice}</p>}
-    {tasks.length > 0 && <section className="promo-panel" aria-label="刷新进度">
-      <div className="promo-section-heading"><h2>刷新进度</h2><strong role="status">{busy ? "进行中" : failed ? "完成，有失败项" : "刷新完成"} · {done}/{tasks.length}{failed ? ` · ${failed} 项失败` : ""}</strong></div>
-      <progress max={tasks.length} value={done} aria-label="已完成来源和商品数" />
+    {tasks.length > 0 && <section className="promo-panel promo-progress" aria-label="刷新进度">
+      <div className="promo-section-heading"><h2>刷新进度</h2><div className="promo-controls"><strong role="status">{busy ? "进行中" : failed ? "完成，有失败项" : "刷新完成"} · {done}/{tasks.length}{failed ? ` · ${failed} 项失败` : ""}</strong>{!busy && <button type="button" aria-expanded={showProgress} onClick={() => setShowProgress(!showProgress)}>{showProgress ? "收起详情" : "查看来源详情"}</button>}</div></div>
+      {(busy || showProgress) && <><progress max={tasks.length} value={done} aria-label="已完成来源和商品数" />
       <ul className="promo-progress-list">
         {tasks.map(task => <li key={task.key}><span>{task.label}</span><span data-result={task.status}>
           {task.status === "waiting" ? "等待" : task.status === "running" ? "读取中…" : task.status === "done" ? task.detail : `失败 · ${task.detail}`}
         </span></li>)}
       </ul>
-      {!busy && failed > 0 && <p className="promo-muted">失败的来源和商品保留上次成功报价及日期。</p>}
+      {!busy && failed > 0 && <p className="promo-muted">失败的来源和商品保留上次成功报价及日期。</p>}</>}
     </section>}
 
-    <section className="promo-panel" aria-labelledby="promo-watch-heading">
+    <section className="promo-panel" aria-labelledby="promo-leads-heading">
+      <div className="promo-section-heading">
+        <h2 id="promo-leads-heading">分类优惠 <span>{groups.size} 条</span></h2>
+        <div className="promo-controls">
+          {getTranslator() && untranslated.length > 0 && <button type="button" onClick={() => void translateTitles()}>翻译剩余标题</button>}
+          <External url={listingSearch(query)}>查更多商家 ↗</External>
+        </div>
+      </div>
+      {translationStatus && <p role="status" className="promo-muted">{translationStatus}</p>}
+      <div className="promo-controls promo-filters">
+        <input aria-label="搜索优惠" placeholder="搜中文、型号或商家" value={query} onChange={event => { setQuery(event.target.value); setVisibleCount(PAGE_SIZE); }} />
+        <select aria-label="优惠来源" value={sourceFilter} onChange={event => { setSourceFilter(event.target.value as PromotionSource | "all"); setVisibleCount(PAGE_SIZE); }}>
+          <option value="all">全部来源</option>
+          {campaign.sources.map(source => <option key={source} value={source}>{PROMOTION_SOURCES[source].name}</option>)}
+        </select>
+        <select aria-label="优惠排序" value={sort} onChange={event => { setSort(event.target.value as Sort); setVisibleCount(PAGE_SIZE); }}>
+          <option value="latest">最新发布</option><option value="discount">折扣从高到低</option><option value="price">价格从低到高</option>
+        </select>
+        <input type="number" min="0.01" step="0.01" inputMode="decimal" aria-label="最高价（美元）" placeholder="最高价 $" value={maxPrice}
+          onChange={event => { setMaxPrice(event.target.value); setVisibleCount(PAGE_SIZE); }} />
+        <label className="promo-check"><input type="checkbox" checked={pricedOnly} onChange={event => { setPricedOnly(event.target.checked); setVisibleCount(PAGE_SIZE); }} />只看有报价</label>
+        {filtersActive && <button type="button" onClick={resetFilters}>清除筛选</button>}
+      </div>
+      <div className="promo-controls promo-categories" aria-label="优惠分类">
+        {(["all", ...Object.keys(PROMOTION_CATEGORIES)] as (PromotionCategory | "all")[]).map(key => (
+          <button key={key} type="button" aria-pressed={category === key} onClick={() => { setCategory(key); setVisibleCount(PAGE_SIZE); }}>
+            {key === "all" ? "全部" : PROMOTION_CATEGORIES[key][0]} <small>{key === "all" ? availableLeads.length : categoryCounts.get(key) ?? 0}</small>
+          </button>
+        ))}
+      </div>
+      <div className="promo-lead-guide">
+        <p className="promo-muted">报价为美元。「—」表示来源缺少对应价格依据。</p>
+        <details className="promo-original"><summary>来源与更新时间</summary>
+          <ul>{campaign.sources.map(source => <li key={source}>
+            <External url={PROMOTION_SOURCES[source].url}>{PROMOTION_SOURCES[source].name} ↗</External>
+            <span> · {campaign.snapshots[source] ? displayTime(campaign.snapshots[source]!.checkedAt) : "暂无成功记录"}</span>
+          </li>)}</ul>
+        </details>
+      </div>
+      {!groups.size && <p className="promo-muted">{latest ? "没有符合筛选条件的优惠。" : "点「手动刷新」获取当前优惠。"}</p>}
+      <div className="promo-leads">{order.slice(0, visibleCount).map(group => {
+        const lead = group[0];
+        const title = displayTitle(lead);
+        const key = merchantProduct(lead.url)?.key ?? lead.url;
+        const saved = savedKeys.has(key);
+        const dateRange = dates(lead);
+        const upcoming = lead.validFrom && lead.validFrom > today;
+        const expired = lead.validUntil && lead.validUntil < today;
+        return <article key={lead.url} className="promo-lead">
+          <div className="promo-lead-meta"><span className="promo-chip">{PROMOTION_CATEGORIES[categoryOf(`${lead.title} ${title}`)][0]}</span><span className="promo-muted">
+            {upcoming ? "即将开始" : expired ? "已结束" : lead.publishedAt ? displayTime(lead.publishedAt) : ""}
+          </span></div>
+          <h3><External url={lead.url}>{title}</External></h3>
+          <PriceLabels lead={lead} />
+          {dateRange && <p className="promo-muted promo-valid">活动期 {dateRange}</p>}
+          {lead.detail && <p className="promo-muted">{lead.detail}</p>}
+          {title !== lead.title && <details className="promo-original"><summary>查看原文标题</summary><p lang={/\p{Script=Han}/u.test(lead.title) ? "zh-CN" : "en"}>{lead.title}</p></details>}
+          <div className="promo-controls promo-card-actions">
+            <External url={lead.url}>查看{merchantProduct(lead.url) ? "商品" : "优惠"} ↗</External>
+            {group.map(item => <External key={item.url} url={item.url}>{PROMOTION_SOURCES[item.source].name}</External>)}
+            <button type="button" disabled={busy || !!editor || saved} onClick={() => addLead(lead)}>{saved ? "已追踪" : "加入追踪"}</button>
+          </div>
+        </article>;
+      })}</div>
+      {visibleCount < order.length && <button className="promo-more" type="button" onClick={() => setVisibleCount(visibleCount + PAGE_SIZE)}>显示更多（余 {order.length - visibleCount} 条）</button>}
+    </section>
+    <section className="promo-panel" id="promo-watch-section" aria-labelledby="promo-watch-heading">
       <div className="promo-section-heading"><div><h2 id="promo-watch-heading">我的追踪 <span>{campaign.watches.length}</span></h2><p className="promo-muted">已到价 {hits} · 已勾选核价 {selectedWatches.length}/{MAX_ACTIVE_WATCHES} · 清单存于此浏览器</p></div>
         <div className="promo-controls">
           {!owner.token() && <button type="button" disabled={busy} onClick={connectOwner}>连接私有后台</button>}
@@ -342,7 +516,7 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
           <button className="promo-primary" type="button" disabled={busy || !!editor} onClick={() => setWatchEditor("new")}>添加追踪</button>
         </div>
       </div>
-      {watchEditor && <WatchEditor key={watchEditor === "new" ? "new" : watchEditor.id} watch={watchEditor === "new" ? null : watchEditor} onSave={saveWatch} onClose={() => setWatchEditor(null)} />}
+
       {campaign.watches.length > 0 && <div className="promo-controls promo-watch-filter">
         <input aria-label="搜索追踪清单" placeholder="搜索清单" value={watchQuery} onChange={event => setWatchQuery(event.target.value)} />
         <label className="promo-check"><input type="checkbox" checked={onlySelected} onChange={event => setOnlySelected(event.target.checked)} />仅已勾选</label>
@@ -372,7 +546,7 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
             }} />随刷新核价</label>}
             {product && <button type="button" disabled={busy || !!editor || !!watchEditor} onClick={() => void refresh("watch", watch)}>核价</button>}
             {product?.asin && <External url={`https://keepa.com/#!product/1-${product.asin}`}>Keepa</External>}
-            <External url={listingSearch(watch.title)}>比价</External>
+            <External url={listingSearch(watch.originalTitle ?? watch.title)}>比价</External>
             <button type="button" disabled={busy || !!editor} onClick={() => setWatchEditor(watch)}>编辑</button>
             <button type="button" disabled={busy || !!editor} onClick={() => {
               editCampaign(campaign.id, c => ({ ...c, watches: c.watches.filter(w => w.id !== watch.id) }));
@@ -383,39 +557,12 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
       })}</div>
     </section>
 
-    <section className="promo-panel" aria-labelledby="promo-leads-heading">
-      <div className="promo-section-heading"><h2 id="promo-leads-heading">分类优惠 <span>{grouped.size}</span></h2><div className="promo-controls">
-        <input aria-label="搜索优惠" placeholder="搜索型号、商品或商家" value={query} onChange={event => setQuery(event.target.value)} />
-        <External url={listingSearch(query)}>查更多商家</External>
-      </div></div>
-      <div className="promo-controls promo-categories" aria-label="优惠分类">
-        {(["all", ...Object.keys(PROMOTION_CATEGORIES)] as (PromotionCategory | "all")[]).map(key => (
-          <button key={key} type="button" aria-pressed={category === key} onClick={() => setCategory(key)}>{key === "all" ? "全部" : PROMOTION_CATEGORIES[key][0]}</button>
-        ))}
-      </div>
-      <div className="promo-controls promo-source-controls">
-        <label>来源 <select value={sourceFilter} onChange={event => setSourceFilter(event.target.value as PromotionSource | "all")}>
-          <option value="all">全部来源</option>
-          {campaign.sources.map(source => <option key={source} value={source}>{PROMOTION_SOURCES[source].name}</option>)}
-        </select></label>
-        {campaign.sources.map(source => <span key={source}>
-          <External url={PROMOTION_SOURCES[source].url}>{PROMOTION_SOURCES[source].name} ↗</External>
-          {campaign.snapshots[source] && <small className="promo-muted"> · {displayTime(campaign.snapshots[source]!.checkedAt)}</small>}
-        </span>)}
-      </div>
-      {!grouped.size && <p className="promo-muted">{latest ? "没有符合筛选条件的优惠。" : "点「手动刷新」获取当前优惠。"}</p>}
-      <div className="promo-leads">{[...grouped.values()].map(group => {
-        const lead = group[0];
-        return <article key={lead.url} className="promo-lead">
-          <div className="promo-controls"><span className="promo-chip">{PROMOTION_CATEGORIES[categoryOf(lead.title)][0]}</span><span className="promo-muted">{lead.publishedAt ? displayTime(lead.publishedAt) : ""}</span></div>
-          <h3><External url={lead.url}>{lead.title}</External></h3>
-          {lead.detail && <p className="promo-muted">{lead.detail}</p>}
-          <div className="promo-controls">
-            {group.map(item => <External key={item.url} url={item.url}>{PROMOTION_SOURCES[item.source].name}</External>)}
-            <button type="button" disabled={busy || !!editor} onClick={() => addLead(lead)}>加入追踪</button>
-          </div>
-        </article>;
-      })}</div>
-    </section>
+    <dialog className="promo-watch-dialog" ref={watchDialog} onCancel={() => { setWatchEditor(null); setWatchError(""); }} aria-labelledby="promo-watch-dialog-title">
+      {watchEditor && <>
+        <h2 id="promo-watch-dialog-title">{watchEditor === "new" ? "添加追踪" : "编辑追踪"}</h2>
+        {watchError && <p role="alert" className="promo-warning">{watchError}</p>}
+        <WatchEditor key={watchEditor === "new" ? "new" : watchEditor.id} watch={watchEditor === "new" ? null : watchEditor} onSave={saveWatch} onClose={() => { setWatchEditor(null); setWatchError(""); }} />
+      </>}
+    </dialog>
   </main>;
 }
