@@ -3,7 +3,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { build } from 'esbuild';
 
 const output = await build({ entryPoints: ['src/deal-promotion.ts'], bundle: true, platform: 'node', format: 'esm', write: false });
-const { attachSlickdealsImages, dealPromotionRoute, parsePromotionQuote, parsePromotionSource } = await import('data:text/javascript;base64,' + Buffer.from(output.outputFiles[0].text).toString('base64'));
+const { enrichSlickdealsFrontPage, dealPromotionRoute, parsePromotionQuote, parsePromotionSource } = await import('data:text/javascript;base64,' + Buffer.from(output.outputFiles[0].text).toString('base64'));
 const sqlite = new DatabaseSync(':memory:');
 const env = { DB: { prepare: sql => ({
   run: async () => ({ meta: sqlite.prepare(sql).run() }),
@@ -80,8 +80,8 @@ const slick = parsePromotionSource(sample, 'slickdeals');
 const slickPhoto = 'https://static.slickdealscdn.com/attachment/1/2/300x300/90.thumb';
 const otherPhoto = 'https://static.slickdealscdn.com/attachment/1/2/300x300/91.thumb';
 const feedCards = `<a href="/f/1234567-ssd" class="dealCardImage"><img src="${otherPhoto}"></a><a class="dealCardImage dealCardGridV2__image" href="/f/123456-changed-slug"><img src="https://static.slickdealscdn.com.evil.example/a.png" srcset="${slickPhoto} 300w"></a>`;
-assert.equal(attachSlickdealsImages(slick, feedCards)[0].imageUrl, slickPhoto);
-assert.equal(attachSlickdealsImages(slick, feedCards.split('</a>')[0] + '</a>')[0].imageUrl, undefined);
+assert.equal(enrichSlickdealsFrontPage(slick, feedCards)[0].imageUrl, slickPhoto);
+assert.equal(enrichSlickdealsFrontPage(slick, feedCards.split('</a>')[0] + '</a>')[0].imageUrl, undefined);
 const bestBuyPage = '<div data-testid="offer-card"><a data-testid="offer-card-image-link" href="/site/promo/ssd"><img src="https://pisces.bbystatic.com/image2/BestBuy_US/dam/ssd.png;format=webp"></a><a href="/site/promo/ssd" data-testid="offer-card-body-copy-link">SSD now $40</a></div>';
 assert.equal(parsePromotionSource(bestBuyPage, 'bestbuy')[0].imageUrl, 'https://pisces.bbystatic.com/image2/BestBuy_US/dam/ssd.png;format=webp');
 const cnPost = 'https://www.dealmoon.com/cn/ssd/12345.html';
@@ -115,4 +115,15 @@ assert.equal(new URL(walmart[1].url).search, '?conditionGroupCode=2');
 
 const hot = '<a data-type="sp" href="/product/14822956"><p class="sp-subject-detail">运动长裤</p><p class="sp-subject-price"><span>$74</span><i>$128</i></p><p class="sp-subject-store"><span>商家</span></p></a>';
 assert.equal(parsePromotionSource(hot, 'dealmoon')[0].offer.discount, 42.2);
+const priceRow = '<a class="dealCardGridV2__priceRow" href="/f/123456-changed-slug"><span data-qa="deal-card-price">$19</span><span data-qa="deal-card-original-price">$32</span></a>';
+const pricedLead = { ...slick[0], title: '16-Oz Bottle $19.20', offer: { current: 19.20, kind: 'exact' } };
+const [enriched] = enrichSlickdealsFrontPage([pricedLead], feedCards + priceRow);
+assert.equal(enriched.imageUrl, slickPhoto);
+assert.equal(enriched.offer.current, 19.20);
+assert.equal(enriched.offer.original, 32);
+assert.equal(enriched.offer.discount, 40);
+assert.equal(enrichSlickdealsFrontPage([{ ...pricedLead, offer: { current: 24 } }], priceRow)[0].offer.original, undefined);
+assert.equal(enrichSlickdealsFrontPage([{ ...pricedLead, offer: { current: 19.20, kind: 'from' } }], priceRow)[0].offer.original, undefined);
+assert.equal(enrichSlickdealsFrontPage([{ ...pricedLead, title: 'Gift card $19.20' }], priceRow)[0].offer.original, undefined);
+assert.equal(enrichSlickdealsFrontPage([{ ...pricedLead, offer: { current: 19.20, original: 26, basis: 'before-promo' } }], priceRow)[0].offer.original, 26);
 console.log('PASS: manual-only sources, owner quote gate, atomic SQLite budget, source scope, and exact USD quote conditions.');
