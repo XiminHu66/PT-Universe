@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-04T18:02:59Z",
+  "generated_at": "2026-11-26T18:04:54Z",
   "seen": {
     "b242f954157ba1ca": {
       "first_seen": "2026-08-14",
@@ -2625,7 +2625,7 @@
     },
     "20ce49404ff4b7b3": {
       "first_seen": "2026-10-15",
-      "last_seen": "2026-11-05",
+      "last_seen": "2026-11-27",
       "title": "无限大",
       "source": "taptap_cn_upcoming"
     },
@@ -2898,6 +2898,150 @@
       "last_seen": "2026-11-05",
       "title": "烧烤摊：从一辆三轮车干到全城夜宵第一",
       "source": "taptap_cn_new"
+    },
+    "484d92634bf716ef": {
+      "first_seen": "2026-11-27",
+      "last_seen": "2026-11-27",
+      "title": "ホロライブ麻雀 -ホロじゃん-",
+      "source": "appstore"
+    },
+    "37e40924b147ee60": {
+      "first_seen": "2026-11-27",
+      "last_seen": "2026-11-27",
+      "title": "UnGodly アンゴッドリー",
+      "source": "appstore"
+    },
+    "145f7dee5b157e2d": {
+      "first_seen": "2026-11-27",
+      "last_seen": "2026-11-27",
+      "title": "Upsidye",
+      "source": "appstore"
+    },
+    "b9de45d1c55f74ce": {
+      "first_seen": "2026-11-27",
+      "last_seen": "2026-11-27",
+      "title": "キン肉マン マッスルタッグマッチ令和復活編",
+      "source": "appstore"
+    },
+    "908902632c15e43d": {
+      "first_seen": "2026-11-27",
+      "last_seen": "2026-11-27",
+      "title": "Parry Knight - パリィナイト",
+      "source": "appstore"
+    },
+    "1ead9b6a1c6d54e1": {
+      "first_seen": "2026-11-27",
+      "last_seen": "2026-11-27",
+      "title": "Warhammer Survivors",
+      "source": "appstore"
+    },
+    "1079e926f9ffc265": {
+      "first_seen": "2026-11-27",
+      "last_seen": "2026-11-27",
+      "title": "SALT PILGRIM",
+      "source": "appstore"
+    },
+    "522696fb646443a7": {
+      "first_seen": "2026-11-27",
+      "last_seen": "2026-11-27",
+      "title": "ディズニー スパークリンク・スターズ",
+      "source": "appstore"
+    },
+    "5138e6172e964b44": {
+      "first_seen": "2026-11-27",
+      "last_seen": "2026-11-27",
+      "title": "「モンスターハンターアウトランダーズ」のアイコン画像",
+      "source": "googleplay"
+    },
+    "2c5fc3ad93bdddd4": {
+      "first_seen": "2026-11-27",
+      "last_seen": "2026-11-27",
+      "title": "「ディズニー スパークリンク・スターズ」のアイコン画像",
+      "source": "googleplay"
+    },
+    "9efc5ddd81b37d57": {
+      "first_seen": "2026-11-27",
+      "last_seen": "2026-11-27",
+      "title": "「Warline: スナイパー」のアイコン画像",
+      "source": "googleplay"
+    },
+    "165fc0ef99de4ebc": {
+      "first_seen": "2026-11-27",
+      "last_seen": "2026-11-27",
+      "title": "「トップロード」のアイコン画像",
+      "source": "googleplay"
+    },
+    "4587c3644db6ca04": {
+      "first_seen": "2026-11-27",
+      "last_seen": "2026-11-27",
+      "title": "「タイルクエスト - トリプルマッチ」のアイコン画像",
+      "source": "googleplay"
+    },
+    "d8a586d7d91f5226": {
+      "first_seen": "2026-11-27",
+      "last_seen": "2026-11-27",
+      "title": "「武器の王者：鍛造放置RPG」のアイコン画像",
+      "source": "googleplay"
+    },
+    "be8fd023bfd03759": {
+      "first_seen": "2026-11-27",
+      "last_seen": "2026-11-27",
+      "title": "蓝色星原：旅谣",
+      "source": "taptap_cn_new"
+    },
+    "7c7b9225c0f472d0": {
+      "first_seen": "2026-11-27",
+      "last_seen": "2026-11-27",
+      "title": "饥困荒野",
+      "source": "taptap_cn_new"
+    },
+    "30ebf5c99acf90e2": {
+      "first_seen": "2026-11-27",
+      "last_seen": "2026-11-27",
+      "title": "斗罗大陆：诛邪传说",
+      "source": "taptap_cn_new"
+    },
+    "895c5805bd419a35": {
+      "first_seen": "2026-11-27",
+      "last_seen": "2026-11-27",
+      "title": "去你的筏",
+      "source": "taptap_cn_new"
+    },
+    "c1989a0cbc2f7c4c": {
+      "first_seen": "2026-11-27",
+      "last_seen": "2026-11-27",
+      "title": "匹配大师",
+      "source": "taptap_cn_new"
+    },
+    "05362be187e77814": {
+      "first_seen": "2026-11-27",
+      "last_seen": "2026-11-27",
+      "title": "中世纪之战",
+      "source": "taptap_cn_new"
+    },
+    "27b59ea9191855b0": {
+      "first_seen": "2026-11-27",
+      "last_seen": "2026-11-27",
+      "title": "幻想九霄",
+      "source": "taptap_cn_new"
+    },
+    "7c032a7a9be49eda": {
+      "first_seen": "2026-11-27",
+      "last_seen": "2026-11-27",
+      "title": "吸干大海",
+      "source": "taptap_cn_new"
+    },
+    "2147f8970d900027": {
+      "first_seen": "2026-11-27",
+      "last_seen": "2026-11-27",
+      "title": "伍六七：暗影交锋",
+      "source": "taptap_cn_upcoming"
+    },
+    "94051278892ed3aa": {
+      "first_seen": "2026-11-27",
+      "last_seen": "2026-11-27",
+      "title": "三国志：王道天下",
+      "source": "taptap_cn_upcoming"
     }
   }
 }

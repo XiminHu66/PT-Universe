@@ -31,7 +31,7 @@ def main():
         result=subprocess.run([sys.executable,str(root/'apps/tsugi-checker/scraper/run_games.py')],timeout=360)
         if result.returncode:raise RuntimeError('Game scraper process failed')
         snapshot=read(data/'game-releases.json');status=validated(snapshot,datetime.now(timezone.utc))
-        snapshot['refresh_source']='vps:08:00-primary'
+        snapshot['refresh_source']='vps:08:31-primary'
         atomic(OUT/'game-releases.json',snapshot);atomic(OUT/'game-state.json',read(data/'game-state.json'))
         status.update({'success':not status['failed_sources'],'generated_at':snapshot['generated_at'],'checked_at':datetime.now(timezone.utc).isoformat()})
         atomic(OUT/'game-status.json',status);print('VPS_GAME_LIVE '+json.dumps(status))

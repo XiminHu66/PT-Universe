@@ -40,7 +40,7 @@ vm.createContext(context);vm.runInContext(verificationJS.code,context);
 const novels=Array.from({length:60},(_,i)=>({url:`https://tw.linovelib.com/novel/${i}.html`,latest_checked_at:null}));
 await context.verifySiteChapters({},novels,'linovelib','https://tw.linovelib.com/wenku/');
 assert.equal(batches,6);assert.equal(detailCloses,1);assert.ok(novels.every(x=>x.latest==='最新章'&&x.latest_checked_at));
-const qualityCode=index.slice(index.indexOf('function samePacificDay('),index.indexOf('async function status('));
+const qualityCode=index.slice(index.indexOf('const pacificRefreshFormatter='),index.indexOf('async function status('));
 const qualityJS=await transform(qualityCode,{loader:'ts'});vm.runInContext(qualityJS.code,context);
 assert.equal(context.refreshQuality({sites:{sources:{linovelib:{ok:true,degraded:true}}}}).ok,false);
 assert.equal(context.refreshQuality({games:{remoteError:'Too many subrequests'}}).ok,false);
@@ -105,20 +105,24 @@ console.log('Aborted browser sessions are counted even when the D1 run has no re
 
 // Scheduled callbacks and queue deliveries must stay inside the owner-selected 08:31 Pacific window.
 const workerSrc=fs.readFileSync('src/index.ts','utf8');
-const guardSource=workerSrc.slice(workerSrc.indexOf('function insideScheduledWindow('),workerSrc.indexOf('function refreshQuality('));
+const guardSource=workerSrc.slice(workerSrc.indexOf('const pacificRefreshFormatter='),workerSrc.indexOf('function refreshQuality('));
 const guardJS=await transform(guardSource,{loader:'ts'});
 const scheduleContext={Date,Intl};vm.createContext(scheduleContext);vm.runInContext(guardJS.code,scheduleContext);
 assert.equal(scheduleContext.insideScheduledWindow(new Date('2026-11-03T16:31:00Z')),true);
 assert.equal(scheduleContext.insideScheduledWindow(new Date('2026-11-03T21:30:00Z')),false);
 assert.equal(scheduleContext.insideScheduledWindow(new Date('2026-07-03T15:31:00Z')),true);
 assert.equal(scheduleContext.insideScheduledWindow(new Date('2026-07-03T16:31:00Z')),false);
-assert.match(workerSrc,/hour!==8\|\|minute!==31/);
+const primaryCron='31 15,16 * * *',monitorCron='*/15 * * * *';
+assert.equal(scheduleContext.scheduledRefreshSlot(new Date('2026-11-03T16:31:00Z'),primaryCron)?.kind,'primary');
+assert.equal(scheduleContext.scheduledRefreshSlot(new Date('2026-11-03T16:45:00Z'),monitorCron)?.kind,'recovery');
+assert.equal(scheduleContext.scheduledRefreshSlot(new Date('2026-07-03T15:45:00Z'),monitorCron)?.kind,'recovery');
+assert.equal(scheduleContext.scheduledRefreshSlot(new Date('2026-07-03T16:45:00Z'),monitorCron),null);
+assert.equal(scheduleContext.scheduledRefreshSlot(new Date('2026-11-03T16:30:00Z'),monitorCron),null);
+assert.equal(scheduleContext.scheduledRefreshSlot(new Date('2026-11-03T21:45:00Z'),monitorCron),null);
 assert.match(workerSrc,/queue_outside_08_31_window/);
 console.log('08:31 Pacific schedule is DST-aware and afternoon queue deliveries are rejected');
 
-const musicPolicySrc=workerSrc.slice(workerSrc.indexOf('function freshPacificMorning('),workerSrc.indexOf('function refreshQuality('));
-const musicPolicyJS=await transform(musicPolicySrc,{loader:'ts'});
-const musicPolicyContext={Date,Intl};vm.createContext(musicPolicyContext);vm.runInContext(musicPolicyJS.code,musicPolicyContext);
+const musicPolicyContext=scheduleContext;
 const musicDay='2026-11-03',musicStamp='2026-11-03T16:32:00Z';
 const musicOk={generated_at:musicStamp,weekly_chart:[{title:'Chart'}],recent_chart:[{title:'Recent'}],sources:{billboard_japan:{ok:true,fresh_count:1,checked_at:musicStamp,last_success_at:musicStamp},youtube_japan_recent:{ok:true,fresh_count:1,checked_at:musicStamp,last_success_at:musicStamp}}};
 assert.equal(musicPolicyContext.musicSnapshotFresh(musicOk,musicDay),true);
@@ -129,6 +133,47 @@ assert.equal(musicPolicyContext.musicSnapshotFresh({...musicOk,sources:{...music
 assert.equal(musicPolicyContext.musicSnapshotFresh({...musicOk,recent_chart:[]},musicDay),false);
 assert.equal(musicPolicyContext.freshPacificMorning('2026-07-03T15:32:00Z','2026-07-03'),true);
 assert.equal(musicPolicyContext.freshPacificMorning('2026-07-03T14:32:00Z','2026-07-03'),false);
+const {DatabaseSync}=await import('node:sqlite');
+const db=new DatabaseSync(':memory:');
+db.exec(fs.readFileSync('schema.sql','utf8'));
+let executionTime='2026-11-03T16:31:03Z';
+class ScheduledDate extends Date{
+  constructor(...args){super(...(args.length?args:[executionTime]));}
+  static now(){return Date.parse(executionTime);}
+}
+Object.assign(scheduleContext,{
+  Date:ScheduledDate,console:{log(){},warn(){},error(){}},
+  now:()=>executionTime,safeJson:(value,fallback)=>value?JSON.parse(value):fallback,
+  refreshBudget:async()=>({remainingRefreshes:1})
+});
+const queued=[];
+let snapshots={};
+const env={
+  DB:{prepare:sql=>({bind:(...args)=>({
+    run:async()=>({meta:{changes:db.prepare(sql.replaceAll("'now'",`'${executionTime}'`)).run(...args).changes}})
+  })})},
+  PT_UNIVERSE_DATA:{get:async key=>snapshots[key]||null},
+  REFRESH_QUEUE:{send:async message=>queued.push(message)}
+};
+const primary=new ScheduledDate('2026-11-03T16:31:00Z');
+const primarySlot=scheduleContext.scheduledRefreshSlot(primary,primaryCron);
+await scheduleContext.scheduleTsugiRefresh(env,primary,primarySlot);
+await scheduleContext.scheduleTsugiRefresh(env,primary,primarySlot);
+assert.deepEqual(queued.map(message=>message.scope).sort(),['music','sites']);
+db.prepare("UPDATE refresh_runs SET status='partial' WHERE scope='music'").run();
+snapshots={'data/music.json':JSON.stringify(musicOk)};
+executionTime='2026-11-03T16:45:03Z';
+const recovery=new ScheduledDate('2026-11-03T16:45:00Z');
+const recoverySlot=scheduleContext.scheduledRefreshSlot(recovery,monitorCron);
+await scheduleContext.scheduleTsugiRefresh(env,recovery,recoverySlot);
+assert.deepEqual(queued.map(message=>message.requestId).sort(),[
+  'tsugi-2026-11-03-primary-music','tsugi-2026-11-03-primary-sites','tsugi-2026-11-03-recovery-sites'
+]);
+assert.equal(db.prepare("SELECT status FROM refresh_runs WHERE request_id='tsugi-2026-11-03-primary-sites'").get().status,'failed');
+executionTime='2026-11-03T17:00:01Z';
+await scheduleContext.scheduleTsugiRefresh(env,recovery,recoverySlot);
+assert.equal(queued.length,3);
+db.close();
 assert.ok(workerSrc.includes("source!=='scheduled:08:31')try{result.games"));
 assert.ok(workerSrc.includes('gameCommit?'));
 const pagesWorkflow=fs.readFileSync('../../.github/workflows/pages.yml','utf8');
