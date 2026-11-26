@@ -108,26 +108,39 @@ export function parsePromotionSource(html: string, source: PromotionSource): Lea
 
 export function parsePromotionQuote(html: string, product: NonNullable<ReturnType<typeof merchantProduct>>, checkedAt: number): Quote {
   const candidates = structuredData(html).filter(node => isType(node, 'Product'));
+  type Product = NonNullable<ReturnType<typeof merchantProduct>>;
+  function fromUrl(raw: unknown) {
+    if (typeof raw !== 'string') return null;
+    try { return merchantProduct(new URL(raw, product.url).href); }
+    catch { return null; }
+  }
+  function matches(ref: Product, sku: string) {
+    if (ref.key === product.key) return true;
+    if (!product.bestBuy || !ref.bestBuy) return false;
+    if (product.bestBuy.sku && (ref.bestBuy.sku ?? sku) !== product.bestBuy.sku) return false;
+    if (product.bestBuy.code) return ref.bestBuy.code === product.bestBuy.code;
+    return !!product.bestBuy.sku && sku === product.bestBuy.sku;
+  }
   const identified = candidates.filter(node => {
     const offer = Array.isArray(node.offers) ? record(node.offers[0]) : record(node.offers);
-    return [node.url, node['@id'], offer?.url].some(raw => typeof raw === 'string' && merchantProduct(raw)?.key === product.key);
+    return [node.url, node['@id'], offer?.url].map(fromUrl)
+      .some(ref => ref && matches(ref, compact(node.sku)));
   });
-  const candidate = identified.length === 1 ? identified[0] : identified.length === 0 && candidates.length === 1 ? candidates[0] : null;
+  const candidate = identified.length === 1 ? identified[0] :
+    !product.bestBuy && identified.length === 0 && candidates.length === 1 ? candidates[0] : null;
   if (!candidate) throw Error('商家未给出唯一商品报价');
-  const offers = Array.isArray(candidate.offers) ? candidate.offers : [candidate.offers];
-  const offer = offers.length === 1 ? record(offers[0]) : null;
+  const sku = compact(candidate.sku);
+  const options = (Array.isArray(candidate.offers) ? candidate.offers : [candidate.offers]).map(record);
+  const offers = product.bestBuy ? options.filter(offer =>
+    sku && offer?.sku === sku && record(offer.seller)?.name === 'Best Buy' &&
+    compact(offer.itemCondition).split('/').pop() === 'NewCondition',
+  ) : options;
+  const offer = offers.length === 1 ? offers[0] : null;
   const name = compact(candidate.name);
   const price = priceValue(offer?.price);
   if (!name || !offer || !isType(offer, 'Offer') || offer.priceCurrency !== 'USD' || price === null) throw Error('商家未给出单一美元售价');
-  const urls = [candidate.url, candidate['@id'], offer.url].filter((raw): raw is string => typeof raw === 'string');
-  const identities = urls.flatMap(raw => {
-    try {
-      return merchantProduct(new URL(raw, product.url).href)?.key ?? [];
-    } catch {
-      return [];
-    }
-  });
-  if (identities.some(key => key !== product.key)) throw Error('商家返回了其他规格');
+  const identities = [candidate.url, candidate['@id'], offer.url].map(fromUrl);
+  if (identities.some(ref => ref && !matches(ref, sku))) throw Error('商家返回了其他规格');
   const validUntil = compact(offer.priceValidUntil);
   if (validUntil && Number.isFinite(Date.parse(validUntil)) && Date.parse(validUntil) + 86_400_000 < checkedAt) throw Error('报价已过期');
   const condition = compact(offer.itemCondition).split('/').pop();
@@ -186,7 +199,7 @@ export async function dealPromotionRoute(request: Request, url: URL, env: Env) {
   const id = url.pathname.slice(BASE.length);
   if (url.search || (id !== 'quote' && id !== 'status' && !Object.hasOwn(PROMOTION_SOURCES, id))) return out({ error: '未找到来源' }, 404);
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers });
-  if (id === 'status' && request.method === 'GET') return out({ revision: REVISION });
+  if (id === 'status') return request.method === 'GET' ? out({ revision: REVISION }) : out({ error: '仅可读取状态' }, 405);
   if (request.method !== 'POST') return out({ error: '请手动刷新' }, 405);
   if (request.headers.get('origin') !== ORIGIN) return out({ error: '刷新来源无效' }, 403);
   let product: ReturnType<typeof merchantProduct> = null;
@@ -213,7 +226,7 @@ export async function dealPromotionRoute(request: Request, url: URL, env: Env) {
   }
   try {
     if (product) {
-      const html = await upstream(product.url, 2_500_000);
+      const html = await upstream(product.url, product.key.startsWith('costco.com/') ? 4_000_000 : 2_500_000);
       return out({ quote: parsePromotionQuote(html, product, Date.now()) });
     }
     const html = await upstream(PROMOTION_SOURCES[source].url, source === 'costco' ? 4_000_000 : 1_500_000);

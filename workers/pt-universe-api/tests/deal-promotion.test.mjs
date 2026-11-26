@@ -25,6 +25,7 @@ globalThis.fetch = async (url, init) => {
 };
 try {
   assert.equal((await route('status', 'GET')).status, 200);
+  assert.equal((await route('status')).status, 405);
   assert.equal((await route('slickdeals', 'GET')).status, 405);
   assert.equal((await route('slickdeals', 'POST', 'https://example.com')).status, 403);
   assert.equal((await route('slickdeals?url=https://example.com')).status, 404);
@@ -53,4 +54,11 @@ assert.throws(() => parsePromotionQuote(html({ ...offer, priceCurrency: 'CAD' })
 assert.throws(() => parsePromotionQuote(html({ ...offer, itemCondition: 'https://schema.org/RefurbishedCondition' }), product, Date.now()));
 assert.throws(() => parsePromotionQuote(html(offer, { url: 'https://www.amazon.com/dp/XXXXXXXXXX' }), product, Date.now()));
 assert.throws(() => parsePromotionQuote(html([offer, offer]), product, Date.now()));
+const bestBuy = { url: 'https://www.bestbuy.com/product/example/J7XSRH5CXG/sku/6505727', key: 'bestbuy.com/6505727', bestBuy: { code: 'J7XSRH5CXG', sku: '6505727' } };
+const bestBuyCanonical = 'https://www.bestbuy.com/product/example/J7XSRH5CXG';
+const bestBuyOffer = { ...offer, url: undefined, price: 169.99, sku: '6505727', seller: { name: 'Best Buy' }, itemCondition: 'https://schema.org/NewCondition' };
+const marketplace = { ...bestBuyOffer, sku: '12771375', price: 129.99, seller: { name: 'Marketplace' } };
+assert.equal(parsePromotionQuote(html([marketplace, bestBuyOffer], { url: bestBuyCanonical, sku: '6505727' }), bestBuy, Date.now()).price, 169.99);
+assert.throws(() => parsePromotionQuote(html([marketplace], { url: bestBuyCanonical, sku: '6505727' }), bestBuy, Date.now()));
+assert.throws(() => parsePromotionQuote(html([marketplace, bestBuyOffer], { url: bestBuyCanonical, sku: '1234567' }), bestBuy, Date.now()));
 console.log('PASS: manual-only sources, owner quote gate, atomic SQLite budget, source scope, and exact USD quote conditions.');

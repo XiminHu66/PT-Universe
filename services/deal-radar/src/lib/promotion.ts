@@ -40,7 +40,9 @@ export const FIRST_CAMPAIGN: Campaign = {
 
 export const MAX_ACTIVE_WATCHES = 10;
 
-export function merchantProduct(raw: string): { url: string; key: string; asin?: string } | null {
+type MerchantProduct = { url: string; key: string; asin?: string; bestBuy?: { code?: string; sku?: string } };
+
+export function merchantProduct(raw: string): MerchantProduct | null {
   const url = safeHttps(raw);
   if (!url || /%(2e|2f|5c|25)/i.test(url.pathname)) return null;
   const host = url.hostname.replace(/^www\./, "");
@@ -49,8 +51,16 @@ export function merchantProduct(raw: string): { url: string; key: string; asin?:
     id = url.pathname.match(/\/(?:dp|gp\/product)\/([a-z0-9]{10})(?:\/|$)/i)?.[1]?.toUpperCase();
     return id ? { url: `https://www.amazon.com/dp/${id}`, key: `${host}/${id}`, asin: id } : null;
   }
-  if (host === "bestbuy.com") id = url.pathname.match(/^\/product\/[^/]+\/[^/]+\/sku\/(\d+)\/?$/i)?.[1]
-    ?? url.pathname.match(/^\/site\/[^/]+\/(\d+)\.p\/?$/i)?.[1];
+  if (host === "bestbuy.com") {
+    const listing = url.pathname.match(/^\/product\/[^/]+\/(J[A-Z0-9]{9})(?:\/sku\/(\d+))?\/?$/i);
+    const code = listing?.[1]?.toUpperCase();
+    const sku = listing?.[2] ?? url.pathname.match(/^\/site\/[^/]+\/(\d+)\.p\/?$/i)?.[1];
+    return code || sku ? {
+      url: `https://www.bestbuy.com${url.pathname.replace(/\/$/, "")}`,
+      key: `${host}/${sku ?? code}`,
+      bestBuy: { code, sku },
+    } : null;
+  }
   if (host === "costco.com") id = url.pathname.match(/^\/p\/[^?#]+\/(\d+)\/?$/i)?.[1]
     ?? url.pathname.match(/\.product\.(\d+)\.html$/i)?.[1];
   if (host === "newegg.com") id = url.pathname.match(/^\/(?:[^/]+\/)?p\/(N[A-Z0-9]+)\/?$/i)?.[1];
