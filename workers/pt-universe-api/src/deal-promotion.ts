@@ -7,7 +7,7 @@ import { verifyMonitorToken } from './monitor';
 
 const ORIGIN = 'https://ximinhu66.github.io';
 const BASE = '/api/deal-radar/promo/';
-const REVISION = 'manual-promotion-v4';
+const REVISION = 'manual-promotion-v5';
 const headers = {
   'access-control-allow-origin': ORIGIN,
   'access-control-allow-methods': 'GET, POST, OPTIONS',
@@ -104,23 +104,46 @@ function slickDealId(url: string) {
   return url.match(/^(?:https:\/\/slickdeals\.net)?\/f\/(\d+)(?=[-/?#]|$)/i)?.[1];
 }
 
-export function attachSlickdealsImages(leads: Lead[], html: string): Lead[] {
+export function enrichSlickdealsFrontPage(leads: Lead[], html: string): Lead[] {
   const wanted = new Set(leads.flatMap(lead => slickDealId(lead.url) ?? []));
   const images = new Map<string, string>();
-  const cards = /<a\b(?=[^>]*\bclass=["'][^"']*\bdealCardImage\b)[^>]*>([\s\S]{1,2500}?)<\/a>/gi;
+  const prices = new Map<string, { current: number; original: number; rounded: boolean }>();
+  const cards = /<a\b(?=[^>]*\bclass=["'][^"']*\b(dealCardImage|dealCardGridV2__priceRow)\b)[^>]*>([\s\S]{1,2500}?)<\/a>/gi;
   for (const card of html.matchAll(cards)) {
     const href = card[0].match(/\bhref=["']([^"']+)["']/i)?.[1];
     const id = href ? slickDealId(href) : undefined;
-    if (!id || !wanted.has(id) || images.has(id)) continue;
-    const tree = parseDocument(card[1]);
-    const img = findOne(tag => tag.name === 'img', tree.children, true);
-    const src = cardImage('slickdeals', img?.attribs);
-    if (src) images.set(id, src);
-    if (images.size === wanted.size) break;
+    if (!id || !wanted.has(id)) continue;
+    const tree = parseDocument(card[2]);
+    if (card[1] === 'dealCardImage' && !images.has(id)) {
+      const img = findOne(tag => tag.name === 'img', tree.children, true);
+      const src = cardImage('slickdeals', img?.attribs);
+      if (src) images.set(id, src);
+    }
+    if (card[1] === 'dealCardGridV2__priceRow' && !prices.has(id)) {
+      const cell = (qa: string) => findOne(tag => tag.attribs['data-qa'] === qa, tree.children, true);
+      const now = cell('deal-card-price');
+      const was = cell('deal-card-original-price');
+      const current = localPrice(now), original = localPrice(was);
+      if (current !== undefined && original !== undefined && original > current) {
+        prices.set(id, { current, original, rounded: !nodeText(now).includes('.') });
+      }
+    }
+    if (images.size === wanted.size && prices.size === wanted.size) break;
   }
   return leads.map(lead => {
-    const imageUrl = lead.imageUrl ?? images.get(slickDealId(lead.url) ?? '');
-    return imageUrl ? { ...lead, imageUrl } : lead;
+    const id = slickDealId(lead.url) ?? '';
+    const imageUrl = lead.imageUrl ?? images.get(id);
+    const prior = lead.offer;
+    const pair = prices.get(id);
+    // The homepage rounds some prices to whole dollars. Keep the more precise
+    // headline price, and require agreement before reusing the crossed-out one.
+    const matches = pair && prior?.current !== undefined &&
+      (Math.abs(pair.current - prior.current) <= 0.06 || (pair.rounded && Math.round(prior.current) === pair.current));
+    const offer = matches && prior.original === undefined && prior.kind !== 'from' &&
+      !prior.upTo && !/gift card|statement credit|返现|返礼品卡|open.box|refurbished|开箱|翻新|\bor\s+\$/i.test(lead.title)
+      ? dealPrice({ ...prior, original: pair.original, basis: 'listed' })
+      : prior;
+    return imageUrl || offer ? { ...lead, imageUrl, offer } : lead;
   });
 }
 
@@ -461,9 +484,9 @@ export async function dealPromotionRoute(request: Request, url: URL, env: Env) {
     const limit = source === 'costco' || source === 'walmart' ? 4_000_000 : 1_500_000;
     const html = await upstream(feed, limit);
     const leads = parsePromotionSource(html, source);
-    if (source === 'slickdeals' && leads.some(lead => !lead.imageUrl && slickDealId(lead.url))) {
+    if (source === 'slickdeals' && leads.some(lead => (!lead.imageUrl || lead.offer?.original === undefined) && slickDealId(lead.url))) {
       const frontPage = await upstream('https://slickdeals.net/', 1_250_000, { prefix: true, timeout: 5000 }).catch(() => '');
-      return out({ checkedAt: Date.now(), leads: frontPage ? attachSlickdealsImages(leads, frontPage) : leads });
+      return out({ checkedAt: Date.now(), leads: frontPage ? enrichSlickdealsFrontPage(leads, frontPage) : leads });
     }
     return out({ checkedAt: Date.now(), leads });
   } catch (error) {

@@ -10,6 +10,7 @@ import {
 import { formatPacific } from "@/lib/time";
 import { chineseTitle, productTitle } from "@/lib/promotion-language";
 import { priceFromTitle } from "@/lib/promotion-pricing";
+import { observeLead, observeQuote, priceHistoryLink, quoteHistoryKey, recordPrices, showObservedLow, type ObservedLow, type PriceHistory } from "@/lib/promotion-history";
 
 const API = "https://pt-universe-api.summer07-nanjolno.workers.dev/api/deal-radar/promo/";
 const STORE = "pt.deal-radar.promotions.v1";
@@ -24,7 +25,7 @@ const displayTime = (time: number) => formatPacific(time) ?? "";
 const terms = (value: string) => value.toLowerCase().split(/[,，]/).map(term => term.trim()).filter(Boolean);
 
 type Task = { key: string; label: string; source?: PromotionSource; status: "waiting" | "running" | "done" | "failed"; detail?: string; work: () => Promise<string> };
-type Store = { active: string; campaigns: Campaign[] };
+type Store = { active: string; campaigns: Campaign[]; history?: PriceHistory };
 const initial: Store = { active: FIRST_CAMPAIGN.id, campaigns: [FIRST_CAMPAIGN] };
 type OwnerConnection = { token: () => string | null; connect: () => void };
 type Sort = "latest" | "discount" | "price";
@@ -52,6 +53,15 @@ function DealThumbnail({ lead }: { lead: Lead }) {
   </div>;
 }
 
+function HistoryLabels({ url, low }: { url: string; low?: ObservedLow }) {
+  const external = priceHistoryLink(url);
+  if (!low && !external) return null;
+  return <p className="promo-price-history">
+    {low && <span title={`记录起始 ${datePacific.format(low.firstAt)}`}>本机记录最低 <strong>{currency.format(low.price)}</strong> · {datePacific.format(low.lowAt)}</span>}
+    {external && <External url={external.href}>{external.name} ↗</External>}
+  </p>;
+}
+
 function PriceLabels({ lead }: { lead: Lead }) {
   const price = lead.offer ?? priceFromTitle(lead.title);
   const hasPrice = price.current !== undefined;
@@ -60,9 +70,9 @@ function PriceLabels({ lead }: { lead: Lead }) {
     <dl className="promo-card-prices">
       <div><dt>{price.kind === "from" ? "起售价" : price.kind === "conditional" ? "优惠后" : "活动价"}</dt>
         <dd className="promo-card-now" data-known={hasPrice}>{hasPrice ? currency.format(price.current!) : "未公布"}</dd></div>
-      <div><dt>{price.basis === "before-promo" ? "优惠前" : "原价"}</dt><dd>{price.original ? <s>{currency.format(price.original)}</s> : "—"}</dd></div>
+      <div><dt>{price.basis === "before-promo" ? "优惠前" : "来源原价"}</dt><dd>{price.original ? <s>{currency.format(price.original)}</s> : "未提供"}</dd></div>
       <div><dt>折扣</dt><dd>{price.discount ? <strong className="promo-discount">{price.upTo ? "最高 " : ""}省 {price.discount}%</strong>
-        : price.savings ? <strong className="promo-discount">省 {currency.format(price.savings)}</strong> : "—"}</dd></div>
+        : price.savings ? <strong className="promo-discount">省 {currency.format(price.savings)}</strong> : "缺少依据"}</dd></div>
     </dl>
     {(price.scope || price.note) && <p className="promo-offer-condition">
       {[price.scope && scope[price.scope], price.note].filter(Boolean).join(" · ")}
@@ -197,6 +207,7 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
   const [onlySelected, setOnlySelected] = useState(false);
   const [sort, setSort] = useState<Sort>("latest");
   const [pricedOnly, setPricedOnly] = useState(false);
+  const [comparedOnly, setComparedOnly] = useState(false);
   const [maxPrice, setMaxPrice] = useState("");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [showProgress, setShowProgress] = useState(false);
@@ -251,11 +262,13 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
   const leadCategory = (lead: Lead) => categoryOf(`${lead.title} ${displayTitle(lead)}`, lead.source);
   const availableLeads = allLeads.filter(lead => {
     const text = `${displayTitle(lead)} ${lead.title} ${lead.detail ?? ""} ${PROMOTION_SOURCES[lead.source].name}`.toLowerCase();
-    const price = (lead.offer ?? priceFromTitle(lead.title)).current;
+    const offer = lead.offer ?? priceFromTitle(lead.title);
+    const price = offer.current;
     return (sourceFilter === "all" || lead.source === sourceFilter) &&
       queryWords.every(word => text.includes(word)) &&
       (!campaignWords.length || campaignWords.some(word => text.includes(word))) &&
-      (!pricedOnly || price !== undefined) && (cap === null || (price !== undefined && price <= cap));
+      (!pricedOnly || price !== undefined) && (cap === null || (price !== undefined && price <= cap)) &&
+      (!comparedOnly || !!(offer.discount || offer.savings));
   });
   const categoryCounts = new Map<PromotionCategory, number>();
   for (const lead of availableLeads) {
@@ -279,7 +292,7 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
     return (b.publishedAt ?? 0) - (a.publishedAt ?? 0);
   });
   const savedKeys = new Set(campaign.watches.map(watchKey));
-  const filtersActive = !!query || !!maxPrice || pricedOnly || sourceFilter !== "all" || category !== "all";
+  const filtersActive = !!query || !!maxPrice || pricedOnly || comparedOnly || sourceFilter !== "all" || category !== "all";
   const untranslated = allLeads.filter(lead => !/\p{Script=Han}/u.test(lead.title) && !localized[lead.title]);
 
   useEffect(() => {
@@ -313,7 +326,7 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
   }
 
   function resetFilters() {
-    setCategory("all"); setSourceFilter("all"); setQuery(""); setPricedOnly(false); setMaxPrice(""); setVisibleCount(PAGE_SIZE);
+    setCategory("all"); setSourceFilter("all"); setQuery(""); setPricedOnly(false); setComparedOnly(false); setMaxPrice(""); setVisibleCount(PAGE_SIZE);
   }
 
   const watchResults = campaign.watches.filter(watch => (!onlySelected || watch.enabled) && watch.title.toLowerCase().includes(watchQuery.trim().toLowerCase()))
@@ -335,14 +348,19 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
     for (const source of selectedSources) append(source, PROMOTION_SOURCES[source].name, async () => {
       const snapshot = await request<SourceSnapshot>(source);
       if (!Array.isArray(snapshot.leads) || !Number.isFinite(snapshot.checkedAt)) throw Error("后台返回的优惠格式无效");
-      editCampaign(id, c => {
-        const previous = new Map(c.snapshots[source]?.leads.map(lead => [lead.url, lead.imageUrl]));
-        const leads = snapshot.leads.map(lead => {
-          const imageUrl = promotionImageUrl(source, lead.imageUrl) ?? promotionImageUrl(source, previous.get(lead.url));
-          return { ...lead, imageUrl };
-        });
-        return { ...c, snapshots: { ...c.snapshots, [source]: { ...snapshot, leads } } };
-      });
+      change(value => ({
+        ...value,
+        history: recordPrices(value.history, snapshot.leads.map(lead => observeLead(lead, snapshot.checkedAt))),
+        campaigns: value.campaigns.map(c => {
+          if (c.id !== id) return c;
+          const previous = new Map(c.snapshots[source]?.leads.map(lead => [lead.url, lead.imageUrl]));
+          const leads = snapshot.leads.map(lead => {
+            const imageUrl = promotionImageUrl(source, lead.imageUrl) ?? promotionImageUrl(source, previous.get(lead.url));
+            return { ...lead, imageUrl };
+          });
+          return { ...c, snapshots: { ...c.snapshots, [source]: { ...snapshot, leads } } };
+        }),
+      }));
       return `${snapshot.leads.length} 条优惠`;
     }, source);
     const watches = single ? [single] : kind === "all" ? selectedWatches : [];
@@ -352,7 +370,13 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
         if (!token) throw Error("请连接 PT 私有后台后核价");
         const { quote } = await request<{ quote: Quote }>("quote", { url: watch.url, token });
         if (!quote || priceValue(quote.price) === null || !Number.isFinite(quote.checkedAt)) throw Error("后台返回的报价格式无效");
-        editWatch(id, watch.id, currentWatch => updateQuote(currentWatch, quote));
+        change(value => ({
+          ...value,
+          history: recordPrices(value.history, [observeQuote(quote)]),
+          campaigns: value.campaigns.map(c => c.id !== id ? c : {
+            ...c, watches: c.watches.map(w => w.id === watch.id ? updateQuote(w, quote) : w),
+          }),
+        }));
         return quote.availability === "in-stock" ? currency.format(quote.price) : quote.availability === "out-of-stock" ? "缺货" : "库存待确认";
       } catch (error) {
         editWatch(id, watch.id, currentWatch => ({ ...currentWatch, error: error instanceof Error ? error.message : "核价失败" }));
@@ -395,6 +419,7 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
 
   function saveCampaign(next: Campaign) {
     change(value => ({
+      ...value,
       active: next.id,
       campaigns: value.campaigns.some(c => c.id === next.id) ? value.campaigns.map(c => c.id === next.id ? next : c) : [...value.campaigns, next],
     }));
@@ -496,6 +521,7 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
         <input type="number" min="0.01" step="0.01" inputMode="decimal" aria-label="最高价（美元）" placeholder="最高价 $" value={maxPrice}
           onChange={event => { setMaxPrice(event.target.value); setVisibleCount(PAGE_SIZE); }} />
         <label className="promo-check"><input type="checkbox" checked={pricedOnly} onChange={event => { setPricedOnly(event.target.checked); setVisibleCount(PAGE_SIZE); }} />只看有报价</label>
+        <label className="promo-check"><input type="checkbox" checked={comparedOnly} onChange={event => { setComparedOnly(event.target.checked); setVisibleCount(PAGE_SIZE); }} />只看有折扣依据</label>
         {filtersActive && <button type="button" onClick={resetFilters}>清除筛选</button>}
       </div>
       <div className="promo-controls promo-categories" aria-label="优惠分类">
@@ -506,7 +532,7 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
         ))}
       </div>
       <div className="promo-lead-guide">
-        <p className="promo-muted">报价为美元。「—」表示来源缺少对应价格依据。</p>
+        <p className="promo-muted">报价为美元。来源原价用于算折扣。本机记录最低从两天的手动刷新数据开始显示。</p>
         <details className="promo-original"><summary>来源与更新时间</summary>
           <ul>{campaign.sources.map(source => <li key={source}>
             <External url={PROMOTION_SOURCES[source].url}>{PROMOTION_SOURCES[source].name} ↗</External>
@@ -532,6 +558,8 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
             <h3><External url={lead.url}>{title}</External></h3>
           </div>
           <PriceLabels lead={lead} />
+          <HistoryLabels url={lead.url} low={showObservedLow(state.history,
+            observeLead(lead, campaign.snapshots[lead.source]?.checkedAt ?? 0)?.key)} />
           {dateRange && <p className="promo-muted promo-valid">活动期 {dateRange}</p>}
           {lead.detail && <p className="promo-muted">{lead.detail}</p>}
           {title !== lead.title && <details className="promo-original"><summary>查看原文标题</summary><p lang={/\p{Script=Han}/u.test(lead.title) ? "zh-CN" : "en"}>{lead.title}</p></details>}
@@ -572,6 +600,7 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
             {watch.quote && <p className="promo-muted">{watch.quote.name} · {watch.quote.method === "manual" ? "手动记录" : "商家报价"} · {displayTime(watch.quote.checkedAt)}</p>}
             {watch.reference != null && <p className="promo-muted">导入参考价 {currency.format(watch.reference)} {watch.referenceDate ?? ""}</p>}
             {watch.error && <p className="promo-warning">{watch.error}</p>}
+            <HistoryLabels url={watch.url} low={showObservedLow(state.history, quoteHistoryKey(watch.url))} />
             {matches.length > 0 && <details><summary>匹配优惠 {matches.length}</summary><ul>{matches.slice(0, 8).map(lead => <li key={lead.url}><External url={lead.url}>{lead.title}</External></li>)}</ul></details>}
           </div>
           <div className="promo-price"><strong>{watch.quote ? currency.format(watch.quote.price) : "—"}</strong><span>目标 {watch.target ? currency.format(watch.target) : "未设"}</span></div>
@@ -582,7 +611,6 @@ export function PromotionBoard({ owner }: { owner: OwnerConnection }) {
               editWatch(campaign.id, watch.id, w => ({ ...w, enabled }));
             }} />随刷新核价</label>}
             {product && <button type="button" disabled={busy || !!editor || !!watchEditor} onClick={() => void refresh("watch", watch)}>核价</button>}
-            {product?.asin && <External url={`https://keepa.com/#!product/1-${product.asin}`}>Keepa</External>}
             <External url={listingSearch(watch.originalTitle ?? watch.title)}>比价</External>
             <button type="button" disabled={busy || !!editor} onClick={() => setWatchEditor(watch)}>编辑</button>
             <button type="button" disabled={busy || !!editor} onClick={() => {

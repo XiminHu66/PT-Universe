@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { chineseTitle } from "../src/lib/promotion-language";
 import { priceFromTitle } from "../src/lib/promotion-pricing";
+import { observeLead, observeQuote, priceHistoryLink, recordPrices, showObservedLow } from "../src/lib/promotion-history";
+import type { Lead } from "../src/lib/promotion";
 import { applyTarget, classifyWatch, FIRST_CAMPAIGN, merchantProduct, parseImport, promotionImageUrl, updateCampaignSources, updateQuote, type Quote } from "../src/lib/promotion";
 
 test("Excel import deduplicates ASIN links and retains reference price without setting a target", () => {
@@ -91,4 +93,37 @@ test("upgrades the old default sources while respecting custom campaigns", () =>
   const custom = { ...previous, sources: ["slickdeals"] as const };
   assert.deepEqual(updateCampaignSources({ ...custom, sources: [...custom.sources] }).sources, ["slickdeals"]);
   assert.deepEqual(updateCampaignSources({ ...previous, id: "custom" }).sources, previous.sources);
+});
+
+test("historical lows need multiple Pacific dates and the exact item and offer scope", () => {
+  const first = Date.parse("2026-11-27T20:00:00Z");
+  const sameDay = Date.parse("2026-11-28T04:00:00Z");
+  const second = Date.parse("2026-11-28T20:00:00Z");
+  const deal: Lead = { source: "costco", title: "Example item", url: "https://www.costco.com/p/-/some-item/12345", offer: { current: 100, scope: "online" } };
+  const start = observeLead(deal, first)!;
+  const later = observeLead({ ...deal, offer: { current: 95, scope: "online" } }, sameDay)!;
+  const oneDay = recordPrices(undefined, [start, later]);
+  assert.equal(showObservedLow(oneDay, start.key), undefined);
+  const next = observeLead({ ...deal, offer: { current: 105, scope: "online" } }, second)!;
+  const history = recordPrices(oneDay, [next]);
+  assert.deepEqual(showObservedLow(history, start.key), { price: 95, lowAt: sameDay, firstAt: first, lastAt: second });
+  const warehouse = observeLead({ ...deal, offer: { current: 70, scope: "warehouse" } }, second)!;
+  assert.notEqual(warehouse.key, start.key);
+  assert.equal(observeLead({ ...deal, validFrom: "2026-11-29" }, second), null);
+  assert.equal(observeLead({ ...deal, validUntil: "2026-11-27" }, second), null);
+  assert.equal(observeLead({ ...deal, offer: { current: 70, kind: "conditional" } }, second), null);
+  assert.equal(observeLead({ ...deal, offer: { current: 70, note: "平台第三方卖家" } }, second), null);
+  assert.equal(observeLead({ ...deal, offer: { current: 70, kind: "from" } }, second), null);
+});
+
+test("price history uses exact product links and eligible verified quotes", () => {
+  const url = "https://www.amazon.com/dp/B0D123ABCD";
+  assert.match(priceHistoryLink(url)!.href, /keepa\.com.*B0D123ABCD/);
+  assert.equal(priceHistoryLink("https://store.steampowered.com/app/1174180/Red_Dead_Redemption_2/")!.href, "https://steamdb.info/app/1174180/");
+  assert.equal(priceHistoryLink("https://store.steampowered.com/bundle/1174180/"), null);
+  assert.equal(priceHistoryLink("https://store.steampowered.com.other.example/app/1174180/"), null);
+  const quote = { name: "Sample", price: 90, checkedAt: Date.UTC(2026, 10, 27), url, availability: "in-stock" as const };
+  assert.ok(observeQuote(quote));
+  assert.equal(observeQuote({ ...quote, availability: "out-of-stock" }), null);
+  assert.equal(observeQuote({ ...quote, method: "manual" }), null);
 });

@@ -161,6 +161,7 @@
 .promo-card-prices .promo-card-now[data-known="true"] { color: var(--promo-deal); font-size: 1.11rem; font-weight: 750; line-height: 1.2; }
 .promo-card-prices s { color: var(--muted-foreground); }
 .promo-discount { display: inline-block; border-radius: 0.28rem; padding: 0.03rem 0.24rem; color: #124437; background: #d9f4e9; }
+.promo-price-history { display: flex; flex-wrap: wrap; gap: 0.25rem 0.6rem; color: var(--muted-foreground); font-size: 0.76rem; }
 .promo-offer-condition, .promo-valid, .promo-original { color: var(--muted-foreground); font-size: 0.76rem; }
 .promo-original summary { cursor: pointer; }
 .promo-lead .promo-card-actions { margin-top: auto; align-self: stretch; justify-content: flex-start; gap: 0.45rem; }
