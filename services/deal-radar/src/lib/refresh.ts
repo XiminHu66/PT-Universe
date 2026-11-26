@@ -23,6 +23,8 @@ import type { BoardState, ParsedItem } from "./types";
 import { canonicalUrl } from "./url";
 import { getBoardState } from "./board";
 import { classifyFailure, logEvent, logFailure } from "./log";
+import { startTaskMeter } from "./task-meter";
+import { saveTask } from "./task-ledger";
 import { writeDealSnapshot } from "./snapshot";
 import { releaseRefreshLock, resetRefreshLockForTests, tryAcquireRefreshLock } from "./refresh-lock";
 
@@ -231,6 +233,12 @@ export async function runRefresh(options: RefreshOptions): Promise<BoardState> {
     throw new RefreshRejected("BUSY", "已有刷新进行中");
   }
 
+  let meter: ReturnType<typeof startTaskMeter> | undefined;
+  let measuredRound: number | null = null;
+  let measuredStatus: "success" | "partial" | "failed" = "failed";
+  let measuredOk = 0;
+  const totalSources = listSources().length;
+  const startedAt = Date.now();
   try {
   if (options.trigger === "manual") {
     const last = getMeta("last_manual_at");
@@ -243,11 +251,12 @@ export async function runRefresh(options: RefreshOptions): Promise<BoardState> {
     }
     setMeta("last_manual_at", String(now));
   }
-    logEvent("round_start", { trigger: options.trigger, sources: listSources().length });
+    meter = startTaskMeter(options.fetchImpl ?? fetch);
+    logEvent("round_start", { trigger: options.trigger, sources: totalSources });
     const loaded = await fetchAll({
       now,
       timeoutMs: options.timeoutMs ?? SOURCE_TIMEOUT_MS,
-      fetchImpl: options.fetchImpl ?? fetch,
+      fetchImpl: meter.fetch,
     });
     beginImmediate();
     let roundId = 0;
@@ -257,9 +266,12 @@ export async function runRefresh(options: RefreshOptions): Promise<BoardState> {
       for (const source of loaded) totalInserted += applySource(source, roundId, now);
       purgeStale(now);
       const okCount = loaded.filter((source) => source.ok).length;
+      measuredOk = okCount;
       const status = okCount === loaded.length ? "success" : okCount === 0 ? "failed" : "partial";
       finishRound(roundId, Date.now(), status);
       commit();
+      measuredRound = roundId;
+      measuredStatus = status;
       logEvent("round_finished", {
         roundId,
         trigger: options.trigger,
@@ -292,14 +304,21 @@ export async function runRefresh(options: RefreshOptions): Promise<BoardState> {
       logFailure("round_write_failed", error, { trigger: options.trigger });
       throw error;
     }
+    const board = getBoardState(now);
+    try {
+      writeDealSnapshot(board);
+    } catch (error) {
+      logFailure("snapshot_write_failed", error);
+    }
+    return { ...board, refreshInProgress: false };
   } finally {
-    releaseRefreshLock();
+    try {
+      if (meter) saveTask({ ...meter.finish(), startedAt, roundId: measuredRound, trigger: options.trigger,
+        status: measuredStatus, okSources: measuredOk, totalSources });
+    } catch (error) {
+      logFailure("task_ledger_write_failed", error, { trigger: options.trigger });
+    } finally {
+      releaseRefreshLock();
+    }
   }
-  const board = getBoardState(now);
-  try {
-    writeDealSnapshot(board);
-  } catch (error) {
-    logFailure("snapshot_write_failed", error);
-  }
-  return board;
 }

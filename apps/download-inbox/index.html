@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>下载文件夹收件台 · PT Universe</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <a class="home" href="../../">← PT Universe</a>
+    <section class="hero">
+      <h1>下载文件夹收件台</h1>
+      <p>把最近下载的文件归到合适的位置。先确认文件和目标位置，再执行整理。</p>
+      <a class="primary" href="Download-Inbox.ps1.txt" download="Download-Inbox.ps1">下载 Windows 工具</a>
+      <p class="note">Windows PowerShell 5.1 · 无需管理员权限 · 文件和操作记录保存在本机</p>
+    </section>
+    <div class="grid">
+      <section><h2>打开收件台</h2>
+        <ol>
+          <li>下载 <code>Download-Inbox.ps1</code>。</li>
+          <li>右键文件，选择「使用 PowerShell 运行」。</li>
+          <li>首次打开会读取 Windows 的下载文件夹，也可在顶部换目录。</li>
+        </ol>
+      </section>
+      <section><h2>整理文件</h2>
+        <ul>
+          <li>按最近修改时间查看，勾选要处理的文件。</li>
+          <li>「内容查重」比较同大小文件的 SHA-256。</li>
+          <li>选择自动分类或指定目录。填前缀可批量改名。</li>
+          <li>执行前核对目标位置。同名文件会自动编号。</li>
+        </ul>
+      </section>
+    </div>
+    <section class="undo"><h2>撤回上次</h2><p>考虑好再开始下一批。收件台保留最近一批的撤回记录。原位置被占用或归档文件已变化时，会跳过该文件并显示原因。</p></section>
+  </main>
+</body>
+</html>

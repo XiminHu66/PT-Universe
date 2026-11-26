@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getBoardState } from "@/lib/board";
+import { taskActivity } from "@/lib/task-ledger";
 import { logFailure } from "@/lib/log";
 
 export const dynamic = "force-dynamic";
@@ -8,7 +9,13 @@ export const runtime = "nodejs";
 export function GET() {
   try {
     const board = getBoardState();
-    return NextResponse.json(board, { headers: { "cache-control": "no-store" } });
+    let resourceActivity: ReturnType<typeof taskActivity> | null = null;
+    try {
+      resourceActivity = taskActivity();
+    } catch (error) {
+      logFailure("task_ledger_read_failed", error);
+    }
+    return NextResponse.json({ ...board, resourceActivity }, { headers: { "cache-control": "no-store" } });
   } catch (error) {
     // 数据库读失败时不能让调用方把异常当成空数据，明确降级成 503 且不留缓存。
     logFailure("deals_read_failed", error);

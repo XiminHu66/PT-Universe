@@ -115,3 +115,19 @@ billing-only packet without clearing other provider caches. No new schedule.
 Validation: `node scripts/resource-center/actions.test.mjs` covers public/private
 separation, nonzero allowance consumption despite zero net charges, OS minutes,
 unknown coverage, independent storage/cache scopes and a usage-first view.
+
+## 任务与使用
+
+「任务与使用」位于 Resource Center 及 Daily Nexus 的监控页，沿用
+`resources:read` 和现有 VPS 签名读取。切换到该页或手动检查时读取数据。
+读取不会运行业务任务。访问和 VPS 数据分别保留上次成功的页面内快照。
+
+- Deal Radar 在现有 SQLite 保存每次实际刷新。统计单调时钟耗时、调用 fetch 的
+  次数、进程 CPU 时间增量、按秒采样及首尾测量的进程 RSS 峰值。记录成功、部分
+  失败和失败，拒绝的重复请求不入账。数据以原有挂牌频率生成。明细保留 45 天，
+  布局展示最近 30 条及 7/30 天累加。进程数据可能包含并发的其他请求。
+- 工具访问从部署后开始采样。六个固定 ID 分别按美西日及浏览器去重，后台沿用之前的
+  自用浏览器标记，只返回聚合值。未观察的工具保留待采样状态。手动及自动执行首版
+  只连 Deal Radar。VPS 直达、推送及原生 App 使用不在页面访问统计内。
+- 初始候选规则要求采满 30 天，自用访问最多一天，手动执行为零，仍有自动执行。
+  候选仅作人工核对。打开监控或查看候选不会暂停任何服务。

@@ -35,10 +35,10 @@ for (const [path, token, method, origin, expected] of [
 console.log('PASS: release records are owner-authenticated, read-only, and reject arbitrary inputs.');
 
 const usageBundle=await build({entryPoints:['src/usage.ts'],bundle:true,platform:'node',format:'esm',write:false});
-const {usageVisit,recordUsageAccount,usageSummary,pruneUsage}=await import('data:text/javascript;base64,'+Buffer.from(usageBundle.outputFiles[0].text).toString('base64'));
+const {usageVisit,recordUsageAccount,usageSummary,pruneUsage,toolVisit}=await import('data:text/javascript;base64,'+Buffer.from(usageBundle.outputFiles[0].text).toString('base64'));
 const sqlite=new DatabaseSync(':memory:');
 const db={
- prepare(sql){const statement=sqlite.prepare(sql);let args=[];return {bind(...values){args=values;return this;},async run(){return statement.run(...args);},async first(){return statement.get(...args)||null;}};},
+ prepare(sql){const statement=sqlite.prepare(sql);let args=[];return {bind(...values){args=values;return this;},async run(){return statement.run(...args);},async first(){return statement.get(...args)||null;},async all(){return {results:statement.all(...args)};}};},
  async batch(statements){return Promise.all(statements.map(statement=>statement.run()));},
 };
 const own=crypto.randomUUID(),other=crypto.randomUUID(),workerOrigin='https://ximinhu66.github.io';
@@ -70,5 +70,21 @@ assert.equal((await usageSummary(db,new Date('2026-11-01T07:10:00Z'))).today.acc
 assert.equal((await usageSummary(db,new Date('2026-11-01T06:59:00Z'))).today.accounts,0);
 await pruneUsage(db,new Date('2026-11-17T20:00:00Z'));
 assert.equal(sqlite.prepare("select count(*) as n from pt_usage_activity where day='2026-11-01'").get().n,0);
+const toolReq=(tool,id=own)=>new Request('https://api.example/api/usage/tool',{method:'POST',headers:{origin:workerOrigin,'cf-connecting-ip':'192.0.2.1'},body:JSON.stringify({tool,id})});
+assert.equal(await toolVisit(toolReq('/arbitrary-private-path'),usageEnv),400);
+assert.equal(await toolVisit(toolReq('reading-desk'),usageEnv),204);
+assert.equal(await toolVisit(toolReq('reading-desk'),usageEnv),204);
+assert.equal(await toolVisit(toolReq('reading-desk',other),usageEnv),204);
+assert.equal(await toolVisit(toolReq('deal-radar',other),usageEnv),204);
+assert.equal((await resourcesRoute(req('activity'),usageEnv,publicKey)).status,401);
+assert.equal((await resourcesRoute(req('activity',read,'POST'),usageEnv,publicKey)).status,405);
+const activityResponse=await resourcesRoute(req('activity',read),usageEnv,publicKey);
+assert.equal(activityResponse.headers.get('cache-control'),'private,no-store');
+const activityText=await activityResponse.text();
+assert.ok(![own,other,'192.0.2.1'].some(value=>activityText.includes(value)));
+const activity=JSON.parse(activityText);
+assert.equal(activity.views.tools.find(row=>row.id==='reading-desk').monthDays,1);
+assert.equal(activity.views.tools.find(row=>row.id==='deal-radar').monthDays,0);
+assert.equal(activity.dealRadarState,'unavailable');
 sqlite.close();
 console.log('PASS: usage reports require owner auth, rate-limited browser intake deduplicates, shared AI accounts include direct requests, and IDs/IP do not appear in reports.');

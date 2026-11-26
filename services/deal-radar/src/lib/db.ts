@@ -90,6 +90,21 @@ export function openDatabase(filename: string): DatabaseSync {
       started_at INTEGER NOT NULL,
       finished_at INTEGER
     );
+    CREATE TABLE IF NOT EXISTS task_ledger (
+      id INTEGER PRIMARY KEY,
+      round_id INTEGER UNIQUE,
+      started_at INTEGER NOT NULL,
+      trigger TEXT NOT NULL,
+      status TEXT NOT NULL,
+      duration_ms INTEGER NOT NULL,
+      cpu_ms INTEGER NOT NULL,
+      peak_rss_bytes INTEGER NOT NULL,
+      requests INTEGER NOT NULL,
+      ok_sources INTEGER NOT NULL,
+      total_sources INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_task_ledger_time ON task_ledger(started_at);
+    CREATE TABLE IF NOT EXISTS task_ledger_meta (id INTEGER PRIMARY KEY, since INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS meta (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL

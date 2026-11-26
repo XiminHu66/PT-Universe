@@ -31,6 +31,7 @@ document.hidden=true;events.get('nexus-view-change')();assert.equal(timers.size,
 console.log('PASS: one lazy iframe, compact unified controls, no standalone link, sender validation, five-minute cached updates, manual force refresh, pause and resume.');
 const resourceHTML=readFileSync('../../apps/resource-center/index.html','utf8'),resourceSource=readFileSync('../../apps/resource-center/app.mjs','utf8').replace(/^import .*;\n/gm,'');
 const releaseSource=readFileSync('../../apps/resource-center/releases.mjs','utf8').replace(/^import .*;\n/gm,'').replace('export function','function');
+const activitySource=readFileSync('../../apps/resource-center/activity.mjs','utf8').replace(/^import .*;\n/gm,'').replaceAll('export function','function');
 const usageSource=readFileSync('../../apps/resource-center/usage-view.mjs','utf8').replace(/^import .*;\n/gm,'').replaceAll('export function','function');
 async function run({authenticated=true,unauthorized=false,deferVps=false,vpsFailures=0,cacheAge=null,deferredAuth=false,view='overview'}={}){
  const sourceCommit='a'.repeat(40);
@@ -45,10 +46,12 @@ async function run({authenticated=true,unauthorized=false,deferVps=false,vpsFail
  RESOURCE_API:'https://api.example/resources',returningToNexus:false,resourceSession:()=>token,connectResources:(manual,view)=>{connections.push({manual,view});if(deferredAuth)return new Promise(resolve=>{finishAuth=()=>{token='fixture-read-grant';resolve();}});},clearResourceSession:()=>{token=''},
  actionsQuotas:()=>[],overviewHTML:d=>{lastData=d;return '<p>overview fixture</p>'},automaticHTML:()=>'',coverageHTML:()=>'',fmt:String,date:String,esc:String,finite:Number.isFinite,
  fetch:async(url,init)=>{reads.push({url,signal:init.signal,method:init.method,body:init.body});if(url.endsWith('/deployment.json'))return Response.json({sourceCommit});if(url.endsWith('/releases'))return Response.json({status:{state:'ok'},items:[]});if(url.endsWith('/vps')){vpsAttempts++;if(deferVps&&vpsAttempts===1)await new Promise((resolve,reject)=>{init.signal.addEventListener('abort',()=>reject(init.signal.reason),{once:true});});if(vpsAttempts<=vpsFailures)return Response.json({error:'temporary'},{status:503});}if(unauthorized)return Response.json({error:'expired'},{status:401});
+  if(url.endsWith('/activity'))return Response.json({views:{day:'2026-11-25',ownedBrowsers:1,tools:[{id:'deal-radar',first:'2026-10-01',weeksDays:0,monthDays:1,lastVisit:clock}]},dealRadar:{since:clock-31*86400000,observedAt:clock,week:{manual:null,schedule:{executions:5}},month:{manual:null,schedule:{executions:10}},recent:[]},dealRadarState:'connected'});
   if(url.endsWith('/usage'))return Response.json({day:'2026-11-16',since:'2026-11-15',today:{browsers:3,sharedAiAccounts:2,ownSharedAiAccounts:1},week:{browsers:7}});
   return Response.json(url.endsWith('/data')?{repositories:[],quotas:[],projects:[],connections:[]}:url.endsWith('/vps')?{sampleAt:new Date(clock).toISOString(),memory:{usedBytes:1e9,totalBytes:12e9},disk:{usedBytes:20e9,totalBytes:40e9},cpu:{percent:10},services:[]}:{status:{provider:new URL(url).searchParams.get('provider')||'browser',state:'ok'}});}
  };
  sandbox.createReleaseView=vm.runInNewContext('(()=>{'+releaseSource+'\nreturn createReleaseView})()',sandbox);
+ sandbox.createActivityView=vm.runInNewContext('(()=>{'+activitySource+'\nreturn createActivityView})()',sandbox);
  sandbox.ownUsageIdentities=async()=>({browser:'a'.repeat(64),accounts:[]});
  sandbox.createUsageView=vm.runInNewContext('(()=>{'+usageSource+'\nreturn createUsageView})()',sandbox);
  vm.runInNewContext(resourceSource,sandbox);await new Promise(r=>setImmediate(r));
@@ -93,3 +96,13 @@ assert.equal(release.page.querySelectorAll('.release-card').length,3);
 assert.match(release.page.querySelector('[data-project=nexus]').textContent,/aaaaaaaa/);
 assert.equal(release.page.querySelector('[data-accept=nexus]').getAttribute('aria-label'),'Daily Nexus 人工验收');
 console.log('PASS: release subtab reads only its sources, renders three projects and gates acceptance on a known version.');
+
+const activity=await run({view:'activity'});
+assert.deepEqual(activity.reads.map(x=>x.url),['https://api.example/resources/activity']);
+assert.match(activity.page.querySelector('#workspace').textContent,/可考虑改手动/);
+activity.page.querySelector('[data-activity-period=week]').click();
+assert.match(activity.page.querySelector('#workspace').textContent,/手动／自动（7 天）/);
+activity.send({view:'activity',action:'refresh',force:false});
+await new Promise(r=>setImmediate(r));
+assert.equal(activity.reads.length,1);
+console.log('PASS: activity view requests only its private endpoint, caches manual reads and shows supported candidates.');

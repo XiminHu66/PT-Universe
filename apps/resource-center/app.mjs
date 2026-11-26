@@ -1,12 +1,13 @@
+import {createActivityView} from './activity.mjs?v=1';
 import {actionsQuotas} from './actions-usage.mjs?v=4';
 import {overviewHTML,automaticHTML,coverageHTML,fmt,date} from './view.mjs?v=5';
 import {assess,validateMeasurement,esc,safeURL,finite} from './model.mjs?v=3';
 import {readPublicGithub} from './public-reader.mjs';
-import {RESOURCE_API,resourceSession,connectResources,clearResourceSession,returningToNexus} from './auth.mjs?v=3';
+import {RESOURCE_API,resourceSession,connectResources,clearResourceSession,returningToNexus} from './auth.mjs?v=4';
 import {createReleaseView} from './releases.mjs?v=1';
 import {createUsageView} from './usage-view.mjs?v=1';
 const EMBEDDED=new URL(location.href).searchParams.get('embedded')==='nexus'&&window.parent!==window;
-const TITLES={overview:'资源概览',workflows:'工作流',projects:'项目与占用',settings:'读取检查',releases:'发布验收'};
+const TITLES={overview:'资源概览',workflows:'工作流',projects:'项目与占用',settings:'读取检查',releases:'发布验收',activity:'任务与使用'};
 const VIEWS=Object.keys(TITLES),requested=new URL(location.href).searchParams.get('view');
 if(EMBEDDED){document.documentElement.dataset.embedded='nexus';try{window.ptNexusActive=window.parent.document.body.dataset.nexusView==='monitor'&&!window.parent.document.hidden;}catch{window.ptNexusActive=false;}}
 const active=()=>!returningToNexus&&!document.hidden&&(!EMBEDDED||window.ptNexusActive!==false);
@@ -20,6 +21,7 @@ const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(saved));return tr
 const link=(url,text)=>`<a href="${esc(safeURL(url))}" target="_blank" rel="noopener noreferrer">${esc(text)} ↗</a>`;
 const releaseView=createReleaseView({getJSON,active:()=>active()&&view==='releases',notify:notifyHost,workspace:$('#workspace'),notice:$('#notice')});
 const usageView=createUsageView({panel:$('#usage-panel'),url:RESOURCE_API+'/usage',active:()=>PRIVATE&&view==='overview'&&active(),session:resourceSession});
+const activityView=createActivityView(getJSON,RESOURCE_API+'/activity',$('#workspace'),()=>setView('overview'));
 const labels={safe:'余量充足',warning:'需要留意',danger:'危险区',stale:'采样已过期',unknown:'用量待核实'};
 function quotaRows(){const order=['GitHub Actions','Oracle VPS','Cloudflare'];const rows=(data?.quotas||[]).filter(q=>!['gh-compute','gh-storage'].includes(q.id)).map(q=>{const m=saved.measurements?.[q.id];return m&&Date.parse(m.observedAt)>Date.parse(q.observedAt||'1970-01-01')?{...q,...m}:q;});return [...(data?actionsQuotas(data):[]),...rows].sort((a,b)=>order.indexOf(a.provider)-order.indexOf(b.provider));}
 function overview(){return overviewHTML(data,quotaRows(),saved.red||85);}
@@ -31,10 +33,11 @@ function settingsView(){return automaticHTML(data)+coverageHTML(data,quotaRows()
 const filters={};
 function render(){
  usageView.render();
- if(view!=='releases'&&!data)return;
+ if(!['releases','activity'].includes(view)&&!data)return;
  $('#page-title').textContent=TITLES[view];$('#red-label').textContent=saved.red||85;
  $('#connect').hidden=PRIVATE;$('#setup-link').hidden=PRIVATE;
  document.querySelectorAll('[data-view]').forEach(b=>{b.classList.toggle('active',b.dataset.view===view);b.setAttribute('aria-current',b.dataset.view===view?'page':'false');});
+ if(view==='activity'){ $('#public-banner').hidden=true; activityView.render(PRIVATE); return; }
  if(view==='releases'){ $('#public-banner').hidden=true; releaseView.render(PRIVATE); return; }
  $('#public-banner').hidden=PRIVATE;
  for(const id of ['wf-search','wf-filter','project-search','project-filter','project-sort'])if($('#'+id))filters[id]=$('#'+id).value;
@@ -51,10 +54,11 @@ function render(){
 function setView(next){
  if(!VIEWS.includes(next)||next===view)return;
  if(view==='releases')releaseView.cancel();
+ if(view==='activity'){activityView.cancel();$('#refresh').disabled=false;}
  view=next;if(!EMBEDDED){saved.view=view;persist();}else window.parent.postMessage({type:'pt-resource-view',view},location.origin);
  render();
  if(view==='overview')void usageView.load();
- if(view==='releases'||!data)void refresh();
+ if(['releases','activity'].includes(view)||!data)void refresh();
 }
 function bindSettings(){
  $('#reconnect').onclick=()=>$('#connect').click();
@@ -119,7 +123,7 @@ function connectBackend(manual=false){
   if(result?.then)result.then(()=>{connecting=false;const wasPrivate=PRIVATE;PRIVATE=!!resourceSession();if(!PRIVATE)throw Error('连接尚未完成，请重试连接。');if(!wasPrivate)data=null;delete document.documentElement.dataset.connectionRequired;notifyHost();if(active())void refresh();}).catch(e=>{connecting=false;document.documentElement.dataset.connectionRequired='true';$('#notice').textContent=e.message;notifyHost();});
  }catch(e){connecting=false;document.documentElement.dataset.connectionRequired='true';$('#notice').textContent=e.message;}
 }
-function notifyHost(){if(EMBEDDED)window.parent.postMessage({type:'pt-resource-status',connected:PRIVATE,busy:view==='releases'?releaseView.busy:busy||autoBusy,connecting,message:$('#notice').textContent},location.origin);}
+function notifyHost(){if(EMBEDDED)window.parent.postMessage({type:'pt-resource-status',connected:PRIVATE,busy:view==='releases'?releaseView.busy:view==='activity'?activityView.busy:busy||autoBusy,connecting,message:$('#notice').textContent},location.origin);}
 async function refreshRelease(force){
  PRIVATE=!!resourceSession();
  if(!PRIVATE&&!connecting&&(EMBEDDED||force))connectBackend(force);
@@ -131,7 +135,19 @@ async function refreshRelease(force){
  render();notifyHost();
  if(again)void refreshRelease(false);
 }
-async function refresh(force=false){if(!active())return;if(view==='releases')return refreshRelease(force);if(busy||autoBusy||connecting)return;busy=true;const startedPrivate=PRIVATE,epoch=activityEpoch;$('#refresh').disabled=true;$('#refresh').textContent='正在检查…';try{
+async function refreshActivity(force){
+ PRIVATE=!!resourceSession();
+ if(!PRIVATE&&!connecting)connectBackend(force);
+ if(!PRIVATE){render();notifyHost();return;}
+ if(activityView.busy)return;
+ const pending=activityView.refresh(force);
+ $('#refresh').disabled=activityView.busy;notifyHost();
+ await pending;
+ if(view!=='activity')return;
+ $('#refresh').disabled=false;render();notifyHost();
+ if(!PRIVATE&&active())connectBackend();
+}
+async function refresh(force=false){if(!active())return;if(view==='releases')return refreshRelease(force);if(view==='activity')return refreshActivity(force);if(busy||autoBusy||connecting)return;busy=true;const startedPrivate=PRIVATE,epoch=activityEpoch;$('#refresh').disabled=true;$('#refresh').textContent='正在检查…';try{
  PRIVATE=!!resourceSession();
  if(!PRIVATE){connectBackend(force);if(connecting)return;}
  if(view==='overview')void usageView.load(force);
@@ -145,7 +161,7 @@ async function refresh(force=false){if(!active())return;if(view==='releases')ret
  render();
  }catch(e){if(active()&&epoch===activityEpoch)$('#notice').textContent=e.message;}finally{busy=false;if(view!=='releases'&&data&&PRIVATE&&epoch===activityEpoch)await refreshAutomatic(force);$('#refresh').disabled=false;$('#refresh').textContent='↻ 检查更新';if(startedPrivate&&!PRIVATE&&active())connectBackend();notifyHost();if(resumePending&&active()){resumePending=false;queueMicrotask(()=>refresh());}}}
 $('#connect').onclick=()=>{connectBackend(true);notifyHost();};$('#refresh').onclick=()=>refresh(true);document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
-function activation(){usageView.render();if(!active()){if(!paused){paused=true;activityEpoch++;}for(const controller of requests)controller.abort();}else{if(paused&&(busy||autoBusy))resumePending=true;paused=false;if(view==='overview')void usageView.load();if(view==='releases'||!data||Date.now()-lastAuto>15*60000)void refresh();}}
+function activation(){usageView.render();if(!active()){if(!paused){paused=true;activityEpoch++;}for(const controller of requests)controller.abort();activityView.cancel();if(view==='activity')$('#refresh').disabled=false;}else{if(paused&&(busy||autoBusy))resumePending=true;paused=false;if(view==='overview')void usageView.load();if(['releases','activity'].includes(view)||!data||Date.now()-lastAuto>15*60000)void refresh();}}
 window.addEventListener('nexus-activate',activation);document.addEventListener('visibilitychange',activation);
 if(EMBEDDED)window.addEventListener('message',event=>{
  if(event.origin!==location.origin||event.source!==window.parent||event.data?.type!=='pt-resource-host')return;

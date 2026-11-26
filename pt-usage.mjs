@@ -39,3 +39,17 @@ export async function ownUsageIdentities(){
   }
   return {browser:await hashIdentity('browser',browserId()),accounts:await Promise.all([...new Set(ids)].map(id=>hashIdentity('account',id)))};
 }
+
+
+export async function recordToolVisit(tool) {
+  if (location.origin !== ownOrigin || document.hidden) return;
+  const stamp = KEY+'.tool.'+tool, day = clock.format(new Date());
+  try {
+    if (localStorage.getItem(stamp) === day) return;
+    const result = await fetch(API.replace('/visit','/tool'), {
+      method:'POST', keepalive:true, credentials:'omit', headers:{'content-type':'text/plain;charset=UTF-8'},
+      body:JSON.stringify({id:browserId(),tool}),
+    });
+    if (result.status === 204) localStorage.setItem(stamp,day);
+  } catch { /* This must never interfere with the application. */ }
+}

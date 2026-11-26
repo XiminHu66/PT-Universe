@@ -24,7 +24,7 @@ import { anythingLLMRoute } from './anythingllm';
 import { mediaRoute } from './media';
 import {checkAiRoute} from './check-ai';
 import { contentHubRoute, hubTick } from './content-hub';
-import {pruneUsage,recordUsageAccount,usageVisit} from './usage';
+import {pruneUsage,recordUsageAccount,toolVisit,usageVisit} from './usage';
 
 type RefreshScope='all'|'sites'|'music'|'games';
 type RefreshOrigin='manual'|'scheduled:08:31';
@@ -630,6 +630,7 @@ export default {
     };
     try{
       if(url.pathname==='/api/health')return reply(request,{ok:true,time:now(),storage:'KV + D1',rssOrbit:'external',refresh_revision:SITE_REFRESH_REVISION});
+      if(url.pathname==='/api/usage/tool')return new Response(null,{status:await toolVisit(request,env),headers:{...cors(request),'cache-control':'no-store'}});
       if(url.pathname==='/api/usage/visit')return new Response(null,{status:await usageVisit(request,env),headers:{...cors(request),'cache-control':'no-store'}});
       const aiAuth=track('shared-ai');
       const checkAI=await checkAiRoute(request,env,aiAuth);if(checkAI)return reply(request,checkAI.body,checkAI.status);

@@ -1,3 +1,7 @@
+const toolIds = ['reading-desk', 'investment-desk', 'rss-dashboard', 'tsugi-checker', '3c-scout', 'deal-radar'] as const;
+type ToolID = typeof toolIds[number];
+const isToolID = (value: unknown): value is ToolID => typeof value === 'string' && toolIds.some(id => id === value);
+
 type UsageKind = 'universe' | 'nexus' | 'sync' | 'shared-ai';
 type UsageIdentity = 'browser' | 'account';
 const origin = 'https://ximinhu66.github.io';
@@ -13,6 +17,7 @@ function ensureSchema(db: D1Database) {
   if (!ready) {
     ready = db.batch([
       db.prepare('CREATE TABLE IF NOT EXISTS pt_usage_activity(day TEXT NOT NULL, kind TEXT NOT NULL, identity TEXT NOT NULL, PRIMARY KEY(day,kind,identity)) WITHOUT ROWID'),
+      db.prepare('CREATE TABLE IF NOT EXISTS pt_tool_activity(day TEXT NOT NULL, tool TEXT NOT NULL, identity TEXT NOT NULL, seen_at INTEGER NOT NULL, PRIMARY KEY(day,tool,identity)) WITHOUT ROWID'),
       db.prepare('CREATE TABLE IF NOT EXISTS pt_usage_owner(kind TEXT NOT NULL, identity TEXT NOT NULL, marked_day TEXT NOT NULL, PRIMARY KEY(kind,identity)) WITHOUT ROWID'),
     ]).catch(error => { schema.delete(db); throw error; });
     schema.set(db, ready);
@@ -79,6 +84,47 @@ export async function usageVisit(request: Request, env: Pick<Env,'DB'|'USAGE_VIS
   return 204;
 }
 
+export async function toolVisit(request: Request, env: Pick<Env,'DB'|'USAGE_VISIT_LIMIT'>, now = new Date()) {
+  if (request.method !== 'POST') return 405;
+  const ip = request.headers.get('cf-connecting-ip');
+  if (request.headers.get('origin') !== origin || !ip) return 403;
+  const {success} = await env.USAGE_VISIT_LIMIT.limit({key:ip});
+  if (!success) return 429;
+  const data = await smallJSON(request);
+  if (!data || typeof data.id !== 'string' || !uuid.test(data.id) || !isToolID(data.tool)) return 400;
+  await ensureSchema(env.DB);
+  await env.DB.prepare('INSERT OR IGNORE INTO pt_tool_activity(day,tool,identity,seen_at) VALUES(?,?,?,?)')
+    .bind(pacificDate.format(now), data.tool, await hashIdentity('browser', data.id), now.getTime()).run();
+  return 204;
+}
+
+export async function toolUsageSummary(db: D1Database, now = new Date()) {
+  await ensureSchema(db);
+  const day = pacificDate.format(now);
+  const since = offset(day, -29);
+  const [visits, coverage, owners] = await Promise.all([
+    db.prepare(`SELECT a.tool,
+      count(DISTINCT CASE WHEN a.day >= ? THEN a.day END) AS week,
+      count(DISTINCT a.day) AS month, max(a.seen_at) AS lastVisit
+      FROM pt_tool_activity a INNER JOIN pt_usage_owner o
+        ON a.identity=o.identity AND o.kind='browser' AND o.marked_day>=?
+      WHERE a.day BETWEEN ? AND ? GROUP BY a.tool`)
+      .bind(offset(day,-6), offset(day,-89), since, day).all<{tool:ToolID;week:number;month:number;lastVisit:number}>(),
+    db.prepare('SELECT tool, min(day) AS first FROM pt_tool_activity WHERE day <= ? GROUP BY tool')
+      .bind(day).all<{tool:ToolID;first:string}>(),
+    db.prepare("SELECT count(*) AS total FROM pt_usage_owner WHERE kind='browser' AND marked_day>=?")
+      .bind(offset(day,-89)).first<{total:number}>(),
+  ]);
+  return {
+    day, ownedBrowsers: owners?.total ?? 0,
+    tools: toolIds.map(id => {
+      const first = coverage.results.find(row => row.tool === id)?.first ?? null;
+      const own = visits.results.find(row => row.tool === id);
+      return { id, first, weeksDays: own?.week ?? 0, monthDays: own?.month ?? 0, lastVisit: own?.lastVisit ?? null };
+    }),
+  };
+}
+
 export async function markUsageOwner(request: Request, db: D1Database, now = new Date()) {
   const data = await smallJSON(request);
   if (!data || typeof data.browser!=='string' || !digest.test(data.browser) || !Array.isArray(data.accounts) || data.accounts.length>2 || data.accounts.some((id: unknown)=>typeof id!=='string'||!digest.test(id))) return false;
@@ -119,6 +165,7 @@ export async function pruneUsage(db: D1Database, now: Date) {
   const day = pacificDate.format(now);
   await db.batch([
     db.prepare('DELETE FROM pt_usage_activity WHERE day<?').bind(offset(day,-13)),
+    db.prepare('DELETE FROM pt_tool_activity WHERE day<?').bind(offset(day,-44)),
     db.prepare('DELETE FROM pt_usage_owner WHERE marked_day<?').bind(offset(day,-89)),
   ]);
 }

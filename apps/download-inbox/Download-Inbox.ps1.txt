@@ -1,0 +1,350 @@
+﻿[CmdletBinding()]
+param([switch]$SelfTest)
+
+$ErrorActionPreference = 'Stop'
+$groups = [ordered]@{
+    Documents = 'pdf doc docx txt md rtf epub odt'
+    Spreadsheets = 'csv tsv xls xlsx ods'
+    Images = 'jpg jpeg png gif webp heic bmp svg avif'
+    Installers = 'exe msi msix appx'
+    Archives = 'zip rar 7z tar gz xz bz2'
+    Media = 'mp4 mkv mov webm avi ts wmv mp3 flac m4a wav'
+    Other = ''
+}
+$incompleteSuffixes = @('crdownload','part','partial','download','tmp','opdownload','filepart','aria2')
+$historyDir = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'PT-Universe\DownloadInbox'
+$journalPath = Join-Path $historyDir 'last-batch.json'
+
+function Get-Category([string]$Name) {
+    $ext = [IO.Path]::GetExtension($Name).TrimStart('.').ToLowerInvariant()
+    foreach ($group in $groups.Keys) {
+        if ($ext -and $groups[$group].Split(' ') -contains $ext) { return $group }
+    }
+    return 'Other'
+}
+
+function Get-DownloadsDirectory {
+    $key = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders'
+    $entry = Get-ItemProperty -LiteralPath $key -Name '{374DE290-123F-4565-9164-39C4925E467B}' -ErrorAction SilentlyContinue
+    $value = $entry.'{374DE290-123F-4565-9164-39C4925E467B}'
+    if ($value) { return [Environment]::ExpandEnvironmentVariables($value) }
+    return (Join-Path ([Environment]::GetFolderPath('UserProfile')) 'Downloads')
+}
+
+function Test-Reparse($Item) {
+    return [bool]($Item.Attributes -band [IO.FileAttributes]::ReparsePoint)
+}
+
+function Get-InboxFiles([string]$Directory) {
+    foreach ($file in Get-ChildItem -LiteralPath $Directory -File) {
+        if ((Test-Reparse $file) -or $incompleteSuffixes -contains $file.Extension.TrimStart('.').ToLowerInvariant()) { continue }
+        if ($file.LastWriteTimeUtc -gt [DateTime]::UtcNow.AddSeconds(-20)) { continue }
+        $file
+    }
+}
+
+function Get-UniqueName([string]$Directory,[string]$FileName,$Reserved) {
+    $stem = [IO.Path]::GetFileNameWithoutExtension($FileName)
+    $ext = [IO.Path]::GetExtension($FileName)
+    $name = $FileName
+    for ($n=2; $n -le 10000; $n++) {
+        $candidate = Join-Path $Directory $name
+        if (!$Reserved.Contains($candidate) -and !(Test-Path -LiteralPath $candidate)) {
+            [void]$Reserved.Add($candidate)
+            return $candidate
+        }
+        $name = "$stem ($n)$ext"
+    }
+    throw '同名文件过多，请先选择其他名称。'
+}
+
+function Assert-RegularDirectory([string]$Directory) {
+    $item = Get-Item -LiteralPath $Directory
+    if (!$item.PSIsContainer -or (Test-Reparse $item)) { throw '文件夹必须是普通目录。' }
+}
+
+function Get-Plan([string]$Root,$Files,[string]$Category,[string]$Prefix,[string]$Mode) {
+    Assert-RegularDirectory $Root
+    if ($Mode -eq 'archive' -and $Category -ne 'Auto' -and !$groups.Contains($Category)) { throw '无效分类。' }
+    if ($Prefix -and ($Prefix.IndexOfAny([IO.Path]::GetInvalidFileNameChars()) -ge 0 -or $Prefix.TrimEnd(' ','.') -ne $Prefix)) {
+        throw '前缀含有无效字符或尾部空格、句点。'
+    }
+    if ($Mode -eq 'rename' -and !$Prefix) { throw '批量改名时请输入前缀。' }
+    $reserved = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($file in $Files) {
+        $destinationDir = $Root
+        if ($Mode -eq 'archive') {
+            $folder = if ($Category -eq 'Auto') { Get-Category $file.Name } else { $Category }
+            $destinationDir = Join-Path $Root $folder
+            if (Test-Path -LiteralPath $destinationDir) { Assert-RegularDirectory $destinationDir }
+        }
+        $name = if ($Prefix) { "$Prefix-$($file.Name)" } else { $file.Name }
+        $destination = Get-UniqueName $destinationDir $name $reserved
+        [pscustomobject]@{ Source=$file.FullName; Destination=$destination; Size=$file.Length; Ticks=$file.LastWriteTimeUtc.Ticks; State='planned' }
+    }
+}
+
+function Save-Journal($Journal) {
+    [void][IO.Directory]::CreateDirectory($historyDir)
+    $temp = Join-Path $historyDir ('batch-'+[Guid]::NewGuid().ToString('N')+'.tmp')
+    $backup = $temp+'.bak'
+    try {
+        [IO.File]::WriteAllText($temp, ($Journal | ConvertTo-Json -Depth 5), [Text.UTF8Encoding]::new($true))
+        if ([IO.File]::Exists($journalPath)) { [IO.File]::Replace($temp,$journalPath,$backup) }
+        else { [IO.File]::Move($temp,$journalPath) }
+    } finally {
+        if ([IO.File]::Exists($temp)) { [IO.File]::Delete($temp) }
+        if ([IO.File]::Exists($backup)) { [IO.File]::Delete($backup) }
+    }
+}
+
+function Read-Journal {
+    if (Test-Path -LiteralPath $journalPath) { return Get-Content -LiteralPath $journalPath -Raw | ConvertFrom-Json }
+}
+
+function Assert-PlannedPath([string]$Root,$Step) {
+    $sourceDir = [IO.Path]::GetDirectoryName($Step.Source)
+    $destDir = [IO.Path]::GetDirectoryName($Step.Destination)
+    if ($sourceDir -ine $Root -or ($destDir -ine $Root -and
+        ([IO.Path]::GetDirectoryName($destDir) -ine $Root -or !$groups.Contains([IO.Path]::GetFileName($destDir))))) {
+        throw '记录中的路径不在授权目录内。'
+    }
+    if ([IO.Path]::GetFullPath($Step.Source) -ine $Step.Source -or [IO.Path]::GetFullPath($Step.Destination) -ine $Step.Destination) {
+        throw '文件路径已变化。'
+    }
+    Assert-RegularDirectory $Root
+    if (Test-Path -LiteralPath $destDir) { Assert-RegularDirectory $destDir }
+}
+
+function Test-FileSnapshot([string]$Path,$Step) {
+    if (![IO.File]::Exists($Path)) { return $false }
+    $file = Get-Item -LiteralPath $Path
+    return (!(Test-Reparse $file) -and $file.Length -eq $Step.Size -and $file.LastWriteTimeUtc.Ticks -eq $Step.Ticks)
+}
+
+function Invoke-Batch($Journal) {
+    Save-Journal $Journal
+    foreach ($step in $Journal.Steps) {
+        try {
+            Assert-PlannedPath $Journal.Root $step
+            if (!(Test-FileSnapshot $step.Source $step)) { throw '原文件已变化，需重新扫描和预览。' }
+            if (Test-Path -LiteralPath $step.Destination) { throw '目标已被占用。' }
+            $destDir = [IO.Path]::GetDirectoryName($step.Destination)
+            [void][IO.Directory]::CreateDirectory($destDir)
+            Assert-RegularDirectory $destDir
+        } catch {
+            $step.State='skipped'
+            "$([IO.Path]::GetFileName($step.Source))：$($_.Exception.Message)"
+            continue
+        }
+        $step.State='pending'
+        Save-Journal $Journal
+        try {
+            [IO.File]::Move($step.Source,$step.Destination)
+            $step.State='done'
+        } catch {
+            $step.State='skipped'
+            "$([IO.Path]::GetFileName($step.Source))：$($_.Exception.Message)"
+        }
+        Save-Journal $Journal
+    }
+    Save-Journal $Journal
+}
+
+function Undo-Batch($Journal) {
+    $steps = @($Journal.Steps)
+    [array]::Reverse($steps)
+    foreach ($step in $steps) {
+        if ($step.State -notin @('pending','done','undo_pending')) { continue }
+        try {
+            Assert-PlannedPath $Journal.Root $step
+            $sourceExists = Test-Path -LiteralPath $step.Source
+            $destExists = Test-Path -LiteralPath $step.Destination
+            if ($sourceExists -and !$destExists -and $step.State -ne 'done' -and (Test-FileSnapshot $step.Source $step)) {
+                $step.State='restored'
+                Save-Journal $Journal
+                continue
+            }
+            if ($sourceExists -or !(Test-FileSnapshot $step.Destination $step)) {
+                throw '原位置已有文件，或归档文件已变化。'
+            }
+            $step.State='undo_pending'
+            Save-Journal $Journal
+            [IO.File]::Move($step.Destination,$step.Source)
+            $step.State='restored'
+            Save-Journal $Journal
+        } catch {
+            "$([IO.Path]::GetFileName($step.Source))：$($_.Exception.Message)"
+        }
+    }
+}
+
+if ($SelfTest) {
+    $root = Join-Path ([IO.Path]::GetTempPath()) ('download-inbox-'+[Guid]::NewGuid().ToString('N'))
+    $historyDir = Join-Path $root 'test-journal'
+    $journalPath = Join-Path $historyDir 'last-batch.json'
+    [void][IO.Directory]::CreateDirectory($root)
+    try {
+        $source = Join-Path $root 'note.pdf'
+        [IO.File]::WriteAllText($source,'test')
+        $existing = Join-Path $root 'Documents'
+        [void][IO.Directory]::CreateDirectory($existing)
+        [IO.File]::WriteAllText((Join-Path $existing 'note.pdf'),'preserve')
+        $plan = @(Get-Plan $root @(Get-Item -LiteralPath $source) Auto '' archive)
+        if ([IO.Path]::GetFileName($plan[0].Destination) -ne 'note (2).pdf') { throw 'Collision planning failed' }
+        $journal = [pscustomobject]@{Root=$root;Steps=$plan}
+        $errors = @(Invoke-Batch $journal)
+        if ($errors.Count -or (Test-Path -LiteralPath $source) -or !(Test-Path -LiteralPath $plan[0].Destination)) { throw 'Move failed' }
+        [IO.File]::WriteAllText($source,'new')
+        $errors = @(Undo-Batch (Read-Journal))
+        if (!$errors.Count -or [IO.File]::ReadAllText($source) -ne 'new') { throw 'Undo collision overwrote a file' }
+        [IO.File]::Delete($source)
+        $errors = @(Undo-Batch (Read-Journal))
+        if ($errors.Count -or [IO.File]::ReadAllText($source) -ne 'test') { throw 'Undo failed' }
+        'PASS: collision, journal, move, refusal to overwrite, undo'
+    } finally {
+        Remove-Item -LiteralPath $root -Recurse -Force
+    }
+    return
+}
+
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
+[Windows.Forms.Application]::EnableVisualStyles()
+$created = $false
+$mutex = [Threading.Mutex]::new($true,'Local\PTUniverseDownloadInbox',[ref]$created)
+if (!$created) { [void][Windows.Forms.MessageBox]::Show('收件台已经打开。'); $mutex.Dispose(); return }
+
+$form = New-Object Windows.Forms.Form -Property @{Text='下载文件夹收件台 · PT Universe'; Width=1080; Height=680; MinimumSize=[Drawing.Size]::new(780,480); StartPosition='CenterScreen'; Font=[Drawing.Font]::new('Microsoft YaHei UI',10)}
+$bar = New-Object Windows.Forms.FlowLayoutPanel -Property @{Dock='Top'; AutoSize=$true; Padding=[Windows.Forms.Padding]::new(8); WrapContents=$true}
+$status = New-Object Windows.Forms.Label -Property @{Dock='Bottom'; Height=46; Padding=[Windows.Forms.Padding]::new(10,5,8,4); AutoEllipsis=$true}
+$table = New-Object Windows.Forms.DataGridView -Property @{Dock='Fill'; AllowUserToAddRows=$false; AllowUserToDeleteRows=$false; RowHeadersVisible=$false; AutoSizeColumnsMode='Fill'; RowTemplate=(New-Object Windows.Forms.DataGridViewRow -Property @{Height=28}); SelectionMode='FullRowSelect'}
+$selectColumn = New-Object Windows.Forms.DataGridViewCheckBoxColumn -Property @{Name='Pick'; HeaderText='选中'; FillWeight=11}
+[void]$table.Columns.Add($selectColumn)
+foreach ($column in @(@('File','文件名',48),@('Size','大小',16),@('Category','建议分类',20),@('Modified','修改时间',28),@('Duplicate','查重结果',26))) {
+    [void]$table.Columns.Add((New-Object Windows.Forms.DataGridViewTextBoxColumn -Property @{Name=$column[0]; HeaderText=$column[1]; FillWeight=$column[2]; ReadOnly=$true}))
+}
+$directory = [Windows.Forms.TextBox]::new()
+$directory.Width = 250
+$directory.ReadOnly = $true
+$directory.Text = Get-DownloadsDirectory
+$category = New-Object Windows.Forms.ComboBox -Property @{DropDownStyle='DropDownList';Width=118}
+$category.Items.AddRange([object[]](@('Auto')+@($groups.Keys)))
+$category.SelectedIndex=0
+$prefix = New-Object Windows.Forms.TextBox -Property @{Width=100}
+$buttons = @{}
+foreach ($pair in @(@('folder','选文件夹'),@('scan','重新扫描'),@('all','全选／清空'),@('dupes','查找重复'),@('archive','预览归档'),@('rename','预览改名'),@('undo','撤回上次'))) {
+    $buttons[$pair[0]] = New-Object Windows.Forms.Button -Property @{Text=$pair[1]; AutoSize=$true}
+}
+$buttons['dupes'].Text = '内容查重'
+$bar.Controls.AddRange([Windows.Forms.Control[]]@($directory,$buttons.folder,$buttons.scan,$buttons.all,$buttons.dupes,$category,
+    (New-Object Windows.Forms.Label -Property @{Text='改名前缀';AutoSize=$true;Margin=[Windows.Forms.Padding]::new(4,6,0,0)}),
+    $prefix,$buttons.archive,$buttons.rename,$buttons.undo))
+$form.Controls.AddRange([Windows.Forms.Control[]]@($table,$bar,$status))
+$table.Add_CurrentCellDirtyStateChanged({ if ($table.IsCurrentCellDirty) { [void]$table.CommitEdit('Commit') } })
+
+function Scan-Inbox {
+    $table.Rows.Clear()
+    Assert-RegularDirectory $directory.Text
+    $directory.Text = (Get-Item -LiteralPath $directory.Text).FullName
+    $files = @(Get-InboxFiles $directory.Text | Sort-Object LastWriteTime -Descending)
+    foreach ($file in $files) {
+        $n = $table.Rows.Add($false,$file.Name,('{0:N1} MB' -f ($file.Length/1MB)),(Get-Category $file.Name),$file.LastWriteTime.ToString('yyyy-MM-dd HH:mm'),'')
+        $table.Rows[$n].Tag=$file
+    }
+    $status.Text = "共 $($files.Count) 个文件 · 按最近修改排序 · 只处理顶层文件"
+    $buttons.undo.Enabled = [IO.File]::Exists($journalPath)
+}
+function Invoke-UI([scriptblock]$Action) {
+    $form.UseWaitCursor=$true
+    try { & $Action }
+    catch { $status.Text=$_.Exception.Message; [void][Windows.Forms.MessageBox]::Show($form,$status.Text,'无法完成') }
+    finally { $form.UseWaitCursor=$false }
+}
+function Show-Result($Errors,[string]$Success) {
+    if (@($Errors).Count) { [void][Windows.Forms.MessageBox]::Show($form,(@($Errors) -join "`r`n"),'有项目需要处理') }
+    $status.Text = if (@($Errors).Count) { "有 $(@($Errors).Count) 项需要处理，已保留结果。" } else { $Success }
+}
+function Preview-Batch([string]$Mode) {
+    $files = @($table.Rows | Where-Object { $_.Cells['Pick'].Value -eq $true } | ForEach-Object { $_.Tag })
+    if (!$files.Count) { $status.Text='请先勾选要处理的文件。'; return }
+    $root = $directory.Text
+    $plan = @(Get-Plan $root $files $category.SelectedItem $prefix.Text.Trim() $Mode)
+    $preview = New-Object Windows.Forms.Form -Property @{Text='确认整理';Width=930;Height=480;StartPosition='CenterParent'; Font=$form.Font}
+    $list = New-Object Windows.Forms.ListView -Property @{Dock='Fill';View='Details';FullRowSelect=$true}
+    [void]$list.Columns.Add('原文件',340); [void]$list.Columns.Add('目标位置',530)
+    foreach ($step in $plan) {
+        $row = $list.Items.Add([IO.Path]::GetFileName($step.Source))
+        [void]$row.SubItems.Add($step.Destination.Substring($root.Length).TrimStart('\'))
+    }
+    $footer = New-Object Windows.Forms.FlowLayoutPanel -Property @{Dock='Bottom';Height=42}
+    $confirm = New-Object Windows.Forms.Button -Property @{Text="执行 $($plan.Count) 项"; AutoSize=$true;DialogResult='OK'}
+    $cancel = New-Object Windows.Forms.Button -Property @{Text='返回';AutoSize=$true;DialogResult='Cancel'}
+    $footer.Controls.AddRange([Windows.Forms.Control[]]@($confirm,$cancel))
+    $preview.Controls.AddRange([Windows.Forms.Control[]]@($list,$footer)); $preview.CancelButton=$cancel
+    $prior = Read-Journal
+    if (@($prior.Steps | Where-Object {$_.State -in @('pending','undo_pending')}).Count) {
+        $preview.Dispose()
+        throw '上次有未完成的变更，请先撤回和核对。'
+    }
+    if (@($prior.Steps | Where-Object {$_.State -eq 'done'}).Count) { $preview.Text='确认整理 · 本批执行后替换上次撤回记录' }
+    try { $answer=$preview.ShowDialog($form) } finally { $preview.Dispose() }
+    if ($answer -ne 'OK') { return }
+    $errors=@(Invoke-Batch ([pscustomobject]@{Root=$root;Steps=$plan}))
+    Scan-Inbox
+    Show-Result $errors '整理完成。可以撤回本批。'
+}
+$buttons.folder.Add_Click({
+    Invoke-UI {
+        $picker = New-Object Windows.Forms.FolderBrowserDialog -Property @{Description='选择要整理的文件夹';SelectedPath=$directory.Text;ShowNewFolderButton=$false}
+        try { if ($picker.ShowDialog($form) -eq 'OK') { $directory.Text=$picker.SelectedPath; Scan-Inbox } }
+        finally { $picker.Dispose() }
+    }
+})
+$buttons.scan.Add_Click({ Invoke-UI { Scan-Inbox } })
+$buttons.all.Add_Click({
+    $shouldSelect = @($table.Rows | Where-Object { $_.Cells['Pick'].Value -ne $true }).Count -gt 0
+    foreach ($row in $table.Rows) { $row.Cells['Pick'].Value=$shouldSelect }
+})
+$buttons.dupes.Add_Click({
+    Invoke-UI {
+        $status.Text='正在读取同样大小的文件并比对内容…'
+        $status.Refresh()
+        $failures=0; $duplicates=0
+        foreach ($row in $table.Rows) { $row.Cells['Duplicate'].Value='' }
+        foreach ($bucket in @($table.Rows | Group-Object { $_.Tag.Length } | Where-Object Count -gt 1)) {
+            $hashes=@{}
+            foreach ($row in $bucket.Group) {
+                try {
+                    $current=Get-Item -LiteralPath $row.Tag.FullName
+                    if ((Test-Reparse $current) -or $current.Length -ne $row.Tag.Length -or $current.LastWriteTimeUtc -ne $row.Tag.LastWriteTimeUtc) { throw '文件已变化' }
+                    $hash=(Get-FileHash -LiteralPath $current.FullName -Algorithm SHA256).Hash
+                    $hashes[$hash]=@($hashes[$hash] | Where-Object { $_ -ne $null })+@($row)
+                } catch { $row.Cells['Duplicate'].Value='读取失败'; $failures++ }
+            }
+            foreach ($key in $hashes.Keys) {
+                if ($hashes[$key].Count -lt 2) { continue }
+                foreach ($row in $hashes[$key]) { $row.Cells['Duplicate'].Value="同内容：$($hashes[$key].Count) 份"; $duplicates++ }
+            }
+        }
+        $status.Text="查重完成 · $duplicates 个文件存在同内容副本 · $failures 个读取失败"
+    }
+})
+$buttons.archive.Add_Click({ Invoke-UI { Preview-Batch archive } })
+$buttons.rename.Add_Click({ Invoke-UI { Preview-Batch rename } })
+$buttons.undo.Add_Click({
+    Invoke-UI {
+        $journal=Read-Journal
+        if (!$journal) { return }
+        if ([Windows.Forms.MessageBox]::Show($form,"将上次整理的文件移回原位。原目录：$($journal.Root)",'撤回上次','OKCancel') -ne 'OK') { return }
+        $errors=@(Undo-Batch $journal)
+        Scan-Inbox
+        Show-Result $errors '上次整理已撤回。'
+    }
+})
+$form.Add_Shown({
+    $buttons.undo.Enabled = [IO.File]::Exists($journalPath)
+    if (Test-Path -LiteralPath $directory.Text -PathType Container) { Invoke-UI { Scan-Inbox } }
+    else { $status.Text='请选择下载文件夹。' }
+})
+try { [void]$form.ShowDialog() } finally { $form.Dispose(); $mutex.ReleaseMutex(); $mutex.Dispose() }

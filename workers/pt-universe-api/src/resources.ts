@@ -1,3 +1,4 @@
+import {readResourceActivity} from './resource-activity';
 import {cachedResources} from './resources-cache';
 import {OWNER_CONNECT_PUBLIC_KEY,readVpsSnapshot,hash} from './knowledge';
 import {sanitizeVpsSnapshot} from './vps';
@@ -44,6 +45,7 @@ export async function resourcesRoute(request:Request,env:ResourceEnv,publicKey:J
    if(request.method==='POST'&&!await markUsageOwner(request,env.DB))return json({error:'无效的浏览器标记'},400);
    return json(await usageSummary(env.DB));
   }
+  if(u.pathname===prefix+'/activity'&&!u.search)return json(await readResourceActivity(env));
   if(u.pathname===prefix+'/vps'&&!u.search){const cached=vpsCache.get(env.PT_UNIVERSE_DATA);if(cached&&Date.now()-cached.at<20000)return json(cached.value);const value=sanitizeVpsSnapshot(await readVpsSnapshot(env));vpsCache.set(env.PT_UNIVERSE_DATA,{at:Date.now(),value});return json(value);}
   if(u.pathname===prefix+'/browser'&&!u.search){if(!browserReader)return json({status:{provider:'browser',state:'unavailable',checkedAt:new Date().toISOString()}});return json(await cachedResources('browser',env,browserReader));}
   if(u.pathname===prefix+'/releases'){
