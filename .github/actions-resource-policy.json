@@ -5,7 +5,8 @@
   "manual_only_workflows": [
     "refresh-3c.yml",
     "refresh-investment.yml",
-    "refresh-stock.yml"
+    "refresh-stock.yml",
+    "refresh-tsugi-games.yml"
   ],
   "on_demand_datasets": [
     "3c",

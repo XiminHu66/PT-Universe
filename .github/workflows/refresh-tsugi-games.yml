@@ -1,9 +1,6 @@
 name: Refresh Tsugi games
 'on':
   workflow_dispatch: null
-  schedule:
-  - cron: 31 8 * * *
-    timezone: America/Los_Angeles
 permissions:
   contents: write
 concurrency:
