@@ -16,5 +16,15 @@ export async function api(path,{method='GET',body}={}){
  let value;try{value=await r.json()}catch{throw Error('后台返回异常，请稍后重试')};if(r.status===401){token='';drop(KEY);invalid=true;document.dispatchEvent(new CustomEvent('monitor-disconnected'));}if(!r.ok)throw Error(value.error||'请求失败');return value;
 }
 
-// Resume only the fixed Deal Lab page after the existing nonce-bound connection flow.
-if(connected()&&location.pathname.startsWith('/PT-Universe/apps/monitor-center')){let resume;try{resume=JSON.parse(get('pt.deal-lab.return.v1')||'null')}catch{}drop('pt.deal-lab.return.v1');if(resume?.path==='/PT-Universe/apps/deal-lab/'&&resume.expiresAt>Date.now())location.replace(resume.path);}
+// Resume a fixed shopping page after the existing nonce-bound connection flow.
+if(connected()&&location.pathname.startsWith('/PT-Universe/apps/monitor-center')){
+ const promoKey='pt.deal-promo.return.v1',labKey='pt.deal-lab.return.v1';
+ let promo,lab;
+ try{promo=JSON.parse(get(promoKey)||'null');lab=JSON.parse(get(labKey)||'null')}catch{}
+ drop(promoKey);drop(labKey);
+ if(promo?.expiresAt>Date.now())location.replace('/PT-Universe/apps/deal-radar/#promotion');
+ else if(lab?.path==='/PT-Universe/apps/deal-lab/'&&lab.expiresAt>Date.now()){
+  const query=typeof lab.query==='string'&&lab.query ? '?q='+encodeURIComponent(lab.query.slice(0,160)) : '';
+  location.replace(lab.path+query);
+ }
+}

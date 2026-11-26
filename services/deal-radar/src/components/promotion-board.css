@@ -1,0 +1,109 @@
+.radar-views, .promo-board {
+  max-width: 1190px;
+  margin-inline: auto;
+  width: min(100% - 2rem, 1190px);
+}
+.radar-views {
+  display: flex;
+  gap: 0.4rem;
+  margin-block: 0.85rem 0.4rem;
+  flex-wrap: wrap;
+  color: var(--foreground);
+}
+.radar-views a {
+  padding: 0.45rem 0.8rem;
+  border-radius: 0.45rem;
+  text-decoration: none;
+  color: inherit;
+}
+.radar-views a[aria-current="page"] { background: var(--secondary); font-weight: 650; }
+.promo-board {
+  color: var(--foreground);
+  margin-block: 1rem 3rem;
+  display: grid;
+  gap: 0.8rem;
+  font-size: 0.875rem;
+}
+.promo-board h1 { font-size: clamp(1.5rem, 5vw, 2.15rem); font-weight: 720; line-height: 1.2; }
+.promo-board h2 { font-size: 1.15rem; font-weight: 680; scroll-margin-top: 1rem; }
+.promo-board h2 span { color: var(--muted-foreground); font-size: 0.85rem; margin-left: 0.35rem; }
+.promo-board h3 { font-size: 0.97rem; font-weight: 640; line-height: 1.45; }
+.promo-board p { margin-block: 0.2rem; }
+.promo-board a { text-underline-offset: 0.2em; }
+.promo-board a:hover { text-decoration: underline; }
+.promo-heading, .promo-section-heading, .promo-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.promo-heading, .promo-section-heading { justify-content: space-between; }
+.promo-heading p, .promo-muted { color: var(--muted-foreground); }
+.promo-panel {
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 0.9rem;
+  background: var(--card);
+  min-width: 0;
+}
+.promo-board :is(button, input:not([type="checkbox"]), select) {
+  border: 1px solid var(--border);
+  border-radius: 0.45rem;
+  background: var(--background);
+  min-height: 2.2rem;
+  padding: 0.3rem 0.58rem;
+  max-width: 100%;
+  color: var(--foreground);
+}
+.promo-board button { cursor: pointer; white-space: normal; }
+.promo-board button:hover:not(:disabled) { border-color: var(--ring); }
+.promo-board button:disabled { opacity: 0.55; cursor: default; }
+.promo-board :is(button, select, input):focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.promo-board .promo-primary {
+  background: #14685b;
+  color: #fff;
+  font-weight: 650;
+  border-color: #14685b;
+}
+.promo-board button[aria-pressed="true"], .promo-chip[data-hit="true"] { background: #d9f4e9; color: #124437; border-color: #a2d4c5; }
+.promo-check { display: inline-flex; align-items: center; gap: 0.3rem; }
+.promo-check input { accent-color: #14685b; }
+.promo-editor-fields { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 0.55rem; min-width: 0; }
+.promo-editor-fields label { min-width: 0; }
+.promo-form { display: grid; gap: 0.7rem; }
+.promo-form label:not(.promo-check) { display: flex; flex-direction: column; gap: 0.2rem; }
+.promo-form fieldset { border: 0; padding: 0; }
+.promo-manual-price { margin-top: 0.45rem; align-items: flex-end; }
+.promo-manual-price .promo-check { min-height: 2.2rem; }
+.promo-edit-watch { border-block: 1px solid var(--border); margin-top: 0.75rem; padding-block: 0.75rem; }
+.promo-board progress { width: 100%; height: 0.7rem; accent-color: #14685b; margin-block: 0.6rem 0.3rem; }
+.promo-progress-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.2rem 0.8rem; list-style: none; padding: 0; }
+.promo-progress-list li { display: flex; gap: 0.45rem; justify-content: space-between; padding: 0.25rem 0; overflow-wrap: anywhere; }
+.promo-progress-list li span:last-child { text-align: right; }
+.promo-progress-list [data-result="failed"], .promo-warning { color: #9b402e; }
+.dark .promo-progress-list [data-result="failed"], .dark .promo-warning { color: #ffab9a; }
+.promo-categories, .promo-watch-filter, .promo-source-controls { margin-block: 0.65rem 0.3rem; }
+.promo-source-controls a { color: var(--muted-foreground); }
+.promo-watch {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(72px, 0.42fr) auto minmax(150px, 1fr);
+  gap: 0.55rem;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  padding-block: 0.58rem;
+  overflow-wrap: anywhere;
+}
+.promo-watch-name { font-weight: 650; }
+.promo-price { display: grid; font-variant-numeric: tabular-nums; }
+.promo-price span { color: var(--muted-foreground); }
+.promo-chip { width: fit-content; border: 1px solid var(--border); padding: 0.12rem 0.42rem; border-radius: 0.35rem; background: var(--secondary); white-space: nowrap; }
+.promo-leads { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 0.55rem; margin-top: 0.65rem; }
+.promo-lead { display: grid; gap: 0.45rem; border: 1px solid var(--border); border-radius: 0.55rem; padding: 0.65rem; overflow-wrap: anywhere; }
+.promo-lead .promo-controls:last-child { align-self: end; justify-content: space-between; }
+.promo-watch-list { margin-top: 0.6rem; }
+@media (max-width: 700px) {
+  .promo-board, .radar-views { width: min(100% - 1rem, 1190px); }
+  .promo-watch { grid-template-columns: minmax(0, 1fr) auto; }
+  .promo-watch-actions { justify-content: flex-start; }
+  .promo-progress-list, .promo-editor-fields { grid-template-columns: minmax(0, 1fr); }
+}
